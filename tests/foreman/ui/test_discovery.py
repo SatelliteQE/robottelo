@@ -1,11 +1,13 @@
 # -*- encoding: utf-8 -*-
 """Test class for Foreman Discovery"""
 from robottelo.test import UITestCase
+from robottelo.common.decorators import stubbed
 
 
 class Discovery(UITestCase):
     """Implements Foreman discovery tests in UI."""
 
+    @stubbed()
     def test_host_discovery_1(self):
         """@Test: Discover a host in legacy mode by setting
         "proxy.type=foreman" in PXE default
@@ -22,6 +24,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_host_discovery_2(self):
         """@Test: Discover a host via proxy by setting "proxy.type=proxy" in
         PXE default
@@ -38,6 +41,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_host_discovery_facts(self):
         """@Test: Check all facts of discovered hosts are correctly displayed
 
@@ -53,6 +57,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_provision_discovered_host_1(self):
         """@Test: Provision the selected discovered host by selecting
         'provision' button
@@ -68,6 +73,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_provision_discovered_host_2(self):
         """@Test: Provision the selected discovered host from facts page by
         clicking 'provision'
@@ -83,6 +89,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_delete_discovered_host_1(self):
         """@Test: Delete the selected discovered host
 
@@ -96,6 +103,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_delete_discovered_host_2(self):
         """@Test: Delete the selected discovered host from facts page
 
@@ -109,6 +117,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_delete_multiple_discovered_hosts(self):
         """@Test: Delete multiple discovered hosts from 'Select Action'
         drop down
@@ -123,6 +132,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_refresh_discovered_host_facts(self):
         """@Test: Refresh the facts of discovered hosts
 
@@ -138,6 +148,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_change_default_org(self):
         """@Test: Change the default org of more than one discovered hosts
         from 'Select Action' drop down
@@ -152,6 +163,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_change_default_location(self):
         """@Test: Change the default location of more than one discovered hosts
         from 'Select Action' drop down
@@ -167,6 +179,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_create_discovery_rule_1(self):
         """@Test: Create a new discovery rule
 
@@ -182,6 +195,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_create_discovery_rule_2(self):
         """@Test: Create a new discovery rule with (host_limit = 0)
         that applies to multi hosts.
@@ -197,6 +211,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_create_discovery_rule_3(self):
         """@Test: Create multiple discovery rules with different priority
 
@@ -211,6 +226,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_create_discovery_rule_4(self):
         """@Test: Create a discovery rule and execute it when
         "auto_provisioning" flag set to 'false'
@@ -225,6 +241,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_create_discovery_rule_5(self):
         """@Test: Create a discovery rule with invalid query
         e.g. BIOS = xyz
@@ -240,6 +257,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_create_discovery_rule_6(self):
         """@Test: Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
         provision more than one host with same rule
@@ -255,6 +273,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_rule_with_invalid_host_limit(self):
         """@Test: Create a discovery rule with invalid(-ve/text value) host
         limit
@@ -269,6 +288,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_rule_with_invalid_priority(self):
         """@Test: Create a discovery rule with invalid(text value) priority
 
@@ -282,6 +302,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_create_rule_with_long_name(self):
         """@Test: Create a discovery rule with more than 255 char
 
@@ -295,6 +316,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_delete_discovery_rule(self):
         """@Test: Delete a discovery rule
 
@@ -306,6 +328,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_update_discovery_rule_1(self):
         """@Test: Update an existing rule and execute it
 
@@ -320,6 +343,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_update_discovery_rule_2(self):
         """@Test: Update the discovered host name and provision it
 
@@ -333,6 +357,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_update_discovery_prefix(self):
         """@Test: Update the discovery_prefix parameter other than mac
 
@@ -353,6 +378,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_auto_provision_all(self):
         """@Test: Discover a bunch of hosts and auto-provision all
 
@@ -364,6 +390,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_add_new_discovery_fact(self):
         """@Test: Add a new fact column to display on discovered host page
 
@@ -384,6 +411,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_add_invalid_discovery_fact(self):
         """@Test: Add a new fact column with invalid fact to display on
         discovered host page
@@ -405,6 +433,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_discovery_manager_role(self):
         """@Test: Assign 'Discovery_Manager' role to a normal user
 
@@ -418,6 +447,7 @@ class Discovery(UITestCase):
 
         """
 
+    @stubbed()
     def test_discovery_role(self):
         """@Test: Assign 'Discovery" role to a normal user
 
