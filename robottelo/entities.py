@@ -1846,10 +1846,12 @@ class Repository(
         default='yum',
         required=True,
     )
+    # Just setting `str_type='alpha'` will fail with this error:
+    # {"docker_upstream_name":["must be a valid docker name"]}}
+    docker_upstream_name = entity_fields.StringField(default='busybox')
     gpg_key = entity_fields.OneToOneField('GPGKey')
     label = entity_fields.StringField()
     name = entity_fields.StringField(required=True)
-    docker_upstream_name = entity_fields.StringField()
     product = entity_fields.OneToOneField('Product', required=True)
     unprotected = entity_fields.BooleanField()
     url = entity_fields.URLField(required=True, default=FAKE_1_YUM_REPO)
@@ -1874,6 +1876,17 @@ class Repository(
                 which
             )
         return super(Repository, self).path(which)
+
+    def create_missing(self, auth=None):
+        """Conditionally mark ``docker_upstream_name`` as required.
+
+        Mark ``docker_upstream_name`` as required if ``content_type`` is
+        "docker".
+
+        """
+        if self.content_type == 'docker':
+            type(self).docker_upstream_name.required = True
+        super(Repository, self).create_missing(auth)
 
     # NOTE: See BZ 1151240
     def read(self, auth=None, entity=None, attrs=None, ignore=()):
