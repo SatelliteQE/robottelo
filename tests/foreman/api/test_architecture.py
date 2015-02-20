@@ -39,17 +39,25 @@ class ArchitectureTestCase(APITestCase):
         self.assertIn('operatingsystems', attrs)
         self.assertEqual([os_id], attrs['operatingsystems'])
 
-    @skip_if_bug_open('bugzilla', 1151240)
-    def test_get_hash(self):
-        """@Test: Read the API and look for a list of IDs.
+    def test_associate_with_os(self):
+        """@Test: Create an architecture and associate it with an OS.
 
-        @Assert: The architecture-OS foreign key relationship is described with
-        a list of IDs.
+        @Assert: The architecture can be created, and the association can be
+        read back from the server.
 
         @Feature: Architecture
 
         """
+        # Create an architecture and an OS.
         os_id = entities.OperatingSystem().create()['id']
-        attrs = entities.Architecture(operatingsystem=[os_id]).create()
-        self.assertIn('operatingsystem_ids', attrs)
-        self.assertEqual(attrs['operatingsystem_ids'], [os_id])
+        arch_id = entities.Architecture(
+            operatingsystem=[os_id]
+        ).create_json()['id']
+
+        # Read back the architecture and verify its attributes.
+        arch_attrs = entities.Architecture(id=arch_id).read_json()
+        self.assertIn('operatingsystems', arch_attrs)
+        self.assertEqual(
+            [os_id],
+            [os['id'] for os in arch_attrs['operatingsystems']],
+        )
