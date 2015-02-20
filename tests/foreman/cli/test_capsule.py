@@ -1,21 +1,24 @@
 # -*- encoding: utf-8 -*-
-"""Test class for capsule CLI"""
+"""Test class for the capsule CLI."""
 from robottelo.test import CLITestCase
 
 
 class CapsuleTestCase(CLITestCase):
+    """Tests for capsule functionality."""
+
     def provision_through_capsule(self):
         """@Test: User can provision through a capsule
 
         @Feature: Capsules
 
-        @Setup: Some valid, functional compute resource
-        (perhaps one variation of this case for each supported compute
-        resource type). Also, functioning capsule with proxy is required.
+        @Setup: Some valid, functional compute resource (perhaps one variation
+        of this case for each supported compute resource type). Also,
+        functioning capsule with proxy is required.
 
         @Steps:
-        1. Attempt to route provisioning content through capsule that is
-        using a proxy
+
+        1. Attempt to route provisioning content through capsule that is using
+           a proxy
         2. Attempt to provision instance
 
         @Assert: Instance can be provisioned, with content coming through
@@ -31,6 +34,7 @@ class CapsuleTestCase(CLITestCase):
         @Feature: Capsules
 
         @Steps:
+
         1. attempt to register a system trhough a proxy-enabled capsule
 
         @Assert: system is successfully registered
@@ -45,6 +49,7 @@ class CapsuleTestCase(CLITestCase):
         @Feature: Capsules
 
         @Steps:
+
         1. attempt to unregister a system through a proxy-enabled capsule
 
         @Assert: system is successfully unregistered
@@ -63,8 +68,9 @@ class CapsuleTestCase(CLITestCase):
         Docker] etc.
 
         @Steps:
-        1. attempt to subscribe a system to a content type variation,
-        via a proxy-enabled capsule
+
+        1. attempt to subscribe a system to a content type variation, via a
+           proxy-enabled capsule
 
         @Assert: system is successfully subscribed to each content type
 
@@ -82,10 +88,11 @@ class CapsuleTestCase(CLITestCase):
         Docker] etc.
 
         @Steps:
-        1. attempt to subscribe a system to a content type variation,
-        via a proxy-enabled capsule
-        2. Attempt to install content (RPMs, puppet modules) via
-        proxy-enabled capsule
+
+        1. attempt to subscribe a system to a content type variation, via a
+           proxy-enabled capsule
+        2. Attempt to install content (RPMs, puppet modules) via proxy-enabled
+           capsule
 
         @Assert: system successfully consume content
 
@@ -103,10 +110,11 @@ class CapsuleTestCase(CLITestCase):
         etc.
 
         @Steps:
-        1. attempt to subscribe a system to a content type variation,
-        via a proxy-enabled capsule
-        2. attempt to unsubscribe a system from said content type(s)
-        via a proxy-enabled capsule
+
+        1. attempt to subscribe a system to a content type variation, via a
+           proxy-enabled capsule
+        2. attempt to unsubscribe a system from said content type(s) via a
+           proxy-enabled capsule
 
         @Assert: system is successfully unsubscribed from each content type
 
@@ -125,9 +133,10 @@ class CapsuleTestCase(CLITestCase):
         @Setup: functional capsule and certs rpm installed on target client.
 
         @Steps:
+
         1. Attempt to register system to parent satellite; unregister
-        2. Attempt to reregister using same credentials and certs
-        against a functional capsule.
+        2. Attempt to reregister using same credentials and certs against a
+           functional capsule.
 
         @Assert: Registration works with no changes, and certs RPM installed
         from parent satellite.
@@ -144,9 +153,10 @@ class CapsuleTestCase(CLITestCase):
         @Setup: A capsule installed with SSL enabled.
 
         @Steps:
-        1. Execute basic steps from above
-        (register, subscribe, consume, unsubscribe, unregister) while
-        connected to a capsule that is SSL-enabled
+
+        1. Execute basic steps from above (register, subscribe, consume,
+           unsubscribe, unregister) while connected to a capsule that is
+           SSL-enabled
 
         @Assert: No failures executing said test scenarios against SSL,
         baseline functionality identical to non-SSL

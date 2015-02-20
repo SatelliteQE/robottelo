@@ -151,7 +151,7 @@ class EntityTestCase(APITestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        logger.debug('test_get_status_code arg: {0}'.format(entity_cls))
+        logger.debug('test_get_status_code arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
         response = entity_cls().read_raw()
         self.assertEqual(httplib.OK, response.status_code)
@@ -191,7 +191,7 @@ class EntityTestCase(APITestCase):
         @Assert: HTTP 401 is returned
 
         """
-        logger.debug('test_get_unauthorized arg: {0}'.format(entity_cls))
+        logger.debug('test_get_unauthorized arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
         response = entity_cls().read_raw(auth=())
         self.assertEqual(httplib.UNAUTHORIZED, response.status_code)
@@ -236,7 +236,7 @@ class EntityTestCase(APITestCase):
         @Assert: HTTP 201 is returned with an ``application/json`` content-type
 
         """
-        logger.debug('test_post_status_code arg: {0}'.format(entity_cls))
+        logger.debug('test_post_status_code arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
 
         # Some arguments are "normal" classes and others are objects produced
@@ -284,7 +284,7 @@ class EntityTestCase(APITestCase):
         @Assert: HTTP 401 is returned
 
         """
-        logger.debug('test_post_unauthorized arg: {0}'.format(entity_cls))
+        logger.debug('test_post_unauthorized arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
         self.assertEqual(
             httplib.UNAUTHORIZED,
@@ -330,7 +330,7 @@ class EntityIdTestCase(APITestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        logger.debug('test_get_status_code arg: {0}'.format(entity_cls))
+        logger.debug('test_get_status_code arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
         try:
             entity = entity_cls(id=entity_cls().create_json()['id'])
@@ -374,7 +374,7 @@ class EntityIdTestCase(APITestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        logger.debug('test_put_status_code arg: {0}'.format(entity_cls))
+        logger.debug('test_put_status_code arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
         if entity_cls in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
             self.skipTest("Bugzilla bug 1154156 is open.")
@@ -429,7 +429,7 @@ class EntityIdTestCase(APITestCase):
         content-type.
 
         """
-        logger.debug('test_delete_status_code arg: {0}'.format(entity_cls))
+        logger.debug('test_delete_status_code arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
         if entity_cls is entities.ConfigTemplate and bz_bug_is_open(1096333):
             self.skipTest('Cannot delete config templates.')
@@ -497,7 +497,7 @@ class DoubleCheckTestCase(APITestCase):
         @Assert: The entity is updated with the given attributes.
 
         """
-        logger.debug('test_put_and_get arg: {0}'.format(entity_cls))
+        logger.debug('test_put_and_get arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
         if entity_cls in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
             self.skipTest("Bugzilla bug 1154156 is open.")
@@ -557,7 +557,7 @@ class DoubleCheckTestCase(APITestCase):
         @Assert: The entity is created with the given attributes.
 
         """
-        logger.debug('test_post_and_get arg: {0}'.format(entity_cls))
+        logger.debug('test_post_and_get arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
         if entity_cls in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
             self.skipTest("Bugzilla bug 1154156 is open.")
@@ -606,7 +606,7 @@ class DoubleCheckTestCase(APITestCase):
         @Assert: An HTTP 404 is returned when fetching the missing entity.
 
         """
-        logger.debug('test_delete_and_get arg: {0}'.format(entity_cls))
+        logger.debug('test_delete_and_get arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
         if entity_cls is entities.ConfigTemplate and bz_bug_is_open(1096333):
             self.skipTest('Cannot delete config templates.')
@@ -676,7 +676,7 @@ class EntityReadTestCase(APITestCase):
         @Assert: The just-read entity is an instance of the correct class.
 
         """
-        logger.debug('test_entity_read arg: {0}'.format(entity_cls))
+        logger.debug('test_entity_read arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
         entity_id = entity_cls().create_json()['id']
         self.assertIsInstance(entity_cls(id=entity_id).read(), entity_cls)
