@@ -15,7 +15,12 @@ from robottelo.common.constants import (
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
 )
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.decorators import (
+    bz_bug_is_open,
+    data,
+    run_only_on,
+    skip_if_bug_open,
+)
 from robottelo.common.helpers import (
     get_server_credentials, get_data_file, read_data_file)
 from robottelo.test import APITestCase
@@ -354,3 +359,30 @@ class DockerRepositoryTestCase(APITestCase):
             task_result)
         attrs = entities.Repository(id=repo_id).read_json()
         self.assertGreaterEqual(attrs[u'content_counts'][u'docker_image'], 1)
+
+    @data('yum', 'docker')
+    def test_update_name(self, content_type):
+        """@Test: Update a repository's name.
+
+        @Assert: The repository's name is updated.
+
+        @Feature: Repository
+
+        The only data provided with the PUT request is a name. No other
+        information about the repository (such as its URL) is provided.
+
+        """
+        if content_type == 'docker' and bz_bug_is_open(1194476):
+            self.skipTest(1194476)
+        repo_id = entities.Repository(
+            content_type=content_type
+        ).create_json()['id']
+        name = entities.Repository.name.gen_value()
+        repository = entities.Repository(id=repo_id)
+        client.put(
+            repository.path(),
+            {'name': name},
+            auth=get_server_credentials(),
+            verify=False,
+        ).raise_for_status()
+        self.assertEqual(name, repository.read_json()['name'])
