@@ -5,17 +5,22 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.activationkey import ActivationKey
+from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
+from robottelo.entities import Organization
+from robottelo.cli.repository import Repository
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_activation_key,
     make_content_view,
     make_lifecycle_environment,
-    make_org, make_product,
+    make_org, make_product, make_repository,
     make_host_collection
 )
 from robottelo.common.decorators import (
-    data, run_only_on, skip_if_bug_open, stubbed)
+    bz_bug_is_open, data, run_only_on,
+    skip_if_bug_open, stubbed
+)
 from robottelo.test import CLITestCase
 from robottelo.cli.subscription import Subscription
 from robottelo.common import manifests
@@ -30,6 +35,7 @@ class TestActivationKey(CLITestCase):
     product = None
     env1 = None
     env2 = None
+    pub_key = None
 
     def setUp(self):  # noqa
         """Tests for activation keys via Hammer CLI"""
@@ -67,6 +73,61 @@ class TestActivationKey(CLITestCase):
 
         # Create activation key
         return make_activation_key(options)
+
+    def _make_public_key(self):
+        """Perform all the steps needed to populate an Activation Key"""
+        if TestActivationKey.pub_key is None:
+            TestActivationKey.pub_key = {}
+            try:
+                TestActivationKey.pub_key['org_id'] = self.org['id']
+                TestActivationKey.pub_key['prod_id'] = self.product['id']
+                TestActivationKey.pub_key['manifest'] = manifests.clone()
+                Organization(
+                    id=TestActivationKey.pub_key['org_id']
+                ).upload_manifest(TestActivationKey.pub_key['manifest'])
+
+                # create content view
+                TestActivationKey.pub_key['content_view_id'] = (
+                    make_content_view({
+                        u'organization-id': (
+                            TestActivationKey.pub_key['org_id']),
+                        u'name': gen_string('alpha'),
+                    })['id']
+                )
+
+                TestActivationKey.pub_key['repo_id'] = make_repository({
+                    u'product-id': TestActivationKey.pub_key['prod_id'],
+                })['id']
+
+                Repository.synchronize({
+                    'id': TestActivationKey.pub_key['repo_id'],
+                    'organization-id': TestActivationKey.pub_key['org_id'],
+                })
+
+                ContentView.add_repository({
+                    u'id': TestActivationKey.pub_key['content_view_id'],
+                    u'repository-id': TestActivationKey.pub_key['repo_id'],
+                })
+
+                ContentView.publish({
+                    u'id': TestActivationKey.pub_key['content_view_id'],
+                })
+
+                TestActivationKey.pub_key['key_id'] = make_activation_key({
+                    u'organization-id': TestActivationKey.pub_key['org_id']
+                })['id']
+
+                subscription_result = Subscription.list(
+                    {'organization-id': TestActivationKey.pub_key['org_id']},
+                    per_page=False
+                )
+
+                ActivationKey.add_subscription({
+                    u'id': TestActivationKey.pub_key['key_id'],
+                    u'subscription-id': subscription_result.stdout[0]['id'],
+                })
+            except CLIFactoryError as err:
+                TestActivationKey.fail(err)
 
     @data(
         gen_string('alpha'),
@@ -1640,3 +1701,51 @@ class TestActivationKey(CLITestCase):
             self.fail(err)
 
         self.assertIn("'--auto-attach': value must be one of", result.stderr)
+
+    @data(
+        u'1',
+        u'0',
+    )
+    def test_positive_content_override(self, override_value):
+        """@Test: Positive content override
+
+        @Feature: Activation key copy
+
+        @Steps:
+
+        1. Create activation key and add content
+        2. Get the first product's label
+        3. Override the product's content enablement
+        4. Verify that the command succeeded
+
+        @Assert: Activation key content override was successful
+
+        """
+        if not bz_bug_is_open(1180282):
+            self.fail('BZ 1180282 has been closed. This test should be '
+                      'updated to verify value change via product-content.')
+
+        if self.pub_key is None:
+            self._make_public_key()
+
+        try:
+            result = ActivationKey.product_content({
+                u'id': self.pub_key['key_id'],
+                u'organization-id': self.pub_key['org_id'],
+            })
+            product_label = result.stdout[3].split('|')[5].replace(' ', '')
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        try:
+            result = ActivationKey.content_override({
+                u'id': self.pub_key['key_id'],
+                u'organization-id': self.pub_key['org_id'],
+                u'label': product_label,
+                u'value': override_value,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertEqual(result.return_code, 0)
+        self.assertIn(result.stdout[0], 'Updated content override')
