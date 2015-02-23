@@ -1,10 +1,12 @@
 """Test class for OpenScap Feature"""
 from robottelo.test import UITestCase
+from robottelo.common.decorators import stubbed
 
 
 class OpenScap(UITestCase):
     """Implements OpenScap feature tests in UI."""
 
+    @stubbed()
     def test_create_policies(self):
         """@Test: Create policies for OpenScap.
 
@@ -16,6 +18,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_create_content(self):
         """@Test: Create OpenScap content.
 
@@ -27,6 +30,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_access_oscap_reports(self):
         """@Test: OpenScap should have it's own Compliance Reporting page.
 
@@ -38,6 +42,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_periodic_audits(self):
         """@Test: Should be able to periodically set OpenScap Audit.
 
@@ -50,6 +55,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_search_audits(self):
         """@Test: Should be able to search OpenScap audit results.
 
@@ -61,6 +67,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_audit_default_capsule(self):
         """@Test: OpenScap should be able to audit foreman managed
         infrastructure(Reports from default Capsule.)
@@ -74,6 +81,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_audit_nondefault_capsule(self):
         """@Test: OpenScap should be able to audit foreman managed
         infrastructure (Reports from Non-Default Capsule)
@@ -87,6 +95,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_search_content(self):
         """@Test: Should be able to search OpenScap content.
 
@@ -98,6 +107,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_search_policies(self):
         """@Test: Should be able to search OpenScap policies.
 
@@ -109,6 +119,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_audit_adhoc_hosts(self):
         """@Test: Should be able to perform Ad-Hoc Audit of a given
         Host/system.
@@ -122,6 +133,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_audit_targeted_hosts(self):
         """@Test: Openscap should be able to audit hosts in a targeted
         "Host Collection" and Orgs.
@@ -135,6 +147,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_search_nonaudited_hosts(self):
         """@Test: Should be able to search Non-Audited Hosts/systems
 
@@ -146,6 +159,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_search_noncompliant_hosts(self):
         """@Test: Should be able to search Non-Compliant "Hosts"/systems
 
@@ -157,6 +171,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_compare_audit_results(self):
         """@Test: Should be able to compare multiple audit results of
         "Hosts"/systems.
@@ -170,6 +185,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_assign_policies_for_hosts(self):
         """@Test: Should be able to assign policies for the hosts.
 
@@ -181,6 +197,7 @@ class OpenScap(UITestCase):
 
         """
 
+    @stubbed()
     def test_dashboard_views(self):
         """@Test: Dashboard views that can tell Audited/Un-Audited,
         Compliant/Non-Compliant and trends.
