@@ -354,32 +354,31 @@ class EntityReadMixin(object):
             for local_name, remote_name in entity.Meta.api_names.items():
                 attrs[local_name] = attrs.pop(remote_name)
 
-        # We must populate `entity`'s attributes from `attrs`.
+        # The server returns OneToOneFields as a hash of attributes, like so:
         #
-        # * OneToOneField names end with "_id"
-        # * OneToManyField names end with "_ids"
-        # * Other field names do not have any special name suffix.
+        #     {'name': 'Alice Hayworth', 'login': 'ahayworth', 'id': 1}
         #
-        # Well, that's the ideal. Unfortunately, the server often serves up
-        # weirdly structured or incomplete data. (See BZ #1122267)
+        # OneToManyFields are a list of hashes.
         for field_name, field_type in entity.get_fields().items():
             if field_name in ignore:
                 continue
             if isinstance(field_type, OneToOneField):
-                # `OneToOneField.entity` may be either a class or a string. For
-                # examples of this, look at a couple class definitions in
-                # module `robottelo.entities`. `_get_class` returns a class.
-                other_cls = _get_class(field_type.entity, 'robottelo.entities')
-                entity_id = attrs[field_name + '_id']
-                setattr(entity, field_name, other_cls(id=entity_id))
+                if attrs[field_name] is None:
+                    setattr(entity, field_name, None)
+                else:
+                    referenced_entity = _get_class(
+                        field_type.entity,
+                        'robottelo.entities'
+                    )(id=attrs[field_name]['id'])
+                    setattr(entity, field_name, referenced_entity)
             elif isinstance(field_type, OneToManyField):
                 other_cls = _get_class(field_type.entity, 'robottelo.entities')
-                entity_ids = attrs[field_name + '_ids']
-                setattr(
-                    entity,
-                    field_name,
-                    [other_cls(id=entity_id) for entity_id in entity_ids]
-                )
+                referenced_entities = [
+                    other_cls(id=referenced_entity['id'])
+                    for referenced_entity
+                    in attrs[field_name + 's']  # e.g. "users"
+                ]
+                setattr(entity, field_name, referenced_entities)
             else:
                 setattr(entity, field_name, attrs[field_name])
         return entity

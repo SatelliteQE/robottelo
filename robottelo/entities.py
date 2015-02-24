@@ -141,38 +141,6 @@ class Architecture(
         """Wrap submitted data within an extra dict."""
         return {u'architecture': super(Architecture, self).create_payload()}
 
-    # NOTE: See BZ 1151240
-    def read(self, auth=None, entity=None, attrs=None, ignore=()):
-        """Override the default implementation of
-        :meth:`robottelo.orm.EntityReadMixin.read`.
-
-        An architecture points to zero or more operating systems.
-        Unfortunately, the API communicates the list of pointed-to operating
-        systems as a list of hashes named "operatingsystems"::
-
-            {
-                u'name': u'i386',
-                u'operatingsystems': [
-                    {u'id': 1, u'name': u'rhel65'},
-                    {u'id': 2, u'name': u'rhel7'},
-                ]
-            }
-
-        This is incorrect behaviour. The API _should_ return a list of IDs
-        named "operatingsystem_ids"::
-
-            {u'name': u'i386', u'operatingsystem_ids': [1, 2]}
-
-        """
-        if attrs is None:
-            attrs = self.read_json(auth)
-        attrs['operatingsystem_ids'] = [
-            operatingsystem['id']
-            for operatingsystem
-            in attrs.pop('operatingsystems')
-        ]
-        return super(Architecture, self).read(auth, entity, attrs)
-
 
 class AuthSourceLDAP(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
@@ -418,6 +386,17 @@ class ConfigTemplate(
             u'config_template': super(ConfigTemplate, self).create_payload()
         }
 
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
+        """Deal with unusually structured data returned by the server."""
+        if attrs is None:
+            attrs = self.read_json(auth)
+        template_kind_id = attrs.pop('template_kind_id')
+        if template_kind_id  is None:
+            attrs['template_kind'] = None
+        else:
+            attrs['template_kind'] = {'id': template_kind_id}
+        return super(ConfigTemplate, self).read(auth, entity, attrs, ignore)
+
 
 class ContentUpload(orm.Entity):
     """A representation of a Content Upload entity."""
@@ -587,14 +566,23 @@ class ContentView(
 
         """
         if which in (
-                'content_view_puppet_modules', 'content_view_versions',
-                'publish', 'available_puppet_module_names',
-                'available_puppet_modules'):
+                'available_puppet_module_names',
+                'available_puppet_modules',
+                'content_view_puppet_modules',
+                'content_view_versions',
+                'publish'):
             return '{0}/{1}'.format(
                 super(ContentView, self).path(which='self'),
                 which
             )
         return super(ContentView, self).path(which)
+
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
+        """Compensate for the pluralization of the ``repository`` field."""
+        if attrs is None:
+            attrs = self.read_json(auth)
+        attrs['repositorys'] = attrs.pop('repositories')
+        return super(ContentView, self).read(auth, entity, attrs, ignore)
 
     def publish(self, synchronous=True):
         """Helper for publishing an existing content view.
@@ -688,6 +676,11 @@ class Domain(
     # FIXME figure out related resource
     # dns = entity_fields.OneToOneField(null=True)
 
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'api/v2/domains'
+        server_modes = ('sat')
+
     def create_missing(self, auth=None):
         """Customize the process of auto-generating instance attributes.
 
@@ -705,10 +698,19 @@ class Domain(
         """Wrap submitted data within an extra dict."""
         return {u'domain': super(Domain, self).create_payload()}
 
-    class Meta(object):
-        """Non-field information about this entity."""
-        api_path = 'api/v2/domains'
-        server_modes = ('sat')
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
+        """Deal with weirdly named data returned frmo the server.
+
+        When creating a domain, the server accepts a list named
+        ``domain_parameters_attributes``. When reading a domain, the server
+        returns a list named ``parameters``. These appear to be the same data.
+        Deal with this naming weirdness.
+
+        """
+        if attrs is None:
+            attrs = self.read_json(auth)
+        attrs['domain_parameters_attributes'] = attrs.pop('parameters')
+        return super(Domain, self).read(auth, entity, attrs, ignore)
 
 
 class Environment(
@@ -825,14 +827,10 @@ class GPGKey(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a GPG Key entity."""
-    organization = entity_fields.OneToOneField('Organization', required=True)
-    location = entity_fields.OneToOneField('Location', null=True)
-    # identifier of the gpg key
-    # validator: string from 2 to 128 characters containting only alphanumeric
-    # characters, space, '_', '-' with no leading or trailing space.
-    name = entity_fields.StringField(required=True)
     # public key block in DER encoding
     content = entity_fields.StringField(required=True, default=_gpgkey_content())
+    name = entity_fields.StringField(required=True)
+    organization = entity_fields.OneToOneField('Organization', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -883,6 +881,7 @@ class HostCollection(
     name = entity_fields.StringField(required=True)
     organization = entity_fields.OneToOneField('Organization', required=True)
     system = entity_fields.OneToManyField('System')
+    unlimited_content_hosts = entity_fields.BooleanField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -891,6 +890,27 @@ class HostCollection(
         #
         # '/katello/api/v2/organizations/:organization_id/host_collections'
         server_modes = ('sat', 'sam')
+
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
+        """Compensate for the unusual format of responses from the server.
+
+        The server returns an ID and a list of IDs for the ``organization`` and
+        ``system`` fields, respectively. Compensate for this unusual design
+        trait. Typically, the server returns a hash or a list of hashes for
+        ``OneToOneField`` and ``OneToManyField`` fields.
+
+        """
+        if attrs is None:
+            attrs = self.read_json(auth)
+        org_id = attrs.pop('organization_id')
+        if org_id is None:
+            attrs['organization'] = None
+        else:
+            attrs['organization'] = {'id': org_id}
+        attrs['systems'] = [
+            {'id': system_id} for system_id in attrs.pop('system_ids')
+        ]
+        return super(HostCollection, self).read(auth, entity, attrs, ignore)
 
 
 class HostGroupClasses(orm.Entity):
@@ -1026,6 +1046,28 @@ class Host(
         """Wrap submitted data within an extra dict."""
         return {u'host': super(Host, self).create_payload()}
 
+    def read(self, auth=None, entity=None, attrs=None, ignore=('root_pass',)):
+        """Deal with oddly named and structured data returned by the server."""
+        if attrs is None:
+            attrs = self.read_json(auth)
+
+        # POST accepts `host_parameters_attributes`, GET returns `parameters`
+        attrs['host_parameters_attributes'] = attrs.pop('parameters')
+        # The server returns a list of IDs for all OneToOneFields except
+        # `puppet_classes`.
+        attrs['puppet_classess'] = attrs.pop('puppetclasses')
+        for field_name, field in self.get_fields().items():
+            if field_name == 'puppet_classes':
+                continue
+            if isinstance(field, entity_fields.OneToOneField):
+                field_id = attrs.pop(field_name + '_id')
+                if field_id  is None:
+                    attrs[field_name] = None
+                else:
+                    attrs[field_name] = {'id': field_id}
+
+        return super(Host, self).read(auth, entity, attrs, ignore)
+
 
 class Image(orm.Entity):
     """A representation of a Image entity."""
@@ -1073,6 +1115,11 @@ class LifecycleEnvironment(
     organization = entity_fields.OneToOneField('Organization', required=True)
     prior = entity_fields.OneToOneField('LifecycleEnvironment')
     # NOTE: The "prior" field is unusual. See the `create_missing` docstring.
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'katello/api/v2/environments'
+        server_modes = ('sat')
 
     def create_payload(self):
         """Rename the payload key "prior_id" to "prior".
@@ -1129,11 +1176,6 @@ class LifecycleEnvironment(
                 )
             self.prior = results[0]['id']
 
-    class Meta(object):
-        """Non-field information about this entity."""
-        api_path = 'katello/api/v2/environments'
-        server_modes = ('sat')
-
 
 class Location(orm.Entity, orm.EntityCreateMixin):
     """A representation of a Location entity."""
@@ -1173,38 +1215,6 @@ class Media(
     def create_payload(self):
         """Wrap submitted data within an extra dict."""
         return {u'medium': super(Media, self).create_payload()}
-
-    # NOTE: See BZ 1151240
-    def read(self, auth=None, entity=None, attrs=None, ignore=()):
-        """Override the default implementation of
-        :meth:`robottelo.orm.EntityReadMixin.read`.
-
-        A media points to zero or more operating systems. Unfortunately, the
-        API communicates the list of pointed-to operating systems as a list of
-        hashes named "operatingsystems"::
-
-            {
-                u'name': u'foo',
-                u'operatingsystems': [
-                    {u'id': 1, u'name': u'rhel65'},
-                    {u'id': 2, u'name': u'rhel7'},
-                ]
-            }
-
-        This is incorrect behaviour. The API _should_ return a list of IDs
-        named "operatingsystem_ids"::
-
-            {u'name': u'foo', u'operatingsystem_ids': [1, 2]}
-
-        """
-        if attrs is None:
-            attrs = self.read_json(auth)
-        attrs['operatingsystem_ids'] = [
-            operatingsystem['id']
-            for operatingsystem
-            in attrs.pop('operatingsystems')
-        ]
-        return super(Media, self).read(auth, entity, attrs)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1257,11 +1267,6 @@ class OperatingSystem(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/operatingsystems'
-        api_names = {
-            'architecture_ids': 'architectures',
-            'media_ids': 'media',
-            'ptable_ids': 'ptables',
-        }
         server_modes = ('sat')
 
     # NOTE: See BZ 1151220
@@ -1270,6 +1275,13 @@ class OperatingSystem(
         return {
             u'operatingsystem': super(OperatingSystem, self).create_payload()
         }
+
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
+        """Compensate for the pluralization of the ``media`` field."""
+        if attrs is None:
+            attrs = self.read_json(auth)
+        attrs['medias'] = attrs.pop('media')
+        return super(OperatingSystem, self).read(auth, entity, attrs, ignore)
 
 
 class OperatingSystemParameter(
@@ -1288,19 +1300,27 @@ class OperatingSystemParameter(
         super(OperatingSystemParameter, self).__init__(**kwargs)
 
     def read(self, auth=None, entity=None, attrs=None, ignore=()):
-        """Override the default implementation of
-        :meth:`robottelo.orm.EntityReadMixin.read`.
+        """Provide a default value for ``entity``.
+
+        By default, :meth:`robottelo.orm.EntityReadMixin.read` provides a
+        default value for ``entity`` like so::
+
+            entity = type(self)()
+
+        However, :class:`OperatingSystemParameter` requires that an ``os_id`` be
+        provided, so this technique will not work. Do this instead::
+
+            entity = type(self)(self.Meta.os_id)
 
         """
-        # Passing `entity=self` also succeeds. However, the attributes of the
-        # object passed in will be clobbered. Passing in a new object allows
-        # this one to avoid changing state. The default implementation of
+        # `entity = self` also succeeds. However, the attributes of the object
+        # passed in will be clobbered. Passing in a new object allows this one
+        # to avoid changing state. The default implementation of
         # `read` follows the same principle.
+        if entity is None:
+            entity = type(self)(self.Meta.os_id)
         return super(OperatingSystemParameter, self).read(
-            auth=auth,
-            entity=OperatingSystemParameter(self.Meta.os_id),
-            attrs=attrs,
-            ignore=(),
+            auth, entity, attrs, ignore
         )
 
 
@@ -1328,9 +1348,10 @@ class Organization(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of an Organization entity."""
-    name = entity_fields.StringField(required=True)
-    label = entity_fields.StringField(str_type='alpha')
     description = entity_fields.StringField()
+    label = entity_fields.StringField(str_type='alpha')
+    name = entity_fields.StringField(required=True)
+    title = entity_fields.StringField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1616,13 +1637,12 @@ class Product(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Product entity."""
-    organization = entity_fields.OneToOneField('Organization', required=True)
-    location = entity_fields.OneToOneField('Location', null=True)
     description = entity_fields.StringField()
     gpg_key = entity_fields.OneToOneField('GPGKey')
-    sync_plan = entity_fields.OneToOneField('SyncPlan', null=True)
-    name = entity_fields.StringField(required=True)
     label = entity_fields.StringField()
+    name = entity_fields.StringField(required=True)
+    organization = entity_fields.OneToOneField('Organization', required=True)
+    sync_plan = entity_fields.OneToOneField('SyncPlan', null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1651,6 +1671,37 @@ class Product(
                 which,
             )
         return super(Product, self).path(which)
+
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
+        """Compensate for the weird structure of returned data."""
+        if attrs is None:
+            attrs = self.read_json(auth)
+
+        # The `organization` hash does not include an ID.
+        org_label = attrs.pop('organization')['label']
+        response = client.get(
+            Organization().path(),
+            auth=get_server_credentials(),
+            data={'search': 'label={0}'.format(org_label)},
+            verify=False,
+        )
+        response.raise_for_status()
+        results = response.json()['results']
+        if len(results) != 1:
+            raise APIResponseError(
+                'Could not find exactly one organization with label "{0}". '
+                'Actual search results: {1}'.format(org_label, results)
+            )
+        attrs['organization'] = {'id': response.json()['results'][0]['id']}
+
+        # No `gpg_key` hash is returned.
+        gpg_key_id = attrs.pop('gpg_key_id')
+        if gpg_key_id  is None:
+            attrs['gpg_key'] = None
+        else:
+            attrs['gpg_key'] = {'id': gpg_key_id}
+
+        return super(Product, self).read(auth, entity, attrs, ignore)
 
     def list_repositorysets(self, per_page=None):
         """Lists all the RepositorySets in a Product.
@@ -1888,17 +1939,6 @@ class Repository(
             type(self).docker_upstream_name.required = True
         super(Repository, self).create_missing(auth)
 
-    # NOTE: See BZ 1151240
-    def read(self, auth=None, entity=None, attrs=None, ignore=()):
-        """Override the default implementation of
-        :meth:`robottelo.orm.EntityReadMixin.read`.
-
-        """
-        if attrs is None:
-            attrs = self.read_json(auth)
-        attrs['product_id'] = attrs.pop('product')['id']
-        return super(Repository, self).read(auth, entity, attrs)
-
     def sync(self, synchronous=True):
         """Helper for syncing an existing repository.
 
@@ -1992,7 +2032,6 @@ class Role(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Role entity."""
-    # FIXME: UTF-8 characters should be acceptable for `name`. See BZ 1129785
     name = entity_fields.StringField(
         required=True,
         str_type='alphanumeric',
@@ -2138,7 +2177,7 @@ class System(
         required=True,
     )
     # guest = entity_fields.OneToManyField()  # FIXME What does this field point to?
-    host_collection = entity_fields.OneToOneField('HostCollection')
+    host_collection = entity_fields.OneToManyField('HostCollection')
     installed_products = entity_fields.ListField(null=True)
     last_checkin = entity_fields.DateTimeField()
     location = entity_fields.StringField()
@@ -2183,6 +2222,25 @@ class System(
             )
         return super(System, self).path(which)
 
+    def read(
+            self,
+            auth=None,
+            entity=None,
+            attrs=None,
+            ignore=('facts', 'type')
+    ):
+        if attrs is None:
+            attrs = self.read_json(auth)
+        attrs['last_checkin'] = attrs.pop('checkin_time')
+        attrs['host_collections'] = attrs.pop('hostCollections')
+        attrs['installed_products'] = attrs.pop('installedProducts')
+        organization_id = attrs.pop('organization_id')
+        if organization_id  is None:
+            attrs['organization'] = None
+        else:
+            attrs['organization'] = {'id': organization_id}
+        return super(System, self).read(auth, entity, attrs, ignore)
+
 
 class TemplateCombination(orm.Entity):
     """A representation of a Template Combination entity."""
@@ -2198,9 +2256,11 @@ class TemplateCombination(orm.Entity):
 
 
 class TemplateKind(orm.Entity, orm.EntityReadMixin):
-    """A representation of a Template Kind entity."""
-    # FIXME figure out fields
-    # The API does not support the "api/v2/template_kinds/:id" path at all.
+    """A representation of a Template Kind entity.
+
+    Unusually, the ``/api/v2/template_kinds/:id`` path is totally unsupported.
+
+    """
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -2255,3 +2315,13 @@ class User(
     def create_payload(self):
         """Wrap submitted data within an extra dict."""
         return {u'user': super(User, self).create_payload()}
+
+    def read(self, auth=None, entity=None, attrs=None, ignore=('password',)):
+        if attrs is None:
+            attrs = self.read_json(auth)
+        auth_source_id = attrs.pop('auth_source_id')
+        if auth_source_id  is None:
+            attrs['auth_source'] = None
+        else:
+            attrs['auth_source'] = {'id': auth_source_id}
+        return super(User, self).read(auth, entity, attrs, ignore)
