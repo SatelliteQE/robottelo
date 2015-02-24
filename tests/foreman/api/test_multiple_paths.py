@@ -3,7 +3,7 @@ import httplib
 import logging
 from ddt import data, ddt
 from functools import partial
-from nailgun import client
+from nailgun import client, entity_fields
 from requests.exceptions import HTTPError
 from robottelo import entities
 from robottelo.common import conf
@@ -25,10 +25,6 @@ BZ_1118015_ENTITIES = (
     entities.Repository, entities.Role, entities.Subnet, entities.System,
     entities.User,
 )
-BZ_1151240_ENTITIES = (
-    entities.ActivationKey, entities.ContentView, entities.GPGKey,
-    entities.LifecycleEnvironment, entities.Product, entities.Repository
-)
 BZ_1154156_ENTITIES = (entities.ConfigTemplate, entities.Host, entities.User)
 BZ_1187366_ENTITIES = (entities.LifecycleEnvironment, entities.Organization)
 
@@ -38,6 +34,48 @@ def _get_partial_func(obj):
     if isinstance(obj, partial):
         return obj.func
     return obj
+
+
+def _get_readable_attributes(entity):
+    """Return a dict of attributes matching what can be read from the server.
+
+    When one reads an entity from the server, some attributes such as passwords
+    are not returned. In addition, it is extremely hard to predict the exact
+    format or naming of certain types of foreign key attributes. The remaining
+    attributes, however, definitely should be present. Even this, though, is
+    made more complicated by the fact that an entity class may have fields
+    named differently than what the server expects, as described by
+    ``Meta.api_keys``.
+
+    Collect attributes from the ``entity`` object, drop attributes that the
+    server doesn't hand back like passwords, drop foreign keys, and rename
+    attributes according to ``Meta.api_keys``. What remains should match what
+    the server will return.
+
+    """
+    attributes = vars(entity).copy()
+
+    # Drop sensitive attributes.
+    if isinstance(entity, entities.Host):
+        del attributes['root_pass']
+        del attributes['name']  # FIXME: "Foo" in, "foo.example.com" out.
+    if isinstance(entity, entities.User):
+        del attributes['password']
+
+    # Drop foreign key attributes.
+    for field_name in attributes.keys():
+        if isinstance(
+                entity.get_fields()[field_name],
+                (entity_fields.OneToOneField, entity_fields.OneToManyField)
+        ):
+            del attributes[field_name]
+
+    # Rename fields according to Meta.api_names.
+    for before, after in getattr(entity.Meta, 'api_names', {}).items():
+        if before in attributes:
+            attributes[after] = attributes.pop(before)
+
+    return attributes
 
 
 def skip_if_sam(self, entity):
@@ -452,11 +490,11 @@ class DoubleCheckTestCase(APITestCase):
         entities.User,
     )
     def test_put_and_get(self, entity_cls):
-        """@Test: Issue a PUT request and GET the updated entity.
+        """@Test: Update an entity, then read it back.
 
         @Feature: Test multiple API paths
 
-        @Assert: The updated entity has the correct attributes.
+        @Assert: The entity is updated with the given attributes.
 
         """
         logger.debug('test_put_and_get arg: {0}'.format(entity_cls))
@@ -465,43 +503,25 @@ class DoubleCheckTestCase(APITestCase):
             self.skipTest("Bugzilla bug 1154156 is open.")
 
         # Create an entity.
-        entity = entity_cls(id=entity_cls().create_json()['id'])
+        entity_id = entity_cls().create_json()['id']
 
-        # Update that entity.
-        entity.create_missing()
-        payload = entity.create_payload()  # FIXME: use entity.update_payload()
+        # Update that entity. FIXME: This whole procedure is a hack.
+        entity = entity_cls()
+        entity.create_missing()  # Generate randomized instance attributes
         response = client.put(
-            entity.path(),
-            payload,
+            entity_cls(id=entity_id).path(),
+            entity.create_payload(),
             auth=get_server_credentials(),
             verify=False,
         )
         response.raise_for_status()
 
-        # Drop the extra outer dict and sensitive params from `payload`.
-        if len(payload.keys()) == 1 and isinstance(payload.values()[0], dict):
-            payload = payload.values()[0]
-        if isinstance(entity, entities.Host):
-            del payload['root_pass']
-            del payload['name']  # FIXME: "Foo" in, "foo.example.com" out.
-        if issubclass(_get_partial_func(entity_cls), entities.User):
-            del payload['password']
-
-        # It is impossible to easily verify foreign keys.
-        if bz_bug_is_open(1151240):
-            for key in payload.keys():
-                if key.endswith('_id') or key.endswith('_ids'):
-                    del payload[key]
-            if issubclass(
-                    _get_partial_func(entity_cls),
-                    entities.LifecycleEnvironment):
-                del payload['prior']  # this foreign key is oddly named
-
-        # Compare a trimmed-down `payload` against what the server has.
-        attrs = entity.read_json()
+        # Compare `payload` against entity information returned by the server.
+        payload = _get_readable_attributes(entity)
+        entity_attrs = entity_cls(id=entity_id).read_json()
         for key, value in payload.items():
-            self.assertIn(key, attrs.keys())
-            self.assertEqual(value, attrs[key], key)
+            self.assertIn(key, entity_attrs.keys())
+            self.assertEqual(value, entity_attrs[key], key)
 
     @data(
         entities.ActivationKey,
@@ -530,45 +550,27 @@ class DoubleCheckTestCase(APITestCase):
         entities.User,
     )
     def test_post_and_get(self, entity_cls):
-        """@Test Issue a POST request and GET the created entity.
+        """@Test: Create an entity, then read it back.
 
         @Feature: Test multiple API paths
 
-        @Assert: The created entity has the correct attributes.
+        @Assert: The entity is created with the given attributes.
 
         """
         logger.debug('test_post_and_get arg: {0}'.format(entity_cls))
         skip_if_sam(self, entity_cls)
-        if entity_cls in BZ_1151240_ENTITIES and bz_bug_is_open(1151240):
-            self.skipTest("Bugzilla bug 1151240 is open.""")
         if entity_cls in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
             self.skipTest("Bugzilla bug 1154156 is open.")
 
-        # Create an entity.
         entity = entity_cls()
-        entity.id = entity.create_json()['id']
+        entity_id = entity.create_json()['id']
 
-        # Drop the extra outer dict and sensitive params from `payload`.
-        payload = entity.create_payload()
-        if len(payload.keys()) == 1 and isinstance(payload.values()[0], dict):
-            payload = payload.values()[0]
-        if isinstance(entity, entities.Host):
-            del payload['root_pass']
-            del payload['name']  # FIXME: "Foo" in, "foo.example.com" out.
-        if isinstance(entity, entities.User):
-            del payload['password']
-
-        # It is impossible to easily verify foreign keys.
-        if bz_bug_is_open(1151240):
-            for key in payload.keys():
-                if key.endswith('_id') or key.endswith('_ids'):
-                    del payload[key]
-
-        # Compare a trimmed-down `payload` against what the server has.
-        attrs = entity.read_json()
+        # Compare `payload` against entity information returned by the server.
+        payload = _get_readable_attributes(entity)
+        entity_attrs = entity_cls(id=entity_id).read_json()
         for key, value in payload.items():
-            self.assertIn(key, attrs.keys())
-            self.assertEqual(value, attrs[key], key)
+            self.assertIn(key, entity_attrs.keys())
+            self.assertEqual(value, entity_attrs[key], key)
 
     @data(
         entities.ActivationKey,
