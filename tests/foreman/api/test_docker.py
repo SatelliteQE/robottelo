@@ -851,7 +851,7 @@ class DockerClientTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
-        super(DockerActivationKeyTestCase, cls).setUpClass()
+        super(DockerClientTestCase, cls).setUpClass()
         cls.org_id = entities.Organization().create_json()['id']
 
     @stubbed()
@@ -897,7 +897,7 @@ class DockerComputeResourceTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
-        super(DockerActivationKeyTestCase, cls).setUpClass()
+        super(DockerComputeResourceTestCase, cls).setUpClass()
         cls.org_id = entities.Organization().create_json()['id']
 
     @stubbed()
@@ -1026,7 +1026,7 @@ class DockerContainersTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
-        super(DockerActivationKeyTestCase, cls).setUpClass()
+        super(DockerContainersTestCase, cls).setUpClass()
         cls.org_id = entities.Organization().create_json()['id']
         # TODO: create Docker-based compute resources (internal/external)
 
