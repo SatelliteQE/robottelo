@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 """UI Tests for the email notification feature"""
 
 from robottelo.common.decorators import stubbed
@@ -15,10 +16,11 @@ class EmailTestCase(UITestCase):
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
+        1. Navigate to User → My Account → Mail Preferences.
         2. Attempt to enable and disable the following email notification
-        preferences: Mail Enabled, Katello Sync Errata, Katello Host Advisory,
-        Katello Promote Errata, Puppet Error state, Puppet Summary.
+           preferences: Mail Enabled, Katello Sync Errata, Katello Host
+           Advisory, Katello Promote Errata, Puppet Error state, Puppet
+           Summary.
 
         @Assert: Enabling and disabling email notification preferences saved.
         accordingly.
@@ -35,7 +37,7 @@ class EmailTestCase(UITestCase):
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
+        1. Navigate to User → My Account → Mail Preferences.
         2. Enable notification for 'Katello Sync Errata'.
         3. Perform a sync operation on a product.
 
@@ -53,8 +55,8 @@ class EmailTestCase(UITestCase):
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
-        2. Disable notification by 'Katello Sync Errata' -> 'No Emails'.
+        1. Navigate to User → My Account → Mail Preferences.
+        2. Disable notification by 'Katello Sync Errata' → 'No Emails'.
         3. Perform a sync operation on a product.
 
         @Assert: No email notification received after sync operation.
@@ -71,7 +73,7 @@ class EmailTestCase(UITestCase):
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
+        1. Navigate to User → My Account → Mail Preferences.
         2. Enable notification for 'Katello Promote Errata'.
         3. Perform a promote operation in a content view.
 
@@ -89,8 +91,8 @@ class EmailTestCase(UITestCase):
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
-        2. Disable notification by 'Katello Promote Errata' -> 'No Emails'.
+        1. Navigate to User → My Account → Mail Preferences.
+        2. Disable notification by 'Katello Promote Errata' → 'No Emails'.
         3. Perform a promote operation in a content view.
 
         @Assert: No email notification received after Promote operation.
@@ -107,8 +109,8 @@ class EmailTestCase(UITestCase):
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
-        2. Enable notification for 'Katello Host Advisory' -> Daily.
+        1. Navigate to User → My Account → Mail Preferences.
+        2. Enable notification for 'Katello Host Advisory' → Daily.
 
         @Assert: Email notification received daily with Katello Host Advisory
         information.
@@ -125,8 +127,8 @@ class EmailTestCase(UITestCase):
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
-        2. Enable notification for 'Katello Host Advisory' -> Weekly.
+        1. Navigate to User → My Account → Mail Preferences.
+        2. Enable notification for 'Katello Host Advisory' → Weekly.
 
         @Assert: Email notification received Weekly with Katello Host Advisory
         information.
@@ -143,8 +145,8 @@ class EmailTestCase(UITestCase):
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
-        2. Enable notification for 'Katello Host Advisory' -> Monthly.
+        1. Navigate to User → My Account → Mail Preferences.
+        2. Enable notification for 'Katello Host Advisory' → Monthly.
 
         @Assert: Email notification received monthly with Katello Host Advisory
         information.
@@ -161,8 +163,8 @@ class EmailTestCase(UITestCase):
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
-        2. Disable notification by 'Katello Host Advisory' -> 'No emails'.
+        1. Navigate to User → My Account → Mail Preferences.
+        2. Disable notification by 'Katello Host Advisory' → 'No emails'.
 
         @Assert: No email notification received with Katello Host Advisory
         information.
@@ -179,7 +181,7 @@ class EmailTestCase(UITestCase):
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
+        1. Navigate to User → My Account → Mail Preferences.
         2. Enable notification for 'Puppet Error State'.
         3. Simulate a Puppet error.
 
@@ -197,8 +199,8 @@ class EmailTestCase(UITestCase):
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
-        2. Disable notification by 'Puppet Error State' -> 'No Emails'.
+        1. Navigate to User → My Account → Mail Preferences.
+        2. Disable notification by 'Puppet Error State' → 'No Emails'.
         3. Simulate a Puppet error.
 
         @Assert: No email notification received after Puppet error.
@@ -218,14 +220,14 @@ class EmailTestCase(UITestCase):
 
         1. Create multiple products with synced errata.
         2. The test user does not have view access to atleast some of the
-        products.
+           products.
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
+        1. Navigate to User → My Account → Mail Preferences.
         2. Enable notification for test user for 'Katello Sync Errata'.
         3. Login as admin and perform sync on a product for which the test user
-        does not have view access.
+           does not have view access.
 
         @Assert: Test user does not receive email notification.
 
@@ -244,14 +246,14 @@ class EmailTestCase(UITestCase):
 
         1. Create multiple products with synced errata.
         2. The test user does not have view access to atleast some of the
-        products.
+           products.
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
+        1. Navigate to User → My Account → Mail Preferences.
         2. Enable notification for the test user for 'Katello Promote Errata'.
         3. Login as admin and perform sync on a product for which the test user
-        does not have view access.
+           does not have view access.
 
         @Assert: Test user does not receive email notification.
 
@@ -270,11 +272,11 @@ class EmailTestCase(UITestCase):
 
         1. Create multiple products with synced errata.
         2. The test user does not have view access to atleast some of the
-        products.
+           products.
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
+        1. Navigate to User → My Account → Mail Preferences.
         2. Enable notification for the test user for 'Katello Host Advisory'.
 
         @Assert: Test user receives email notification with the host info for
@@ -295,11 +297,11 @@ class EmailTestCase(UITestCase):
 
         1. Make sure to have multiple content hosts
         2. The test user does not have view access to atleast some of the
-        products
+           products
 
         @Steps:
 
-        1. Navigate to User -> My Account -> Mail Preferences.
+        1. Navigate to User → My Account → Mail Preferences.
         2. Enable notification for test user for 'Katello Host Advisory'.
 
         @Assert: Test user receives email notification which does not list the

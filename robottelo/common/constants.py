@@ -169,7 +169,9 @@ RHVA_REPO_TREE = [
     ('rhel', 'rhva6', 'rhva6S', 'repo_ver', '6Server')
 ]
 
+#: Name (not label!) of the default organization.
 DEFAULT_ORG = "Default Organization"
+#: Name (not label!) of the default location.
 DEFAULT_LOC = "Default Location"
 DEFAULT_CV = "Default Organization View"
 

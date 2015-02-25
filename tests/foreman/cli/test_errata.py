@@ -20,7 +20,7 @@ class ErrataTestCase(CLITestCase):
         @Steps:
 
         1. host-collection erratum install --errata <errata> --id <id>
-        --organization-id <orgid>
+           --organization-id <orgid>
 
         @Assert: Erratum is installed.
 
@@ -39,7 +39,7 @@ class ErrataTestCase(CLITestCase):
         @Steps:
 
         1. host-collection erratum install --errata <errata> --id <id>
-        --organization <org name>
+           --organization <org name>
 
         @Assert: Erratum is installed.
 
@@ -58,7 +58,7 @@ class ErrataTestCase(CLITestCase):
         @Steps:
 
         1. host-collection erratum install --errata <errata> --id <id>
-        --organization-label <org label>
+           --organization-label <org label>
 
         @Assert: Errata is installed.
 
@@ -77,7 +77,7 @@ class ErrataTestCase(CLITestCase):
         @Steps:
 
         1. host-collection erratum install --errata <errata> --name <name>
-        --organization-id <orgid>
+           --organization-id <orgid>
 
         @Assert: Erratum is installed.
 
@@ -96,7 +96,7 @@ class ErrataTestCase(CLITestCase):
         @Steps:
 
         1. host-collection erratum install --errata <errata> --name <name>
-        --organization <org name>
+           --organization <org name>
 
         @Assert: Erratum is installed.
 
@@ -115,7 +115,7 @@ class ErrataTestCase(CLITestCase):
         @Steps:
 
         1. host-collection erratum install --errata <errata> --name <name>
-        --organization-label <org label>
+           --organization-label <org label>
 
         @Assert: Erratum is installed.
 
@@ -154,7 +154,7 @@ class ErrataTestCase(CLITestCase):
         @Steps:
 
         1. host-collection erratum install --name <name> --organization-id
-        <orgid>
+           <orgid>
 
         @Assert: Error message thrown.
 
@@ -174,7 +174,7 @@ class ErrataTestCase(CLITestCase):
         @Steps:
 
         1. host-collection erratum install --errata <errata> --organization-id
-        <orgid>
+           <orgid>
 
         @Assert: Error message thrown.
 
@@ -439,7 +439,7 @@ class ErrataTestCase(CLITestCase):
         2. erratum list --product-id=<product_id> --organization-id=<org_id>
         3. erratum list --product-id=<product_id> --organization=<org_name>
         4. erratum list --product-id=<product_id>
-        --organization-label=<org_label>
+           --organization-label=<org_label>
 
         @Assert: Errata is filtered by product id.
 
@@ -512,7 +512,7 @@ class ErrataTestCase(CLITestCase):
         @Steps:
 
         1. erratum list --product=<product_name>
-        --organization-label=<org_label>
+           --organization-label=<org_label>
 
         @Assert: Errata is filtered by product name and Org label.
 
@@ -626,7 +626,7 @@ class ErrataTestCase(CLITestCase):
         @Steps:
 
         1. content-host list --erratum-id=<erratum_id>
-        --organization-id=<org_id>
+           --organization-id=<org_id>
 
         @Assert: List of affected content hosts for an erratum is displayed.
 
@@ -646,13 +646,13 @@ class ErrataTestCase(CLITestCase):
         @Steps:
 
         1. content-host list --erratum-id=<erratum_id>
-        --organization-id=<org_id> --erratum-restrict-available=1
+           --organization-id=<org_id> --erratum-restrict-available=1
         2. content-host list --erratum-id=<erratum_id>
-        --organization-id=<org_id> --erratum-restrict-unavailable=1
+           --organization-id=<org_id> --erratum-restrict-unavailable=1
         3. content-host list --erratum-id=<erratum_id>
-        --organization-id=<org_id> --erratum-restrict-available=0
+           --organization-id=<org_id> --erratum-restrict-available=0
         4. content-host list --erratum-id=<erratum_id>
-        --organization-id=<org_id> --erratum-restrict-unavailable=0
+           --organization-id=<org_id> --erratum-restrict-unavailable=0
 
         @Assert: List of affected content hosts for an erratum is displayed
         filtered with corresponding restrict flags.

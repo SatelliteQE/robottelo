@@ -12,3 +12,8 @@
 -----------------------------------------
 
 .. automodule:: tests.foreman.smoke.test_cli_smoke
+
+:mod:`tests.foreman.smoke.test_ui_smoke`
+----------------------------------------
+
+.. automodule:: tests.foreman.smoke.test_ui_smoke
