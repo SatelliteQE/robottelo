@@ -47,6 +47,8 @@ class PathTestCase(TestCase):
         )
 
     @data(
+        (entities.AbstractDockerContainer, 'containers', 'logs'),
+        (entities.AbstractDockerContainer, 'containers', 'power'),
         (entities.ActivationKey, '/activation_keys', 'releases'),
         (entities.ActivationKey, '/activation_keys', 'add_subscriptions'),
         (entities.ActivationKey, '/activation_keys', 'remove_subscriptions'),
