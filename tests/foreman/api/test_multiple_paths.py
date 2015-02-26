@@ -632,40 +632,37 @@ class EntityReadTestCase(APITestCase):
     function correctly.
     """
 
-    # Most entities are commented-out because they do not inherit from
-    # EntityReadMixin, due to issues with data returned from the API.
-    #
     # ComputeResource entities cannot be reliably read because, depending upon
     # the provider, different sets of attributes are returned. For example, the
     # "uuid" attribute is only returned for certain providers. Perhaps multiple
     # types of compute resources should be created? For example:
     # LibvirtComputeResource.
     @data(
-        # entities.ActivationKey,
+        entities.ActivationKey,
         # entities.Architecture,  # see test_architecture_read
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
         # partial(entities.ComputeResource, provider='Libvirt'),
-        # entities.ConfigTemplate,
-        # entities.ContentView,
-        # entities.Domain,
+        entities.ConfigTemplate,
+        entities.ContentView,
+        entities.Domain,
         entities.Environment,
-        # entities.GPGKey,
-        # entities.Host,  # FIXME: investigate this
+        entities.GPGKey,
+        entities.Host,
         entities.HostCollection,
-        # entities.LifecycleEnvironment,
+        entities.LifecycleEnvironment,
         entities.Media,
         entities.Model,
         entities.OperatingSystem,
         # entities.OperatingSystemParameter,  # see test_osparameter_read
         entities.Organization,
-        # entities.Product,
+        entities.Product,
         entities.Repository,
         entities.Role,
-        # entities.Subnet,  # "domains" attribute is useless when reading.
-        # entities.System,
+        entities.Subnet,
+        entities.System,
         # entities.TemplateKind,  # see comments in class definition
-        # entities.User,
+        entities.User,
     )
     def test_entity_read(self, entity_cls):
         """@Test: Create an entity and get it using
@@ -686,8 +683,8 @@ class EntityReadTestCase(APITestCase):
 
         @Feature: Test multiple API paths
 
-        @Assert: The call to :meth:`robottelo.entities.Architecture.read`
-        succeeds, and the response contains the correct operating system ID.
+        @Assert: The call to ``Architecture.read`` succeeds, and the response
+        contains the correct operating system ID.
 
         """
         os_id = entities.OperatingSystem().create_json()['id']

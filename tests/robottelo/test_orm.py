@@ -103,8 +103,6 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
         Also generate a number suitable for use as an entity ID.
 
         """
-        self.client_delete = client.delete
-        self.client_get = client.get
         self.conf_properties = conf.properties.copy()
         conf.properties['main.server.hostname'] = 'example.com'
         conf.properties['foreman.admin.username'] = 'Alice'
@@ -115,8 +113,6 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
 
     def tearDown(self):  # noqa pylint:disable=C0103
         """Restore backed-up objects."""
-        client.delete = self.client_delete
-        client.get = self.client_get
         conf.properties = self.conf_properties
 
     def test_delete_200(self):
@@ -171,25 +167,26 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
         mock_response.raise_for_status.return_value = None
         mock_response.json.return_value = {
             u'id': self.entity_id,
-            u'one_to_one_id': 123,
-            u'one_to_many_ids': [234, 345],
+            u'one_to_one': {'id': 123},
+            u'one_to_manys': [{'id': 234}, {'id': 345}],
         }
 
         # Make `client.get` return the above object.
-        client.get = mock.Mock(return_value=mock_response)
+        with mock.patch.object(client, 'get') as client_get:
+            client_get.return_value = mock_response
 
-        # See if EntityReadMixin.read_json behaves correctly.
-        self.assertEqual(
-            EntityWithRead(id=self.entity_id).read_json(),
-            mock_response.json.return_value,
-        )
+            # See if EntityReadMixin.read_json behaves correctly.
+            self.assertEqual(
+                EntityWithRead(id=self.entity_id).read_json(),
+                mock_response.json.return_value,
+            )
 
-        # See if EntityReadMixin.read behaves correctly.
-        entity = EntityWithRead(id=self.entity_id).read()
-        self.assertEqual(entity.id, self.entity_id)
-        self.assertIsInstance(entity.one_to_one, SampleEntity)
-        self.assertEqual(entity.one_to_one.id, 123)
-        self.assertEqual(len(entity.one_to_many), 2)
-        for entity_ in entity.one_to_many:
-            self.assertIsInstance(entity_, SampleEntity)
-            self.assertIn(entity_.id, [234, 345])
+            # See if EntityReadMixin.read behaves correctly.
+            entity = EntityWithRead(id=self.entity_id).read()
+            self.assertEqual(entity.id, self.entity_id)
+            self.assertIsInstance(entity.one_to_one, SampleEntity)
+            self.assertEqual(entity.one_to_one.id, 123)
+            self.assertEqual(len(entity.one_to_many), 2)
+            for entity_ in entity.one_to_many:
+                self.assertIsInstance(entity_, SampleEntity)
+                self.assertIn(entity_.id, [234, 345])
