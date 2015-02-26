@@ -70,6 +70,25 @@ def get_server_url():
         ))
 
 
+def get_internal_docker_url():
+    """Returns the docker internal server url config
+
+    If the variable ``{server_hostname}`` is found in the string, it will be
+    replaced by ``main.server.hostname`` from the config file.
+
+    """
+    internal_url = conf.properties.get('docker.internal_url')
+    if internal_url is not None:
+        internal_url = internal_url.format(
+            server_hostname=conf.properties['main.server.hostname'])
+    return internal_url
+
+
+def get_external_docker_url():
+    """Returns the docker external server url config"""
+    return conf.properties.get('docker.external_url')
+
+
 def get_distro_info():
     """Get a tuple of information about the RHEL distribution on the server.
 
