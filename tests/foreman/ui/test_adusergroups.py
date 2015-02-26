@@ -17,7 +17,26 @@ class ADUserGroups(UITestCase):
         1. Create a new LDAP Auth source with AD
         2. Fill in all the fields appropriately for AD
 
-        @Assert: Whether creating LDAP Auth with AD is successful
+        @Assert: Whether creating LDAP Auth with AD is successful.
+
+        @Status: Manual
+
+        """
+
+    @stubbed()
+    def test_delete_ldap_auth_withAD(self):
+        """@Test: Delete LDAP authentication with AD
+
+        @Feature: Active Directory - delete LDAP AD
+
+        @steps:
+
+        1. Delete LDAP Auth source with AD
+        2. Fill in all the fields appropriately for AD
+
+        @Assert: Whether deleting LDAP Auth with AD is successful.
+
+        @Status: Manual
 
         """
 
@@ -37,6 +56,8 @@ class ADUserGroups(UITestCase):
         @Assert: Whether a User belonging to User Group is able to
         access all the pages.
 
+        @Status: Manual
+
         """
 
     @stubbed()
@@ -54,6 +75,8 @@ class ADUserGroups(UITestCase):
 
         @Assert: Whether a User belonging to User Group is able to
         access foreman entities as per roles.
+
+        @Status: Manual
 
         """
 
@@ -73,6 +96,8 @@ class ADUserGroups(UITestCase):
         @Assert: Whether a User belonging to User Group is able to access
         katello entities as per roles.
 
+        @Status: Manual
+
         """
 
     @stubbed()
@@ -88,6 +113,8 @@ class ADUserGroups(UITestCase):
         3. create an External AD UserGroup as per the usergroup name in AD
 
         @Assert: Whether creation of External AD User Group is possible.
+
+        @Status: Manual
 
         """
 
@@ -108,6 +135,8 @@ class ADUserGroups(UITestCase):
         @Assert: Creation of External AD User Group should not be possible with
         same name.
 
+        @Status: Manual
+
         """
 
     @stubbed()
@@ -124,5 +153,7 @@ class ADUserGroups(UITestCase):
 
         @Assert: Creation of External AD User Group should not be possible with
         random name.
+
+        @Status: Manual
 
         """
