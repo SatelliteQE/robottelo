@@ -24,6 +24,8 @@ from robottelo.common.decorators import bz_bug_is_open, rm_bug_is_open
 from robottelo.common.helpers import (
     escape_search,
     get_data_file,
+    get_external_docker_url,
+    get_internal_docker_url,
     get_server_credentials,
 )
 from robottelo import orm
@@ -264,13 +266,22 @@ class ComputeResource(
     """A representation of a Compute Resource entity."""
     description = entity_fields.StringField(null=True)
     # `name` cannot contain whitespace. Thus, the chosen string types.
-    name = entity_fields.StringField(null=True, str_type=('alphanumeric', 'cjk'))
+    name = entity_fields.StringField(
+        required=True, str_type=('alphanumeric', 'cjk'))
     password = entity_fields.StringField(null=True)
     provider = entity_fields.StringField(
         null=True,
         required=True,
-        choices=('EC2', 'GCE', 'Libvirt', 'Openstack', 'Ovirt', 'Rackspace',
-                 'Vmware')
+        choices=(
+            'Docker',
+            'EC2',
+            'GCE',
+            'Libvirt',
+            'Openstack',
+            'Ovirt',
+            'Rackspace',
+            'Vmware',
+        )
     )
     region = entity_fields.StringField(null=True)
     server = entity_fields.StringField(null=True)
@@ -291,19 +302,29 @@ class ComputeResource(
         filled in with values too.
 
         """
-        super(ComputeResource, self).create_missing(auth)
         cls = type(self)
+        provider = vars(self).get('provider')
+        if provider is None:
+            self.provider = provider = cls.provider.gen_value()
+
+        # Deal with docker provider before calling super create_missing in
+        # order to check if an URL is provided by the user and, if not,
+        # generate an URL pointing to a docker server
+        if provider.lower() == 'docker':
+            if 'url' not in vars(self):
+                self.url = random.choice((
+                    get_internal_docker_url(), get_external_docker_url()))
+
+        # Now is good to call super create_missing
+        super(ComputeResource, self).create_missing(auth)
 
         # Generate required fields according to the provider. First check if
         # the field is already set by the user, if not generate a random value
-        provider = vars(self)['provider']
         if provider == 'EC2' or provider == 'Ovirt' or provider == 'Openstack':
-            for field in ('name', 'password', 'user'):
+            for field in ('password', 'user'):
                 if field not in vars(self):
                     setattr(self, field, getattr(cls, field).gen_value())
         elif provider == 'GCE':
-            if 'name' not in vars(self):
-                self.name = cls.name.gen_value()
             # self.email = cls.email.gen_value()
             # self.key_path = cls.key_path.gen_value()
             # self.project = cls.project.gen_value()
@@ -314,9 +335,7 @@ class ComputeResource(
             # 1. Figure out valid values for these three fields.
             # 2. Uncomment the above.
             # 3. File an issue on bugzilla asking for the docs to be expanded.
-        elif provider == 'Libvirt':
-            if 'name' not in vars(self):
-                self.name = cls.name.gen_value()
+            pass
         elif provider == 'Rackspace':
             # FIXME: Foreman always returns this error:
             #
@@ -326,7 +345,7 @@ class ComputeResource(
             # 2. Figure out what data is necessary and add it here.
             pass
         elif provider == 'Vmware':
-            for field in ('name', 'password', 'user', 'uuid'):
+            for field in ('password', 'user', 'uuid'):
                 if field not in vars(self):
                     setattr(self, field, getattr(cls, field).gen_value())
 

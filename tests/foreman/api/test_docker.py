@@ -8,11 +8,18 @@ from robottelo import entities
 from robottelo.common.constants import DOCKER_REGISTRY_HUB
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
-from robottelo.common.helpers import get_server_credentials
+from robottelo.common.helpers import (
+    get_external_docker_url,
+    get_internal_docker_url,
+    get_server_credentials,
+)
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
+DOCKER_PROVIDER = 'Docker'
+EXTERNAL_DOCKER_URL = get_external_docker_url()
+INTERNAL_DOCKER_URL = get_internal_docker_url()
 STRING_TYPES = ['alpha', 'alphanumeric', 'cjk', 'utf8', 'latin1']
 
 
@@ -891,6 +898,7 @@ class DockerClientTestCase(APITestCase):
         """
 
 
+@ddt
 class DockerComputeResourceTestCase(APITestCase):
     """Tests specific to managing Docker-based Compute Resources."""
 
@@ -900,19 +908,36 @@ class DockerComputeResourceTestCase(APITestCase):
         super(DockerComputeResourceTestCase, cls).setUpClass()
         cls.org_id = entities.Organization().create_json()['id']
 
-    @stubbed()
     @run_only_on('sat')
-    def test_create_internal_docker_compute_resource(self):
-        """@Test: Create a Docker-based Compute Resource in the
-        Satellite 6 instance.
+    @data(
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
+    )
+    def test_create_internal_docker_compute_resource(self, name):
+        """@Test: Create a Docker-based Compute Resource in the Satellite 6
+        instance.
 
         @Assert: Compute Resource can be created and listed.
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        compute_resource_id = entities.ComputeResource(
+            name=name,
+            provider=DOCKER_PROVIDER,
+            url=INTERNAL_DOCKER_URL
+        ).create_json()['id']
+
+        compute_resource = entities.ComputeResource(
+            id=compute_resource_id).read_json()
+
+        self.assertEqual(compute_resource['name'], name)
+        self.assertEqual(compute_resource['url'], INTERNAL_DOCKER_URL)
+        self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
 
     @stubbed()
     @run_only_on('sat')
@@ -958,19 +983,36 @@ class DockerComputeResourceTestCase(APITestCase):
 
         """
 
-    @stubbed()
     @run_only_on('sat')
-    def test_create_external_docker_compute_resource(self):
-        """@Test: Create a Docker-based Compute Resource using
-        an external Docker-enabled system.
+    @data(
+        gen_string('alpha'),
+        gen_string('alphanumeric'),
+        gen_string('numeric'),
+        gen_string('latin1'),
+        gen_string('utf8'),
+        gen_string('html'),
+    )
+    def test_create_external_docker_compute_resource(self, name):
+        """@Test: Create a Docker-based Compute Resource using an external
+        Docker-enabled system.
 
         @Assert: Compute Resource can be created and listed.
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        compute_resource_id = entities.ComputeResource(
+            name=name,
+            provider=DOCKER_PROVIDER,
+            url=EXTERNAL_DOCKER_URL
+        ).create_json()['id']
+
+        compute_resource = entities.ComputeResource(
+            id=compute_resource_id).read_json()
+
+        self.assertEqual(compute_resource['name'], name)
+        self.assertEqual(compute_resource['url'], EXTERNAL_DOCKER_URL)
+        self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
 
     @stubbed()
     @run_only_on('sat')

@@ -44,6 +44,14 @@ provisioning_server=
 # provisioning server.
 image_dir=/opt/robottelo/images
 
+[docker]
+# Internal docker URL in the format http[s]://<server>:<port>. The
+# {server_hostname} variable can be used and will be replaced by
+# main.server.hostname value.
+internal_url=http://localhost:2375
+# External docker URL in the format http[s]://<server>:<port>.
+external_url=
+
 [foreman]
 admin.username=admin
 admin.password=changeme
