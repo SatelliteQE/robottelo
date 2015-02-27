@@ -241,7 +241,7 @@ class Syncplan(UITestCase):
         description = "update sync plan"
         self.configure_syncplan()
         self.syncplan.create(plan_name, description)
-        self.assertIsNotNone(self.synplan.search(plan_name))
+        self.assertIsNotNone(self.syncplan.search(plan_name))
         self.syncplan.update(plan_name, new_name=new_plan_name)
         self.assertIsNotNone(self.syncplan.search(new_plan_name))
 
