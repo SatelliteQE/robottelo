@@ -30,7 +30,7 @@ class Syncplan(Base):
         self.wait_for_ajax()
 
     def create(self, name, description=None, startdate=None,
-               sync_interval=None, start_hour=None,
+               sync_interval='hourly', start_hour=None,
                start_minute=None):
         """
         Creates new Sync Plans from UI
