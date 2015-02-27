@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 """This module defines all entities which Foreman exposes.
 
 Each class in this module corresponds to a certain type of Foreman entity. For
@@ -415,6 +416,144 @@ class ConfigTemplate(
         else:
             attrs['template_kind'] = {'id': template_kind_id}
         return super(ConfigTemplate, self).read(auth, entity, attrs, ignore)
+
+
+class AbstractDockerContainer(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        orm.EntityCreateMixin):
+    """A representation of a docker container.
+
+    This class is abstract because all containers must come from somewhere, but
+    this class does not have attributes for specifying that information.
+
+    .. WARNING:: A docker compute resource must be specified when creating a
+        docker container.
+
+    """
+    attach_stderr = entity_fields.BooleanField(null=True)
+    attach_stdin = entity_fields.BooleanField(null=True)
+    attach_stdout = entity_fields.BooleanField(null=True)
+    command = entity_fields.StringField(required=True, str_type='latin1')
+    compute_resource = entity_fields.OneToOneField('ComputeResource')
+    cpu_set = entity_fields.StringField(null=True)
+    cpu_shares = entity_fields.StringField(null=True)
+    entrypoint = entity_fields.StringField(null=True)
+    location = entity_fields.OneToManyField('Location', null=True)
+    memory = entity_fields.StringField(null=True)
+    # "alphanumeric" is a subset of the legal chars for "name": a-zA-Z0-9_.-
+    name = entity_fields.StringField(required=True, str_type='alphanumeric')
+    organization = entity_fields.OneToManyField('Organization', null=True)
+    tty = entity_fields.BooleanField(null=True)
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'docker/api/v2/containers'
+        server_modes = ('sat')
+
+    def path(self, which=None):
+        """Extend :meth:`robottelo.orm.Entity.path`.
+
+        The format of the returned path depends on the value of ``which``:
+
+        logs
+            /content_view_versions/<id>/logs
+        power
+            /content_view_versions/<id>/power
+
+        ``super`` is called otherwise.
+
+        """
+        if which in ('logs', 'power'):
+            return '{0}/{1}'.format(
+                super(AbstractDockerContainer, self).path(which='self'),
+                which
+            )
+        return super(AbstractDockerContainer, self).path(which)
+
+    # NOTE: See BZ 1151220
+    def create_payload(self):
+        """Wrap submitted data within an extra dict."""
+        return {
+            u'container': super(AbstractDockerContainer, self).create_payload()
+        }
+
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
+        """Compensate for the unusual format of responses from the server.
+
+        The server returns an ID and a list of IDs for the ``compute_resource``
+        field. Compensate for this unusual design trait. Typically, the server
+        returns a hash or a list of hashes for ``OneToOneField`` and
+        ``OneToManyField`` fields.
+
+        """
+        if attrs is None:
+            attrs = self.read_json(auth)
+        compute_resource_id = attrs.pop('compute_resource_id')
+        if compute_resource_id is None:
+            attrs['compute_resource'] = None
+        else:
+            attrs['compute_resource'] = {'id': compute_resource_id}
+        return super(AbstractDockerContainer, self).read(
+            auth, entity, attrs, ignore
+        )
+
+    def power(self, power_action):
+        """Run a power operation on a container.
+
+        :param str power_action: One of 'start', 'stop' or 'status'.
+        :returns: Information about the current state of the container.
+        :rtype: dict
+
+        """
+        power_actions = ('start', 'stop', 'status')
+        if power_action not in power_actions:
+            raise ValueError('Received {0} but expected one of {1}'.format(
+                power_action, power_actions
+            ))
+        response = client.put(
+            self.path(which='power'),
+            auth=get_server_credentials(),
+            verify=False,
+            data={u'power_action': power_action},
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def logs(self, stdout=None, stderr=None, tail=None):
+        """Get logs from this container.
+
+        :param bool stdout: ???
+        :param bool stderr: ???
+        :param int tail: How many lines should be tailed? Server does 100 by
+            default.
+        :returns:
+        :rtype: dict
+
+        """
+        data = {}
+        if stdout is not None:
+            data['stdout'] = stdout
+        if stderr is not None:
+            data['stderr'] = stderr
+        if tail is not None:
+            data['tail'] = tail
+        response = client.get(
+            self.path(which='logs'),
+            auth=get_server_credentials(),
+            verify=False,
+            data=data,
+        )
+        response.raise_for_status()
+        return response.json()
+
+
+class DockerHubContainer(AbstractDockerContainer):
+    """A docker container that comes from Docker Hub."""
+    repository_name = entity_fields.StringField(
+        default='busybox',
+        required=True,
+    )
+    tag = entity_fields.StringField(required=True, default='latest')
 
 
 class ContentUpload(orm.Entity):
