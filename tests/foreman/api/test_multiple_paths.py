@@ -142,6 +142,7 @@ class EntityTestCase(APITestCase):
         # entities.System,  # need organization_id
         entities.TemplateKind,
         entities.User,
+        entities.UserGroup,
     )
     def test_get_status_code(self, entity_cls):
         """@Test: GET an entity-dependent path.
@@ -182,6 +183,7 @@ class EntityTestCase(APITestCase):
         entities.System,
         entities.TemplateKind,
         entities.User,
+        entities.UserGroup,
     )
     def test_get_unauthorized(self, entity_cls):
         """@Test: GET an entity-dependent path without credentials.
@@ -227,6 +229,7 @@ class EntityTestCase(APITestCase):
         entities.System,
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
+        entities.UserGroup,
     )
     def test_post_status_code(self, entity_cls):
         """@Test: Issue a POST request and check the returned status code.
@@ -274,6 +277,7 @@ class EntityTestCase(APITestCase):
         entities.System,
         entities.TemplateKind,
         entities.User,
+        entities.UserGroup,
     )
     @skip_if_bug_open('bugzilla', 1122257)
     def test_post_unauthorized(self, entity_cls):
@@ -321,6 +325,7 @@ class EntityIdTestCase(APITestCase):
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
+        entities.UserGroup,
     )
     def test_get_status_code(self, entity_cls):
         """@Test: Create an entity and GET it.
@@ -365,6 +370,7 @@ class EntityIdTestCase(APITestCase):
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
+        entities.UserGroup,
     )
     def test_put_status_code(self, entity_cls):
         """@Test Issue a PUT request and check the returned status code.
@@ -418,6 +424,7 @@ class EntityIdTestCase(APITestCase):
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
+        entities.UserGroup,
     )
     def test_delete_status_code(self, entity_cls):
         """@Test Issue an HTTP DELETE request and check the returned status
@@ -488,6 +495,7 @@ class DoubleCheckTestCase(APITestCase):
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
+        entities.UserGroup,
     )
     def test_put_and_get(self, entity_cls):
         """@Test: Update an entity, then read it back.
@@ -548,6 +556,7 @@ class DoubleCheckTestCase(APITestCase):
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
+        entities.UserGroup,
     )
     def test_post_and_get(self, entity_cls):
         """@Test: Create an entity, then read it back.
@@ -597,6 +606,7 @@ class DoubleCheckTestCase(APITestCase):
         # entities.System,  # See test_activationkey_v2.py
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
+        entities.UserGroup,
     )
     def test_delete_and_get(self, entity_cls):
         """@Test: Issue an HTTP DELETE request and GET the deleted entity.
@@ -663,6 +673,7 @@ class EntityReadTestCase(APITestCase):
         entities.System,
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
+        entities.UserGroup,
     )
     def test_entity_read(self, entity_cls):
         """@Test: Create an entity and get it using

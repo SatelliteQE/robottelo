@@ -2427,14 +2427,24 @@ class TemplateKind(orm.Entity, orm.EntityReadMixin):
         NUM_CREATED_BY_DEFAULT = 8
 
 
-class UserGroup(orm.Entity):
+class UserGroup(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        orm.EntityCreateMixin):
     """A representation of a User Group entity."""
     name = entity_fields.StringField(required=True)
+    role = entity_fields.OneToManyField('Role')
+    user = entity_fields.OneToManyField('User', required=True)
+    usergroup = entity_fields.OneToManyField('UserGroup')
 
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/usergroups'
         server_modes = ('sat')
+
+    # NOTE: See BZ 1151220
+    def create_payload(self):
+        """Wrap submitted data within an extra dict."""
+        return {u'usergroup': super(UserGroup, self).create_payload()}
 
 
 class User(
