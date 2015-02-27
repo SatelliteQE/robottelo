@@ -128,6 +128,7 @@ class PuppetClasses(UITestCase):
             search = self.puppetclasses.search(name)
             self.assertIsNotNone(search)
             self.puppetclasses.update(name, new_name)
+            self.assertIsNotNone(self.puppetclasses.search(new_name))
 
     @skip_if_bug_open('bugzilla', 1126473)
     @attr('ui', 'puppet-classes', 'implemented')

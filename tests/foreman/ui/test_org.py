@@ -768,7 +768,7 @@ class Org(UITestCase):
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
-            make_resource(session, name=resource_name, orgs=[org_name],
+            make_resource(session, name=resource_name,
                           provider_type="Libvirt", url=url)
             self.assertIsNotNone(self.compute_resource.search(resource_name))
             self.org.update(org_name, new_resources=[resource_name])
