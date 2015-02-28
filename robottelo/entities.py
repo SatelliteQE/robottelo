@@ -2288,25 +2288,56 @@ class Subscription(orm.Entity):
         server_modes = ('sat', 'sam')
 
 
-class SyncPlan(orm.Entity):
+class SyncPlan(orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        orm.EntityCreateMixin):
     """A representation of a Sync Plan entity."""
-    organization = entity_fields.OneToOneField('Organization', required=True)
+    enabled = entity_fields.BooleanField(required=True)
     name = entity_fields.StringField(required=True)
     # how often synchronization should run must be one of: none, hourly, daily,
     # weekly.
     interval = entity_fields.StringField(
-        choices=('none', 'hourly', 'daily', 'weekly'),
+        choices=('hourly', 'daily', 'weekly'),
         required=True,
     )
     # start datetime of synchronization
     sync_date = entity_fields.DateTimeField(required=True)
     description = entity_fields.StringField()
 
-    class Meta(object):
-        """Non-field information about this entity."""
-        api_path = 'katello/api/v2/organizations/:organization_id/sync_plans'
-        server_modes = ('sat')
+    def __init__(self, organization_id, **kwargs):
+        """Record ``organization_id`` and set ``self.Meta.api_path``."""
+        self.Meta.organization_id = organization_id
+        self.Meta.api_path = '{0}/sync_plans'.format(
+            Organization(id=organization_id).path()
+        )
+        super(SyncPlan, self).__init__(**kwargs)
 
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
+        """Provide a default value for ``entity``.
+
+        By default, :meth:`robottelo.orm.EntityReadMixin.read` provides a
+        default value for ``entity`` like so::
+
+            entity = type(self)()
+
+        However, :class:`SyncPlan` requires that an ``organization_id`` be
+        provided, so this technique will not work. Do this instead::
+
+            entity = type(self)(self.Meta.organization_id)
+
+        """
+        # `entity = self` also succeeds. However, the attributes of the object
+        # passed in will be clobbered. Passing in a new object allows this one
+        # to avoid changing state. The default implementation of
+        # `read` follows the same principle.
+        if entity is None:
+            entity = type(self)(self.Meta.organization_id)
+        return super(SyncPlan, self).read(auth, entity, attrs, ignore)
+
+    def create_payload(self):
+        """Convert ``sync_date`` to a string before sending it to the server."""
+        data = super(SyncPlan, self).create_payload()
+        data['sync_date'] = data['sync_date'].strftime('%Y-%m-%d %H:%M:%S')
+        return data
 
 class SystemPackage(orm.Entity):
     """A representation of a System Package entity."""
