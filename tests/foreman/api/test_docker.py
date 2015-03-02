@@ -1,4 +1,6 @@
 """Unit tests for the ``repositories`` paths."""
+import httplib
+
 from ddt import ddt
 from fauxfactory import gen_choice, gen_string, gen_url
 from nailgun import client
@@ -956,20 +958,6 @@ class DockerComputeResourceTestCase(APITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_delete_internal_docker_compute_resource(self):
-        """@Test: Create a Docker-based Compute Resource in the
-        Satellite 6 instance then delete it.
-
-        @Assert: Compute Resource can be created, listed and deleted.
-
-        @Feature: Docker
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
     def test_list_containers_internal_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource in the
         Satellite 6 instance then list its running containers.
@@ -1031,20 +1019,6 @@ class DockerComputeResourceTestCase(APITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_delete_external_docker_compute_resource(self):
-        """@Test:@Test: Create a Docker-based Compute Resource using
-        an external Docker-enabled system then delete it.
-
-        @Assert: Compute Resource can be created, listed and deleted.
-
-        @Feature: Docker
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
     def test_list_containers_external_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource using
         an external Docker-enabled system then list its running containers.
@@ -1057,6 +1031,37 @@ class DockerComputeResourceTestCase(APITestCase):
         @Status: Manual
 
         """
+
+    @run_only_on('sat')
+    @data(
+        EXTERNAL_DOCKER_URL,
+        INTERNAL_DOCKER_URL,
+    )
+    def test_delete_docker_compute_resource(self, url):
+        """@Test: Create a Docker-based Compute Resource then delete it.
+
+        @Assert: Compute Resource can be created, listed and deleted.
+
+        @Feature: Docker
+
+        """
+        compute_resource_id = entities.ComputeResource(
+            provider=DOCKER_PROVIDER,
+            url=url
+        ).create_json()['id']
+
+        compute_resource = entities.ComputeResource(
+            id=compute_resource_id).read_json()
+        self.assertEqual(compute_resource['url'], url)
+        self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
+
+        entities.ComputeResource(id=compute_resource_id).delete()
+
+        self.assertEqual(
+            httplib.NOT_FOUND,
+            entities.ComputeResource(
+                id=compute_resource_id).read_raw().status_code
+        )
 
 
 class DockerContainersTestCase(APITestCase):
