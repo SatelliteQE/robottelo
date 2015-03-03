@@ -42,6 +42,7 @@ class ContentHost(Base):
 
         cls.command_sub = 'tasks'
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
 
         return result

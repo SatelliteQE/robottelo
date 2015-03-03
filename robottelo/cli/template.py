@@ -42,7 +42,8 @@ class Template(Base):
 
         cls.command_sub = 'kinds'
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
 
         kinds = []
 
@@ -59,7 +60,8 @@ class Template(Base):
 
         cls.command_sub = 'add-operatingsystem'
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -71,6 +73,7 @@ class Template(Base):
 
         cls.command_sub = 'remove-operatingsystem'
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
 
         return result

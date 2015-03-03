@@ -69,7 +69,7 @@ class Subscription(Base):
         return result
 
     @classmethod
-    def manifest_history(cls, options=None, expect_csv=True):
+    def manifest_history(cls, options=None):
         """Provided history for subscription manifest"""
         cls.command_sub = 'manifest-history'
         return cls.execute(cls._construct_command(options))

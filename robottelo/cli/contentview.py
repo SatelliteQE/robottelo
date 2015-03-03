@@ -46,13 +46,15 @@ class ContentView(Base):
     def add_repository(cls, options):
         """Associate repository to a selected CV."""
         cls.command_sub = 'add-repository'
-        return cls.execute(cls._construct_command(options), expect_csv=True)
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
 
     @classmethod
     def add_version(cls, options):
         """Associate version to a selected CV."""
         cls.command_sub = 'add-version'
-        return cls.execute(cls._construct_command(options), expect_csv=True)
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
 
     @classmethod
     def publish(cls, options, timeout=None):
@@ -73,7 +75,7 @@ class ContentView(Base):
         if options is None:
             options = {}
 
-        result = cls.execute(cls._construct_command(options), expect_csv=False)
+        result = cls.execute(cls._construct_command(options))
 
         # info_dictionary required to convert result.stdout
         # to dictionary format
@@ -83,7 +85,8 @@ class ContentView(Base):
     def puppet_module_add(cls, options):
         """Associate puppet_module to selected CV"""
         cls.command_sub = 'puppet-module add'
-        return cls.execute(cls._construct_command(options), expect_csv=True)
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
 
     @classmethod
     def puppet_module_info(cls, options):
@@ -93,7 +96,7 @@ class ContentView(Base):
         if options is None:
             options = {}
 
-        result = cls.execute(cls._construct_command(options), expect_csv=False)
+        result = cls.execute(cls._construct_command(options))
 
         # info_dictionary required to convert result.stdout
         # to dictionary format
@@ -108,7 +111,7 @@ class ContentView(Base):
         if options is None:
             options = {}
 
-        result = cls.execute(cls._construct_command(options), expect_csv=False)
+        result = cls.execute(cls._construct_command(options))
 
         # info_dictionary required to convert result.stdout
         # to dictionary format
@@ -122,7 +125,7 @@ class ContentView(Base):
         if options is None:
             options = {}
 
-        return cls.execute(cls._construct_command(options), expect_csv=False)
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def filter_rule_create(cls, options):
@@ -132,7 +135,7 @@ class ContentView(Base):
         if options is None:
             options = {}
 
-        return cls.execute(cls._construct_command(options), expect_csv=False)
+        return cls.execute(cls._construct_command(options))
 
     @classmethod
     def version_list(cls, options):
@@ -142,7 +145,8 @@ class ContentView(Base):
         if options is None:
             options = {}
 
-        return cls.execute(cls._construct_command(options), expect_csv=True)
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
 
     @classmethod
     def version_promote(cls, options):
