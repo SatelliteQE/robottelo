@@ -39,7 +39,8 @@ class GPGKey(Base):
 
         cls.command_sub = 'info'
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
 
         # Need to rebuild the returned object
         # First check for content key

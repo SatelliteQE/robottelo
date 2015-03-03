@@ -61,7 +61,8 @@ class Host(Base):
         """
         cls.command_sub = 'facts'
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
 
         facts = []
 
@@ -130,7 +131,8 @@ class Host(Base):
 
         cls.command_sub = 'reports'
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
 
         reports = []
 

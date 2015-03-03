@@ -2,6 +2,7 @@
 Utility module to handle the shared ssh connection
 """
 
+import json
 import logging
 import re
 import sys
@@ -20,19 +21,20 @@ logger = logging.getLogger(__name__)
 
 
 class SSHCommandResult(object):
-    """
-    Structure that returns in all ssh commands results.
-    """
+    """Structure that returns in all ssh commands results."""
 
-    def __init__(self, stdout=None, stderr=None,
-                 return_code=0, transform_csv=False):
+    def __init__(
+            self, stdout=None, stderr=None, return_code=0, output_format=None):
         self.stdout = stdout
         self.stderr = stderr
         self.return_code = return_code
-        self.transform_csv = transform_csv
-        #  Does not make sense to return suspicious CSV if ($? <> 0)
-        if transform_csv and self.return_code == 0:
-            self.stdout = csv_to_dictionary(stdout) if stdout else {}
+        self.output_format = output_format
+        #  Does not make sense to return suspicious output if ($? <> 0)
+        if output_format and self.return_code == 0:
+            if output_format == 'csv':
+                self.stdout = csv_to_dictionary(stdout) if stdout else {}
+            if output_format == 'json':
+                self.stdout = json.loads(stdout) if stdout else None
 
 
 def _call_paramiko_sshclient():
@@ -132,7 +134,7 @@ def download_file(remote_file, local_file=None):
         sftp.close()
 
 
-def command(cmd, hostname=None, expect_csv=False, timeout=None):
+def command(cmd, hostname=None, output_format=None, timeout=None):
     """
     Executes SSH command(s) on remote hostname.
     Defaults to main.server.hostname.
@@ -158,30 +160,28 @@ def command(cmd, hostname=None, expect_csv=False, timeout=None):
         stdout = stdout.read()
         stderr = stderr.read()
 
-    # For output we don't really want to see all of Rails traffic
-    # information, so strip it out.
-
     if stdout:
+        stdout = stdout.decode('utf-8')
+        logger.debug("<<<\n%s", stdout)
+
+    if stdout and output_format != 'json':
+        # For output we don't really want to see all of Rails traffic
+        # information, so strip it out.
         # Empty fields are returned as "" which gives us u'""'
         stdout = stdout.replace('""', '')
-        stdout = stdout.decode('utf-8')
         stdout = u"".join(stdout).split("\n")
-        output = [
+        stdout = [
             regex.sub('', line) for line in stdout if not line.startswith("[")
         ]
-    else:
-        output = []
 
     # Ignore stderr if errorcode == 0. This is necessary since
     # we're running Foreman in verbose mode which generates a lot
     # of output return as stderr.
     errors = [] if errorcode == 0 else stderr
 
-    if output:
-        logger.debug("<<<\n%s", '\n'.join(output[:-1]))
     if errors:
         errors = regex.sub('', "".join(errors))
         logger.debug("<<< %s", errors)
 
     return SSHCommandResult(
-        output, errors, errorcode, expect_csv)
+        stdout, errors, errorcode, output_format)

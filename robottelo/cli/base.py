@@ -97,8 +97,7 @@ class Base(object):
             options = {}
 
         result = cls.execute(
-            cls._construct_command(options),
-            expect_csv=True)
+            cls._construct_command(options), output_format='csv')
 
         # Extract new object ID if it was successfully created
         if len(result.stdout) > 0 and 'id' in result.stdout[0]:
@@ -185,25 +184,21 @@ class Base(object):
         return (username, password)
 
     @classmethod
-    def execute(cls, command, user=None, password=None,
-                expect_csv=False, timeout=None):
+    def execute(cls, command, user=None, password=None, output_format=None,
+                timeout=None):
         """Executes the cli ``command`` on the server via ssh"""
         user, password = cls._get_username_password(user, password)
 
-        output_csv = u''
-
-        if expect_csv:
-            output_csv = u' --output csv'
         cmd = u'LANG={0} hammer -v -u {1} -p {2} {3} {4}'.format(
             conf.properties['main.locale'],
             user,
             password,
-            output_csv,
+            u'--output={0}'.format(output_format) if output_format else u'',
             command
         )
 
         return ssh.command(
-            cmd.encode('utf-8'), expect_csv=expect_csv, timeout=timeout)
+            cmd.encode('utf-8'), output_format=output_format, timeout=timeout)
 
     @classmethod
     def exists(cls, options=None, search=None):
@@ -249,7 +244,7 @@ class Base(object):
                 .format(cls.__name__)
             )
 
-        result = cls.execute(cls._construct_command(options), expect_csv=False)
+        result = cls.execute(cls._construct_command(options))
 
         # info_dictionary required to convert result.stdout to dic format
         updated_result = info_dictionary(result)
@@ -277,7 +272,8 @@ class Base(object):
                 .format(cls.__name__)
             )
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -289,7 +285,8 @@ class Base(object):
 
         cls.command_sub = 'puppet-classes'
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -313,7 +310,8 @@ class Base(object):
 
         cls.command_sub = 'sc-params'
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
 
         return result
 
@@ -337,7 +335,8 @@ class Base(object):
 
         cls.command_sub = 'update'
 
-        result = cls.execute(cls._construct_command(options), expect_csv=True)
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
 
         return result
 

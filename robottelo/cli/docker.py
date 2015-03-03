@@ -5,6 +5,219 @@
 from robottelo.cli.base import Base
 
 
+class DockerContainer(Base):
+    """Manipulates Docker containers
+
+    Usage::
+
+        hammer docker container [OPTIONS] SUBCOMMAND [ARG] ...
+
+    Parameters::
+
+        SUBCOMMAND                    subcommand
+        [ARG] ...                     subcommand arguments
+
+    Subcommands::
+
+        create                        Create a container
+        delete                        Delete a container
+        info                          Show a container
+        list                          List all containers
+        logs                          Show container logs
+        start                         Power a container on
+        status                        Run power operation on a container
+        stop                          Power a container off
+
+    """
+    command_base = 'docker image'
+
+    @classmethod
+    def create(cls, options=None):
+        """Creates a docker container
+
+        Usage::
+
+            hammer docker container create [OPTIONS]
+
+        Options::
+
+            --attach-stderr ATTACH_STDERR             One of true/false,
+                                                      yes/no, 1/0.
+            --attach-stdin ATTACH_STDIN               One of true/false,
+                                                      yes/no, 1/0.
+            --attach-stdout ATTACH_STDOUT             One of true/false,
+                                                      yes/no, 1/0.
+            --cmd CMD
+            --compute-resource COMPUTE_RESOURCE_NAME  Compute resource name
+            --compute-resource-id COMPUTE_RESOURCE_ID
+            --cpu-sets CPU_SETS
+            --cpu-shares CPU_SHARES
+            --entrypoint ENTRYPOINT
+            --image IMAGE                             Image to use to create
+                                                      the container. Format
+                                                      should be repository:tag,
+                                                      e.g: centos:7
+            --katello KATELLO                         One of true/false,
+                                                      yes/no, 1/0.
+            --location-ids LOCATION_IDS               REPLACE locations with
+                                                      given ids. Comma
+                                                      separated list of values.
+            --locations LOCATION_NAMES                Comma separated list of
+                                                      values.
+            --memory MEMORY
+            --name NAME
+            --organization-ids ORGANIZATION_IDS       REPLACE organizations
+                                                      with given ids. Comma
+                                                      separated list of values.
+            --organizations ORGANIZATION_NAMES        Comma separated list of
+                                                      values.
+            --registry-id REGISTRY_ID                 Registry this container
+                                                      will have to use to get
+                                                      the image
+            --tty TTY                                 One of true/false,
+                                                      yes/no, 1/0.
+
+        """
+        return super(DockerContainer, cls).create(options)
+
+    @classmethod
+    def delete(cls, options=None):
+        """Deletes a docker container
+
+        Usage::
+
+            hammer docker container delete [OPTIONS]
+
+        Options::
+
+            --compute-resource COMPUTE_RESOURCE_NAME  Compute resource name
+            --compute-resource-id COMPUTE_RESOURCE_ID
+            --id ID
+            --name NAME                               Name to search by
+
+        """
+        return super(DockerContainer, cls).delete(options)
+
+    @classmethod
+    def info(cls, options=None):
+        """Gets information about a docker container
+
+        Usage::
+
+            hammer docker container info [OPTIONS]
+
+        Options::
+
+            --compute-resource COMPUTE_RESOURCE_NAME  Compute resource name
+            --compute-resource-id COMPUTE_RESOURCE_ID
+            --id ID
+            --name NAME                               Name to search by
+
+        """
+        return super(DockerContainer, cls).info(options)
+
+    @classmethod
+    def list(cls, options=None):
+        """Lists docker containers
+
+        Usage::
+
+            hammer docker container list [OPTIONS]
+
+        Options::
+
+            --compute-resource COMPUTE_RESOURCE_NAME  Compute resource name
+            --compute-resource-id COMPUTE_RESOURCE_ID
+            --page PAGE                               paginate results
+            --per-page PER_PAGE                       number of entries per
+                                                      request
+
+        """
+        return super(DockerContainer, cls).list(options)
+
+    @classmethod
+    def logs(cls, options=None):
+        """Reads container logs
+
+        Usage::
+
+            hammer docker container logs [OPTIONS]
+
+        Options::
+
+            --compute-resource COMPUTE_RESOURCE_NAME  Compute resource name
+            --compute-resource-id COMPUTE_RESOURCE_ID
+            --id ID
+            --name NAME                               Name to search by
+            --stderr STDERR                           One of true/false,
+                                                      yes/no, 1/0.
+            --stdout STDOUT                           One of true/false,
+                                                      yes/no, 1/0.
+            --tail TAIL                               Number of lines to tail.
+                                                      Default: 100
+
+        """
+        cls.command_sub = 'logs'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def start(cls, options=None):
+        """Starts a docker container
+
+        Usage::
+
+            hammer docker container start [OPTIONS]
+
+        Options::
+
+            --compute-resource COMPUTE_RESOURCE_NAME  Compute resource name
+            --compute-resource-id COMPUTE_RESOURCE_ID
+            --id ID
+            --name NAME                               Name to search by
+
+        """
+        cls.command_sub = 'start'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def status(cls, options=None):
+        """Gets the running status of a docker container
+
+        Usage::
+
+            hammer docker container status [OPTIONS]
+
+        Options::
+
+            --compute-resource COMPUTE_RESOURCE_NAME  Compute resource name
+            --compute-resource-id COMPUTE_RESOURCE_ID
+            --id ID
+            --name NAME                               Name to search by
+
+        """
+        cls.command_sub = 'status'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def stop(cls, options=None):
+        """Stops a docker container
+
+        Usage::
+
+            hammer docker container stop [OPTIONS]
+
+        Options::
+
+            --compute-resource COMPUTE_RESOURCE_NAME  Compute resource name
+            --compute-resource-id COMPUTE_RESOURCE_ID
+            --id ID
+            --name NAME                               Name to search by
+
+        """
+        cls.command_sub = 'stop'
+        return cls.execute(cls._construct_command(options))
+
+
 class DockerImage(Base):
     """Manipulates Docker images
 
@@ -187,6 +400,7 @@ class Docker(Base):
 
     Subcommands::
 
+        container                     Manage docker containers
         image                         Manage docker images
         tag                           Manage docker tags
 
@@ -195,5 +409,6 @@ class Docker(Base):
 
     # Shortcuts to docker subcommands. Instead of importing each subcommand
     # class, import the Docker class and use it like this: Docker.image.list()
+    container = DockerContainer
     image = DockerImage
     tag = DockerTag

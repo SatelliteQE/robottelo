@@ -69,4 +69,5 @@ class HostCollection(Base):
             --organization-label Organization label to search by
         """
         cls.command_sub = 'content-hosts'
-        return cls.execute(cls._construct_command(options), expect_csv=True)
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
