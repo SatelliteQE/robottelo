@@ -24,7 +24,7 @@ class TestLifeCycleEnvironment(CLITestCase):
         super(TestLifeCycleEnvironment, self).setUp()
 
         if TestLifeCycleEnvironment.org is None:
-            TestLifeCycleEnvironment.org = make_org(cached=True)
+            TestLifeCycleEnvironment.org = make_org()
 
     # Issues validation
     def test_bugzilla_1077386(self):
@@ -410,7 +410,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
         """
         try:
-            org = make_org(cached=True)
+            org = make_org()
             test_env = make_lifecycle_environment({
                 'organization-id': org['id'],
             })
