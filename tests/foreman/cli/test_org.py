@@ -175,12 +175,15 @@ class TestOrg(CLITestCase):
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
 
+    @skip_if_bug_open('bugzilla', 1076568)
     def test_bugzilla_1076568_1(self):
         """@test: Delete organization by name
 
         @feature: Organizations
 
         @assert: Organization is deleted
+
+        @BZ: 1076568
 
         """
 
@@ -214,12 +217,15 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
 
+    @skip_if_bug_open('bugzilla', 1076568)
     def test_bugzilla_1076568_2(self):
         """@test: Delete organization by ID
 
         @feature: Organizations
 
         @assert: Organization is deleted
+
+        @BZ: 1076568
 
         """
 
@@ -253,12 +259,15 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
 
+    @skip_if_bug_open('bugzilla', 1076568)
     def test_bugzilla_1076568_3(self):
         """@test: Delete organization by label
 
         @feature: Organizations
 
         @assert: Organization is deleted
+
+        @BZ: 1076568
 
         """
 
@@ -362,29 +371,6 @@ class TestOrg(CLITestCase):
                          "There should not be an exception here")
 
         self.assertEqual(new_obj['name'], result.stdout['name'])
-
-    def test_bugzilla_1061658(self):
-        """@Test: Organization delete fails with 500 Server / Candlepin 404 error
-
-        @Feature: Org
-
-        @Assert: Organization is created and deleted
-
-        """
-        new_obj = make_org()
-        return_value = Org.delete({'id': new_obj['id']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Not able to delete organization")
-        self.assertEqual(
-            len(return_value.stderr),
-            0,
-            "There should not be an exception here"
-        )
-
-        result = Org.info({'id': new_obj['id']})
-        self.assertNotEqual(result.return_code, 0, "Org was not deleted")
-        self.assertGreater(len(result.stderr), 0,
-                           "There should be an exception here")
 
     @run_only_on('sat')
     def test_bugzilla_1062295_1(self):
@@ -1096,6 +1082,7 @@ class TestOrg(CLITestCase):
 
     # Positive Delete
 
+    @skip_if_bug_open('bugzilla', 1076568)
     @data(*positive_name_desc_label_data())
     def test_positive_delete_1(self, test_data):
         """@test: Create organization with valid values then delete it
@@ -1104,6 +1091,8 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization is deleted
+
+        @BZ: 1076568
 
         """
 
@@ -1130,6 +1119,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
 
+    @skip_if_bug_open('bugzilla', 1076568)
     @data(*positive_name_desc_label_data())
     def test_positive_delete_2(self, test_data):
         """@test: Create organization with valid values then delete it
@@ -1138,6 +1128,8 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization is deleted
+
+        @BZ: 1076568
 
         """
 
@@ -1164,6 +1156,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             len(result.stdout), 0, "Output should be blank.")
 
+    @skip_if_bug_open('bugzilla', 1076568)
     @data(*positive_name_desc_label_data())
     def test_positive_delete_3(self, test_data):
         """@test: Create organization with valid values then delete it
@@ -1172,6 +1165,8 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization is deleted
+
+        @BZ: 1076568
 
         """
 
@@ -1366,39 +1361,6 @@ class TestOrg(CLITestCase):
         # Update the org name
         result = Org.update({'id': new_obj['id'],
                              'new-name': test_data['name']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0,
-                           "There should be error - hammer expects error")
-
-    @skip_if_bug_open('bugzilla', 1114136)
-    @data({'description': gen_string('alpha', 3000)},
-          {'description': gen_string('numeric', 3000)},
-          {'description': gen_string('alphanumeric', 3000)},
-          {'description': gen_string('utf8', 3000)},
-          {'description': gen_string('latin1', 3000)},
-          {'description': gen_string('html', 3000)})
-    def test_negative_update_3(self, test_data):
-        """@test: Create organization then fail to update description
-        its description
-
-        @feature: Organizations
-
-        @assert: organization description is not updated
-
-        @bz: 1114136
-
-        """
-
-        new_obj = make_org()
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
-
-        # Update the org name
-        result = Org.update({'id': new_obj['id'],
-                             'description': test_data['description']})
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0,
                            "There should be error - hammer expects error")
