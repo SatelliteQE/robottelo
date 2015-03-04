@@ -14,7 +14,7 @@ useful to :class:`robottelo.factory.EntityFactoryMixin`.
 """
 from robottelo.api import client
 from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.decorators import rm_bug_is_open
+from robottelo.common.decorators import bz_bug_is_open, rm_bug_is_open
 from robottelo.common.helpers import get_data_file, get_server_credentials
 from robottelo import factory, orm
 from time import sleep
@@ -1252,6 +1252,21 @@ class Repository(
             attrs = self.read_json(auth)
         attrs['product_id'] = attrs.pop('product')['id']
         return super(Repository, self).read(auth, entity, attrs)
+
+    def delete(self, auth=None, synchronous=True):
+        """Wait for elasticsearch to catch up to repository deletion.
+
+        Repository.delete launches a ForemanTask, but the ID of the task is not
+        returned. See BZ 1166365.
+
+        """
+        response = super(Repository, self).delete(auth, synchronous)
+        if bz_bug_is_open(1166365):
+            for _ in range(5):
+                if self.read_raw().status_code == 404:
+                    break
+                sleep(5)
+        return response
 
     class Meta(object):
         """Non-field information about this entity."""
