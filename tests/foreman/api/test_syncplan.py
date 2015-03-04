@@ -258,7 +258,7 @@ class SyncPlanProductTestCase(APITestCase):
         cls.prod2_id = entities.Product(
             organization=cls.org_id
         ).create_json()['id']
-        super(SyncPlanSynchronizeTestCase, cls).setUpClass()
+        super(SyncPlanProductTestCase, cls).setUpClass()
 
     @stubbed()
     @run_only_on('sat')
