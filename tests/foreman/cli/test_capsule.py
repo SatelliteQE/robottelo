@@ -122,11 +122,9 @@ class CapsuleTestCase(CLITestCase):
 
         """
 
-    def register_via_capsule_with_parent_cert(self):
-        """@Test: system can register via capsule using same cert as parent
-        sat. Note: it is possible that some changes may have to be made to
-        rhsm.conf to point to satellite. How this will be impl. has not yet
-        been determined. It will need its own case eventually.
+    def reregister_with_capsule_cert(self):
+        """@Test: system can register via capsule using cert provided by
+        the capsule itself.
 
         @Feature: Capsules
 
@@ -134,12 +132,13 @@ class CapsuleTestCase(CLITestCase):
 
         @Steps:
 
-        1. Attempt to register system to parent satellite; unregister
-        2. Attempt to reregister using same credentials and certs against a
+        1. Attempt to register from parent satellite; unregister and remove
+           cert rpm
+        2. Attempt to reregister using same credentials and certs from a
            functional capsule.
 
-        @Assert: Registration works with no changes, and certs RPM installed
-        from parent satellite.
+        @Assert: Registration works , and certs RPM installed
+        from capsule.
 
         @Status: Manual
 
