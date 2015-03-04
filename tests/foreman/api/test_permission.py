@@ -13,7 +13,7 @@ from nailgun import client
 from requests.exceptions import HTTPError
 from robottelo import entities
 from robottelo.common.constants import PERMISSIONS
-from robottelo.common.decorators import data, run_only_on
+from robottelo.common.decorators import bz_bug_is_open, data, run_only_on
 from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
@@ -42,6 +42,10 @@ class PermissionsTestCase(APITestCase):
         is the one searched for.
 
         """
+        if (
+                permission_name == 'power_compute_resources_vms' and
+                bz_bug_is_open(1198731)):
+            self.skipTest('BZ 1198731 is open.')
         result = entities.Permission(name=permission_name).search()
         self.assertEqual(len(result), 1, permission_name)
         self.assertEqual(permission_name, result[0]['name'])
