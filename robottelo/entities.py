@@ -2170,6 +2170,21 @@ class Repository(
         response.raise_for_status()
         return response.json()
 
+    def delete(self, auth=None, synchronous=True):
+        """Wait for elasticsearch to catch up to repository deletion.
+
+        Repository.delete launches a ForemanTask, but the ID of the task is not
+        returned. See BZ 1166365.
+
+        """
+        response = super(Repository, self).delete(auth, synchronous)
+        if bz_bug_is_open(1166365):
+            for _ in range(5):
+                if self.read_raw().status_code == 404:
+                    break
+                sleep(5)
+        return response
+
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/repositories'
