@@ -5,7 +5,6 @@ from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import bz_bug_is_open, skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo import entities, factory
-from time import sleep
 from unittest import TestCase
 import httplib
 import logging
@@ -475,10 +474,6 @@ class DoubleCheckTestCase(TestCase):
             self.fail(err)
         logger.info('test_delete_and_get path: {0}'.format(entity_n.path()))
         entity_n.delete()
-        if entity == entities.Repository and bz_bug_is_open(1166365):
-            # Repository.delete launches a ForemanTask, but the ID of the task
-            # is not returned. See BZ 1166365.
-            sleep(20)
 
         # An HTTP 404 response code should always be returned, but this bug is
         # unlikely to be fixed in a z-stream release due to how minor it is.
