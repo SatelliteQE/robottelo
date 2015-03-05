@@ -140,6 +140,24 @@ class PathTestCase(TestCase):
                 entities.ForemanTask(id=self.id_).path(which='bulk_search')):
             self.assertIn('/foreman_tasks/api/tasks/bulk_search', gen_path)
 
+    def test_syncplan_path(self):
+        """Test :meth:`robottelo.entities.SyncPlan.path`.
+
+        Assert that the correct paths are returned when the following paths are
+        provided to ``SyncPlan.path``:
+
+        * ``add_products``
+        * ``remove_products``
+
+        """
+        for which in ('add_products', 'remove_products'):
+            path = entities.SyncPlan(organization=1, id=2).path(which)
+            self.assertIn(
+                'organizations/1/sync_plans/2/{0}'.format(which),
+                path
+            )
+            self.assertRegexpMatches(path, '{0}$'.format(which))
+
     def test_system_path(self):
         """Test :meth:`robottelo.entities.System.path`.
 

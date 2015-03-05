@@ -2392,6 +2392,76 @@ class SyncPlan(
         data['sync_date'] = data['sync_date'].strftime('%Y-%m-%d %H:%M:%S')
         return data
 
+    def path(self, which=None):
+        """Extend :meth:`robottelo.orm.Entity.path`.
+
+        The format of the returned path depends on the value of ``which``:
+
+        add_products
+            /katello/api/v2/organizations/:organization_id/sync_plans/:sync_plan_id/add_products
+        remove_products
+            /katello/api/v2/organizations/:organization_id/sync_plans/:sync_plan_id/remove_products
+
+        """
+        if which in ('add_products', 'remove_products'):
+            return '{0}/{1}'.format(
+                super(SyncPlan, self).path(which='self'),
+                which
+            )
+        return super(SyncPlan, self).path(which)
+
+    def add_products(self, product_ids, synchronous=True):
+        """Add products to this sync plan.
+
+        .. NOTE:: The ``synchronous`` argument has no effect in certain
+            versions of Satellite. See:
+            https://bugzilla.redhat.com/show_bug.cgi?id=1199150
+
+        :param list product_ids: IDs of products to add to this sync plan.
+        :param bool synchronous: What should happen if the server returns an
+            HTTP 202 (accepted) status code? Wait for the task to complete if
+            ``True``. Immediately return the server's reponse otherwise.
+        :returns: The server's JSON-decoded response.
+        :rtype: dict
+
+        """
+        response = client.put(
+            self.path('add_products'),
+            {'product_ids': product_ids},
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        response.raise_for_status()
+        if synchronous is True and response.status_code is httplib.ACCEPTED:
+            return ForemanTask(id=response.json()['id']).poll()
+        return response.json()
+
+    def remove_products(self, product_ids, synchronous=True):
+        """Remove products from this sync plan.
+
+        .. NOTE:: The ``synchronous`` argument has no effect in certain
+            versions of Satellite. See:
+            https://bugzilla.redhat.com/show_bug.cgi?id=1199150
+
+        :param list product_ids: IDs of products to remove from this sync plan.
+        :param bool synchronous: What should happen if the server returns an
+            HTTP 202 (accepted) status code? Wait for the task to complete if
+            ``True``. Immediately return the server's reponse otherwise.
+        :returns: The server's JSON-decoded response.
+        :rtype: dict
+
+        """
+        response = client.put(
+            self.path('remove_products'),
+            {'product_ids': product_ids},
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        response.raise_for_status()
+        if synchronous is True and response.status_code is httplib.ACCEPTED:
+            return ForemanTask(id=response.json()['id']).poll()
+        return response.json()
+
 class SystemPackage(orm.Entity):
     """A representation of a System Package entity."""
     system = entity_fields.OneToOneField('System', required=True)
