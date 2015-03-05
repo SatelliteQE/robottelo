@@ -2462,6 +2462,7 @@ class UserGroup(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a User Group entity."""
+    admin = entity_fields.BooleanField()
     name = entity_fields.StringField(required=True)
     role = entity_fields.OneToManyField('Role')
     user = entity_fields.OneToManyField('User', required=True)
@@ -2476,6 +2477,32 @@ class UserGroup(
     def create_payload(self):
         """Wrap submitted data within an extra dict."""
         return {u'usergroup': super(UserGroup, self).create_payload()}
+
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
+        """Work around a bug with reading the ``admin`` attribute.
+
+        An HTTP GET request to ``path('self')`` does not return the ``admin``
+        attribute, even though it should. Work around this issue. See:
+
+        * http://projects.theforeman.org/issues/9594
+        * https://bugzilla.redhat.com/show_bug.cgi?id=1197871
+
+        """
+        if attrs is None:
+            attrs = self.read_json(auth)
+        if (
+                'admin' not in attrs and
+                'admin' not in ignore and
+                rm_bug_is_open(9594)):  # BZ is private
+            response = client.put(
+                self.path('self'),
+                {},
+                verify=False,
+                auth=get_server_credentials()
+            )
+            response.raise_for_status()
+            attrs['admin'] = response.json()['admin']
+        return super(UserGroup, self).read(auth, entity, attrs, ignore)
 
 
 class User(
