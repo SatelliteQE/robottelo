@@ -394,9 +394,8 @@ class ConfigTemplate(
                 'template_kind' not in vars(self)):
             # A server is pre-populated with exactly eight template kinds. We
             # use one of those instead of creating a new one on the fly.
-            self.template_kind = random.randint(
-                1,
-                TemplateKind.Meta.NUM_CREATED_BY_DEFAULT
+            self.template_kind = TemplateKind(
+                id=random.randint(1, TemplateKind.Meta.NUM_CREATED_BY_DEFAULT)
             )
 
     # NOTE: See BZ 1151220
@@ -1182,15 +1181,23 @@ class Host(
                 'architecture' not in attrs and
                 'ptable' not in attrs and
                 'medium' not in attrs):
-            self.architecture = Architecture().create()['id']
-            self.ptable = PartitionTable().create()['id']
+            self.architecture = Architecture(
+                id=Architecture().create_json()['id']
+            )
+            self.ptable = PartitionTable(
+                id=PartitionTable().create_json()['id']
+            )
             self.operatingsystem = OperatingSystem(
-                architecture=[self.architecture],
-                ptable=[self.ptable],
-            ).create()['id']
+                id=OperatingSystem(
+                    architecture=[self.architecture],
+                    ptable=[self.ptable],
+                ).create_json()['id']
+            )
             self.medium = Media(
-                operatingsystem=[self.operatingsystem]
-            ).create()['id']
+                id=Media(
+                    operatingsystem=[self.operatingsystem]
+                ).create_json()['id']
+            )
         if 'puppet_proxy' not in attrs:
             response = client.get(
                 SmartProxy().path(),
@@ -1198,7 +1205,9 @@ class Host(
                 verify=False,
             )
             response.raise_for_status()
-            self.puppet_proxy = response.json()['results'][0]['id']
+            self.puppet_proxy = SmartProxy(
+                id=response.json()['results'][0]['id']
+            )
         super(Host, self).create_missing(auth)
 
     # NOTE: See BZ 1151220
@@ -1323,7 +1332,8 @@ class LifecycleEnvironment(
                 verify=False,
                 data={
                     u'name': u'Library',
-                    u'organization_id': self.organization,
+                    # pylint:disable=no-member
+                    u'organization_id': self.organization.id,
                 }
             )
             response.raise_for_status()
@@ -1334,7 +1344,7 @@ class LifecycleEnvironment(
                     'organization {0}. Search results: {1}'
                     .format(self.organization, results)
                 )
-            self.prior = results[0]['id']
+            self.prior = LifecycleEnvironment(id=results[0]['id'])
 
 
 class Location(orm.Entity, orm.EntityCreateMixin):
@@ -1449,17 +1459,32 @@ class OperatingSystemParameter(
         orm.EntityCreateMixin):
     """A representation of a parameter for an operating system."""
     name = entity_fields.StringField(required=True)
+    operatingsystem = entity_fields.OneToOneField(
+        'OperatingSystem',
+        required=True,
+    )
     value = entity_fields.StringField(required=True)
 
-    def __init__(self, os_id, **kwargs):
-        """Record ``os_id`` and set ``self.Meta.api_path``."""
-        self.Meta.os_id = os_id  # Where else to put this?
-        self.Meta.api_path = '{0}/parameters'.format(
-            OperatingSystem(id=os_id).path()
-        )
-        super(OperatingSystemParameter, self).__init__(**kwargs)
+    def __init__(self, **kwargs):
+        """Ensure ``operatingsystem`` has been passed in and set
+        ``self.Meta.api_path``.
 
-    def read(self, auth=None, entity=None, attrs=None, ignore=()):
+        """
+        if 'operatingsystem' not in kwargs:
+            raise TypeError(
+                'The "operatingsystem" parameter must be provided.'
+            )
+        super(OperatingSystemParameter, self).__init__(**kwargs)
+        self.Meta.api_path = '{0}/parameters'.format(
+            self.operatingsystem.path()  # pylint:disable=no-member
+        )
+
+    def read(
+            self,
+            auth=None,
+            entity=None,
+            attrs=None,
+            ignore=('operatingsystem')):
         """Provide a default value for ``entity``.
 
         By default, :meth:`robottelo.orm.EntityReadMixin.read` provides a
@@ -1467,10 +1492,11 @@ class OperatingSystemParameter(
 
             entity = type(self)()
 
-        However, :class:`OperatingSystemParameter` requires that an ``os_id`` be
-        provided, so this technique will not work. Do this instead::
+        However, :class:`OperatingSystemParameter` requires that an
+        ``operatingsystem`` be provided, so this technique will not work. Do
+        this instead::
 
-            entity = type(self)(self.Meta.os_id)
+            entity = type(self)(operatingsystem=self.operatingsystem.id)
 
         """
         # `entity = self` also succeeds. However, the attributes of the object
@@ -1478,7 +1504,8 @@ class OperatingSystemParameter(
         # to avoid changing state. The default implementation of
         # `read` follows the same principle.
         if entity is None:
-            entity = type(self)(self.Meta.os_id)
+            # pylint:disable=no-member
+            entity = type(self)(operatingsystem=self.operatingsystem.id)
         return super(OperatingSystemParameter, self).read(
             auth, entity, attrs, ignore
         )
@@ -2305,30 +2332,38 @@ class Subscription(orm.Entity):
         server_modes = ('sat', 'sam')
 
 
-class SyncPlan(orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+class SyncPlan(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Sync Plan entity."""
+    description = entity_fields.StringField()
     enabled = entity_fields.BooleanField(required=True)
-    name = entity_fields.StringField(required=True)
-    # how often synchronization should run must be one of: none, hourly, daily,
-    # weekly.
     interval = entity_fields.StringField(
         choices=('hourly', 'daily', 'weekly'),
         required=True,
     )
-    # start datetime of synchronization
+    name = entity_fields.StringField(required=True)
+    organization = entity_fields.OneToOneField('Organization', required=True)
     sync_date = entity_fields.DateTimeField(required=True)
-    description = entity_fields.StringField()
 
-    def __init__(self, organization_id, **kwargs):
-        """Record ``organization_id`` and set ``self.Meta.api_path``."""
-        self.Meta.organization_id = organization_id
-        self.Meta.api_path = '{0}/sync_plans'.format(
-            Organization(id=organization_id).path()
-        )
+    def __init__(self, **kwargs):
+        """Ensure ``organization`` has been passed in and set
+        ``self.Meta.api_path``.
+
+        """
+        if 'organization' not in kwargs:
+            raise TypeError('The "organization" parameter must be provided.')
         super(SyncPlan, self).__init__(**kwargs)
+        self.Meta.api_path = '{0}/sync_plans'.format(
+            self.organization.path()  # pylint:disable=no-member
+        )
 
-    def read(self, auth=None, entity=None, attrs=None, ignore=()):
+    def read(
+            self,
+            auth=None,
+            entity=None,
+            attrs=None,
+            ignore=('organization')):
         """Provide a default value for ``entity``.
 
         By default, :meth:`robottelo.orm.EntityReadMixin.read` provides a
@@ -2336,10 +2371,10 @@ class SyncPlan(orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
 
             entity = type(self)()
 
-        However, :class:`SyncPlan` requires that an ``organization_id`` be
+        However, :class:`SyncPlan` requires that an ``organization`` be
         provided, so this technique will not work. Do this instead::
 
-            entity = type(self)(self.Meta.organization_id)
+            entity = type(self)(organization=self.organization.id)
 
         """
         # `entity = self` also succeeds. However, the attributes of the object
@@ -2347,7 +2382,8 @@ class SyncPlan(orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         # to avoid changing state. The default implementation of
         # `read` follows the same principle.
         if entity is None:
-            entity = type(self)(self.Meta.organization_id)
+            # pylint:disable=no-member
+            entity = type(self)(organization=self.organization.id)
         return super(SyncPlan, self).read(auth, entity, attrs, ignore)
 
     def create_payload(self):
@@ -2539,15 +2575,19 @@ class User(
         str_type=('alpha', 'alphanumeric', 'cjk', 'latin1', 'utf8'),
     )
     admin = entity_fields.BooleanField(null=True)
-    auth_source = entity_fields.OneToOneField(
-        'AuthSourceLDAP', default=1, required=True
-    )
+    # See __init__
+    auth_source = entity_fields.OneToOneField('AuthSourceLDAP', required=True)
     default_location = entity_fields.OneToOneField('Location', null=True)
     default_organization = entity_fields.OneToOneField('Organization', null=True)
     firstname = entity_fields.StringField(null=True, length=(1, 50))
     lastname = entity_fields.StringField(null=True, length=(1, 50))
     mail = entity_fields.EmailField(required=True)
     password = entity_fields.StringField(required=True)
+
+    def __init__(self, **kwargs):
+        """Set a default value for the ``auth_source`` field."""
+        self.auth_source.default = AuthSourceLDAP(id=1)
+        super(User, self).__init__(**kwargs)
 
     class Meta(object):
         """Non-field information about this entity."""

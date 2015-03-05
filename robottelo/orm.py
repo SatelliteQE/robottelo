@@ -80,6 +80,43 @@ def _poll_task(task_id, poll_rate=None, timeout=None, auth=None):
         timer.cancel()
 
 
+def _make_entity_from_id(entity_cls, entity_obj_or_id):
+    """Given an entity object or an ID, return an entity object.
+
+    If the value passed in is an object that is a subclass of class ``Entity``,
+    return that value. Otherwise, create an object of the type that ``field``
+    references, give that object an ID of ``field_value``, and return that
+    object.
+
+    :param entity_cls: An :class:`Entity` subclass.
+    :param entity_obj_or_id: Either an ``entity_obj_or_id`` object or an entity
+        ID.
+    :returns: An ``entity_cls`` object.
+    :rtype: Entity
+
+    """
+    if isinstance(entity_obj_or_id, entity_cls):
+        return entity_obj_or_id
+    return entity_cls(id=entity_obj_or_id)
+
+
+def _make_entities_from_ids(entity_cls, entity_objs_and_ids):
+    """Given an iterable of entities and/or IDs, return a list of entities.
+
+    :param entity_cls: An :class:`Entity` subclass.
+    :param entity_objs_and_ids: An iterable of entity objects and/or entity
+        IDs.
+    :returns: A list of ``entity_cls`` objects.
+    :rtype: list
+
+    """
+    return [
+        _make_entity_from_id(entity_cls, entity_or_id)
+        for entity_or_id
+        in entity_objs_and_ids
+    ]
+
+
 # -----------------------------------------------------------------------------
 # Definition of parent Entity class and its dependencies.
 # -----------------------------------------------------------------------------
@@ -103,7 +140,31 @@ class Entity(object):
     * metadata
 
     Fields are represented by setting class attributes, and metadata is
-    represented by settings attributes on the inner class named ``Meta``.
+    represented by settings attributes on the inner class named ``Meta``. For
+    example, consider this class declaration:
+
+        class User(Entity):
+            name = StringField()
+            supervisor = OneToOneField('User')
+            subordinate = OneToManyField('User')
+
+            class Meta(object):
+                api_path = 'api/users'
+
+    In the example above, the class attributes of ``User`` are fields, and the
+    class attributes of ``Meta`` are metadata. Here is one way to instantiate
+    the ``User`` object shown above:
+
+        User(
+            name='Alice',
+            supervisor=User(id=1),
+            subordinate=[User(id=3), User(id=4)],
+        )
+
+    The canonical procedure for initializing foreign key fields, shown above,
+    is clumsy. As an alternative, the following convenience is offered:
+
+        User(name='Alice', supervisor=1, subordinate=[3, 4])
 
     """
     # The id() builtin is still available within instance methods, class
@@ -113,11 +174,25 @@ class Entity(object):
 
     def __init__(self, **kwargs):
         fields = self.get_fields()
-        for field_name, field_value in kwargs.items():
-            if field_name not in fields:
-                raise NoSuchFieldError(
-                    '{0} is not a valid field. Valid fields are {1}.'
-                    .format(field_name, ', '.join(fields.keys()))
+        if not set(kwargs.keys()).issubset(fields.keys()):
+            raise NoSuchFieldError(
+                'Valid fields are {0}, but received {1} instead.'.format(
+                    fields.keys(), kwargs.keys()
+                )
+            )
+
+        # NOTE: Read the docstring before trying to grok this.
+        for field_name, field_value in kwargs.items():  # e.g. ('admin', True)
+            field = fields[field_name]  # e.g. A BooleanField object
+            if isinstance(field, OneToOneField):
+                field_value = _make_entity_from_id(
+                    type(field.gen_value()),  # This is gross.
+                    field_value
+                )
+            elif isinstance(field, OneToManyField):
+                field_value = _make_entities_from_ids(
+                    type(field.gen_value()),  # This is gross.
+                    field_value
                 )
             setattr(self, field_name, field_value)
 
@@ -417,14 +492,27 @@ class EntityCreateMixin(object):
                 # Most `gen_value` methods return a value such as an integer,
                 # string or dictionary, but OneTo{One,Many}Field.gen_value
                 # returns an instance of the referenced class.
+                #
+                # When populating a foreign key field, this is inadvisable:
+                #
+                #     value = entity_obj = field.gen_value()
+                #     entity_obj.id = entity_obj.create_json(auth=auth)['id']
+                #
+                # The problem is that the values that entity_obj populates
+                # itself with (via `create_missing`) may be different from the
+                # values that are read back from the server, e.g. `Host.name`.
                 if hasattr(field, 'default'):
                     value = field.default
                 elif hasattr(field, 'choices'):
                     value = gen_choice(field.choices)
                 elif isinstance(field, OneToOneField):
-                    value = field.gen_value().create_json(auth=auth)['id']
+                    value = field.gen_value()
+                    value.id = field.gen_value().create_json(auth=auth)['id']
                 elif isinstance(field, OneToManyField):
-                    value = [field.gen_value().create_json(auth=auth)['id']]
+                    value = [field.gen_value()]
+                    value[0].id = (
+                        field.gen_value().create_json(auth=auth)['id']
+                    )
                 else:
                     value = field.gen_value()
                 setattr(self, field_name, value)
@@ -450,9 +538,11 @@ class EntityCreateMixin(object):
                     # e.g. rename filter_type to type for ContentViewFilter
                     data[api_names[field_name]] = data.pop(field_name)
                 if isinstance(field, OneToOneField):
-                    data[field_name + '_id'] = data.pop(field_name)
+                    data[field_name + '_id'] = data.pop(field_name).id
                 elif isinstance(field, OneToManyField):
-                    data[field_name + '_ids'] = data.pop(field_name)
+                    data[field_name + '_ids'] = [
+                        entity.id for entity in data.pop(field_name)
+                    ]
         return data
 
     def create_raw(self, auth=None, create_missing=True):

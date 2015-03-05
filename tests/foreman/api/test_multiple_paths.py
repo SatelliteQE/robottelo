@@ -706,6 +706,24 @@ class EntityReadTestCase(APITestCase):
         self.assertEqual(len(architecture.operatingsystem), 1)
         self.assertEqual(architecture.operatingsystem[0].id, os_id)
 
+    def test_syncplan_read(self):
+        """@Test: Create a SyncPlan and read it back using
+        :meth:`robottelo.orm.EntityReadMixin.read`.
+
+        @Feature: Test multiple API paths.
+
+        @Assert: The just-read entity is an instance of the correct class.
+
+        """
+        org_id = entities.Organization().create_json()['id']
+        syncplan_id = entities.SyncPlan(
+            organization=org_id
+        ).create_json()['id']
+        self.assertIsInstance(
+            entities.SyncPlan(organization=org_id, id=syncplan_id).read(),
+            entities.SyncPlan
+        )
+
     @run_only_on('sat')
     def test_osparameter_read(self):
         """@Test: Create an OperatingSystemParameter and get it using
@@ -716,14 +734,14 @@ class EntityReadTestCase(APITestCase):
         @Assert: The just-read entity is an instance of the correct class.
 
         """
-        os_attrs = entities.OperatingSystem().create_json()
-        osp_attrs = entities.OperatingSystemParameter(
-            os_attrs['id']
-        ).create_json()
+        os_id = entities.OperatingSystem().create_json()['id']
+        osp_id = entities.OperatingSystemParameter(
+            operatingsystem=os_id
+        ).create_json()['id']
         self.assertIsInstance(
             entities.OperatingSystemParameter(
-                os_attrs['id'],
-                id=osp_attrs['id'],
+                id=osp_id,
+                operatingsystem=os_id,
             ).read(),
             entities.OperatingSystemParameter
         )

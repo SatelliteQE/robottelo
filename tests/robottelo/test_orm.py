@@ -20,17 +20,19 @@ import unittest
 
 class SampleEntity(orm.Entity):
     """Sample entity to be used in the tests"""
+    # pylint:disable=too-few-public-methods
     name = StringField()
     value = IntegerField()
 
     class Meta(object):
         """Non-field attributes for this entity."""
-        # (too-few-public-methods) pylint:disable=R0903
+        # pylint:disable=too-few-public-methods
         api_path = 'foo'
 
 
 class ManyRelatedEntity(orm.Entity):
     """An entity with a ``OneToManyField`` pointing to ``SampleEntity``."""
+    # pylint:disable=too-few-public-methods
     entities = OneToManyField(SampleEntity)
 
 
@@ -38,25 +40,93 @@ class EntityWithDelete(orm.Entity, orm.EntityDeleteMixin):
     """
     An entity which inherits from :class:`robottelo.orm.EntityDeleteMixin`.
     """
+    # pylint:disable=too-few-public-methods
 
     class Meta(object):
         """Non-field attributes for this entity."""
-        # (too-few-public-methods) pylint:disable=R0903
+        # pylint:disable=too-few-public-methods
         api_path = ''
 
 
 class EntityWithRead(orm.Entity, orm.EntityReadMixin):
     """An entity which inherits from :class:`robottelo.orm.EntityReadMixin`."""
+    # pylint:disable=too-few-public-methods
     one_to_one = OneToOneField(SampleEntity)
     one_to_many = OneToManyField(SampleEntity)
 
     class Meta(object):
         """Non-field attributes for this entity."""
-        # (too-few-public-methods) pylint:disable=R0903
+        # pylint:disable=too-few-public-methods
         api_path = ''
 
 
 # -----------------------------------------------------------------------------
+
+
+class MakeEntityFromIdTestCase(unittest.TestCase):
+    """Tests for ``_make_entity_from_id``."""
+    # pylint:disable=protected-access
+
+    def test_pass_in_entity_obj(self):
+        """Pass in an entity class and an entity."""
+        self.assertIsInstance(
+            orm._make_entity_from_id(SampleEntity, SampleEntity()),
+            SampleEntity
+        )
+
+    def test_pass_in_entity_id(self):
+        """Pass in an entity class and an entity ID."""
+        entity_id = gen_integer(min_value=1)
+        entity_obj = orm._make_entity_from_id(SampleEntity, entity_id)
+        self.assertIsInstance(entity_obj, SampleEntity)
+        self.assertEqual(entity_obj.id, entity_id)
+
+
+class MakeEntitiesFromIdsTestCase(unittest.TestCase):
+    """Tests for ``_make_entity_from_ids``."""
+    # pylint:disable=protected-access
+
+    def test_pass_in_emtpy_iterable(self):
+        """Pass in an entity class and an empty iterable."""
+        for iterable in ([], tuple()):
+            self.assertEqual(
+                [],
+                orm._make_entities_from_ids(SampleEntity, iterable)
+            )
+
+    def test_pass_in_entity_obj(self):
+        """Pass in an entity class and an iterable containing entities."""
+        for num_entities in range(4):
+            input_entities = [SampleEntity() for _ in range(num_entities)]
+            output_entities = orm._make_entities_from_ids(
+                SampleEntity,
+                input_entities
+            )
+            self.assertEqual(num_entities, len(output_entities))
+            for output_entity in output_entities:
+                self.assertIsInstance(output_entity, SampleEntity)
+
+    def test_pass_in_entity_ids(self):
+        """Pass in an entity class and an iterable containing entity IDs."""
+        for num_entities in range(4):
+            entity_ids = [
+                gen_integer(min_value=1) for _ in range(num_entities)
+            ]
+            entities = orm._make_entities_from_ids(SampleEntity, entity_ids)
+            self.assertEqual(len(entities), len(entity_ids))
+            for i in range(len(entity_ids)):
+                self.assertIsInstance(entities[i], SampleEntity)
+                self.assertEqual(entities[i].id, entity_ids[i])
+
+    def test_pass_in_both(self):
+        """Pass in an entity class and an iterable with entities and IDs."""
+        entities = orm._make_entities_from_ids(
+            SampleEntity,
+            [SampleEntity(), 5]
+        )
+        self.assertEqual(len(entities), 2)
+        for entity in entities:
+            self.assertIsInstance(entity, SampleEntity)
 
 
 class EntityTestCase(unittest.TestCase):
