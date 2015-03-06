@@ -1044,9 +1044,6 @@ class HostCollection(
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'katello/api/v2/host_collections'
-        # Alternative paths.
-        #
-        # '/katello/api/v2/organizations/:organization_id/host_collections'
         server_modes = ('sat', 'sam')
 
     def read(self, auth=None, entity=None, attrs=None, ignore=()):
@@ -1070,6 +1067,11 @@ class HostCollection(
         ]
         return super(HostCollection, self).read(auth, entity, attrs, ignore)
 
+    def create_payload(self):
+        """Rename ``system_ids`` to ``system_uuids``."""
+        payload = super(HostCollection, self).create_payload()
+        payload['system_uuids'] = payload.pop('system_ids')
+        return payload
 
 class HostGroupClasses(orm.Entity):
     """A representation of a Host Group Classes entity."""
