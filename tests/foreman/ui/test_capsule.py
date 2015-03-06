@@ -47,7 +47,7 @@ class CapsuleTestCase(UITestCase):
         """
 
     def capsule_puppet_push(self):
-        """@test: user can install new puppet module on a client
+        """@Test: user can install new puppet module on a client
         through an isolated capsule
 
         @Feature: Capsules
@@ -60,6 +60,28 @@ class CapsuleTestCase(UITestCase):
         Satellite
 
         @Assert: module is installed
+
+        @Status: Manual
+
+        """
+    def capsule_content_host_selector(self):
+        """@Test: User can choose, or is given an indication within
+        the content hosts UI, any referenced capsule in order to
+        learn/setup registration against said capsule(s).
+
+        @Feature: Capsules
+
+        @Setup: A satellite with at least one capsule configured.
+
+        @Steps:
+
+        1. Go to Hosts > Content Hosts > Register Content Host
+        2. Observe the section labeled 'Consuming Content From
+           A Capsule'
+
+        @Assert: capsule(s) appear in dropdown and the instructions
+        for using subscription-manager update accordingly when
+        choosing said capsule(s).
 
         @Status: Manual
 
