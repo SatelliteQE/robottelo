@@ -12,7 +12,6 @@ from fauxfactory import gen_string
 from nailgun import client
 from requests.exceptions import HTTPError
 from robottelo import entities
-from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
@@ -22,7 +21,6 @@ from robottelo.test import APITestCase
 class OrganizationTestCase(APITestCase):
     """Tests for the ``organizations`` path."""
 
-    @skip_if_bug_open('bugzilla', 1116043)
     def test_create_text_plain(self):
         """@Test Create an organization using a 'text/plain' content-type.
 
