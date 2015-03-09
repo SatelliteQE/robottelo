@@ -1430,7 +1430,7 @@ class OperatingSystem(
     family = entity_fields.StringField(null=True, choices=OPERATING_SYSTEMS)
     major = entity_fields.StringField(required=True, str_type='numeric', length=(1, 5))
     media = entity_fields.OneToManyField('Media')
-    minor = entity_fields.StringField(null=True)
+    minor = entity_fields.StringField(null=True, str_type='numeric', length=(1, 16))
     name = entity_fields.StringField(required=True)
     ptable = entity_fields.OneToManyField('PartitionTable')
     release_name = entity_fields.StringField(null=True)

@@ -6,9 +6,9 @@ References for the relevant paths can be found here:
 * http://theforeman.org/api/apidoc/v2/parameters.html
 
 """
-from fauxfactory import gen_utf8
-from robottelo import entities
+from fauxfactory import gen_integer, gen_utf8
 from robottelo.common.decorators import run_only_on
+from robottelo import entities
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
@@ -80,3 +80,20 @@ class OSTestCase(APITestCase):
         attrs = entities.OperatingSystem(id=os_id).read_json()
         self.assertEqual(len(attrs['ptables']), 1)
         self.assertEqual(attrs['ptables'][0]['id'], ptable_id)
+
+    def test_create_with_minor(self):
+        """@Test: Create an operating system with an integer minor version.
+
+        @Assert: The minor version can be read back as a string.
+
+        @Feature: OperatingSystem
+
+        Targets BZ 1125003.
+
+        """
+        minor = gen_integer(0, 9999999999999999)  # max len: 16 chars
+        os_id = entities.OperatingSystem(minor=minor).create_json()['id']
+        self.assertEqual(
+            entities.OperatingSystem(id=os_id).read().minor,
+            str(minor),
+        )
