@@ -1,4 +1,4 @@
-"""Unit tests for the ``repositories`` paths."""
+"""Unit tests for sync plans."""
 from datetime import datetime, timedelta
 from ddt import ddt
 from fauxfactory import gen_string
@@ -55,7 +55,7 @@ class SyncPlanTestCase(APITestCase):
 @stubbed()
 @ddt
 class SyncPlanCreateTestCase(APITestCase):
-    """Tests specific to creating new ``Sync Plans``."""
+    """Tests specific to creating new sync plans."""
 
     @classmethod
     def setUpClass(cls):
@@ -66,11 +66,11 @@ class SyncPlanCreateTestCase(APITestCase):
     @stubbed()
     @run_only_on('sat')
     def test_create_disabled_sync_plan(self):
-        """@Test: Create a disabled Sync Plan.
+        """@Test: Create a disabled sync plan.
 
         @Assert: A disabled sync plan is created.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
@@ -85,11 +85,11 @@ class SyncPlanCreateTestCase(APITestCase):
         gen_string('html', 15),
     )
     def test_create_sync_plan_with_random_name(self, name):
-        """@Test: Create a Sync Plan with a random name.
+        """@Test: Create a sync plan with a random name.
 
         @Assert: A sync plan is created with the specified name.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
@@ -104,11 +104,11 @@ class SyncPlanCreateTestCase(APITestCase):
         gen_string('html', 15),
     )
     def test_create_sync_plan_with_random_description(self, description):
-        """@Test: Create a Sync Plan with a random description.
+        """@Test: Create a sync plan with a random description.
 
         @Assert: A sync plan is created with the specified description.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
@@ -120,11 +120,11 @@ class SyncPlanCreateTestCase(APITestCase):
         u'weekly',
     )
     def test_create_sync_plan_with_random_interval(self, interval):
-        """@Test: Create a Sync Plan with a random interval.
+        """@Test: Create a sync plan with a random interval.
 
         @Assert: A sync plan is created with the specified interval.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
@@ -143,11 +143,11 @@ class SyncPlanCreateTestCase(APITestCase):
         datetime.now() - timedelta(seconds=300),
     )
     def test_create_sync_plan_with_random_sync_date(self, syncdate):
-        """@Test: Create a Sync Plan and update its sync date.
+        """@Test: Create a sync plan and update its sync date.
 
         @Assert: A sync plan can be created with a random sync date.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
@@ -162,11 +162,11 @@ class SyncPlanCreateTestCase(APITestCase):
         gen_string('html', 300),
     )
     def test_create_sync_plan_with_invalid_random_name(self, name):
-        """@Test: Create a Sync Plan with an invalid name.
+        """@Test: Create a sync plan with an invalid name.
 
         @Assert: A sync plan can not be created with the specified name.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
@@ -174,7 +174,7 @@ class SyncPlanCreateTestCase(APITestCase):
 @stubbed()
 @ddt
 class SyncPlanUpdateTestCase(APITestCase):
-    """Tests specific to updating a ``Sync Plan``."""
+    """Tests specific to updating a sync plan."""
 
     @classmethod
     def setUpClass(cls):
@@ -185,22 +185,22 @@ class SyncPlanUpdateTestCase(APITestCase):
     @stubbed()
     @run_only_on('sat')
     def test_update_enabled_sync_plan(self):
-        """@Test: Create a enabled Sync Plan then disable it.
+        """@Test: Create a enabled sync plan then disable it.
 
         @Assert: An enabled sync plan is created and updated to be disabled.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
     @stubbed()
     @run_only_on('sat')
     def test_update_disabled_sync_plan(self):
-        """@Test: Create a disabled Sync Plan then enable it.
+        """@Test: Create a disabled sync plan then enable it.
 
         @Assert: A disabled sync plan is created and updated to be enabled.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
@@ -215,12 +215,12 @@ class SyncPlanUpdateTestCase(APITestCase):
         gen_string('html', 15),
     )
     def test_update_sync_plan_with_random_name(self, name):
-        """@Test: Create a Sync Plan and update its name.
+        """@Test: Create a sync plan and update its name.
 
         @Assert: A sync plan is created and its name can be updated with the
         specified name.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
@@ -235,12 +235,12 @@ class SyncPlanUpdateTestCase(APITestCase):
         gen_string('html', 15),
     )
     def test_update_sync_plan_with_random_description(self, description):
-        """@Test: Create a Sync Plan and update its description.
+        """@Test: Create a sync plan and update its description.
 
         @Assert: A sync plan is created and its description can be updated with
         the specified description.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
@@ -252,12 +252,12 @@ class SyncPlanUpdateTestCase(APITestCase):
         u'weekly',
     )
     def test_update_sync_plan_with_random_interval(self, interval):
-        """@Test: Create a Sync Plan and update its interval.
+        """@Test: Create a sync plan and update its interval.
 
         @Assert: A sync plan is created and its interval can be updated with
         the specified interval.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
@@ -276,18 +276,18 @@ class SyncPlanUpdateTestCase(APITestCase):
         datetime.now() - timedelta(seconds=300),
     )
     def test_update_sync_plan_with_random_sync_date(self, syncdate):
-        """@Test: Create a Sync Plan and update its sync date.
+        """@Test: Create a sync plan and update its sync date.
 
         @Assert: A sync plan can be created and its sync date can be updated
         with the specified sync date.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
 
 class SyncPlanProductTestCase(APITestCase):
-    """Tests specific to adding/removing products to ``Sync Plans``."""
+    """Tests specific to adding/removing products to sync plans."""
 
     @classmethod
     def setUpClass(cls):
@@ -300,11 +300,11 @@ class SyncPlanProductTestCase(APITestCase):
 
     @run_only_on('sat')
     def test_add_product(self):
-        """@Test: Create a Sync Plan and add one product to it.
+        """@Test: Create a sync plan and add one product to it.
 
         @Assert: A sync plan can be created and one product can be added to it.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
         syncplan_id = entities.SyncPlan(
@@ -322,12 +322,12 @@ class SyncPlanProductTestCase(APITestCase):
 
     @run_only_on('sat')
     def test_add_products(self):
-        """@Test: Create a Sync Plan and add two products to it.
+        """@Test: Create a sync plan and add two products to it.
 
         @Assert: A sync plan can be created and two products can be added to
         it.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
         syncplan_id = entities.SyncPlan(
@@ -350,13 +350,13 @@ class SyncPlanProductTestCase(APITestCase):
     @skip_if_bug_open('bugzilla', 1199150)
     @run_only_on('sat')
     def test_remove_product(self):
-        """@Test: Create a Sync Plan with two products and then remove one
+        """@Test: Create a sync plan with two products and then remove one
         product from it.
 
         @Assert: A sync plan can be created and one product can be removed from
         it.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
         syncplan_id = entities.SyncPlan(
@@ -377,13 +377,13 @@ class SyncPlanProductTestCase(APITestCase):
 
     @run_only_on('sat')
     def test_remove_products(self):
-        """@Test: Create a Sync Plan with two products and then remove both
+        """@Test: Create a sync plan with two products and then remove both
         products from it.
 
         @Assert: A sync plan can be created and both products can be removed
         from it.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
         syncplan_id = entities.SyncPlan(
@@ -408,7 +408,7 @@ class SyncPlanProductTestCase(APITestCase):
         @Assert: A task is returned which can be used to monitor the additions
         and removals.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
         syncplan_id = entities.SyncPlan(
@@ -428,7 +428,7 @@ class SyncPlanProductTestCase(APITestCase):
 
 @stubbed()
 class SyncPlanSynchronizeTestCase(APITestCase):
-    """Tests specific to synchronizing ``Sync Plans``."""
+    """Tests specific to synchronizing sync plans."""
 
     @classmethod
     def setUpClass(cls):
@@ -446,31 +446,31 @@ class SyncPlanSynchronizeTestCase(APITestCase):
     @stubbed()
     @run_only_on('sat')
     def test_synchronize_sync_plan_with_one_product(self):
-        """@Test: Create a Sync Plan with one product and sync it.
+        """@Test: Create a sync plan with one product and sync it.
 
         @Assert: A sync plan is created with one product and product can be
         synchronized.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
     @stubbed()
     @run_only_on('sat')
     def test_synchronize_sync_plan_with_two_products(self):
-        """@Test: Create a Sync Plan with two products and sync them.
+        """@Test: Create a sync plan with two products and sync them.
 
         @Assert: A sync plan is created with one product and products can be
         synchronized.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
 
 @stubbed()
 class SyncPlanDeleteTestCase(APITestCase):
-    """Tests specific to deleting ``Sync Plans``."""
+    """Tests specific to deleting sync plans."""
 
     @classmethod
     def setUpClass(cls):
@@ -481,35 +481,35 @@ class SyncPlanDeleteTestCase(APITestCase):
     @stubbed()
     @run_only_on('sat')
     def test_delete_sync_plan_with_one_product(self):
-        """@Test: Create a Sync Plan with one product and delete it.
+        """@Test: Create a sync plan with one product and delete it.
 
         @Assert: A sync plan is created with one product and sync plan can be
         deleted.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
     @stubbed()
     @run_only_on('sat')
     def test_delete_sync_plan_with_two_products(self):
-        """@Test: Create a Sync Plan with two products and delete them.
+        """@Test: Create a sync plan with two products and delete them.
 
         @Assert: A sync plan is created with one product and sync plan can be
         deleted.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
 
     @stubbed()
     @run_only_on('sat')
     def test_delete_sync_plan_with_one_synced_product(self):
-        """@Test: Create a Sync Plan with one synced product and delete it.
+        """@Test: Create a sync plan with one synced product and delete it.
 
         @Assert: A sync plan is created with one synced product and sync plan
         can be deleted.
 
-        @Feature: Sync Plan
+        @Feature: SyncPlan
 
         """
