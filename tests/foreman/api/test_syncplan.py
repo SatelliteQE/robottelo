@@ -4,11 +4,16 @@ from ddt import ddt
 from fauxfactory import gen_string
 from robottelo import entities
 from robottelo.common.decorators import (
-    data, run_only_on, stubbed)
+    data,
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+)
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
+@stubbed()
 @ddt
 class SyncPlanCreateTestCase(APITestCase):
     """Tests specific to creating new ``Sync Plans``."""
@@ -127,6 +132,7 @@ class SyncPlanCreateTestCase(APITestCase):
         """
 
 
+@stubbed()
 @ddt
 class SyncPlanUpdateTestCase(APITestCase):
     """Tests specific to updating a ``Sync Plan``."""
@@ -241,7 +247,6 @@ class SyncPlanUpdateTestCase(APITestCase):
         """
 
 
-@ddt
 class SyncPlanProductTestCase(APITestCase):
     """Tests specific to adding/removing products to ``Sync Plans``."""
 
@@ -252,17 +257,10 @@ class SyncPlanProductTestCase(APITestCase):
 
         """
         cls.org_id = entities.Organization().create_json()['id']
-        cls.prod1_id = entities.Product(
-            organization=cls.org_id
-        ).create_json()['id']
-        cls.prod2_id = entities.Product(
-            organization=cls.org_id
-        ).create_json()['id']
         super(SyncPlanProductTestCase, cls).setUpClass()
 
-    @stubbed()
     @run_only_on('sat')
-    def test_add_one_product_to_sync_plan(self):
+    def test_add_product(self):
         """@Test: Create a Sync Plan and add one product to it.
 
         @Assert: A sync plan can be created and one product can be added to it.
@@ -270,10 +268,21 @@ class SyncPlanProductTestCase(APITestCase):
         @Feature: Sync Plan
 
         """
+        syncplan_id = entities.SyncPlan(
+            organization=self.org_id
+        ).create_json()['id']
+        product_id = entities.Product(
+            organization=self.org_id
+        ).create_json()['id']
+        syncplan = entities.SyncPlan(id=syncplan_id, organization=self.org_id)
 
-    @stubbed()
+        syncplan.add_products([product_id])
+        syncplan_products = syncplan.read_json()['products']
+        self.assertEqual(len(syncplan_products), 1)
+        self.assertEqual(syncplan_products[0]['id'], product_id)
+
     @run_only_on('sat')
-    def test_add_two_producst_to_sync_plan(self):
+    def test_add_products(self):
         """@Test: Create a Sync Plan and add two products to it.
 
         @Assert: A sync plan can be created and two products can be added to
@@ -282,10 +291,26 @@ class SyncPlanProductTestCase(APITestCase):
         @Feature: Sync Plan
 
         """
+        syncplan_id = entities.SyncPlan(
+            organization=self.org_id
+        ).create_json()['id']
+        product_ids = tuple(
+            entities.Product(organization=self.org_id).create_json()['id']
+            for _ in range(2)
+        )
+        syncplan = entities.SyncPlan(id=syncplan_id, organization=self.org_id)
 
-    @stubbed()
+        syncplan.add_products(product_ids)
+        syncplan_products = syncplan.read_json()['products']
+        self.assertEqual(len(syncplan_products), 2)
+        self.assertEqual(
+            set(product_ids),
+            set((syncplan_products[0]['id'], syncplan_products[1]['id'])),
+        )
+
+    @skip_if_bug_open('bugzilla', 1199150)
     @run_only_on('sat')
-    def test_remove_one_product_to_sync_plan(self):
+    def test_remove_product(self):
         """@Test: Create a Sync Plan with two products and then remove one
         product from it.
 
@@ -295,10 +320,24 @@ class SyncPlanProductTestCase(APITestCase):
         @Feature: Sync Plan
 
         """
+        syncplan_id = entities.SyncPlan(
+            organization=self.org_id
+        ).create_json()['id']
+        product_ids = tuple(
+            entities.Product(organization=self.org_id).create_json()['id']
+            for _ in range(2)
+        )
+        syncplan = entities.SyncPlan(id=syncplan_id, organization=self.org_id)
 
-    @stubbed()
+        syncplan.add_products(product_ids)
+        self.assertEqual(len(syncplan.read_json()['products']), 2)
+        syncplan.remove_products([product_ids[0]])
+        syncplan_products = syncplan.read_json()['products']
+        self.assertEqual(len(syncplan_products), 1)
+        self.assertEqual(syncplan_products[0]['id'], product_ids[1])
+
     @run_only_on('sat')
-    def test_remove_two_products_to_sync_plan(self):
+    def test_remove_products(self):
         """@Test: Create a Sync Plan with two products and then remove both
         products from it.
 
@@ -308,9 +347,47 @@ class SyncPlanProductTestCase(APITestCase):
         @Feature: Sync Plan
 
         """
+        syncplan_id = entities.SyncPlan(
+            organization=self.org_id
+        ).create_json()['id']
+        product_ids = tuple(
+            entities.Product(organization=self.org_id).create_json()['id']
+            for _ in range(2)
+        )
+        syncplan = entities.SyncPlan(id=syncplan_id, organization=self.org_id)
+
+        syncplan.add_products(product_ids)
+        self.assertEqual(len(syncplan.read_json()['products']), 2)
+        syncplan.remove_products(product_ids)
+        self.assertEqual(len(syncplan.read_json()['products']), 0)
+
+    @skip_if_bug_open('bugzilla', 1199150)
+    @run_only_on('sat')
+    def test_repeatedly_add_remove(self):
+        """@Test: Repeatedly add and remove a product from a sync plan.
+
+        @Assert: A task is returned which can be used to monitor the additions
+        and removals.
+
+        @Feature: Sync Plan
+
+        """
+        syncplan_id = entities.SyncPlan(
+            organization=self.org_id
+        ).create_json()['id']
+        product_id = entities.Product(
+            organization=self.org_id
+        ).create_json()['id']
+        syncplan = entities.SyncPlan(id=syncplan_id, organization=self.org_id)
+
+        for _ in range(5):
+            syncplan.add_products([product_id])
+            self.assertEqual(len(syncplan.read_json()['products']), 1)
+            syncplan.remove_products([product_id])
+            self.assertEqual(len(syncplan.read_json()['products']), 0)
 
 
-@ddt
+@stubbed()
 class SyncPlanSynchronizeTestCase(APITestCase):
     """Tests specific to synchronizing ``Sync Plans``."""
 
@@ -352,7 +429,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         """
 
 
-@ddt
+@stubbed()
 class SyncPlanDeleteTestCase(APITestCase):
     """Tests specific to deleting ``Sync Plans``."""
 

@@ -35,11 +35,14 @@ class OSParameterTestCase(APITestCase):
         name = gen_utf8(20)
         value = gen_utf8(20)
         osp_id = entities.OperatingSystemParameter(
-            1,
             name=name,
+            operatingsystem=1,
             value=value,
         ).create()['id']
-        attrs = entities.OperatingSystemParameter(1, id=osp_id).read_json()
+        attrs = entities.OperatingSystemParameter(
+            id=osp_id,
+            operatingsystem=1,
+        ).read_json()
         self.assertEqual(attrs['name'], name)
         self.assertEqual(attrs['value'], value)
 
