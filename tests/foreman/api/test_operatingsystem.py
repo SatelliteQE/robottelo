@@ -7,6 +7,7 @@ References for the relevant paths can be found here:
 
 """
 from fauxfactory import gen_integer, gen_utf8
+from httplib import NOT_FOUND
 from robottelo.common.decorators import run_only_on
 from robottelo import entities
 from robottelo.test import APITestCase
@@ -26,7 +27,11 @@ class OSParameterTestCase(APITestCase):
 
         """
         # Check whether OS 1 exists.
-        entities.OperatingSystem(id=1).read_json()
+        if (entities.OperatingSystem(id=1).read_raw().status_code == NOT_FOUND
+                and entities.OperatingSystem().create_json()['id'] != 1):
+            self.skipTest(
+                'Cannot execute test, as operating system 1 is not available.'
+            )
 
         # Create and read a parameter for operating system 1. The purpose of
         # this test is to make sure an HTTP 422 is not returned, but we're also
