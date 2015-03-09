@@ -2,6 +2,8 @@
 from datetime import datetime, timedelta
 from ddt import ddt
 from fauxfactory import gen_string
+from nailgun import client
+from robottelo.common.helpers import get_server_credentials, get_server_url
 from robottelo import entities
 from robottelo.common.decorators import (
     data,
@@ -11,6 +13,43 @@ from robottelo.common.decorators import (
 )
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
+
+
+class SyncPlanTestCase(APITestCase):
+    """Miscellaneous tests for sync plans."""
+
+    def test_get_routes(self):
+        """@Test: Issue an HTTP GET response to both available routes.
+
+        @Assert: The same response is returned.
+
+        @Feature: SyncPlan
+
+        Targets BZ 1132817.
+
+        """
+        org_id = entities.Organization().create_json()['id']
+        entities.SyncPlan(organization=org_id).create_json()['id']
+        response1 = client.get(
+            '{0}/katello/api/v2/sync_plans'.format(get_server_url()),
+            auth=get_server_credentials(),
+            data={'organization_id': org_id},
+            verify=False,
+        )
+        response2 = client.get(
+            '{0}/katello/api/v2/organizations/{1}/sync_plans'.format(
+                get_server_url(),
+                org_id
+            ),
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        for response in (response1, response2):
+            response.raise_for_status()
+        self.assertEqual(
+            response1.json()['results'],
+            response2.json()['results'],
+        )
 
 
 @stubbed()
