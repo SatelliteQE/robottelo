@@ -1069,7 +1069,8 @@ class HostCollection(
     def create_payload(self):
         """Rename ``system_ids`` to ``system_uuids``."""
         payload = super(HostCollection, self).create_payload()
-        payload['system_uuids'] = payload.pop('system_ids')
+        if 'system_ids' in payload:
+            payload['system_uuids'] = payload.pop('system_ids')
         return payload
 
 class HostGroupClasses(orm.Entity):
