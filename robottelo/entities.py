@@ -413,6 +413,26 @@ class ConfigTemplate(
             attrs['template_kind'] = {'id': template_kind_id}
         return super(ConfigTemplate, self).read(auth, entity, attrs, ignore)
 
+    def path(self, which=None):
+        """Extend :meth:`robottelo.orm.Entity.path`.
+
+        The format of the returned path depends on the value of ``which``:
+
+        revision
+            /content_view_versions/revision
+        build_pxe_default
+            /content_view_versions/build_pxe_default
+
+        ``super`` is called otherwise.
+
+        """
+        if which in ('revision', 'build_pxe_default'):
+            return '{0}/{1}'.format(
+                super(ConfigTemplate, self).path(which='base'),
+                which
+            )
+        return super(ConfigTemplate, self).path(which)
+
 
 class AbstractDockerContainer(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,

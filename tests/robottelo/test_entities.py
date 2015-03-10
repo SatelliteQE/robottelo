@@ -70,11 +70,11 @@ class PathTestCase(TestCase):
         (entities.Repository, '/repositories', 'upload_content'),
     )
     @unpack
-    def test_path_with_which(self, entity, path, which):
+    def test_self_path_with_which(self, entity, path, which):
         """Test what happens when an entity ID is given and ``which=which``.
 
         Assert that when ``entity(id=<id>).path(which=which)`` is called, the
-        resultant path contains the following string:
+        resultant path contains the following string::
 
             'path/<id>/which'
 
@@ -92,6 +92,23 @@ class PathTestCase(TestCase):
         )
 
     @data(
+        (entities.ConfigTemplate, '/config_templates', 'build_pxe_default'),
+        (entities.ConfigTemplate, '/config_templates', 'revision'),
+    )
+    @unpack
+    def test_base_path_with_which(self, entity, path, which):
+        """Test what happens when no entity ID is given and ``which=which``.
+
+        Assert that a path in the fllowing format is returned::
+
+            {path}/{which}
+
+        """
+        gen_path = entity().path(which=which)
+        self.assertIn('{0}/{1}'.format(path, which), gen_path, entity.__name__)
+        self.assertRegexpMatches(gen_path, which + '$', entity.__name__)
+
+    @data(
         (entities.ActivationKey, 'releases'),
         (entities.ContentView, 'available_puppet_module_names'),
         (entities.ContentView, 'content_view_puppet_modules'),
@@ -99,14 +116,14 @@ class PathTestCase(TestCase):
         (entities.ContentView, 'publish'),
         (entities.ContentViewVersion, 'promote'),
         (entities.ForemanTask, 'self'),
+        (entities.Organization, 'products'),
+        (entities.Organization, 'self'),
         (entities.Organization, 'subscriptions'),
         (entities.Organization, 'subscriptions/delete_manifest'),
         (entities.Organization, 'subscriptions/refresh_manifest'),
         (entities.Organization, 'subscriptions/upload'),
         (entities.Organization, 'sync_plans'),
-        (entities.Organization, 'products'),
         (entities.Product, 'repository_sets'),
-        (entities.Organization, 'self'),
         (entities.Repository, 'sync'),
         (entities.Repository, 'upload_content'),
         (entities.System, 'self'),
