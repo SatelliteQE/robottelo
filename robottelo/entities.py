@@ -188,10 +188,7 @@ class AuthSourceLDAP(
             self.attr_mail = cls.attr_mail.gen_value()
 
     def read(
-            self,
-            auth=None,
-            entity=None,
-            attrs=None,
+            self, auth=None, entity=None, attrs=None,
             ignore=('account_password',)):
         """Do not read the ``account_password`` attribute from the server."""
         return super(AuthSourceLDAP, self).read(auth, entity, attrs, ignore)
@@ -669,19 +666,76 @@ class ContentViewFilter(orm.Entity):
         server_modes = ('sat')
 
 
-class ContentViewPuppetModule(orm.Entity):
+class ContentViewPuppetModule(
+        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
+        orm.EntityCreateMixin):
     """A representation of a Content View Puppet Module entity."""
+    author = entity_fields.StringField()
     content_view = entity_fields.OneToOneField('ContentView', required=True)
     name = entity_fields.StringField()
-    author = entity_fields.StringField()
-    uuid = entity_fields.StringField()
+    puppet_module = entity_fields.OneToOneField('PuppetModule')
 
     class Meta(object):
         """Non-field information about this entity."""
-        api_path = ('katello/api/v2/content_views/:content_view_id/'
-                    'content_view_puppet_modules')
         server_modes = ('sat')
 
+    def __init__(self, **kwargs):
+        """Ensure ``content_view`` is passed in and set ``self.Meta.api_path``.
+
+        :raises TypeError: If ``content_view`` is not passed in.
+
+        """
+        if 'content_view' not in kwargs:
+            raise TypeError(
+                'The "content_view" parameter must be provided.'
+            )
+        super(ContentViewPuppetModule, self).__init__(**kwargs)
+        self.Meta.api_path = '{0}/content_view_puppet_modules'.format(
+            self.content_view.path('self')  # pylint:disable=no-member
+        )
+
+    def read(
+            self, auth=None, entity=None, attrs=None,
+            ignore=('content_view',)):
+        """Provide a default value for ``entity``.
+
+        By default, :meth:`robottelo.orm.EntityReadMixin.read` provides a
+        default value for ``entity`` like so::
+
+            entity = type(self)()
+
+        However, :class:`OperatingSystemParameter` requires that an
+        ``operatingsystem`` be provided, so this technique will not work. Do
+        this instead::
+
+            entity = type(self)(content_view=self.content_view.id)
+
+        Also, deal with the weirdly named "uuid" parameter.
+
+        """
+        # `entity = self` also succeeds. However, the attributes of the object
+        # passed in will be clobbered. Passing in a new object allows this one
+        # to avoid changing state. The default implementation of `read` follows
+        # the same principle.
+        if entity is None:
+            # pylint:disable=no-member
+            entity = type(self)(content_view=self.content_view.id)
+        if attrs is None:
+            attrs = self.read_json(auth)
+        uuid = attrs.pop('uuid')
+        if uuid is None:
+            attrs['puppet_module'] = None
+        else:
+            attrs['puppet_module'] = {'id': uuid}
+        return super(ContentViewPuppetModule, self).read(
+            auth, entity, attrs, ignore
+        )
+
+    def create_payload(self):
+        """Rename the ``puppet_module_id`` field to ``uuid``."""
+        payload = super(ContentViewPuppetModule, self).create_payload()
+        payload['uuid'] = payload.pop('puppet_module_id')
+        return payload
 
 class ContentView(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
@@ -1467,8 +1521,10 @@ class OperatingSystemParameter(
     value = entity_fields.StringField(required=True)
 
     def __init__(self, **kwargs):
-        """Ensure ``operatingsystem`` has been passed in and set
+        """Ensure ``operatingsystem`` is passed in and set
         ``self.Meta.api_path``.
+
+        :raises TypeError: If ``content_view`` is not passed in.
 
         """
         if 'operatingsystem' not in kwargs:
@@ -1477,15 +1533,12 @@ class OperatingSystemParameter(
             )
         super(OperatingSystemParameter, self).__init__(**kwargs)
         self.Meta.api_path = '{0}/parameters'.format(
-            self.operatingsystem.path()  # pylint:disable=no-member
+            self.operatingsystem.path('self')  # pylint:disable=no-member
         )
 
     def read(
-            self,
-            auth=None,
-            entity=None,
-            attrs=None,
-            ignore=('operatingsystem')):
+            self, auth=None, entity=None, attrs=None,
+            ignore=('operatingsystem',)):
         """Provide a default value for ``entity``.
 
         By default, :meth:`robottelo.orm.EntityReadMixin.read` provides a
@@ -2211,22 +2264,31 @@ class Repository(
             )
         return results[0]['id']
 
-    def upload(self, filename):
-        """Uploads content from tests/foreman/data directory to repository.
+    def upload_content(self, handle):
+        """Upload a file to the current repository.
 
-        :param str filename: Name of file from tests/foreman/data directory
+        :param handle: A file object, such as the one returned by
+            ``open('path', 'rb')``.
+        :returns: The JSON-decoded response.
+        :rtype: dict
+        :raises APIResponseError: If the response has a status other than
+            "success".
 
         """
-
-        with open(get_data_file(filename), 'rb') as content:
-            response = client.post(
-                self.path('upload_content'),
-                auth=get_server_credentials(),
-                verify=False,
-                files={'content': content},
-            )
+        response = client.post(
+            self.path('upload_content'),
+            auth=get_server_credentials(),
+            verify=False,
+            files={'content': handle},
+        )
         response.raise_for_status()
-        return response.json()
+        response_json = response.json()
+        if response_json['status'] != 'success':
+            raise APIResponseError(
+                'Received error when uploading file {0} to repository {1}: {2}'
+                .format(handle, self.id, response_json)
+            )
+        return response_json
 
     def delete(self, auth=None, synchronous=True):
         """Wait for elasticsearch to catch up to repository deletion.
@@ -2388,11 +2450,8 @@ class SyncPlan(
         )
 
     def read(
-            self,
-            auth=None,
-            entity=None,
-            attrs=None,
-            ignore=('organization')):
+            self, auth=None, entity=None, attrs=None,
+            ignore=('organization',)):
         """Provide a default value for ``entity``.
 
         By default, :meth:`robottelo.orm.EntityReadMixin.read` provides a
@@ -2564,12 +2623,8 @@ class System(
         return super(System, self).path(which)
 
     def read(
-            self,
-            auth=None,
-            entity=None,
-            attrs=None,
-            ignore=('facts', 'type')
-    ):
+            self, auth=None, entity=None, attrs=None,
+            ignore=('facts', 'type')):
         if attrs is None:
             attrs = self.read_json(auth)
         attrs['last_checkin'] = attrs.pop('checkin_time')

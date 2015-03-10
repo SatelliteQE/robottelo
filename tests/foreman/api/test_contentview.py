@@ -8,7 +8,7 @@ from robottelo import entities
 from robottelo.common.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.common.decorators import (
     bz_bug_is_open, data, run_only_on, stubbed)
-from robottelo.common.helpers import get_server_credentials
+from robottelo.common.helpers import get_data_file, get_server_credentials
 from robottelo.test import APITestCase
 from unittest import SkipTest
 import re
@@ -213,7 +213,8 @@ class CVPublishPromoteTestCase(APITestCase):
             product=cls.product.id,
         )
         cls.puppet_repo.id = cls.puppet_repo.create_json()['id']
-        cls.puppet_repo.upload(PUPPET_MODULE_NTP_PUPPETLABS)
+        with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
+            cls.puppet_repo.upload_content(handle)
 
     def test_positive_publish_1(self):
         """@Test: Publish a content view several times.
