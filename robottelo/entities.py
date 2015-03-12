@@ -2044,6 +2044,34 @@ class PuppetClass(orm.Entity):
         server_modes = ('sat')
 
 
+class PuppetModule(orm.Entity, orm.EntityReadMixin):
+    """A representation of a Puppet Module entity."""
+    author = entity_fields.StringField()
+    checksums = entity_fields.ListField()
+    dependencies = entity_fields.ListField()
+    description = entity_fields.StringField()
+    license = entity_fields.StringField()
+    name = entity_fields.StringField()
+    project_page = entity_fields.URLField()
+    # repoids = entity_fields.???
+    repository = entity_fields.OneToManyField('Repository')
+    source = entity_fields.URLField()
+    summary = entity_fields.StringField()
+    # tag_list = entity_fields.???
+    version = entity_fields.StringField()
+
+    class Meta(object):
+        """Non-field information about this entity."""
+        api_path = 'katello/api/v2/puppet_modules'
+
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
+        """Compensate for the pluralization of the ``repository`` field."""
+        if attrs is None:
+            attrs = self.read_json(auth)
+        attrs['repositorys'] = attrs.pop('repositories')
+        return super(PuppetModule, self).read(auth, entity, attrs, ignore)
+
+
 class Realm(orm.Entity):
     """A representation of a Realm entity."""
     # The realm name, e.g. EXAMPLE.COM
