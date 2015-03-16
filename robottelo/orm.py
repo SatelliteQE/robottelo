@@ -362,7 +362,7 @@ class EntityReadMixin(object):
         """
         if auth is None:
             auth = helpers.get_server_credentials()
-        return client.get(self.path(), auth=auth, verify=False)
+        return client.get(self.path('self'), auth=auth, verify=False)
 
     def read_json(self, auth=None):
         """Get information about the current entity.
