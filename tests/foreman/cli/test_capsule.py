@@ -163,3 +163,30 @@ class CapsuleTestCase(CLITestCase):
         @Status: Manual
 
         """
+
+    def test_enable_bmc(self):
+        """@Test: Enable BMC feature on smart-proxy
+
+        @Feature: Capsules
+
+        @Setup: A capsule installed with SSL enabled.
+
+        @Steps:
+
+        1. Enable BMC feature on proxy by running installer with:
+           ``katello-installer --foreman-proxy-bmc 'true'``
+        2. Please make sure to check default values to other BMC options.
+           Should be like below:
+           ``--foreman-proxy-bmc-default-provider  BMC default provider.
+           (default: "ipmitool")``
+           ``--foreman-proxy-bmc-listen-on  BMC proxy to listen on https, http,
+           or both (default: "https")``
+        3. Check if BMC plugin is enabled with:
+           ``#cat /etc/foreman-proxy/settings.d/bmc.yml | grep enabled``
+        4. Restart foreman-proxy service
+
+        @Assert: Katello installer should show the options to enable BMC
+
+        @Status: Manual
+
+        """
