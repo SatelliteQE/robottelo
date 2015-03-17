@@ -291,3 +291,51 @@ class TestComputeResource(CLITestCase):
         options.pop('new-name', None)
         for key in options.keys():
             self.assertEqual(comp_res[key], result.stdout[key])
+
+    @data('true', 'false')
+    def test_set_console_password_v1(self, set_console_password):
+        """@Test: Create a compute resource with ``--set-console-password``.
+
+        @Feature: Compute Resource
+
+        @Assert: No error is returned.
+
+        Targets BZ 1100344.
+
+        """
+        name = gen_string('utf8')
+        result = ComputeResource.create({
+            'name': name,
+            'provider': 'Libvirt',
+            'set-console-password': set_console_password,
+            'url': gen_url(),
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+    @data('true', 'false')
+    def test_set_console_password_v2(self, set_console_password):
+        """@Test: Update a compute resource with ``--set-console-password``.
+
+        @Feature: Compute Resource
+
+        @Assert: No error is returned.
+
+        Targets BZ 1100344.
+
+        """
+        name = gen_string('utf8')
+        result = ComputeResource.create({
+            'name': name,
+            'provider': 'Libvirt',
+            'url': gen_url(),
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = ComputeResource.update({
+            'name': name,
+            'set-console-password': set_console_password,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
