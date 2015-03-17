@@ -61,6 +61,9 @@ def _get_readable_attributes(entity):
         del attributes['name']  # FIXME: "Foo" in, "foo.example.com" out.
     if isinstance(entity, entities.User):
         del attributes['password']
+    if isinstance(entity, entities.System) and bz_bug_is_open(1202917):
+        del attributes['facts']
+        del attributes['type']
 
     # Drop foreign key attributes.
     for field_name in attributes.keys():
@@ -327,7 +330,7 @@ class EntityIdTestCase(APITestCase):
         entities.Repository,
         entities.Role,
         entities.Subnet,
-        # entities.System,  # See test_activationkey_v2.py
+        entities.System,
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
         entities.UserGroup,
@@ -372,7 +375,7 @@ class EntityIdTestCase(APITestCase):
         entities.Repository,
         entities.Role,
         entities.Subnet,
-        # entities.System,  # See test_activationkey_v2.py
+        entities.System,
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
         entities.UserGroup,
@@ -427,7 +430,7 @@ class EntityIdTestCase(APITestCase):
         entities.Repository,
         entities.Role,
         entities.Subnet,
-        # entities.System,  # See test_activationkey_v2.py
+        entities.System,
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
         entities.UserGroup,
@@ -498,7 +501,7 @@ class DoubleCheckTestCase(APITestCase):
         entities.Repository,
         entities.Role,
         entities.Subnet,
-        # entities.System,  # See test_activationkey_v2.py
+        entities.System,
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
         entities.UserGroup,
@@ -559,7 +562,7 @@ class DoubleCheckTestCase(APITestCase):
         entities.Repository,
         entities.Role,
         entities.Subnet,
-        # entities.System,  # See test_activationkey_v2.py
+        entities.System,
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
         entities.UserGroup,
@@ -575,7 +578,7 @@ class DoubleCheckTestCase(APITestCase):
         logger.debug('test_post_and_get arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
         if entity_cls in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
-            self.skipTest("Bugzilla bug 1154156 is open.")
+            self.skipTest('Bugzilla bug 1154156 is open.')
 
         entity = entity_cls()
         entity_id = entity.create_json()['id']
@@ -609,7 +612,7 @@ class DoubleCheckTestCase(APITestCase):
         entities.Repository,
         entities.Role,
         entities.Subnet,
-        # entities.System,  # See test_activationkey_v2.py
+        entities.System,
         # entities.TemplateKind,  # see comments in class definition
         entities.User,
         entities.UserGroup,
@@ -625,19 +628,20 @@ class DoubleCheckTestCase(APITestCase):
         logger.debug('test_delete_and_get arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
         if entity_cls is entities.ConfigTemplate and bz_bug_is_open(1096333):
-            self.skipTest('Cannot delete config templates.')
+            self.skipTest('BZ 1096333: Cannot delete config templates.')
+        if entity_cls in BZ_1187366_ENTITIES and bz_bug_is_open(1187366):
+            self.skipTest('BZ 1187366: Cannot delete orgs or environments.')
+        if entity_cls is entities.Repository and bz_bug_is_open(1166365):
+            self.skipTest('BZ 1166365: Cannot monitor repository deletion.')
+        if entity_cls == entities.System and bz_bug_is_open(1133071):
+            self.skipTest('BZ 1133071: Receive HTTP 400s instead of 404s.')
 
         # Create an entity, delete it and get it.
         try:
             entity = entity_cls(id=entity_cls().create_json()['id'])
         except HTTPError as err:
             self.fail(err)
-        if entity_cls in BZ_1187366_ENTITIES and bz_bug_is_open(1187366):
-            self.skipTest('BZ 1187366 is open.')
         entity.delete()
-
-        if entity_cls is entities.Repository and bz_bug_is_open(1166365):
-            return
         self.assertEqual(httplib.NOT_FOUND, entity.read_raw().status_code)
 
 
