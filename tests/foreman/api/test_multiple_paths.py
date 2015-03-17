@@ -154,7 +154,12 @@ class EntityTestCase(APITestCase):
         """
         logger.debug('test_get_status_code arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
-        response = entity_cls().read_raw()
+        response = client.get(
+            entity_cls().path(),
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        response.raise_for_status()
         self.assertEqual(httplib.OK, response.status_code)
         self.assertIn('application/json', response.headers['content-type'])
 
@@ -195,7 +200,7 @@ class EntityTestCase(APITestCase):
         """
         logger.debug('test_get_unauthorized arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
-        response = entity_cls().read_raw(auth=())
+        response = client.get(entity_cls().path(), auth=(), verify=False)
         self.assertEqual(httplib.UNAUTHORIZED, response.status_code)
 
     @data(
