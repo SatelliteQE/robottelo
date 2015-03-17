@@ -391,12 +391,13 @@ class EntityIdTestCase(APITestCase):
             self.skipTest("Bugzilla bug 1154156 is open.")
 
         # Create an entity
-        entity = entity_cls(id=entity_cls().create_json()['id'])
+        entity_id = entity_cls().create_json()['id']
 
         # Update that entity.
+        entity = entity_cls()
         entity.create_missing()
         response = client.put(
-            entity.path(),
+            entity_cls(id=entity_id).path(),
             entity.create_payload(),  # FIXME: use entity.update_payload()
             auth=get_server_credentials(),
             verify=False,

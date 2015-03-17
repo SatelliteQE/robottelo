@@ -46,6 +46,10 @@ class APIResponseError(Exception):
     """Indicates an error if response returns unexpected result."""
 
 
+class HostCreateMissingError(Exception):
+    """Indicates that ``Host.create_missing`` was unable to execute."""
+
+
 class ActivationKey(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
@@ -1185,37 +1189,33 @@ class Host(
         orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
         orm.EntityCreateMixin):
     """A representation of a Host entity."""
-    architecture = entity_fields.OneToOneField('Architecture', null=True, required=True)
+    architecture = entity_fields.OneToOneField('Architecture', null=True)
     build_ = entity_fields.BooleanField(null=True)
     capabilities = entity_fields.StringField(null=True)
     compute_profile = entity_fields.OneToOneField('ComputeProfile', null=True)
     compute_resource = entity_fields.OneToOneField('ComputeResource', null=True)
-    domain = entity_fields.OneToOneField('Domain', null=True, required=True)
+    domain = entity_fields.OneToOneField('Domain', null=True)
     enabled = entity_fields.BooleanField(null=True)
-    environment = entity_fields.OneToOneField('Environment', null=True, required=True)
+    environment = entity_fields.OneToOneField('Environment', null=True)
     hostgroup = entity_fields.OneToOneField('HostGroup', null=True)
     host_parameters_attributes = entity_fields.ListField(null=True)
     image = entity_fields.OneToOneField('Image', null=True)
     ip = entity_fields.StringField(null=True)  # (invalid-name) pylint:disable=C0103
     location = entity_fields.OneToOneField('Location', required=True)
-    mac = entity_fields.MACAddressField(null=True, required=True)
+    mac = entity_fields.MACAddressField(null=True)
     managed = entity_fields.BooleanField(null=True)
     medium = entity_fields.OneToOneField('Media', null=True)
     model = entity_fields.OneToOneField('Model', null=True)
     name = entity_fields.StringField(required=True, str_type='alpha')
-    operatingsystem = entity_fields.OneToOneField(
-        'OperatingSystem',
-        null=True,
-        required=True
-    )
+    operatingsystem = entity_fields.OneToOneField('OperatingSystem', null=True)
     organization = entity_fields.OneToOneField('Organization', required=True)
     owner = entity_fields.OneToOneField('User', null=True)
     provision_method = entity_fields.StringField(null=True)
     ptable = entity_fields.OneToOneField('PartitionTable', null=True)
     puppet_classes = entity_fields.OneToManyField('PuppetClass', null=True)
-    puppet_proxy = entity_fields.OneToOneField('SmartProxy', null=True, required=True)
+    puppet_proxy = entity_fields.OneToOneField('SmartProxy', null=True)
     realm = entity_fields.OneToOneField('Realm', null=True)
-    root_pass = entity_fields.StringField(length=(8, 30), required=True)
+    root_pass = entity_fields.StringField(length=(8, 30))
     sp_subnet = entity_fields.OneToOneField('Subnet', null=True)
     subnet = entity_fields.OneToOneField('Subnet', null=True)
 
@@ -1230,60 +1230,54 @@ class Host(
         server_modes = ('sat')
 
     def create_missing(self, auth=None):
-        """Customize the process of auto-generating instance attributes.
+        """Create a bogus managed host.
 
-        A host's dependency graph must, in part, look like this::
+        The exact set of attributes that are required varies depending on
+        whether the host is managed or inherits values from a host group and
+        other factors. Unfortunately, the rules for determining which
+        attributes should be filled in are mildly complex, and it is hard to
+        know which scenario a user is aiming for.
+
+        Populate the values necessary to create a bogus managed host. However,
+        _only_ do so if no instance attributes are present. Raise an exception
+        if any instance attributes are present. Assuming that this method
+        executes in full, the resultant dependency graph will look, in part,
+        like this::
 
                  .-> medium --------.
                  |-> architecture <-V--.
             host --> operating system -|
                  |-> partition table <-'
-                 `-> smart proxy
+                 |-> domain
+                 '-> environment
 
-        This is complicated by the fact that the user might provide values for
-        any number of fields, it is impossible to create a bogus smart proxy,
-        some links are optional and the links are a combination of one-to-one
-        and one-to-many. This method will:
-
-        * create a dependent architecture, operating system, partition table
-          and medium if all four instance attributes are unset, and
-        * make this host point at an existing puppet proxy if the
-          ``puppet_proxy`` instance attribute is unset.
+        :raises HostCreateMissingError: If any instance attributes are present.
 
         """
-        attrs = vars(self)
-        if ('operatingsystem' not in attrs and
-                'architecture' not in attrs and
-                'ptable' not in attrs and
-                'medium' not in attrs):
-            self.architecture = Architecture(
-                id=Architecture().create_json()['id']
-            )
-            self.ptable = PartitionTable(
-                id=PartitionTable().create_json()['id']
-            )
-            self.operatingsystem = OperatingSystem(
-                id=OperatingSystem(
-                    architecture=[self.architecture],
-                    ptable=[self.ptable],
-                ).create_json()['id']
-            )
-            self.medium = Media(
-                id=Media(
-                    operatingsystem=[self.operatingsystem]
-                ).create_json()['id']
-            )
-        if 'puppet_proxy' not in attrs:
-            response = client.get(
-                SmartProxy().path(),
-                auth=get_server_credentials(),
-                verify=False,
-            )
-            response.raise_for_status()
-            self.puppet_proxy = SmartProxy(
-                id=response.json()['results'][0]['id']
+        if len(vars(self)) != 0:
+            raise HostCreateMissingError(
+                'Found instance attributes: {0}'.format(vars(self))
             )
         super(Host, self).create_missing(auth)
+        self.mac = self.mac.gen_value()
+        self.root_pass = self.root_pass.gen_value()
+
+        # Flesh out the dependency graph shown in the docstring.
+        self.domain = Domain(id=Domain().create_json()['id'])
+        self.environment = Environment(id=Environment().create_json()['id'])
+        self.architecture = Architecture(id=Architecture().create_json()['id'])
+        self.ptable = PartitionTable(id=PartitionTable().create_json()['id'])
+        self.operatingsystem = OperatingSystem(
+            id=OperatingSystem(
+                architecture=[self.architecture],
+                ptable=[self.ptable],
+            ).create_json()['id']
+        )
+        self.medium = Media(
+            id=Media(
+                operatingsystem=[self.operatingsystem]
+            ).create_json()['id']
+        )
 
     # NOTE: See BZ 1151220
     def create_payload(self):
