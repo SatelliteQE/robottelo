@@ -2636,11 +2636,11 @@ class System(
             )
         return super(System, self).path(which)
 
-    def read(
-            self, auth=None, entity=None, attrs=None,
-            ignore=('facts', 'type')):
+    def read(self, auth=None, entity=None, attrs=None, ignore=()):
         if attrs is None:
             attrs = self.read_json(auth)
+        if bz_bug_is_open(1202917):
+            ignore = tuple(set(ignore).union(('facts', 'type')))
         attrs['last_checkin'] = attrs.pop('checkin_time')
         attrs['host_collections'] = attrs.pop('hostCollections')
         attrs['installed_products'] = attrs.pop('installedProducts')
