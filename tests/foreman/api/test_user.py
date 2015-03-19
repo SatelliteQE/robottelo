@@ -14,11 +14,9 @@ from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
-@ddt.ddt
-class UsersTestCase(APITestCase):
-    """Tests for the ``users`` path."""
-
-    @decorators.data(
+def _user_attrs():
+    """Return an iterable of dicts. Each dict contains user attributes."""
+    return (
         {u'admin': False},
         {u'admin': True},
         {u'firstname': gen_string('alphanumeric', randint(1, 50))},
@@ -40,6 +38,13 @@ class UsersTestCase(APITestCase):
         {u'login': gen_string('numeric', randint(1, 100))},
         {u'login': gen_string('utf8', randint(1, 33))},
     )
+
+
+@ddt.ddt
+class UsersTestCase(APITestCase):
+    """Tests for the ``users`` path."""
+
+    @decorators.data(*_user_attrs())
     def test_create(self, attrs):
         """@Test: Create a user with attributes ``attrs`` and delete it.
 
@@ -55,28 +60,7 @@ class UsersTestCase(APITestCase):
             self.assertIn(name, real_attrs.keys())
             self.assertEqual(value, real_attrs[name])
 
-    @decorators.data(
-        {u'admin': False},
-        {u'admin': True},
-        {u'firstname': gen_string('alphanumeric', randint(1, 50))},
-        {u'firstname': gen_string('alpha', randint(1, 50))},
-        {u'firstname': gen_string('cjk', randint(1, 50))},
-        {u'firstname': gen_string('latin1', randint(1, 50))},
-        {u'firstname': gen_string('numeric', randint(1, 50))},
-        {u'firstname': gen_string('utf8', randint(1, 16))},
-        {u'lastname': gen_string('alphanumeric', randint(1, 50))},
-        {u'lastname': gen_string('alpha', randint(1, 50))},
-        {u'lastname': gen_string('cjk', randint(1, 50))},
-        {u'lastname': gen_string('latin1', randint(1, 50))},
-        {u'lastname': gen_string('numeric', randint(1, 50))},
-        {u'lastname': gen_string('utf8', randint(1, 16))},
-        {u'login': gen_string('alphanumeric', randint(1, 100))},
-        {u'login': gen_string('alpha', randint(1, 100))},
-        {u'login': gen_string('cjk', randint(1, 100))},
-        {u'login': gen_string('latin1', randint(1, 100))},
-        {u'login': gen_string('numeric', randint(1, 100))},
-        {u'login': gen_string('utf8', randint(1, 33))},
-    )
+    @decorators.data(*_user_attrs())
     def test_delete(self, attrs):
         """@Test: Create a user with attributes ``attrs`` and delete it.
 
