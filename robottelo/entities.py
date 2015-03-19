@@ -1210,6 +1210,10 @@ class Host(
     operatingsystem = entity_fields.OneToOneField('OperatingSystem', null=True)
     organization = entity_fields.OneToOneField('Organization', required=True)
     owner = entity_fields.OneToOneField('User', null=True)
+    owner_type = entity_fields.StringField(
+        choices=('User', 'Usergroup'),
+        null=True,
+    )
     provision_method = entity_fields.StringField(null=True)
     ptable = entity_fields.OneToOneField('PartitionTable', null=True)
     puppet_classes = entity_fields.OneToManyField('PuppetClass', null=True)

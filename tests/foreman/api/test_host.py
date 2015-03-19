@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 """Unit tests for the ``hosts`` paths.
 
 An API reference can be found here:
@@ -5,16 +6,23 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 
 """
 import httplib
+from ddt import ddt
 from fauxfactory import gen_integer, gen_string
 from nailgun import client
-from robottelo.common.decorators import skip_if_bug_open, run_only_on
-from robottelo.common.helpers import get_server_credentials
 from robottelo import entities
+from robottelo.common.decorators import (
+    bz_bug_is_open,
+    data,
+    run_only_on,
+    skip_if_bug_open,
+)
+from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')
+@ddt
 class HostsTestCase(APITestCase):
     """Tests for ``entities.Host().path()``."""
 
@@ -75,3 +83,47 @@ class HostsTestCase(APITestCase):
         )
         response.raise_for_status()
         self.assertTrue('id' in response.json())
+
+    @data('User', 'Usergroup')
+    def test_create_owner_type(self, owner_type):
+        """@Test: Create a host and specify an ``owner_type``.
+
+        @Feature: Host
+
+        @Assert: The host can be read back, and the ``owner_type`` attribute is
+        correct.
+
+        """
+        if owner_type == 'Usergroup' and bz_bug_is_open(1203865):
+            self.skipTest('BZ 1203865: owner_type ignored when creating host')
+        host = entities.Host()
+        host.create_missing()
+        host.owner_type = owner_type
+        host_id = host.create_json(create_missing=False)['id']
+        self.assertEqual(
+            entities.Host(id=host_id).read_json()['owner_type'],
+            owner_type,
+        )
+
+    @data('User', 'Usergroup')
+    def test_update_owner_type(self, owner_type):
+        """@Test: Update a host and specify an ``owner_type``.
+
+        @Feature: Host
+
+        @Assert: The host can be read back, and the ``owner_type`` attribute is
+        correct.
+
+        """
+        host_id = entities.Host().create_json()['id']
+        response = client.put(
+            entities.Host(id=host_id).path(),
+            {'host': {'owner_type': owner_type}},
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        response.raise_for_status()
+        self.assertEqual(
+            entities.Host(id=host_id).read_json()['owner_type'],
+            owner_type,
+        )
