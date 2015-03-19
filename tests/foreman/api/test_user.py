@@ -6,12 +6,14 @@ tested can be found here: http://theforeman.org/api/apidoc/v2/users.html
 """
 import ddt
 from fauxfactory import gen_string
+from nailgun import client
 from random import randint
 from requests.exceptions import HTTPError
 from robottelo import entities
+from robottelo.common.helpers import get_server_credentials
 from robottelo.common import decorators
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
+# pylint:disable=too-many-public-methods
 
 
 def _user_attrs():
@@ -74,3 +76,23 @@ class UsersTestCase(APITestCase):
         entities.User(id=user_id).delete()
         with self.assertRaises(HTTPError):
             entities.User(id=user_id).read_json()
+
+    @decorators.data(True, False)
+    def test_update_admin(self, admin):
+        """@Test: Update a user and provide the ``admin`` attribute.
+
+        @Assert: The user's ``admin`` attribute is updated.
+
+        @Feature: User
+
+        """
+        user_id = entities.User(admin=admin).create_json()['id']
+        user = entities.User(id=user_id)
+        response = client.put(
+            user.path(),
+            {'admin': not admin},
+            auth=get_server_credentials(),
+            verify=False,
+        )
+        response.raise_for_status()
+        self.assertEqual(user.read().admin, not admin)
