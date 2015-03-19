@@ -8,8 +8,13 @@ from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.template import Template
 from robottelo.cli.factory import (
-    CLIFactoryError, make_architecture, make_os, make_partition_table,
-    make_template)
+    CLIFactoryError,
+    make_architecture,
+    make_medium,
+    make_os,
+    make_partition_table,
+    make_template,
+)
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
 
@@ -145,6 +150,34 @@ class TestOperatingSystem(CLITestCase):
                          'There should not be an error here')
         self.assertEqual(int(result.stdout['major-version']), major,
                          'OS major version was not updated')
+
+    @skip_if_bug_open('bugzilla', 1203457)
+    def test_bugzilla_1203457(self):
+        """@test: Create an OS pointing to an arch, medium and partition table.
+
+        @feature: Operating System - Create
+
+        @assert: An operating system is created.
+
+        """
+        architecture = make_architecture()
+        medium = make_medium()
+        ptable = make_partition_table()
+        operating_system = make_os({
+            u'architecture-ids': architecture['id'],
+            u'medium-ids': medium['id'],
+            u'partition-table-ids': ptable['id'],
+        })
+
+        result = OperatingSys.info({'id': operating_system['id']})
+        self.assertEqual(result.return_code, 0)
+        stdout = result.stdout
+        for attr in (
+                'architectures', 'installation-media', 'partition-tables'):
+            self.assertEqual(len(stdout[attr]), 1)
+        self.assertEqual(stdout['architectures'][0], architecture['name'])
+        self.assertEqual(stdout['installation-media'][0], medium['name'])
+        self.assertEqual(stdout['partition-tables'][0], ptable['name'])
 
     def test_list_1(self):
         """@test: Displays list for operating system
