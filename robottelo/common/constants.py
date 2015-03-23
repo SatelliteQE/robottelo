@@ -520,3 +520,6 @@ PERMISSIONS = {
         'destroy_sync_plans',
     ),
 }
+
+ANY_CONTEXT = {'org': "Any Organization",
+               'location': "Any Location"}
