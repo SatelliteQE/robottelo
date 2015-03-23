@@ -87,13 +87,11 @@ class Repos(UITestCase):
         """
         # Creates new product
         product_name = entities.Product(
-            organization=self.org_id,
-            location=self.loc_id,
+            organization=self.org_id
         ).create()['name']
         with Session(self.browser) as session:
-            make_repository(session, org=self.org_name, loc=self.loc_name,
-                            name=repo_name, product=product_name,
-                            url=FAKE_1_YUM_REPO)
+            make_repository(session, org=self.org_name, name=repo_name,
+                            product=product_name, url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
@@ -110,23 +108,20 @@ class Repos(UITestCase):
         # Creates new product_1
         product_1_name = entities.Product(
             organization=self.org_id,
-            location=self.loc_id,
         ).create()['name']
 
         # Create new product_2 under new organization_2
         org_2_id = entities.Organization(name=org_2_name).create()['id']
         product_2_name = entities.Product(
             organization=org_2_id,
-            location=self.loc_id,
         ).create()['name']
 
         with Session(self.browser) as session:
-            make_repository(session, org=self.org_name, loc=self.loc_name,
-                            name=repo_name, product=product_1_name,
-                            url=FAKE_1_YUM_REPO)
+            make_repository(session, org=self.org_name, name=repo_name,
+                            product=product_1_name, url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
-            make_repository(session, org=org_2_name, loc=self.loc_name,
-                            name=repo_name, product=product_2_name,
+            make_repository(session, org=org_2_name, name=repo_name,
+                            product=product_2_name,
                             url=FAKE_1_YUM_REPO, force_context=True)
             self.assertIsNotNone(self.repository.search(repo_name))
 
@@ -142,11 +137,10 @@ class Repos(UITestCase):
         # Creates new product
         repo_name = u'busybox'
         product_name = entities.Product(
-            organization=self.org_id,
-            location=self.loc_id,
+            organization=self.org_id
         ).create()['name']
         with Session(self.browser) as session:
-            make_repository(session, org=self.org_name, loc=self.loc_name,
+            make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
                             repo_type=REPO_TYPE['docker'],
                             url=DOCKER_REGISTRY_HUB)
@@ -165,11 +159,10 @@ class Repos(UITestCase):
         # Creates new product
         repo_name = u'busybox'
         product_name = entities.Product(
-            organization=self.org_id,
-            location=self.loc_id,
+            organization=self.org_id
         ).create()['name']
         with Session(self.browser) as session:
-            make_repository(session, org=self.org_name, loc=self.loc_name,
+            make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
                             repo_type=REPO_TYPE['docker'],
                             url=DOCKER_REGISTRY_HUB)
@@ -193,11 +186,10 @@ class Repos(UITestCase):
         checksum = CHECKSUM_TYPE[u'sha256']
         # Creates new product
         product_name = entities.Product(
-            organization=self.org_id,
-            location=self.loc_id,
+            organization=self.org_id
         ).create()['name']
         with Session(self.browser) as session:
-            make_repository(session, org=self.org_name, loc=self.loc_name,
+            make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
                             url=FAKE_1_YUM_REPO, repo_checksum=checksum)
             self.repository.search(repo_name).click()
@@ -217,12 +209,11 @@ class Repos(UITestCase):
         """
         # Creates new product
         product_name = entities.Product(
-            organization=self.org_id,
-            location=self.loc_id
+            organization=self.org_id
         ).create()['name']
 
         with Session(self.browser) as session:
-            make_repository(session, org=self.org_name, loc=self.loc_name,
+            make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
                             url=FAKE_1_YUM_REPO)
             invalid = self.products.wait_until_element(
@@ -242,15 +233,14 @@ class Repos(UITestCase):
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id,
-            location=self.loc_id
         ).create()['name']
 
         with Session(self.browser) as session:
-            make_repository(session, org=self.org_name, loc=self.loc_name,
+            make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
                             url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
-            make_repository(session, org=self.org_name, loc=self.loc_name,
+            make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
                             url=FAKE_1_YUM_REPO)
             invalid = self.products.wait_until_element(
@@ -269,12 +259,11 @@ class Repos(UITestCase):
         """
         # Creates new product
         product_name = entities.Product(
-            organization=self.org_id,
-            location=self.loc_id
+            organization=self.org_id
         ).create()['name']
 
         with Session(self.browser) as session:
-            make_repository(session, org=self.org_name, loc=self.loc_name,
+            make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
                             url=FAKE_1_YUM_REPO)
             error = self.repository.wait_until_element(
@@ -294,12 +283,11 @@ class Repos(UITestCase):
         locator = locators["repo.fetch_url"]
         # Creates new product
         product_name = entities.Product(
-            organization=self.org_id,
-            location=self.loc_id
+            organization=self.org_id
         ).create()['name']
 
         with Session(self.browser) as session:
-            make_repository(session, org=self.org_name, loc=self.loc_name,
+            make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
                             url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
@@ -329,23 +317,20 @@ class Repos(UITestCase):
         # Create two new GPGKey's
         gpgkey_1_name = entities.GPGKey(
             content=key_1_content,
-            organization=self.org_id,
-            location=self.loc_id
+            organization=self.org_id
         ).create()['name']
         gpgkey_2_name = entities.GPGKey(
             content=key_2_content,
-            organization=self.org_id,
-            location=self.loc_id
+            organization=self.org_id
         ).create()['name']
 
         # Creates new product
         product_name = entities.Product(
-            organization=self.org_id,
-            location=self.loc_id
+            organization=self.org_id
         ).create()['name']
 
         with Session(self.browser) as session:
-            make_repository(session, org=self.org_name, loc=self.loc_name,
+            make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
                             url=FAKE_1_YUM_REPO, gpg_key=gpgkey_1_name)
             self.assertIsNotNone(self.repository.search(repo_name))
@@ -374,12 +359,11 @@ class Repos(UITestCase):
         checksum_update = CHECKSUM_TYPE['sha1']
         # Creates new product
         product_name = entities.Product(
-            organization=self.org_id,
-            location=self.loc_id
+            organization=self.org_id
         ).create()['name']
 
         with Session(self.browser) as session:
-            make_repository(session, org=self.org_name, loc=self.loc_name,
+            make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
                             url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
@@ -406,12 +390,11 @@ class Repos(UITestCase):
         """
         # Creates new product
         product_name = entities.Product(
-            organization=self.org_id,
-            location=self.loc_id
+            organization=self.org_id
         ).create()['name']
 
         with Session(self.browser) as session:
-            make_repository(session, org=self.org_name, loc=self.loc_name,
+            make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
                             url=FAKE_1_YUM_REPO)
             self.assertIsNotNone(self.repository.search(repo_name))
@@ -430,8 +413,7 @@ class Repos(UITestCase):
         discovered_urls = "fakerepo01/"
 
         product_name = entities.Product(
-            organization=self.org_id,
-            location=self.loc_id
+            organization=self.org_id
         ).create()['name']
 
         with Session(self.browser) as session:

@@ -980,7 +980,7 @@ locators = {
     "prd.gpg_key": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
                                "//div/span")),
     "prd.name_edit": (By.XPATH, ("//form[@bst-edit-text='product.name']"
-                                 "//i[contains(@class,'icon-edit')]")),
+                                 "//i[contains(@class,'fa-edit')]")),
     "prd.name_update": (By.XPATH, ("//form[@bst-edit-text='product.name']"
                                    "/div/input")),
     "prd.desc_edit": (
