@@ -631,8 +631,6 @@ class DoubleCheckTestCase(APITestCase):
             self.skipTest('BZ 1096333: Cannot delete config templates.')
         if entity_cls in BZ_1187366_ENTITIES and bz_bug_is_open(1187366):
             self.skipTest('BZ 1187366: Cannot delete orgs or environments.')
-        if entity_cls is entities.Repository and bz_bug_is_open(1166365):
-            self.skipTest('BZ 1166365: Cannot monitor repository deletion.')
         if entity_cls == entities.System and bz_bug_is_open(1133071):
             self.skipTest('BZ 1133071: Receive HTTP 400s instead of 404s.')
 

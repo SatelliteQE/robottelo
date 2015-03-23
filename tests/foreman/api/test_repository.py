@@ -15,12 +15,7 @@ from robottelo.common.constants import (
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
 )
-from robottelo.common.decorators import (
-    bz_bug_is_open,
-    data,
-    run_only_on,
-    skip_if_bug_open,
-)
+from robottelo.common.decorators import bz_bug_is_open, data, run_only_on
 from robottelo.common.helpers import (
     get_server_credentials, get_data_file, read_data_file)
 from robottelo.test import APITestCase
@@ -125,7 +120,6 @@ class RepositoryTestCase(APITestCase):
                 entities.Repository(id=repo2_attrs['id']).read_json()):
             self.assertEqual(attrs['name'], name)
 
-    @skip_if_bug_open('bugzilla', 1166365)
     @run_only_on('sat')
     @data(*_test_data())  # (star-args) pylint:disable=W0142
     def test_delete(self, attrs):
