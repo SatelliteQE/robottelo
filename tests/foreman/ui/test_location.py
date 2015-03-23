@@ -12,9 +12,9 @@ from robottelo.common.decorators import (data, run_only_on, skip_if_bug_open,
                                          bz_bug_is_open)
 from robottelo.common.helpers import generate_strings_list, get_data_file
 from robottelo.common.constants import (
-    OS_TEMPLATE_DATA_FILE, INSTALL_MEDIUM_URL)
+    ANY_CONTEXT, OS_TEMPLATE_DATA_FILE, INSTALL_MEDIUM_URL)
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_loc, make_templates
+from robottelo.ui.factory import make_loc, make_templates, set_context
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
 
@@ -23,6 +23,7 @@ from robottelo.ui.session import Session
 @ddt
 class Location(UITestCase):
     """Implements Location tests in UI"""
+    location = None
 
     # Auto Search
 
@@ -526,6 +527,7 @@ class Location(UITestCase):
         env = entities.Environment(name=env_name).create()
         self.assertEqual(env['name'], env_name)
         with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
             make_loc(session, name=loc_name, envs=[env_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -564,6 +566,7 @@ class Location(UITestCase):
         ).create()
         self.assertEqual(subnet['name'], subnet_name)
         with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
             make_loc(session, name=loc_name, subnets=[subnet_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -598,6 +601,7 @@ class Location(UITestCase):
         domain = entities.Domain(name=domain_name).create()
         self.assertEqual(domain['name'], domain_name)
         with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
             make_loc(session, name=loc_name, domains=[domain_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -640,6 +644,7 @@ class Location(UITestCase):
             password=password).create()
         self.assertEqual(user['login'], user_name)
         with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
             make_loc(session, name=loc_name, users=[user_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -672,6 +677,7 @@ class Location(UITestCase):
         host_grp = entities.HostGroup(name=host_grp_name).create()
         self.assertEqual(host_grp['name'], host_grp_name)
         with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
             make_loc(session, name=loc_name)
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -711,6 +717,7 @@ class Location(UITestCase):
         ).create()
         self.assertEqual(resource['name'], resource_name)
         with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
             make_loc(session, name=loc_name, resources=[resource_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -748,6 +755,7 @@ class Location(UITestCase):
         ).create()
         self.assertEqual(medium['name'], medium_name)
         with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
             make_loc(session, name=loc_name, medias=[medium_name])
             self.location.search(loc_name).click()
             session.nav.wait_until_element(
@@ -792,6 +800,7 @@ class Location(UITestCase):
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
             make_templates(session, name=template, template_path=template_path,
                            template_type=temp_type, custom_really=True)
             self.assertIsNotNone(self.template.search(template))
