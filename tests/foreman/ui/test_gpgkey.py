@@ -251,6 +251,7 @@ class GPGKey(UITestCase):
             self.assertTrue(self.gpgkey.wait_until_element
                             (common_locators["alert.success"]))
 
+    @skip_if_bug_open('bugzilla', 1204602)
     def test_positive_update_2(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then update its gpg key file
@@ -258,6 +259,8 @@ class GPGKey(UITestCase):
         @feature: GPG Keys
 
         @assert: gpg key is updated
+
+        @bz: 1204602
 
         """
         name = gen_string("alpha", 6)
@@ -292,6 +295,7 @@ class GPGKey(UITestCase):
             self.assertTrue(self.gpgkey.wait_until_element
                             (common_locators["alert.success"]))
 
+    @skip_if_bug_open('bugzilla', 1204602)
     def test_positive_update_4(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then update its gpg key text
@@ -299,6 +303,8 @@ class GPGKey(UITestCase):
         @feature: GPG Keys
 
         @assert: gpg key is updated
+
+        @bz: 1204602
 
         """
         name = gen_string("alpha", 6)
