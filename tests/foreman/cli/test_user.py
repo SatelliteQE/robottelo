@@ -13,7 +13,7 @@ from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.factory import CLIFactoryError, make_user, make_role
 from robottelo.cli.user import User as UserObj
-from robottelo.common.decorators import data, stubbed
+from robottelo.common.decorators import data, stubbed, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 
@@ -646,7 +646,6 @@ class User(CLITestCase):
         'email@brazil.b',
         '{0}@example.com'.format(
             gen_string('alpha', 49)),  # total length 61
-        '',
         '{0}@example.com'.format(gen_string('html', 10)),
         's p a c e s@example.com',
         'dot..dot@example.com'
@@ -674,6 +673,34 @@ class User(CLITestCase):
         result = UserObj().create(options)
         self.assertNotEqual(result.return_code, 0)
         self.assertTrue(result.stderr)
+
+    @skip_if_bug_open('bugzilla', 1204686)
+    def test_bugzilla_1204686(self):
+        """@Test: Create User with Empty Email Address
+
+        @Feature: User - Negative Create
+
+        @Steps:
+        1. Create User with empty Email Address in [2]
+        using valid Username, First Name, Surname, Language, authorized by
+
+        @Assert: User is not created. Appropriate error shown.
+
+        @BZ: 1204686
+
+        """
+        options = {
+            'login': gen_string("alpha", 10),
+            'firstname': gen_string("alpha", 10),
+            'lastname': gen_string("alpha", 10),
+            'mail': '',
+            'password': gen_string("alpha", 10),
+            'auth-source-id': 1
+        }
+        result = UserObj().create(options)
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreaterThan(len(result.stderr), 0)
+        self.assertIn('Email address is invalid', result.stdout)
 
     def test_negative_create_user_5(self):
         """@Test: Create User with blank Authorized by
@@ -1619,8 +1646,6 @@ class User(CLITestCase):
             'email': user['email']} in result.stdout)
 
     @data(
-        {'mail': gen_string("latin1", 10) + "@somemail.com"},
-        {'mail': gen_string("utf8", 10) + "@somemail.com"},
         {'mail': gen_string("alpha", 10) + "@somemail.com"},
         {'mail': gen_string(
             "alphanumeric", 10) + "@somemail.com"},
@@ -1650,6 +1675,43 @@ class User(CLITestCase):
             u'search': u'mail = {0}'.format(test_data['mail']),
         })
         self.assertEqual(len(result.stderr), 0)
+        # make sure user is in list result
+        self.assertTrue({
+            'name': user['name'],
+            'login': user['login'],
+            'id': user['id'],
+            'email': user['email']} in result.stdout)
+
+    @skip_if_bug_open('bugzilla', 1204667)
+    @data(
+        {'mail': gen_string("latin1", 10) + "@somemail.com"},
+        {'mail': gen_string("utf8", 10) + "@somemail.com"}
+    )
+    def test_bugzilla_1204667(self, test_data):
+        """@Test: List User for utf-8,latin variations of Email Address
+
+        @Feature: User - list
+
+        @Steps:
+        1. Create User with above Email Address variations in [1] using valid
+        valid Username, First Name, Surname, Language, authorized by
+        2. List User
+
+        @Assert: User is listed
+
+        @BZ: 1204667
+
+        """
+        try:
+            user = make_user(test_data)
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.__assert_exists(user)
+        result = UserObj.list({
+            u'search': u'mail = {0}'.format(test_data['mail']),
+        })
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(result.return_code, 0)
         # make sure user is in list result
         self.assertTrue({
             'name': user['name'],
