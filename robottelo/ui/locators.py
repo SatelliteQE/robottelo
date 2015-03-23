@@ -973,8 +973,8 @@ locators = {
     "prd.sync_startdate": (By.ID, "startDate"),
     "prd.sync_hrs": (By.XPATH, "//input[@ng-model='hours']"),
     "prd.sync_mins": (By.XPATH, "//input[@ng-model='minutes']"),
-    "prd.gpg_key_edit": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
-                                    "//i[contains(@class,'icon-edit')]")),
+    "prd.gpg_key_edit": (
+        By.XPATH, "//form[@selector='product.gpg_key_id']//i"),
     "prd.gpg_key_update": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
                                       "/div/select")),
     "prd.gpg_key": (By.XPATH, ("//form[@selector='product.gpg_key_id']"
@@ -1069,8 +1069,7 @@ locators = {
         By.XPATH, ("//form[@bst-edit-checkbox='repository.unprotected']"
                    "/div/input")),
     "repo.gpg_key_edit": (
-        By.XPATH, ("//form[@selector='repository.gpg_key_id']"
-                   "//i[contains(@class,'icon-edit')]")),
+        By.XPATH, "//form[@selector='repository.gpg_key_id']//i"),
     "repo.gpg_key_update": (
         By.XPATH, "//form[@selector='repository.gpg_key_id']/div/select"),
     "repo.gpg_key": (
@@ -1358,8 +1357,8 @@ locators = {
     "contentviews.composite": (By.ID, "composite"),
     "contentviews.key_name": (
         By.XPATH,
-        "//tr[@row-select='contentView']"
-        "/td[2]/a[contains(., '%s')]"),
+        "//tr[contains(@ng-repeat, 'contentView')]"
+        "/td/a[contains(., '%s')]"),
     "contentviews.edit_name": (
         By.XPATH, "//form[@bst-edit-text='contentView.name']//div/span/i"),
     "contentviews.edit_name_text": (
@@ -1599,7 +1598,8 @@ locators = {
     "subs.file_path": (
         By.XPATH, ("//input[@name='content']")),
     "subs.upload": (
-        By.XPATH, "//div[@class='control-button']/button[@class='primary']"),
+        By.XPATH, ("//div[@class='form-group']"
+                   "/button[contains(@class, 'primary')]")),
     "subs.repo_url_update": (
         By.XPATH, ("//form[contains(@bst-edit-text,'redhat_repository_url')]"
                    "//div/input")),
