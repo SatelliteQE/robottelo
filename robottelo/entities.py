@@ -267,13 +267,14 @@ class ComputeResource(
         orm.EntityCreateMixin):
     """A representation of a Compute Resource entity."""
     description = entity_fields.StringField(null=True)
-    # `name` cannot contain whitespace. Thus, the chosen string types.
+    location = entity_fields.OneToManyField('Location')
     name = entity_fields.StringField(
-        required=True, str_type=('alphanumeric', 'cjk'))
+        required=True,
+        str_type=('alphanumeric', 'cjk'),  # name cannot contain whitespace
+    )
+    organization = entity_fields.OneToManyField('Organization')
     password = entity_fields.StringField(null=True)
     provider = entity_fields.StringField(
-        null=True,
-        required=True,
         choices=(
             'Docker',
             'EC2',
@@ -283,10 +284,13 @@ class ComputeResource(
             'Ovirt',
             'Rackspace',
             'Vmware',
-        )
+        ),
+        null=True,
+        required=True,
     )
     region = entity_fields.StringField(null=True)
     server = entity_fields.StringField(null=True)
+    set_console_password = entity_fields.BooleanField(null=True)
     tenant = entity_fields.StringField(null=True)
     url = entity_fields.URLField(required=True)
     user = entity_fields.StringField(null=True)
