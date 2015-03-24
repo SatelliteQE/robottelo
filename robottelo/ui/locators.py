@@ -1,14 +1,45 @@
 # -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
+"""Implements different locators for UI"""
 
-"""
-Implements different locators for UI
-"""
+import collections
+import logging
 
 from selenium.webdriver.common.by import By
 
 
-menu_locators = {
+LOGGER = logging.getLogger(__name__)
+
+
+class LocatorDict(collections.Mapping):
+    """This class will log every time an item is selected
+
+    The constructor accepts a dictionary or keyword arguments like the
+    built-in ``dict``::
+
+        >>> dict({'a': 'b'})
+        {'a': 'b'}
+        >>> dict(a='b')
+        {'a': 'b'}
+
+    """
+    def __init__(self, *args, **kwargs):
+        self.store = dict(*args, **kwargs)
+
+    def __getitem__(self, key):
+        item = self.store[key]
+        LOGGER.debug(
+            'Accessing locator "%s" by %s: "%s"', key, item[0], item[1]
+        )
+        return item
+
+    def __len__(self):
+        return len(self.store)
+
+    def __iter__(self):
+        return iter(self.store)
+
+
+menu_locators = LocatorDict({
     # Menus
 
     # Monitor Menu
@@ -289,9 +320,9 @@ menu_locators = {
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//a[@href='/locations/clear']/../../li/a[contains(.,'%s')]"))
-}
+})
 
-tab_locators = {
+tab_locators = LocatorDict({
 
     # common
     "tab_primary": (By.XPATH, "//a[@href='#primary']"),
@@ -500,9 +531,10 @@ tab_locators = {
         "//a[@data-toggle='tab' and contains(@href, 'ForemanTasks')]"),
     "settings.tab_provisioning": (
         By.XPATH,
-        "//a[@data-toggle='tab' and contains(@href, 'Provisioning')]")}
+        "//a[@data-toggle='tab' and contains(@href, 'Provisioning')]")
+})
 
-common_locators = {
+common_locators = LocatorDict({
 
     # common locators
 
@@ -595,9 +627,10 @@ common_locators = {
     "all_values_selection": (
         By.XPATH,
         ("//div[@class='ms-selection']//ul[@class='ms-list']/li"
-         "/span[contains(.,'%s')]/.."))}
+         "/span[contains(.,'%s')]/.."))
+})
 
-locators = {
+locators = LocatorDict({
 
     # Locations
     "location.new": (By.XPATH, "//a[@data-id='aid_locations_new']"),
@@ -1657,4 +1690,5 @@ locators = {
         By.XPATH, "//a[contains(@href,'models') and contains(.,'%s')]"),
     "hwmodels.delete": (
         By.XPATH, ("//a[contains(@data-confirm,'%s')"
-                   " and @class='delete']"))}
+                   " and @class='delete']"))
+})
