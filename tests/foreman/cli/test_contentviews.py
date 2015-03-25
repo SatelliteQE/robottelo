@@ -1262,7 +1262,7 @@ class TestContentView(CLITestCase):
             'Repo was not associated to CV'
         )
         self.assertEqual(
-            result.stdout['versions'][0]['version'], u'1',
+            result.stdout['versions'][0]['version'], u'1.0',
             'Publishing new version of CV was not successful'
         )
 
@@ -1334,7 +1334,7 @@ class TestContentView(CLITestCase):
             'Repo was not associated to CV'
         )
         self.assertEqual(
-            result.stdout['versions'][0]['version'], u'1',
+            result.stdout['versions'][0]['version'], u'1.0',
             'Publishing new version of CV was not successful'
         )
 
@@ -1440,7 +1440,7 @@ class TestContentView(CLITestCase):
             'version1 does not exist in Library'
         )
         self.assertEqual(
-            result.stdout['versions'][0]['version'], u'1',
+            result.stdout['versions'][0]['version'], u'1.0',
             'Publishing new version of CV was not successful'
         )
 
