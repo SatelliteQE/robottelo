@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
-"""Module that define the model layer used to define entities"""
+"""Defines a set of mixins that provide tools for interacting with entities."""
 from fauxfactory import gen_choice
-from nailgun import client
+from nailgun import client, config
 from nailgun.entity_fields import (
     Field,
     _get_class,
@@ -9,7 +9,6 @@ from nailgun.entity_fields import (
     OneToManyField,
     OneToOneField,
 )
-from robottelo.common import helpers
 import httplib
 import thread
 import threading
@@ -22,12 +21,15 @@ TASK_POLL_RATE = 5
 #: Default for ``timeout`` argument to :func:`robottelo.orm._poll_task`.
 TASK_TIMEOUT = 300
 
+#: A NailGun server configuration object. See :class:`robottelo.orm.Entity`.
+DEFAULT_SERVER_CONFIG = None
+
 
 class TaskTimeout(Exception):
     """Indicates that a task did not finish before the timout limit."""
 
 
-def _poll_task(task_id, poll_rate=None, timeout=None, auth=None):
+def _poll_task(task_id, server_config, poll_rate=None, timeout=None):
     """Implement :meth:`robottelo.entities.ForemanTask.poll`.
 
     See :meth:`robottelo.entities.ForemanTask.poll` for a full description of
@@ -48,8 +50,6 @@ def _poll_task(task_id, poll_rate=None, timeout=None, auth=None):
         poll_rate = TASK_POLL_RATE
     if timeout is None:
         timeout = TASK_TIMEOUT
-    if auth is None:
-        auth = helpers.get_server_credentials()
 
     # Implement the timeout.
     def raise_task_timeout():
@@ -60,13 +60,16 @@ def _poll_task(task_id, poll_rate=None, timeout=None, auth=None):
     # Poll until the task finishes. The timeout prevents an infinite loop.
     try:
         timer.start()
-
         path = '{0}/foreman_tasks/api/tasks/{1}'.format(
-            helpers.get_server_url(),
+            server_config.url,
             task_id
         )
         while True:
-            response = client.get(path, auth=auth, verify=False)
+            response = client.get(
+                path,
+                auth=server_config.auth,
+                verify=server_config.verify,
+            )
             response.raise_for_status()
             task_info = response.json()
             if task_info['state'] != 'running':
@@ -80,7 +83,7 @@ def _poll_task(task_id, poll_rate=None, timeout=None, auth=None):
         timer.cancel()
 
 
-def _make_entity_from_id(entity_cls, entity_obj_or_id):
+def _make_entity_from_id(entity_cls, entity_obj_or_id, server_config):
     """Given an entity object or an ID, return an entity object.
 
     If the value passed in is an object that is a subclass of class ``Entity``,
@@ -97,10 +100,10 @@ def _make_entity_from_id(entity_cls, entity_obj_or_id):
     """
     if isinstance(entity_obj_or_id, entity_cls):
         return entity_obj_or_id
-    return entity_cls(id=entity_obj_or_id)
+    return entity_cls(server_config, id=entity_obj_or_id)
 
 
-def _make_entities_from_ids(entity_cls, entity_objs_and_ids):
+def _make_entities_from_ids(entity_cls, entity_objs_and_ids, server_config):
     """Given an iterable of entities and/or IDs, return a list of entities.
 
     :param entity_cls: An :class:`Entity` subclass.
@@ -111,7 +114,7 @@ def _make_entities_from_ids(entity_cls, entity_objs_and_ids):
 
     """
     return [
-        _make_entity_from_id(entity_cls, entity_or_id)
+        _make_entity_from_id(entity_cls, entity_or_id, server_config)
         for entity_or_id
         in entity_objs_and_ids
     ]
@@ -141,7 +144,7 @@ class Entity(object):
 
     Fields are represented by setting class attributes, and metadata is
     represented by settings attributes on the inner class named ``Meta``. For
-    example, consider this class declaration:
+    example, consider this class declaration::
 
         class User(Entity):
             name = StringField()
@@ -153,7 +156,7 @@ class Entity(object):
 
     In the example above, the class attributes of ``User`` are fields, and the
     class attributes of ``Meta`` are metadata. Here is one way to instantiate
-    the ``User`` object shown above:
+    the ``User`` object shown above::
 
         User(
             name='Alice',
@@ -166,13 +169,33 @@ class Entity(object):
 
         User(name='Alice', supervisor=1, subordinate=[3, 4])
 
+    An entity object is useless if you are unable to use it to communicate with
+    a server. The solution is to provide a ``nailgun.config.ServerConfig`` when
+    instantiating a new entity. This configuration object is stored as an
+    instance variable named ``_server_config`` and used by methods such as
+    :meth:`robottelo.orm.Entity.path`.
+
+    1. If the ``server_config`` argument is specified, then that is used.
+    2. Otherwise, if :data:`robottelo.orm.DEFAULT_SERVER_CONFIG` is set, then
+       that is used.
+    3. Otherwise, call ``nailgun.config.ServerConfig.get()``.
+
     """
     # The id() builtin is still available within instance methods, class
     # methods, static methods, inner classes, and so on. However, id() is *not*
     # available at the current level of lexical scoping after this point.
     id = IntegerField()  # pylint:disable=C0103
 
-    def __init__(self, **kwargs):
+    def __init__(self, server_config=None, **kwargs):
+        # server_config > DEFAULT_SERVER_CONFIG > ServerConfig.get()
+        if server_config is not None:
+            self._server_config = server_config
+        elif DEFAULT_SERVER_CONFIG is not None:
+            self._server_config = DEFAULT_SERVER_CONFIG
+        else:
+            self._server_config = config.ServerConfig.get()
+
+        # Check that a valid set of field values has been passed in.
         fields = self.get_fields()
         if not set(kwargs.keys()).issubset(fields.keys()):
             raise NoSuchFieldError(
@@ -186,13 +209,15 @@ class Entity(object):
             field = fields[field_name]  # e.g. A BooleanField object
             if isinstance(field, OneToOneField):
                 field_value = _make_entity_from_id(
-                    type(field.gen_value()),  # This is gross.
-                    field_value
+                    _get_class(field.entity, 'robottelo.entities'),
+                    field_value,
+                    self._server_config
                 )
             elif isinstance(field, OneToManyField):
                 field_value = _make_entities_from_ids(
-                    type(field.gen_value()),  # This is gross.
-                    field_value
+                    _get_class(field.entity, 'robottelo.entities'),
+                    field_value,
+                    self._server_config
                 )
             setattr(self, field_name, field_value)
 
@@ -240,7 +265,6 @@ class Entity(object):
         :raises robottelo.orm.NoSuchPathError: If no path can be built.
 
         """
-        # (no-member) pylint:disable=E1101
         # It is OK that member ``self.Meta.api_path`` is not found. Subclasses
         # are required to set that attribute if they wish to use this method.
         #
@@ -251,8 +275,8 @@ class Entity(object):
         # urljoin('example.com', '/foo') => '/foo'
         # urljoin('example.com/', '/foo') => '/foo'
         base = urlparse.urljoin(
-            helpers.get_server_url() + '/',
-            self.Meta.api_path
+            self._server_config.url + '/',
+            self.Meta.api_path  # pylint:disable=no-member
         )
         if which == 'base' or (which is None and 'id' not in vars(self)):
             return base
@@ -262,11 +286,9 @@ class Entity(object):
 
     @classmethod
     def get_fields(cls):
-        """Find all fields attributes of class ``cls``.
+        """Return all fields defined on the current class.
 
-        :param cls: Any object. This method is only especially useful if that
-            class has attributes that are subclasses of class ``Field``.
-        :return: A dict mapping attribute names to ``Field`` objects.
+        :return: A dict mapping class attribute names to ``Field`` objects.
         :rtype: dict
 
         """
@@ -287,37 +309,46 @@ class Entity(object):
                 attrs[field_name] = field
         return attrs
 
+    def get_values(self):
+        """Return the value of each field on the current object.
+
+        This method is almost identical to ``vars(self).copy()``. However, only
+        instance attributes that correspond to a field are included in the
+        returned dict.
+
+        :return: A dict mapping class attribute names to field values.
+        :rtype: dict
+
+        """
+        attrs = vars(self).copy()
+        attrs.pop('_server_config')
+        return attrs
+
 
 class EntityDeleteMixin(object):
     """A mixin that adds the ability to delete an entity."""
 
-    def delete_raw(self, auth=None):
+    def delete_raw(self):
         """Delete the current entity.
 
         Send an HTTP DELETE request to :meth:`Entity.path`. Return the
         response. Do not check the response for any errors, such as an HTTP 4XX
         or 5XX status code.
 
-        :param tuple auth: A ``(username, password)`` tuple used when accessing
-            the API. If ``None``, the credentials provided by
-            :func:`robottelo.common.helpers.get_server_credentials` are used.
-        :return: A ``requests.response`` object.
-
         """
-        if auth is None:
-            auth = helpers.get_server_credentials()
-        return client.delete(self.path(which='self'), auth=auth, verify=False)
+        return client.delete(
+            self.path(which='self'),
+            auth=self._server_config.auth,
+            verify=self._server_config.verify,
+        )
 
-    def delete(self, auth=None, synchronous=True):
+    def delete(self, synchronous=True):
         """Delete the current entity.
 
         Call :meth:`delete_raw` and check for an HTTP 4XX or 5XX response.
         Return either the JSON-decoded response or information about a
         completed foreman task.
 
-        :param tuple auth: A ``(username, password)`` tuple used when accessing
-            the API. If ``None``, the credentials provided by
-            :func:`robottelo.common.helpers.get_server_credentials` are used.
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
             ``True``. Immediately return a response otherwise.
@@ -332,10 +363,10 @@ class EntityDeleteMixin(object):
             ``synchronous is True`` and the task times out.
 
         """
-        response = self.delete_raw(auth)
+        response = self.delete_raw()
         response.raise_for_status()
         if synchronous is True and response.status_code is httplib.ACCEPTED:
-            return _poll_task(response.json()['id'], auth=auth)
+            return _poll_task(response.json()['id'], self._server_config)
         if response.status_code == httplib.NO_CONTENT:
             # "The server successfully processed the request, but is not
             # returning any content. Usually used as a response to a successful
@@ -347,30 +378,28 @@ class EntityDeleteMixin(object):
 class EntityReadMixin(object):
     """A mixin that provides the ability to read an entity."""
 
-    def read_raw(self, auth=None):
+    def read_raw(self):
         """Get information about the current entity.
 
         Send an HTTP GET request to :meth:`Entity.path`. Return the response.
         Do not check the response for any errors, such as an HTTP 4XX or 5XX
         status code.
 
-        :param tuple auth: A ``(username, password)`` tuple used when accessing
-            the API. If ``None``, the credentials provided by
-            :func:`robottelo.common.helpers.get_server_credentials` are used.
         :return: A ``requests.response`` object.
 
         """
-        if auth is None:
-            auth = helpers.get_server_credentials()
-        return client.get(self.path('self'), auth=auth, verify=False)
+        return client.get(
+            self.path('self'),
+            auth=self._server_config.auth,
+            verify=self._server_config.verify,
+        )
 
-    def read_json(self, auth=None):
+    def read_json(self):
         """Get information about the current entity.
 
         Call :meth:`read_raw`. Check the response status code, decode JSON and
         return the decoded JSON as a dict.
 
-        :param tuple auth: Same as :meth:`read_raw`.
         :return: The server's response, with all JSON decoded.
         :rtype: dict
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
@@ -378,11 +407,11 @@ class EntityReadMixin(object):
         :raises: ``ValueError`` If the response JSON can not be decoded.
 
         """
-        response = self.read_raw(auth)
+        response = self.read_raw()
         response.raise_for_status()
         return response.json()
 
-    def read(self, auth=None, entity=None, attrs=None, ignore=()):
+    def read(self, entity=None, attrs=None, ignore=()):
         """Get information about the current entity.
 
         Call :meth:`read_json`. Use this information to populate an object of
@@ -407,7 +436,6 @@ class EntityReadMixin(object):
         with a meaningful value. Calling ``other_entity.read`` populates the
         remaining entity attributes.
 
-        :param tuple auth: Same as :meth:`read_raw`.
         :param robottelo.orm.Entity entity: The object to be populated and
             returned. An object of type ``type(self)`` by default.
         :param dict attrs: Data used to populate the object's attributes. The
@@ -420,9 +448,9 @@ class EntityReadMixin(object):
 
         """
         if entity is None:
-            entity = type(self)()
+            entity = type(self)(self._server_config)
         if attrs is None:
-            attrs = self.read_json(auth=auth)
+            attrs = self.read_json()
 
         # Rename fields using entity.Meta.api_names, if present.
         if hasattr(entity.Meta, 'api_names'):
@@ -444,12 +472,12 @@ class EntityReadMixin(object):
                     referenced_entity = _get_class(
                         field_type.entity,
                         'robottelo.entities'
-                    )(id=attrs[field_name]['id'])
+                    )(self._server_config, id=attrs[field_name]['id'])
                     setattr(entity, field_name, referenced_entity)
             elif isinstance(field_type, OneToManyField):
                 other_cls = _get_class(field_type.entity, 'robottelo.entities')
                 referenced_entities = [
-                    other_cls(id=referenced_entity['id'])
+                    other_cls(self._server_config, id=referenced_entity['id'])
                     for referenced_entity
                     in attrs[field_name + 's']  # e.g. "users"
                 ]
@@ -475,7 +503,7 @@ class EntityCreateMixin(object):
 
     """
 
-    def create_missing(self, auth=None):
+    def create_missing(self):
         """Automagically populate all required instance attributes.
 
         Iterate through the set of all required class ``Field`` defined on
@@ -483,7 +511,6 @@ class EntityCreateMixin(object):
         exists. Subclasses should override this method if there is some
         relationship between two required fields.
 
-        :param tuple auth: Same as :meth:`create_raw`.
         :return: Nothing. This method relies on side-effects.
 
         """
@@ -496,7 +523,7 @@ class EntityCreateMixin(object):
                 # When populating a foreign key field, this is inadvisable:
                 #
                 #     value = entity_obj = field.gen_value()
-                #     entity_obj.id = entity_obj.create_json(auth=auth)['id']
+                #     entity_obj.id = entity_obj.create_json()['id']
                 #
                 # The problem is that the values that entity_obj populates
                 # itself with (via `create_missing`) may be different from the
@@ -507,12 +534,10 @@ class EntityCreateMixin(object):
                     value = gen_choice(field.choices)
                 elif isinstance(field, OneToOneField):
                     value = field.gen_value()
-                    value.id = field.gen_value().create_json(auth=auth)['id']
+                    value.id = field.gen_value().create_json()['id']
                 elif isinstance(field, OneToManyField):
                     value = [field.gen_value()]
-                    value[0].id = (
-                        field.gen_value().create_json(auth=auth)['id']
-                    )
+                    value[0].id = field.gen_value().create_json()['id']
                 else:
                     value = field.gen_value()
                 setattr(self, field_name, value)
@@ -530,7 +555,7 @@ class EntityCreateMixin(object):
         :rtype: dict
 
         """
-        data = vars(self).copy()
+        data = self.get_values().copy()
         api_names = getattr(self.Meta, 'api_names', {})
         for field_name, field in type(self).get_fields().items():
             if field_name in data:
@@ -545,7 +570,7 @@ class EntityCreateMixin(object):
                     ]
         return data
 
-    def create_raw(self, auth=None, create_missing=True):
+    def create_raw(self, create_missing=True):
         """Create an entity.
 
         Generate values for required, unset fields by calling
@@ -553,33 +578,26 @@ class EntityCreateMixin(object):
         Then make an HTTP POST call to ``self.path('base')``. Return the
         response received from the server.
 
-        :param tuple auth: A ``(username, password)`` pair to use when
-            communicating with the API. If ``None``, the credentials returned
-            by :func:`robottelo.common.helpers.get_server_credentials` are
-            used.
         :param bool create_missing: Should :meth:`create_missing` be called? In
             other words, should values be generated for required, empty fields?
         :return: A ``requests.response`` object.
 
         """
-        if auth is None:
-            auth = helpers.get_server_credentials()
         if create_missing:
-            self.create_missing(auth)
+            self.create_missing()
         return client.post(
             self.path('base'),
             self.create_payload(),
-            auth=auth,
-            verify=False,
+            auth=self._server_config.auth,
+            verify=self._server_config.verify,
         )
 
-    def create_json(self, auth=None, create_missing=True):
+    def create_json(self, create_missing=True):
         """Create an entity.
 
         Call :meth:`create_raw`. Check the response status code, decode JSON
         and return the decoded JSON as a dict.
 
-        :param tuple auth: Same as :meth:`create_raw`.
         :return: The server's response, with all JSON decoded.
         :rtype: dict
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
@@ -587,11 +605,11 @@ class EntityCreateMixin(object):
         :raises: ``ValueError`` If the response JSON can not be decoded.
 
         """
-        response = self.create_raw(auth, create_missing)
+        response = self.create_raw(create_missing)
         response.raise_for_status()
         return response.json()
 
-    def create(self, auth=None, create_missing=True):
+    def create(self, create_missing=True):
         """Call :meth:`create_json`.
 
         This method exists for compatibility. It should be rewritten to match
@@ -599,4 +617,4 @@ class EntityCreateMixin(object):
         to use :meth:`create_json`.
 
         """
-        return self.create_json(auth, create_missing)
+        return self.create_json(create_missing)

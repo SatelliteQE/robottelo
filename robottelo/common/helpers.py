@@ -5,6 +5,7 @@
 Several helper methods and functions.
 """
 
+import logging
 import os
 import re
 
@@ -12,10 +13,15 @@ from automation_tools import distro_info
 from fabric.api import execute, settings
 from fauxfactory import gen_string, gen_integer
 from itertools import izip
+from nailgun.config import ServerConfig
+from robottelo import orm
 from robottelo.common import conf
 from robottelo.common.decorators import bz_bug_is_open
 from urllib2 import urlopen, Request, URLError
 from urlparse import urlunsplit
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 def get_server_credentials():
@@ -68,6 +74,20 @@ def get_server_url():
         return urlunsplit((
             scheme, '{0}:{1}'.format(hostname, port), '', '', ''
         ))
+
+
+def get_nailgun_config():
+    """Return a NailGun configuration file constructed from default values.
+
+    :return: A ``nailgun.config.ServerConfig`` object, populated with values
+        from :data:`robottelo.common.conf`.
+
+    """
+    return ServerConfig(
+        get_server_url(),
+        get_server_credentials(),
+        verify=False,
+    )
 
 
 def get_internal_docker_url():
@@ -371,3 +391,28 @@ def read_data_file(filename):
     absolute_file_path = get_data_file(filename)
     with open(absolute_file_path, 'r') as file_contents:
         return file_contents.read()
+
+
+def configure_entities():
+    """Set :data:`robottelo.orm.DEFAULT_SERVER_CONFIG`.
+
+    Set :data:`robottelo.orm.DEFAULT_SERVER_CONFIG` to whatever is returned by
+    :meth:`robottelo.common.helpers.get_nailgun_config`. See
+    :class:`robottelo.orm.Entity` for more information on the effects of this.
+
+    Emit a warning and do not set ``robottelo.orm.Entity._server_config`` if no
+    ``robottelo.properties`` configuration file is available.
+
+    """
+    try:
+        orm.DEFAULT_SERVER_CONFIG = get_nailgun_config()
+    except KeyError:
+        LOGGER.warn(
+            'No `robottelo.properties` configuration file is present. Class '
+            '`robottelo.orm.Entity` (and, therefore, its subclasses) will not '
+            'be given a default NailGun server configuration. You can go '
+            'ahead and use the entity classes anyway if you pass in a '
+            '`server_config` each time you instantiate an entity, you set '
+            '`robottelo.orm.DEFAULT_SERVER_CONFIG`, or you create a NailGun '
+            'configuration profile labeled "default".'
+        )

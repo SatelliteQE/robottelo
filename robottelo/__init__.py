@@ -1,10 +1,12 @@
-"""
-This module contains helper code used by the ``tests.foreman`` module.
+"""This module contains helper code used by :mod:`tests.foreman` module.
 
-This module is subservient to the ``tests.foreman`` module, and exists soley
-for the sake of helping that module get its work done. For example, the
-``tests.foreman.api`` module relies upon the ``robottelo.api`` module, and the
-``tests.foreman.cli`` module relies upon the ``robottelo.cli`` module. More
-generally: code in the ``tests`` module calls code in the ``robottelo`` module,
-but not the other way around.
+This module is subservient to :mod:`tests.foreman`, and exists soley for the
+sake of helping that module get its work done. For example,
+:mod:`tests.foreman.cli` relies upon :mod:`robottelo.cli`.  More generally:
+code in :mod:`tests` calls code in :mod:`robottelo`, but not the other way
+around.
+
 """
+from robottelo.common.helpers import configure_entities
+
+configure_entities()

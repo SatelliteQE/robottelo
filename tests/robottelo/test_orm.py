@@ -5,14 +5,13 @@
 # Robottelo ever moves past Python 2.x, that module should be used instead of
 # `socket`.
 from fauxfactory import gen_integer
-from nailgun import client
+from nailgun import client, config
 from nailgun.entity_fields import (
     IntegerField,
     OneToManyField,
     OneToOneField,
     StringField,
 )
-from robottelo.common import conf, helpers
 from robottelo import orm
 import mock
 import unittest
@@ -67,17 +66,29 @@ class MakeEntityFromIdTestCase(unittest.TestCase):
     """Tests for ``_make_entity_from_id``."""
     # pylint:disable=protected-access
 
+    def setUp(self):  # noqa pylint:disable=C0103
+        """Set ``self.server_config``."""
+        self.server_config = config.ServerConfig('example.com')
+
     def test_pass_in_entity_obj(self):
         """Pass in an entity class and an entity."""
         self.assertIsInstance(
-            orm._make_entity_from_id(SampleEntity, SampleEntity()),
+            orm._make_entity_from_id(
+                SampleEntity,
+                SampleEntity(self.server_config),
+                self.server_config
+            ),
             SampleEntity
         )
 
     def test_pass_in_entity_id(self):
         """Pass in an entity class and an entity ID."""
         entity_id = gen_integer(min_value=1)
-        entity_obj = orm._make_entity_from_id(SampleEntity, entity_id)
+        entity_obj = orm._make_entity_from_id(
+            SampleEntity,
+            entity_id,
+            self.server_config
+        )
         self.assertIsInstance(entity_obj, SampleEntity)
         self.assertEqual(entity_obj.id, entity_id)
 
@@ -86,21 +97,32 @@ class MakeEntitiesFromIdsTestCase(unittest.TestCase):
     """Tests for ``_make_entity_from_ids``."""
     # pylint:disable=protected-access
 
+    def setUp(self):  # noqa pylint:disable=C0103
+        """Set ``self.server_config``."""
+        self.server_config = config.ServerConfig('example.com')
+
     def test_pass_in_emtpy_iterable(self):
         """Pass in an entity class and an empty iterable."""
         for iterable in ([], tuple()):
             self.assertEqual(
                 [],
-                orm._make_entities_from_ids(SampleEntity, iterable)
+                orm._make_entities_from_ids(
+                    SampleEntity,
+                    iterable,
+                    self.server_config
+                )
             )
 
     def test_pass_in_entity_obj(self):
         """Pass in an entity class and an iterable containing entities."""
         for num_entities in range(4):
-            input_entities = [SampleEntity() for _ in range(num_entities)]
+            input_entities = [
+                SampleEntity(self.server_config) for _ in range(num_entities)
+            ]
             output_entities = orm._make_entities_from_ids(
                 SampleEntity,
-                input_entities
+                input_entities,
+                self.server_config
             )
             self.assertEqual(num_entities, len(output_entities))
             for output_entity in output_entities:
@@ -112,7 +134,11 @@ class MakeEntitiesFromIdsTestCase(unittest.TestCase):
             entity_ids = [
                 gen_integer(min_value=1) for _ in range(num_entities)
             ]
-            entities = orm._make_entities_from_ids(SampleEntity, entity_ids)
+            entities = orm._make_entities_from_ids(
+                SampleEntity,
+                entity_ids,
+                self.server_config
+            )
             self.assertEqual(len(entities), len(entity_ids))
             for i in range(len(entity_ids)):
                 self.assertIsInstance(entities[i], SampleEntity)
@@ -122,7 +148,8 @@ class MakeEntitiesFromIdsTestCase(unittest.TestCase):
         """Pass in an entity class and an iterable with entities and IDs."""
         entities = orm._make_entities_from_ids(
             SampleEntity,
-            [SampleEntity(), 5]
+            [SampleEntity(self.server_config), 5],
+            self.server_config
         )
         self.assertEqual(len(entities), 2)
         for entity in entities:
@@ -131,24 +158,18 @@ class MakeEntitiesFromIdsTestCase(unittest.TestCase):
 
 class EntityTestCase(unittest.TestCase):
     """Tests for :class:`robottelo.orm.Entity`."""
+
     def setUp(self):  # noqa pylint:disable=C0103
-        """
-        Back up and configure ``conf.properties``, and set ``self.base_path``.
-        """
-        self.conf_properties = conf.properties.copy()
-        conf.properties['main.server.hostname'] = 'example.com'
+        """Set ``self.server_config`` and ``self.base_path``."""
+        self.server_config = config.ServerConfig('http://example.com')
         self.base_path = '{0}/{1}'.format(
-            helpers.get_server_url(),
+            self.server_config.url,
             SampleEntity.Meta.api_path
         )
 
-    def tearDown(self):  # noqa pylint:disable=C0103
-        """Restore ``conf.properties``."""
-        conf.properties = self.conf_properties
-
     def test_entity_get_fields(self):
         """Test :meth:`robottelo.orm.Entity.get_fields`."""
-        fields = SampleEntity().get_fields()
+        fields = SampleEntity(self.server_config).get_fields()
 
         self.assertIn('name', fields)
         self.assertIn('value', fields)
@@ -158,32 +179,34 @@ class EntityTestCase(unittest.TestCase):
 
     def test_path(self):
         """Test :meth:`robottelo.orm.Entity.path`."""
-        self.assertEqual(SampleEntity().path(), self.base_path)
-        self.assertEqual(SampleEntity(id=5).path(), self.base_path + '/5')
-        self.assertEqual(SampleEntity(id=5).path('base'), self.base_path)
+        self.assertEqual(
+            SampleEntity(self.server_config).path(),
+            self.base_path,
+        )
+        self.assertEqual(
+            SampleEntity(self.server_config, id=5).path(),
+            self.base_path + '/5',
+        )
+        self.assertEqual(
+            SampleEntity(self.server_config, id=5).path('base'),
+            self.base_path,
+        )
         with self.assertRaises(orm.NoSuchPathError):
-            SampleEntity().path('self')
+            SampleEntity(self.server_config).path('self')
 
 
 class EntityDeleteMixinTestCase(unittest.TestCase):
     """Tests for entity mixin classes."""
+
     def setUp(self):  # noqa pylint:disable=C0103
-        """Back up several objects so they can be safely modified.
-
-        Also generate a number suitable for use as an entity ID.
-
-        """
-        self.conf_properties = conf.properties.copy()
-        conf.properties['main.server.hostname'] = 'example.com'
-        conf.properties['foreman.admin.username'] = 'Alice'
-        conf.properties['foreman.admin.password'] = 'hackme'
-
-        # e.g. SomeEntity(id=self.entity_id)
+        """Set ``self.server_config`` and ``self.entity_id``."""
+        # Example usage: SomeEntity(server_config, id=self.entity_id)
+        self.server_config = config.ServerConfig(
+            'example.com',
+            auth=('Alice', 'hackme'),
+            verify=True,
+        )
         self.entity_id = gen_integer(min_value=1)
-
-    def tearDown(self):  # noqa pylint:disable=C0103
-        """Restore backed-up objects."""
-        conf.properties = self.conf_properties
 
     def test_delete_200(self):
         """Test :meth:`robottelo.orm.EntityDeleteMixin.delete`.
@@ -198,7 +221,10 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
         with mock.patch.object(client, 'delete') as client_delete:
             client_delete.return_value = delete_return
             self.assertEqual(
-                EntityWithDelete(id=self.entity_id).delete(),
+                EntityWithDelete(
+                    self.server_config,
+                    id=self.entity_id
+                ).delete(),
                 delete_return.json.return_value
             )
 
@@ -217,7 +243,10 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
             with mock.patch.object(orm, '_poll_task') as poller:
                 poller.return_value = {'324171': '59601212'}  # arbitrary
                 self.assertEqual(
-                    EntityWithDelete(id=self.entity_id).delete(),
+                    EntityWithDelete(
+                        self.server_config,
+                        id=self.entity_id
+                    ).delete(),
                     poller.return_value
                 )
 
@@ -247,12 +276,18 @@ class EntityDeleteMixinTestCase(unittest.TestCase):
 
             # See if EntityReadMixin.read_json behaves correctly.
             self.assertEqual(
-                EntityWithRead(id=self.entity_id).read_json(),
+                EntityWithRead(
+                    self.server_config,
+                    id=self.entity_id
+                ).read_json(),
                 mock_response.json.return_value,
             )
 
             # See if EntityReadMixin.read behaves correctly.
-            entity = EntityWithRead(id=self.entity_id).read()
+            entity = EntityWithRead(
+                self.server_config,
+                id=self.entity_id
+            ).read()
             self.assertEqual(entity.id, self.entity_id)
             self.assertIsInstance(entity.one_to_one, SampleEntity)
             self.assertEqual(entity.one_to_one.id, 123)

@@ -14,7 +14,7 @@ from requests.exceptions import HTTPError
 from robottelo import entities
 from robottelo.common.constants import PERMISSIONS
 from robottelo.common.decorators import bz_bug_is_open, data, run_only_on
-from robottelo.common.helpers import get_server_credentials
+from robottelo.common.helpers import get_nailgun_config, get_server_credentials
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
@@ -32,7 +32,7 @@ class PermissionsTestCase(APITestCase):
     """Tests for the ``permissions`` path."""
 
     @run_only_on('sat')
-    @ddt_data(*PERMISSION_NAMES)  # pylint:disable=W0142
+    @ddt_data(*PERMISSION_NAMES)
     def test_search_by_name(self, permission_name):
         """@test: Search for a permission by name.
 
@@ -51,7 +51,7 @@ class PermissionsTestCase(APITestCase):
         self.assertEqual(permission_name, result[0]['name'])
 
     @run_only_on('sat')
-    @ddt_data(*PERMISSION_RESOURCE_TYPES)  # pylint:disable=W0142
+    @ddt_data(*PERMISSION_RESOURCE_TYPES)
     def test_search_by_resource_type(self, resource_type):
         """@test: Search for permissions by resource type.
 
@@ -138,13 +138,16 @@ class UserRoleTestCase(APITestCase):
 
     def setUp(self):  # noqa
         """Create a set of credentials and a user."""
-        self.auth = (gen_alphanumeric(), gen_alphanumeric())  # login, password
-        self.user = entities.User(
-            id=entities.User(
-                login=self.auth[0],
-                password=self.auth[1]
-            ).create()['id']
+        self.server_config = get_nailgun_config()
+        self.server_config.auth = (
+            gen_alphanumeric(),  # username
+            gen_alphanumeric(),  # password
         )
+        self.user = entities.User()
+        self.user.id = entities.User(
+            login=self.server_config.auth[0],
+            password=self.server_config.auth[1],
+        ).create()['id']
 
     def give_user_permission(self, perm_name):
         """Give ``self.user`` the ``perm_name`` permission.
@@ -183,7 +186,7 @@ class UserRoleTestCase(APITestCase):
         entities.Architecture,
         entities.Domain,
     )
-    def test_create(self, entity):
+    def test_create(self, entity_cls):
         """@Test: Check whether the "create_*" role has an effect.
 
         @Assert: A user cannot create an entity when missing the "create_*"
@@ -193,16 +196,16 @@ class UserRoleTestCase(APITestCase):
 
         """
         with self.assertRaises(HTTPError):
-            entity().create(auth=self.auth)
-        self.give_user_permission(_permission_name(entity, 'create'))
-        entity_id = entity().create(auth=self.auth)['id']
-        entity(id=entity_id).read_json()  # read as an admin user
+            entity_cls(self.server_config).create_json()
+        self.give_user_permission(_permission_name(entity_cls, 'create'))
+        entity_id = entity_cls(self.server_config).create_json()['id']
+        entity_cls(id=entity_id).read_json()  # read as an admin user
 
     @data(
         entities.Architecture,
         entities.Domain,
     )
-    def test_read(self, entity):
+    def test_read(self, entity_cls):
         """@Test: Check whether the "view_*" role has an effect.
 
         @Assert: A user cannot read an entity when missing the "view_*" role,
@@ -211,17 +214,18 @@ class UserRoleTestCase(APITestCase):
         @Feature: Role
 
         """
-        entity_obj = entity(id=entity().create()['id'])
+        entity_id = entity_cls().create_json()['id']
+        entity = entity_cls(self.server_config, id=entity_id)
         with self.assertRaises(HTTPError):
-            entity_obj.read_json(auth=self.auth)
-        self.give_user_permission(_permission_name(entity, 'read'))
-        entity_obj.read_json(auth=self.auth)
+            entity.read_json()
+        self.give_user_permission(_permission_name(entity_cls, 'read'))
+        entity.read_json()
 
     @data(
         entities.Architecture,
         entities.Domain,
     )
-    def test_delete(self, entity):
+    def test_delete(self, entity_cls):
         """@Test: Check whether the "destroy_*" role has an effect.
 
         @Assert: A user cannot read an entity with missing the "destroy_*"
@@ -230,19 +234,20 @@ class UserRoleTestCase(APITestCase):
         @Feature: Role
 
         """
-        entity_obj = entity(id=entity().create()['id'])
+        entity_id = entity_cls().create_json()['id']
+        entity = entity_cls(self.server_config, id=entity_id)
         with self.assertRaises(HTTPError):
-            entity_obj.delete(auth=self.auth)
-        self.give_user_permission(_permission_name(entity, 'delete'))
-        entity_obj.delete(auth=self.auth)
+            entity.delete()
+        self.give_user_permission(_permission_name(entity_cls, 'delete'))
+        entity.delete()
         with self.assertRaises(HTTPError):
-            entity_obj.read_json()  # As admin user
+            entity.read_json()  # As admin user
 
     @data(
         entities.Architecture,
         entities.Domain,
     )
-    def test_update(self, entity):
+    def test_update(self, entity_cls):
         """@Test: Check whether the "edit_*" role has an effect.
 
         @Assert: A user cannot update an entity when missing the "edit_*" role,
@@ -253,18 +258,19 @@ class UserRoleTestCase(APITestCase):
         NOTE: This method will only work if ``entity`` has a name.
 
         """
-        entity_obj = entity(id=entity().create()['id'])
+        entity_id = entity_cls().create_json()['id']
+        entity = entity_cls(self.server_config, id=entity_id)
         with self.assertRaises(HTTPError):
             client.put(
-                entity_obj.path(),
-                {u'name': entity.name.gen_value()},
-                auth=self.auth,
-                verify=False,
+                entity.path(),
+                {u'name': entity_cls.name.gen_value()},
+                auth=self.server_config.auth,
+                verify=self.server_config.verify,
             ).raise_for_status()
-        self.give_user_permission(_permission_name(entity, 'update'))
+        self.give_user_permission(_permission_name(entity_cls, 'update'))
         client.put(
-            entity_obj.path(),
-            {u'name': entity.name.gen_value()},
-            auth=self.auth,
-            verify=False,
+            entity.path(),
+            {u'name': entity_cls.name.gen_value()},
+            auth=self.server_config.auth,
+            verify=self.server_config.verify,
         ).raise_for_status()

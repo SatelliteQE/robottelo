@@ -2,7 +2,7 @@
 import mock
 from ddt import data, ddt, unpack
 from fauxfactory import gen_integer
-from nailgun import client
+from nailgun import client, config
 from robottelo.common import conf
 from robottelo import entities, orm
 from unittest import TestCase
@@ -15,14 +15,9 @@ class PathTestCase(TestCase):
     longMessage = True
 
     def setUp(self):  # pylint:disable=C0103
-        """Backup and customize ``conf.properties``, and generate an ID."""
-        self.conf_properties = conf.properties.copy()
-        conf.properties['main.server.hostname'] = 'example.com'
+        """Set ``self.server_config`` and ``self.id_``."""
+        self.server_config = config.ServerConfig('http://example.com')
         self.id_ = gen_integer(min_value=1)
-
-    def tearDown(self):  # pylint:disable=C0103
-        """Restore ``conf.properties``."""
-        conf.properties = self.conf_properties
 
     @data(
         (entities.ActivationKey, '/activation_keys'),
@@ -39,10 +34,10 @@ class PathTestCase(TestCase):
         is omitted, regardless of whether an entity ID is provided.
 
         """
-        self.assertIn(path, entity().path(), entity)
+        self.assertIn(path, entity(self.server_config).path(), entity)
         self.assertIn(
             '{0}/{1}'.format(path, self.id_),
-            entity(id=self.id_).path(),
+            entity(self.server_config, id=self.id_).path(),
             entity.__name__,
         )
 
@@ -79,7 +74,7 @@ class PathTestCase(TestCase):
             'path/<id>/which'
 
         """
-        gen_path = entity(id=self.id_).path(which=which)
+        gen_path = entity(self.server_config, id=self.id_).path(which=which)
         self.assertIn(
             '{0}/{1}/{2}'.format(path, self.id_, which),
             gen_path,
@@ -104,7 +99,7 @@ class PathTestCase(TestCase):
             {path}/{which}
 
         """
-        gen_path = entity().path(which=which)
+        gen_path = entity(self.server_config).path(which=which)
         self.assertIn('{0}/{1}'.format(path, which), gen_path, entity.__name__)
         self.assertRegexpMatches(gen_path, which + '$', entity.__name__)
 
@@ -136,7 +131,7 @@ class PathTestCase(TestCase):
 
         """
         with self.assertRaises(orm.NoSuchPathError):
-            entity().path(which=path)
+            entity(self.server_config).path(which=path)
 
     def test_foremantask_path(self):
         """Test :meth:`robottelo.entities.ForemanTask.path`.
@@ -150,11 +145,11 @@ class PathTestCase(TestCase):
         """
         self.assertIn(
             '/foreman_tasks/api/tasks/{0}'.format(self.id_),
-            entities.ForemanTask(id=self.id_).path()
+            entities.ForemanTask(self.server_config, id=self.id_).path()
         )
         for gen_path in (
-                entities.ForemanTask().path(which='bulk_search'),
-                entities.ForemanTask(id=self.id_).path(which='bulk_search')):
+                entities.ForemanTask(self.server_config).path(which='bulk_search'),
+                entities.ForemanTask(self.server_config, id=self.id_).path(which='bulk_search')):
             self.assertIn('/foreman_tasks/api/tasks/bulk_search', gen_path)
 
     def test_syncplan_path(self):
@@ -168,7 +163,11 @@ class PathTestCase(TestCase):
 
         """
         for which in ('add_products', 'remove_products'):
-            path = entities.SyncPlan(organization=1, id=2).path(which)
+            path = entities.SyncPlan(
+                self.server_config,
+                id=2,
+                organization=1,
+            ).path(which)
             self.assertIn(
                 'organizations/1/sync_plans/2/{0}'.format(which),
                 path
@@ -187,13 +186,13 @@ class PathTestCase(TestCase):
 
         """
         for gen_path in (
-                entities.System(uuid=self.id_).path(),
-                entities.System(uuid=self.id_).path(which='self')):
+                entities.System(self.server_config, uuid=self.id_).path(),
+                entities.System(self.server_config, uuid=self.id_).path(which='self')):
             self.assertIn('/systems/{0}'.format(self.id_), gen_path)
             self.assertRegexpMatches(gen_path, '{0}$'.format(self.id_))
         for gen_path in (
-                entities.System().path(),
-                entities.System().path(which='base')):
+                entities.System(self.server_config).path(),
+                entities.System(self.server_config).path(which='base')):
             self.assertIn('/systems', gen_path)
             self.assertRegexpMatches(gen_path, 'systems$')
 
@@ -201,22 +200,15 @@ class PathTestCase(TestCase):
 @ddt
 class OrganizationTestCase(TestCase):
     """Tests for :class:`robottelo.entities.Organization`."""
+
     def setUp(self):  # pylint:disable=C0103
-        """Back up and customize ``conf.properties`` and ``client.post``.
-
-        Also generate a number suitable for use when instantiating entities.
-
-        """
-        self.conf_properties = conf.properties.copy()
-        conf.properties['main.server.hostname'] = 'example.com'
-        conf.properties['foreman.admin.username'] = 'Alice'
-        conf.properties['foreman.admin.password'] = 'hackme'
-        # SomeEntity(id=self.entity_id)
+        """Set ``self.server_config`` and ``self.entity_id``."""
+        self.server_config = config.ServerConfig(
+            'http://example.com',
+            auth=('foo', 'bar'),
+            verify=False
+        )
         self.entity_id = gen_integer(min_value=1)
-
-    def tearDown(self):  # pylint:disable=C0103
-        """Restore ``conf.properties``."""
-        conf.properties = self.conf_properties
 
     @data(200, 202)
     def test_delete_manifest(self, http_status_code):
@@ -242,6 +234,7 @@ class OrganizationTestCase(TestCase):
                 # ... then see if `delete_manifest` acts correctly.
                 for synchronous in (True, False):
                     reply = entities.Organization(
+                        self.server_config,
                         id=self.entity_id
                     ).delete_manifest(synchronous)
                     self.assertIsInstance(reply, dict)
@@ -261,5 +254,8 @@ class OrganizationTestCase(TestCase):
         with mock.patch.object(client, 'get') as mocked_client_get:
             mocked_client_get.return_value = mock_response
             # See if `subscriptions` behaves correctly.
-            response = entities.Organization(id=self.entity_id).subscriptions()
+            response = entities.Organization(
+                self.server_config,
+                id=self.entity_id,
+            ).subscriptions()
             self.assertEqual(response, [])
