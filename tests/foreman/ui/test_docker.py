@@ -1,100 +1,39 @@
 """Unit tests for the Docker feature."""
-import httplib
-
 from ddt import ddt
-from fauxfactory import gen_choice, gen_string, gen_url
-from nailgun import client
-from random import randint, shuffle
-from requests.exceptions import HTTPError
+from fauxfactory import gen_string
 from robottelo import entities
-from robottelo.common.constants import DOCKER_REGISTRY_HUB
-from robottelo.common.decorators import (
-    data, run_only_on, skip_if_bug_open, stubbed)
+from robottelo.common.decorators import data, run_only_on, stubbed
 from robottelo.common.helpers import (
     get_external_docker_url,
     get_internal_docker_url,
-    get_server_credentials,
 )
-from robottelo.test import APITestCase
+from robottelo.test import UITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
-
-DOCKER_PROVIDER = 'Docker'
 EXTERNAL_DOCKER_URL = get_external_docker_url()
 INTERNAL_DOCKER_URL = get_internal_docker_url()
-STRING_TYPES = ['alpha', 'alphanumeric', 'cjk', 'utf8', 'latin1']
-
-
-def _create_repository(prod_id, name=None, upstream_name=None):
-    """Creates a Docker-based repository.
-
-    :param str name: Name for the repository. If ``None`` then a random
-        value will be generated.
-    :param str upstream_name: A valid name for an existing Docker image.
-        If ``None`` then defaults to ``busybox``.
-
-    :return: A dictionary representing the created repository.
-
-    """
-    if name is None:
-        name = gen_string(gen_choice(STRING_TYPES), 15)
-    if upstream_name is None:
-        upstream_name = u'busybox'
-    return entities.Repository(
-        product=prod_id,
-        content_type=u'docker',
-        name=name,
-        docker_upstream_name=upstream_name,
-        url=DOCKER_REGISTRY_HUB
-    ).create_json()
-
-
-def _add_repo_to_content_view(repo_id, cv_id):
-    """Adds a repository to an existing content view.
-
-    :param int repo_id: The ID for an existing repository.
-    :param int cv_id: The ID for an existing content view.
-
-    """
-    client.put(
-        entities.ContentView(id=cv_id).path(),
-        auth=get_server_credentials(),
-        verify=False,
-        data={u'repository_ids': [repo_id]}
-    ).raise_for_status()
-
-
-def _add_content_view_to_composite_view(cv_id, cv_version_id):
-    """Adds a published content view to a composite content view.
-
-    :param int cv_id: The ID for an existing composite content view.
-    :param int cv_version_id: The ID for a published non-composite
-        content view.
-
-    """
-    client.put(
-        entities.ContentView(id=cv_id).path(),
-        auth=get_server_credentials(),
-        verify=False,
-        data={u'component_ids': [cv_version_id]}
-    ).raise_for_status()
-
-
-def _publish_content_view(cv_id):
-    """Publishes an existing content view.
-
-    :param int cv_id: The ID for an existing content view.
-
-    :return: A boolean indicating whether the publication worked or not.
-
-    """
-    task_status = entities.ContentView(id=cv_id).publish()
-
-    return task_status['result'] == u'success'
 
 
 @ddt
-class DockerRepositoryTestCase(APITestCase):
+class DockerTagsTestCase(UITestCase):
+    """Tests related to Content > Docker Tags page"""
+
+    @stubbed()
+    @run_only_on('sat')
+    def test_search_docker_image(self):
+        """@Test: Search for a docker image
+
+        @Feature: Docker
+
+        @Assert: The docker tag can be searched and found
+
+        @Status: Manual
+
+        """
+
+
+@ddt
+class DockerRepositoryTestCase(UITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
 
@@ -106,6 +45,7 @@ class DockerRepositoryTestCase(APITestCase):
         super(DockerRepositoryTestCase, cls).setUpClass()
         cls.org_id = entities.Organization().create_json()['id']
 
+    @stubbed()
     @run_only_on('sat')
     @data(
         gen_string('alpha', 15),
@@ -122,17 +62,11 @@ class DockerRepositoryTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
 
-        repo_id = _create_repository(prod_id, name)['id']
-        real_attrs = entities.Repository(id=repo_id).read_json()
-        self.assertEqual(real_attrs['name'], name)
-        self.assertEqual(real_attrs['docker_upstream_name'], u'busybox')
-        self.assertEqual(real_attrs['content_type'], u'docker')
-
+    @stubbed()
     @run_only_on('sat')
     def test_create_multiple_docker_repo(self):
         """@Test: Create multiple Docker-type repositories
@@ -142,19 +76,11 @@ class DockerRepositoryTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
 
-        for _ in range(randint(1, 5)):
-            repo_id = _create_repository(prod_id)['id']
-            prod_attrs = entities.Product(id=prod_id).read_json()
-            self.assertIn(
-                repo_id,
-                [repo['id'] for repo in prod_attrs['repositories']],
-            )
-
+    @stubbed()
     @run_only_on('sat')
     def test_create_multiple_docker_repo_multiple_products(self):
         """@Test: Create multiple Docker-type repositories on multiple products.
@@ -164,19 +90,11 @@ class DockerRepositoryTestCase(APITestCase):
 
         @Feature: Docker
 
-        """
-        for _ in range(randint(1, 5)):
-            prod_id = entities.Product(
-                organization=self.org_id
-            ).create_json()['id']
-            for _ in range(randint(1, 3)):
-                repo_id = _create_repository(prod_id)['id']
-                prod_attrs = entities.Product(id=prod_id).read_json()
-                self.assertIn(
-                    repo_id,
-                    [repo['id'] for repo in prod_attrs['repositories']],
-                )
+        @Status: Manual
 
+        """
+
+    @stubbed()
     @run_only_on('sat')
     def test_sync_docker_repo(self):
         """@Test: Create and sync a Docker-type repository
@@ -186,17 +104,11 @@ class DockerRepositoryTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
-        repo_id = _create_repository(prod_id)['id']
 
-        task = entities.Repository(id=repo_id).sync()
-        self.assertEqual(u'success', task['result'], task)
-        attrs = entities.Repository(id=repo_id).read_json()
-        self.assertGreaterEqual(attrs[u'content_counts'][u'docker_image'], 1)
-
+    @stubbed()
     @run_only_on('sat')
     @data(
         gen_string('alpha', 15),
@@ -214,33 +126,11 @@ class DockerRepositoryTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        name = u'Busybox'
-        upstream_name = u'busybox'
-        content_type = u'docker'
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
 
-        repo_id = _create_repository(prod_id, name, upstream_name)['id']
-        real_attrs = entities.Repository(id=repo_id).read_json()
-        self.assertEqual(real_attrs['name'], name)
-        self.assertEqual(real_attrs['docker_upstream_name'], upstream_name)
-        self.assertEqual(real_attrs['content_type'], content_type)
-
-        # Update the repository name to random value
-        real_attrs['name'] = new_name
-        client.put(
-            entities.Repository(id=repo_id).path(),
-            real_attrs,
-            auth=get_server_credentials(),
-            verify=False,
-        ).raise_for_status()
-        new_attrs = entities.Repository(id=repo_id).read_json()
-        self.assertEqual(new_attrs['name'], new_name)
-        self.assertNotEqual(new_attrs['name'], name)
-
-    @skip_if_bug_open('bugzilla', 1193669)
+    @stubbed()
     @run_only_on('sat')
     @data(
         gen_string('alpha', 15),
@@ -258,34 +148,11 @@ class DockerRepositoryTestCase(APITestCase):
 
         @Feature: Docker
 
-        @BZ: 1193669
+        @Status: Manual
 
         """
-        upstream_name = u'busybox'
-        new_upstream_name = u'fedora/ssh'
-        content_type = u'docker'
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
 
-        repo_id = _create_repository(prod_id, name, upstream_name)['id']
-        real_attrs = entities.Repository(id=repo_id).read_json()
-        self.assertEqual(real_attrs['name'], name)
-        self.assertEqual(real_attrs['docker_upstream_name'], upstream_name)
-        self.assertEqual(real_attrs['content_type'], content_type)
-
-        # Update the repository upstream name
-        real_attrs['docker_upstream_name'] = new_upstream_name
-        client.put(
-            entities.Repository(id=repo_id).path(),
-            real_attrs,
-            auth=get_server_credentials(),
-            verify=False,
-        ).raise_for_status()
-        new_attrs = entities.Repository(id=repo_id).read_json()
-        self.assertEqual(new_attrs['docker_upstream_name'], new_upstream_name)
-        self.assertNotEqual(new_attrs['name'], upstream_name)
-
+    @stubbed()
     @run_only_on('sat')
     @data(
         gen_string('alpha', 15),
@@ -303,28 +170,11 @@ class DockerRepositoryTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        new_url = gen_url(scheme='https')
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
 
-        repo_id = _create_repository(prod_id, name)['id']
-        real_attrs = entities.Repository(id=repo_id).read_json()
-        self.assertEqual(real_attrs['url'], DOCKER_REGISTRY_HUB)
-
-        # Update the repository URL
-        real_attrs['url'] = new_url
-        client.put(
-            entities.Repository(id=repo_id).path(),
-            real_attrs,
-            auth=get_server_credentials(),
-            verify=False,
-        ).raise_for_status()
-        new_attrs = entities.Repository(id=repo_id).read_json()
-        self.assertEqual(new_attrs['url'], new_url)
-        self.assertNotEqual(new_attrs['url'], DOCKER_REGISTRY_HUB)
-
+    @stubbed()
     @run_only_on('sat')
     @data(
         gen_string('alpha', 15),
@@ -341,23 +191,11 @@ class DockerRepositoryTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        upstream_name = u'busybox'
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
 
-        repo_id = _create_repository(prod_id, name, upstream_name)['id']
-        real_attrs = entities.Repository(id=repo_id).read_json()
-        self.assertEqual(real_attrs['name'], name)
-        self.assertEqual(real_attrs['docker_upstream_name'], upstream_name)
-        self.assertEqual(real_attrs['content_type'], u'docker')
-
-        # Delete it
-        entities.Repository(id=repo_id).delete()
-        with self.assertRaises(HTTPError):
-            entities.Repository(id=repo_id).read_json()
-
+    @stubbed()
     @run_only_on('sat')
     def test_delete_random_docker_repo(self):
         """@Test: Create Docker-type repositories on multiple products and
@@ -368,39 +206,13 @@ class DockerRepositoryTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        upstream_name = u'busybox'
-        product_ids = []
-        repository_ids = []
-
-        for _ in range(0, randint(1, 5)):
-            product_ids.append(
-                entities.Product(organization=self.org_id).create_json()['id'])
-
-        for product_id in product_ids:
-            name = gen_string('utf8', 15)
-            repo_id = _create_repository(product_id, name, upstream_name)['id']
-            real_attrs = entities.Repository(id=repo_id).read_json()
-            self.assertEqual(real_attrs['name'], name)
-            self.assertEqual(real_attrs['docker_upstream_name'], upstream_name)
-            self.assertEqual(real_attrs['content_type'], u'docker')
-            repository_ids.append(repo_id)
-
-        # Delete a ramdom repository
-        shuffle(repository_ids)
-        repository_id = repository_ids.pop()
-        entities.Repository(id=repository_id).delete()
-        with self.assertRaises(HTTPError):
-            entities.Repository(id=repository_id).read_json()
-
-        # Check if others repositories are not touched
-        for repository_id in repository_ids:
-            repository = entities.Repository(id=repository_id).read_json()
-            self.assertIn(repository['product']['id'], product_ids)
 
 
 @ddt
-class DockerContentViewTestCase(APITestCase):
+class DockerContentViewTestCase(UITestCase):
     """Tests specific to using ``Docker`` repositories with Content Views."""
 
     @classmethod
@@ -409,6 +221,7 @@ class DockerContentViewTestCase(APITestCase):
         super(DockerContentViewTestCase, cls).setUpClass()
         cls.org_id = entities.Organization().create_json()['id']
 
+    @stubbed()
     @run_only_on('sat')
     @data(
         gen_string('alpha', 15),
@@ -426,25 +239,9 @@ class DockerContentViewTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        upstream_name = u'busybox'
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
-
-        repo_id = _create_repository(prod_id, name, upstream_name)['id']
-        real_attrs = entities.Repository(id=repo_id).read_json()
-        self.assertEqual(real_attrs['name'], name)
-        self.assertEqual(real_attrs['docker_upstream_name'], upstream_name)
-        self.assertEqual(real_attrs['content_type'], u'docker')
-
-        # Create content view and associate docker repo
-        content_view = entities.ContentView(
-            organization=self.org_id, composite=False
-        ).create_json()
-        _add_repo_to_content_view(repo_id, content_view['id'])
-        new_attrs = entities.ContentView(id=content_view['id']).read_json()
-        self.assertIn(repo_id, new_attrs['repository_ids'])
 
     @stubbed()
     @run_only_on('sat')
@@ -461,6 +258,7 @@ class DockerContentViewTestCase(APITestCase):
 
         """
 
+    @stubbed()
     @run_only_on('sat')
     def test_add_synced_docker_repo_to_content_view(self):
         """@Test: Create and sync a Docker-type repository
@@ -470,25 +268,11 @@ class DockerContentViewTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
-        repo_id = _create_repository(prod_id)['id']
 
-        task = entities.Repository(id=repo_id).sync()
-        self.assertEqual(u'success', task['result'], task)
-        attrs = entities.Repository(id=repo_id).read_json()
-        self.assertGreaterEqual(attrs[u'content_counts'][u'docker_image'], 1)
-
-        # Create content view and associate docker repo
-        content_view = entities.ContentView(
-            organization=self.org_id, composite=False
-        ).create_json()
-        _add_repo_to_content_view(repo_id, content_view['id'])
-        new_attrs = entities.ContentView(id=content_view['id']).read_json()
-        self.assertIn(repo_id, new_attrs['repository_ids'])
-
+    @stubbed()
     @run_only_on('sat')
     @data(
         gen_string('alpha', 15),
@@ -507,41 +291,11 @@ class DockerContentViewTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
 
-        repo_id = _create_repository(prod_id, name)['id']
-
-        # Create content view and associate docker repo
-        content_view = entities.ContentView(
-            organization=self.org_id, composite=False
-        ).create_json()
-        _add_repo_to_content_view(repo_id, content_view['id'])
-
-        new_attrs = entities.ContentView(id=content_view['id']).read_json()
-        self.assertIn(repo_id, new_attrs['repository_ids'])
-
-        # Publish it...
-        self.assertTrue(_publish_content_view(content_view['id']))
-        # ... and grab its version ID (there should only be one version)
-        new_attrs = entities.ContentView(id=content_view['id']).read_json()
-        version_id = new_attrs['versions'][0]['id']
-
-        # Create composite content view and associate content view to
-        # it
-        comp_content_view_id = entities.ContentView(
-            organization=self.org_id, composite=True
-        ).create_json()['id']
-        _add_content_view_to_composite_view(
-            comp_content_view_id, version_id)
-
-        new_attrs = entities.ContentView(
-            id=comp_content_view_id
-        ).read_json()
-        self.assertIn(version_id, new_attrs['component_ids'])
-
+    @stubbed()
     @run_only_on('sat')
     def test_add_multiple_docker_repos_to_composite_content_view(self):
         """@Test: Add multiple Docker-type repositories to a composite
@@ -553,46 +307,11 @@ class DockerContentViewTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        prod_ids = []
-        cv_version_ids = []
 
-        for _ in range(randint(1, 5)):
-            prod_ids.append(
-                entities.Product(organization=self.org_id).create_json()['id']
-            )
-
-        for prod_id in prod_ids:
-            repo_id = _create_repository(prod_id)['id']
-
-            # Create content view and associate docker repo
-            content_view = entities.ContentView(
-                organization=self.org_id, composite=False
-            ).create_json()
-            _add_repo_to_content_view(repo_id, content_view['id'])
-
-            new_attrs = entities.ContentView(id=content_view['id']).read_json()
-            self.assertIn(repo_id, new_attrs['repository_ids'])
-
-            # Publish it...
-            self.assertTrue(_publish_content_view(content_view['id']))
-            # ... and grab its version ID (there should only be one version)
-            new_attrs = entities.ContentView(id=content_view['id']).read_json()
-            cv_version_ids.append(new_attrs['versions'][0]['id'])
-
-        # Create composite content view and associate content view to
-        # it
-        comp_content_view_id = entities.ContentView(
-            organization=self.org_id, composite=True
-        ).create_json()['id']
-        for version_id in cv_version_ids:
-            _add_content_view_to_composite_view(
-                comp_content_view_id, version_id)
-
-            new_attrs = entities.ContentView(
-                id=comp_content_view_id).read_json()
-            self.assertIn(version_id, new_attrs['component_ids'])
-
+    @stubbed()
     @run_only_on('sat')
     def test_publish_once_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish
@@ -603,30 +322,11 @@ class DockerContentViewTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
 
-        repo_id = _create_repository(prod_id)['id']
-
-        content_view = entities.ContentView(
-            organization=self.org_id, composite=False).create_json()
-        _add_repo_to_content_view(repo_id, content_view['id'])
-
-        new_attrs = entities.ContentView(id=content_view['id']).read_json()
-        self.assertIn(repo_id, new_attrs['repository_ids'])
-        # Not published yet?
-        self.assertIsNone(new_attrs['last_published'])
-        self.assertEqual(new_attrs['next_version'], 1)
-
-        # Publish it...
-        self.assertTrue(_publish_content_view(content_view['id']))
-        # ... and check that it was indeed published
-        new_attrs = entities.ContentView(id=content_view['id']).read_json()
-        self.assertIsNotNone(new_attrs['last_published'])
-        self.assertGreater(new_attrs['next_version'], 1)
-
+    @stubbed()
     @run_only_on('sat')
     def test_publish_once_docker_repo_composite_content_view(self):
         """@Test: Add Docker-type repository to composite
@@ -638,48 +338,9 @@ class DockerContentViewTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
-
-        repo_id = _create_repository(prod_id)['id']
-
-        content_view = entities.ContentView(
-            organization=self.org_id, composite=False).create_json()
-        _add_repo_to_content_view(repo_id, content_view['id'])
-
-        new_attrs = entities.ContentView(id=content_view['id']).read_json()
-        self.assertIn(repo_id, new_attrs['repository_ids'])
-        # Not published yet?
-        self.assertIsNone(new_attrs['last_published'])
-        self.assertEqual(new_attrs['next_version'], 1)
-
-        # Publish it...
-        self.assertTrue(_publish_content_view(content_view['id']))
-        # ... and check that it was indeed published
-        new_attrs = entities.ContentView(id=content_view['id']).read_json()
-        version_id = new_attrs['versions'][0]['id']
-        self.assertIsNotNone(new_attrs['last_published'])
-        self.assertGreater(new_attrs['next_version'], 1)
-
-        # Create composite content view...
-        comp_content_view_id = entities.ContentView(
-            organization=self.org_id, composite=True
-        ).create_json()['id']
-        # ... add content view to it...
-        _add_content_view_to_composite_view(
-            comp_content_view_id, version_id)
-        new_attrs = entities.ContentView(
-            id=comp_content_view_id).read_json()
-        self.assertIn(version_id, new_attrs['component_ids'])
-        # ... publish it...
-        self.assertTrue(_publish_content_view(comp_content_view_id))
-        # ... and check that it was indeed published
-        new_attrs = entities.ContentView(
-            id=comp_content_view_id).read_json()
-        self.assertIsNotNone(new_attrs['last_published'])
-        self.assertGreater(new_attrs['next_version'], 1)
 
     @stubbed()
     @run_only_on('sat')
@@ -776,7 +437,7 @@ class DockerContentViewTestCase(APITestCase):
 
 
 @ddt
-class DockerActivationKeyTestCase(APITestCase):
+class DockerActivationKeyTestCase(UITestCase):
     """Tests specific to adding ``Docker`` repositories to Activation Keys."""
 
     @classmethod
@@ -853,7 +514,7 @@ class DockerActivationKeyTestCase(APITestCase):
 
 
 @ddt
-class DockerClientTestCase(APITestCase):
+class DockerClientTestCase(UITestCase):
     """Tests specific to using ``Docker`` as a client to pull Docker images from
     a Satellite 6 instance."""
 
@@ -903,7 +564,7 @@ class DockerClientTestCase(APITestCase):
 
 
 @ddt
-class DockerComputeResourceTestCase(APITestCase):
+class DockerComputeResourceTestCase(UITestCase):
     """Tests specific to managing Docker-based Compute Resources."""
 
     @classmethod
@@ -912,6 +573,7 @@ class DockerComputeResourceTestCase(APITestCase):
         super(DockerComputeResourceTestCase, cls).setUpClass()
         cls.org_id = entities.Organization().create_json()['id']
 
+    @stubbed()
     @run_only_on('sat')
     @data(
         gen_string('alpha'),
@@ -929,19 +591,9 @@ class DockerComputeResourceTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        compute_resource_id = entities.ComputeResource(
-            name=name,
-            provider=DOCKER_PROVIDER,
-            url=INTERNAL_DOCKER_URL
-        ).create_json()['id']
-
-        compute_resource = entities.ComputeResource(
-            id=compute_resource_id).read_json()
-
-        self.assertEqual(compute_resource['name'], name)
-        self.assertEqual(compute_resource['url'], INTERNAL_DOCKER_URL)
-        self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
 
     @stubbed()
     @run_only_on('sat')
@@ -973,6 +625,7 @@ class DockerComputeResourceTestCase(APITestCase):
 
         """
 
+    @stubbed()
     @run_only_on('sat')
     @data(
         gen_string('alpha'),
@@ -990,19 +643,9 @@ class DockerComputeResourceTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        compute_resource_id = entities.ComputeResource(
-            name=name,
-            provider=DOCKER_PROVIDER,
-            url=EXTERNAL_DOCKER_URL
-        ).create_json()['id']
-
-        compute_resource = entities.ComputeResource(
-            id=compute_resource_id).read_json()
-
-        self.assertEqual(compute_resource['name'], name)
-        self.assertEqual(compute_resource['url'], EXTERNAL_DOCKER_URL)
-        self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
 
     @stubbed()
     @run_only_on('sat')
@@ -1034,6 +677,7 @@ class DockerComputeResourceTestCase(APITestCase):
 
         """
 
+    @stubbed()
     @run_only_on('sat')
     @data(
         EXTERNAL_DOCKER_URL,
@@ -1046,27 +690,12 @@ class DockerComputeResourceTestCase(APITestCase):
 
         @Feature: Docker
 
+        @Status: Manual
+
         """
-        compute_resource_id = entities.ComputeResource(
-            provider=DOCKER_PROVIDER,
-            url=url
-        ).create_json()['id']
-
-        compute_resource = entities.ComputeResource(
-            id=compute_resource_id).read_json()
-        self.assertEqual(compute_resource['url'], url)
-        self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
-
-        entities.ComputeResource(id=compute_resource_id).delete()
-
-        self.assertEqual(
-            httplib.NOT_FOUND,
-            entities.ComputeResource(
-                id=compute_resource_id).read_raw().status_code
-        )
 
 
-class DockerContainersTestCase(APITestCase):
+class DockerContainersTestCase(UITestCase):
     """Tests specific to using ``Containers`` in local and external Docker
     Compute Resources
 
@@ -1209,7 +838,7 @@ class DockerContainersTestCase(APITestCase):
 
 
 @ddt
-class DockerRegistriesTestCase(APITestCase):
+class DockerRegistriesTestCase(UITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
 
