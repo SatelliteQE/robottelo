@@ -217,7 +217,8 @@ class ActivationKey(Base):
             else:
                 Select(repo_select).select_by_visible_text("Override to No")
             self.wait_until_element(common_locators['save']).click()
-            self.wait_for_ajax()
+            self.wait_for_ajax(timeout=60)
+            # FIXME: check for the success message
 
     def get_attribute(self, name, locator):
         """

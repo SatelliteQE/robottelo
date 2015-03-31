@@ -1224,8 +1224,7 @@ locators = LocatorDict({
         "//tr[@ng-repeat='contentHost in contentHosts']/td/a"),
     "ak.prd_content.edit_repo": (
         By.XPATH,
-        ("//u[contains(.,'%s')]/../../div/form/div/div/span/"
-         "i[contains(@class,'icon-edit')]")),
+        ("//u[contains(.,'%s')]/../..//i[contains(@class,'fa-edit')]")),
     "ak.prd_content.select_repo": (
         By.XPATH,
         "//u[contains(.,'%s')]/../../div/form/div/select"),
