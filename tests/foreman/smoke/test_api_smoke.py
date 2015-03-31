@@ -167,6 +167,19 @@ API_PATHS = {
         u'/katello/api/organizations/:organization_id/content_views',
         u'/katello/api/organizations/:organization_id/content_views',
     ),
+    u'containers': (
+        u'/docker/api/v2/containers',
+        u'/docker/api/v2/containers',
+        u'/docker/api/v2/containers/:id',
+        u'/docker/api/v2/containers/:id',
+        u'/docker/api/v2/containers/:id/logs',
+        u'/docker/api/v2/containers/:id/power',
+    ),
+    u'content_reports':(
+        u'/katello/api/content_reports/status_trend',
+        u'/katello/api/content_reports/system_status',
+        u'/katello/api/content_reports/system_trend',
+    ),
     u'content_view_versions': (
         u'/katello/api/content_view_versions',
         u'/katello/api/content_view_versions/:id',
