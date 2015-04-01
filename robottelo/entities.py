@@ -7,7 +7,7 @@ related API paths exposed by the server. For example,
 path and sub-paths. Each class attribute corresponds an attribute of that
 entity. For example, the ``Host.name`` class attribute represents the name of a
 host. These class attributes are used by the various mixins, such as
-:class:`robottelo.orm.EntityCreateMixin`.
+``nailgun.entity_mixins.EntityCreateMixin``.
 
 Each class contains an inner class named ``Meta``. This inner class contains
 any information about an entity that is not encoded in the JSON payload when
@@ -17,6 +17,13 @@ creating an entity. That is, the inner class contains non-field information.
 from datetime import datetime
 from fauxfactory import gen_alpha, gen_alphanumeric, gen_url
 from nailgun import client, entity_fields
+from nailgun.entity_mixins import (
+    Entity,
+    EntityCreateMixin,
+    EntityDeleteMixin,
+    EntityReadMixin,
+    _poll_task,
+)
 from robottelo.common.constants import (
     FAKE_1_YUM_REPO,
     OPERATING_SYSTEMS,
@@ -29,7 +36,6 @@ from robottelo.common.helpers import (
     get_external_docker_url,
     get_internal_docker_url,
 )
-from robottelo import orm
 from time import sleep
 import httplib
 import random
@@ -51,8 +57,7 @@ class HostCreateMissingError(Exception):
 
 
 class ActivationKey(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Activtion Key entity."""
     organization = entity_fields.OneToOneField('Organization', required=True)
     name = entity_fields.StringField(required=True)
@@ -88,8 +93,7 @@ class ActivationKey(
         return response
 
     def path(self, which=None):
-        """Extend the default implementation of
-        :meth:`robottelo.orm.Entity.path`.
+        """Extend ``nailgun.entity_mixins.Entity.path``.
 
         The format of the returned path depends on the value of ``which``:
 
@@ -132,8 +136,7 @@ class ActivationKey(
         return response.json()
 
 class Architecture(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Architecture entity."""
     name = entity_fields.StringField(required=True)
     operatingsystem = entity_fields.OneToManyField('OperatingSystem', null=True)
@@ -150,8 +153,7 @@ class Architecture(
 
 
 class AuthSourceLDAP(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a AuthSourceLDAP entity."""
     account = entity_fields.StringField(null=True)
     attr_photo = entity_fields.StringField(null=True)
@@ -201,7 +203,7 @@ class AuthSourceLDAP(
         server_modes = ('sat')
 
 
-class Bookmark(orm.Entity):
+class Bookmark(Entity):
     """A representation of a Bookmark entity."""
     name = entity_fields.StringField(required=True)
     controller = entity_fields.StringField(required=True)
@@ -214,7 +216,7 @@ class Bookmark(orm.Entity):
         server_modes = ('sat')
 
 
-class CommonParameter(orm.Entity):
+class CommonParameter(Entity):
     """A representation of a Common Parameter entity."""
     name = entity_fields.StringField(required=True)
     value = entity_fields.StringField(required=True)
@@ -225,7 +227,7 @@ class CommonParameter(orm.Entity):
         server_modes = ('sat')
 
 
-class ComputeAttribute(orm.Entity):
+class ComputeAttribute(Entity):
     """A representation of a Compute Attribute entity."""
     compute_profile = entity_fields.OneToOneField('ComputeProfile', required=True)
     compute_resource = entity_fields.OneToOneField('ComputeResource', required=True)
@@ -249,8 +251,7 @@ class ComputeAttribute(orm.Entity):
 
 
 class ComputeProfile(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Compute Profile entity."""
     name = entity_fields.StringField(required=True)
 
@@ -261,8 +262,7 @@ class ComputeProfile(
 
 
 class ComputeResource(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Compute Resource entity."""
     description = entity_fields.StringField(null=True)
     location = entity_fields.OneToManyField('Location')
@@ -354,7 +354,7 @@ class ComputeResource(
                     setattr(self, field, getattr(cls, field).gen_value())
 
 
-class ConfigGroup(orm.Entity):
+class ConfigGroup(Entity):
     """A representation of a Config Group entity."""
     name = entity_fields.StringField(required=True)
 
@@ -365,8 +365,7 @@ class ConfigGroup(orm.Entity):
 
 
 class ConfigTemplate(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Config Template entity."""
     audit_comment = entity_fields.StringField(null=True)
     locked = entity_fields.BooleanField(null=True)
@@ -421,14 +420,14 @@ class ConfigTemplate(
         return super(ConfigTemplate, self).read(entity, attrs, ignore)
 
     def path(self, which=None):
-        """Extend :meth:`robottelo.orm.Entity.path`.
+        """Extend ``nailgun.entity_mixins.Entity.path``.
 
         The format of the returned path depends on the value of ``which``:
 
         revision
-            /content_view_versions/revision
+            /config_templates/revision
         build_pxe_default
-            /content_view_versions/build_pxe_default
+            /config_templates/build_pxe_default
 
         ``super`` is called otherwise.
 
@@ -442,8 +441,7 @@ class ConfigTemplate(
 
 
 class AbstractDockerContainer(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a docker container.
 
     This class is abstract because all containers must come from somewhere, but
@@ -474,14 +472,14 @@ class AbstractDockerContainer(
         server_modes = ('sat')
 
     def path(self, which=None):
-        """Extend :meth:`robottelo.orm.Entity.path`.
+        """Extend ``nailgun.entity_mixins.Entity.path``.
 
         The format of the returned path depends on the value of ``which``:
 
         logs
-            /content_view_versions/<id>/logs
+            /containers/<id>/logs
         power
-            /content_view_versions/<id>/power
+            /containers/<id>/power
 
         ``super`` is called otherwise.
 
@@ -577,7 +575,7 @@ class DockerHubContainer(AbstractDockerContainer):
     tag = entity_fields.StringField(required=True, default='latest')
 
 
-class ContentUpload(orm.Entity):
+class ContentUpload(Entity):
     """A representation of a Content Upload entity."""
     repository = entity_fields.OneToOneField('Repository', required=True)
 
@@ -588,7 +586,7 @@ class ContentUpload(orm.Entity):
         server_modes = ('sat')
 
 
-class ContentViewVersion(orm.Entity, orm.EntityReadMixin):
+class ContentViewVersion(Entity, EntityReadMixin):
     """A representation of a Content View Version non-entity."""
 
     class Meta(object):
@@ -597,8 +595,7 @@ class ContentViewVersion(orm.Entity, orm.EntityReadMixin):
         server_modes = ('sat')
 
     def path(self, which=None):
-        """Extend the default implementation of
-        :meth:`robottelo.orm.Entity.path`.
+        """Extend ``nailgun.entity_mixins.Entity.path``.
 
         The format of the returned path depends on the value of ``which``:
 
@@ -644,7 +641,7 @@ class ContentViewVersion(orm.Entity, orm.EntityReadMixin):
         return response.json()
 
 
-class ContentViewFilterRule(orm.Entity):
+class ContentViewFilterRule(Entity):
     """A representation of a Content View Filter Rule entity."""
     content_view_filter = entity_fields.OneToOneField('ContentViewFilter', required=True)
     # package or package group: name
@@ -671,7 +668,7 @@ class ContentViewFilterRule(orm.Entity):
         server_modes = ('sat')
 
 
-class ContentViewFilter(orm.Entity):
+class ContentViewFilter(Entity):
     """A representation of a Content View Filter entity."""
     content_view = entity_fields.OneToOneField('ContentView', required=True)
     name = entity_fields.StringField(required=True)
@@ -695,8 +692,7 @@ class ContentViewFilter(orm.Entity):
 
 
 class ContentViewPuppetModule(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Content View Puppet Module entity."""
     author = entity_fields.StringField()
     content_view = entity_fields.OneToOneField('ContentView', required=True)
@@ -725,7 +721,7 @@ class ContentViewPuppetModule(
     def read(self, entity=None, attrs=None, ignore=('content_view',)):
         """Provide a default value for ``entity``.
 
-        By default, :meth:`robottelo.orm.EntityReadMixin.read` provides a
+        By default, ``nailgun.entity_mixins.EntityReadMixin.read provides a
         default value for ``entity`` like so::
 
             entity = type(self)()
@@ -762,8 +758,7 @@ class ContentViewPuppetModule(
         return payload
 
 class ContentView(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Content View entity."""
     organization = entity_fields.OneToOneField('Organization', required=True)
     name = entity_fields.StringField(required=True)
@@ -783,8 +778,7 @@ class ContentView(
         server_modes = ('sat')
 
     def path(self, which=None):
-        """Extend the default implementation of
-        :meth:`robottelo.orm.Entity.path`.
+        """Extend ``nailgun.entity_mixins.Entity.path``.
 
         The format of the returned path depends on the value of ``which``:
 
@@ -898,7 +892,7 @@ class ContentView(
         return response.json()
 
 
-class CustomInfo(orm.Entity):
+class CustomInfo(Entity):
     """A representation of a Custom Info entity."""
     # name of the resource
     informable_type = entity_fields.StringField(required=True)
@@ -916,8 +910,7 @@ class CustomInfo(orm.Entity):
 
 
 class Domain(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Domain entity."""
     domain_parameters_attributes = entity_fields.ListField(null=True)
     fullname = entity_fields.StringField(null=True)
@@ -966,8 +959,7 @@ class Domain(
 
 
 class Environment(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Environment entity."""
     name = entity_fields.StringField(
         required=True,
@@ -980,7 +972,7 @@ class Environment(
         server_modes = ('sat')
 
 
-class Errata(orm.Entity):
+class Errata(Entity):
     """A representation of an Errata entity."""
     # You cannot create an errata. Instead, errata are a read-only entity.
 
@@ -991,8 +983,7 @@ class Errata(orm.Entity):
 
 
 class Filter(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Filter entity."""
     role = entity_fields.OneToOneField('Role', required=True)
     search = entity_fields.StringField(null=True)
@@ -1006,7 +997,7 @@ class Filter(
         server_modes = ('sat')
 
 
-class ForemanTask(orm.Entity, orm.EntityReadMixin):
+class ForemanTask(Entity, EntityReadMixin):
     """A representation of a Foreman task."""
 
     class Meta(object):
@@ -1015,8 +1006,7 @@ class ForemanTask(orm.Entity, orm.EntityReadMixin):
         server_modes = ('sat')
 
     def path(self, which=None):
-        """Override the default implementation of
-        :meth:`robottelo.orm.Entity.path`.
+        """Extend ``nailgun.entity_mixins.Entity.path``.
 
         The format of the returned path depends on the value of ``which``:
 
@@ -1044,21 +1034,21 @@ class ForemanTask(orm.Entity, orm.EntityReadMixin):
 
         :param int poll_rate: Delay between the end of one task check-up and
             the start of the next check-up. Defaults to
-            :data:`robottelo.orm.TASK_POLL_RATE`.
+            ``nailgun.entity_mixins.TASK_POLL_RATE``.
         :param int timeout: Maximum number of seconds to wait until timing out.
-            Defaults to :data:`robottelo.orm.TASK_TIMEOUT`.
+            Defaults to ``nailgun.entity_mixins.TASK_TIMEOUT``.
         :returns: Information about the asynchronous task.
         :rtype: dict
-        :raises robottelo.orm.TaskTimeout: If the task is not finished before
-            the timeout is exceeded.
+        :raises: ``nailgun.entity_mixins.TaskTimeout`` if the task is not
+            finished before the timeout is exceeded.
         :raises: ``requests.exceptions.HTTPError`` If the API returns a message
             with an HTTP 4XX or 5XX status code.
 
         """
         # pylint:disable=protected-access
-        # See docstring for orm._poll_task for an explanation of why a private
-        # method is called.
-        return orm._poll_task(self.id, self._server_config, poll_rate, timeout)
+        # See nailgun.entity_mixins._poll_task for an explanation of why a
+        # private method is called.
+        return _poll_task(self.id, self._server_config, poll_rate, timeout)
 
 
 def _gpgkey_content():
@@ -1073,8 +1063,7 @@ def _gpgkey_content():
 
 
 class GPGKey(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a GPG Key entity."""
     # public key block in DER encoding
     content = entity_fields.StringField(required=True, default=_gpgkey_content())
@@ -1087,7 +1076,7 @@ class GPGKey(
         server_modes = ('sat')
 
 
-class HostClasses(orm.Entity):
+class HostClasses(Entity):
     """A representation of a Host Class entity."""
     host = entity_fields.OneToOneField('Host', required=True)
     puppetclass = entity_fields.OneToOneField('PuppetClass', required=True)
@@ -1098,7 +1087,7 @@ class HostClasses(orm.Entity):
         server_modes = ('sat')
 
 
-class HostCollectionErrata(orm.Entity):
+class HostCollectionErrata(Entity):
     """A representation of a Host Collection Errata entity."""
     errata = entity_fields.OneToManyField('Errata', required=True)
 
@@ -1109,7 +1098,7 @@ class HostCollectionErrata(orm.Entity):
         server_modes = ('sat')
 
 
-class HostCollectionPackage(orm.Entity):
+class HostCollectionPackage(Entity):
     """A representation of a Host Collection Package entity."""
     packages = entity_fields.ListField()
     groups = entity_fields.ListField()
@@ -1122,8 +1111,7 @@ class HostCollectionPackage(orm.Entity):
 
 
 class HostCollection(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Host Collection entity."""
     description = entity_fields.StringField()
     max_content_hosts = entity_fields.IntegerField()
@@ -1165,7 +1153,7 @@ class HostCollection(
             payload['system_uuids'] = payload.pop('system_ids')
         return payload
 
-class HostGroupClasses(orm.Entity):
+class HostGroupClasses(Entity):
     """A representation of a Host Group Classes entity."""
     hostgroup = entity_fields.OneToOneField('HostGroup', required=True)
     puppetclass = entity_fields.OneToOneField('PuppetClass', required=True)
@@ -1176,7 +1164,7 @@ class HostGroupClasses(orm.Entity):
         server_modes = ('sat')
 
 
-class HostGroup(orm.Entity, orm.EntityCreateMixin):
+class HostGroup(Entity, EntityCreateMixin):
     """A representation of a Host Group entity."""
     name = entity_fields.StringField(required=True)
     parent = entity_fields.OneToOneField('HostGroup', null=True)
@@ -1200,8 +1188,7 @@ class HostGroup(orm.Entity, orm.EntityCreateMixin):
 
 
 class Host(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Host entity."""
     architecture = entity_fields.OneToOneField('Architecture', null=True)
     build_ = entity_fields.BooleanField(null=True)
@@ -1341,7 +1328,7 @@ class Host(
         return super(Host, self).read(entity, attrs, ignore)
 
 
-class Image(orm.Entity):
+class Image(Entity):
     """A representation of a Image entity."""
     compute_resource = entity_fields.OneToOneField('ComputeResource', required=True)
     name = entity_fields.StringField(required=True)
@@ -1356,7 +1343,7 @@ class Image(orm.Entity):
         server_modes = ('sat')
 
 
-class Interface(orm.Entity):
+class Interface(Entity):
     """A representation of a Interface entity."""
     host = entity_fields.OneToOneField('Host', required=True)
     mac = entity_fields.MACAddressField(required=True)
@@ -1379,8 +1366,7 @@ class Interface(orm.Entity):
 
 
 class LifecycleEnvironment(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Lifecycle Environment entity."""
     description = entity_fields.StringField()
     name = entity_fields.StringField(required=True)
@@ -1451,7 +1437,7 @@ class LifecycleEnvironment(
             )
 
 
-class Location(orm.Entity, orm.EntityCreateMixin):
+class Location(Entity, EntityCreateMixin):
     """A representation of a Location entity."""
     name = entity_fields.StringField(required=True)
 
@@ -1462,8 +1448,7 @@ class Location(orm.Entity, orm.EntityCreateMixin):
 
 
 class Media(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Media entity."""
     media_path = entity_fields.URLField(required=True)
     name = entity_fields.StringField(required=True)
@@ -1498,8 +1483,7 @@ class Media(
 
 
 class Model(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Model entity."""
     name = entity_fields.StringField(required=True)
     info = entity_fields.StringField(null=True)
@@ -1513,8 +1497,7 @@ class Model(
 
 
 class OperatingSystem(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Operating System entity.
 
     ``major`` is listed as a string field in the API docs, but only numeric
@@ -1559,8 +1542,7 @@ class OperatingSystem(
 
 
 class OperatingSystemParameter(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a parameter for an operating system."""
     name = entity_fields.StringField(required=True)
     operatingsystem = entity_fields.OneToOneField(
@@ -1588,7 +1570,7 @@ class OperatingSystemParameter(
     def read(self, entity=None, attrs=None, ignore=('operatingsystem',)):
         """Provide a default value for ``entity``.
 
-        By default, :meth:`robottelo.orm.EntityReadMixin.read` provides a
+        By default, ``nailgun.entity_mixins.EntityReadMixin.read`` provides a
         default value for ``entity`` like so::
 
             entity = type(self)()
@@ -1610,7 +1592,7 @@ class OperatingSystemParameter(
         return super(OperatingSystemParameter, self).read(entity, attrs, ignore)
 
 
-class OrganizationDefaultInfo(orm.Entity):
+class OrganizationDefaultInfo(Entity):
     """A representation of a Organization Default Info entity."""
     # name of the resource
     informable_type = entity_fields.StringField(required=True)
@@ -1631,8 +1613,7 @@ class OrganizationDefaultInfo(orm.Entity):
 
 
 class Organization(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of an Organization entity."""
     description = entity_fields.StringField()
     label = entity_fields.StringField(str_type='alpha')
@@ -1645,8 +1626,7 @@ class Organization(
         server_modes = ('sat', 'sam')
 
     def path(self, which=None):
-        """Extend the default implementation of
-        :meth:`robottelo.orm.Entity.path`.
+        """Extend ``nailgun.entity_mixins.Entity.path``.
 
         The format of the returned path depends on the value of ``which``:
 
@@ -1713,7 +1693,7 @@ class Organization(
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If the response JSON could not be decoded.
-        :raises: :class:`robottelo.orm.TaskTimeout` if an HTTP 202 response is
+        :raises: ``nailgun.entity_mixins.TaskTimeout`` if an HTTP 202 response is
             received, ``synchronous is True`` and polling times out.
         :rtype: dict
 
@@ -1750,8 +1730,8 @@ class Organization(
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If the response JSON could not be decoded.
-        :raises: :class:`robottelo.orm.TaskTimeout` if an HTTP 202 response is
-            received, ``synchronous is True`` and polling times out.
+        :raises: ``nailgun.entity_mixins.TaskTimeout`` if an HTTP 202 response
+            is received, ``synchronous is True`` and polling times out.
         :rtype: dict
 
         """
@@ -1781,8 +1761,8 @@ class Organization(
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If the response JSON could not be decoded.
-        :raises: :class:`robottelo.orm.TaskTimeout` if an HTTP 202 response is
-            received, ``synchronous is True`` and polling times out.
+        :raises: ``nailgun.entity_mixins.TaskTimeout`` if an HTTP 202 response
+            is received, ``synchronous is True`` and polling times out.
         :rtype: dict
 
         """
@@ -1835,7 +1815,7 @@ class Organization(
         return response.json()['results']
 
 
-class OSDefaultTemplate(orm.Entity):
+class OSDefaultTemplate(Entity):
     """A representation of a OS Default Template entity."""
     operatingsystem = entity_fields.OneToOneField('OperatingSystem')
     template_kind = entity_fields.OneToOneField('TemplateKind', null=True)
@@ -1848,7 +1828,7 @@ class OSDefaultTemplate(orm.Entity):
         server_modes = ('sat')
 
 
-class OverrideValue(orm.Entity):
+class OverrideValue(Entity):
     """A representation of a Override Value entity."""
     smart_variable = entity_fields.OneToOneField('SmartVariable')
     match = entity_fields.StringField(null=True)
@@ -1867,7 +1847,7 @@ class OverrideValue(orm.Entity):
         server_modes = ('sat')
 
 
-class Permission(orm.Entity, orm.EntityReadMixin):
+class Permission(Entity, EntityReadMixin):
     """A representation of a Permission entity."""
     name = entity_fields.StringField(required=True)
     resource_type = entity_fields.StringField(required=True)
@@ -1917,7 +1897,7 @@ class Permission(orm.Entity, orm.EntityReadMixin):
         return response.json()['results']
 
 
-class Ping(orm.Entity):
+class Ping(Entity):
     """A representation of a Ping entity."""
 
     class Meta(object):
@@ -1927,8 +1907,7 @@ class Ping(orm.Entity):
 
 
 class Product(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Product entity."""
     description = entity_fields.StringField()
     gpg_key = entity_fields.OneToOneField('GPGKey')
@@ -1943,8 +1922,7 @@ class Product(
         server_modes = ('sat', 'sam')
 
     def path(self, which=None):
-        """Extend the default implementation of
-        :meth:`robottelo.orm.Entity.path`.
+        """Extend ``nailgun.entity_mixins.Entity.path``.
 
         The format of the returned path depends on the value of ``which``:
 
@@ -2132,8 +2110,7 @@ class Product(
 
 
 class PartitionTable(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Partition Table entity."""
     name = entity_fields.StringField(required=True)
     layout = entity_fields.StringField(required=True)
@@ -2145,7 +2122,7 @@ class PartitionTable(
         server_modes = ('sat')
 
 
-class PuppetClass(orm.Entity):
+class PuppetClass(Entity):
     """A representation of a Puppet Class entity."""
     name = entity_fields.StringField(required=True)
 
@@ -2155,7 +2132,7 @@ class PuppetClass(orm.Entity):
         server_modes = ('sat')
 
 
-class PuppetModule(orm.Entity, orm.EntityReadMixin):
+class PuppetModule(Entity, EntityReadMixin):
     """A representation of a Puppet Module entity."""
     author = entity_fields.StringField()
     checksums = entity_fields.ListField()
@@ -2183,7 +2160,7 @@ class PuppetModule(orm.Entity, orm.EntityReadMixin):
         return super(PuppetModule, self).read(entity, attrs, ignore)
 
 
-class Realm(orm.Entity):
+class Realm(Entity):
     """A representation of a Realm entity."""
     # The realm name, e.g. EXAMPLE.COM
     name = entity_fields.StringField(required=True)
@@ -2199,7 +2176,7 @@ class Realm(orm.Entity):
         server_modes = ('sat')
 
 
-class Report(orm.Entity):
+class Report(Entity):
     """A representation of a Report entity."""
     # Hostname or certname
     host = entity_fields.StringField(required=True)
@@ -2215,8 +2192,7 @@ class Report(orm.Entity):
 
 
 class Repository(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Repository entity."""
     checksum_type = entity_fields.StringField(choices=('sha1', 'sha256'))
     content_type = entity_fields.StringField(
@@ -2235,8 +2211,7 @@ class Repository(
     url = entity_fields.URLField(required=True, default=FAKE_1_YUM_REPO)
 
     def path(self, which=None):
-        """Extend the default implementation of
-        :meth:`robottelo.orm.Entity.path`.
+        """Extend ``nailgun.entity_mixins.Entity.path``.
 
         The format of the returned path depends on the value of ``which``:
 
@@ -2357,7 +2332,7 @@ class Repository(
         server_modes = ('sat')
 
 
-class RoleLDAPGroups(orm.Entity):
+class RoleLDAPGroups(Entity):
     """A representation of a Role LDAP Groups entity."""
     name = entity_fields.StringField(required=True)
 
@@ -2368,8 +2343,7 @@ class RoleLDAPGroups(orm.Entity):
 
 
 class Role(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Role entity."""
     name = entity_fields.StringField(
         required=True,
@@ -2383,7 +2357,7 @@ class Role(
         server_modes = ('sat', 'sam')
 
 
-class SmartProxy(orm.Entity):
+class SmartProxy(Entity):
     """A representation of a Smart Proxy entity."""
     name = entity_fields.StringField(required=True)
     url = entity_fields.URLField(required=True)
@@ -2394,7 +2368,7 @@ class SmartProxy(orm.Entity):
         server_modes = ('sat')
 
 
-class SmartVariable(orm.Entity):
+class SmartVariable(Entity):
     """A representation of a Smart Variable entity."""
     variable = entity_fields.StringField(required=True)
     puppetclass = entity_fields.OneToOneField('PuppetClass', null=True)
@@ -2411,7 +2385,7 @@ class SmartVariable(orm.Entity):
         server_modes = ('sat')
 
 
-class Status(orm.Entity):
+class Status(Entity):
     """A representation of a Status entity."""
 
     class Meta(object):
@@ -2421,8 +2395,7 @@ class Status(orm.Entity):
 
 
 class Subnet(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Subnet entity."""
     dns_primary = entity_fields.IPAddressField(null=True)
     dns_secondary = entity_fields.IPAddressField(null=True)
@@ -2447,7 +2420,7 @@ class Subnet(
         server_modes = ('sat')
 
 
-class Subscription(orm.Entity):
+class Subscription(Entity):
     """A representation of a Subscription entity."""
     # Subscription Pool uuid
     pool_uuid = entity_fields.StringField()
@@ -2470,8 +2443,7 @@ class Subscription(orm.Entity):
 
 
 class SyncPlan(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Sync Plan entity."""
     description = entity_fields.StringField()
     enabled = entity_fields.BooleanField(required=True)
@@ -2498,7 +2470,7 @@ class SyncPlan(
     def read(self, entity=None, attrs=None, ignore=('organization',)):
         """Provide a default value for ``entity``.
 
-        By default, :meth:`robottelo.orm.EntityReadMixin.read` provides a
+        By default, ``nailgun.entity_mixins.EntityReadMixin.read`` provides a
         default value for ``entity`` like so::
 
             entity = type(self)()
@@ -2525,7 +2497,7 @@ class SyncPlan(
         return data
 
     def path(self, which=None):
-        """Extend :meth:`robottelo.orm.Entity.path`.
+        """Extend ``nailgun.entity_mixins.Entity.path``.
 
         The format of the returned path depends on the value of ``which``:
 
@@ -2600,7 +2572,7 @@ class SyncPlan(
             ).poll()
         return response.json()
 
-class SystemPackage(orm.Entity):
+class SystemPackage(Entity):
     """A representation of a System Package entity."""
     system = entity_fields.OneToOneField('System', required=True)
     # List of package names
@@ -2615,8 +2587,7 @@ class SystemPackage(orm.Entity):
 
 
 class System(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a System entity."""
     content_view = entity_fields.OneToOneField('ContentView')
     description = entity_fields.StringField()
@@ -2651,8 +2622,7 @@ class System(
         server_modes = ('sat', 'sam')
 
     def path(self, which=None):
-        """Extend the default implementation of
-        :meth:`robottelo.orm.Entity.path`.
+        """Extend ``nailgun.entity_mixins.Entity.path``.
 
         Most entities are uniquely identified by an ID. ``System`` is a bit
         different: it has both an ID and a UUID, and the UUID is used to
@@ -2688,7 +2658,7 @@ class System(
         return super(System, self).read(entity, attrs, ignore)
 
 
-class TemplateCombination(orm.Entity):
+class TemplateCombination(Entity):
     """A representation of a Template Combination entity."""
     config_template = entity_fields.OneToOneField('ConfigTemplate', required=True)
     environment = entity_fields.OneToOneField('Environment', null=True)
@@ -2701,7 +2671,7 @@ class TemplateCombination(orm.Entity):
         server_modes = ('sat')
 
 
-class TemplateKind(orm.Entity, orm.EntityReadMixin):
+class TemplateKind(Entity, EntityReadMixin):
     """A representation of a Template Kind entity.
 
     Unusually, the ``/api/v2/template_kinds/:id`` path is totally unsupported.
@@ -2716,8 +2686,7 @@ class TemplateKind(orm.Entity, orm.EntityReadMixin):
 
 
 class UserGroup(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a User Group entity."""
     admin = entity_fields.BooleanField()
     name = entity_fields.StringField(required=True)
@@ -2763,8 +2732,7 @@ class UserGroup(
 
 
 class User(
-        orm.Entity, orm.EntityReadMixin, orm.EntityDeleteMixin,
-        orm.EntityCreateMixin):
+        Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a User entity.
 
     The LDAP authentication source with an ID of 1 is internal. It is nearly

@@ -1006,8 +1006,7 @@ class TestSmoke(TestCase):
         """Performs a GET ``api/v2/<entity>`` and specify the ``search``
         parameter.
 
-        :param robottelo.orm.Entity entity: A logical representation of a
-            Foreman entity.
+        :param entity: A ``nailgun.entity_mixins.Entity`` object.
         :param string query: A ``search`` parameter.
         :param tuple auth: A ``tuple`` containing the credentials to be used
             for authentication when accessing the API. If ``None``,

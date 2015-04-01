@@ -648,8 +648,8 @@ class DoubleCheckTestCase(APITestCase):
 @ddt
 class EntityReadTestCase(APITestCase):
     """
-    Check that classes inheriting from :class:`robottelo.orm.EntityReadMixin`
-    function correctly.
+    Check that classes inheriting from
+    ``nailgun.entity_mixins.EntityReadMixin`` function correctly.
     """
 
     # ComputeResource entities cannot be reliably read because, depending upon
@@ -687,7 +687,7 @@ class EntityReadTestCase(APITestCase):
     )
     def test_entity_read(self, entity_cls):
         """@Test: Create an entity and get it using
-        :meth:`robottelo.orm.EntityReadMixin.read`.
+        ``nailgun.entity_mixins.EntityReadMixin.read``.
 
         @Feature: Test multiple API paths
 
@@ -718,7 +718,7 @@ class EntityReadTestCase(APITestCase):
 
     def test_syncplan_read(self):
         """@Test: Create a SyncPlan and read it back using
-        :meth:`robottelo.orm.EntityReadMixin.read`.
+        ``nailgun.entity_mixins.EntityReadMixin.read``.
 
         @Feature: Test multiple API paths.
 
@@ -737,7 +737,7 @@ class EntityReadTestCase(APITestCase):
     @run_only_on('sat')
     def test_osparameter_read(self):
         """@Test: Create an OperatingSystemParameter and get it using
-        :meth:`robottelo.orm.EntityReadMixin.read`.
+        ``nailgun.entity_mixins.EntityReadMixin.read``.
 
         @Feature: Test multiple API paths
 
@@ -759,7 +759,7 @@ class EntityReadTestCase(APITestCase):
     @run_only_on('sat')
     def test_permission_read(self):
         """@Test: Create an Permission entity and get it using
-        :meth:`robottelo.orm.EntityReadMixin.read`.
+        ``nailgun.entity_mixins.EntityReadMixin.read``.
 
         @Feature: Test multiple API paths
 

@@ -1,17 +1,17 @@
 """Tests for :mod:`robottelo.entities`."""
-import mock
 from ddt import data, ddt, unpack
 from fauxfactory import gen_integer
 from nailgun import client, config
-from robottelo.common import conf
-from robottelo import entities, orm
+from nailgun.entity_mixins import NoSuchPathError
+from robottelo import entities
 from unittest import TestCase
+import mock
 # (Too many public methods) pylint: disable=R0904
 
 
 @ddt
 class PathTestCase(TestCase):
-    """Tests for methods which override :meth:`robottelo.orm.Entity.path`."""
+    """Tests for classes which extend ``nailgun.entity_mixins.Entity.path``."""
     longMessage = True
 
     def setUp(self):  # pylint:disable=C0103
@@ -20,11 +20,16 @@ class PathTestCase(TestCase):
         self.id_ = gen_integer(min_value=1)
 
     @data(
+        (entities.AbstractDockerContainer, '/containers'),
         (entities.ActivationKey, '/activation_keys'),
+        (entities.ConfigTemplate, '/config_templates'),
         (entities.ContentView, '/content_views'),
         (entities.ContentViewVersion, '/content_view_versions'),
-        (entities.Repository, '/repositories'),
+        (entities.ForemanTask, '/tasks'),
         (entities.Organization, '/organizations'),
+        (entities.Product, '/products'),
+        (entities.Repository, '/repositories'),
+        (entities.System, '/systems'),
     )
     @unpack
     def test_path_without_which(self, entity, path):
@@ -34,11 +39,13 @@ class PathTestCase(TestCase):
         is omitted, regardless of whether an entity ID is provided.
 
         """
-        self.assertIn(path, entity(self.server_config).path(), entity)
+        # There is no API path for all foreman tasks.
+        if entity != entities.ForemanTask:
+            self.assertIn(path, entity(self.server_config).path(), entity)
         self.assertIn(
             '{0}/{1}'.format(path, self.id_),
             entity(self.server_config, id=self.id_).path(),
-            entity.__name__,
+            entity
         )
 
     @data(
@@ -127,10 +134,10 @@ class PathTestCase(TestCase):
     def test_no_such_path(self, entity, path):
         """Test what happens when no entity ID is provided and ``which=path``.
 
-        Assert that :class:`robottelo.orm.NoSuchPathError` is raised.
+        Assert that ``nailgun.entity_mixins.NoSuchPathError`` is raised.
 
         """
-        with self.assertRaises(orm.NoSuchPathError):
+        with self.assertRaises(NoSuchPathError):
             entity(self.server_config).path(which=path)
 
     def test_foremantask_path(self):
