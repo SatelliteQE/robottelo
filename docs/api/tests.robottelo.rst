@@ -25,11 +25,6 @@ Submodules:
 
 .. automodule:: tests.robottelo.test_helpers
 
-:mod:`tests.robottelo.test_orm`
--------------------------------
-
-.. automodule:: tests.robottelo.test_orm
-
 :mod:`tests.robottelo.test_robottelo_api_inspect`
 -------------------------------------------------
 

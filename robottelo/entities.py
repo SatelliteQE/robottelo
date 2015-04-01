@@ -844,7 +844,7 @@ class ContentView(
     def set_repository_ids(self, repo_ids):
         """Give this content view some repositories.
 
-        :param list repo_ids: A list of repository IDs.
+        :param repo_ids: A list of repository IDs.
         :rtype: dict
         :returns: The server's response, with all JSON decoded.
 
@@ -1256,7 +1256,8 @@ class Host(
                  |-> domain
                  '-> environment
 
-        :raises HostCreateMissingError: If any instance attributes are present.
+        :raises robottelo.entities.HostCreateMissingError: If any instance
+            attributes are present.
 
         """
         if len(self.get_values()) != 0:
@@ -1664,7 +1665,6 @@ class Organization(
         """List the organization's subscriptions.
 
         :returns: A list of available subscriptions.
-        :rtype: list
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If the response JSON could not be decoded.
@@ -1878,7 +1878,6 @@ class Permission(Entity, EntityReadMixin):
 
         :param int per_page: number of results per page to return
         :returns: A list of matching permissions.
-        :rtype: list
 
         """
         search_terms = {u'per_page': per_page}
@@ -2307,8 +2306,8 @@ class Repository(
             ``open('path', 'rb')``.
         :returns: The JSON-decoded response.
         :rtype: dict
-        :raises APIResponseError: If the response has a status other than
-            "success".
+        :raises robottelo.entities.APIResponseError: If the response has a
+            status other than "success".
 
         """
         response = client.post(
@@ -2521,7 +2520,7 @@ class SyncPlan(
             versions of Satellite. See:
             https://bugzilla.redhat.com/show_bug.cgi?id=1199150
 
-        :param list product_ids: IDs of products to add to this sync plan.
+        :param product_ids: A list of product IDs to add to this sync plan.
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
             ``True``. Immediately return the server's reponse otherwise.
@@ -2550,7 +2549,7 @@ class SyncPlan(
             versions of Satellite. See:
             https://bugzilla.redhat.com/show_bug.cgi?id=1199150
 
-        :param list product_ids: IDs of products to remove from this sync plan.
+        :param product_ids: A list of product IDs to remove from this syn plan.
         :param bool synchronous: What should happen if the server returns an
             HTTP 202 (accepted) status code? Wait for the task to complete if
             ``True``. Immediately return the server's reponse otherwise.

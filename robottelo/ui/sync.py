@@ -19,7 +19,7 @@ class Sync(Base):
         Asserts the sync of Repositories, loops over while cancel is visible,
         during the syncing process.
 
-        :param list repos: List of repositories names to assert sync status.
+        :param repos: A list of repositories names to assert sync status.
         :param str product: product is required only when syncing via
             repository page.
         :return: Returns True if sync is successful.
@@ -74,7 +74,7 @@ class Sync(Base):
         by first expanding the product.
 
         :param str product: The product which repositories belongs to.
-        :param list repos: The list of repositories to sync.
+        :param repos: The list of repositories to sync.
 
         """
         strategy, value = locators["sync.prd_expander"]
@@ -119,8 +119,8 @@ class Sync(Base):
                 })
             })})})
 
-        :param list repos: repos is a list of tuples.
-        :return: Returns list of dictionary.
+        :param repos: A list of tuples.
+        :returns: A list of dicts.
 
         """
         repos_tree = defaultdict(partial(defaultdict,

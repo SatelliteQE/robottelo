@@ -163,7 +163,7 @@ class UserRoleTestCase(APITestCase):
             searching for the permission with name ``perm_name``.
         :raises: ``requests.exceptions.HTTPError`` if an error occurs when
             updating ``self.user``'s roles.
-        :rtype: None
+        :returns: Nothing.
 
         """
         role_id = entities.Role().create()['id']

@@ -194,8 +194,7 @@ def generate_strings_list(len1=None, remove_str=None, bug_id=None):
     :param int len1: Specifies the length of the strings to be
         be generated. If the len1 is None then the list is
         returned with string types of random length.
-    :return: Returns a list of various string types.
-    :rtype: list
+    :returns: A list of various string types.
 
     """
     if len1 is None:
