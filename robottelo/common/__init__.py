@@ -139,4 +139,5 @@ def _configure_third_party_logging():
         logging.getLogger(logger).setLevel(logging.WARNING)
 
 
+#: A :class:`Configs` object.
 conf = Configs()

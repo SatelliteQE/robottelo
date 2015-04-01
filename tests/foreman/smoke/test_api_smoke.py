@@ -7,7 +7,11 @@ from robottelo.api.utils import status_code_error
 from robottelo.common.constants import (
     DEFAULT_LOC, DEFAULT_ORG, FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO)
 from robottelo.common.decorators import bz_bug_is_open, skip_if_bug_open
-from robottelo.common.helpers import get_distro_info, get_server_credentials
+from robottelo.common.helpers import (
+    get_distro_info,
+    get_nailgun_config,
+    get_server_credentials,
+)
 from robottelo.common import conf
 from robottelo.common import helpers
 from robottelo.common import manifests
@@ -836,7 +840,9 @@ class TestSmoke(TestCase):
         entities.User(admin=True, login=login, password=password).create()
 
         # step 2.1: Create a new organization
-        org = entities.Organization().create(auth=(login, password))
+        server_config = get_nailgun_config()
+        server_config.auth = (login, password)
+        org = entities.Organization(server_config).create()
 
         # step 2.2: Create 2 new lifecycle environments
         le1 = entities.LifecycleEnvironment(organization=org['id']).create()
@@ -864,22 +870,20 @@ class TestSmoke(TestCase):
         for repo in [repo1, repo2]:
             response = client.post(
                 entities.Repository(id=repo['id']).path('sync'),
-                {
-                    u'ids': [repo['id']],
-                    u'organization_id': org['id']
-                },
+                {u'ids': [repo['id']], u'organization_id': org['id']},
                 auth=get_server_credentials(),
                 verify=False,
             ).json()
             self.assertGreater(
                 len(response['id']),
                 1,
-                u"Was not able to fetch a task ID.")
+                u'Was not able to fetch a task ID.')
             task_status = entities.ForemanTask(id=response['id']).poll()
             self.assertEqual(
                 task_status['result'],
                 u'success',
-                u"Sync for repository {0} failed.".format(repo['name']))
+                u'Sync for repository {0} failed.'.format(repo['name'])
+            )
 
         # step 2.7: Create content view
         content_view = entities.ContentView(organization=org['id']).create()
@@ -887,14 +891,16 @@ class TestSmoke(TestCase):
         # step 2.8: Associate YUM repository to new content view
         response = client.put(
             entities.ContentView(id=content_view['id']).path(),
+            {u'repository_ids': [repo1['id']]},
             auth=get_server_credentials(),
             verify=False,
-            data={u'repository_ids': [repo1['id']]})
+        )
 
         # Fetch all available puppet modules
         puppet_mods = client.get(
             entities.ContentView(id=content_view['id']).path(
-                'available_puppet_module_names'),
+                'available_puppet_module_names'
+            ),
             auth=get_server_credentials(),
             verify=False).json()
         self.assertGreater(
@@ -909,9 +915,10 @@ class TestSmoke(TestCase):
             'content_view_puppet_modules')
         response = client.post(
             path,
+            {u'name': puppet_mod['module_name']},
             auth=get_server_credentials(),
             verify=False,
-            data={u'name': puppet_mod['module_name']})
+        )
         self.assertEqual(
             response.status_code,
             httplib.OK,

@@ -9,7 +9,7 @@ from robottelo import entities
 from robottelo.common import conf
 from robottelo.common.decorators import (
     bz_bug_is_open, run_only_on, skip_if_bug_open)
-from robottelo.common.helpers import get_server_credentials
+from robottelo.common.helpers import get_nailgun_config, get_server_credentials
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
@@ -53,7 +53,7 @@ def _get_readable_attributes(entity):
     the server will return.
 
     """
-    attributes = vars(entity).copy()
+    attributes = entity.get_values()
 
     # Drop sensitive attributes.
     if isinstance(entity, entities.Host):
@@ -298,9 +298,11 @@ class EntityTestCase(APITestCase):
         """
         logger.debug('test_post_unauthorized arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
+        server_cfg = get_nailgun_config()
+        server_cfg.auth = ()
         self.assertEqual(
             httplib.UNAUTHORIZED,
-            entity_cls().create_raw(auth=(), create_missing=False).status_code
+            entity_cls(server_cfg).create_raw(create_missing=False).status_code
         )
 
 
