@@ -128,11 +128,6 @@
 
 .. automodule:: tests.foreman.api.test_subscription
 
-:mod:`tests.foreman.api.test_system`
-------------------------------------
-
-.. automodule:: tests.foreman.api.test_system
-
 :mod:`tests.foreman.api.test_user`
 ----------------------------------
 

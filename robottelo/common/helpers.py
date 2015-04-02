@@ -13,8 +13,8 @@ from automation_tools import distro_info
 from fabric.api import execute, settings
 from fauxfactory import gen_string, gen_integer
 from itertools import izip
+from nailgun import entity_mixins
 from nailgun.config import ServerConfig
-from robottelo import orm
 from robottelo.common import conf
 from robottelo.common.decorators import bz_bug_is_open
 from urllib2 import urlopen, Request, URLError
@@ -194,8 +194,7 @@ def generate_strings_list(len1=None, remove_str=None, bug_id=None):
     :param int len1: Specifies the length of the strings to be
         be generated. If the len1 is None then the list is
         returned with string types of random length.
-    :return: Returns a list of various string types.
-    :rtype: list
+    :returns: A list of various string types.
 
     """
     if len1 is None:
@@ -394,25 +393,26 @@ def read_data_file(filename):
 
 
 def configure_entities():
-    """Set :data:`robottelo.orm.DEFAULT_SERVER_CONFIG`.
+    """Set ``nailgun.entity_mixins.DEFAULT_SERVER_CONFIG``.
 
-    Set :data:`robottelo.orm.DEFAULT_SERVER_CONFIG` to whatever is returned by
-    :meth:`robottelo.common.helpers.get_nailgun_config`. See
-    :class:`robottelo.orm.Entity` for more information on the effects of this.
+    Set ``nailgun.entity_mixins.DEFAULT_SERVER_CONFIG`` to whatever is returned
+    by :meth:`robottelo.common.helpers.get_nailgun_config`. See
+    ``robottelo.entity_mixins.Entity`` for more information on the effects of
+    this.
 
-    Emit a warning and do not set ``robottelo.orm.Entity._server_config`` if no
-    ``robottelo.properties`` configuration file is available.
+    Emit a warning and do not set anything if no ``robottelo.properties``
+    configuration file is available.
 
     """
     try:
-        orm.DEFAULT_SERVER_CONFIG = get_nailgun_config()
+        entity_mixins.DEFAULT_SERVER_CONFIG = get_nailgun_config()
     except KeyError:
         LOGGER.warn(
             'No `robottelo.properties` configuration file is present. Class '
-            '`robottelo.orm.Entity` (and, therefore, its subclasses) will not '
-            'be given a default NailGun server configuration. You can go '
-            'ahead and use the entity classes anyway if you pass in a '
+            '`nailgun.entity_mixins.Entity` (and, therefore, its subclasses) '
+            'will not be given a default NailGun server configuration. You '
+            'can go ahead and use the entity classes anyway if you pass in a '
             '`server_config` each time you instantiate an entity, you set '
-            '`robottelo.orm.DEFAULT_SERVER_CONFIG`, or you create a NailGun '
-            'configuration profile labeled "default".'
+            '`nailgun.entity_mixins.DEFAULT_SERVER_CONFIG`, or you create a '
+            'NailGun configuration profile labeled "default".'
         )

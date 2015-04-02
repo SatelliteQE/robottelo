@@ -105,7 +105,7 @@ def _permission_name(entity, which_perm):
     'view_architectures' if ``entity`` is ``Architecture`` and ``which_perm``
     is 'read'.
 
-    :param robottelo.orm.Entity entity: An ``Entity`` subclass.
+    :param entity: A ``nailgun.entity_mixins.Entity`` subclass.
     :param str which_perm: Either the word "create", "read", "update" or
         "delete".
     :raise: ``LookupError`` if a relevant permission cannot be found, or if
@@ -163,7 +163,7 @@ class UserRoleTestCase(APITestCase):
             searching for the permission with name ``perm_name``.
         :raises: ``requests.exceptions.HTTPError`` if an error occurs when
             updating ``self.user``'s roles.
-        :rtype: None
+        :returns: Nothing.
 
         """
         role_id = entities.Role().create()['id']

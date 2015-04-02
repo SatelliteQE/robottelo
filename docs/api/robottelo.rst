@@ -21,12 +21,6 @@ Submodules:
 
 .. automodule:: robottelo.log
 
-:mod:`robottelo.orm`
---------------------
-
-.. automodule:: robottelo.orm
-    :private-members:
-
 :mod:`robottelo.test`
 ---------------------
 

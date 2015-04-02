@@ -41,7 +41,7 @@ class Configs(object):
     def log_properties(self):
         """Print config options to the logging file.
 
-        :rtype: None
+        :returns: Nothing is returned.
 
         """
         keylist = self.properties.keys()
@@ -89,7 +89,7 @@ def _configure_logging(verbosity=2):
 
     :param int verbosity: Useful values are in the range 1-5 inclusive, and
         higher numbers produce more verbose logging.
-    :rtype: None
+    :returns: Nothing is returned.
 
     """
     try:
@@ -123,7 +123,7 @@ def _configure_logging(verbosity=2):
 def _configure_third_party_logging():
     """Increase the level of third party packages logging
 
-    :rtype: None
+    :returns: Nothing is returned.
 
     """
     loggers = (

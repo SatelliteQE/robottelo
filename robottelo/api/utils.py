@@ -18,7 +18,6 @@ def get_errata(repository_id):
 
     :param int repository_id: A repository ID.
     :return: That repository's errata.
-    :rtype: list
     :raises robottelo.api.utils.RepositoryErrataException: If an error occurs
         while fetching the requested repository's errata.
 
@@ -45,7 +44,6 @@ def get_packages(repository_id):
 
     :param int repository_id: A repository ID.
     :return: That repository's packages.
-    :rtype: list
     :raises robottelo.api.utils.RepositoryPackagesException: If an error occurs
         while fetching the requested repository's packages.
 

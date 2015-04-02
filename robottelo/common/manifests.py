@@ -135,7 +135,7 @@ def edit_consumer(data):
 
     :param str data: Takes in the consumer file name.
     :return: returns the json with new UUID.
-    :rtype: string
+    :rtype: str
 
     """
     content_dict = json.loads(data)
@@ -154,7 +154,7 @@ def clone(key_path=None, old_path=None):
     :param str key_path: This is the private-key to sign the redhat-manifest.
     :param str old_path: This is the path of the original redhat-manifest.
     :return: Return the path to the cloned redhat-manifest file.
-    :rtype: string
+    :rtype: str
 
     """
     tempdir = tempfile.mkdtemp()

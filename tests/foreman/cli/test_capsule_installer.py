@@ -65,6 +65,7 @@ class TestCapsuleInstaller(CLITestCase):
         @Feature: Capsule Installer
 
         @Steps:
+
         1. attempt to provide a variety of invalid parameters
            to installer (strings, numerics, whitespace, etc.)
 
