@@ -53,12 +53,16 @@ class TestSubscription(CLITestCase):
             len(result.stderr), 0,
             "There should not be an exception while listing the manifest.")
 
+    @skip_if_bug_open('bugzilla', 1207501)
     def test_manifest_delete(self):
         """@Test: Delete uploaded manifest (positive)
 
         @Feature: Subscriptions/Manifest Delete
 
         @Assert: Manifest are deleted properly
+
+        @BZ: 1207501
+
         """
 
         upload_file(self.manifest, remote_file=self.manifest)
@@ -203,6 +207,8 @@ class TestSubscription(CLITestCase):
         @Feature: Subscriptions/Manifest refresh
 
         @Assert: Manifests can be refreshed
+
+        @BZ 1147559
 
         """
         upload_file(self.manifest, remote_file=self.manifest)

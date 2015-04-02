@@ -922,8 +922,11 @@ class User(CLITestCase):
 
         # Update the mail
         email = '{0}@example.com'.format(test_data)
-        result = UserObj().update({'id': new_obj['id'],
-                                   'mail': email})
+        result = UserObj().update({
+            'id': new_obj['id'],
+            # escape ` to avoid bash syntax error
+            'mail': email.replace('`', r'\`'),
+        })
         self.assertEqual(result.return_code, 0)
         self.assertEqual(
             len(result.stderr), 0, "There should not be an error here")

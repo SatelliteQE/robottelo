@@ -246,31 +246,20 @@ class TestRepository(CLITestCase):
         @BZ: 1103944
 
         """
-
-        # Make a new gpg key
         new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
-
         new_repo = self._make_repository({
             u'name': name,
             u'gpg-key': new_gpg_key['name'],
         })
 
-        # Fetch it again
-        result = Repository.info({'id': new_repo['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
         # Assert that data matches data passed
         self.assertEqual(
-            result.stdout['gpg-key']['id'],
+            new_repo['gpg-key']['id'],
             new_gpg_key['id'],
             "GPG Keys ID don't match"
         )
         self.assertEqual(
-            result.stdout['gpg-key']['name'],
+            new_repo['gpg-key']['name'],
             new_gpg_key['name'],
             "GPG Keys name don't match"
         )
@@ -573,7 +562,7 @@ class TestRepository(CLITestCase):
 
         """
 
-    @skip_if_bug_open('bugzilla', 1155237)
+    @skip_if_bug_open('bugzilla', 1208305)
     @run_only_on('sat')
     @data(
         u'sha1',
@@ -587,7 +576,7 @@ class TestRepository(CLITestCase):
         @Assert: A YUM repository is updated and contains the correct checksum
         type
 
-        @BZ: 1155237
+        @BZ: 1208305
 
         """
         content_type = u'yum'
