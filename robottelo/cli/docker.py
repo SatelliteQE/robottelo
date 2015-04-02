@@ -29,7 +29,7 @@ class DockerContainer(Base):
         stop                          Power a container off
 
     """
-    command_base = 'docker image'
+    command_base = 'docker container'
 
     @classmethod
     def create(cls, options=None):
@@ -47,18 +47,14 @@ class DockerContainer(Base):
                                                       yes/no, 1/0.
             --attach-stdout ATTACH_STDOUT             One of true/false,
                                                       yes/no, 1/0.
-            --cmd CMD
+            --capsule CAPSULE_NAME                    Name to search by
+            --capsule-id CAPSULE_ID                   Id of the capsule
+            --command COMMAND
             --compute-resource COMPUTE_RESOURCE_NAME  Compute resource name
             --compute-resource-id COMPUTE_RESOURCE_ID
             --cpu-sets CPU_SETS
             --cpu-shares CPU_SHARES
             --entrypoint ENTRYPOINT
-            --image IMAGE                             Image to use to create
-                                                      the container. Format
-                                                      should be repository:tag,
-                                                      e.g: centos:7
-            --katello KATELLO                         One of true/false,
-                                                      yes/no, 1/0.
             --location-ids LOCATION_IDS               REPLACE locations with
                                                       given ids. Comma
                                                       separated list of values.
@@ -67,13 +63,18 @@ class DockerContainer(Base):
             --memory MEMORY
             --name NAME
             --organization-ids ORGANIZATION_IDS       REPLACE organizations
-                                                      with given ids. Comma
+                                                      with given ids.  Comma
                                                       separated list of values.
             --organizations ORGANIZATION_NAMES        Comma separated list of
                                                       values.
             --registry-id REGISTRY_ID                 Registry this container
                                                       will have to use to get
                                                       the image
+            --repository-name REPOSITORY_NAME         Name of the repository to
+                                                      use to create the
+                                                      container. e.g: centos
+            --tag TAG                                 Tag to use to create the
+                                                      container. e.g: latest
             --tty TTY                                 One of true/false,
                                                       yes/no, 1/0.
 
@@ -117,7 +118,7 @@ class DockerContainer(Base):
         return super(DockerContainer, cls).info(options)
 
     @classmethod
-    def list(cls, options=None):
+    def list(cls, options=None, per_page=True):
         """Lists docker containers
 
         Usage::
