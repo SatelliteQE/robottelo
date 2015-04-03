@@ -6,7 +6,7 @@
 from fauxfactory import gen_string
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.environment import Environment
-from robottelo.cli.factory import make_environment
+from robottelo.cli.factory import make_environment, make_location, make_org
 from robottelo.common.decorators import run_only_on, data
 from robottelo.test import MetaCLITestCase
 
@@ -82,6 +82,46 @@ class TestEnvironment(MetaCLITestCase):
         result = Environment().list({'search': name})
         self.assertTrue(len(result.stdout) == 1,
                         "Environment list - stdout contains 'Name'")
+
+    def test_create_environment_with_location(self):
+        """@Test: Check if Environment with Location can be created
+
+        @Feature: Environment - Create
+
+        @Assert: Environment is created and has new Location assigned
+
+        """
+        name = gen_string("alpha", 10)
+        try:
+            new_loc = make_location()
+            new_environment = make_environment({
+                'name': name,
+                'location-ids': new_loc["id"],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertIn(new_loc['name'], new_environment['locations'])
+
+    def test_create_environment_with_organization(self):
+        """@Test: Check if Environment with Organization can be created
+
+        @Feature: Environment - Create
+
+        @Assert: Environment is created and has new Organization assigned
+
+        """
+        name = gen_string("alpha", 10)
+        try:
+            new_org = make_org()
+            new_environment = make_environment({
+                'name': name,
+                'organization-ids': new_org["id"],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertIn(new_org['name'], new_environment['organizations'])
 
     def test_delete(self):
         """@Test: Delete the environment
