@@ -3,7 +3,13 @@
 """Test class for Template CLI"""
 
 from fauxfactory import gen_string
-from robottelo.cli.factory import CLIFactoryError, make_template, make_os
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_location,
+    make_org,
+    make_os,
+    make_template
+)
 from robottelo.cli.template import Template
 from robottelo.common.decorators import run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
@@ -73,6 +79,58 @@ class TestTemplate(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(updated_name, result.stdout['name'])
+
+    def test_create_template_with_location(self):
+        """@Test: Check if Template with Location can be created
+
+        @Feature: Template - Create
+
+        @Assert: Template is created and new Location has been assigned
+
+        """
+        try:
+            new_loc = make_location()
+            new_template = make_template({
+                'name': gen_string('alpha', 10),
+                'location-ids': new_loc['id'],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertIn(new_loc['name'], new_template['locations'])
+
+    def test_create_template_locked(self):
+        """@Test: Check that locked Template cannot be created
+
+        @Feature: Template - Create
+
+        @Assert: It is not allowed to create locked Template
+
+        """
+        with self.assertRaises(CLIFactoryError):
+            make_template({
+                'name': gen_string('alpha', 10),
+                'locked': 'true',
+            })
+
+    def test_create_template_with_organization(self):
+        """@Test: Check if Template with Organization can be created
+
+        @Feature: Template - Create
+
+        @Assert: Template is created and new Organization has been assigned
+
+        """
+        try:
+            new_org = make_org()
+            new_template = make_template({
+                'name': gen_string('alpha', 10),
+                'organization-ids': new_org['id'],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertIn(new_org['name'], new_template['organizations'])
 
     def test_add_operating_system_1(self):
         """@Test: Check if Template can be assigned operating system
