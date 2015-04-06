@@ -7,7 +7,7 @@ from fauxfactory import gen_string, gen_alphanumeric
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.test import CLITestCase
 from robottelo.common.decorators import data, run_only_on
-from robottelo.cli.factory import make_medium, make_os
+from robottelo.cli.factory import make_location, make_medium, make_org, make_os
 from robottelo.cli.medium import Medium
 
 
@@ -53,6 +53,52 @@ class TestMedium(CLITestCase):
             len(result.stdout), 0, "Failed to fetch medium")
         self.assertEqual(new_obj['name'],
                          result.stdout['name'])
+
+    def test_create_medium_with_location(self):
+        """@Test: Check if medium with location can be created
+
+        @Feature: Medium - Positive create
+
+        @Assert: Medium is created and has new location assigned
+
+        """
+        try:
+            location = make_location()
+            medium = make_medium({
+                'name': gen_string("alpha", 10),
+                'location-ids': location['id']
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertIn(
+            location['name'],
+            medium['locations'],
+            "Location wasn't assigned to medium"
+        )
+
+    def test_create_medium_with_organization(self):
+        """@Test: Check if medium with organization can be created
+
+        @Feature: Medium - Positive create
+
+        @Assert: Medium is created and has new organization assigned
+
+        """
+        try:
+            org = make_org()
+            medium = make_medium({
+                'name': gen_string("alpha", 10),
+                'organization-ids': org['id']
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertIn(
+            org['name'],
+            medium['organizations'],
+            "Organization wasn't assigned to medium"
+        )
 
     @data({'name': gen_string("latin1", 10)},
           {'name': gen_string("utf8", 10)},
