@@ -2752,7 +2752,9 @@ class User(
     default_organization = entity_fields.OneToOneField('Organization', null=True)
     firstname = entity_fields.StringField(null=True, length=(1, 50))
     lastname = entity_fields.StringField(null=True, length=(1, 50))
+    location = entity_fields.OneToManyField('Location', null=True)
     mail = entity_fields.EmailField(required=True)
+    organization = entity_fields.OneToManyField('Organization', null=True)
     password = entity_fields.StringField(required=True)
 
     def __init__(self, server_config=None, **kwargs):
