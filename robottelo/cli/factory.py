@@ -1462,9 +1462,14 @@ def make_lifecycle_environment(options=None):
         -h, --help                  print help
 
     """
-    # Organization ID is required
-    if not options or not options.get('organization-id', None):
-        raise CLIFactoryError('Please provide a valid ORG ID.')
+    # Organization Name, Label or ID is a required field.
+    if (
+            not options or
+            'organization' not in options and
+            'organization-label' not in options and
+            'organization-id' not in options):
+        raise CLIFactoryError('Please provide a valid Organization.')
+
     if not options.get('prior', None):
         options['prior'] = 'Library'
 

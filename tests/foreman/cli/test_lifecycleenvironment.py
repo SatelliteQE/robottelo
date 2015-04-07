@@ -200,6 +200,78 @@ class TestLifeCycleEnvironment(CLITestCase):
         )
 
     @data(
+        {'label': gen_string("alpha", 15)},
+        {'label': gen_string("alphanumeric", 15)},
+        {'label': gen_string("numeric", 15)},
+    )
+    def test_create_lifecycle_environment_by_label(self, test_data):
+        """@Test: Create lifecycle environment with valid name and label
+
+        @Feature: Lifecycle Environment
+
+        @Assert: Lifecycle environment with label is created
+
+        """
+        try:
+            new_le = make_lifecycle_environment({
+                'organization-id': self.org['id'],
+                'name': test_data['label'],
+                'label': test_data['label'],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertEqual(
+            new_le['label'],
+            test_data['label'],
+            "Incorrect label was set"
+        )
+
+    def test_create_lifecycle_environment_by_organization_name(self):
+        """@Test: Create lifecycle environment, specifying organization name
+
+        @Feature: Lifecycle Environment
+
+        @Assert: Lifecycle environment is created for correct organization
+
+        """
+        try:
+            new_le = make_lifecycle_environment({
+                'organization': self.org['name'],
+                'name': gen_string('alpha', 10),
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertEqual(
+            new_le['organization'],
+            self.org['name'],
+            "Wrong organization was assigned by name"
+        )
+
+    def test_create_lifecycle_environment_by_organization_label(self):
+        """@Test: Create lifecycle environment, specifying organization name
+
+        @Feature: Lifecycle Environment
+
+        @Assert: Lifecycle environment is created for correct organization
+
+        """
+        try:
+            new_le = make_lifecycle_environment({
+                'organization-label': self.org['label'],
+                'name': gen_string('alpha', 10),
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        self.assertEqual(
+            new_le['organization'],
+            self.org['name'],
+            "Wrong organization was assigned by label"
+        )
+
+    @data(
         {'name': gen_string("alpha", 15)},
         {'name': gen_string("alphanumeric", 15)},
         {'name': gen_string("numeric", 15)},
