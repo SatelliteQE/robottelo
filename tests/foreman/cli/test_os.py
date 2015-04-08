@@ -152,12 +152,15 @@ class TestOperatingSystem(CLITestCase):
                          'OS major version was not updated')
 
     @skip_if_bug_open('bugzilla', 1203457)
+    @skip_if_bug_open('bugzilla', 1200116)
     def test_bugzilla_1203457(self):
         """@test: Create an OS pointing to an arch, medium and partition table.
 
         @feature: Operating System - Create
 
         @assert: An operating system is created.
+
+        @bz: 1203457, 1200116
 
         """
         architecture = make_architecture()

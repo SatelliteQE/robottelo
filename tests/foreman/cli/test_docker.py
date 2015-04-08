@@ -11,7 +11,12 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.repository import Repository
 from robottelo.common.constants import DOCKER_REGISTRY_HUB
-from robottelo.common.decorators import data, run_only_on, stubbed
+from robottelo.common.decorators import (
+    data,
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+)
 from robottelo.common.helpers import (
     get_external_docker_url,
     get_internal_docker_url,
@@ -27,12 +32,15 @@ INTERNAL_DOCKER_URL = get_internal_docker_url()
 class DockerImageTestCase(CLITestCase):
     """Tests related to docker image command"""
 
+    @skip_if_bug_open('bugzilla', 1205826)
     def test_bugzilla_1190122(self):
         """@Test: docker image displays tags information for a docker image
 
         @Feature: Docker
 
         @Assert: docker image displays tags information for a docker image
+
+        @BZ: 1205826
 
         """
         try:
