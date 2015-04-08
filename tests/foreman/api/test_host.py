@@ -115,6 +115,8 @@ class HostsTestCase(APITestCase):
         correct.
 
         """
+        if owner_type == 'Usergroup' and bz_bug_is_open(1210001):
+            self.skipTest('BZ 1210001: host update should block or yield task')
         host_id = entities.Host().create_json()['id']
         response = client.put(
             entities.Host(id=host_id).path(),
