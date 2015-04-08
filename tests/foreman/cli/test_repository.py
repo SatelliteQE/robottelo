@@ -66,6 +66,34 @@ class TestRepository(CLITestCase):
 
         return make_repository(options)
 
+    def test_bugzilla_1189289(self):
+        """@Test: Check if repository docker-upstream-name is shown
+        in repository info
+
+        @Feature: Repository
+
+        @Assert: repository info command returns upstream-repository-name
+        value
+
+        """
+        new_repo = self._make_repository({
+            u'name': gen_string('alpha', 10),
+            u'content-type': u'docker',
+            u'docker-upstream-name': u'fedora/rabbitmq',
+        })
+        result = Repository.info({'id': new_repo['id']})
+
+        self.assertIn(
+            u'upstream-repository-name',
+            result.stdout,
+            'upstream-repository-name parameter was not found in output'
+        )
+        self.assertEqual(
+            result.stdout['upstream-repository-name'],
+            u'fedora/rabbitmq',
+            'Wrong value of upstream-repository-name parameter'
+        )
+
     @run_only_on('sat')
     @data(
         gen_string('alpha', 15),
