@@ -1741,7 +1741,7 @@ class TestActivationKey(CLITestCase):
             result = ActivationKey.content_override({
                 u'id': self.pub_key['key_id'],
                 u'organization-id': self.pub_key['org_id'],
-                u'label': product_label,
+                u'content-label': product_label,
                 u'value': override_value,
             })
         except CLIFactoryError as err:
