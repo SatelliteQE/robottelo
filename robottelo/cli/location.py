@@ -1,7 +1,5 @@
 # -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
 # (Too many public methods) pylint: disable=R0904
-
 """
 Usage::
 
