@@ -59,11 +59,8 @@ class TestContentViewsUI(UITestCase):
             # Clone the manifest and fetch it's path.
             manifest_path = manifests.clone()
             # Uploads the manifest and returns the result.
-            task = entities.Organization(
-                id=org_id
-            ).upload_manifest(path=manifest_path)
-            self.assertEqual(
-                u'success', task['result'], task['humanized']['errors']
+            entities.Organization(id=org_id).upload_manifest(
+                path=manifest_path
             )
             # Enables the RedHat repo and fetches it's Id.
             repo_id = utils.enable_rhrepo_and_fetchid(
@@ -76,11 +73,7 @@ class TestContentViewsUI(UITestCase):
             repo_name = rh_repo['name']
 
         # Sync repository
-        task_result = entities.Repository(id=repo_id).sync()['result']
-        self.assertEqual(
-            task_result,
-            u'success',
-            u"Sync for repository {0} failed.".format(repo_name))
+        entities.Repository(id=repo_id).sync()
 
     @skip_if_bug_open('bugzilla', 1083086)
     @data(*valid_names_list())

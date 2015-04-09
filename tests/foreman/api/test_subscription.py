@@ -23,11 +23,8 @@ class SubscriptionsTestCase(APITestCase):
         """
         cloned_manifest_path = manifests.clone()
         org_id = entities.Organization().create()['id']
-        task = entities.Organization(id=org_id).upload_manifest(
+        entities.Organization(id=org_id).upload_manifest(
             path=cloned_manifest_path
-        )
-        self.assertEqual(
-            u'success', task['result'], task['humanized']['errors']
         )
 
     def test_positive_delete_1(self):
@@ -40,18 +37,10 @@ class SubscriptionsTestCase(APITestCase):
         """
         cloned_manifest_path = manifests.clone()
         org_id = entities.Organization().create()['id']
-        task = entities.Organization(
-            id=org_id
-        ).upload_manifest(path=cloned_manifest_path)
-        self.assertEqual(
-            u'success', task['result'], task['humanized']['errors']
+        entities.Organization(id=org_id).upload_manifest(
+            path=cloned_manifest_path
         )
-        task = entities.Organization(
-            id=org_id
-        ).delete_manifest()
-        self.assertEqual(
-            u'success', task['result'], task['humanized']['errors']
-        )
+        entities.Organization(id=org_id).delete_manifest()
 
     def test_negative_create_1(self):
         """@Test: Upload the same manifest to two organizations.
@@ -65,16 +54,10 @@ class SubscriptionsTestCase(APITestCase):
 
         # Upload the manifest to one organization.
         org_id = entities.Organization().create_json()['id']
-        task = entities.Organization(id=org_id).upload_manifest(manifest_path)
-        self.assertEqual(
-            'success', task['result'], task['humanized']['errors']
-        )
+        entities.Organization(id=org_id).upload_manifest(manifest_path)
 
         # Upload the manifest to a second organization.
         org = entities.Organization()
         org.id = org.create_json()['id']
-        self.assertNotEqual(
-            'success',
-            org.upload_manifest(manifest_path)['result']
-        )
+        org.upload_manifest(manifest_path)
         self.assertEqual([], org.subscriptions())

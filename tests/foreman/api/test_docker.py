@@ -80,19 +80,6 @@ def _add_content_view_to_composite_view(cv_id, cv_version_id):
     ).raise_for_status()
 
 
-def _publish_content_view(cv_id):
-    """Publishes an existing content view.
-
-    :param int cv_id: The ID for an existing content view.
-
-    :return: A boolean indicating whether the publication worked or not.
-
-    """
-    task_status = entities.ContentView(id=cv_id).publish()
-
-    return task_status['result'] == u'success'
-
-
 @ddt
 class DockerRepositoryTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
@@ -192,8 +179,7 @@ class DockerRepositoryTestCase(APITestCase):
         ).create_json()['id']
         repo_id = _create_repository(prod_id)['id']
 
-        task = entities.Repository(id=repo_id).sync()
-        self.assertEqual(u'success', task['result'], task)
+        entities.Repository(id=repo_id).sync()
         attrs = entities.Repository(id=repo_id).read_json()
         self.assertGreaterEqual(attrs[u'content_counts'][u'docker_image'], 1)
 
@@ -476,8 +462,7 @@ class DockerContentViewTestCase(APITestCase):
         ).create_json()['id']
         repo_id = _create_repository(prod_id)['id']
 
-        task = entities.Repository(id=repo_id).sync()
-        self.assertEqual(u'success', task['result'], task)
+        entities.Repository(id=repo_id).sync()
         attrs = entities.Repository(id=repo_id).read_json()
         self.assertGreaterEqual(attrs[u'content_counts'][u'docker_image'], 1)
 
@@ -524,7 +509,7 @@ class DockerContentViewTestCase(APITestCase):
         self.assertIn(repo_id, new_attrs['repository_ids'])
 
         # Publish it...
-        self.assertTrue(_publish_content_view(content_view['id']))
+        entities.ContentView(id=content_view['id']).publish()
         # ... and grab its version ID (there should only be one version)
         new_attrs = entities.ContentView(id=content_view['id']).read_json()
         version_id = new_attrs['versions'][0]['id']
@@ -575,7 +560,7 @@ class DockerContentViewTestCase(APITestCase):
             self.assertIn(repo_id, new_attrs['repository_ids'])
 
             # Publish it...
-            self.assertTrue(_publish_content_view(content_view['id']))
+            entities.ContentView(id=content_view['id']).publish()
             # ... and grab its version ID (there should only be one version)
             new_attrs = entities.ContentView(id=content_view['id']).read_json()
             cv_version_ids.append(new_attrs['versions'][0]['id'])
@@ -621,7 +606,7 @@ class DockerContentViewTestCase(APITestCase):
         self.assertEqual(new_attrs['next_version'], 1)
 
         # Publish it...
-        self.assertTrue(_publish_content_view(content_view['id']))
+        entities.ContentView(id=content_view['id']).publish()
         # ... and check that it was indeed published
         new_attrs = entities.ContentView(id=content_view['id']).read_json()
         self.assertIsNotNone(new_attrs['last_published'])
@@ -656,7 +641,7 @@ class DockerContentViewTestCase(APITestCase):
         self.assertEqual(new_attrs['next_version'], 1)
 
         # Publish it...
-        self.assertTrue(_publish_content_view(content_view['id']))
+        entities.ContentView(id=content_view['id']).publish()
         # ... and check that it was indeed published
         new_attrs = entities.ContentView(id=content_view['id']).read_json()
         version_id = new_attrs['versions'][0]['id']
@@ -674,7 +659,7 @@ class DockerContentViewTestCase(APITestCase):
             id=comp_content_view_id).read_json()
         self.assertIn(version_id, new_attrs['component_ids'])
         # ... publish it...
-        self.assertTrue(_publish_content_view(comp_content_view_id))
+        entities.ContentView(id=content_view['id']).publish()
         # ... and check that it was indeed published
         new_attrs = entities.ContentView(
             id=comp_content_view_id).read_json()

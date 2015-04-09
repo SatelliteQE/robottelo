@@ -40,11 +40,6 @@ Submodules:
 
 .. automodule:: tests.robottelo.test_ssh
 
-:mod:`tests.robottelo.test_tests_foreman`
------------------------------------------
-
-.. automodule:: tests.robottelo.test_tests_foreman
-
 :mod:`tests.robottelo.test_vm`
 -----------------------------------
 
