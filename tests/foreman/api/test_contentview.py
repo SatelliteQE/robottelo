@@ -112,6 +112,102 @@ class ContentViewTestCase(APITestCase):
         self.assertEqual(system_attrs['environment']['id'], lifecycle_env.id)
         self.assertEqual(system_attrs['organization_id'], org.id)
 
+    def test_cv_clone_within_same_env(self):
+        """@Test: attempt to create, publish and promote new content view
+        based on existing view within the same environment as the
+        original content view
+
+        @Feature: Content Views
+
+        @Assert: Cloned content view can be published and promoted
+        to the same environment as the original content view
+
+        """
+        org = entities.Organization()
+        org.id = org.create()['id']
+        lifecycle_env = entities.LifecycleEnvironment(organization=org.id)
+        lifecycle_env.id = lifecycle_env.create()['id']
+        content_view = entities.ContentView(organization=org.id)
+        content_view.id = content_view.create()['id']
+
+        response = content_view.publish()
+        humanized_errors = response['humanized']['errors']
+        _check_bz_1186432(humanized_errors)
+        self.assertEqual(response['result'], 'success', humanized_errors)
+
+        cvv = entities.ContentViewVersion(
+            id=content_view.read_json()['versions'][0]['id']
+        )
+        response = cvv.promote(lifecycle_env.id)
+        humanized_errors = response['humanized']['errors']
+        _check_bz_1186432(humanized_errors)
+        self.assertEqual(response['result'], 'success', humanized_errors)
+
+        response = content_view.copy(gen_string('alpha', gen_integer(3, 30)))
+        cv_cloned = entities.ContentView(id=response['id'])
+
+        response = cv_cloned.publish()
+        humanized_errors = response['humanized']['errors']
+        _check_bz_1186432(humanized_errors)
+        self.assertEqual(response['result'], 'success', humanized_errors)
+
+        cvv = entities.ContentViewVersion(
+            id=cv_cloned.read_json()['versions'][0]['id']
+        )
+        response = cvv.promote(lifecycle_env.id)
+        humanized_errors = response['humanized']['errors']
+        _check_bz_1186432(humanized_errors)
+        self.assertEqual(response['result'], 'success', humanized_errors)
+
+    def test_cv_clone_within_diff_env(self):
+        """@Test: attempt to create, publish and promote new content
+        view based on existing view but promoted to a
+        different environment
+
+        @Feature: Content Views
+
+        @Assert: Cloned content view can be published and promoted
+        to a different environment as the original content view
+
+        """
+        org = entities.Organization()
+        org.id = org.create()['id']
+        lifecycle_env = entities.LifecycleEnvironment(organization=org.id)
+        lifecycle_env.id = lifecycle_env.create()['id']
+        le_clone = entities.LifecycleEnvironment(organization=org.id)
+        le_clone.id = le_clone.create()['id']
+        content_view = entities.ContentView(organization=org.id)
+        content_view.id = content_view.create()['id']
+
+        response = content_view.publish()
+        humanized_errors = response['humanized']['errors']
+        _check_bz_1186432(humanized_errors)
+        self.assertEqual(response['result'], 'success', humanized_errors)
+
+        cvv = entities.ContentViewVersion(
+            id=content_view.read_json()['versions'][0]['id']
+        )
+        response = cvv.promote(lifecycle_env.id)
+        humanized_errors = response['humanized']['errors']
+        _check_bz_1186432(humanized_errors)
+        self.assertEqual(response['result'], 'success', humanized_errors)
+
+        response = content_view.copy(gen_string('alpha', gen_integer(3, 30)))
+        cv_cloned = entities.ContentView(id=response['id'])
+
+        response = cv_cloned.publish()
+        humanized_errors = response['humanized']['errors']
+        _check_bz_1186432(humanized_errors)
+        self.assertEqual(response['result'], 'success', humanized_errors)
+
+        cvv = entities.ContentViewVersion(
+            id=cv_cloned.read_json()['versions'][0]['id']
+        )
+        response = cvv.promote(le_clone.id)
+        humanized_errors = response['humanized']['errors']
+        _check_bz_1186432(humanized_errors)
+        self.assertEqual(response['result'], 'success', humanized_errors)
+
 
 @ddt
 class ContentViewCreateTestCase(APITestCase):
@@ -762,28 +858,6 @@ class ContentViewTestCaseStub(APITestCase):
         # Dev notes:
         # Similarly when I publish version y, version x goes away from
         # Library (ie when I publish version 2, version 1 disappears)
-
-    @stubbed()
-    def test_cv_clone_within_same_env(self):
-        """
-        @test: attempt to create new content view based on existing
-        view within environment
-        @feature: Content Views
-        @assert: Content view can be published
-        @status: Manual
-        """
-        # Dev note: "not implemented yet"
-
-    @stubbed()
-    def test_cv_clone_within_diff_env(self):
-        """
-        @test: attempt to create new content view based on existing
-        view, inside a different environment
-        @feature: Content Views
-        @assert: Content view can be published
-        @status: Manual
-        """
-        # Dev note: "not implemented yet"
 
     @stubbed()
     def test_cv_refresh_errata_to_new_view_in_same_env(self):
