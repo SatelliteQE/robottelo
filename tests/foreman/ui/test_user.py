@@ -64,8 +64,6 @@ class User(UITestCase):
             make_user(session, username=user_name)
             self.assertIsNotNone(self.user.search(user_name, search_key))
             self.user.delete(user_name, search_key, really=True)
-            self.assertIsNotNone(
-                self.user.wait_until_element(common_locators["notif.success"]))
             self.assertIsNone(self.user.search(user_name, search_key))
 
     @skip_if_bug_open('bugzilla', 1139616)

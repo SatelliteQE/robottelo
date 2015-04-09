@@ -547,7 +547,7 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_auth_param_19(self, test_data):
-        """@Test: Updates param "require_ssl_smart_proxies"
+        """@Test: Updates param "require_ssl_puppetmasters"
         under Auth tab
 
         @Feature: Settings - Update Parameters
@@ -557,7 +557,7 @@ class Settings(UITestCase):
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
-        param_name = "require_ssl_smart_proxies"
+        param_name = "require_ssl_puppetmasters"
         value_type = "dropdown"
         with Session(self.browser) as session:
             session.nav.go_to_settings()
@@ -578,7 +578,7 @@ class Settings(UITestCase):
     @data({u'param_value': "true"},
           {u'param_value': "false"})
     def test_positive_update_auth_param_20(self, test_data):
-        """@Test: Updates param "restrict_registered_smart_proxies"
+        """@Test: Updates param "restrict_registered_puppetmasters"
         under Auth tab
 
         @Feature: Settings - Update Parameters
@@ -588,7 +588,7 @@ class Settings(UITestCase):
         """
 
         tab_locator = tab_locators["settings.tab_auth"]
-        param_name = "restrict_registered_smart_proxies"
+        param_name = "restrict_registered_puppetmasters"
         value_type = "dropdown"
         with Session(self.browser) as session:
             session.nav.go_to_settings()

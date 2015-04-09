@@ -213,6 +213,7 @@ def make_repository(session, org=None, loc=None,
         u'url': None,
         u'repo_type': REPO_TYPE['yum'],
         u'repo_checksum': CHECKSUM_TYPE['default'],
+        u'upstream_repo_name': None,
     }
     page = session.nav.go_to_products
     core_factory(create_args, kwargs, session, page,

@@ -936,6 +936,7 @@ class GPGKeyProductAssociate(UITestCase):
             self.assertIsNotNone(self.gpgkey.assert_product_repo
                                  (new_name, product=False))
 
+    @skip_if_bug_open('bugzilla', 1210180)
     @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_11(self, name):
         """@test: Create gpg key with valid name and valid gpg key

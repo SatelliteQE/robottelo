@@ -1045,6 +1045,7 @@ locators = LocatorDict({
     "repo.new": (By.XPATH, "//button[contains(@ui-sref,'repositories.new')]"),
     "repo.type": (By.ID, "content_type"),
     "repo.url": (By.ID, "url"),
+    "repo.upstream_name": (By.ID, "docker_upstream_name"),
     "repo.checksum": (By.ID, "checksum_type"),
     "repo.via_http": (By.ID, "unprotected"),
     "repo.search": (By.XPATH, "//input[@ng-model='repositorySearch']"),
@@ -1336,7 +1337,7 @@ locators = LocatorDict({
     "content_env.edit_name": (
         By.XPATH,
         ("//form[@bst-edit-text='environment.name']"
-         "//i[contains(@class,'icon-edit')]")),
+         "//i[contains(@class,'fa-edit')]")),
     "content_env.edit_name_text": (
         By.XPATH,
         "//form[@bst-edit-text='environment.name']/div/input"),
@@ -1346,7 +1347,7 @@ locators = LocatorDict({
     "content_env.edit_description": (
         By.XPATH,
         ("//form[@bst-edit-textarea='environment.description']"
-         "//i[contains(@class,'icon-edit')]")),
+         "//i[contains(@class,'fa-edit')]")),
     "content_env.edit_description_textarea": (
         By.XPATH,
         ("//form[@bst-edit-textarea='environment.description']"
