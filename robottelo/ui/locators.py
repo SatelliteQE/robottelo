@@ -1092,12 +1092,12 @@ locators = LocatorDict({
         By.XPATH, "//input[@ng-model='repo.name']"),
     "repo.url_edit": (
         By.XPATH, ("//form[@bst-edit-text='repository.url']"
-                   "//i[contains(@class,'icon-edit')]")),
+                   "//i[contains(@class,'fa-edit')]")),
     "repo.url_update": (
         By.XPATH, "//form[@bst-edit-text='repository.url']/div/input"),
     "repo.via_http_edit": (
         By.XPATH, ("//form[@bst-edit-checkbox='repository.unprotected']"
-                   "//i[contains(@class,'icon-edit')]")),
+                   "//i[contains(@class,'fa-edit')]")),
     "repo.via_http_toggle": (
         By.XPATH, ("//form[@bst-edit-checkbox='repository.unprotected']"
                    "/div/input")),
@@ -1110,7 +1110,7 @@ locators = LocatorDict({
                    "//div/span")),
     "repo.checksum_edit": (
         By.XPATH, ("//form[@selector='repository.checksum_type']"
-                   "/div/div/span/i[contains(@class,'icon-edit')]")),
+                   "/div/div/span/i[contains(@class,'fa-edit')]")),
     "repo.checksum_update": (
         By.XPATH, ("//form[@selector='repository.checksum_type']/div/select")),
     "repo.fetch_url": (
