@@ -134,8 +134,9 @@ class Repos(UITestCase):
         @Assert: Docker-based repo is created.
 
         """
+        upstream_name = u'busybox'
+        repo_name = gen_string("alpha", 8)
         # Creates new product
-        repo_name = u'busybox'
         product_name = entities.Product(
             organization=self.org_id
         ).create()['name']
@@ -143,7 +144,8 @@ class Repos(UITestCase):
             make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
                             repo_type=REPO_TYPE['docker'],
-                            url=DOCKER_REGISTRY_HUB)
+                            url=DOCKER_REGISTRY_HUB,
+                            upstream_repo_name=upstream_name)
             self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
@@ -157,7 +159,8 @@ class Repos(UITestCase):
 
         """
         # Creates new product
-        repo_name = u'busybox'
+        upstream_name = u'busybox'
+        repo_name = gen_string("alpha", 8)
         product_name = entities.Product(
             organization=self.org_id
         ).create()['name']
@@ -165,7 +168,8 @@ class Repos(UITestCase):
             make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
                             repo_type=REPO_TYPE['docker'],
-                            url=DOCKER_REGISTRY_HUB)
+                            url=DOCKER_REGISTRY_HUB,
+                            upstream_repo_name=upstream_name)
             self.assertIsNotNone(self.repository.search(repo_name))
             # Synchronize it
             self.navigator.go_to_sync_status()

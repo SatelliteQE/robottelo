@@ -14,7 +14,7 @@ class Repos(Base):
     """
 
     def create(self, name, product=None, gpg_key=None, http=False, url=None,
-               repo_type=REPO_TYPE['yum'],
+               upstream_repo_name=None, repo_type=REPO_TYPE['yum'],
                repo_checksum=CHECKSUM_TYPE['default']):
         """
         Creates new repository from UI
@@ -40,6 +40,9 @@ class Repos(Base):
                 Select(type_ele).select_by_visible_text(gpg_key)
             if url:
                 self.text_field_update(locators["repo.url"], url)
+            if upstream_repo_name:
+                self.text_field_update(
+                    locators["repo.upstream_name"], upstream_repo_name)
             if http:
                 self.find_element(locators["repo.via_http"]).click()
             self.find_element(common_locators["create"]).click()
