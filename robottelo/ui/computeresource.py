@@ -1,6 +1,4 @@
 # -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
-
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select

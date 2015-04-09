@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
 """
 This module contains tests both for Foreman and Robottelo itself.
 

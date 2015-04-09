@@ -1,8 +1,5 @@
 # -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
-
 # pylint: disable=R0904
-
 """Test class for Content-Host CLI"""
 
 from ddt import ddt

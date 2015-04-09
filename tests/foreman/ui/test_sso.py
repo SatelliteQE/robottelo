@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
 """Test class for installer (UI)"""
 
 from robottelo.common.decorators import stubbed

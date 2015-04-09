@@ -1,6 +1,4 @@
 # -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
-
 """
 Generic base class for cli hammer commands
 """

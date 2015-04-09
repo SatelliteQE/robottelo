@@ -1,6 +1,4 @@
 # -*- encoding: utf-8 -*-
-# vim: ts=4 sw=4 expandtab ai
-
 """Test class for Partition Table UI"""
 from ddt import ddt
 from fauxfactory import gen_string
