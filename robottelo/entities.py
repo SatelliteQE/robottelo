@@ -1058,8 +1058,8 @@ class ForemanTask(Entity, EntityReadMixin):
             Defaults to ``nailgun.entity_mixins.TASK_TIMEOUT``.
         :returns: Information about the asynchronous task.
         :rtype: dict
-        :raises: ``nailgun.entity_mixins.TaskTimeout`` if the task is not
-            finished before the timeout is exceeded.
+        :raises: ``nailgun.entity_mixins.TaskTimedOutError`` if the task
+            completes with any result other than "success".
         :raises: ``nailgun.entity_mixins.TaskFailedError`` if the task finishes
             with any result other than "success".
         :raises: ``requests.exceptions.HTTPError`` If the API returns a message
@@ -1715,8 +1715,9 @@ class Organization(
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If the response JSON could not be decoded.
-        :raises: ``nailgun.entity_mixins.TaskTimeout`` if an HTTP 202 response is
-            received, ``synchronous is True`` and polling times out.
+        :raises: ``nailgun.entity_mixins.TaskTimedOutError`` if an HTTP 202
+            response is received, ``synchronous is True`` and the task
+            completes with any result other than "success".
         :rtype: dict
 
         """
@@ -1752,8 +1753,9 @@ class Organization(
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If the response JSON could not be decoded.
-        :raises: ``nailgun.entity_mixins.TaskTimeout`` if an HTTP 202 response
-            is received, ``synchronous is True`` and polling times out.
+        :raises: ``nailgun.entity_mixins.TaskTimedOutError`` if an HTTP 202
+            response is received, ``synchronous is True`` and the task
+            completes with any result other than "success".
         :rtype: dict
 
         """
@@ -1783,8 +1785,9 @@ class Organization(
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If the response JSON could not be decoded.
-        :raises: ``nailgun.entity_mixins.TaskTimeout`` if an HTTP 202 response
-            is received, ``synchronous is True`` and polling times out.
+        :raises: ``nailgun.entity_mixins.TaskTimedOutError`` if an HTTP 202
+            response is received, ``synchronous is True`` and the task
+            completes with any result other than "success".
         :rtype: dict
 
         """
