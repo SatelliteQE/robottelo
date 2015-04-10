@@ -1264,7 +1264,7 @@ locators = LocatorDict({
     "sp.name_edit": (
         By.XPATH,
         ("//form[@bst-edit-text='syncPlan.name']"
-         "//i[contains(@class,'icon-edit')]")),
+         "//i[contains(@class,'fa-edit')]")),
     "sp.name_update": (
         By.XPATH,
         ("//form[@bst-edit-text='syncPlan.name']"
@@ -1272,7 +1272,7 @@ locators = LocatorDict({
     "sp.desc_edit": (
         By.XPATH,
         ("//form[@bst-edit-textarea='syncPlan.description']"
-         "//i[contains(@class,'icon-edit')]")),
+         "//i[contains(@class,'fa-edit')]")),
     "sp.desc_update": (
         By.XPATH,
         ("//form[@bst-edit-textarea='syncPlan.description']"
@@ -1280,7 +1280,7 @@ locators = LocatorDict({
     "sp.sync_interval_edit": (
         By.XPATH,
         ("//form[@bst-edit-select='syncPlan.interval']"
-         "//i[contains(@class,'icon-edit')]")),
+         "//i[contains(@class,'fa-edit')]")),
     "sp.sync_interval_update": (
         By.XPATH,
         ("//form[@bst-edit-select='syncPlan.interval']"
