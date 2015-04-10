@@ -265,6 +265,25 @@ class OrganizationUpdateTestCase(APITestCase):
         self.assertEqual(1, len(new_attrs['users']))
         self.assertEqual(user_id, new_attrs['users'][0]['id'])
 
+    def test_associate_subnet_with_organization(self):
+        """@Test: Update an organization, associate subnet with it.
+
+        @Assert: Subnet is associated with organization.
+
+        @Feature: Organization
+
+        """
+        subnet_id = entities.Subnet().create_json()['id']
+        client.put(
+            self.organization.path(),
+            {'organization': {'subnet_ids': [subnet_id]}},
+            verify=False,
+            auth=get_server_credentials(),
+        ).raise_for_status()
+        new_attrs = self.organization.read_json()
+        self.assertEqual(1, len(new_attrs['subnets']))
+        self.assertEqual(subnet_id, new_attrs['subnets'][0]['id'])
+
     @ddt.data(
         {'name': gen_string(str_type='utf8', length=256)},
         {'label': gen_string(str_type='utf8')},  # Immutable. See BZ 1089996.
