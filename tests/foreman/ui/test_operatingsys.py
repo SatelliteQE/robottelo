@@ -20,6 +20,13 @@ from robottelo.ui.session import Session
 class OperatingSys(UITestCase):
     """Implements Operating system tests from UI"""
 
+    @classmethod
+    def setUpClass(cls):  # noqa
+        org_attrs = entities.Organization().create_json()
+        cls.org_name = org_attrs['name']
+        cls.org_id = org_attrs['id']
+        super(OperatingSys, cls).setUpClass()
+
     def test_create_os(self):
         """@Test: Create a new OS
 
@@ -344,9 +351,11 @@ class OperatingSys(UITestCase):
         entities.Media(
             name=medium_name,
             media_path=path,
-        ).create()
-        os_name = entities.OperatingSystem().create()['name']
-        with Session(self.browser):
+            organization=[self.org_id],
+        ).create_json()
+        os_name = entities.OperatingSystem().create_json()['name']
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
             self.operatingsys.update(os_name, new_mediums=[medium_name])
             result_obj = self.operatingsys.get_os_entities(os_name, "medium")
             self.assertEqual(medium_name, result_obj['medium'])

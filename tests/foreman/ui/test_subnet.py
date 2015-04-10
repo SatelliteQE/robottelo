@@ -18,6 +18,13 @@ from robottelo.ui.session import Session
 class Subnet(UITestCase):
     """Implements Subnet tests in UI"""
 
+    @classmethod
+    def setUpClass(cls):  # noqa
+        org_attrs = entities.Organization().create_json()
+        cls.org_name = org_attrs['name']
+        cls.org_id = org_attrs['id']
+        super(Subnet, cls).setUpClass()
+
     @data(*generate_strings_list(len1=8))
     def test_create_subnet_1(self, name):
         """@Test: Create new subnet
@@ -76,10 +83,13 @@ class Subnet(UITestCase):
         name = gen_string("alpha", 4)
         network = gen_ipaddr(ip3=True)
         mask = gen_netmask()
-        domain_name = entities.Domain().create()['name']
+        domain_name = entities.Domain(
+            organization=[self.org_id]
+        ).create_json()['name']
         with Session(self.browser) as session:
-            make_subnet(session, subnet_name=name, subnet_network=network,
-                        subnet_mask=mask, domains=[domain_name])
+            make_subnet(session, org=self.org_name, subnet_name=name,
+                        subnet_network=network, subnet_mask=mask,
+                        domains=[domain_name])
             self.assertIsNotNone(self.subnet.search_subnet(subnet_name=name))
             session.nav.search_entity(
                 name, locators['subnet.display_name']).click()

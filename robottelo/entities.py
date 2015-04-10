@@ -376,6 +376,7 @@ class ConfigTemplate(
     template_combinations = entity_fields.ListField(null=True)  # flake8:noqa pylint:disable=C0103
     template_kind = entity_fields.OneToOneField('TemplateKind', null=True)
     template = entity_fields.StringField(required=True)
+    organization = entity_fields.OneToManyField('Organization', null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1472,6 +1473,7 @@ class Media(
     media_path = entity_fields.URLField(required=True)
     name = entity_fields.StringField(required=True)
     operatingsystem = entity_fields.OneToManyField('OperatingSystem', null=True)
+    organization = entity_fields.OneToManyField('Organization', null=True)
     os_family = entity_fields.StringField(choices=(
         'AIX', 'Archlinux', 'Debian', 'Freebsd', 'Gentoo', 'Junos', 'Redhat',
         'Solaris', 'Suse', 'Windows',

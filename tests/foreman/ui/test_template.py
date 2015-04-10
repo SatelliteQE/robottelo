@@ -17,6 +17,13 @@ from robottelo.ui.session import Session
 class Template(UITestCase):
     """Implements Provisioning Template tests from UI"""
 
+    @classmethod
+    def setUpClass(cls):  # noqa
+        org_attrs = entities.Organization().create_json()
+        cls.org_name = org_attrs['name']
+        cls.org_id = org_attrs['id']
+        super(Template, cls).setUpClass()
+
     @data(*generate_strings_list(len1=8))
     def test_positive_create_template(self, name):
         """@Test: Create new template
@@ -172,11 +179,13 @@ class Template(UITestCase):
         @BZ: 1177756
 
         """
-        entities.ConfigTemplate(name=template_name).create_json()
-        with Session(self.browser):
+        entities.ConfigTemplate(
+            name=template_name, organization=[self.org_id]
+        ).create_json()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
             self.template.delete(template_name, True)
-            self.assertIsNotNone(self.template.wait_until_element
-                                 (common_locators["notif.success"]))
+            self.assertIsNone(self.template.search(template_name))
 
     def test_update_template(self):
         """@Test: Update template name and template type
