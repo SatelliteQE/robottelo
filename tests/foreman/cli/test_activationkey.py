@@ -1294,18 +1294,7 @@ class TestActivationKey(CLITestCase):
                 'another activation key: {0}'.format(err)
             )
 
-        result = ActivationKey.info({
-            u'id': new_activation_key['id'],
-        })
-        self.assertEqual(
-            result.return_code, 0,
-            'Failed to get info for activation key'
-        )
-        self.assertEqual(
-            len(result.stderr), 0,
-            'There should not be an error here'
-        )
-        self.assertEqual(result.stdout['name'], name)
+        self.assertEqual(new_activation_key['name'], name)
 
     @data(
         gen_string('alpha'),
@@ -1610,26 +1599,20 @@ class TestActivationKey(CLITestCase):
 
         """
         org_id = make_org(cached=True)['id']
-        key_id = make_activation_key(
-            {u'organization-id': org_id}, cached=True)['id']
-        try:
-            attach_value = ActivationKey.info({
-                u'id': key_id,
-                u'organization-id': org_id,
-            }).stdout['auto-attach']
-        except CLIFactoryError as err:
-            self.fail(err)
+        key = make_activation_key({u'organization-id': org_id}, cached=True)
+        attach_value = key['auto-attach']
+
         # invert value
         new_value = u'false' if attach_value == u'true' else u'true'
         try:
             result = ActivationKey.update({
                 u'auto-attach': new_value,
-                u'id': key_id,
+                u'id': key['id'],
                 u'organization-id': org_id,
             })
             self.assertEqual(result.return_code, 0)
             attach_value = ActivationKey.info({
-                u'id': key_id,
+                u'id': key['id'],
                 u'organization-id': org_id,
             }).stdout['auto-attach']
         except CLIFactoryError as err:

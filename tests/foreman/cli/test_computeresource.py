@@ -59,17 +59,16 @@ class TestComputeResource(CLITestCase):
         @Assert: Compute resource Info is displayed
 
         """
-        result_create = make_compute_resource({
+        name = gen_string('utf8')
+        compute_resource = make_compute_resource({
+            'name': name,
             'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': "qemu+tcp://%s:16509/system" %
-            conf.properties['main.server.hostname']})
-        self.assertTrue(result_create['name'],
-                        "ComputeResource create - has name")
-        result_info = ComputeResource.info({'name': result_create['name']})
-        self.assertEquals(result_info.return_code, 0,
-                          "ComputeResource info - exit code")
-        self.assertEquals(result_info.stdout['name'], result_create['name'],
-                          "ComputeResource info - check name")
+            'url': "qemu+tcp://{0}:16509/system".format(
+                conf.properties['main.server.hostname']
+            ),
+        })
+        # factory already runs info, just check the data
+        self.assertEquals(compute_resource['name'], name)
 
     def test_list(self):
         """@Test: Test Compute Resource List

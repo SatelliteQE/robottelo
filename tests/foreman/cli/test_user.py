@@ -103,11 +103,11 @@ class User(CLITestCase):
     # CRUD
 
     @data(
-        {'login': gen_string("latin1", 10)},
-        {'login': gen_string("utf8", 10)},
-        {'login': gen_string("alpha", 10)},
-        {'login': gen_string("alphanumeric", 10)},
-        {'login': gen_string("numeric", 10)},
+        {'login': gen_string("latin1")},
+        {'login': gen_string("utf8")},
+        {'login': gen_string("alpha")},
+        {'login': gen_string("alphanumeric")},
+        {'login': gen_string("numeric")},
         {'login': gen_string("alphanumeric", 100)}
     )
     def test_positive_create_user_1(self, data):
@@ -129,11 +129,11 @@ class User(CLITestCase):
         self.__assert_exists(args)
 
     @data(
-        {'firstname': gen_string("latin1", 10)},
-        {'firstname': gen_string("utf8", 10)},
-        {'firstname': gen_string("alpha", 10)},
-        {'firstname': gen_string("alphanumeric", 10)},
-        {'firstname': gen_string("numeric", 10)},
+        {'firstname': gen_string("latin1")},
+        {'firstname': gen_string("utf8")},
+        {'firstname': gen_string("alpha")},
+        {'firstname': gen_string("alphanumeric")},
+        {'firstname': gen_string("numeric")},
         {'firstname': gen_string("alphanumeric", 50)}
     )
     def test_positive_create_user_2(self, data):
@@ -155,11 +155,11 @@ class User(CLITestCase):
         self.__assert_exists(args)
 
     @data(
-        {'lastname': gen_string("latin1", 10)},
-        {'lastname': gen_string("utf8", 10)},
-        {'lastname': gen_string("alpha", 10)},
-        {'lastname': gen_string("alphanumeric", 10)},
-        {'lastname': gen_string("numeric", 10)},
+        {'lastname': gen_string("latin1")},
+        {'lastname': gen_string("utf8")},
+        {'lastname': gen_string("alpha")},
+        {'lastname': gen_string("alphanumeric")},
+        {'lastname': gen_string("numeric")},
         {'lastname': gen_string("alphanumeric", 50)}
     )
     def test_positive_create_user_3(self, data):
@@ -181,11 +181,11 @@ class User(CLITestCase):
         self.__assert_exists(args)
 
     @data(
-        u'{0}@example.com'.format(gen_string("latin1", 10)),
-        u'{0}@example.com'.format(gen_string("utf8", 10)),
-        u'{0}@example.com'.format(gen_string("alpha", 10)),
-        u'{0}@example.com'.format(gen_string("alphanumeric", 10)),
-        u'{0}@example.com'.format(gen_string("numeric", 10)),
+        u'{0}@example.com'.format(gen_string("latin1")),
+        u'{0}@example.com'.format(gen_string("utf8")),
+        u'{0}@example.com'.format(gen_string("alpha")),
+        u'{0}@example.com'.format(gen_string("alphanumeric")),
+        u'{0}@example.com'.format(gen_string("numeric")),
         u'{0}@example.com'.format(gen_string("alphanumeric", 48)),
         u'{0}+{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
         u'{0}.{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
@@ -209,11 +209,11 @@ class User(CLITestCase):
             self.fail(err)
         self.__assert_exists(args)
 
-    @data({'password': gen_string("latin1", 10)},
-          {'password': gen_string("utf8", 10)},
-          {'password': gen_string("alpha", 10)},
-          {'password': gen_string("alphanumeric", 10)},
-          {'password': gen_string("numeric", 10)},
+    @data({'password': gen_string("latin1")},
+          {'password': gen_string("utf8")},
+          {'password': gen_string("alpha")},
+          {'password': gen_string("alphanumeric")},
+          {'password': gen_string("numeric")},
           {'password': gen_string("alphanumeric", 3000)})
     def test_positive_create_user_5(self, data):
         """@Test: Create User for all variations of Password
@@ -560,9 +560,9 @@ class User(CLITestCase):
         pass
 
     @data({'login': ''},
-          {'login': 'space {0}'.format(gen_string('alpha', 10))},
+          {'login': 'space {0}'.format(gen_string('alpha'))},
           {'login': gen_string('alpha', 101)},
-          {'login': gen_string('html', 10)})
+          {'login': gen_string('html')})
     def test_negative_create_user_1(self, opts):
         """@Test: Create User with invalid Username
 
@@ -578,7 +578,7 @@ class User(CLITestCase):
         options = {
             'login': opts['login'],
             'mail': "root@localhost",
-            'password': gen_string("alpha", 10),
+            'password': gen_string("alpha"),
             'auth-source-id': 1
         }
         self.logger.debug(str(options))
@@ -587,7 +587,7 @@ class User(CLITestCase):
         self.assertTrue(result.stderr)
 
     @data({'firstname': gen_string("alpha", 51)},
-          {'firstname': gen_string("html", 10)})
+          {'firstname': gen_string("html")})
     def test_negative_create_user_2(self, opts):
         """@Test: Create User with invalid Firstname
 
@@ -601,10 +601,10 @@ class User(CLITestCase):
 
         """
         options = {
-            'login': gen_string("alpha", 10),
+            'login': gen_string("alpha"),
             'firstname': opts['firstname'],
             'mail': "root@localhost",
-            'password': gen_string("alpha", 10),
+            'password': gen_string("alpha"),
             'auth-source-id': 1
         }
         result = UserObj().create(options)
@@ -612,7 +612,7 @@ class User(CLITestCase):
         self.assertTrue(result.stderr)
 
     @data({'lastname': gen_string("alpha", 51)},
-          {'lastname': gen_string("html", 10)})
+          {'lastname': gen_string("html")})
     def test_negative_create_user_3(self, opts):
         """@Test: Create User with invalid Surname
 
@@ -626,10 +626,10 @@ class User(CLITestCase):
 
         """
         options = {
-            'login': gen_string("alpha", 10),
+            'login': gen_string("alpha"),
             'lastname': opts['lastname'],
             'mail': "root@localhost",
-            'password': gen_string("alpha", 10),
+            'password': gen_string("alpha"),
             'auth-source-id': 1
         }
         result = UserObj().create(options)
@@ -645,7 +645,7 @@ class User(CLITestCase):
         'email@brazil.b',
         '{0}@example.com'.format(
             gen_string('alpha', 49)),  # total length 61
-        '{0}@example.com'.format(gen_string('html', 10)),
+        '{0}@example.com'.format(gen_string('html')),
         's p a c e s@example.com',
         'dot..dot@example.com'
     )
@@ -662,11 +662,11 @@ class User(CLITestCase):
 
         """
         options = {
-            'login': gen_string("alpha", 10),
-            'firstname': gen_string("alpha", 10),
-            'lastname': gen_string("alpha", 10),
+            'login': gen_string("alpha"),
+            'firstname': gen_string("alpha"),
+            'lastname': gen_string("alpha"),
             'mail': email,
-            'password': gen_string("alpha", 10),
+            'password': gen_string("alpha"),
             'auth-source-id': 1
         }
         result = UserObj().create(options)
@@ -689,11 +689,11 @@ class User(CLITestCase):
 
         """
         options = {
-            'login': gen_string("alpha", 10),
-            'firstname': gen_string("alpha", 10),
-            'lastname': gen_string("alpha", 10),
+            'login': gen_string("alpha"),
+            'firstname': gen_string("alpha"),
+            'lastname': gen_string("alpha"),
             'mail': '',
-            'password': gen_string("alpha", 10),
+            'password': gen_string("alpha"),
             'auth-source-id': 1
         }
         result = UserObj().create(options)
@@ -714,7 +714,7 @@ class User(CLITestCase):
 
         """
         options = {
-            'login': gen_string("alpha", 10),
+            'login': gen_string("alpha"),
             'mail': "root@localhost",
             'auth-source-id': ''
         }
@@ -736,9 +736,9 @@ class User(CLITestCase):
 
         """
         options = {
-            'login': gen_string("alpha", 10),
+            'login': gen_string("alpha"),
             'mail': "root@localhost",
-            'password': gen_string("alpha", 10),
+            'password': gen_string("alpha"),
             'auth-source-id': ''
         }
         result = UserObj().create(options)
@@ -746,11 +746,11 @@ class User(CLITestCase):
         self.assertTrue(result.stderr)
 
     @data(
-        {'firstname': gen_string("latin1", 10)},
-        {'firstname': gen_string("utf8", 10)},
-        {'firstname': gen_string("alpha", 10)},
-        {'firstname': gen_string("alphanumeric", 10)},
-        {'firstname': gen_string("numeric", 10)},
+        {'firstname': gen_string("latin1")},
+        {'firstname': gen_string("utf8")},
+        {'firstname': gen_string("alpha")},
+        {'firstname': gen_string("alphanumeric")},
+        {'firstname': gen_string("numeric")},
     )
     def test_positive_update_user_1(self, test_data):
         """@Test: Update Username in User
@@ -768,18 +768,14 @@ class User(CLITestCase):
             new_obj = make_user()
         except CLIFactoryError as err:
             self.fail(err)
-        # Can we find the new object?
-        result = UserObj().info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
 
         # Update the user name
-        result = UserObj().update({'id': new_obj['id'],
-                                   'firstname': test_data['firstname']})
+        result = UserObj().update({
+            'id': new_obj['id'],
+            'firstname': test_data['firstname'],
+        })
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here")
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch the user again
         result = UserObj().info({'id': new_obj['id']})
@@ -793,11 +789,11 @@ class User(CLITestCase):
         )
 
     @data(
-        {'login': gen_string("latin1", 10)},
-        {'login': gen_string("utf8", 10)},
-        {'login': gen_string("alpha", 10)},
-        {'login': gen_string("alphanumeric", 10)},
-        {'login': gen_string("numeric", 10)},
+        {'login': gen_string("latin1")},
+        {'login': gen_string("utf8")},
+        {'login': gen_string("alpha")},
+        {'login': gen_string("alphanumeric")},
+        {'login': gen_string("numeric")},
         {'login': gen_string("alphanumeric", 100)}
     )
     def test_positive_update_user_2(self, test_data):
@@ -816,18 +812,14 @@ class User(CLITestCase):
             new_obj = make_user()
         except CLIFactoryError as err:
             self.fail(err)
-        # Can we find the new object?
-        result = UserObj().info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['login'], result.stdout['login'])
 
         # Update the user login
-        result = UserObj().update({'id': new_obj['id'],
-                                   'login': test_data['login']})
+        result = UserObj().update({
+            'id': new_obj['id'],
+            'login': test_data['login'],
+        })
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here")
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch the user again
         result = UserObj().info({'id': new_obj['id']})
@@ -840,11 +832,11 @@ class User(CLITestCase):
         )
 
     @data(
-        {'lastname': gen_string("latin1", 10)},
-        {'lastname': gen_string("utf8", 10)},
-        {'lastname': gen_string("alpha", 10)},
-        {'lastname': gen_string("alphanumeric", 10)},
-        {'lastname': gen_string("numeric", 10)},
+        {'lastname': gen_string("latin1")},
+        {'lastname': gen_string("utf8")},
+        {'lastname': gen_string("alpha")},
+        {'lastname': gen_string("alphanumeric")},
+        {'lastname': gen_string("numeric")},
     )
     def test_positive_update_user_3(self, test_data):
         """@Test: Update Surname in User
@@ -862,18 +854,14 @@ class User(CLITestCase):
             new_obj = make_user()
         except CLIFactoryError as err:
             self.fail(err)
-        # Can we find the new object?
-        result = UserObj().info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
 
         # Update the last name
-        result = UserObj().update({'id': new_obj['id'],
-                                   'lastname': test_data['lastname']})
+        result = UserObj().update({
+            'id': new_obj['id'],
+            'lastname': test_data['lastname'],
+        })
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here")
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch the user again
         result = UserObj().info({'id': new_obj['id']})
@@ -889,9 +877,9 @@ class User(CLITestCase):
         )
 
     @data(
-        gen_string("alpha", 10),
-        gen_string("alphanumeric", 10),
-        gen_string("numeric", 10),
+        gen_string("alpha"),
+        gen_string("alphanumeric"),
+        gen_string("numeric"),
         '{0}+{1}'.format(gen_alphanumeric(), gen_alphanumeric()),
         '{0}.{1}'.format(gen_alphanumeric(), gen_alphanumeric()),
         r"!#$%&*+-/=?^`{|}~",
@@ -912,12 +900,6 @@ class User(CLITestCase):
             new_obj = make_user()
         except CLIFactoryError as err:
             self.fail(err)
-        # Can we find the new object?
-        result = UserObj().info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
-        self.assertEqual(result.stdout['email'], new_obj['email'])
 
         # Update the mail
         email = '{0}@example.com'.format(test_data)
@@ -927,8 +909,7 @@ class User(CLITestCase):
             'mail': email.replace('`', r'\`'),
         })
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here")
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch the user again
         result = UserObj().info({'id': new_obj['id']})
@@ -1349,7 +1330,7 @@ class User(CLITestCase):
         pass
 
     @data({'firstname': gen_string("alpha", 51)},
-          {'firstname': gen_string("html", 10)})
+          {'firstname': gen_string("html")})
     def test_negative_update_user_2(self, opts):
         """@Test: Update invalid Firstname in an User
 
@@ -1376,7 +1357,7 @@ class User(CLITestCase):
         self.assertEqual(updated_user.stdout['name'], new_user['name'])
 
     @data({'lastname': gen_string("alpha", 51)},
-          {'lastname': gen_string("html", 10)})
+          {'lastname': gen_string("html")})
     def test_negative_update_user_3(self, opts):
         """@Test: Update invalid Surname in an User
 
@@ -1411,7 +1392,7 @@ class User(CLITestCase):
         '{0}@example.com'.format(gen_string(
             'alpha', 49)),  # total length 61
         '',
-        '{0}@example.com'.format(gen_string('html', 10)),
+        '{0}@example.com'.format(gen_string('html')),
         's p a c e s@example.com',
         'dot..dot@example.com'
     )
@@ -1440,12 +1421,12 @@ class User(CLITestCase):
         self.assertEqual(updated_user.stdout['email'], new_user['email'])
 
     @data(
-        {'login': gen_string("latin1", 10)},
-        {'login': gen_string("utf8", 10)},
-        {'login': gen_string("alpha", 10)},
-        {'login': gen_string("alphanumeric", 10)},
-        {'login': gen_string("numeric", 10)},
-        {'login': gen_string("alphanumeric", 10)}
+        {'login': gen_string("latin1")},
+        {'login': gen_string("utf8")},
+        {'login': gen_string("alpha")},
+        {'login': gen_string("alphanumeric")},
+        {'login': gen_string("numeric")},
+        {'login': gen_string("alphanumeric")}
     )
     def test_positive_delete_user_1(self, test_data):
         """@Test: Delete a user
@@ -1473,12 +1454,12 @@ class User(CLITestCase):
         self.assertGreater(len(result.stderr), 0)
 
     @data(
-        {'login': gen_string("latin1", 10)},
-        {'login': gen_string("utf8", 10)},
-        {'login': gen_string("alpha", 10)},
-        {'login': gen_string("alphanumeric", 10)},
-        {'login': gen_string("numeric", 10)},
-        {'login': gen_string("alphanumeric", 10)}
+        {'login': gen_string("latin1")},
+        {'login': gen_string("utf8")},
+        {'login': gen_string("alpha")},
+        {'login': gen_string("alphanumeric")},
+        {'login': gen_string("numeric")},
+        {'login': gen_string("alphanumeric")}
     )
     def test_positive_delete_user_2(self, test_data):
         """@Test: Delete an admin user
@@ -1536,11 +1517,11 @@ class User(CLITestCase):
         self.assertTrue(result.stdout)
 
     @data(
-        {'login': gen_string("alpha", 10)},
-        {'login': gen_string("alphanumeric", 10)},
-        {'login': gen_string("numeric", 10)},
-        {'login': gen_string("latin1", 10)},
-        {'login': gen_string("utf8", 10)},
+        {'login': gen_string("alpha")},
+        {'login': gen_string("alphanumeric")},
+        {'login': gen_string("numeric")},
+        {'login': gen_string("latin1")},
+        {'login': gen_string("utf8")},
         {'login': gen_string("alphanumeric", 100)}
     )
     def test_list_user_1(self, test_data):
@@ -1574,11 +1555,11 @@ class User(CLITestCase):
             'email': user['email']}, result.stdout[0])
 
     @data(
-        {'firstname': gen_string("latin1", 10)},
-        {'firstname': gen_string("utf8", 10)},
-        {'firstname': gen_string("alpha", 10)},
-        {'firstname': gen_string("alphanumeric", 10)},
-        {'firstname': gen_string("numeric", 10)},
+        {'firstname': gen_string("latin1")},
+        {'firstname': gen_string("utf8")},
+        {'firstname': gen_string("alpha")},
+        {'firstname': gen_string("alphanumeric")},
+        {'firstname': gen_string("numeric")},
         {'firstname': gen_string("alphanumeric", 50)}
     )
     def test_list_user_2(self, test_data):
@@ -1611,11 +1592,11 @@ class User(CLITestCase):
             'email': user['email']} in result.stdout)
 
     @data(
-        {'lastname': gen_string("latin1", 10)},
-        {'lastname': gen_string("utf8", 10)},
-        {'lastname': gen_string("alpha", 10)},
-        {'lastname': gen_string("alphanumeric", 10)},
-        {'lastname': gen_string("numeric", 10)},
+        {'lastname': gen_string("latin1")},
+        {'lastname': gen_string("utf8")},
+        {'lastname': gen_string("alpha")},
+        {'lastname': gen_string("alphanumeric")},
+        {'lastname': gen_string("numeric")},
         {'lastname': gen_string("alphanumeric", 50)}
     )
     def test_list_user_3(self, test_data):
@@ -1648,10 +1629,10 @@ class User(CLITestCase):
             'email': user['email']} in result.stdout)
 
     @data(
-        {'mail': gen_string("alpha", 10) + "@somemail.com"},
+        {'mail': gen_string("alpha") + "@somemail.com"},
         {'mail': gen_string(
             "alphanumeric", 10) + "@somemail.com"},
-        {'mail': gen_string("numeric", 10) + "@somemail.com"},
+        {'mail': gen_string("numeric") + "@somemail.com"},
         {'mail': gen_string(
             "alphanumeric", 50) + "@somem.com"}
     )
@@ -1686,8 +1667,8 @@ class User(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1204667)
     @data(
-        {'mail': gen_string("latin1", 10) + "@somemail.com"},
-        {'mail': gen_string("utf8", 10) + "@somemail.com"}
+        {'mail': gen_string("latin1") + "@somemail.com"},
+        {'mail': gen_string("utf8") + "@somemail.com"}
     )
     def test_bugzilla_1204667(self, test_data):
         """@Test: List User for utf-8,latin variations of Email Address
@@ -1971,11 +1952,11 @@ class User(CLITestCase):
             self.assertNotEqual(str(result.stdout).find(user['login']), -1)
 
     @data(
-        {'name': gen_string("latin1", 10)},
-        {'name': gen_string("utf8", 10)},
-        {'name': gen_string("alpha", 10)},
-        {'name': gen_string("alphanumeric", 10)},
-        {'name': gen_string("numeric", 10)},
+        {'name': gen_string("latin1")},
+        {'name': gen_string("utf8")},
+        {'name': gen_string("alpha")},
+        {'name': gen_string("alphanumeric")},
+        {'name': gen_string("numeric")},
         {'name': gen_string("alphanumeric", 100)},
     )
     def test_user_add_role_1(self, data):
@@ -2009,11 +1990,11 @@ class User(CLITestCase):
         self.assertIn(role['name'], result.stdout['roles'])
 
     @data(
-        {'name': gen_string("latin1", 10)},
-        {'name': gen_string("utf8", 10)},
-        {'name': gen_string("alpha", 10)},
-        {'name': gen_string("alphanumeric", 10)},
-        {'name': gen_string("numeric", 10)},
+        {'name': gen_string("latin1")},
+        {'name': gen_string("utf8")},
+        {'name': gen_string("alpha")},
+        {'name': gen_string("alphanumeric")},
+        {'name': gen_string("numeric")},
         {'name': gen_string("alphanumeric", 100)},
     )
     def test_user_remove_role_1(self, data):

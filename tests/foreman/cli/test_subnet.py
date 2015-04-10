@@ -22,7 +22,7 @@ class TestSubnet(CLITestCase):
         gen_string(str_type='latin1'),
         gen_string(str_type='utf8'),
     )
-    def test_positive_create_1(self, test_name):
+    def test_positive_create_1(self, test_data):
         """@Test: Check if Subnet can be created with random names
 
         @Feature: Subnet - Create
@@ -31,20 +31,11 @@ class TestSubnet(CLITestCase):
 
         """
         try:
-            new_subnet = make_subnet({'name': test_name})
+            subnet = make_subnet({'name': test_data})
         except CLIFactoryError as err:
             self.fail(err)
 
-        # Fetch it
-        result = Subnet.info({'id': new_subnet['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Subnet was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['name'], new_subnet['name'], "Names don't match")
+        self.assertEqual(subnet['name'], test_data)
 
     @data(
         [gen_integer(min_value=1, max_value=255),
@@ -146,10 +137,7 @@ class TestSubnet(CLITestCase):
 
         # Fetch total again
         result = Subnet.list()
-        self.assertGreater(
-            len(result.stdout),
-            total_subnet,
-            "Total subnets should have increased")
+        self.assertGreater(len(result.stdout), total_subnet)
 
     @data(
         gen_string(str_type='alpha'),
@@ -166,44 +154,22 @@ class TestSubnet(CLITestCase):
         @Assert: Subnet name is updated
 
         """
-
         try:
             new_subnet = make_subnet()
         except CLIFactoryError as err:
             self.fail(err)
 
-        # Fetch it
-        result = Subnet.info({'id': new_subnet['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Subnet was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-
         # Update the name
-        result = Subnet.update(
-            {'id': new_subnet['id'], 'new-name': test_name})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Subnet was not updated")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        result = Subnet.update({'id': new_subnet['id'], 'new-name': test_name})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch it again
         result = Subnet.info({'id': new_subnet['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Subnet was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['name'], test_name, "Names should match")
-        self.assertNotEqual(
-            result.stdout['name'], new_subnet['name'], "Names should not match"
-        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(result.stdout['name'], test_name)
+        self.assertNotEqual(result.stdout['name'], new_subnet['name'])
 
     def test_positive_update_2(self):
         """@Test: Check if Subnet network and mask can be updated
@@ -355,35 +321,17 @@ class TestSubnet(CLITestCase):
         @Assert: Subnet is deleted
 
         """
-
         try:
-            new_subnet = make_subnet({'name': test_name})
+            subnet = make_subnet({'name': test_name})
         except CLIFactoryError as err:
             self.fail(err)
 
-        # Fetch it
-        result = Subnet.info({'id': new_subnet['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Subnet was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-
         # Delete it
-        result = Subnet.delete({'id': result.stdout['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Subnet was not deleted")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        result = Subnet.delete({'id': subnet['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch it again
-        result = Subnet.info({'id': new_subnet['id']})
-        self.assertGreater(
-            result.return_code,
-            0,
-            "Subnet should not be found")
-        self.assertGreater(
-            len(result.stderr), 0, "No error was expected")
+        result = Subnet.info({'id': subnet['id']})
+        self.assertGreater(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)

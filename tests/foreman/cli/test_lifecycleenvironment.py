@@ -45,14 +45,9 @@ class TestLifeCycleEnvironment(CLITestCase):
             False
         )
 
-        self.assertEqual(
-            result.return_code, 0, "Could not find the lifecycle environment"
-        )
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here.")
-        self.assertGreater(
-            len(result.stdout), 0, "No output was returned"
-        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertGreater(len(result.stdout), 0)
 
     def test_bugzilla_1077333(self):
         """@Test: Search lifecycle environment via its name containing UTF-8 chars
@@ -62,37 +57,19 @@ class TestLifeCycleEnvironment(CLITestCase):
         @Assert: Can get info for lifecycle by its name
 
         """
-
-        payload = {
+        data = {
             'organization-id': self.org['id'],
             'name': gen_string('utf8', 15),
         }
 
-        new_obj = make_lifecycle_environment(payload)
-        self.assertIsNotNone(
-            new_obj, "Could not create lifecycle environment.")
-
         # Can we find the new object
-        result = LifecycleEnvironment.info(
-            {
-                'organization-id': self.org['id'],
-                'name': new_obj['name'],
-            }
-        )
-
-        self.assertEqual(
-            result.return_code, 0, "Could find the lifecycle environment"
-        )
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here.")
-        self.assertGreater(
-            len(result.stdout), 0, "No output was returned"
-        )
-        self.assertEqual(
-            new_obj['name'],
-            result.stdout['name'],
-            "Could not find lifecycle environment \'%s\'" % new_obj['name']
-        )
+        result = LifecycleEnvironment.info({
+            'organization-id': self.org['id'],
+            'name': make_lifecycle_environment(data)['name'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(result.stdout['name'], data['name'])
 
     # CRUD
     @data(
@@ -111,37 +88,13 @@ class TestLifeCycleEnvironment(CLITestCase):
         @Assert: Lifecycle environment is created with Library as prior
 
         """
-
-        payload = {
+        lifecycle_environment = make_lifecycle_environment({
             'organization-id': self.org['id'],
             'name': test_data['name'],
-        }
-
-        new_obj = make_lifecycle_environment(payload)
-        self.assertIsNotNone(
-            new_obj, "Could not create lifecycle environment.")
-
-        # Can we find the new object
-        result = LifecycleEnvironment.info(
-            {
-                'organization-id': self.org['id'],
-                'id': new_obj['id'],
-            }
-        )
+        })
 
         self.assertEqual(
-            result.return_code, 0, "Could find the lifecycle environment"
-        )
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here.")
-        self.assertGreater(
-            len(result.stdout), 0, "No output was returned"
-        )
-        self.assertEqual(
-            new_obj['name'],
-            result.stdout['name'],
-            "Could not find lifecycle environment \'%s\'" % new_obj['name']
-        )
+            lifecycle_environment['prior-lifecycle-environment'], u'Library')
 
     @data(
         {'name': gen_string("alpha", 15)},
@@ -160,43 +113,19 @@ class TestLifeCycleEnvironment(CLITestCase):
         @Assert: Lifecycle environment is created with Library as prior
 
         """
+        description = test_data['name']
 
-        payload = {
+        lifecycle_environment = make_lifecycle_environment({
             'organization-id': self.org['id'],
             'name': test_data['name'],
-            'description': test_data['name'],
-        }
+            'description': description,
+        })
 
-        new_obj = make_lifecycle_environment(payload)
-        self.assertIsNotNone(
-            new_obj, "Could not create lifecycle environment.")
-
-        # Can we find the new object
-        result = LifecycleEnvironment.info(
-            {
-                'organization-id': self.org['id'],
-                'id': new_obj['id'],
-            }
-        )
-
+        self.assertEqual(lifecycle_environment['name'], test_data['name'])
         self.assertEqual(
-            result.return_code, 0, "Could find the lifecycle environment"
-        )
+            lifecycle_environment['description'], description)
         self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here.")
-        self.assertGreater(
-            len(result.stdout), 0, "No output was returned"
-        )
-        self.assertEqual(
-            new_obj['name'],
-            result.stdout['name'],
-            "Could not find lifecycle environment \'%s\'" % new_obj['name']
-        )
-        self.assertEqual(
-            new_obj['description'],
-            result.stdout['description'],
-            "Descriptions don't match"
-        )
+            lifecycle_environment['prior-lifecycle-environment'], u'Library')
 
     @data(
         {'label': gen_string("alpha", 15)},
@@ -220,11 +149,7 @@ class TestLifeCycleEnvironment(CLITestCase):
         except CLIFactoryError as err:
             self.fail(err)
 
-        self.assertEqual(
-            new_le['label'],
-            test_data['label'],
-            "Incorrect label was set"
-        )
+        self.assertEqual(new_le['label'], test_data['label'])
 
     def test_create_lifecycle_environment_by_organization_name(self):
         """@Test: Create lifecycle environment, specifying organization name
@@ -237,16 +162,12 @@ class TestLifeCycleEnvironment(CLITestCase):
         try:
             new_le = make_lifecycle_environment({
                 'organization': self.org['name'],
-                'name': gen_string('alpha', 10),
+                'name': gen_string('alpha'),
             })
         except CLIFactoryError as err:
             self.fail(err)
 
-        self.assertEqual(
-            new_le['organization'],
-            self.org['name'],
-            "Wrong organization was assigned by name"
-        )
+        self.assertEqual(new_le['organization'], self.org['name'])
 
     def test_create_lifecycle_environment_by_organization_label(self):
         """@Test: Create lifecycle environment, specifying organization name
@@ -259,16 +180,12 @@ class TestLifeCycleEnvironment(CLITestCase):
         try:
             new_le = make_lifecycle_environment({
                 'organization-label': self.org['label'],
-                'name': gen_string('alpha', 10),
+                'name': gen_string('alpha'),
             })
         except CLIFactoryError as err:
             self.fail(err)
 
-        self.assertEqual(
-            new_le['organization'],
-            self.org['name'],
-            "Wrong organization was assigned by label"
-        )
+        self.assertEqual(new_le['organization'], self.org['name'])
 
     @data(
         {'name': gen_string("alpha", 15)},
@@ -286,61 +203,23 @@ class TestLifeCycleEnvironment(CLITestCase):
         @Assert: Lifecycle environment is deleted
 
         """
-
-        payload = {
+        new_obj = make_lifecycle_environment({
             'organization-id': self.org['id'],
             'name': test_data['name'],
-        }
-
-        new_obj = make_lifecycle_environment(payload)
-        self.assertIsNotNone(
-            new_obj, "Could not create lifecycle environment.")
-
-        # Can we find the new object
-        result = LifecycleEnvironment.info(
-            {
-                'organization-id': self.org['id'],
-                'id': new_obj['id'],
-            }
-        )
-
-        self.assertEqual(
-            result.return_code, 0, "Could find the lifecycle environment"
-        )
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here.")
-        self.assertGreater(
-            len(result.stdout), 0, "No output was returned"
-        )
-        self.assertEqual(
-            new_obj['name'],
-            result.stdout['name'],
-            "Could not find lifecycle environment \'%s\'" % new_obj['name']
-        )
+        })
 
         # Delete the lifecycle environment
         result = LifecycleEnvironment.delete({'id': new_obj['id']})
-
-        self.assertEqual(
-            result.return_code, 0, "Could find the lifecycle environment"
-        )
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here.")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Can we find the object
-        result = LifecycleEnvironment.info(
-            {
-                'organization-id': self.org['id'],
-                'id': new_obj['id'],
-            }
-        )
-
-        self.assertGreater(
-            result.return_code, 0, "Should not find the lifecycle environment"
-        )
-        self.assertGreater(
-            len(result.stderr), 0, "There should be an error here"
-        )
+        result = LifecycleEnvironment.info({
+            'organization-id': self.org['id'],
+            'id': new_obj['id'],
+        })
+        self.assertGreater(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
 
     @data(
         {'name': gen_string("alpha", 15)},
@@ -364,48 +243,26 @@ class TestLifeCycleEnvironment(CLITestCase):
         }
 
         new_obj = make_lifecycle_environment(payload)
-        self.assertIsNotNone(
-            new_obj, "Could not create lifecycle environment.")
 
         # Update its name
-        result = LifecycleEnvironment.update(
-            {
-                'organization-id': self.org['id'],
-                'id': new_obj['id'],
-                'new-name': test_data['name'],
-            }
-        )
-        self.assertEqual(
-            result.return_code, 0, "Could find the lifecycle environment"
-        )
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here.")
+        result = LifecycleEnvironment.update({
+            'organization-id': self.org['id'],
+            'id': new_obj['id'],
+            'new-name': test_data['name'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch the object
-        result = LifecycleEnvironment.info(
-            {
-                'organization-id': self.org['id'],
-                'id': new_obj['id'],
-            }
-        )
-        self.assertEqual(
-            result.return_code, 0, "Could find the lifecycle environment"
-        )
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here.")
-        self.assertGreater(
-            len(result.stdout), 0, "No output was returned"
-        )
-        self.assertEqual(
-            test_data['name'],
-            result.stdout['name'],
-            "Name was not updated"
-        )
-        self.assertNotEqual(
-            new_obj['name'],
-            result.stdout['name'],
-            "Name should have been updated"
-        )
+        result = LifecycleEnvironment.info({
+            'organization-id': self.org['id'],
+            'id': new_obj['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertGreater(len(result.stdout), 0)
+        self.assertEqual(test_data['name'], result.stdout['name'])
+        self.assertNotEqual(new_obj['name'], result.stdout['name'])
 
     @data(
         {'description': gen_string("alpha", 15)},
@@ -429,8 +286,6 @@ class TestLifeCycleEnvironment(CLITestCase):
         }
 
         new_obj = make_lifecycle_environment(payload)
-        self.assertIsNotNone(
-            new_obj, "Could not create lifecycle environment.")
 
         # Update its description
         result = LifecycleEnvironment.update(
@@ -440,11 +295,8 @@ class TestLifeCycleEnvironment(CLITestCase):
                 'description': test_data['description'],
             }
         )
-        self.assertEqual(
-            result.return_code, 0, "Could find the lifecycle environment"
-        )
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here.")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch the object
         result = LifecycleEnvironment.info(
@@ -453,24 +305,13 @@ class TestLifeCycleEnvironment(CLITestCase):
                 'id': new_obj['id'],
             }
         )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertGreater(len(result.stdout), 0)
         self.assertEqual(
-            result.return_code, 0, "Could find the lifecycle environment"
-        )
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here.")
-        self.assertGreater(
-            len(result.stdout), 0, "No output was returned"
-        )
-        self.assertEqual(
-            test_data['description'],
-            result.stdout['description'],
-            "Description was not updated"
-        )
+            test_data['description'], result.stdout['description'])
         self.assertNotEqual(
-            new_obj['description'],
-            result.stdout['description'],
-            "Description should have been updated"
-        )
+            new_obj['description'], result.stdout['description'])
 
     def test_environment_paths(self):
         """@Test: List the environment paths under a given organization

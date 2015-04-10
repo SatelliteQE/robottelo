@@ -26,12 +26,12 @@ OSES = [
 @ddt
 class TestMedium(CLITestCase):
 
-    @data({'name': gen_string("latin1", 10)},
-          {'name': gen_string("utf8", 10)},
-          {'name': gen_string("alpha", 10)},
-          {'name': gen_string("alphanumeric", 10)},
-          {'name': gen_string("numeric", 10)},
-          {'name': gen_string("html", 10)})
+    @data({'name': gen_string("latin1")},
+          {'name': gen_string("utf8")},
+          {'name': gen_string("alpha")},
+          {'name': gen_string("alphanumeric")},
+          {'name': gen_string("numeric")},
+          {'name': gen_string("html")})
     def test_positive_create_1(self, test_data):
         """@Test: Check if Medium can be created
 
@@ -41,17 +41,7 @@ class TestMedium(CLITestCase):
 
         """
         new_obj = make_medium(test_data)
-
-        # Can we find the new object?
-        result = Medium.info({'id': new_obj['id']})
-
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an exception here")
-        self.assertGreater(
-            len(result.stdout), 0, "Failed to fetch medium")
-        self.assertEqual(new_obj['name'],
-                         result.stdout['name'])
+        self.assertEqual(new_obj['name'], test_data['name'])
 
     def test_create_medium_with_location(self):
         """@Test: Check if medium with location can be created
@@ -64,7 +54,7 @@ class TestMedium(CLITestCase):
         try:
             location = make_location()
             medium = make_medium({
-                'name': gen_string("alpha", 10),
+                'name': gen_string("alpha"),
                 'location-ids': location['id']
             })
         except CLIFactoryError as err:
@@ -87,7 +77,7 @@ class TestMedium(CLITestCase):
         try:
             org = make_org()
             medium = make_medium({
-                'name': gen_string("alpha", 10),
+                'name': gen_string("alpha"),
                 'organization-ids': org['id']
             })
         except CLIFactoryError as err:
@@ -99,12 +89,12 @@ class TestMedium(CLITestCase):
             "Organization wasn't assigned to medium"
         )
 
-    @data({'name': gen_string("latin1", 10)},
-          {'name': gen_string("utf8", 10)},
-          {'name': gen_string("alpha", 10)},
-          {'name': gen_string("alphanumeric", 10)},
-          {'name': gen_string("numeric", 10)},
-          {'name': gen_string("html", 10)})
+    @data({'name': gen_string("latin1")},
+          {'name': gen_string("utf8")},
+          {'name': gen_string("alpha")},
+          {'name': gen_string("alphanumeric")},
+          {'name': gen_string("numeric")},
+          {'name': gen_string("html")})
     def test_positive_delete_1(self, test_data):
         """@Test: Check if Medium can be deleted
 
@@ -114,13 +104,6 @@ class TestMedium(CLITestCase):
 
         """
         new_obj = make_medium(test_data)
-
-        # Can we find the new object?
-        result = Medium.info({'id': new_obj['id']})
-
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
 
         return_value = Medium.delete({'id': new_obj['id']})
         self.assertEqual(return_value.return_code, 0, "Deletion failed")

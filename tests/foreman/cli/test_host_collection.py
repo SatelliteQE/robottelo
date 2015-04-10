@@ -67,31 +67,12 @@ class TestHostCollection(CLITestCase):
 
     def _new_host_collection(self, options=None):
         """Make a host collection and asserts its success"""
-
         if options is None:
             options = {}
-
         if not options.get('organization-id', None):
             options['organization-id'] = self.org['id']
 
-        group = make_host_collection(options)
-
-        # Fetch it
-        result = HostCollection.info(
-            {
-                'id': group['id']
-            }
-        )
-
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Host collection was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-
-        # Return the host collection dictionary
-        return group
+        return make_host_collection(options)
 
     @data(
         {'name': gen_string('alpha', 15)},
@@ -112,11 +93,7 @@ class TestHostCollection(CLITestCase):
 
         new_host_col = self._new_host_collection({'name': test_data['name']})
         # Assert that name matches data passed
-        self.assertEqual(
-            new_host_col['name'],
-            test_data['name'],
-            "Names don't match"
-        )
+        self.assertEqual(new_host_col['name'], test_data['name'])
 
     @data(
         {'description': gen_string('alpha', 15)},
@@ -135,14 +112,11 @@ class TestHostCollection(CLITestCase):
 
         """
 
-        new_host_col = self._new_host_collection(
-            {'description': test_data['description']})
+        new_host_col = self._new_host_collection({
+            'description': test_data['description'],
+        })
         # Assert that description matches data passed
-        self.assertEqual(
-            new_host_col['description'],
-            test_data['description'],
-            "Descriptions don't match"
-        )
+        self.assertEqual(new_host_col['description'], test_data['description'])
 
     @data('1', '3', '5', '10', '20')
     def test_positive_create_3(self, test_data):
@@ -154,15 +128,11 @@ class TestHostCollection(CLITestCase):
 
         """
 
-        new_host_col = self._new_host_collection(
-            {'max-content-hosts': test_data})
+        new_host_col = self._new_host_collection({
+            'max-content-hosts': test_data,
+        })
         # Assert that limit matches data passed
-        self.assertEqual(
-            new_host_col['max-content-hosts'],
-            str(test_data),
-            ("Limits don't match '%s' != '%s'" %
-             (new_host_col['max-content-hosts'], str(test_data)))
-        )
+        self.assertEqual(new_host_col['max-content-hosts'], str(test_data))
 
     @data(
         {'name': gen_string('alpha', 300)},
@@ -203,55 +173,28 @@ class TestHostCollection(CLITestCase):
 
         new_host_col = self._new_host_collection()
         # Assert that name does not matches data passed
-        self.assertNotEqual(
-            new_host_col['name'],
-            test_data['name'],
-            "Names should not match"
-        )
+        self.assertNotEqual(new_host_col['name'], test_data['name'])
 
         # Update host collection
-        result = HostCollection.update(
-            {
-                'id': new_host_col['id'],
-                'organization-id': self.org['id'],
-                'name': test_data['name']
-            }
-        )
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Host collection was not updated")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        result = HostCollection.update({
+            'id': new_host_col['id'],
+            'organization-id': self.org['id'],
+            'name': test_data['name']
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch it
-        result = HostCollection.info(
-            {
-                'id': new_host_col['id'],
-            }
-        )
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Host collection was not updated")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        result = HostCollection.info({
+            'id': new_host_col['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         # Assert that name matches new value
-        self.assertIsNotNone(
-            result.stdout.get('name', None),
-            "The name field was not returned"
-        )
-        self.assertEqual(
-            result.stdout['name'],
-            test_data['name'],
-            "Names should match"
-        )
+        self.assertIsNotNone(result.stdout.get('name', None))
+        self.assertEqual(result.stdout['name'], test_data['name'])
         # Assert that name does not match original value
-        self.assertNotEqual(
-            new_host_col['name'],
-            result.stdout['name'],
-            "Names should not match"
-        )
+        self.assertNotEqual(new_host_col['name'], result.stdout['name'])
 
     @skip_if_bug_open('bugzilla', 1171669)
     @data(
@@ -276,54 +219,30 @@ class TestHostCollection(CLITestCase):
         new_host_col = self._new_host_collection()
         # Assert that description does not match data passed
         self.assertNotEqual(
-            new_host_col['description'],
-            test_data['description'],
-            "Descriptions should not match"
-        )
+            new_host_col['description'], test_data['description'])
 
         # Update sync plan
-        result = HostCollection.update(
-            {
-                'id': new_host_col['id'],
-                'organization-id': self.org['id'],
-                'description': test_data['description']
-            }
-        )
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Host collection was not updated")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        result = HostCollection.update({
+            'id': new_host_col['id'],
+            'organization-id': self.org['id'],
+            'description': test_data['description']
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch it
-        result = HostCollection.info(
-            {
-                'id': new_host_col['id'],
-            }
-        )
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Host collection was not updated")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        result = HostCollection.info({
+            'id': new_host_col['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         # Assert that description matches new value
-        self.assertIsNotNone(
-            result.stdout.get('description', None),
-            "The description field was not returned"
-        )
+        self.assertIsNotNone(result.stdout.get('description', None))
         self.assertEqual(
-            result.stdout['description'],
-            test_data['description'],
-            "Descriptions should match"
-        )
+            result.stdout['description'], test_data['description'])
         # Assert that description does not matches original value
         self.assertNotEqual(
-            new_host_col['description'],
-            result.stdout['description'],
-            "Descriptions should not match"
-        )
+            new_host_col['description'], result.stdout['description'])
 
     @skip_if_bug_open('bugzilla', 1171669)
     @data('3', '6', '9', '12', '15', '17', '19')
@@ -341,42 +260,25 @@ class TestHostCollection(CLITestCase):
         new_host_col = self._new_host_collection()
 
         # Update sync interval
-        result = HostCollection.update(
-            {
-                'id': new_host_col['id'],
-                'organization-id': self.org['id'],
-                'max-content-hosts': test_data
-            }
-        )
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Host collection was not updated")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        result = HostCollection.update({
+            'id': new_host_col['id'],
+            'organization-id': self.org['id'],
+            'max-content-hosts': test_data
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch it
-        result = HostCollection.info(
-            {
-                'id': new_host_col['id'],
-            }
-        )
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Host collection was not updated")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        result = HostCollection.info({
+            'id': new_host_col['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         # Assert that limit was updated
-        self.assertEqual(
-            result.stdout['max-content-hosts'],
-            test_data,
-            "Limits don't match"
-        )
+        self.assertEqual(result.stdout['max-content-hosts'], test_data)
         self.assertNotEqual(
             new_host_col['max-content-hosts'],
-            result.stdout['max-content-hosts'],
-            "Limits don't match"
+            result.stdout['max-content-hosts']
         )
 
     @data(
@@ -398,22 +300,14 @@ class TestHostCollection(CLITestCase):
 
         new_host_col = self._new_host_collection({'name': test_data['name']})
         # Assert that name matches data passed
-        self.assertEqual(
-            new_host_col['name'],
-            test_data['name'],
-            "Names don't match"
-        )
+        self.assertEqual(new_host_col['name'], test_data['name'])
 
         # Delete it
         result = HostCollection.delete(
             {'id': new_host_col['id'],
              'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Host collection was not deleted")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch it
         result = HostCollection.info(
@@ -421,16 +315,8 @@ class TestHostCollection(CLITestCase):
                 'id': new_host_col['id'],
             }
         )
-        self.assertNotEqual(
-            result.return_code,
-            0,
-            "Host collection should not be found"
-        )
-        self.assertGreater(
-            len(result.stderr),
-            0,
-            "Expected an error here"
-        )
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
 
     def test_add_content_host(self):
         """@Test: Check if content host can be added to host collection
@@ -455,35 +341,24 @@ class TestHostCollection(CLITestCase):
         except CLIFactoryError as err:
             self.fail(err)
 
-        result = HostCollection.info({
-            u'id': new_host_col['id'],
-            u'organization-id': self.org['id']
-        })
-
-        no_of_content_host = result.stdout['total-content-hosts']
+        no_of_content_host = new_host_col['total-content-hosts']
 
         result = HostCollection.add_content_host({
-
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
             u'content-host-ids': new_system['id']
         })
-        self.assertEqual(result.return_code, 0,
-                         "Content Host not added to host collection")
-        self.assertEqual(len(result.stderr), 0,
-                         "No error was expected")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         result = HostCollection.info({
             u'id': new_host_col['id'],
             u'organization-id': self.org['id']
         })
-        self.assertEqual(
-            result.return_code, 0, 'Failed to get info for host collection')
-        self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
-        self.assertGreater(result.stdout['total-content-hosts'],
-                           no_of_content_host,
-                           "There should not be an exception here")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertGreater(
+            result.stdout['total-content-hosts'], no_of_content_host)
 
     def test_remove_content_host(self):
         """@Test: Check if content host can be removed from host collection
@@ -513,10 +388,8 @@ class TestHostCollection(CLITestCase):
             u'organization-id': self.org['id'],
             u'content-host-ids': new_system['id']
         })
-        self.assertEqual(result.return_code, 0,
-                         "Content Host not added to host collection")
-        self.assertEqual(len(result.stderr), 0,
-                         "No error was expected")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         result = HostCollection.info({
             u'id': new_host_col['id'],
@@ -530,22 +403,17 @@ class TestHostCollection(CLITestCase):
             u'organization-id': self.org['id'],
             u'content-host-ids': new_system['id']
         })
-        self.assertEqual(result.return_code, 0,
-                         "Content Host not removed host collection")
-        self.assertEqual(len(result.stderr), 0,
-                         "No error was expected")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         result = HostCollection.info({
             u'id': new_host_col['id'],
             u'organization-id': self.org['id']
         })
-        self.assertEqual(
-            result.return_code, 0, 'Failed to get info for host collection')
-        self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
-        self.assertGreater(no_of_content_host,
-                           result.stdout['total-content-hosts'],
-                           "There should not be an exception here")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertGreater(
+            no_of_content_host, result.stdout['total-content-hosts'])
 
     def test_content_hosts(self):
         """@Test: Check if content hosts added to host collection is listed
@@ -575,31 +443,22 @@ class TestHostCollection(CLITestCase):
             u'organization-id': self.org['id'],
             u'content-host-ids': new_system['id']
         })
-        self.assertEqual(result.return_code, 0,
-                         "Content Host not added to host collection")
-        self.assertEqual(len(result.stderr), 0,
-                         "No error was expected")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         result = HostCollection.info({
             u'id': new_host_col['id'],
             u'organization-id': self.org['id']
         })
-        self.assertEqual(
-            result.return_code, 0, 'Failed to get info for host collection')
-        self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
-        self.assertGreater(result.stdout['total-content-hosts'],
-                           no_of_content_host,
-                           "There should not be an exception here")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertGreater(
+            result.stdout['total-content-hosts'], no_of_content_host)
 
         result = HostCollection.content_hosts({
             u'name': host_col_name,
             u'organization-id': self.org['id']
         })
-        self.assertEqual(
-            result.return_code, 0, 'Failed to get list of content-host')
-        self.assertEqual(
-            len(result.stderr), 0, 'There should not be an error here')
-        self.assertEqual(
-            new_system['id'], result.stdout[0]['id'],
-            'There should not be an error here')
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_system['id'], result.stdout[0]['id'])

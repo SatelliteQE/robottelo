@@ -75,23 +75,15 @@ class TestRepository(CLITestCase):
         value
 
         """
-        new_repo = self._make_repository({
-            u'name': gen_string('alpha', 10),
+        repository = self._make_repository({
+            u'name': gen_string('alpha'),
             u'content-type': u'docker',
             u'docker-upstream-name': u'fedora/rabbitmq',
         })
-        result = Repository.info({'id': new_repo['id']})
 
-        self.assertIn(
-            u'upstream-repository-name',
-            result.stdout,
-            'upstream-repository-name parameter was not found in output'
-        )
+        self.assertIn(u'upstream-repository-name', repository)
         self.assertEqual(
-            result.stdout['upstream-repository-name'],
-            u'fedora/rabbitmq',
-            'Wrong value of upstream-repository-name parameter'
-        )
+            repository['upstream-repository-name'], u'fedora/rabbitmq')
 
     @run_only_on('sat')
     @data(
@@ -113,7 +105,7 @@ class TestRepository(CLITestCase):
 
         new_repo = self._make_repository({u'name': name})
         # Assert that name matches data passed
-        self.assertEqual(new_repo['name'], name, "Names don't match")
+        self.assertEqual(new_repo['name'], name)
 
     @run_only_on('sat')
     @data(
@@ -141,12 +133,8 @@ class TestRepository(CLITestCase):
             u'label': label,
         })
         # Assert that name matches data passed
-        self.assertEqual(new_repo['name'], name, "Names don't match")
-        self.assertNotEqual(
-            new_repo['name'],
-            new_repo['label'],
-            "Label should not match the repository name"
-        )
+        self.assertEqual(new_repo['name'], name)
+        self.assertNotEqual(new_repo['name'], new_repo['label'])
 
     @run_only_on('sat')
     @data(
@@ -170,13 +158,8 @@ class TestRepository(CLITestCase):
             u'content-type': test_data['content-type'],
         })
         # Assert that urls and content types matches data passed
-        self.assertEqual(
-            new_repo['url'], test_data['url'], "Urls don't match")
-        self.assertEqual(
-            new_repo['content-type'],
-            test_data['content-type'],
-            "Content Types don't match"
-        )
+        self.assertEqual(new_repo['url'], test_data['url'])
+        self.assertEqual(new_repo['content-type'], test_data['content-type'])
 
     @run_only_on('sat')
     @data(
@@ -200,13 +183,8 @@ class TestRepository(CLITestCase):
             u'content-type': test_data['content-type'],
         })
         # Assert that urls and content types matches data passed
-        self.assertEqual(
-            new_repo['url'], test_data['url'], "Urls don't match")
-        self.assertEqual(
-            new_repo['content-type'],
-            test_data['content-type'],
-            "Content Types don't match"
-        )
+        self.assertEqual(new_repo['url'], test_data['url'])
+        self.assertEqual(new_repo['content-type'], test_data['content-type'])
 
     @run_only_on('sat')
     @data(
@@ -228,30 +206,14 @@ class TestRepository(CLITestCase):
         # Make a new gpg key
         new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
 
-        new_repo = self._make_repository({
+        repository = self._make_repository({
             u'name': name,
             u'gpg-key-id': new_gpg_key['id'],
         })
 
-        # Fetch it again
-        result = Repository.info({'id': new_repo['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
         # Assert that data matches data passed
-        self.assertEqual(
-            result.stdout['gpg-key']['id'],
-            new_gpg_key['id'],
-            "GPG Keys ID don't match"
-        )
-        self.assertEqual(
-            result.stdout['gpg-key']['name'],
-            new_gpg_key['name'],
-            "GPG Keys name don't match"
-        )
+        self.assertEqual(repository['gpg-key']['id'], new_gpg_key['id'])
+        self.assertEqual(repository['gpg-key']['name'], new_gpg_key['name'])
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1103944)
@@ -280,16 +242,8 @@ class TestRepository(CLITestCase):
         })
 
         # Assert that data matches data passed
-        self.assertEqual(
-            new_repo['gpg-key']['id'],
-            new_gpg_key['id'],
-            "GPG Keys ID don't match"
-        )
-        self.assertEqual(
-            new_repo['gpg-key']['name'],
-            new_gpg_key['name'],
-            "GPG Keys name don't match"
-        )
+        self.assertEqual(new_repo['gpg-key']['id'], new_gpg_key['id'])
+        self.assertEqual(new_repo['gpg-key']['name'], new_gpg_key['name'])
 
     @run_only_on('sat')
     @data(u'true', u'yes', u'1')
@@ -301,23 +255,8 @@ class TestRepository(CLITestCase):
         @Assert: Repository is created and is published via http
 
         """
-
-        new_repo = self._make_repository({'publish-via-http': test_data})
-
-        # Fetch it again
-        result = Repository.info({'id': new_repo['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-
-        self.assertEqual(
-            result.stdout['publish-via-http'],
-            u'yes',
-            "Publishing methods don't match"
-        )
+        repository = self._make_repository({'publish-via-http': test_data})
+        self.assertEqual(repository['publish-via-http'], u'yes')
 
     @run_only_on('sat')
     @data(u'false', u'no', u'0')
@@ -329,23 +268,8 @@ class TestRepository(CLITestCase):
         @Assert: Repository is created and is not published via http
 
         """
-
-        new_repo = self._make_repository({'publish-via-http': use_http})
-
-        # Fetch it again
-        result = Repository.info({'id': new_repo['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-
-        self.assertEqual(
-            result.stdout['publish-via-http'],
-            u'no',
-            "Publishing methods don't match"
-        )
+        repository = self._make_repository({'publish-via-http': use_http})
+        self.assertEqual(repository['publish-via-http'], u'no')
 
     @skip_if_bug_open('bugzilla', 1155237)
     @run_only_on('sat')
@@ -464,26 +388,16 @@ class TestRepository(CLITestCase):
             u'content-type': test_data['content-type'],
         })
         # Assertion that repo is not yet synced
-        self.assertEqual(
-            new_repo['sync']['status'],
-            'Not Synced',
-            "The status of repository should be 'Not Synced'")
+        self.assertEqual(new_repo['sync']['status'], 'Not Synced')
 
         # Synchronize it
         result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not synchronized")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Verify it has finished
         result = Repository.info({'id': new_repo['id']})
-        self.assertEqual(
-            result.stdout['sync']['status'],
-            'Finished',
-            "The new status of repository should be 'Finished'")
+        self.assertEqual(result.stdout['sync']['status'], 'Finished')
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1152237)
@@ -537,31 +451,15 @@ class TestRepository(CLITestCase):
             u'id': new_repo['id'],
             u'url': url,
         })
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not updated")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch it again
         result = Repository.info({'id': new_repo['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertNotEqual(
-            result.stdout['url'],
-            new_repo['url'],
-            "Urls should not match"
-        )
-        self.assertEqual(
-            result.stdout['url'],
-            url,
-            "Urls don't match"
-        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertNotEqual(result.stdout['url'], new_repo['url'])
+        self.assertEqual(result.stdout['url'], url)
 
     @run_only_on('sat')
     @stubbed()
@@ -630,10 +528,7 @@ class TestRepository(CLITestCase):
             result.stdout['checksum-type'],
             repository['checksum-type'],
         )
-        self.assertEqual(
-            result.stdout['checksum-type'],
-            checksum_type,
-        )
+        self.assertEqual(result.stdout['checksum-type'], checksum_type)
 
     @run_only_on('sat')
     @data(
@@ -655,31 +550,19 @@ class TestRepository(CLITestCase):
 
         new_repo = self._make_repository({u'name': name})
         # Assert that name matches data passed
-        self.assertEqual(new_repo['name'], name, "Names don't match")
+        self.assertEqual(new_repo['name'], name)
 
         # Delete it
         result = Repository.delete({u'id': new_repo['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Repository was not deleted")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch it
         result = Repository.info({
             u'id': new_repo['id'],
         })
-        self.assertNotEqual(
-            result.return_code,
-            0,
-            "Repository should not be found"
-        )
-        self.assertGreater(
-            len(result.stderr),
-            0,
-            "Expected an error here"
-        )
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
 
     def test_upload_content(self):
         """@Test: Create repository and upload content
@@ -703,11 +586,9 @@ class TestRepository(CLITestCase):
             'product-id': new_repo['product']['id'],
             'organization': new_repo['organization'],
         })
-        self.assertEqual(result.return_code, 0,
-                         "return code must be 0, instead got {0}"
-                         ''.format(result.return_code))
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertIn("Successfully uploaded file '{0}'"
-                      ''.format(RPM_TO_UPLOAD),
-                      result.stdout[0]['message'])
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertIn(
+            "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD),
+            result.stdout[0]['message']
+        )
