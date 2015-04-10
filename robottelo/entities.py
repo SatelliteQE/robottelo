@@ -799,6 +799,7 @@ class ContentView(
                 'available_puppet_modules',
                 'content_view_puppet_modules',
                 'content_view_versions',
+                'copy',
                 'publish'):
             return '{0}/{1}'.format(
                 super(ContentView, self).path(which='self'),
@@ -885,6 +886,23 @@ class ContentView(
         response = client.post(
             self.path('content_view_puppet_modules'),
             {u'author': author, u'name': name},
+            auth=self._server_config.auth,
+            verify=self._server_config.verify,
+        )
+        response.raise_for_status()
+        return response.json()
+
+    def copy(self, name):
+        """Clone provided content view.
+
+        :param str name: The name for new cloned content view.
+        :rtype: dict
+        :returns: The server's response, with all JSON decoded.
+
+        """
+        response = client.post(
+            self.path('copy'),
+            {u'id': self.id, u'name': name},
             auth=self._server_config.auth,
             verify=self._server_config.verify,
         )
