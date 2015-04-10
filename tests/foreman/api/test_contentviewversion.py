@@ -16,7 +16,7 @@ class CVVersionTestCase(APITestCase):
         @Feature: ContentViewVersion
 
         """
-        env_id = entities.Environment().create()['id']
+        env_id = entities.Environment().create_json()['id']
         with self.assertRaises(HTTPError):
             entities.ContentViewVersion(id=1).promote(env_id)
 

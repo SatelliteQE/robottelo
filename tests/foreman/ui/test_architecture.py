@@ -32,7 +32,7 @@ class Architecture(UITestCase):
         @Assert: Architecture is created
 
         """
-        entities.OperatingSystem(name=test_data['os_name']).create()
+        entities.OperatingSystem(name=test_data['os_name']).create_json()
         with Session(self.browser) as session:
             make_arch(session, name=test_data['name'],
                       os_names=[test_data['os_name']])
@@ -114,7 +114,7 @@ class Architecture(UITestCase):
         @BZ: 1131815
 
         """
-        entities.OperatingSystem(name=test_data['os_name']).create()
+        entities.OperatingSystem(name=test_data['os_name']).create_json()
         with Session(self.browser) as session:
             make_arch(session, name=test_data['name'],
                       os_names=[test_data['os_name']])
@@ -143,7 +143,7 @@ class Architecture(UITestCase):
         @Assert: Architecture is updated
 
         """
-        entities.OperatingSystem(name=test_data['os_name']).create()
+        entities.OperatingSystem(name=test_data['os_name']).create_json()
         with Session(self.browser) as session:
             make_arch(session, name=test_data['old_name'])
             self.assertIsNotNone(self.architecture.search

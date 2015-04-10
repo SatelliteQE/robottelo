@@ -16,7 +16,7 @@ class SubscriptionTestCase(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        cls.org_name = entities.Organization().create()['name']
+        cls.org_name = entities.Organization().create_json()['name']
 
         super(SubscriptionTestCase, cls).setUpClass()
 

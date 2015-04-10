@@ -29,7 +29,7 @@ class FilterTestCase(APITestCase):
                 for permission
                 in ct_perms
             ]
-        ).create()['id']
+        ).create_json()['id']
 
         # Find all permissions assigned to filter `filter_id`.
         filter_perms = entities.Filter(id=filter_id).read_json()['permissions']
@@ -49,7 +49,7 @@ class FilterTestCase(APITestCase):
                 for permission
                 in entities.Permission(resource_type='ConfigTemplate').search()
             ],
-        ).create()['id'])
+        ).create_json()['id'])
         filter_.delete()
         with self.assertRaises(HTTPError):
             filter_.read_json()
@@ -62,12 +62,12 @@ class FilterTestCase(APITestCase):
         @Feature: Filter
 
         """
-        role = entities.Role(id=entities.Role().create()['id'])
+        role = entities.Role(id=entities.Role().create_json()['id'])
         ct_perms = entities.Permission(resource_type='ConfigTemplate').search()
         filter_ = entities.Filter(id=entities.Filter(
             permission=[permission['id'] for permission in ct_perms],
             role=role.id,
-        ).create()['id'])
+        ).create_json()['id'])
 
         # A filter depends on a role. Deleting a role implicitly deletes the
         # filter pointing at it.

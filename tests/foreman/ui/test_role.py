@@ -180,7 +180,7 @@ class Role(UITestCase):
         name = gen_string("alpha", 8)
         resource_type = 'Activation Keys'
         permission_list = ['view_activation_keys']
-        org_name = entities.Organization().create()['name']
+        org_name = entities.Organization().create_json()['name']
         with Session(self.browser) as session:
             make_role(session, name=name)
             self.assertIsNotNone(self.role.search(name))

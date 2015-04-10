@@ -290,7 +290,7 @@ class OperatingSys(UITestCase):
         @Assert: OS is deleted
 
         """
-        os_name = entities.OperatingSystem().create()['name']
+        os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser) as session:
             session.nav.go_to_operating_systems()
             self.operatingsys.delete(os_name, really=True)
@@ -326,8 +326,8 @@ class OperatingSys(UITestCase):
 
         """
 
-        os_name = entities.OperatingSystem().create()['name']
-        arch_name = entities.Architecture().create()['name']
+        os_name = entities.OperatingSystem().create_json()['name']
+        arch_name = entities.Architecture().create_json()['name']
         with Session(self.browser):
             self.operatingsys.update(os_name, test_data['new_name'],
                                      test_data['new_major_version'],
@@ -376,8 +376,8 @@ class OperatingSys(UITestCase):
         entities.PartitionTable(
             name=ptable,
             layout=layout,
-        ).create()
-        os_name = entities.OperatingSystem().create()['name']
+        ).create_json()
+        os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser):
             self.operatingsys.update(os_name, new_ptables=[ptable])
             result_obj = self.operatingsys.get_os_entities(os_name, "ptable")
@@ -418,7 +418,7 @@ class OperatingSys(UITestCase):
 
         param_name = gen_string("alpha", 4)
         param_value = gen_string("alpha", 3)
-        os_name = entities.OperatingSystem().create()['name']
+        os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser):
             try:
                 self.operatingsys.set_os_parameter(os_name, param_name,
@@ -437,7 +437,7 @@ class OperatingSys(UITestCase):
 
         param_name = gen_string("alpha", 4)
         param_value = ""
-        os_name = entities.OperatingSystem().create()['name']
+        os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser):
             try:
                 self.operatingsys.set_os_parameter(os_name, param_name,
@@ -456,7 +456,7 @@ class OperatingSys(UITestCase):
 
         param_name = gen_string("alpha", 4)
         param_value = gen_string("alpha", 3)
-        os_name = entities.OperatingSystem().create()['name']
+        os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser):
             try:
                 self.operatingsys.set_os_parameter(os_name, param_name,
@@ -478,7 +478,7 @@ class OperatingSys(UITestCase):
 
         param_name = gen_string("alpha", 4)
         param_value = gen_string("alpha", 3)
-        os_name = entities.OperatingSystem().create()['name']
+        os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser):
             try:
                 self.operatingsys.set_os_parameter(os_name, param_name,
@@ -503,7 +503,7 @@ class OperatingSys(UITestCase):
 
         param_name = " "
         param_value = " "
-        os_name = entities.OperatingSystem().create()['name']
+        os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser):
             try:
                 self.operatingsys.set_os_parameter(os_name, param_name,
@@ -524,7 +524,7 @@ class OperatingSys(UITestCase):
 
         param_name = gen_string("alpha", 256)
         param_value = gen_string("alpha", 256)
-        os_name = entities.OperatingSystem().create()['name']
+        os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser):
             try:
                 self.operatingsys.set_os_parameter(os_name, param_name,

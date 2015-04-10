@@ -22,7 +22,7 @@ class SubscriptionsTestCase(APITestCase):
 
         """
         cloned_manifest_path = manifests.clone()
-        org_id = entities.Organization().create()['id']
+        org_id = entities.Organization().create_json()['id']
         entities.Organization(id=org_id).upload_manifest(
             path=cloned_manifest_path
         )
@@ -36,7 +36,7 @@ class SubscriptionsTestCase(APITestCase):
 
         """
         cloned_manifest_path = manifests.clone()
-        org_id = entities.Organization().create()['id']
+        org_id = entities.Organization().create_json()['id']
         entities.Organization(id=org_id).upload_manifest(
             path=cloned_manifest_path
         )

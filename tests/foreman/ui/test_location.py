@@ -153,7 +153,7 @@ class Location(UITestCase):
         """
         org_name = test_data['org_name']
         loc_name = test_data['loc_name']
-        org = entities.Organization(name=org_name).create()
+        org = entities.Organization(name=org_name).create_json()
         self.assertEqual(org['name'], org_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -239,7 +239,7 @@ class Location(UITestCase):
             name=subnet_name,
             network=subnet_network,
             mask=subnet_mask
-        ).create()
+        ).create_json()
         self.assertEqual(subnet['name'], subnet_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -263,7 +263,7 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["entity_deselect"]
         loc_name = gen_string("alpha", 8)
-        domain = entities.Domain(name=domain_name).create()
+        domain = entities.Domain(name=domain_name).create_json()
         self.assertEqual(domain['name'], domain_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -297,7 +297,7 @@ class Location(UITestCase):
             login=user_name,
             firstname=user_name,
             lastname=user_name,
-            password=password).create()
+            password=password).create_json()
         self.assertEqual(user['login'], user_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -340,7 +340,7 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["all_values_selection"]
         loc_name = gen_string("alpha", 8)
-        host_grp = entities.HostGroup(name=host_grp_name).create()
+        host_grp = entities.HostGroup(name=host_grp_name).create_json()
         self.assertEqual(host_grp['name'], host_grp_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -364,7 +364,7 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["entity_deselect"]
         loc_name = gen_string("alpha", 8)
-        org = entities.Organization(name=org_name).create()
+        org = entities.Organization(name=org_name).create_json()
         self.assertEqual(org['name'], org_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -390,7 +390,7 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["entity_deselect"]
         loc_name = gen_string("alpha", 8)
-        env = entities.Environment(name=env_name).create()
+        env = entities.Environment(name=env_name).create_json()
         self.assertEqual(env['name'], env_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -421,7 +421,7 @@ class Location(UITestCase):
             name=resource_name,
             provider='Libvirt',
             url=url
-        ).create()
+        ).create_json()
         self.assertEqual(resource['name'], resource_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -450,7 +450,7 @@ class Location(UITestCase):
             name=medium_name,
             media_path=path,
             os_family='Redhat',
-        ).create()
+        ).create_json()
         self.assertEqual(medium['name'], medium_name)
         with Session(self.browser) as session:
             make_loc(session, name=loc_name)
@@ -522,7 +522,7 @@ class Location(UITestCase):
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = gen_string("alpha", 8)
-        env = entities.Environment(name=env_name).create()
+        env = entities.Environment(name=env_name).create_json()
         self.assertEqual(env['name'], env_name)
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
@@ -561,7 +561,7 @@ class Location(UITestCase):
             name=subnet_name,
             network=subnet_network,
             mask=subnet_mask
-        ).create()
+        ).create_json()
         self.assertEqual(subnet['name'], subnet_name)
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
@@ -596,7 +596,7 @@ class Location(UITestCase):
         strategy, value = common_locators["entity_select"]
         strategy1, value1 = common_locators["entity_deselect"]
         loc_name = gen_string("alpha", 8)
-        domain = entities.Domain(name=domain_name).create()
+        domain = entities.Domain(name=domain_name).create_json()
         self.assertEqual(domain['name'], domain_name)
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
@@ -639,7 +639,7 @@ class Location(UITestCase):
             login=user_name,
             firstname=user_name,
             lastname=user_name,
-            password=password).create()
+            password=password).create_json()
         self.assertEqual(user['login'], user_name)
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
@@ -672,7 +672,7 @@ class Location(UITestCase):
         """
         strategy, value = common_locators["all_values_selection"]
         loc_name = gen_string("alpha", 8)
-        host_grp = entities.HostGroup(name=host_grp_name).create()
+        host_grp = entities.HostGroup(name=host_grp_name).create_json()
         self.assertEqual(host_grp['name'], host_grp_name)
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
@@ -712,7 +712,7 @@ class Location(UITestCase):
             name=resource_name,
             provider='Libvirt',
             url=url
-        ).create()
+        ).create_json()
         self.assertEqual(resource['name'], resource_name)
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
@@ -750,7 +750,7 @@ class Location(UITestCase):
             name=medium_name,
             media_path=path,
             os_family='Redhat',
-        ).create()
+        ).create_json()
         self.assertEqual(medium['name'], medium_name)
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])

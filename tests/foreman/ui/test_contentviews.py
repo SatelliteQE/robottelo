@@ -29,7 +29,7 @@ class TestContentViewsUI(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
 
@@ -45,7 +45,7 @@ class TestContentViewsUI(UITestCase):
             # Creates new custom product via API's
             product_attrs = entities.Product(
                 organization=org_id or self.org_id
-            ).create()
+            ).create_json()
 
             # Creates new custom repository via API's
             repo_attrs = entities.Repository(
@@ -53,7 +53,7 @@ class TestContentViewsUI(UITestCase):
                 url=(repo_url or FAKE_1_YUM_REPO),
                 content_type=(repo_type or REPO_TYPE['yum']),
                 product=product_attrs['id'],
-            ).create()
+            ).create_json()
             repo_id = repo_attrs['id']
         elif rh_repo:
             # Clone the manifest and fetch it's path.
@@ -476,7 +476,7 @@ class TestContentViewsUI(UITestCase):
             "releasever": "6.3",
         }
         # Create new org to import manifest
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         org_id = org_attrs['id']
         org_name = org_attrs['name']
         with Session(self.browser) as session:
@@ -540,7 +540,7 @@ class TestContentViewsUI(UITestCase):
             'releasever': "6.3"
         }
         # Create new org to import manifest
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         org_id = org_attrs['id']
         with Session(self.browser) as session:
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org_id)
@@ -708,7 +708,7 @@ class TestContentViewsUI(UITestCase):
         publish_version = "Version 1"
         strategy, value = locators["content_env.select_name"]
         # Create new org to import manifest
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         org_id = org_attrs['id']
         org_name = org_attrs['name']
         with Session(self.browser) as session:
@@ -832,7 +832,7 @@ class TestContentViewsUI(UITestCase):
             'releasever': "6.3"
         }
         # Create new org to import manifest
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         org_id = org_attrs['id']
         with Session(self.browser) as session:
             self.setup_to_create_cv(rh_repo=rh_repo, org_id=org_id)

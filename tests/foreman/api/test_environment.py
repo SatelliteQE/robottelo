@@ -33,7 +33,7 @@ class EnvironmentTestCase(APITestCase):
 
         """
         # Create an environment and validate the returned data.
-        attrs = entities.Environment(name=name).create()
+        attrs = entities.Environment(name=name).create_json()
         self.assertEqual(attrs['name'], name)
 
         # Let's double-check by reading the environment.
@@ -63,4 +63,4 @@ class EnvironmentTestCase(APITestCase):
 
         """
         with self.assertRaises(HTTPError):
-            entities.Environment(name=name).create()
+            entities.Environment(name=name).create_json()

@@ -22,7 +22,7 @@ class ArchitectureTestCase(APITestCase):
 
         """
         name = gen_utf8()
-        os_id = entities.OperatingSystem().create()['id']
+        os_id = entities.OperatingSystem().create_json()['id']
         response = client.post(
             entities.Architecture().path(),
             {u'name': name, u'operatingsystem_ids': [os_id]},
@@ -49,7 +49,7 @@ class ArchitectureTestCase(APITestCase):
 
         """
         # Create an architecture and an OS.
-        os_id = entities.OperatingSystem().create()['id']
+        os_id = entities.OperatingSystem().create_json()['id']
         arch_id = entities.Architecture(
             operatingsystem=[os_id]
         ).create_json()['id']

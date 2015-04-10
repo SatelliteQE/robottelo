@@ -48,8 +48,10 @@ class RepositoryTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         """Create an organization and product which can be re-used in tests."""
-        cls.org_id = entities.Organization().create()['id']
-        cls.prod_id = entities.Product(organization=cls.org_id).create()['id']
+        cls.org_id = entities.Organization().create_json()['id']
+        cls.prod_id = entities.Product(
+            organization=cls.org_id
+        ).create_json()['id']
 
     @run_only_on('sat')
     @data(*_test_data())  # (star-args) pylint:disable=W0142
@@ -64,7 +66,7 @@ class RepositoryTestCase(APITestCase):
         repo_id = entities.Repository(  # (star-args) pylint:disable=W0142
             product=self.prod_id,
             **attrs
-        ).create()['id']
+        ).create_json()['id']
         real_attrs = entities.Repository(id=repo_id).read_json()
         for name, value in attrs.items():
             self.assertIn(name, real_attrs.keys())
@@ -87,11 +89,11 @@ class RepositoryTestCase(APITestCase):
         gpgkey_id = entities.GPGKey(
             content=read_data_file(VALID_GPG_KEY_FILE),
             organization=self.org_id,
-        ).create()['id']
+        ).create_json()['id']
         repo_id = entities.Repository(
             gpg_key=gpgkey_id,
             product=self.prod_id,
-        ).create()['id']
+        ).create_json()['id']
 
         # Verify that the given GPG key ID is used.
         repo_attrs = entities.Repository(id=repo_id).read_json()
@@ -111,8 +113,8 @@ class RepositoryTestCase(APITestCase):
         repo1_attrs = entities.Repository(
             name=name,
             product=self.prod_id
-        ).create()
-        repo2_attrs = entities.Repository(name=name).create()
+        ).create_json()
+        repo2_attrs = entities.Repository(name=name).create_json()
         for attrs in (
                 repo1_attrs,
                 repo2_attrs,
@@ -133,7 +135,7 @@ class RepositoryTestCase(APITestCase):
         repo_id = entities.Repository(  # (star-args) pylint:disable=W0142
             product=self.prod_id,
             **attrs
-        ).create()['id']
+        ).create_json()['id']
         entities.Repository(id=repo_id).delete()
         with self.assertRaises(HTTPError):
             entities.Repository(id=repo_id).read_json()
@@ -151,17 +153,17 @@ class RepositoryTestCase(APITestCase):
         key_1_id = entities.GPGKey(
             content=read_data_file(VALID_GPG_KEY_FILE),
             organization=self.org_id,
-        ).create()['id']
+        ).create_json()['id']
         repo_id = entities.Repository(
             gpg_key=key_1_id,
             product=self.prod_id,
-        ).create()['id']
+        ).create_json()['id']
 
         # Update the repo and make it point to a new GPG key.
         key_2_id = entities.GPGKey(
             content=read_data_file(VALID_GPG_KEY_BETA_FILE),
             organization=self.org_id,
-        ).create()['id']
+        ).create_json()['id']
         client.put(
             entities.Repository(id=repo_id).path(),
             {u'gpg_key_id': key_2_id},
@@ -183,7 +185,7 @@ class RepositoryTestCase(APITestCase):
 
         """
         # Create a repository and upload RPM content.
-        repo_id = entities.Repository(product=self.prod_id).create()['id']
+        repo_id = entities.Repository(product=self.prod_id).create_json()['id']
         client.post(
             entities.Repository(id=repo_id).path(which='upload_content'),
             {},
@@ -204,7 +206,7 @@ class RepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        repo_id = entities.Repository(product=self.prod_id).create()['id']
+        repo_id = entities.Repository(product=self.prod_id).create_json()['id']
         entities.Repository(id=repo_id).sync()
         attrs = entities.Repository(id=repo_id).read_json()
         self.assertGreaterEqual(attrs[u'content_counts'][u'rpm'], 1)
@@ -218,7 +220,7 @@ class RepositoryUpdateTestCase(APITestCase):
     def setUpClass(cls):  # noqa
         """Create a repository which can be repeatedly updated."""
         cls.repository = entities.Repository(
-            id=entities.Repository().create()['id']
+            id=entities.Repository().create_json()['id']
         )
 
     @run_only_on('sat')
@@ -263,7 +265,7 @@ class RepositorySyncTestCase(APITestCase):
 
         """
         cloned_manifest_path = manifests.clone()
-        org_id = entities.Organization().create()['id']
+        org_id = entities.Organization().create_json()['id']
         repo = "Red Hat Enterprise Linux 6 Server - RH Common RPMs x86_64 6.3"
         entities.Organization(id=org_id).upload_manifest(
             path=cloned_manifest_path
@@ -286,7 +288,7 @@ class DockerRepositoryTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         """Create an organization and product which can be re-used in tests."""
-        cls.org_id = entities.Organization().create()['id']
+        cls.org_id = entities.Organization().create_json()['id']
 
     @run_only_on('sat')
     @data(
@@ -307,7 +309,9 @@ class DockerRepositoryTestCase(APITestCase):
         """
         upstream_name = u'busybox'
         content_type = u'docker'
-        prod_id = entities.Product(organization=self.org_id).create()['id']
+        prod_id = entities.Product(
+            organization=self.org_id
+        ).create_json()['id']
 
         repo_id = entities.Repository(
             product=prod_id,
@@ -315,7 +319,7 @@ class DockerRepositoryTestCase(APITestCase):
             name=name,
             docker_upstream_name=upstream_name,
             url=DOCKER_REGISTRY_HUB
-        ).create()['id']
+        ).create_json()['id']
         real_attrs = entities.Repository(id=repo_id).read_json()
         self.assertEqual(real_attrs['name'], name)
         self.assertEqual(real_attrs['docker_upstream_name'], upstream_name)
@@ -331,14 +335,16 @@ class DockerRepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        prod_id = entities.Product(organization=self.org_id).create()['id']
+        prod_id = entities.Product(
+            organization=self.org_id
+        ).create_json()['id']
         repo_id = entities.Repository(
             product=prod_id,
             content_type=u'docker',
             name=u'busybox',
             docker_upstream_name=u'busybox',
             url=DOCKER_REGISTRY_HUB
-        ).create()['id']
+        ).create_json()['id']
 
         entities.Repository(id=repo_id).sync()
         attrs = entities.Repository(id=repo_id).read_json()

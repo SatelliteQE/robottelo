@@ -147,7 +147,7 @@ class UserRoleTestCase(APITestCase):
         self.user.id = entities.User(
             login=self.server_config.auth[0],
             password=self.server_config.auth[1],
-        ).create()['id']
+        ).create_json()['id']
 
     def give_user_permission(self, perm_name):
         """Give ``self.user`` the ``perm_name`` permission.
@@ -166,14 +166,14 @@ class UserRoleTestCase(APITestCase):
         :returns: Nothing.
 
         """
-        role_id = entities.Role().create()['id']
+        role_id = entities.Role().create_json()['id']
         permission_ids = [
             permission['id']
             for permission
             in entities.Permission(name=perm_name).search()
         ]
         self.assertEqual(len(permission_ids), 1)
-        entities.Filter(permission=permission_ids, role=role_id).create()
+        entities.Filter(permission=permission_ids, role=role_id).create_json()
         # NOTE: An extra hash is used due to an API bug.
         client.put(
             self.user.path(),

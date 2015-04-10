@@ -254,7 +254,7 @@ class OrganizationUpdateTestCase(APITestCase):
         @Feature: Organization
 
         """
-        user_id = entities.User().create()['id']
+        user_id = entities.User().create_json()['id']
         client.put(
             self.organization.path(),
             {'organization': {'user_ids': [user_id]}},

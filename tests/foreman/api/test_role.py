@@ -50,7 +50,7 @@ class RoleTestCase(APITestCase):
             self.skipTest('Bugzilla bug 1112657 is open.')
         name = name_generator()
         try:
-            role_id = entities.Role(name=name).create()['id']
+            role_id = entities.Role(name=name).create_json()['id']
         except HTTPError as err:
             self.fail(err)  # fail instead of error
 
@@ -80,7 +80,7 @@ class RoleTestCase(APITestCase):
             self.skipTest('Bugzilla bug 1112657 is open.')
         name = name_generator()
         try:
-            role_id = entities.Role(name=name).create()['id']
+            role_id = entities.Role(name=name).create_json()['id']
         except HTTPError as err:
             self.fail(err)  # fail instead of error
 
@@ -112,7 +112,7 @@ class RoleTestCase(APITestCase):
                 name_generator is gen_utf8):
             self.skipTest('Bugzilla bug 1112657 is open.')
         try:
-            role_id = entities.Role().create()['id']
+            role_id = entities.Role().create_json()['id']
         except HTTPError as err:
             self.fail(err)  # fail instead of error
 

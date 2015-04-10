@@ -29,7 +29,7 @@ class GPGKey(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
 
@@ -511,7 +511,7 @@ class GPGKeyProductAssociate(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
 
@@ -533,13 +533,13 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product and associate GPGKey with it
         entities.Product(
             name=product_name,
             gpg_key=gpgkey_attrs['id'],
             organization=self.org_id
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -566,19 +566,19 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product and associate GPGKey with it
         product_attrs = entities.Product(
             name=product_name,
             gpg_key=gpgkey_attrs['id'],
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository without GPGKey
         entities.Repository(
             name=repository_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -609,25 +609,25 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product and associate GPGKey with it
         product_attrs = entities.Product(
             name=product_name,
             gpg_key=gpgkey_attrs['id'],
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository_1 without GPGKey
         entities.Repository(
             name=repository_1_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id']
-        ).create()
+        ).create_json()
         # Creates new repository_2 without GPGKey
         entities.Repository(
             name=repository_2_name,
             url=FAKE_2_YUM_REPO,
             product=product_attrs['id']
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -690,19 +690,19 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product without selecting GPGkey
         product_attrs = entities.Product(
             name=product_name,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository with GPGKey
         entities.Repository(
             name=repository_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
             gpg_key=gpgkey_attrs['id'],
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -734,25 +734,25 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product without selecting GPGkey
         product_attrs = entities.Product(
             name=product_name,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository with GPGKey
         entities.Repository(
             name=repository_1_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
             gpg_key=gpgkey_attrs['id'],
-        ).create()
+        ).create_json()
         # Creates new repository without GPGKey
         entities.Repository(
             name=repository_2_name,
             url=FAKE_2_YUM_REPO,
             product=product_attrs['id'],
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -807,13 +807,13 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product and associate GPGKey with it
         entities.Product(
             name=product_name,
             gpg_key=gpgkey_attrs['id'],
             organization=self.org_id
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -847,19 +847,19 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product and associate GPGKey with it
         product_attrs = entities.Product(
             name=product_name,
             gpg_key=gpgkey_attrs['id'],
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository without GPGKey
         entities.Repository(
             name=repository_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -899,25 +899,25 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product and associate GPGKey with it
         product_attrs = entities.Product(
             name=product_name,
             gpg_key=gpgkey_attrs['id'],
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository_1 without GPGKey
         entities.Repository(
             name=repository_1_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
-        ).create()
+        ).create_json()
         # Creates new repository_2 without GPGKey
         entities.Repository(
             name=repository_2_name,
             url=FAKE_2_YUM_REPO,
             product=product_attrs['id'],
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -960,7 +960,7 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_products()
@@ -999,19 +999,19 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product without selecting GPGkey
         product_attrs = entities.Product(
             name=product_name,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository with GPGKey
         entities.Repository(
             name=repository_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
             gpg_key=gpgkey_attrs['id'],
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -1052,25 +1052,25 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product without selecting GPGkey
         product_attrs = entities.Product(
             name=product_name,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository_1 with GPGKey
         entities.Repository(
             name=repository_1_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
             gpg_key=gpgkey_attrs['id'],
-        ).create()
+        ).create_json()
         # Creates new repository_2 without GPGKey
         entities.Repository(
             name=repository_2_name,
             url=FAKE_2_YUM_REPO,
             product=product_attrs['id'],
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -1136,13 +1136,13 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product and associate GPGKey with it
         entities.Product(
             name=product_name,
             gpg_key=gpgkey_attrs['id'],
             organization=self.org_id
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -1174,19 +1174,19 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product and associate GPGKey with it
         product_attrs = entities.Product(
             name=product_name,
             gpg_key=gpgkey_attrs['id'],
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository without GPGKey
         entities.Repository(
             name=repository_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -1223,25 +1223,25 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product and associate GPGKey with it
         product_attrs = entities.Product(
             name=product_name,
             gpg_key=gpgkey_attrs['id'],
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository_1 without GPGKey
         entities.Repository(
             name=repository_1_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
-        ).create()
+        ).create_json()
         # Creates new repository_2 without GPGKey
         entities.Repository(
             name=repository_2_name,
             url=FAKE_2_YUM_REPO,
             product=product_attrs['id'],
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -1281,7 +1281,7 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_products()
@@ -1318,19 +1318,19 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product without selecting GPGkey
         product_attrs = entities.Product(
             name=product_name,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository with GPGKey
         entities.Repository(
             name=repository_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
             gpg_key=gpgkey_attrs['id'],
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
@@ -1369,25 +1369,25 @@ class GPGKeyProductAssociate(UITestCase):
             name=name,
             content=key_content,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new product without GPGKey association
         product_attrs = entities.Product(
             name=product_name,
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository_1 with GPGKey association
         entities.Repository(
             name=repository_1_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id'],
             gpg_key=gpgkey_attrs['id'],
-        ).create()
+        ).create_json()
         entities.Repository(
             name=repository_2_name,
             url=FAKE_2_YUM_REPO,
             product=product_attrs['id'],
             # notice that we're not making this repo point to the GPG key
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_gpg_keys()
