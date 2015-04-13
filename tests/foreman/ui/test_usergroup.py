@@ -39,7 +39,7 @@ class UserGroup(UITestCase):
         entities.User(
             login=user_name,
             password=password,
-        ).create()
+        ).create_json()
 
         with Session(self.browser) as session:
             make_usergroup(session, name=group_name, users=[user_name])
@@ -127,7 +127,7 @@ class UserGroup(UITestCase):
         user_name = gen_string("alpha", 6)
         password = gen_string("alpha", 6)
         # Create a new user
-        entities.User(login=user_name, password=password).create()
+        entities.User(login=user_name, password=password).create_json()
 
         with Session(self.browser) as session:
             make_usergroup(session, name=group_name, users=[user_name])
@@ -163,7 +163,7 @@ class UserGroup(UITestCase):
         user_name = gen_string("alpha", 6)
         password = gen_string("alpha", 6)
         # Create a new user
-        entities.User(login=user_name, password=password).create()
+        entities.User(login=user_name, password=password).create_json()
         with Session(self.browser) as session:
             make_usergroup(session, name=name)
             self.assertIsNotNone(self.usergroup.search(name))

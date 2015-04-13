@@ -29,8 +29,8 @@ class Repos(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        org_attrs = entities.Organization().create()
-        loc_attrs = entities.Location().create()
+        org_attrs = entities.Organization().create_json()
+        loc_attrs = entities.Location().create_json()
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
         cls.loc_name = loc_attrs['name']
@@ -88,7 +88,7 @@ class Repos(UITestCase):
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name, name=repo_name,
                             product=product_name, url=FAKE_1_YUM_REPO)
@@ -108,13 +108,13 @@ class Repos(UITestCase):
         # Creates new product_1
         product_1_name = entities.Product(
             organization=self.org_id,
-        ).create()['name']
+        ).create_json()['name']
 
         # Create new product_2 under new organization_2
-        org_2_id = entities.Organization(name=org_2_name).create()['id']
+        org_2_id = entities.Organization(name=org_2_name).create_json()['id']
         product_2_name = entities.Product(
             organization=org_2_id,
-        ).create()['name']
+        ).create_json()['name']
 
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name, name=repo_name,
@@ -139,7 +139,7 @@ class Repos(UITestCase):
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
@@ -163,7 +163,7 @@ class Repos(UITestCase):
         repo_name = gen_string("alpha", 8)
         product_name = entities.Product(
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
@@ -191,7 +191,7 @@ class Repos(UITestCase):
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name,
                             name=repo_name, product=product_name,
@@ -214,7 +214,7 @@ class Repos(UITestCase):
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
 
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name,
@@ -237,7 +237,7 @@ class Repos(UITestCase):
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id,
-        ).create()['name']
+        ).create_json()['name']
 
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name,
@@ -264,7 +264,7 @@ class Repos(UITestCase):
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
 
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name,
@@ -288,7 +288,7 @@ class Repos(UITestCase):
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
 
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name,
@@ -322,16 +322,16 @@ class Repos(UITestCase):
         gpgkey_1_name = entities.GPGKey(
             content=key_1_content,
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
         gpgkey_2_name = entities.GPGKey(
             content=key_2_content,
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
 
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
 
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name,
@@ -364,7 +364,7 @@ class Repos(UITestCase):
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
 
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name,
@@ -395,7 +395,7 @@ class Repos(UITestCase):
         # Creates new product
         product_name = entities.Product(
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
 
         with Session(self.browser) as session:
             make_repository(session, org=self.org_name,
@@ -418,7 +418,7 @@ class Repos(UITestCase):
 
         product_name = entities.Product(
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
 
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
@@ -461,13 +461,13 @@ class Repos(UITestCase):
         # Creates new product
         product_attrs = entities.Product(
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository
         entities.Repository(
             name=repository_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id']
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             self.setup_navigate_syncnow(session,
                                         product_attrs['name'],
@@ -488,14 +488,14 @@ class Repos(UITestCase):
         # Creates new product
         product_attrs = entities.Product(
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new puppet repository
         entities.Repository(
             name=repository_name,
             url=FAKE_0_PUPPET_REPO,
             product=product_attrs['id'],
             content_type=REPO_TYPE['puppet'],
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             self.setup_navigate_syncnow(session,
                                         product_attrs['name'],
@@ -521,14 +521,14 @@ class Repos(UITestCase):
         # Creates new product
         product_attrs = entities.Product(
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new puppet repository
         entities.Repository(
             name=repository_name,
             url=DOCKER_REGISTRY_HUB,
             product=product_attrs['id'],
             content_type=REPO_TYPE['docker'],
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             self.setup_navigate_syncnow(session,
                                         product_attrs['name'],

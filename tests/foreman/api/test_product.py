@@ -43,7 +43,7 @@ class ProductsTestCase(APITestCase):
         @Feature: Product
 
         """
-        prod_id = entities.Product(**attrs).create()['id']
+        prod_id = entities.Product(**attrs).create_json()['id']
         prod_attrs = entities.Product(id=prod_id).read_json()
         for name, value in attrs.items():
             self.assertIn(name, prod_attrs.keys())
@@ -64,15 +64,15 @@ class ProductsTestCase(APITestCase):
         # * Product points to organization and GPG key
         #
         # Re-using an organization speeds up the test.
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         gpgkey_attrs = entities.GPGKey(
             content=read_data_file(VALID_GPG_KEY_FILE),
             organization=org_attrs['id']
-        ).create()
+        ).create_json()
         product_attrs = entities.Product(
             gpg_key=gpgkey_attrs['id'],
             organization=org_attrs['id']
-        ).create()
+        ).create_json()
 
         # GET the product and verify it's GPG key ID.
         attrs = entities.Product(id=product_attrs['id']).read_json()
@@ -88,7 +88,7 @@ class ProductUpdateTestCase(APITestCase):
     def setUpClass(cls):  # noqa
         """Create a product."""
         cls.product_n = entities.Product(
-            id=entities.Product().create()['id']
+            id=entities.Product().create_json()['id']
         )
 
     @data(

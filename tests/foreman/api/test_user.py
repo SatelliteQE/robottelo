@@ -56,7 +56,7 @@ class UsersTestCase(APITestCase):
 
         """
         # Create a user and validate its attributes.
-        user_id = entities.User(**attrs).create()['id']
+        user_id = entities.User(**attrs).create_json()['id']
         real_attrs = entities.User(id=user_id).read_json()
         for name, value in attrs.items():
             self.assertIn(name, real_attrs.keys())
@@ -72,7 +72,7 @@ class UsersTestCase(APITestCase):
 
         """
         # Create a user and delete it immediately afterward.
-        user_id = entities.User(**attrs).create()['id']
+        user_id = entities.User(**attrs).create_json()['id']
         entities.User(id=user_id).delete()
         with self.assertRaises(HTTPError):
             entities.User(id=user_id).read_json()

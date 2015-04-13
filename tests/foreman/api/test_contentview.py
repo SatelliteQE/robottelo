@@ -36,11 +36,11 @@ class ContentViewTestCase(APITestCase):
         # ├── lifecycle environment
         # └── content view
         org = entities.Organization()
-        org.id = org.create()['id']
+        org.id = org.create_json()['id']
         lifecycle_env = entities.LifecycleEnvironment(organization=org.id)
-        lifecycle_env.id = lifecycle_env.create()['id']
+        lifecycle_env.id = lifecycle_env.create_json()['id']
         content_view = entities.ContentView(organization=org.id)
-        content_view.id = content_view.create()['id']
+        content_view.id = content_view.create_json()['id']
 
         # Publish the content view.
         content_view.publish()
@@ -69,7 +69,7 @@ class ContentViewTestCase(APITestCase):
             content_view=content_view.id,
             environment=lifecycle_env.id,
             organization=org.id,
-        ).create()
+        ).create_json()
 
         # See BZ #1151240
         self.assertEqual(system_attrs['content_view_id'], content_view.id)
@@ -88,11 +88,11 @@ class ContentViewTestCase(APITestCase):
 
         """
         org = entities.Organization()
-        org.id = org.create()['id']
+        org.id = org.create_json()['id']
         lifecycle_env = entities.LifecycleEnvironment(organization=org.id)
-        lifecycle_env.id = lifecycle_env.create()['id']
+        lifecycle_env.id = lifecycle_env.create_json()['id']
         content_view = entities.ContentView(organization=org.id)
-        content_view.id = content_view.create()['id']
+        content_view.id = content_view.create_json()['id']
 
         content_view.publish()
         entities.ContentViewVersion(
@@ -119,13 +119,13 @@ class ContentViewTestCase(APITestCase):
 
         """
         org = entities.Organization()
-        org.id = org.create()['id']
+        org.id = org.create_json()['id']
         lifecycle_env = entities.LifecycleEnvironment(organization=org.id)
-        lifecycle_env.id = lifecycle_env.create()['id']
+        lifecycle_env.id = lifecycle_env.create_json()['id']
         le_clone = entities.LifecycleEnvironment(organization=org.id)
-        le_clone.id = le_clone.create()['id']
+        le_clone.id = le_clone.create_json()['id']
         content_view = entities.ContentView(organization=org.id)
-        content_view.id = content_view.create()['id']
+        content_view.id = content_view.create_json()['id']
 
         content_view.publish()
         entities.ContentViewVersion(
@@ -154,7 +154,7 @@ class ContentViewCreateTestCase(APITestCase):
 
         """
         content_view = entities.ContentView(
-            id=entities.ContentView(composite=False).create()['id']
+            id=entities.ContentView(composite=False).create_json()['id']
         )
         self.assertFalse(content_view.read_json()['composite'])
 
@@ -167,7 +167,7 @@ class ContentViewCreateTestCase(APITestCase):
 
         """
         content_view = entities.ContentView(
-            id=entities.ContentView(composite=True).create()['id']
+            id=entities.ContentView(composite=True).create_json()['id']
         )
         self.assertTrue(content_view.read_json()['composite'])
 
@@ -190,7 +190,7 @@ class ContentViewCreateTestCase(APITestCase):
         """
         content_view = entities.ContentView(
             name=name
-        ).create()['id']
+        ).create_json()['id']
         attrs = entities.ContentView(id=content_view).read_json()
         self.assertEqual(attrs['name'], name)
 
@@ -213,7 +213,7 @@ class ContentViewCreateTestCase(APITestCase):
         """
         content_view = entities.ContentView(
             description=description
-        ).create()['id']
+        ).create_json()['id']
         attrs = entities.ContentView(id=content_view).read_json()
         self.assertEqual(attrs['description'], description)
 
@@ -437,7 +437,7 @@ class ContentViewUpdateTestCase(APITestCase):
     def setUpClass(cls):  # noqa
         """Create a content view."""
         cls.content_view = entities.ContentView(
-            id=entities.ContentView().create()['id']
+            id=entities.ContentView().create_json()['id']
         )
 
     @data(

@@ -26,7 +26,7 @@ class ActivationKeysTestCase(APITestCase):
 
         """
         try:
-            attrs = entities.ActivationKey().create()
+            attrs = entities.ActivationKey().create_json()
         except HTTPError as err:
             self.fail(err)
         self.assertTrue(attrs['unlimited_content_hosts'])
@@ -47,7 +47,7 @@ class ActivationKeysTestCase(APITestCase):
             attrs = entities.ActivationKey(
                 unlimited_content_hosts=False,
                 max_content_hosts=max_content_hosts,
-            ).create()
+            ).create_json()
         except HTTPError as err:
             self.fail(err)
         # Assert that it defaults to limited content host...
@@ -79,7 +79,7 @@ class ActivationKeysTestCase(APITestCase):
 
         """
         try:
-            attrs = entities.ActivationKey(name=name).create()
+            attrs = entities.ActivationKey(name=name).create_json()
         except HTTPError as err:
             self.fail(err)
 
@@ -109,7 +109,7 @@ class ActivationKeysTestCase(APITestCase):
         try:
             entity_id = entities.ActivationKey(
                 description=description
-            ).create()['id']
+            ).create_json()['id']
         except HTTPError as err:
             self.fail(err)
 
@@ -127,7 +127,7 @@ class ActivationKeysTestCase(APITestCase):
 
         """
         with self.assertRaises(HTTPError):
-            entities.ActivationKey(unlimited_content_hosts=False).create()
+            entities.ActivationKey(unlimited_content_hosts=False).create_json()
 
     @data(
         gen_string(str_type='alpha'),
@@ -147,7 +147,7 @@ class ActivationKeysTestCase(APITestCase):
             entities.ActivationKey(
                 unlimited_content_hosts=False,
                 max_content_hosts=max_content_hosts
-            ).create()
+            ).create_json()
 
     @skip_if_bug_open('bugzilla', 1156555)
     @data(
@@ -168,7 +168,7 @@ class ActivationKeysTestCase(APITestCase):
             entities.ActivationKey(
                 unlimited_content_hosts=True,
                 max_content_hosts=max_content_hosts
-            ).create()
+            ).create_json()
 
     @data(
         gen_integer(min_value=1, max_value=30),
@@ -186,7 +186,7 @@ class ActivationKeysTestCase(APITestCase):
         # Create an activation key.
         try:
             activation_key = entities.ActivationKey(
-                id=entities.ActivationKey().create()['id']
+                id=entities.ActivationKey().create_json()['id']
             )
         except HTTPError as err:
             self.fail(err)
@@ -229,7 +229,7 @@ class ActivationKeysTestCase(APITestCase):
 
         """
         try:
-            attrs = entities.ActivationKey().create()
+            attrs = entities.ActivationKey().create_json()
         except HTTPError as err:
             self.fail(err)
         activationkey = entities.ActivationKey(id=attrs['id'])
@@ -269,7 +269,7 @@ class ActivationKeysTestCase(APITestCase):
         @Assert: The update fails with an HTTP 422 return code.
 
         """
-        attrs = entities.ActivationKey(max_content_hosts=1).create()
+        attrs = entities.ActivationKey(max_content_hosts=1).create_json()
         path = entities.ActivationKey(id=attrs['id']).path()
         new_attrs = attrs.copy()
         new_attrs['max_content_hosts'] = 'foo'
@@ -298,7 +298,7 @@ class ActivationKeysTestCase(APITestCase):
 
         """
         try:
-            attrs = entities.ActivationKey().create()
+            attrs = entities.ActivationKey().create_json()
         except HTTPError as err:
             self.fail(err)
         path = entities.ActivationKey(id=attrs['id']).path(which='releases')
@@ -324,7 +324,7 @@ class ActivationKeysTestCase(APITestCase):
 
         """
         try:
-            attrs = entities.ActivationKey().create()
+            attrs = entities.ActivationKey().create_json()
         except HTTPError as err:
             self.fail(err)
         response = client.get(
@@ -350,14 +350,16 @@ class ActivationKeysTestCase(APITestCase):
         """
         # Let's create an organization and re-use it in several places. Doing
         # so will speed up this test.
-        org = entities.Organization().create()
+        org = entities.Organization().create_json()
 
         # By default, an activation key should have no host collections.
-        act_key = entities.ActivationKey(organization=org['id']).create()
+        act_key = entities.ActivationKey(organization=org['id']).create_json()
         self.assertEqual(act_key['host_collections'], [])
 
         # Associate our activation key with one host collection.
-        host_coll_1 = entities.HostCollection(organization=org['id']).create()
+        host_coll_1 = entities.HostCollection(
+            organization=org['id']
+        ).create_json()
         client.put(
             entities.ActivationKey(id=act_key['id']).path(),
             verify=False,
@@ -374,7 +376,9 @@ class ActivationKeysTestCase(APITestCase):
         )
 
         # Associate our activation key with two host collections.
-        host_coll_2 = entities.HostCollection(organization=org['id']).create()
+        host_coll_2 = entities.HostCollection(
+            organization=org['id']
+        ).create_json()
         client.put(
             entities.ActivationKey(id=act_key['id']).path(),
             verify=False,

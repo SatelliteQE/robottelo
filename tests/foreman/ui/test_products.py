@@ -17,8 +17,8 @@ class Products(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        cls.org_name = entities.Organization().create()['name']
-        cls.loc_name = entities.Location().create()['name']
+        cls.org_name = entities.Organization().create_json()['name']
+        cls.loc_name = entities.Location().create_json()['name']
 
         super(Products, cls).setUpClass()
 
@@ -51,7 +51,7 @@ class Products(UITestCase):
         description = "test 123"
         org2_name = entities.Organization(
             name=gen_string("alpha", 8)
-        ).create()['name']
+        ).create_json()['name']
         with Session(self.browser) as session:
             make_product(session, org=self.org_name, loc=self.loc_name,
                          name=prd_name, description=description)

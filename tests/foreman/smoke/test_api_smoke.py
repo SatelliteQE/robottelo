@@ -837,34 +837,38 @@ class TestSmoke(TestCase):
         password = gen_string('alphanumeric')
 
         # step 1: Create a new user with admin permissions
-        entities.User(admin=True, login=login, password=password).create()
+        entities.User(admin=True, login=login, password=password).create_json()
 
         # step 2.1: Create a new organization
         server_config = get_nailgun_config()
         server_config.auth = (login, password)
-        org = entities.Organization(server_config).create()
+        org = entities.Organization(server_config).create_json()
 
         # step 2.2: Create 2 new lifecycle environments
-        le1 = entities.LifecycleEnvironment(organization=org['id']).create()
+        le1 = entities.LifecycleEnvironment(
+            organization=org['id']
+        ).create_json()
         le2 = entities.LifecycleEnvironment(
-            organization=org['id'], prior=le1['id']).create()
+            organization=org['id'],
+            prior=le1['id'],
+        ).create_json()
 
         # step 2.3: Create a custom product
-        prod = entities.Product(organization=org['id']).create()
+        prod = entities.Product(organization=org['id']).create_json()
 
         # step 2.4: Create custom YUM repository
         repo1 = entities.Repository(
             product=prod['id'],
             content_type=u'yum',
             url=GOOGLE_CHROME_REPO
-        ).create()
+        ).create_json()
 
         # step 2.5: Create custom PUPPET repository
         repo2 = entities.Repository(
             product=prod['id'],
             content_type=u'puppet',
             url=FAKE_0_PUPPET_REPO
-        ).create()
+        ).create_json()
 
         # step 2.6: Synchronize both repositories
         for repo in [repo1, repo2]:
@@ -881,7 +885,9 @@ class TestSmoke(TestCase):
             entities.ForemanTask(id=response['id']).poll()
 
         # step 2.7: Create content view
-        content_view = entities.ContentView(organization=org['id']).create()
+        content_view = entities.ContentView(
+            organization=org['id']
+        ).create_json()
 
         # step 2.8: Associate YUM repository to new content view
         response = client.put(
@@ -969,7 +975,7 @@ class TestSmoke(TestCase):
         content_host = entities.System(
             content_view=content_view['id'],
             environment=le2['id']
-        ).create()
+        ).create_json()
         # Check that content view matches what we passed
         self.assertEqual(
             content_host['content_view_id'],
@@ -1042,12 +1048,12 @@ class TestSmoke(TestCase):
         activation_key_name = gen_string('alpha')
 
         # step 1.1: Create a new organization
-        org = entities.Organization().create()
+        org = entities.Organization().create_json()
 
         # step 1.2: Create new lifecycle environments
         lifecycle_env = entities.LifecycleEnvironment(
             organization=org['id']
-        ).create()
+        ).create_json()
 
         # step 2: Upload manifest
         manifest_path = manifests.clone()
@@ -1065,7 +1071,9 @@ class TestSmoke(TestCase):
         entities.Repository(id=repo_id).sync()
 
         # step 4: Create content view
-        content_view = entities.ContentView(organization=org['id']).create()
+        content_view = entities.ContentView(
+            organization=org['id']
+        ).create_json()
         # step 5: Associate repository to new content view
         response = client.put(
             entities.ContentView(id=content_view['id']).path(),

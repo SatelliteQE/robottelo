@@ -27,7 +27,7 @@ class Sync(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
 
@@ -47,13 +47,13 @@ class Sync(UITestCase):
         # Creates new product
         product_attrs = entities.Product(
             organization=self.org_id
-        ).create()
+        ).create_json()
         # Creates new repository
         entities.Repository(
             name=repository_name,
             url=FAKE_1_YUM_REPO,
             product=product_attrs['id']
-        ).create()
+        ).create_json()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(Sync.org_name)
             session.nav.go_to_sync_status()

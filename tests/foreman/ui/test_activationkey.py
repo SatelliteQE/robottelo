@@ -37,13 +37,14 @@ class ActivationKey(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         # org label is required for subcription-manager cmd.
         cls.org_label = org_attrs['label']
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
         cls.base_key_name = entities.ActivationKey(
-            organization=cls.org_id).create_json()['name']
+            organization=cls.org_id
+        ).create_json()['name']
 
         super(ActivationKey, cls).setUpClass()
 
@@ -56,13 +57,13 @@ class ActivationKey(UITestCase):
         product_attrs = entities.Product(
             name=product_name,
             organization=org_id or self.org_id
-        ).create()
+        ).create_json()
         repo_attrs = entities.Repository(
             name=repo_name,
             url=repo_url or FAKE_1_YUM_REPO,
             content_type=repo_type or REPO_TYPE['yum'],
             product=product_attrs['id'],
-        ).create()
+        ).create_json()
         repo_id = repo_attrs['id']
         # Sync repository
         entities.Repository(id=repo_id).sync()
@@ -88,13 +89,13 @@ class ActivationKey(UITestCase):
         env_attrs = entities.LifecycleEnvironment(
             name=env_name,
             organization=org_id or self.org_id
-        ).create()
+        ).create_json()
         # Create content view(CV)
         content_view = entities.ContentView(
             name=name,
             organization=org_id or self.org_id
         )
-        content_view.id = content_view.create()['id']
+        content_view.id = content_view.create_json()['id']
 
         # Associate YUM repo to created CV
         response = client.put(
@@ -248,7 +249,7 @@ class ActivationKey(UITestCase):
         host_col = entities.HostCollection(
             organization=self.org_id,
             name=hc_name
-        ).create()
+        ).create_json()
 
         with Session(self.browser) as session:
             make_activationkey(session, org=self.org_name,
@@ -1070,7 +1071,7 @@ class ActivationKey(UITestCase):
         }
         product_subscription = "Red Hat Employee Subscription"
         # Create new org to import manifest
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         org_id = org_attrs['id']
         # Upload manifest
         manifest_path = manifests.clone()
@@ -1151,19 +1152,19 @@ class ActivationKey(UITestCase):
         custom_product_name = gen_string("alpha", 8)
         repo_name = gen_string("alpha", 8)
         # Create new org to import manifest
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         org_id = org_attrs['id']
         # Creates new product and repository via API's
         product_attrs = entities.Product(
             name=custom_product_name,
             organization=org_id
-        ).create()
+        ).create_json()
         repo_attrs = entities.Repository(
             name=repo_name,
             url=FAKE_1_YUM_REPO,
             content_type=REPO_TYPE['yum'],
             product=product_attrs['id'],
-        ).create()
+        ).create_json()
         custom_repo_id = repo_attrs['id']
         # Upload manifest
         manifest_path = manifests.clone()

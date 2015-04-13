@@ -26,7 +26,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         response = client.get(
             entities.LifecycleEnvironment().path(),
             auth=get_server_credentials(),

@@ -16,7 +16,7 @@ class ContentEnvironment(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        cls.org_name = entities.Organization().create()['name']
+        cls.org_name = entities.Organization().create_json()['name']
         super(ContentEnvironment, cls).setUpClass()
 
     def test_positive_create_content_environment_1(self):

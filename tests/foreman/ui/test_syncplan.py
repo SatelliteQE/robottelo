@@ -19,7 +19,7 @@ class Syncplan(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        org_attrs = entities.Organization().create()
+        org_attrs = entities.Organization().create_json()
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
 
@@ -296,7 +296,7 @@ class Syncplan(UITestCase):
         strategy, value = locators["sp.prd_select"]
         product_name = entities.Product(
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
         entities.Organization(id=self.org_id).sync_plan(
             name=plan_name,
             interval=SYNC_INTERVAL['week']
@@ -327,7 +327,7 @@ class Syncplan(UITestCase):
         strategy, value = locators["sp.prd_select"]
         product_name = entities.Product(
             organization=self.org_id
-        ).create()['name']
+        ).create_json()['name']
         entities.Organization(id=self.org_id).sync_plan(
             name=plan_name,
             interval=SYNC_INTERVAL['week']

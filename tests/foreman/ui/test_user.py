@@ -97,7 +97,7 @@ class User(UITestCase):
 
         strategy, value = common_locators["entity_deselect"]
         name = gen_string("alpha", 6)
-        role_name = entities.Role().create()['name']
+        role_name = entities.Role().create_json()['name']
         with Session(self.browser) as session:
             make_user(session, username=name)
             self.user.search(name, search_key).click()
@@ -290,7 +290,7 @@ class User(UITestCase):
         """
         strategy, value = common_locators["entity_deselect"]
         name = gen_string("alpha", 6)
-        role_name = entities.Role().create()['name']
+        role_name = entities.Role().create_json()['name']
         with Session(self.browser) as session:
             make_user(session, username=name, roles=[role_name], edit=True)
             self.user.search(name, search_key).click()
@@ -316,7 +316,7 @@ class User(UITestCase):
         role1 = gen_string("alpha", 6)
         role2 = gen_string("alpha", 6)
         for role in [role1, role2]:
-            entities.Role(name=role).create()
+            entities.Role(name=role).create_json()
         with Session(self.browser) as session:
             make_user(session, username=name, roles=[role1, role2],
                       edit=True)
@@ -544,7 +544,7 @@ class User(UITestCase):
         strategy, value = common_locators["entity_deselect"]
         name = gen_string("alpha", 6)
         org_name = gen_string("alpha", 6)
-        entities.Organization(name=org_name).create()
+        entities.Organization(name=org_name).create_json()
         with Session(self.browser) as session:
             make_user(session, username=name, organizations=[org_name],
                       edit=True)
@@ -568,7 +568,7 @@ class User(UITestCase):
         org_name1 = gen_string("alpha", 6)
         org_name2 = gen_string("alpha", 6)
         for org_name in [org_name1, org_name2]:
-            entities.Organization(name=org_name).create()
+            entities.Organization(name=org_name).create_json()
         with Session(self.browser) as session:
             make_user(session, username=name,
                       organizations=[org_name1, org_name2],
@@ -636,7 +636,7 @@ class User(UITestCase):
         strategy, value = common_locators["entity_deselect"]
         name = gen_string("alpha", 6)
         org_name = gen_string("alpha", 6)
-        entities.Organization(name=org_name).create()
+        entities.Organization(name=org_name).create_json()
         with Session(self.browser) as session:
             make_user(session, username=name, organizations=[org_name],
                       edit=True, default_org=org_name)
@@ -663,7 +663,7 @@ class User(UITestCase):
         strategy, value = common_locators["entity_deselect"]
         name = gen_string("alpha", 6)
         loc_name = gen_string("alpha", 6)
-        entities.Location(name=loc_name).create()
+        entities.Location(name=loc_name).create_json()
         with Session(self.browser) as session:
             make_user(session, username=name, locations=[loc_name],
                       edit=True, default_loc=loc_name)

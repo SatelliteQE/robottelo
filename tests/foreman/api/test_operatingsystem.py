@@ -43,7 +43,7 @@ class OSParameterTestCase(APITestCase):
             name=name,
             operatingsystem=1,
             value=value,
-        ).create()['id']
+        ).create_json()['id']
         attrs = entities.OperatingSystemParameter(
             id=osp_id,
             operatingsystem=1,
@@ -65,8 +65,10 @@ class OSTestCase(APITestCase):
         @Feature: OperatingSystem
 
         """
-        arch_id = entities.Architecture().create()['id']
-        os_id = entities.OperatingSystem(architecture=[arch_id]).create()['id']
+        arch_id = entities.Architecture().create_json()['id']
+        os_id = entities.OperatingSystem(
+            architecture=[arch_id]
+        ).create_json()['id']
         attrs = entities.OperatingSystem(id=os_id).read_json()
         self.assertEqual(len(attrs['architectures']), 1)
         self.assertEqual(attrs['architectures'][0]['id'], arch_id)
@@ -80,8 +82,10 @@ class OSTestCase(APITestCase):
         @Feature: OperatingSystem
 
         """
-        ptable_id = entities.PartitionTable().create()['id']
-        os_id = entities.OperatingSystem(ptable=[ptable_id]).create()['id']
+        ptable_id = entities.PartitionTable().create_json()['id']
+        os_id = entities.OperatingSystem(
+            ptable=[ptable_id]
+        ).create_json()['id']
         attrs = entities.OperatingSystem(id=os_id).read_json()
         self.assertEqual(len(attrs['ptables']), 1)
         self.assertEqual(attrs['ptables'][0]['id'], ptable_id)
