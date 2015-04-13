@@ -130,6 +130,4 @@ class Environment(UITestCase):
         with Session(self.browser) as session:
             make_env(session, name=name)
             self.environment.delete(name, really=True)
-            notif = session.nav.wait_until_element(
-                common_locators["notif.success"])
-            self.assertTrue(notif)
+            self.assertIsNone(self.environment.search(name))

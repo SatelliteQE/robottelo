@@ -18,8 +18,8 @@ class UserGroup(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        cls.org_name = entities.Organization().create()
-
+        org_attrs = entities.Organization().create_json()
+        cls.org_name = org_attrs['name']
         super(UserGroup, cls).setUpClass()
 
     @skip_if_bug_open('bugzilla', 1142588)
