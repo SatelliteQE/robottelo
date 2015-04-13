@@ -634,10 +634,10 @@ class ContentViewVersion(Entity, EntityReadMixin):
         response.raise_for_status()
 
         # Poll a task if necessary, then return the JSON response.
-        if synchronous is True and response.status_code is httplib.ACCEPTED:
+        if synchronous is True and response.status_code == httplib.ACCEPTED:
             return ForemanTask(
                 self._server_config,
-                id=response.json()['id'],
+                id=response.json()['id']
             ).poll()
         return response.json()
 
@@ -836,10 +836,10 @@ class ContentView(
         response.raise_for_status()
 
         # Poll a task if necessary, then return the JSON response.
-        if synchronous is True and response.status_code is httplib.ACCEPTED:
+        if synchronous is True and response.status_code == httplib.ACCEPTED:
             return ForemanTask(
                 self._server_config,
-                id=response.json()['id'],
+                id=response.json()['id']
             ).poll()
         return response.json()
 
@@ -1058,8 +1058,10 @@ class ForemanTask(Entity, EntityReadMixin):
             Defaults to ``nailgun.entity_mixins.TASK_TIMEOUT``.
         :returns: Information about the asynchronous task.
         :rtype: dict
-        :raises: ``nailgun.entity_mixins.TaskTimeout`` if the task is not
-            finished before the timeout is exceeded.
+        :raises: ``nailgun.entity_mixins.TaskTimedOutError`` if the task
+            completes with any result other than "success".
+        :raises: ``nailgun.entity_mixins.TaskFailedError`` if the task finishes
+            with any result other than "success".
         :raises: ``requests.exceptions.HTTPError`` If the API returns a message
             with an HTTP 4XX or 5XX status code.
 
@@ -1713,8 +1715,9 @@ class Organization(
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If the response JSON could not be decoded.
-        :raises: ``nailgun.entity_mixins.TaskTimeout`` if an HTTP 202 response is
-            received, ``synchronous is True`` and polling times out.
+        :raises: ``nailgun.entity_mixins.TaskTimedOutError`` if an HTTP 202
+            response is received, ``synchronous is True`` and the task
+            completes with any result other than "success".
         :rtype: dict
 
         """
@@ -1731,7 +1734,7 @@ class Organization(
             )
         response.raise_for_status()
         # Poll a task if necessary, then return the JSON response.
-        if synchronous is True and response.status_code is httplib.ACCEPTED:
+        if synchronous is True and response.status_code == httplib.ACCEPTED:
             return ForemanTask(
                 self._server_config,
                 id=response.json()['id']
@@ -1750,8 +1753,9 @@ class Organization(
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If the response JSON could not be decoded.
-        :raises: ``nailgun.entity_mixins.TaskTimeout`` if an HTTP 202 response
-            is received, ``synchronous is True`` and polling times out.
+        :raises: ``nailgun.entity_mixins.TaskTimedOutError`` if an HTTP 202
+            response is received, ``synchronous is True`` and the task
+            completes with any result other than "success".
         :rtype: dict
 
         """
@@ -1762,7 +1766,7 @@ class Organization(
         )
         response.raise_for_status()
         # Poll a task if necessary, then return the JSON response.
-        if synchronous is True and response.status_code is httplib.ACCEPTED:
+        if synchronous is True and response.status_code == httplib.ACCEPTED:
             return ForemanTask(
                 self._server_config,
                 id=response.json()['id']
@@ -1781,8 +1785,9 @@ class Organization(
         :raises: ``requests.exceptions.HTTPError`` if the response has an HTTP
             4XX or 5XX status code.
         :raises: ``ValueError`` If the response JSON could not be decoded.
-        :raises: ``nailgun.entity_mixins.TaskTimeout`` if an HTTP 202 response
-            is received, ``synchronous is True`` and polling times out.
+        :raises: ``nailgun.entity_mixins.TaskTimedOutError`` if an HTTP 202
+            response is received, ``synchronous is True`` and the task
+            completes with any result other than "success".
         :rtype: dict
 
         """
@@ -1793,7 +1798,7 @@ class Organization(
         )
         response.raise_for_status()
         # Poll a task if necessary, then return the JSON response.
-        if synchronous is True and response.status_code is httplib.ACCEPTED:
+        if synchronous is True and response.status_code == httplib.ACCEPTED:
             return ForemanTask(
                 self._server_config,
                 id=response.json()['id'],
@@ -2088,7 +2093,7 @@ class Product(
         )
         response.raise_for_status()
         # Poll a task if necessary, then return the JSON response.
-        if synchronous is True and response.status_code is httplib.ACCEPTED:
+        if synchronous is True and response.status_code == httplib.ACCEPTED:
             return ForemanTask(
                 self._server_config,
                 id=response.json()['id'],
@@ -2120,7 +2125,7 @@ class Product(
         )
         response.raise_for_status()
         # Poll a task if necessary, then return the JSON response.
-        if synchronous is True and response.status_code is httplib.ACCEPTED:
+        if synchronous is True and response.status_code == httplib.ACCEPTED:
             return ForemanTask(
                 self._server_config,
                 id=response.json()['id'],
@@ -2279,7 +2284,7 @@ class Repository(
         )
         response.raise_for_status()
         # Poll a task if necessary, then return the JSON response.
-        if synchronous is True and response.status_code is httplib.ACCEPTED:
+        if synchronous is True and response.status_code == httplib.ACCEPTED:
             return ForemanTask(
                 self._server_config,
                 id=response.json()['id'],
@@ -2555,7 +2560,7 @@ class SyncPlan(
             verify=self._server_config.verify,
         )
         response.raise_for_status()
-        if synchronous is True and response.status_code is httplib.ACCEPTED:
+        if synchronous is True and response.status_code == httplib.ACCEPTED:
             return ForemanTask(
                 self._server_config,
                 id=response.json()['id'],
@@ -2584,7 +2589,7 @@ class SyncPlan(
             verify=self._server_config.verify,
         )
         response.raise_for_status()
-        if synchronous is True and response.status_code is httplib.ACCEPTED:
+        if synchronous is True and response.status_code == httplib.ACCEPTED:
             return ForemanTask(
                 self._server_config,
                 id=response.json()['id'],

@@ -878,12 +878,7 @@ class TestSmoke(TestCase):
                 len(response['id']),
                 1,
                 u'Was not able to fetch a task ID.')
-            task_status = entities.ForemanTask(id=response['id']).poll()
-            self.assertEqual(
-                task_status['result'],
-                u'success',
-                u'Sync for repository {0} failed.'.format(repo['name'])
-            )
+            entities.ForemanTask(id=response['id']).poll()
 
         # step 2.7: Create content view
         content_view = entities.ContentView(organization=org['id']).create()
@@ -930,11 +925,7 @@ class TestSmoke(TestCase):
         )
 
         # step 2.9: Publish content view
-        task_status = entities.ContentView(id=content_view['id']).publish()
-        self.assertEqual(
-            task_status['result'],
-            u'success',
-            u"Publishing {0} failed.".format(content_view['name']))
+        entities.ContentView(id=content_view['id']).publish()
 
         # step 2.10: Promote content view to both lifecycles
         content_view = entities.ContentView(id=content_view['id']).read_json()
@@ -946,14 +937,9 @@ class TestSmoke(TestCase):
             len(content_view['versions'][0]['environment_ids']),
             1,
             u"Content view should be present on 1 lifecycle only")
-        task_status = entities.ContentViewVersion(
+        entities.ContentViewVersion(
             id=content_view['versions'][0]['id']
         ).promote(le1['id'])
-        self.assertEqual(
-            task_status['result'],
-            u'success',
-            u"Promoting {0} to {1} failed.".format(
-                content_view['name'], le1['name']))
         # Check that content view exists in 2 lifecycles
         content_view = entities.ContentView(id=content_view['id']).read_json()
         self.assertEqual(
@@ -964,14 +950,9 @@ class TestSmoke(TestCase):
             len(content_view['versions'][0]['environment_ids']),
             2,
             u"Content view should be present on 2 lifecycles only")
-        task_status = entities.ContentViewVersion(
+        entities.ContentViewVersion(
             id=content_view['versions'][0]['id']
         ).promote(le2['id'])
-        self.assertEqual(
-            task_status['result'],
-            u'success',
-            u"Promoting {0} to {1} failed.".format(
-                content_view['name'], le2['name']))
         # Check that content view exists in 2 lifecycles
         content_view = entities.ContentView(id=content_view['id']).read_json()
         self.assertEqual(
@@ -1070,12 +1051,7 @@ class TestSmoke(TestCase):
 
         # step 2: Upload manifest
         manifest_path = manifests.clone()
-        task = entities.Organization(
-            id=org['id']
-        ).upload_manifest(path=manifest_path)
-        self.assertEqual(
-            u'success', task['result'], task['humanized']['errors']
-        )
+        entities.Organization(id=org['id']).upload_manifest(path=manifest_path)
         # step 3.1: Enable RH repo and fetch repository_id
         repo_id = utils.enable_rhrepo_and_fetchid(
             basearch="x86_64",
@@ -1086,12 +1062,7 @@ class TestSmoke(TestCase):
             releasever="6Server",
         )
         # step 3.2: sync repository
-        task_result = entities.Repository(id=repo_id).sync()['result']
-        self.assertEqual(
-            task_result,
-            u'success',
-            u" Error while syncing repository '{0}' and state is {1}."
-            .format(repo, task_result))
+        entities.Repository(id=repo_id).sync()
 
         # step 4: Create content view
         content_view = entities.ContentView(organization=org['id']).create()
@@ -1105,26 +1076,14 @@ class TestSmoke(TestCase):
         response.raise_for_status()
 
         # step 6.1: Publish content view
-        task_status = entities.ContentView(id=content_view['id']).publish()
-        self.assertEqual(
-            task_status['result'],
-            u'success',
-            u"Error publishing content-view {0} and state is {1}."
-            .format(content_view['name'], task_status['result']))
+        entities.ContentView(id=content_view['id']).publish()
 
         # step 6.2: Promote content view to lifecycle_env
         content_view = entities.ContentView(id=content_view['id']).read_json()
         self.assertEqual(len(content_view['versions']), 1)
-        task_status = entities.ContentViewVersion(
+        entities.ContentViewVersion(
             id=content_view['versions'][0]['id']
         ).promote(lifecycle_env['id'])
-        self.assertEqual(
-            task_status['result'],
-            u'success',
-            u"Error promoting {0} to {1} and state is {2}."
-            .format(content_view['name'],
-                    lifecycle_env['name'],
-                    task_status['result']))
 
         # step 7: Create activation key
         ak_id = entities.ActivationKey(

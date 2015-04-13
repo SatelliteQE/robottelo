@@ -88,12 +88,9 @@ class TestContentView(CLITestCase):
 
         TestContentView.rhel_content_org = make_org()
         manifest = manifests.clone()
-        finished_task = Organization(
+        Organization(
             id=TestContentView.rhel_content_org['id']
         ).upload_manifest(manifest)
-        if finished_task['result'] != "success":
-            TestContentView.rhel_content_org = None
-            self.fail("Couldn't upload manifest")
 
         result = RepositorySet.enable({
             'name': (

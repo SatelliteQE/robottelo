@@ -65,11 +65,7 @@ class ActivationKey(UITestCase):
         ).create()
         repo_id = repo_attrs['id']
         # Sync repository
-        task_result = entities.Repository(id=repo_id).sync()['result']
-        self.assertEqual(
-            task_result,
-            u'success',
-            u"Sync for repository {0} failed.".format(repo_name))
+        entities.Repository(id=repo_id).sync()
         return repo_id
 
     def enable_sync_redhat_repo(self, rh_repo, org_id=None):
@@ -82,13 +78,8 @@ class ActivationKey(UITestCase):
             rh_repo['name'],
             rh_repo['reposet'],
             rh_repo['releasever'])
-        repo_name = rh_repo['name']
         # Sync repository
-        task_result = entities.Repository(id=repo_id).sync()['result']
-        self.assertEqual(
-            task_result,
-            u'success',
-            u"Sync for repository {0} failed.".format(repo_name))
+        entities.Repository(id=repo_id).sync()
         return repo_id
 
     def cv_publish_promote(self, name, env_name, repo_id, org_id=None):
@@ -114,7 +105,7 @@ class ActivationKey(UITestCase):
         response.raise_for_status()
 
         # Publish content view
-        self.assertEqual(u'success', content_view.publish()['result'])
+        content_view.publish()
 
         # Get the content view version's ID.
         response = client.get(
@@ -129,10 +120,7 @@ class ActivationKey(UITestCase):
         cv_version = entities.ContentViewVersion(id=results[0]['id'])
 
         # Promote the content view version.
-        self.assertEqual(
-            'success',
-            cv_version.promote(environment_id=env_attrs['id'])['result']
-        )
+        cv_version.promote(environment_id=env_attrs['id'])
 
     @data(*valid_data_list())
     def test_positive_create_activation_key_1(self, name):
@@ -1086,12 +1074,7 @@ class ActivationKey(UITestCase):
         org_id = org_attrs['id']
         # Upload manifest
         manifest_path = manifests.clone()
-        task = entities.Organization(
-            id=org_id
-        ).upload_manifest(path=manifest_path)
-        self.assertEqual(
-            u'success', task['result'], task['humanized']['errors']
-        )
+        entities.Organization(id=org_id).upload_manifest(path=manifest_path)
         # Helper function to create and promote CV to next environment
         repo_id = self.enable_sync_redhat_repo(rh_repo, org_id=org_id)
         self.cv_publish_promote(cv_name, env_name, repo_id, org_id)
@@ -1184,12 +1167,7 @@ class ActivationKey(UITestCase):
         custom_repo_id = repo_attrs['id']
         # Upload manifest
         manifest_path = manifests.clone()
-        task = entities.Organization(
-            id=org_id
-        ).upload_manifest(path=manifest_path)
-        self.assertEqual(
-            u'success', task['result'], task['humanized']['errors']
-        )
+        entities.Organization(id=org_id).upload_manifest(path=manifest_path)
         # Enable RH repo and fetch repository_id
         rhel_repo_id = utils.enable_rhrepo_and_fetchid(
             rh_repo['basearch'],
@@ -1201,11 +1179,7 @@ class ActivationKey(UITestCase):
         )
         # Sync repository
         for repo_id in [rhel_repo_id, custom_repo_id]:
-            task_result = entities.Repository(id=repo_id).sync()['result']
-            self.assertEqual(
-                task_result,
-                u'success',
-                u"Sync for repository {0} failed.".format(repo_name))
+            entities.Repository(id=repo_id).sync()
         with Session(self.browser) as session:
             make_activationkey(
                 session, org=org_attrs['name'], name=name, env=ENVIRONMENT,

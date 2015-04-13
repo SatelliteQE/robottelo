@@ -10,8 +10,6 @@ from robottelo.common.decorators import (
     bz_bug_is_open, data, run_only_on, stubbed)
 from robottelo.common.helpers import get_data_file, get_server_credentials
 from robottelo.test import APITestCase
-from unittest import SkipTest
-import re
 # (too-many-public-methods) pylint:disable=R0904
 
 
@@ -19,34 +17,6 @@ import re
 # How many times should that be done? A higher number means a more interesting
 # but longer test.
 REPEAT = 3
-
-
-def _check_bz_1186432(humanized_errors):
-    """Check whether any error messages appear to be due to BZ 1186432.
-
-    This is an example of ``humanized_errors`` from a server suffering from BZ
-    1186432:
-
-    > [u'ERF12-4115 [ProxyAPI::ProxyException]: Unable to get classes from
-    > Puppet for example_env ([RestClient::NotAcceptable]: 406 Not
-    > Acceptable) for proxy https://<snip>:9090/puppet']
-
-    :param list humanized_errors: A list of strings. This list can be extracted
-        from a response like so: ``response['humanized']['errors']``.
-    :returns: Nothing.
-    :rtype: None
-    :raises: ``unittest.SkipTest`` if any of the strings in
-        ``humanized_errors`` look suspicious.
-
-    """
-    bz_1186432_re = (
-        r'ERF12-4115 \[ProxyAPI::ProxyException\].*'
-        r'\[RestClient::NotAcceptable\]: 406 Not Acceptable'
-    )
-    for error in humanized_errors:
-        if (re.search(bz_1186432_re, error) is not None and
-                bz_bug_is_open(1186432)):
-            raise SkipTest('BZ 1186432 is open: {0}'.format(error))
 
 
 @run_only_on('sat')
@@ -73,10 +43,7 @@ class ContentViewTestCase(APITestCase):
         content_view.id = content_view.create()['id']
 
         # Publish the content view.
-        response = content_view.publish()
-        humanized_errors = response['humanized']['errors']
-        _check_bz_1186432(humanized_errors)
-        self.assertEqual(response['result'], 'success', humanized_errors)
+        content_view.publish()
 
         # Get the content view version's ID.
         response = client.get(
@@ -91,10 +58,7 @@ class ContentViewTestCase(APITestCase):
         cv_version = entities.ContentViewVersion(id=results[0]['id'])
 
         # Promote the content view version.
-        response = cv_version.promote(environment_id=lifecycle_env.id)
-        humanized_errors = response['humanized']['errors']
-        _check_bz_1186432(humanized_errors)
-        self.assertEqual('success', response['result'], humanized_errors)
+        cv_version.promote(environment_id=lifecycle_env.id)
 
         # Create a system that is subscribed to the published and promoted
         # content view. Associating this system with the organization and
@@ -130,34 +94,18 @@ class ContentViewTestCase(APITestCase):
         content_view = entities.ContentView(organization=org.id)
         content_view.id = content_view.create()['id']
 
-        response = content_view.publish()
-        humanized_errors = response['humanized']['errors']
-        _check_bz_1186432(humanized_errors)
-        self.assertEqual(response['result'], 'success', humanized_errors)
-
-        cvv = entities.ContentViewVersion(
+        content_view.publish()
+        entities.ContentViewVersion(
             id=content_view.read_json()['versions'][0]['id']
+        ).promote(lifecycle_env.id)
+
+        cloned_cv = entities.ContentView(
+            id=content_view.copy(gen_string('alpha', gen_integer(3, 30)))['id']
         )
-        response = cvv.promote(lifecycle_env.id)
-        humanized_errors = response['humanized']['errors']
-        _check_bz_1186432(humanized_errors)
-        self.assertEqual(response['result'], 'success', humanized_errors)
-
-        response = content_view.copy(gen_string('alpha', gen_integer(3, 30)))
-        cv_cloned = entities.ContentView(id=response['id'])
-
-        response = cv_cloned.publish()
-        humanized_errors = response['humanized']['errors']
-        _check_bz_1186432(humanized_errors)
-        self.assertEqual(response['result'], 'success', humanized_errors)
-
-        cvv = entities.ContentViewVersion(
-            id=cv_cloned.read_json()['versions'][0]['id']
-        )
-        response = cvv.promote(lifecycle_env.id)
-        humanized_errors = response['humanized']['errors']
-        _check_bz_1186432(humanized_errors)
-        self.assertEqual(response['result'], 'success', humanized_errors)
+        cloned_cv.publish()
+        entities.ContentViewVersion(
+            id=cloned_cv.read_json()['versions'][0]['id']
+        ).promote(lifecycle_env.id)
 
     def test_cv_clone_within_diff_env(self):
         """@Test: attempt to create, publish and promote new content
@@ -179,34 +127,18 @@ class ContentViewTestCase(APITestCase):
         content_view = entities.ContentView(organization=org.id)
         content_view.id = content_view.create()['id']
 
-        response = content_view.publish()
-        humanized_errors = response['humanized']['errors']
-        _check_bz_1186432(humanized_errors)
-        self.assertEqual(response['result'], 'success', humanized_errors)
-
-        cvv = entities.ContentViewVersion(
+        content_view.publish()
+        entities.ContentViewVersion(
             id=content_view.read_json()['versions'][0]['id']
+        ).promote(lifecycle_env.id)
+
+        cloned_cv = entities.ContentView(
+            id=content_view.copy(gen_string('alpha', gen_integer(3, 30)))['id']
         )
-        response = cvv.promote(lifecycle_env.id)
-        humanized_errors = response['humanized']['errors']
-        _check_bz_1186432(humanized_errors)
-        self.assertEqual(response['result'], 'success', humanized_errors)
-
-        response = content_view.copy(gen_string('alpha', gen_integer(3, 30)))
-        cv_cloned = entities.ContentView(id=response['id'])
-
-        response = cv_cloned.publish()
-        humanized_errors = response['humanized']['errors']
-        _check_bz_1186432(humanized_errors)
-        self.assertEqual(response['result'], 'success', humanized_errors)
-
-        cvv = entities.ContentViewVersion(
-            id=cv_cloned.read_json()['versions'][0]['id']
-        )
-        response = cvv.promote(le_clone.id)
-        humanized_errors = response['humanized']['errors']
-        _check_bz_1186432(humanized_errors)
-        self.assertEqual(response['result'], 'success', humanized_errors)
+        cloned_cv.publish()
+        entities.ContentViewVersion(
+            id=cloned_cv.read_json()['versions'][0]['id']
+        ).promote(le_clone.id)
 
 
 @ddt
@@ -324,10 +256,7 @@ class CVPublishPromoteTestCase(APITestCase):
         content_view = entities.ContentView()
         content_view.id = content_view.create_json()['id']
         for _ in range(REPEAT):
-            response = content_view.publish()
-            humanized_errors = response['humanized']['errors']
-            _check_bz_1186432(humanized_errors)
-            self.assertEqual(response['result'], 'success', humanized_errors)
+            content_view.publish()
         self.assertEqual(len(content_view.read_json()['versions']), REPEAT)
 
     def test_positive_publish_2(self):
@@ -350,10 +279,7 @@ class CVPublishPromoteTestCase(APITestCase):
         # Publish the content view several times and check that each version
         # has some software packages.
         for _ in range(REPEAT):
-            response = content_view.publish()
-            humanized_errors = response['humanized']['errors']
-            _check_bz_1186432(humanized_errors)
-            self.assertEqual(response['result'], 'success', humanized_errors)
+            content_view.publish()
         for cvv_id in (  # content view version ID
                 version['id']
                 for version
@@ -385,10 +311,7 @@ class CVPublishPromoteTestCase(APITestCase):
         # Publish the content view several times and check that each version
         # has the puppet module added above.
         for _ in range(REPEAT):
-            response = content_view.publish()
-            humanized_errors = response['humanized']['errors']
-            _check_bz_1186432(humanized_errors)
-            self.assertEqual(response['result'], 'success', humanized_errors)
+            content_view.publish()
         for cvv_id in (  # content view version ID
                 version['id']
                 for version
@@ -407,10 +330,7 @@ class CVPublishPromoteTestCase(APITestCase):
         """
         content_view = entities.ContentView(organization=self.org.id)
         content_view.id = content_view.create_json()['id']
-        response = content_view.publish()
-        humanized_errors = response['humanized']['errors']
-        _check_bz_1186432(humanized_errors)
-        self.assertEqual(response['result'], 'success', humanized_errors)
+        content_view.publish()
 
         # Promote the content view version several times.
         cvv = entities.ContentViewVersion(
@@ -420,10 +340,7 @@ class CVPublishPromoteTestCase(APITestCase):
             lc_env_id = entities.LifecycleEnvironment(
                 organization=self.org.id
             ).create_json()['id']
-            response = cvv.promote(lc_env_id)
-            humanized_errors = response['humanized']['errors']
-            _check_bz_1186432(humanized_errors)
-            self.assertEqual(response['result'], 'success', humanized_errors)
+            cvv.promote(lc_env_id)
 
         # Does it show up in the correct number of lifecycle environments?
         self.assertEqual(
@@ -445,10 +362,7 @@ class CVPublishPromoteTestCase(APITestCase):
         content_view = entities.ContentView(organization=self.org.id)
         content_view.id = content_view.create_json()['id']
         content_view.set_repository_ids([self.yum_repo.id])
-        response = content_view.publish()
-        humanized_errors = response['humanized']['errors']
-        _check_bz_1186432(humanized_errors)
-        self.assertEqual(response['result'], 'success', humanized_errors)
+        content_view.publish()
 
         # Promote the content view version.
         cvv = entities.ContentViewVersion(
@@ -458,10 +372,7 @@ class CVPublishPromoteTestCase(APITestCase):
             lc_env_id = entities.LifecycleEnvironment(
                 organization=self.org.id
             ).create_json()['id']
-            response = cvv.promote(lc_env_id)
-            humanized_errors = response['humanized']['errors']
-            _check_bz_1186432(humanized_errors)
-            self.assertEqual(response['result'], 'success', humanized_errors)
+            cvv.promote(lc_env_id)
 
         # Everything's done - check some content view attributes...
         cv_attrs = content_view.read_json()
@@ -493,10 +404,7 @@ class CVPublishPromoteTestCase(APITestCase):
             puppet_module['author'],
             puppet_module['name']
         )
-        response = content_view.publish()
-        humanized_errors = response['humanized']['errors']
-        _check_bz_1186432(humanized_errors)
-        self.assertEqual(response['result'], 'success', humanized_errors)
+        content_view.publish()
 
         # Promote the content view version.
         cvv = entities.ContentViewVersion(
@@ -506,10 +414,7 @@ class CVPublishPromoteTestCase(APITestCase):
             lc_env_id = entities.LifecycleEnvironment(
                 organization=self.org.id
             ).create_json()['id']
-            response = cvv.promote(lc_env_id)
-            humanized_errors = response['humanized']['errors']
-            _check_bz_1186432(humanized_errors)
-            self.assertEqual(response['result'], 'success', humanized_errors)
+            cvv.promote(lc_env_id)
 
         # Everything's done. Check some content view attributes...
         cv_attrs = content_view.read_json()

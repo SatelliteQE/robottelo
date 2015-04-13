@@ -205,8 +205,7 @@ class RepositoryTestCase(APITestCase):
 
         """
         repo_id = entities.Repository(product=self.prod_id).create()['id']
-        task_result = entities.Repository(id=repo_id).sync()['result']
-        self.assertEqual(u'success', task_result)
+        entities.Repository(id=repo_id).sync()
         attrs = entities.Repository(id=repo_id).read_json()
         self.assertGreaterEqual(attrs[u'content_counts'][u'rpm'], 1)
 
@@ -266,10 +265,8 @@ class RepositorySyncTestCase(APITestCase):
         cloned_manifest_path = manifests.clone()
         org_id = entities.Organization().create()['id']
         repo = "Red Hat Enterprise Linux 6 Server - RH Common RPMs x86_64 6.3"
-        task = entities.Organization(
-            id=org_id).upload_manifest(path=cloned_manifest_path)
-        self.assertEqual(
-            u'success', task['result'], task['humanized']['errors']
+        entities.Organization(id=org_id).upload_manifest(
+            path=cloned_manifest_path
         )
         repo_id = utils.enable_rhrepo_and_fetchid(
             "x86_64",
@@ -279,11 +276,7 @@ class RepositorySyncTestCase(APITestCase):
             "Red Hat Enterprise Linux 6 Server - RH Common (RPMs)",
             "6.3",
         )
-        task_result = entities.Repository(id=repo_id).sync()['result']
-        self.assertEqual(
-            task_result,
-            u'success',
-            u"Sync for repository '{0}' failed.".format(repo))
+        entities.Repository(id=repo_id).sync()
 
 
 @ddt
@@ -347,10 +340,7 @@ class DockerRepositoryTestCase(APITestCase):
             url=DOCKER_REGISTRY_HUB
         ).create()['id']
 
-        task_result = entities.Repository(id=repo_id).sync()['result']
-        self.assertEqual(
-            u'success',
-            task_result)
+        entities.Repository(id=repo_id).sync()
         attrs = entities.Repository(id=repo_id).read_json()
         self.assertGreaterEqual(attrs[u'content_counts'][u'docker_image'], 1)
 
