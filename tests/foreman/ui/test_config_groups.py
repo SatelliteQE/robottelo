@@ -93,7 +93,7 @@ class ConfigGroups(UITestCase):
           {'name': gen_string('latin1', 20),
            'new_name': gen_string('latin1', 10)})
     def test_update_positive_1(self, testdata):
-        """@Test: Create new config-group
+        """@Test: Update selected config-group
 
         @Feature: Config-Groups - Positive Update
 
@@ -112,7 +112,7 @@ class ConfigGroups(UITestCase):
 
     @data(*generate_strings_list(len1=8))
     def test_delete_positive_1(self, name):
-        """@Test: Create new config-groups
+        """@Test: Delete selected config-groups
 
         @Feature: Config-Groups - Positive delete
 
@@ -126,6 +126,4 @@ class ConfigGroups(UITestCase):
             self.assertIsNotNone(search)
             self.configgroups.delete(
                 name, True, drop_locator=locators["config_groups.dropdown"])
-            self.assertIsNotNone(session.nav.wait_until_element
-                                 (common_locators["notif.success"]))
             self.assertIsNone(self.configgroups.search(name))

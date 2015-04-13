@@ -1050,9 +1050,7 @@ locators = LocatorDict({
     "repo.via_http": (By.ID, "unprotected"),
     "repo.search": (By.XPATH, "//input[@ng-model='repositorySearch']"),
     "repo.remove": (
-        By.XPATH,
-        ("//script[contains(@bst-modal,'removeRepository(repository)')]"
-         "/../button[contains(@ng-show, 'repository')]")),
+        By.XPATH, "//button[contains(@ng-show, 'canRemove')]"),
     "repo.sync_now": (
         By.XPATH, "//button[contains(@ng-click, 'syncSelectedRepositories')]"),
     "repo.select_checkbox": (
@@ -1120,7 +1118,7 @@ locators = LocatorDict({
                    "/div/span[contains(@class,'editable-value')]")),
     "repo.fetch_gpgkey": (
         By.XPATH, ("//form[@selector='repository.gpg_key_id']"
-                   "/div[@class='bst-edit']/div/span")),
+                   "/div[@class='bst-edit']/div/span[2]")),
     "repo.fetch_checksum": (
         By.XPATH, ("//form[@selector='repository.checksum_type']"
                    "/div/div/span[contains(@class,'value')]")),
