@@ -1,6 +1,5 @@
 """Tests for :mod:`tests.foreman` and its sub-modules."""
 from mock import patch
-from robottelo.common import decorators
 from tests.foreman.api.test_contentview import _check_bz_1186432
 from unittest import SkipTest, TestCase
 
@@ -29,7 +28,10 @@ class CheckBz1186432TestCase(TestCase):
             ],
             [],  # no errors at all
         )
-        with patch.object(decorators, 'bz_bug_is_open', return_value=True):
+        with patch(
+                'tests.foreman.api.test_contentview.bz_bug_is_open',
+                return_value=True
+        ):
             for error_list in error_lists:
                 self.assertIsNone(_check_bz_1186432(error_list))
 
@@ -61,7 +63,10 @@ class CheckBz1186432TestCase(TestCase):
                 'This string will not trigger an exception. The prev will.',
             ],
         )
-        with patch.object(decorators, 'bz_bug_is_open', return_value=True):
+        with patch(
+                'tests.foreman.api.test_contentview.bz_bug_is_open',
+                return_value=True
+        ):
             for error_list in error_lists:
                 with self.assertRaises(SkipTest):
                     _check_bz_1186432(error_list)
