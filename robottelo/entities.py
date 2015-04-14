@@ -35,9 +35,15 @@ from nailgun.entity_mixins import (
 from time import sleep
 import httplib
 import random
-# pylint:disable=too-few-public-methods
-# pylint:disable=too-many-lines
 
+# pylint:disable=too-few-public-methods
+# See NailGun issue #30: https://github.com/SatelliteQE/nailgun/issues/30
+
+# pylint:disable=too-many-lines
+# The size of this file is a direct reflection of the size of Satellite's API.
+# This file's size has already been significantly cut down through the use of
+# mixins and fields, and cutting the file down in size further would simply
+# obfuscate the design of the entities.
 
 # This has the same effect as passing `module='robottelo.entities'` to every
 # single OneToOneField and OneToManyField.
@@ -69,15 +75,15 @@ class HostCreateMissingError(Exception):
 class ActivationKey(
         Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Activtion Key entity."""
-    organization = entity_fields.OneToOneField('Organization', required=True)
-    name = entity_fields.StringField(required=True)
+    auto_attach = entity_fields.BooleanField()
+    content_view = entity_fields.OneToOneField('ContentView')
     description = entity_fields.StringField()
     environment = entity_fields.OneToOneField('Environment')
-    content_view = entity_fields.OneToOneField('ContentView')
-    unlimited_content_hosts = entity_fields.BooleanField()
-    max_content_hosts = entity_fields.IntegerField()
     host_collection = entity_fields.OneToManyField('HostCollection')
-    auto_attach = entity_fields.BooleanField()
+    max_content_hosts = entity_fields.IntegerField()
+    name = entity_fields.StringField(required=True)
+    organization = entity_fields.OneToOneField('Organization', required=True)
+    unlimited_content_hosts = entity_fields.BooleanField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -146,20 +152,28 @@ class ActivationKey(
         response.raise_for_status()
         return response.json()
 
+
 class Architecture(
         Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Architecture entity."""
     name = entity_fields.StringField(required=True)
-    operatingsystem = entity_fields.OneToManyField('OperatingSystem', null=True)
+    operatingsystem = entity_fields.OneToManyField(
+        'OperatingSystem',
+        null=True,
+    )
 
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/architectures'
         server_modes = ('sat')
 
-    # NOTE: See BZ 1151220
     def create_payload(self):
-        """Wrap submitted data within an extra dict."""
+        """Wrap submitted data within an extra dict.
+
+        For more information, see `Bugzilla #1151220
+        <https://bugzilla.redhat.com/show_bug.cgi?id=1151220>`_.
+
+        """
         return {u'architecture': super(Architecture, self).create_payload()}
 
 
@@ -172,7 +186,7 @@ class AuthSourceLDAP(
     host = entity_fields.StringField(required=True, length=(1, 60))
     name = entity_fields.StringField(required=True, length=(1, 60))
     onthefly_register = entity_fields.BooleanField(null=True)
-    port = entity_fields.IntegerField(null=True)  # default: 389
+    port = entity_fields.IntegerField(null=True)
     tls = entity_fields.BooleanField(null=True)
 
     # required if onthefly_register is true
@@ -216,10 +230,10 @@ class AuthSourceLDAP(
 
 class Bookmark(Entity):
     """A representation of a Bookmark entity."""
-    name = entity_fields.StringField(required=True)
     controller = entity_fields.StringField(required=True)
-    query = entity_fields.StringField(required=True)
+    name = entity_fields.StringField(required=True)
     public = entity_fields.BooleanField(null=True)
+    query = entity_fields.StringField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -240,24 +254,18 @@ class CommonParameter(Entity):
 
 class ComputeAttribute(Entity):
     """A representation of a Compute Attribute entity."""
-    compute_profile = entity_fields.OneToOneField('ComputeProfile', required=True)
-    compute_resource = entity_fields.OneToOneField('ComputeResource', required=True)
+    compute_profile = entity_fields.OneToOneField(
+        'ComputeProfile',
+        required=True,
+    )
+    compute_resource = entity_fields.OneToOneField(
+        'ComputeResource',
+        required=True,
+    )
 
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/compute_attributes'
-        # Alternative paths:
-        #
-        # '/api/v2/compute_resources/:compute_resource_id/compute_profiles/'
-        # ':compute_profile_id/compute_attributes',
-        #
-        # '/api/v2/compute_profiles/:compute_profile_id/compute_resources/'
-        # ':compute_resource_id/compute_attributes',
-        #
-        # '/api/v2/compute_resources/:compute_resource_id/'
-        # 'compute_attributes',
-        #
-        # '/api/v2/compute_profiles/:compute_profile_id/compute_attributes',
         server_modes = ('sat')
 
 
@@ -316,6 +324,8 @@ class ComputeResource(
         Depending upon the value of ``self.provider``, various other fields are
         filled in with values too.
 
+        .. WARNING: This method is fragile and needs significant work.
+
         """
         cls = type(self)
         provider = vars(self).get('provider')
@@ -343,7 +353,7 @@ class ComputeResource(
             # self.key_path = cls.key_path.gen_value()
             # self.project = cls.project.gen_value()
             #
-            # FIXME: These three pieces of data are required. However, the API
+            # NOTE: These three pieces of data are required. However, the API
             # docs don't even mention their existence!
             #
             # 1. Figure out valid values for these three fields.
@@ -351,7 +361,7 @@ class ComputeResource(
             # 3. File an issue on bugzilla asking for the docs to be expanded.
             pass
         elif provider == 'Rackspace':
-            # FIXME: Foreman always returns this error:
+            # NOTE: Foreman always returns this error:
             #
             #     undefined method `upcase' for nil:NilClass
             #
@@ -380,13 +390,15 @@ class ConfigTemplate(
     audit_comment = entity_fields.StringField(null=True)
     locked = entity_fields.BooleanField(null=True)
     name = entity_fields.StringField(required=True)
-    operatingsystem = entity_fields.OneToManyField('OperatingSystem', null=True)
-    snippet = entity_fields.BooleanField(null=True, required=True)
-    # "Array of template combinations (hostgroup_id, environment_id)"
-    template_combinations = entity_fields.ListField(null=True)  # flake8:noqa pylint:disable=C0103
-    template_kind = entity_fields.OneToOneField('TemplateKind', null=True)
-    template = entity_fields.StringField(required=True)
+    operatingsystem = entity_fields.OneToManyField(
+        'OperatingSystem',
+        null=True,
+    )
     organization = entity_fields.OneToManyField('Organization', null=True)
+    snippet = entity_fields.BooleanField(null=True, required=True)
+    template = entity_fields.StringField(required=True)
+    template_combinations = entity_fields.ListField(null=True)
+    template_kind = entity_fields.OneToOneField('TemplateKind', null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -412,9 +424,13 @@ class ConfigTemplate(
                 id=random.randint(1, TemplateKind.Meta.NUM_CREATED_BY_DEFAULT)
             )
 
-    # NOTE: See BZ 1151220
     def create_payload(self):
-        """Wrap submitted data within an extra dict."""
+        """Wrap submitted data within an extra dict.
+
+        For more information, see `Bugzilla #1151220
+        <https://bugzilla.redhat.com/show_bug.cgi?id=1151220>`_.
+
+        """
         return {
             u'config_template': super(ConfigTemplate, self).create_payload()
         }
@@ -424,7 +440,7 @@ class ConfigTemplate(
         if attrs is None:
             attrs = self.read_json()
         template_kind_id = attrs.pop('template_kind_id')
-        if template_kind_id  is None:
+        if template_kind_id is None:
             attrs['template_kind'] = None
         else:
             attrs['template_kind'] = {'id': template_kind_id}
@@ -502,9 +518,13 @@ class AbstractDockerContainer(
             )
         return super(AbstractDockerContainer, self).path(which)
 
-    # NOTE: See BZ 1151220
     def create_payload(self):
-        """Wrap submitted data within an extra dict."""
+        """Wrap submitted data within an extra dict.
+
+        For more information, see `Bugzilla #1151220
+        <https://bugzilla.redhat.com/show_bug.cgi?id=1151220>`_.
+
+        """
         return {
             u'container': super(AbstractDockerContainer, self).create_payload()
         }
@@ -654,23 +674,18 @@ class ContentViewVersion(Entity, EntityReadMixin):
 
 class ContentViewFilterRule(Entity):
     """A representation of a Content View Filter Rule entity."""
-    content_view_filter = entity_fields.OneToOneField('ContentViewFilter', required=True)
-    # package or package group: name
-    name = entity_fields.StringField()
-    # package: version
-    version = entity_fields.StringField()
-    # package: minimum version
-    min_version = entity_fields.StringField()
-    # package: maximum version
-    max_version = entity_fields.StringField()
-    # erratum: id
-    errata = entity_fields.OneToOneField('Errata')
-    # erratum: start date (YYYY-MM-DD)
-    start_date = entity_fields.DateField()
-    # erratum: end date (YYYY-MM-DD)
+    content_view_filter = entity_fields.OneToOneField(
+        'ContentViewFilter',
+        required=True
+    )
     end_date = entity_fields.DateField()
-    # erratum: types (enhancement, bugfix, security)
+    errata = entity_fields.OneToOneField('Errata')
+    max_version = entity_fields.StringField()
+    min_version = entity_fields.StringField()
+    name = entity_fields.StringField()
+    start_date = entity_fields.DateField()
     types = entity_fields.ListField()
+    version = entity_fields.StringField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -682,14 +697,10 @@ class ContentViewFilterRule(Entity):
 class ContentViewFilter(Entity):
     """A representation of a Content View Filter entity."""
     content_view = entity_fields.OneToOneField('ContentView', required=True)
-    name = entity_fields.StringField(required=True)
-    # type of filter (e.g. rpm, package_group, erratum)
     filter_type = entity_fields.StringField(required=True)
-    # Add all packages without Errata to the included/excluded list. (Package
-    # Filter only)
-    original_packages = entity_fields.BooleanField()
-    # specifies if content should be included or excluded, default: false
     inclusion = entity_fields.BooleanField()
+    name = entity_fields.StringField(required=True)
+    original_packages = entity_fields.BooleanField()
     repositories = entity_fields.OneToManyField('Repository')
 
     class Meta(object):
@@ -768,17 +779,17 @@ class ContentViewPuppetModule(
         payload['uuid'] = payload.pop('puppet_module_id')
         return payload
 
+
 class ContentView(
         Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Content View entity."""
-    organization = entity_fields.OneToOneField('Organization', required=True)
-    name = entity_fields.StringField(required=True)
-    label = entity_fields.StringField()
+    component = entity_fields.OneToManyField('ContentView')
     composite = entity_fields.BooleanField()
     description = entity_fields.StringField()
+    label = entity_fields.StringField()
+    name = entity_fields.StringField(required=True)
+    organization = entity_fields.OneToOneField('Organization', required=True)
     repository = entity_fields.OneToManyField('Repository')
-    # List of component content view version ids for composite views
-    component = entity_fields.OneToManyField('ContentView')
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -921,23 +932,6 @@ class ContentView(
         return response.json()
 
 
-class CustomInfo(Entity):
-    """A representation of a Custom Info entity."""
-    # name of the resource
-    informable_type = entity_fields.StringField(required=True)
-    # resource identifier
-    # FIXME figure out related resource
-    # informable = entity_fields.OneToOneField(required=True)
-    keyname = entity_fields.StringField(required=True)
-    value = entity_fields.StringField(required=True)
-
-    class Meta(object):
-        """Non-field information about this entity."""
-        api_path = ('katello/api/v2/custom_info/:informable_type/'
-                    ':informable_id')
-        server_modes = ('sat')
-
-
 class Domain(
         Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Domain entity."""
@@ -946,9 +940,6 @@ class Domain(
     location = entity_fields.OneToManyField('Location', null=True)
     name = entity_fields.StringField(required=True)
     organization = entity_fields.OneToManyField('Organization', null=True)
-    # DNS Proxy to use within this domain
-    # FIXME figure out related resource
-    # dns = entity_fields.OneToOneField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -958,18 +949,22 @@ class Domain(
     def create_missing(self):
         """Customize the process of auto-generating instance attributes.
 
-        By default, entity_fields.:meth:`robottelo.URLField.gen_value` does not return
-        especially unique values. This is problematic, as all domain names must
-        be unique.
+        By default, entity_fields.:meth:`robottelo.URLField.gen_value` does not
+        return especially unique values. This is problematic, as all domain
+        names must be unique.
 
         """
         if 'name' not in vars(self):
             self.name = gen_alphanumeric().lower()
         super(Domain, self).create_missing()
 
-    # NOTE: See BZ 1151220
     def create_payload(self):
-        """Wrap submitted data within an extra dict."""
+        """Wrap submitted data within an extra dict.
+
+        For more information, see `Bugzilla #1151220
+        <https://bugzilla.redhat.com/show_bug.cgi?id=1151220>`_.
+
+        """
         return {u'domain': super(Domain, self).create_payload()}
 
     def read(self, entity=None, attrs=None, ignore=()):
@@ -1003,7 +998,7 @@ class Environment(
 
 class Errata(Entity):
     """A representation of an Errata entity."""
-    # You cannot create an errata. Instead, errata are a read-only entity.
+    # You cannot create an errata. Errata are a read-only entity.
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1014,11 +1009,11 @@ class Errata(Entity):
 class Filter(
         Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Filter entity."""
+    location = entity_fields.OneToManyField('Location', null=True)
+    organization = entity_fields.OneToManyField('Organization', null=True)
+    permission = entity_fields.OneToManyField('Permission', null=True)
     role = entity_fields.OneToOneField('Role', required=True)
     search = entity_fields.StringField(null=True)
-    permission = entity_fields.OneToManyField('Permission', null=True)
-    organization = entity_fields.OneToManyField('Organization', null=True)
-    location = entity_fields.OneToManyField('Location', null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1119,8 +1114,8 @@ class HostCollectionErrata(Entity):
 
 class HostCollectionPackage(Entity):
     """A representation of a Host Collection Package entity."""
-    packages = entity_fields.ListField()
     groups = entity_fields.ListField()
+    packages = entity_fields.ListField()
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1172,6 +1167,7 @@ class HostCollection(
             payload['system_uuids'] = payload.pop('system_ids')
         return payload
 
+
 class HostGroupClasses(Entity):
     """A representation of a Host Group Classes entity."""
     hostgroup = entity_fields.OneToOneField('HostGroup', required=True)
@@ -1185,20 +1181,16 @@ class HostGroupClasses(Entity):
 
 class HostGroup(Entity, EntityCreateMixin):
     """A representation of a Host Group entity."""
-    name = entity_fields.StringField(required=True)
-    parent = entity_fields.OneToOneField('HostGroup', null=True)
-    environment = entity_fields.OneToOneField('Environment', null=True)
-    operatingsystem = entity_fields.OneToOneField('OperatingSystem', null=True)
     architecture = entity_fields.OneToOneField('Architecture', null=True)
-    medium = entity_fields.OneToOneField('Media', null=True)
-    ptable = entity_fields.OneToOneField('PartitionTable', null=True)
-    # FIXME figure out related resource
-    # puppet_ca_proxy = entity_fields.OneToOneField(null=True)
-    subnet = entity_fields.OneToOneField('Subnet', null=True)
     domain = entity_fields.OneToOneField('Domain', null=True)
+    environment = entity_fields.OneToOneField('Environment', null=True)
+    medium = entity_fields.OneToOneField('Media', null=True)
+    name = entity_fields.StringField(required=True)
+    operatingsystem = entity_fields.OneToOneField('OperatingSystem', null=True)
+    parent = entity_fields.OneToOneField('HostGroup', null=True)
+    ptable = entity_fields.OneToOneField('PartitionTable', null=True)
     realm = entity_fields.OneToOneField('Realm', null=True)
-    # FIXME figure out related resource
-    # puppet_proxy = entity_fields.OneToOneField(null=True)
+    subnet = entity_fields.OneToOneField('Subnet', null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1206,14 +1198,17 @@ class HostGroup(Entity, EntityCreateMixin):
         server_modes = ('sat')
 
 
-class Host(
+class Host(  # pylint:disable=too-many-instance-attributes
         Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Host entity."""
     architecture = entity_fields.OneToOneField('Architecture', null=True)
     build_ = entity_fields.BooleanField(null=True)
     capabilities = entity_fields.StringField(null=True)
     compute_profile = entity_fields.OneToOneField('ComputeProfile', null=True)
-    compute_resource = entity_fields.OneToOneField('ComputeResource', null=True)
+    compute_resource = entity_fields.OneToOneField(
+        'ComputeResource',
+        null=True
+    )
     domain = entity_fields.OneToOneField('Domain', null=True)
     enabled = entity_fields.BooleanField(null=True)
     environment = entity_fields.OneToOneField('Environment', null=True)
@@ -1242,10 +1237,6 @@ class Host(
     root_pass = entity_fields.StringField(length=(8, 30))
     sp_subnet = entity_fields.OneToOneField('Subnet', null=True)
     subnet = entity_fields.OneToOneField('Subnet', null=True)
-
-    # FIXME figure out these related resources
-    # progress_report = entity_fields.OneToOneField(null=True)
-    # puppet_ca_proxy = entity_fields.OneToOneField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1320,9 +1311,13 @@ class Host(
             ).create_json()['id']
         )
 
-    # NOTE: See BZ 1151220
     def create_payload(self):
-        """Wrap submitted data within an extra dict."""
+        """Wrap submitted data within an extra dict.
+
+        For more information, see `Bugzilla #1151220
+        <https://bugzilla.redhat.com/show_bug.cgi?id=1151220>`_.
+
+        """
         return {u'host': super(Host, self).create_payload()}
 
     def read(self, entity=None, attrs=None, ignore=('root_pass',)):
@@ -1340,7 +1335,7 @@ class Host(
                 continue
             if isinstance(field, entity_fields.OneToOneField):
                 field_id = attrs.pop(field_name + '_id')
-                if field_id  is None:
+                if field_id is None:
                     attrs[field_name] = None
                 else:
                     attrs[field_name] = {'id': field_id}
@@ -1350,12 +1345,18 @@ class Host(
 
 class Image(Entity):
     """A representation of a Image entity."""
-    compute_resource = entity_fields.OneToOneField('ComputeResource', required=True)
+    architecture = entity_fields.OneToOneField('Architecture', required=True)
+    compute_resource = entity_fields.OneToOneField(
+        'ComputeResource',
+        required=True
+    )
     name = entity_fields.StringField(required=True)
+    operatingsystem = entity_fields.OneToOneField(
+        'OperatingSystem',
+        required=True
+    )
     username = entity_fields.StringField(required=True)
     uuid = entity_fields.StringField(required=True)
-    architecture = entity_fields.OneToOneField('Architecture', required=True)
-    operatingsystem = entity_fields.OneToOneField('OperatingSystem', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1365,18 +1366,16 @@ class Image(Entity):
 
 class Interface(Entity):
     """A representation of a Interface entity."""
-    host = entity_fields.OneToOneField('Host', required=True)
-    mac = entity_fields.MACAddressField(required=True)
-    ip = entity_fields.IPAddressField(required=True)  # pylint:disable=C0103
-    # Interface type, i.e: Nic::BMC
-    interface_type = entity_fields.StringField(required=True)
-    name = entity_fields.StringField(required=True)
-    subnet = entity_fields.OneToOneField('Subnet', null=True)
     domain = entity_fields.OneToOneField('Domain', null=True)
-    username = entity_fields.StringField(null=True)
+    host = entity_fields.OneToOneField('Host', required=True)
+    interface_type = entity_fields.StringField(required=True)
+    ip = entity_fields.IPAddressField(required=True)  # pylint:disable=C0103
+    mac = entity_fields.MACAddressField(required=True)
+    name = entity_fields.StringField(required=True)
     password = entity_fields.StringField(null=True)
-    # Interface provider, i.e: IPMI
     provider = entity_fields.StringField(null=True)
+    subnet = entity_fields.OneToOneField('Subnet', null=True)
+    username = entity_fields.StringField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1472,28 +1471,38 @@ class Media(
     """A representation of a Media entity."""
     media_path = entity_fields.URLField(required=True)
     name = entity_fields.StringField(required=True)
-    operatingsystem = entity_fields.OneToManyField('OperatingSystem', null=True)
+    operatingsystem = entity_fields.OneToManyField(
+        'OperatingSystem',
+        null=True,
+    )
     organization = entity_fields.OneToManyField('Organization', null=True)
-    os_family = entity_fields.StringField(choices=(
-        'AIX', 'Archlinux', 'Debian', 'Freebsd', 'Gentoo', 'Junos', 'Redhat',
-        'Solaris', 'Suse', 'Windows',
-    ), null=True)
+    os_family = entity_fields.StringField(
+        choices=(
+            'AIX', 'Archlinux', 'Debian', 'Freebsd', 'Gentoo', 'Junos',
+            'Redhat', 'Solaris', 'Suse', 'Windows',
+        ),
+        null=True,
+    )
 
     def create_missing(self):
         """Give the 'media_path' instance attribute a value if it is unset.
 
-        By default, entity_fields.:meth:`robottelo.URLField.gen_value` does not return
-        especially unique values. This is problematic, as all media must have a
-        unique path.
+        By default, entity_fields.:meth:`robottelo.URLField.gen_value` does not
+        return especially unique values. This is problematic, as all media must
+        have a unique path.
 
         """
         if 'media_path' not in vars(self):
             self.media_path = gen_url(subdomain=gen_alpha())
         return super(Media, self).create_missing()
 
-    # NOTE: See BZ 1151220
     def create_payload(self):
-        """Wrap submitted data within an extra dict."""
+        """Wrap submitted data within an extra dict.
+
+        For more information, see `Bugzilla #1151220
+        <https://bugzilla.redhat.com/show_bug.cgi?id=1151220>`_.
+
+        """
         return {u'medium': super(Media, self).create_payload()}
 
     class Meta(object):
@@ -1506,10 +1515,10 @@ class Media(
 class Model(
         Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Model entity."""
-    name = entity_fields.StringField(required=True)
-    info = entity_fields.StringField(null=True)
-    vendor_class = entity_fields.StringField(null=True)
     hardware_model = entity_fields.StringField(null=True)
+    info = entity_fields.StringField(null=True)
+    name = entity_fields.StringField(required=True)
+    vendor_class = entity_fields.StringField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1541,7 +1550,11 @@ class OperatingSystem(
         str_type='numeric',
     )
     media = entity_fields.OneToManyField('Media')
-    minor = entity_fields.StringField(null=True, str_type='numeric', length=(1, 16))
+    minor = entity_fields.StringField(
+        length=(1, 16),
+        null=True,
+        str_type='numeric',
+    )
     name = entity_fields.StringField(required=True)
     ptable = entity_fields.OneToManyField('PartitionTable')
     release_name = entity_fields.StringField(null=True)
@@ -1551,9 +1564,13 @@ class OperatingSystem(
         api_path = 'api/v2/operatingsystems'
         server_modes = ('sat')
 
-    # NOTE: See BZ 1151220
     def create_payload(self):
-        """Wrap submitted data within an extra dict."""
+        """Wrap submitted data within an extra dict.
+
+        For more information, see `Bugzilla #1151220
+        <https://bugzilla.redhat.com/show_bug.cgi?id=1151220>`_.
+
+        """
         return {
             u'operatingsystem': super(OperatingSystem, self).create_payload()
         }
@@ -1614,27 +1631,11 @@ class OperatingSystemParameter(
         if entity is None:
             # pylint:disable=no-member
             entity = type(self)(operatingsystem=self.operatingsystem.id)
-        return super(OperatingSystemParameter, self).read(entity, attrs, ignore)
-
-
-class OrganizationDefaultInfo(Entity):
-    """A representation of a Organization Default Info entity."""
-    # name of the resource
-    informable_type = entity_fields.StringField(required=True)
-    # resource identifier
-    # FIXME figure out related resource
-    # informable = entity_fields.OneToOneField(required=True)
-    keyname = entity_fields.StringField(required=True)
-    name = entity_fields.StringField(required=True)
-    info = entity_fields.StringField()
-    vendor_class = entity_fields.StringField()
-    hardware_model = entity_fields.StringField()
-
-    class Meta(object):
-        """Non-field information about this entity."""
-        api_path = ('katello/api/v2/organizations/:organization_id/'
-                    'default_info/:informable_type')
-        server_modes = ('sat', 'sam')
+        return super(OperatingSystemParameter, self).read(
+            entity,
+            attrs,
+            ignore
+        )
 
 
 class Organization(
@@ -1844,9 +1845,9 @@ class Organization(
 
 class OSDefaultTemplate(Entity):
     """A representation of a OS Default Template entity."""
+    config_template = entity_fields.OneToOneField('ConfigTemplate', null=True)
     operatingsystem = entity_fields.OneToOneField('OperatingSystem')
     template_kind = entity_fields.OneToOneField('TemplateKind', null=True)
-    config_template = entity_fields.OneToOneField('ConfigTemplate', null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -1857,13 +1858,13 @@ class OSDefaultTemplate(Entity):
 
 class OverrideValue(Entity):
     """A representation of a Override Value entity."""
-    smart_variable = entity_fields.OneToOneField('SmartVariable')
     match = entity_fields.StringField(null=True)
+    smart_variable = entity_fields.OneToOneField('SmartVariable')
     value = entity_fields.StringField(null=True)
 
     class Meta(object):
         """Non-field information about this entity."""
-        # FIXME: This is tricky. Overriding path() may be a solution.
+        # NOTE: This is tricky. Overriding path() may be a solution.
         api_path = (
             # Create an override value for a specific smart_variable
             '/api/v2/smart_variables/:smart_variable_id/override_values',
@@ -1890,15 +1891,16 @@ class Permission(Entity, EntityReadMixin):
 
         Example usage::
 
-            >>> entities.Permission(resource_type='Domain').search()
+            >>> from robottelo import entities
+            >>> entities.Permission(resource_type='User').search()
             [
-                {u'name': u'view_domains', u'resource_type': u'Domain', u'id': 39},
-                {u'name': u'create_domains', u'resource_type': u'Domain', u'id': 40},
-                {u'name': u'edit_domains', u'resource_type': u'Domain', u'id': 41},
-                {u'name': u'destroy_domains', u'resource_type': u'Domain', u'id': 42}
+                {'name': 'view_users', 'resource_type': 'User', 'id': 158},
+                {'name': 'create_users', 'resource_type': 'User', 'id': 159},
+                {'name': 'edit_users', 'resource_type': 'User', 'id': 160},
+                {'name': 'destroy_users', 'resource_type': 'User', 'id': 161},
             ]
-            >>> entities.Permission(name='view_domains').search()
-            [{u'name': u'view_domains', u'resource_type': u'Domain', u'id': 39}]
+            >>> entities.Permission(name='create_users').search()
+            [{'name': 'create_users', 'resource_type': 'User', 'id': 159}]
 
         If both ``name`` and ``resource_type`` are provided, ``name`` is
         ignored.
@@ -1993,7 +1995,7 @@ class Product(
 
         # No `gpg_key` hash is returned.
         gpg_key_id = attrs.pop('gpg_key_id')
-        if gpg_key_id  is None:
+        if gpg_key_id is None:
             attrs['gpg_key'] = None
         else:
             attrs['gpg_key'] = {'id': gpg_key_id}
@@ -2138,8 +2140,8 @@ class Product(
 class PartitionTable(
         Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a Partition Table entity."""
-    name = entity_fields.StringField(required=True)
     layout = entity_fields.StringField(required=True)
+    name = entity_fields.StringField(required=True)
     os_family = entity_fields.StringField(
         choices=_OPERATING_SYSTEMS,
         null=True,
@@ -2170,11 +2172,9 @@ class PuppetModule(Entity, EntityReadMixin):
     license = entity_fields.StringField()
     name = entity_fields.StringField()
     project_page = entity_fields.URLField()
-    # repoids = entity_fields.???
     repository = entity_fields.OneToManyField('Repository')
     source = entity_fields.URLField()
     summary = entity_fields.StringField()
-    # tag_list = entity_fields.???
     version = entity_fields.StringField()
 
     class Meta(object):
@@ -2191,12 +2191,7 @@ class PuppetModule(Entity, EntityReadMixin):
 
 class Realm(Entity):
     """A representation of a Realm entity."""
-    # The realm name, e.g. EXAMPLE.COM
     name = entity_fields.StringField(required=True)
-    # Proxy to use for this realm
-    # FIXME figure out related resource
-    # realm_proxy = entity_fields.OneToOneField(null=True)
-    # Realm type, e.g. Red Hat Identity Management or Active Directory
     realm_type = entity_fields.StringField(required=True)
 
     class Meta(object):
@@ -2207,12 +2202,9 @@ class Realm(Entity):
 
 class Report(Entity):
     """A representation of a Report entity."""
-    # Hostname or certname
     host = entity_fields.StringField(required=True)
-    # UTC time of report
-    reported_at = entity_fields.DateTimeField(required=True)
-    # Optional array of log hashes
     logs = entity_fields.ListField(null=True)
+    reported_at = entity_fields.DateTimeField(required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -2399,13 +2391,13 @@ class SmartProxy(Entity):
 
 class SmartVariable(Entity):
     """A representation of a Smart Variable entity."""
-    variable = entity_fields.StringField(required=True)
-    puppetclass = entity_fields.OneToOneField('PuppetClass', null=True)
     default_value = entity_fields.StringField(null=True)
-    override_value_order = entity_fields.StringField(null=True)
     description = entity_fields.StringField(null=True)
-    validator_type = entity_fields.StringField(null=True)
+    override_value_order = entity_fields.StringField(null=True)
+    puppetclass = entity_fields.OneToOneField('PuppetClass', null=True)
     validator_rule = entity_fields.StringField(null=True)
+    validator_type = entity_fields.StringField(null=True)
+    variable = entity_fields.StringField(required=True)
     variable_type = entity_fields.StringField(null=True)
 
     class Meta(object):
@@ -2437,11 +2429,6 @@ class Subnet(
     to = entity_fields.IPAddressField(null=True)  # pylint:disable=invalid-name
     vlanid = entity_fields.StringField(null=True)
 
-    # FIXME: Figure out what these IDs correspond to.
-    # dhcp = entity_fields.OneToOneField(null=True)
-    # dns = entity_fields.OneToOneField(null=True)
-    # tftp = entity_fields.OneToOneField(null=True)
-
     class Meta(object):
         """Non-field information about this entity."""
         api_path = 'api/v2/subnets'
@@ -2451,23 +2438,16 @@ class Subnet(
 
 class Subscription(Entity):
     """A representation of a Subscription entity."""
-    # Subscription Pool uuid
-    pool_uuid = entity_fields.StringField()
-    # UUID of the system
-    system = entity_fields.OneToOneField('System')
     activation_key = entity_fields.OneToOneField('ActivationKey')
-    # Quantity of this subscriptions to add
+    pool_uuid = entity_fields.StringField()
     quantity = entity_fields.IntegerField()
     subscriptions = entity_fields.OneToManyField('Subscription')
+    system = entity_fields.OneToOneField('System')
 
     class Meta(object):
         """Non-field information about this entity."""
         api_names = {'pool_uuid': 'id'}
         api_path = 'katello/api/v2/subscriptions/:id'
-        # Alternative paths.
-        #
-        # '/katello/api/v2/systems/:system_id/subscriptions',
-        # '/katello/api/v2/activation_keys/:activation_key_id/subscriptions',
         server_modes = ('sat', 'sam')
 
 
@@ -2520,7 +2500,13 @@ class SyncPlan(
         return super(SyncPlan, self).read(entity, attrs, ignore)
 
     def create_payload(self):
-        """Convert ``sync_date`` to a string before sending it to the server."""
+        """Convert ``sync_date`` to a string.
+
+        The ``sync_date`` instance attribute on the current object is not
+        affected. However, the ``'sync_date'`` key in the dict returned by
+        ``create_payload`` is a string.
+
+        """
         data = super(SyncPlan, self).create_payload()
         data['sync_date'] = data['sync_date'].strftime('%Y-%m-%d %H:%M:%S')
         return data
@@ -2547,8 +2533,8 @@ class SyncPlan(
         """Add products to this sync plan.
 
         .. NOTE:: The ``synchronous`` argument has no effect in certain
-            versions of Satellite. See:
-            https://bugzilla.redhat.com/show_bug.cgi?id=1199150
+            versions of Satellite. See `Bugzilla #1199150
+            <https://bugzilla.redhat.com/show_bug.cgi?id=1199150>`_.
 
         :param product_ids: A list of product IDs to add to this sync plan.
         :param bool synchronous: What should happen if the server returns an
@@ -2576,8 +2562,8 @@ class SyncPlan(
         """Remove products from this sync plan.
 
         .. NOTE:: The ``synchronous`` argument has no effect in certain
-            versions of Satellite. See:
-            https://bugzilla.redhat.com/show_bug.cgi?id=1199150
+            versions of Satellite. See `Bugzilla #1199150
+            <https://bugzilla.redhat.com/show_bug.cgi?id=1199150>`_.
 
         :param product_ids: A list of product IDs to remove from this syn plan.
         :param bool synchronous: What should happen if the server returns an
@@ -2601,13 +2587,12 @@ class SyncPlan(
             ).poll()
         return response.json()
 
+
 class SystemPackage(Entity):
     """A representation of a System Package entity."""
-    system = entity_fields.OneToOneField('System', required=True)
-    # List of package names
-    packages = entity_fields.ListField()
-    # List of package group names
     groups = entity_fields.ListField()
+    packages = entity_fields.ListField()
+    system = entity_fields.OneToOneField('System', required=True)
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -2626,7 +2611,6 @@ class System(
         null=True,
         required=True,
     )
-    # guest = entity_fields.OneToManyField()  # FIXME What does this field point to?
     host_collection = entity_fields.OneToManyField('HostCollection')
     installed_products = entity_fields.ListField(null=True)
     last_checkin = entity_fields.DateTimeField()
@@ -2665,7 +2649,8 @@ class System(
         * ``which is None``, or
         * ``which == 'this'``.
 
-        .. _Bugzilla #1202917: https://bugzilla.redhat.com/show_bug.cgi?id=1202917
+        .. _Bugzilla #1202917:
+            https://bugzilla.redhat.com/show_bug.cgi?id=1202917
 
         """
         if 'uuid' in vars(self) and (which is None or which == 'self'):
@@ -2683,7 +2668,7 @@ class System(
         attrs['host_collections'] = attrs.pop('hostCollections')
         attrs['installed_products'] = attrs.pop('installedProducts')
         organization_id = attrs.pop('organization_id')
-        if organization_id  is None:
+        if organization_id is None:
             attrs['organization'] = None
         else:
             attrs['organization'] = {'id': organization_id}
@@ -2692,7 +2677,10 @@ class System(
 
 class TemplateCombination(Entity):
     """A representation of a Template Combination entity."""
-    config_template = entity_fields.OneToOneField('ConfigTemplate', required=True)
+    config_template = entity_fields.OneToOneField(
+        'ConfigTemplate',
+        required=True,
+    )
     environment = entity_fields.OneToOneField('Environment', null=True)
     hostgroup = entity_fields.OneToOneField('HostGroup', null=True)
 
@@ -2731,9 +2719,13 @@ class UserGroup(
         api_path = 'api/v2/usergroups'
         server_modes = ('sat')
 
-    # NOTE: See BZ 1151220
     def create_payload(self):
-        """Wrap submitted data within an extra dict."""
+        """Wrap submitted data within an extra dict.
+
+        For more information, see `Bugzilla #1151220
+        <https://bugzilla.redhat.com/show_bug.cgi?id=1151220>`_.
+
+        """
         return {u'usergroup': super(UserGroup, self).create_payload()}
 
     def read(self, entity=None, attrs=None, ignore=()):
@@ -2742,8 +2734,9 @@ class UserGroup(
         An HTTP GET request to ``path('self')`` does not return the ``admin``
         attribute, even though it should. Also see `Bugzilla #1197871`_.
 
-        .. _http://projects.theforeman.org/issues/9594:
-        .. _https://bugzilla.redhat.com/show_bug.cgi?id=1197871:
+        .. _Redmine #9594: http://projects.theforeman.org/issues/9594
+        .. _Bugzilla #1197871:
+            https://bugzilla.redhat.com/show_bug.cgi?id=1197871
 
         """
         if attrs is None:
@@ -2770,19 +2763,22 @@ class User(
     authentication than to spawn LDAP authentication servers for each new user.
 
     """
+    admin = entity_fields.BooleanField(null=True)
+    # NOTE: `auth_source` is modified in __init__.
+    auth_source = entity_fields.OneToOneField('AuthSourceLDAP', required=True)
+    default_location = entity_fields.OneToOneField('Location', null=True)
+    default_organization = entity_fields.OneToOneField(
+        'Organization',
+        null=True,
+    )
+    firstname = entity_fields.StringField(null=True, length=(1, 50))
+    lastname = entity_fields.StringField(null=True, length=(1, 50))
+    location = entity_fields.OneToManyField('Location', null=True)
     login = entity_fields.StringField(
         length=(1, 100),
         required=True,
         str_type=('alpha', 'alphanumeric', 'cjk', 'latin1', 'utf8'),
     )
-    admin = entity_fields.BooleanField(null=True)
-    # See __init__
-    auth_source = entity_fields.OneToOneField('AuthSourceLDAP', required=True)
-    default_location = entity_fields.OneToOneField('Location', null=True)
-    default_organization = entity_fields.OneToOneField('Organization', null=True)
-    firstname = entity_fields.StringField(null=True, length=(1, 50))
-    lastname = entity_fields.StringField(null=True, length=(1, 50))
-    location = entity_fields.OneToManyField('Location', null=True)
     mail = entity_fields.EmailField(required=True)
     organization = entity_fields.OneToManyField('Organization', null=True)
     password = entity_fields.StringField(required=True)
@@ -2797,16 +2793,20 @@ class User(
         api_path = 'api/v2/users'
         server_modes = ('sat', 'sam')
 
-    # NOTE: See BZ 1151220
     def create_payload(self):
-        """Wrap submitted data within an extra dict."""
+        """Wrap submitted data within an extra dict.
+
+        For more information, see `Bugzilla #1151220
+        <https://bugzilla.redhat.com/show_bug.cgi?id=1151220>`_.
+
+        """
         return {u'user': super(User, self).create_payload()}
 
     def read(self, entity=None, attrs=None, ignore=('password',)):
         if attrs is None:
             attrs = self.read_json()
         auth_source_id = attrs.pop('auth_source_id')
-        if auth_source_id  is None:
+        if auth_source_id is None:
             attrs['auth_source'] = None
         else:
             attrs['auth_source'] = {'id': auth_source_id}
