@@ -3,7 +3,8 @@
 
 from fauxfactory import gen_string
 from robottelo.cli.domain import Domain
-from robottelo.cli.factory import make_domain, CLIFactoryError
+from robottelo.cli.factory import CLIFactoryError
+from robottelo.cli.factory import make_domain, make_location, make_org
 from robottelo.common.decorators import data, run_only_on
 from robottelo.test import MetaCLITestCase
 
@@ -37,6 +38,36 @@ class TestDomain(MetaCLITestCase):
             make_domain(options)
         except CLIFactoryError as err:
             self.fail(err)
+
+    def test_create_domain_with_location(self):
+        """@Test: Check if domain with location can be created
+
+        @Feature: Domain - Positive create
+
+        @Assert: Domain is created and has new location assigned
+
+        """
+        try:
+            location = make_location()
+            domain = make_domain({'location-ids': location['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertIn(location['name'], domain['locations'])
+
+    def test_create_domain_with_organization(self):
+        """@Test: Check if domain with organization can be created
+
+        @Feature: Domain - Positive create
+
+        @Assert: Domain is created and has new organization assigned
+
+        """
+        try:
+            org = make_org()
+            domain = make_domain({'organization-ids': org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertIn(org['name'], domain['organizations'])
 
     @data(
         {u'description': gen_string(str_type='utf8', length=256)},
