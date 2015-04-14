@@ -497,7 +497,7 @@ class TestRepository(CLITestCase):
         """
 
         new_repo = self._make_repository({
-            u'name': u'busybox',
+            u'docker-upstream-name': u'busybox',
             u'url': DOCKER_REGISTRY_HUB,
             u'content-type': u'docker',
         })
