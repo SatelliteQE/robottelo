@@ -294,8 +294,6 @@ class OperatingSys(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_operating_systems()
             self.operatingsys.delete(os_name, really=True)
-            self.assertIsNotNone(self.user.wait_until_element
-                                 (common_locators["notif.success"]))
             self.assertIsNone(self.operatingsys.search(os_name))
 
     @data(
