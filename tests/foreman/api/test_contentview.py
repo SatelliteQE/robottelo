@@ -428,6 +428,41 @@ class CVPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(cvv_attrs['environments']), REPEAT + 1)
         self.assertEqual(len(cvv_attrs['puppet_modules']), 1)
 
+    def test_add_normal_cv_to_composite(self):
+        """@Test: Create normal content view, publish and
+        add it to a new composite content view
+
+        @Assert: Content view can be created and assigned to
+        composite one through content view versions
+        mechanism
+
+        @Feature: ContentView
+
+        """
+        content_view = entities.ContentView(organization=self.org.id).create()
+        content_view.set_repository_ids([self.yum_repo.id])
+        content_view.publish()
+        cvv_id = content_view.read_json()['versions'][0]['id']
+
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=self.org.id,
+        ).create()
+
+        client.put(
+            composite_cv.path(),
+            {'content_view': {'component_ids': [cvv_id]}},
+            auth=get_server_credentials(),
+            verify=False,
+        ).raise_for_status()
+
+        cv_attrs = composite_cv.read_json()
+        self.assertEqual(cvv_id, cv_attrs['component_ids'][0])
+        self.assertEqual(
+            content_view.id,
+            cv_attrs['components'][0]['content_view_id'],
+        )
+
 
 @ddt
 class ContentViewUpdateTestCase(APITestCase):
