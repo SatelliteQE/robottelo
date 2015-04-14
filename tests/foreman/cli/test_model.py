@@ -23,9 +23,10 @@ class TestModel(MetaCLITestCase):
         @Assert: Model is created
 
         """
-        result = self.factory()
-        model = Model().info({'name': result['name']})
-        self.assertEqual(result['name'], model.stdout['name'])
+        try:
+            make_model()
+        except CLIFactoryError as err:
+            self.fail(err)
 
     def test_create_model_2(self):
         """@Test: Check if Model can be created with specific vendor class
@@ -35,12 +36,9 @@ class TestModel(MetaCLITestCase):
         @Assert: Model is created with specific vendor class
 
         """
-        result = self.factory({
-            'vendor-class': gen_string("alpha", 10),
-        })
-        # Check that Model was created with proper values
-        model = Model().info({'name': result['name']})
-        self.assertEqual(result['vendor-class'], model.stdout['vendor-class'])
+        vendor_class = gen_string('utf8'),
+        model = make_model({'vendor-class': vendor_class})
+        self.assertEqual(model['vendor-class'], vendor_class)
 
     def test_update_model(self):
         """@Test: Check if Model can be updated
@@ -51,7 +49,7 @@ class TestModel(MetaCLITestCase):
 
         """
 
-        name = gen_string("alpha", 10)
+        name = gen_string("alpha")
         try:
             model = self.factory({'name': name})
         except CLIFactoryError as err:
@@ -59,7 +57,7 @@ class TestModel(MetaCLITestCase):
 
         self.assertEqual(name, model['name'])
 
-        new_name = gen_string("alpha", 10)
+        new_name = gen_string("alpha")
         result = Model().update({'name': model['name'], 'new-name': new_name})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(

@@ -21,12 +21,12 @@ def positive_create_data_1():
     """Random data for positive creation"""
 
     return (
-        {'name': gen_string("latin1", 10)},
-        {'name': gen_string("utf8", 10)},
-        {'name': gen_string("alpha", 10)},
-        {'name': gen_string("alphanumeric", 10)},
-        {'name': gen_string("numeric", 10)},
-        {'name': gen_string("html", 10)},
+        {'name': gen_string("latin1")},
+        {'name': gen_string("utf8")},
+        {'name': gen_string("alpha")},
+        {'name': gen_string("alphanumeric")},
+        {'name': gen_string("numeric")},
+        {'name': gen_string("html")},
     )
 
 
@@ -38,9 +38,9 @@ def positive_create_data_2():
     """Random simpler data for positive creation"""
 
     return (
-        {'name': gen_string("alpha", 10)},
-        {'name': gen_string("alphanumeric", 10)},
-        {'name': gen_string("numeric", 10)},
+        {'name': gen_string("alpha")},
+        {'name': gen_string("alphanumeric")},
+        {'name': gen_string("numeric")},
         {'name': '{0}-{1}'.format(gen_string("alpha", 5),
                                   gen_string("alpha", 5))},
         {'name': '{0}_{1}'.format(gen_string("alpha", 5),
@@ -53,18 +53,18 @@ def positive_name_label_data():
     """Random data for Label tests"""
 
     return (
-        {'name': gen_string("latin1", 10),
-         'label': gen_string("alpha", 10)},
-        {'name': gen_string("utf8", 10),
-         'label': gen_string("alpha", 10)},
-        {'name': gen_string("alpha", 10),
-         'label': gen_string("alpha", 10)},
-        {'name': gen_string("alphanumeric", 10),
-         'label': gen_string("alpha", 10)},
-        {'name': gen_string("numeric", 10),
-         'label': gen_string("alpha", 10)},
-        {'name': gen_string("html", 10),
-         'label': gen_string("alpha", 10)},
+        {'name': gen_string("latin1"),
+         'label': gen_string("alpha")},
+        {'name': gen_string("utf8"),
+         'label': gen_string("alpha")},
+        {'name': gen_string("alpha"),
+         'label': gen_string("alpha")},
+        {'name': gen_string("alphanumeric"),
+         'label': gen_string("alpha")},
+        {'name': gen_string("numeric"),
+         'label': gen_string("alpha")},
+        {'name': gen_string("html"),
+         'label': gen_string("alpha")},
     )
 
 
@@ -72,18 +72,18 @@ def positive_name_desc_data():
     """Random data for Descriptions tests"""
 
     return (
-        {'name': gen_string("latin1", 10),
-         'description': gen_string("latin1", 10)},
-        {'name': gen_string("utf8", 10),
-         'description': gen_string("utf8", 10)},
-        {'name': gen_string("alpha", 10),
-         'description': gen_string("alpha", 10)},
-        {'name': gen_string("alphanumeric", 10),
-         'description': gen_string("alphanumeric", 10)},
-        {'name': gen_string("numeric", 10),
-         'description': gen_string("numeric", 10)},
-        {'name': gen_string("html", 10),
-         'description': gen_string("numeric", 10)},
+        {'name': gen_string("latin1"),
+         'description': gen_string("latin1")},
+        {'name': gen_string("utf8"),
+         'description': gen_string("utf8")},
+        {'name': gen_string("alpha"),
+         'description': gen_string("alpha")},
+        {'name': gen_string("alphanumeric"),
+         'description': gen_string("alphanumeric")},
+        {'name': gen_string("numeric"),
+         'description': gen_string("numeric")},
+        {'name': gen_string("html"),
+         'description': gen_string("numeric")},
     )
 
 
@@ -91,18 +91,18 @@ def positive_name_desc_label_data():
     """Random data for Labels and Description"""
 
     return (
-        {'name': gen_string("alpha", 10),
-         'description': gen_string("alpha", 10),
-         'label': gen_string("alpha", 10)},
-        {'name': gen_string("alphanumeric", 10),
-         'description': gen_string("alphanumeric", 10),
-         'label': gen_string("alpha", 10)},
-        {'name': gen_string("numeric", 10),
-         'description': gen_string("numeric", 10),
-         'label': gen_string("alpha", 10)},
-        {'name': gen_string("html", 10),
-         'description': gen_string("numeric", 10),
-         'label': gen_string("alpha", 10)},
+        {'name': gen_string("alpha"),
+         'description': gen_string("alpha"),
+         'label': gen_string("alpha")},
+        {'name': gen_string("alphanumeric"),
+         'description': gen_string("alphanumeric"),
+         'label': gen_string("alpha")},
+        {'name': gen_string("numeric"),
+         'description': gen_string("numeric"),
+         'label': gen_string("alpha")},
+        {'name': gen_string("html"),
+         'description': gen_string("numeric"),
+         'label': gen_string("alpha")},
     )
 
 
@@ -127,11 +127,9 @@ class TestOrg(CLITestCase):
         # Can we find the new object?
         result = Org.exists(search=('name', new_obj['name']))
 
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an exception here")
-        self.assertEqual(new_obj['name'],
-                         result.stdout['name'])
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'], result.stdout['name'])
 
     @run_only_on('sat')
     def test_remove_domain(self):
@@ -148,10 +146,8 @@ class TestOrg(CLITestCase):
             {'name': org_result['name'], 'domain': domain_result['name']})
         return_value = Org.remove_domain(
             {'name': org_result['name'], 'domain': domain_result['name']})
-        self.assertEqual(
-            return_value.return_code, 0, "Remove Domain - retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     @data(*positive_create_data_1())
     def test_bugzilla_1079587(self, test_data):
@@ -167,11 +163,9 @@ class TestOrg(CLITestCase):
         # Can we find the new object?
         result = Org.exists(search=('label', new_obj['label']))
 
-        self.assertEqual(result.return_code, 0, "Failed to find the object")
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an exception here")
-        self.assertEqual(new_obj['name'],
-                         result.stdout['name'])
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'], result.stdout['name'])
 
     @skip_if_bug_open('bugzilla', 1076568)
     def test_bugzilla_1076568_1(self):
@@ -184,36 +178,17 @@ class TestOrg(CLITestCase):
         @BZ: 1076568
 
         """
+        org = make_org()
 
-        new_obj = make_org()
-
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-
+        result = Org.delete({'name': org['name']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
-
-        return_value = Org.delete({'name': new_obj['name']})
-        self.assertEqual(
-            return_value.return_code,
-            0,
-            "Deletion failed: %s" % result.stderr)
-        self.assertEqual(
-            len(return_value.stderr),
-            0,
-            "Unexpected error found: %s" % result.stderr)
 
         # Can we find the object?
-        result = Org.info({'id': new_obj['id']})
-        self.assertNotEqual(
-            result.return_code,
-            0,
-            "Organization should be deleted but was found")
-        self.assertGreater(len(result.stderr), 0,
-                           "There should not be an exception here")
-        self.assertEqual(
-            len(result.stdout), 0, "Output should be blank.")
+        result = Org.info({'id': org['id']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
+        self.assertEqual(len(result.stdout), 0)
 
     @skip_if_bug_open('bugzilla', 1076568)
     def test_bugzilla_1076568_2(self):
@@ -226,36 +201,17 @@ class TestOrg(CLITestCase):
         @BZ: 1076568
 
         """
+        org = make_org()
 
-        new_obj = make_org()
-
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-
+        result = Org.delete({'id': org['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
-
-        return_value = Org.delete({'id': new_obj['id']})
-        self.assertEqual(
-            return_value.return_code,
-            0,
-            "Deletion failed: %s" % result.stderr)
-        self.assertEqual(
-            len(return_value.stderr),
-            0,
-            "Unexpected error found: %s" % result.stderr)
 
         # Can we find the object?
-        result = Org.info({'id': new_obj['id']})
-        self.assertNotEqual(
-            result.return_code,
-            0,
-            "Organization should be deleted but was found")
-        self.assertGreater(len(result.stderr), 0,
-                           "There should not be an exception here")
-        self.assertEqual(
-            len(result.stdout), 0, "Output should be blank.")
+        result = Org.info({'id': org['id']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
+        self.assertEqual(len(result.stdout), 0)
 
     @skip_if_bug_open('bugzilla', 1076568)
     def test_bugzilla_1076568_3(self):
@@ -268,36 +224,17 @@ class TestOrg(CLITestCase):
         @BZ: 1076568
 
         """
+        org = make_org()
 
-        new_obj = make_org()
-
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-
+        result = Org.delete({'label': org['label']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
-
-        return_value = Org.delete({'label': new_obj['label']})
-        self.assertEqual(
-            return_value.return_code,
-            0,
-            "Deletion failed: %s" % result.stderr)
-        self.assertEqual(
-            len(return_value.stderr),
-            0,
-            "Unexpected error found: %s" % result.stderr)
 
         # Can we find the object?
-        result = Org.info({'id': new_obj['id']})
-        self.assertNotEqual(
-            result.return_code,
-            0,
-            "Organization should be deleted but was found")
-        self.assertGreater(len(result.stderr), 0,
-                           "There should not be an exception here")
-        self.assertEqual(
-            len(result.stdout), 0, "Output should be blank.")
+        result = Org.info({'id': org['id']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
+        self.assertEqual(len(result.stdout), 0)
 
     def test_bugzilla_1076541(self):
         """@test: Cannot update organization name via CLI
@@ -307,50 +244,35 @@ class TestOrg(CLITestCase):
         @assert: Organization name is updated
 
         """
-
         new_obj = make_org()
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
 
         # Update the org name
-        new_name = gen_string("alpha", 15)
-        result = Org.update({'id': new_obj['id'],
-                             'new-name': new_name})
+        new_name = gen_string('utf8', 15)
+        result = Org.update({'id': new_obj['id'], 'new-name': new_name})
 
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here")
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch the org again
         result = Org.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['name'],
-            new_name,
-            "Org name was not updated"
-        )
+        self.assertEqual(result.stdout['name'], new_name)
 
     def test_bugzilla_1075163(self):
         """@Test: Add --label as a valid argument to organization info command
 
-        @Feature: Org - Positive Create
+        @Feature: Organization
 
         @Assert: Organization is created and info can be obtained by its label
         graciously
 
         """
-
-        new_obj = make_org()
-        result = Org.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an exception here")
-
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+        org = make_org()
+        result = Org.info({'label': org['label']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(org['id'], result.stdout['id'])
 
     def test_bugzilla_1075156(self):
         """@Test: Cannot use CLI info for organizations by name
@@ -361,14 +283,11 @@ class TestOrg(CLITestCase):
         graciously
 
         """
-
-        new_obj = make_org()
-        result = Org.info({'name': new_obj['name']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an exception here")
-
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+        org = make_org()
+        result = Org.info({'name': org['name']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(org['id'], result.stdout['id'])
 
     @run_only_on('sat')
     def test_bugzilla_1062295_1(self):
@@ -384,10 +303,8 @@ class TestOrg(CLITestCase):
         return_value = Org.add_config_template({
             'name': org_result['name'],
             'config-template': template_result['name']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Add ConfigTemplate- retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     @run_only_on('sat')
     def test_bugzilla_1062295_2(self):
@@ -406,13 +323,12 @@ class TestOrg(CLITestCase):
         return_value = Org.remove_config_template({
             'name': org_result['name'],
             'config-template': template_result['name']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Remove ConfigTemplate- retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     def test_bugzilla_1023125(self):
-        """@Test: hammer-cli: trying to create duplicate org throws unhandled ISE
+        """@Test: hammer-cli: trying to create duplicate org throws unhandled
+        ISE
 
         @Feature: Org - Positive Create
 
@@ -420,23 +336,17 @@ class TestOrg(CLITestCase):
         graciously
 
         """
-
-        new_obj = make_org()
-
-        result = Org.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an exception here")
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+        org = make_org()
 
         # Create new org with the same name as before
         # should yield an exception
         with self.assertRaises(Exception):
-            make_org({'name': new_obj['name']})
+            make_org({'name': org['name']})
 
     # This Bugzilla bug is private. It is impossible to fetch info about it.
     def test_bugzilla_1078866(self):
-        """@Test: hammer organization <info,list> --help types information doubled
+        """@Test: hammer organization <info,list> --help types information
+        doubled
 
         @Feature: org info/list
 
@@ -467,17 +377,8 @@ class TestOrg(CLITestCase):
         @assert: organization is created, label is auto-generated
 
         """
-
-        new_obj = make_org(test_data)
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an exception here")
-        self.assertGreater(
-            len(result.stdout), 0, "Failed to fetch organization")
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+        org = make_org(test_data)
+        self.assertEqual(org['name'], test_data['name'])
 
     @data(*positive_create_data_2())
     def test_positive_create_2(self, test_data):
@@ -488,20 +389,9 @@ class TestOrg(CLITestCase):
         @assert: organization is created, label matches name
 
         """
-
         test_data['label'] = test_data['name']
-        new_obj = make_org(test_data)
-
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an exception here")
-        self.assertGreater(
-            len(result.stdout), 0, "Failed to fetch organization")
-        self.assertEqual(result.stdout['name'], result.stdout['label'])
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+        org = make_org(test_data)
+        self.assertEqual(org['name'], org['label'])
 
     @skip_if_bug_open('bugzilla', 1142821)
     @data(*positive_name_label_data())
@@ -512,24 +402,13 @@ class TestOrg(CLITestCase):
 
         @assert: organization is created, label does not match name
 
+        @bz: 1142821
+
         """
-
-        new_obj = make_org(test_data)
-
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an exception here")
-        self.assertGreater(
-            len(result.stdout), 0, "Failed to fetch organization")
-        self.assertNotEqual(result.stdout['name'],
-                            result.stdout['label'])
-        self.assertEqual(new_obj['name'],
-                         result.stdout['name'])
-        self.assertEqual(new_obj['label'],
-                         result.stdout['label'])
+        org = make_org(test_data)
+        self.assertNotEqual(org['name'], org['label'])
+        self.assertEqual(org['name'], test_data['name'])
+        self.assertEqual(org['label'], test_data['label'])
 
     @data(*positive_name_desc_data())
     def test_positive_create_4(self, test_data):
@@ -540,23 +419,12 @@ class TestOrg(CLITestCase):
         @assert: organization is created, label is auto-generated
 
         """
+        org = make_org(test_data)
+        self.assertNotEqual(org['name'], org['description'])
+        self.assertEqual(org['name'], test_data['name'])
+        self.assertEqual(org['description'], test_data['description'])
 
-        test_data['label'] = ""
-        new_obj = make_org(test_data)
-
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an exception here")
-        self.assertGreater(
-            len(result.stdout), 0, "Failed to fetch organization")
-        self.assertNotEqual(result.stdout['name'],
-                            result.stdout['description'])
-        self.assertEqual(new_obj['name'],
-                         result.stdout['name'])
-
+    @skip_if_bug_open('bugzilla', 1142821)
     @data(*positive_name_desc_data())
     def test_positive_create_5(self, test_data):
         """@test: Create organization with valid name, label and description
@@ -565,20 +433,14 @@ class TestOrg(CLITestCase):
 
         @assert: organization is created
 
+        @bz: 1142821
+
         """
-
-        test_data['label'] = gen_string('alpha', 10)
-        new_obj = make_org(test_data)
-
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an exception here")
-        self.assertGreater(
-            len(result.stdout), 0, "Failed to fetch organization")
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+        test_data['label'] = gen_string('alpha')
+        org = make_org(test_data)
+        self.assertEqual(org['name'], test_data['name'])
+        self.assertEqual(org['description'], test_data['description'])
+        self.assertEqual(org['label'], test_data['label'])
 
     def test_list_org(self):
         """@Test: Check if Org can be listed
@@ -589,15 +451,8 @@ class TestOrg(CLITestCase):
 
         """
         return_value = Org.list()
-        self.assertEqual(
-            return_value.return_code,
-            0,
-            "List Org - retcode")
-        self.assertEqual(
-            len(return_value.stderr),
-            0,
-            "There should not be an exception here"
-        )
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     @run_only_on('sat')
     def test_add_subnet(self):
@@ -612,10 +467,8 @@ class TestOrg(CLITestCase):
         subnet_result = make_subnet()
         return_value = Org.add_subnet(
             {'name': org_result['name'], 'subnet': subnet_result['name']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Add subnet - retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     @run_only_on('sat')
     def test_remove_subnet(self):
@@ -632,10 +485,8 @@ class TestOrg(CLITestCase):
             {'name': org_result['name'], 'subnet': subnet_result['name']})
         return_value = Org.remove_subnet(
             {'name': org_result['name'], 'subnet': subnet_result['name']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Remove Subnet - retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     def test_add_user(self):
         """@Test: Check if a User can be added to an Org
@@ -649,10 +500,8 @@ class TestOrg(CLITestCase):
         user_result = make_user()
         return_value = Org.add_user(
             {'name': org_result['name'], 'user-id': user_result['id']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Add User - retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     def test_remove_user(self):
         """@Test: Check if a User can be removed from an Org
@@ -668,10 +517,8 @@ class TestOrg(CLITestCase):
             {'name': org_result['name'], 'user-id': user_result['login']})
         return_value = Org.remove_user(
             {'name': org_result['name'], 'user-id': user_result['login']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Remove User - retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     @run_only_on('sat')
     def test_add_hostgroup(self):
@@ -687,10 +534,8 @@ class TestOrg(CLITestCase):
         return_value = Org.add_hostgroup({
             'name': org_result['name'],
             'hostgroup': hostgroup_result['name']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Add Hostgroup - retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     @run_only_on('sat')
     def test_remove_hostgroup(self):
@@ -709,10 +554,8 @@ class TestOrg(CLITestCase):
         return_value = Org.remove_hostgroup({
             'name': org_result['name'],
             'hostgroup': hostgroup_result['name']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Remove Hostgroup - retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     @run_only_on('sat')
     def test_add_computeresource(self):
@@ -735,13 +578,11 @@ class TestOrg(CLITestCase):
         return_value = Org.add_compute_resource({
             'name': org['name'],
             'compute-resource': compute_res['name']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Add ComputeResource - retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
         result = Org.info({'id': org['id']})
-        self.assertEqual(result.stdout['compute-resources'][0],
-                         compute_res['name'])
+        self.assertEqual(
+            result.stdout['compute-resources'][0], compute_res['name'])
 
     @run_only_on('sat')
     @stubbed()
@@ -771,10 +612,8 @@ class TestOrg(CLITestCase):
         return_value = Org.add_medium({
             'name': org_result['name'],
             'medium': medium_result['name']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Add Medium - retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     @run_only_on('sat')
     def test_remove_medium(self):
@@ -793,10 +632,8 @@ class TestOrg(CLITestCase):
         return_value = Org.remove_medium({
             'name': org_result['name'],
             'medium': medium_result['name']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Remove Medium - retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     @run_only_on('sat')
     @data(
@@ -818,7 +655,7 @@ class TestOrg(CLITestCase):
             org = make_org()
             template = make_template({
                 'name': data,
-                'content': gen_string('alpha', 10),
+                'content': gen_string('alpha'),
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -826,11 +663,8 @@ class TestOrg(CLITestCase):
             'name': org['name'],
             'config-template': template['name']
         })
-        self.assertEqual(result.return_code, 0,
-                         "return code must be 0, instead got {0}".
-                         format(result.return_code))
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         result = Org.info({'id': org['id']})
         self.assertIn(
             u'{0} ({1})'. format(template['name'], template['type']),
@@ -857,7 +691,7 @@ class TestOrg(CLITestCase):
             org = make_org()
             tmplt = make_template({
                 'name': data,
-                'content': gen_string('alpha', 10)
+                'content': gen_string('alpha')
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -867,11 +701,8 @@ class TestOrg(CLITestCase):
             'name': org['name'],
             'config-template': tmplt['name']
         })
-        self.assertEqual(result.return_code, 0,
-                         "return code must be 0, instead got {0}".
-                         format(result.return_code))
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         result = Org.info({'id': org['id']})
         self.assertIn(
             u'{0} ({1})'. format(tmplt['name'], tmplt['type']),
@@ -883,11 +714,8 @@ class TestOrg(CLITestCase):
             'name': org['name'],
             'config-template': tmplt['name']
         })
-        self.assertEqual(result.return_code, 0,
-                         "return code must be 0, instead got {0}".
-                         format(result.return_code))
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         result = Org.info({'id': org['id']})
         self.assertNotIn(
             u'{0} ({1})'. format(tmplt['name'], tmplt['type']),
@@ -914,7 +742,7 @@ class TestOrg(CLITestCase):
             'name': lc_env_name,
             'organization-id': org_id,
         })
-        self.assertEqual(response.return_code, 0, response.stderr)
+        self.assertEqual(response.return_code, 0)
         self.assertEqual(response.stdout[0]['name'], lc_env_name)
 
     @run_only_on('sat')
@@ -938,17 +766,17 @@ class TestOrg(CLITestCase):
         # Read back information about the lifecycle environment. Verify the
         # sanity of that information.
         response = LifecycleEnvironment.list(lc_env_attrs)
-        self.assertEqual(response.return_code, 0, response.stderr)
+        self.assertEqual(response.return_code, 0)
         self.assertEqual(response.stdout[0]['name'], lc_env_name)
 
         # Delete it.
         response = LifecycleEnvironment.delete(lc_env_attrs)
-        self.assertEqual(response.return_code, 0, response.stderr)
+        self.assertEqual(response.return_code, 0)
 
         # We should get a zero-length response when searcing for the LC env.
         response = LifecycleEnvironment.list(lc_env_attrs)
-        self.assertEqual(response.return_code, 0, response.stderr)
-        self.assertEqual(len(response.stdout), 0, response.stdout)
+        self.assertEqual(response.return_code, 0)
+        self.assertEqual(len(response.stdout), 0)
 
     @run_only_on('sat')
     @stubbed("Needs to be re-worked!")
@@ -965,10 +793,8 @@ class TestOrg(CLITestCase):
         return_value = Org.add_smart_proxy({
             'name': org_result['name'],
             'smart-proxy': proxy_result['name']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Add smartproxy - retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     @run_only_on('sat')
     @stubbed("Needs to be re-worked!")
@@ -988,24 +814,22 @@ class TestOrg(CLITestCase):
         return_value = Org.remove_smart_proxy({
             'name': org_result['name'],
             'smart-proxy': proxy_result['name']})
-        self.assertEqual(return_value.return_code, 0,
-                         "Remove smartproxy - retcode")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     # Negative Create
 
-    @data({'label': gen_string('alpha', 10),
+    @data({'label': gen_string('alpha'),
            'name': gen_string('alpha', 300)},
-          {'label': gen_string('alpha', 10),
+          {'label': gen_string('alpha'),
            'name': gen_string('numeric', 300)},
-          {'label': gen_string('alpha', 10),
+          {'label': gen_string('alpha'),
            'name': gen_string('alphanumeric', 300)},
-          {'label': gen_string('alpha', 10),
+          {'label': gen_string('alpha'),
            'name': gen_string('utf8', 300)},
-          {'label': gen_string('alpha', 10),
+          {'label': gen_string('alpha'),
            'name': gen_string('latin1', 300)},
-          {'label': gen_string('alpha', 10),
+          {'label': gen_string('alpha'),
            'name': gen_string('html', 300)})
     def test_negative_create_0(self, test_data):
         """@test: Create organization with valid label and description, name is
@@ -1016,14 +840,17 @@ class TestOrg(CLITestCase):
         @assert: organization is not created
 
         """
-        result = Org.create({'label': test_data['label'], 'description':
-                             test_data['label'], 'name': test_data['name']})
-        self.assertTrue(result.stderr)
+        result = Org.create({
+            'description': test_data['label'],
+            'label': test_data['label'],
+            'name': test_data['name'],
+        })
+        self.assertGreater(len(result.stderr), 0)
         self.assertNotEqual(result.return_code, 0)
 
-    @data(gen_string('alpha', 10),
-          gen_string('numeric', 10),
-          gen_string('alphanumeric', 10))
+    @data(gen_string('alpha'),
+          gen_string('numeric'),
+          gen_string('alphanumeric'))
     def test_negative_create_1(self, test_data):
         """@test: Create organization with valid label and description, name is
         blank
@@ -1033,14 +860,17 @@ class TestOrg(CLITestCase):
         @assert: organization is not created
 
         """
-        result = Org.create({'label': test_data, 'description': test_data,
-                            'name': ''})
+        result = Org.create({
+            'description': test_data,
+            'label': test_data,
+            'name': '',
+        })
         self.assertTrue(result.stderr)
         self.assertNotEqual(result.return_code, 0)
 
-    @data(gen_string('alpha', 10),
-          gen_string('numeric', 10),
-          gen_string('alphanumeric', 10))
+    @data(gen_string('alpha'),
+          gen_string('numeric'),
+          gen_string('alphanumeric'))
     def test_negative_create_2(self, test_data):
         """@test: Create organization with valid label and description, name is
         whitespace
@@ -1050,15 +880,17 @@ class TestOrg(CLITestCase):
         @assert: organization is not created
 
         """
-        result = Org.create({'label': test_data, 'description': test_data,
-                             'name': ' \t'})
-        self.assertGreater(
-            len(result.stderr), 0, "There should be an exception here.")
+        result = Org.create({
+            'label': test_data,
+            'description': test_data,
+            'name': ' \t',
+        })
+        self.assertGreater(len(result.stderr), 0)
         self.assertNotEqual(result.return_code, 0)
 
-    @data(gen_string('alpha', 10),
-          gen_string('numeric', 10),
-          gen_string('alphanumeric', 10))
+    @data(gen_string('alpha'),
+          gen_string('numeric'),
+          gen_string('alphanumeric'))
     def test_negative_create_3(self, test_data):
         """@test: Create organization with valid values, then create a new one
         with same values.
@@ -1068,14 +900,19 @@ class TestOrg(CLITestCase):
         @assert: organization is not created
 
         """
-        result = Org.create({'label': test_data, 'description': test_data,
-                             'name': test_data})
+        result = Org.create({
+            'description': test_data,
+            'label': test_data,
+            'name': test_data,
+        })
         self.assertFalse(result.stderr)
         self.assertEqual(result.return_code, 0)
-        result = Org.create({'label': test_data, 'description': test_data,
-                             'name': test_data})
-        self.assertGreater(
-            len(result.stderr), 0, "There should be an exception here.")
+        result = Org.create({
+            'description': test_data,
+            'label': test_data,
+            'name': test_data,
+        })
+        self.assertGreater(len(result.stderr), 0)
         self.assertNotEqual(result.return_code, 0)
 
     # Positive Delete
@@ -1093,29 +930,17 @@ class TestOrg(CLITestCase):
         @BZ: 1076568
 
         """
+        org = make_org(test_data)
 
-        new_obj = make_org(test_data)
-
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-
+        result = Org.delete({'id': org['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
-
-        return_value = Org.delete({'id': new_obj['id']})
-        self.assertEqual(return_value.return_code, 0, "Deletion failed")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
 
         # Can we find the object?
-        result = Org.info({'id': new_obj['id']})
-        self.assertNotEqual(
-            result.return_code, 0, "Organization should be deleted")
-        self.assertGreater(len(result.stderr), 0,
-                           "There should not be an exception here")
-        self.assertEqual(
-            len(result.stdout), 0, "Output should be blank.")
+        result = Org.info({'id': org['id']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
+        self.assertEqual(len(result.stdout), 0)
 
     @skip_if_bug_open('bugzilla', 1076568)
     @data(*positive_name_desc_label_data())
@@ -1130,29 +955,17 @@ class TestOrg(CLITestCase):
         @BZ: 1076568
 
         """
+        org = make_org(test_data)
 
-        new_obj = make_org(test_data)
-
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
-
-        return_value = Org.delete({'label': new_obj['label']})
-        self.assertEqual(return_value.return_code, 0, "Deletion failed")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        return_value = Org.delete({'label': org['label']})
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
         # Can we find the object?
-        result = Org.info({'id': new_obj['id']})
-        self.assertNotEqual(
-            result.return_code, 0, "Organization should be deleted")
-        self.assertGreater(len(result.stderr), 0,
-                           "There should not be an exception here")
-        self.assertEqual(
-            len(result.stdout), 0, "Output should be blank.")
+        result = Org.info({'id': org['id']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
+        self.assertEqual(len(result.stdout), 0)
 
     @skip_if_bug_open('bugzilla', 1076568)
     @data(*positive_name_desc_label_data())
@@ -1167,36 +980,24 @@ class TestOrg(CLITestCase):
         @BZ: 1076568
 
         """
+        org = make_org(test_data)
 
-        new_obj = make_org(test_data)
-
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
-
-        return_value = Org.delete({'name': new_obj['name']})
-        self.assertEqual(return_value.return_code, 0, "Deletion failed")
-        self.assertEqual(
-            len(return_value.stderr), 0, "There should not be an error here")
+        return_value = Org.delete({'name': org['name']})
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
         # Can we find the object?
-        result = Org.info({'id': new_obj['id']})
-        self.assertNotEqual(
-            result.return_code, 0, "Organization should be deleted")
-        self.assertGreater(len(result.stderr), 0,
-                           "There should not be an exception here")
-        self.assertEqual(
-            len(result.stdout), 0, "Output should be blank.")
+        result = Org.info({'id': org['id']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
+        self.assertEqual(len(result.stdout), 0)
 
-    @data({'name': gen_string("latin1", 10)},
-          {'name': gen_string("utf8", 10)},
-          {'name': gen_string("alpha", 10)},
-          {'name': gen_string("alphanumeric", 10)},
-          {'name': gen_string("numeric", 10)},
-          {'name': gen_string("html", 10)})
+    @data({'name': gen_string("latin1")},
+          {'name': gen_string("utf8")},
+          {'name': gen_string("alpha")},
+          {'name': gen_string("alphanumeric")},
+          {'name': gen_string("numeric")},
+          {'name': gen_string("html")})
     def test_positive_update_1(self, test_data):
         """@test: Create organization with valid values then update its name
 
@@ -1205,38 +1006,29 @@ class TestOrg(CLITestCase):
         @assert: organization name is updated
 
         """
-
-        new_obj = make_org()
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+        org = make_org()
 
         # Update the org name
-        result = Org.update({'id': new_obj['id'],
-                             'new-name': test_data['name']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here")
-
-        # Fetch the org again
-        result = Org.info({'id': new_obj['id']})
+        result = Org.update({
+            'id': org['id'],
+            'new-name': test_data['name'],
+        })
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['name'],
-            test_data['name'],
-            "Org name was not updated"
-        )
+
+        # Fetch the org again
+        result = Org.info({'id': org['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(result.stdout['name'], test_data['name'])
 
     @skip_if_bug_open('bugzilla', 1114136)
-    @data({'description': gen_string("latin1", 10)},
-          {'description': gen_string("utf8", 10)},
-          {'description': gen_string("alpha", 10)},
-          {'description': gen_string("alphanumeric", 10)},
-          {'description': gen_string("numeric", 10)},
-          {'description': gen_string("html", 10)})
+    @data({'description': gen_string("latin1")},
+          {'description': gen_string("utf8")},
+          {'description': gen_string("alpha")},
+          {'description': gen_string("alphanumeric")},
+          {'description': gen_string("numeric")},
+          {'description': gen_string("html")})
     def test_positive_update_3(self, test_data):
         """@test: Create organization with valid values then update its
         description
@@ -1248,44 +1040,36 @@ class TestOrg(CLITestCase):
         @bz: 1114136
 
         """
-
-        new_obj = make_org()
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+        org = make_org()
 
         # Update the org name
-        result = Org.update({'id': new_obj['id'],
-                             'description': test_data['description']})
+        result = Org.update({
+            'id': org['id'],
+            'description': test_data['description'],
+        })
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here")
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch the org again
-        result = Org.info({'id': new_obj['id']})
+        result = Org.info({'id': org['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(
-            result.stdout['description'],
-            test_data['description'],
-            "Org desc was not updated"
-        )
+            result.stdout['description'], test_data['description'])
 
     @skip_if_bug_open('bugzilla', 1114136)
-    @data({'description': gen_string("latin1", 10),
-           'name': gen_string("latin1", 10)},
-          {'description': gen_string("utf8", 10),
-           'name': gen_string("utf8", 10)},
-          {'description': gen_string("alpha", 10),
-           'name': gen_string("alpha", 10)},
-          {'description': gen_string("alphanumeric", 10),
-           'name': gen_string("alphanumeric", 10)},
-          {'description': gen_string("numeric", 10),
-           'name': gen_string("numeric", 10)},
-          {'description': gen_string("html", 10),
-           'name': gen_string("html", 10)})
+    @data({'description': gen_string("latin1"),
+           'name': gen_string("latin1")},
+          {'description': gen_string("utf8"),
+           'name': gen_string("utf8")},
+          {'description': gen_string("alpha"),
+           'name': gen_string("alpha")},
+          {'description': gen_string("alphanumeric"),
+           'name': gen_string("alphanumeric")},
+          {'description': gen_string("numeric"),
+           'name': gen_string("numeric")},
+          {'description': gen_string("html"),
+           'name': gen_string("html")})
     def test_positive_update_4(self, test_data):
         """@test: Create organization with valid values then update all values
 
@@ -1296,37 +1080,24 @@ class TestOrg(CLITestCase):
         @bz: 1114136
 
         """
-
-        new_obj = make_org()
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
-        self.assertEqual(new_obj['description'], result.stdout['description'])
+        org = make_org()
 
         # Update the org name
-        result = Org.update({'id': new_obj['id'],
-                             'new-name': test_data['name'],
-                             'description': test_data['description']})
+        result = Org.update({
+            'id': org['id'],
+            'new-name': test_data['name'],
+            'description': test_data['description'],
+        })
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here")
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch the org again
-        result = Org.info({'id': new_obj['id']})
+        result = Org.info({'id': org['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(
-            result.stdout['description'],
-            test_data['description'],
-            "Org desc was not updated"
-        )
-        self.assertEqual(
-            result.stdout['name'],
-            test_data['name'],
-            "Org name was not updated"
-        )
+            result.stdout['description'], test_data['description'])
+        self.assertEqual(result.stdout['name'], test_data['name'])
 
     # Negative Update
 
@@ -1348,20 +1119,15 @@ class TestOrg(CLITestCase):
         @bz: 1076541
 
         """
-
-        new_obj = make_org()
-        # Can we find the new object?
-        result = Org.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+        org = make_org()
 
         # Update the org name
-        result = Org.update({'id': new_obj['id'],
-                             'new-name': test_data['name']})
+        result = Org.update({
+            'id': org['id'],
+            'new-name': test_data['name'],
+        })
         self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0,
-                           "There should be error - hammer expects error")
+        self.assertGreater(len(result.stderr), 0)
 
     # Miscelaneous
 
@@ -1784,11 +1550,11 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @data(gen_string('alpha', 10),
-          gen_string('numeric', 10),
-          gen_string('alphanumeric', 10),
-          gen_string('utf8', 10),
-          gen_string('latin1', 10))
+    @data(gen_string('alpha'),
+          gen_string('numeric'),
+          gen_string('alphanumeric'),
+          gen_string('utf8'),
+          gen_string('latin1'))
     def test_add_subnet_1(self, name):
         """@test: Add a subnet by using organization name and subnet name
 
@@ -1808,9 +1574,7 @@ class TestOrg(CLITestCase):
             'name': org['name'],
             'subnet': new_subnet['name'],
         })
-        self.assertEqual(result.return_code, 0,
-                         "return code must be 0, instead got {0}".
-                         format(result.return_code))
+        self.assertEqual(result.return_code, 0)
 
         result = Org.info({'id': org['id']})
         self.assertIn(name, result.stdout['subnets'][0])

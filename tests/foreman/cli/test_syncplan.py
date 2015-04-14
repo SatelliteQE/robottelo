@@ -33,24 +33,7 @@ class TestSyncPlan(CLITestCase):
         if not options.get('organization-id', None):
             options[u'organization-id'] = self.org['id']
 
-        new_sync_plan = make_sync_plan(options)
-
-        # Fetch it
-        result = SyncPlan.info(
-            {
-                u'id': new_sync_plan['id']
-            }
-        )
-
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Sync plan was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-
-        # Return the sync plan dictionary
-        return new_sync_plan
+        return make_sync_plan(options)
 
     @data(
         {u'name': gen_string('alpha', 15)},

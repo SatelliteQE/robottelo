@@ -23,12 +23,12 @@ def positive_create_data():
     """Random data for positive creation"""
 
     return (
-        {'name': gen_string("latin1", 10)},
-        {'name': gen_string("utf8", 10)},
-        {'name': gen_string("alpha", 10)},
-        {'name': gen_string("alphanumeric", 10)},
+        {'name': gen_string("latin1")},
+        {'name': gen_string("utf8")},
+        {'name': gen_string("alpha")},
+        {'name': gen_string("alphanumeric")},
         {'name': gen_string("numeric", 20)},
-        {'name': gen_string("html", 10)},
+        {'name': gen_string("html")},
     )
 
 
@@ -79,41 +79,6 @@ class TestGPGKey(CLITestCase):
 
     # Bug verification
 
-    @skip_if_bug_open('redmine', 4271)
-    def test_redmine_4271(self):
-        """@Test: cvs output for gpg subcommand doesn\'t work
-
-        @Feature: GPG Keys
-
-        @Assert: cvs output for gpg info works
-
-        @BZ: Redmine#4271
-
-        """
-
-        # GPG Key data
-        data = {'name': gen_string("alpha", 10)}
-        data['organization-id'] = self.org['id']
-
-        # Setup a new key file
-        data['key'] = VALID_GPG_KEY_FILE_PATH
-        try:
-            new_obj = make_gpg_key(data)
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        # Can we find the new object?
-        result = GPGKey().info(
-            {'id': new_obj['id']}
-        )
-
-        self.assertEqual(result.return_code, 0,
-                         "Failed to get object information")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-        self.assertEqual(
-            new_obj[self.search_key], result.stdout[self.search_key])
-
     @skip_if_bug_open('redmine', 4272)
     def test_redmine_4272(self):
         """@Test: gpg info should display key content
@@ -125,10 +90,11 @@ class TestGPGKey(CLITestCase):
         @BZ: Redmine#4272
 
         """
-
         # GPG Key data
-        data = {'name': gen_string("alpha", 10)}
-        data['organization-id'] = self.org['id']
+        data = {
+            'name': gen_string("alpha"),
+            'organization-id': self.org['id'],
+        }
 
         # Setup a new key file
         content = gen_alphanumeric()
@@ -136,21 +102,11 @@ class TestGPGKey(CLITestCase):
         self.assertIsNotNone(gpg_key, 'GPG Key file must be created')
         data['key'] = gpg_key
         try:
-            new_obj = make_gpg_key(data)
+            gpg_key = make_gpg_key(data)
         except CLIFactoryError as err:
             self.fail(err)
 
-        # Can we find the new object?
-        result = GPGKey().info(
-            {'id': new_obj['id']}
-        )
-
-        self.assertEqual(result.return_code, 0,
-                         "Failed to get object information")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-        self.assertEqual(
-            result.stdout['content'], content)
+        self.assertEqual(gpg_key['content'], content)
 
     @skip_if_bug_open('bugzilla', 1108227)
     def test_bugzilla_1108227(self):
@@ -163,13 +119,15 @@ class TestGPGKey(CLITestCase):
         @BZ: 1108227
 
         """
+        name = gen_string('utf8')
+        result = GPGKey.create({
+            'name': name,
+            'organization-id': self.org['id'],
+            'key': VALID_GPG_KEY_FILE_PATH,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
-        # GPG Key data
-        data = {'name': gen_string("alpha", 10)}
-        data['organization-id'] = self.org['id']
-
-        # Setup a new key file
-        data['key'] = VALID_GPG_KEY_FILE_PATH
         try:
             new_obj = make_gpg_key(data)
         except CLIFactoryError as err:
@@ -181,11 +139,9 @@ class TestGPGKey(CLITestCase):
             'organization-id': self.org['id'],
         })
 
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-        self.assertEqual(
-            new_obj[self.search_key], result.stdout[self.search_key])
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(result.stdout['name'], name)
 
     # Positive Create
 

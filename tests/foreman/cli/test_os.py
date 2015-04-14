@@ -2,10 +2,7 @@
 """Test class for Operating System CLI"""
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo.cli.architecture import Architecture
 from robottelo.cli.operatingsys import OperatingSys
-from robottelo.cli.partitiontable import PartitionTable
-from robottelo.cli.template import Template
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_architecture,
@@ -96,7 +93,7 @@ class TestOperatingSystem(CLITestCase):
     def test_redmine_4547(self):
         """@test: Search for newly created OS by name
 
-        @feature: Operating System - List
+        @feature: Operating System - Search
 
         @assert: Operating System is created and listed
 
@@ -135,20 +132,15 @@ class TestOperatingSystem(CLITestCase):
 
         result = OperatingSys.update(
             {'id': os['id'], 'major': major})
-        self.assertEqual(result.return_code, 0,
-                         'Failed to update activation key')
-        self.assertEqual(len(result.stderr), 0,
-                         'There should not be an error here')
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         result = OperatingSys.info({
             u'id': os['id'],
         })
-        self.assertEqual(result.return_code, 0,
-                         'Failed to get info for OS')
-        self.assertEqual(len(result.stderr), 0,
-                         'There should not be an error here')
-        self.assertEqual(int(result.stdout['major-version']), major,
-                         'OS major version was not updated')
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(int(result.stdout['major-version']), major)
 
     @skip_if_bug_open('bugzilla', 1203457)
     @skip_if_bug_open('bugzilla', 1200116)
@@ -171,15 +163,15 @@ class TestOperatingSystem(CLITestCase):
             u'partition-table-ids': ptable['id'],
         })
 
-        result = OperatingSys.info({'id': operating_system['id']})
-        self.assertEqual(result.return_code, 0)
-        stdout = result.stdout
         for attr in (
                 'architectures', 'installation-media', 'partition-tables'):
-            self.assertEqual(len(stdout[attr]), 1)
-        self.assertEqual(stdout['architectures'][0], architecture['name'])
-        self.assertEqual(stdout['installation-media'][0], medium['name'])
-        self.assertEqual(stdout['partition-tables'][0], ptable['name'])
+            self.assertEqual(len(operating_system[attr]), 1)
+        self.assertEqual(
+            operating_system['architectures'][0], architecture['name'])
+        self.assertEqual(
+            operating_system['installation-media'][0], medium['name'])
+        self.assertEqual(
+            operating_system['partition-tables'][0], ptable['name'])
 
     def test_list_1(self):
         """@test: Displays list for operating system
@@ -193,7 +185,7 @@ class TestOperatingSystem(CLITestCase):
         self.assertEqual(result.return_code, 0)
         length = len(result.stdout)
 
-        name = gen_string("alpha", 10)
+        name = gen_string("alpha")
         result = make_os({'name': name})
 
         os_list = OperatingSys.list({'search': 'name=%s' % name})
@@ -238,17 +230,9 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is created and can be found
 
         """
-
         # Create a new object using factory method
-        new_obj = make_os(test_data)
-
-        # Can we find the new object?
-        result = OperatingSys.info({'id': new_obj['id']})
-
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-        self.assertEqual(result.stdout['name'], new_obj['name'])
+        os = make_os(test_data)
+        self.assertEqual(os['name'], test_data['name'])
 
     @data(*NEGATIVE_CREATE_DATA)
     def test_negative_create_1(self, test_data):
@@ -272,35 +256,28 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is updated and can be found
 
         """
-
         # "Unpacks" values from tuple
         orig_dict, updates_dict = test_data
 
         # Create a new object passing @test_data to factory method
         new_obj = make_os(orig_dict)
 
-        result = OperatingSys.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-
         # Update original test_data with new values
         updates_dict['id'] = new_obj['id']
         orig_dict.update(updates_dict)
         # Now update the Foreman object
         result = OperatingSys.update(orig_dict)
-        self.assertEqual(result.return_code, 0, "Failed to update object")
+        self.assertEqual(result.return_code, 0)
         self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
+            len(result.stderr), 0)
 
         result = OperatingSys.info({'id': new_obj['id']})
 
         # Verify that standard values are correct
-        self.assertEqual(
-            new_obj['id'], result.stdout['id'], "IDs should match")
+        self.assertEqual(new_obj['id'], result.stdout['id'])
         self.assertNotEqual(result.stdout['name'], new_obj['name'])
         # There should be some attributes changed now
-        self.assertNotEqual(new_obj, result.stdout, "Object should be updated")
+        self.assertNotEqual(new_obj, result.stdout)
 
     @data(*NEGATIVE_UPDATE_DATA)
     def test_negative_update_1(self, test_data):
@@ -318,32 +295,20 @@ class TestOperatingSystem(CLITestCase):
         # Create a new object passing @test_data to factory method
         new_obj = make_os(orig_dict)
 
-        result = OperatingSys.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-
         # Update original data with new values
         updates_dict['id'] = new_obj['id']
         orig_dict.update(updates_dict)
 
         # Now update the Foreman object
         result = OperatingSys.update(orig_dict)
-        self.assertNotEqual(
-            result.return_code, 0,
-            "Update command should have failed")
-        self.assertGreater(
-            len(result.stderr), 0, "There should be an exception here")
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
 
         # OS should not have changed
         result = OperatingSys.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-        self.assertEqual(
-            new_obj['name'],
-            result.stdout['name'],
-            "Name should not be updated")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(new_obj['name'], result.stdout['name'])
 
     @data(*POSITIVE_DELETE_DATA)
     def test_positive_delete_1(self, test_data):
@@ -354,27 +319,19 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is deleted
 
         """
-
         # Create a new object passing @test_data to factory method
         new_obj = make_os(test_data)
-
-        result = OperatingSys.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
 
         # Now delete it...
         result = OperatingSys.delete(
             {'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to delete object")
-        self.assertEqual(len(result.stderr), 0, "Should not get an error.")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         # ... and make sure it does not exist anymore
         result = OperatingSys.info({'id': new_obj['id']})
-        self.assertNotEqual(
-            result.return_code, 0, "Return code should not be zero")
-        self.assertGreater(
-            len(result.stderr), 0, "Should have gotten an error")
-        self.assertEqual(result.stdout, {}, "Should not get any output")
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
+        self.assertEqual(len(result.stdout), 0)
 
     @data(*NEGATIVE_DELETE_DATA)
     def test_negative_delete_1(self, test_data):
@@ -385,24 +342,17 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is not deleted
 
         """
-
         # Create a new object using default values
         new_obj = make_os()
 
-        result = OperatingSys.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-
         # The delete method requires the ID which we will not pass
         result = OperatingSys.delete(test_data)
-        self.assertNotEqual(result.return_code, 0, "Should not delete object")
-        self.assertGreater(
-            len(result.stderr), 0, "Should have gotten an error")
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
 
         # Now make sure that it still exists
         result = OperatingSys.info({'id': new_obj['id']})
-        self.assertTrue(result.return_code == 0, "Failed to find object")
+        self.assertEqual(result.return_code, 0)
         self.assertEqual(new_obj['id'], result.stdout['id'])
         self.assertEqual(new_obj['name'], result.stdout['name'])
 
@@ -414,25 +364,21 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is updated with architecture
 
         """
-
-        a_ob = make_architecture()
-
-        result = Architecture.info({'id': a_ob['id']})
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-
+        architecture = make_architecture()
         new_obj = make_os()
-        result = OperatingSys.add_architecture({'id': new_obj['id'],
-                                                'architecture-id': a_ob['id']})
-        self.assertEqual(result.return_code, 0, "Failed to add architecture")
-        self.assertEqual(
-            len(result.stderr), 0, "Should not have gotten an error")
+
+        result = OperatingSys.add_architecture({
+            'id': new_obj['id'],
+            'architecture-id': architecture['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         result = OperatingSys.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to find object")
+        self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout['architectures']), 1)
-        self.assertEqual(a_ob['name'], result.stdout['architectures'][0])
+        self.assertEqual(
+            architecture['name'], result.stdout['architectures'][0])
 
     def test_add_configtemplate(self):
         """@test: Add configtemplate to os
@@ -442,27 +388,20 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is updated with config template
 
         """
-
-        conf_obj = make_template()
-
-        result = Template.info({'id': conf_obj['id']})
+        template = make_template()
+        new_obj = make_os()
+        result = OperatingSys.add_config_template({
+            'id': new_obj['id'],
+            'config-template': template['name'],
+        })
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(conf_obj['name'], result.stdout['name'])
-
-        new_obj = make_os()
-        result = OperatingSys.add_config_template(
-            {'id': new_obj['id'],
-             'config-template': conf_obj['name']})
-        self.assertEqual(result.return_code, 0, "Failed to add configtemplate")
-        self.assertEqual(
-            len(result.stderr), 0, "Should not have gotten an error")
 
         result = OperatingSys.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0, "Failed to find object")
+        self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout['templates']), 1)
         template_name = result.stdout['templates'][0]
-        self.assertTrue(template_name.startswith(conf_obj['name']))
+        self.assertTrue(template_name.startswith(template['name']))
 
     def test_add_ptable(self):
         """@test: Add ptable to os
@@ -474,29 +413,18 @@ class TestOperatingSystem(CLITestCase):
         """
         # Create a partition table.
         ptable_name = make_partition_table()['name']
-        response = PartitionTable.info({'name': ptable_name})
-        self.assertEqual(response.return_code, 0, response.stderr)
-        self.assertEqual(len(response.stderr), 0, response.stderr)
-
         # Create an operating system.
         os_id = make_os()['id']
-        response = OperatingSys.info({'id': os_id})
-        self.assertEqual(response.return_code, 0, response.stderr)
-        self.assertEqual(len(response.stderr), 0, response.stderr)
 
         # Add the partition table to the operating system.
         response = OperatingSys.add_ptable({
             'id': os_id,
             'partition-table': ptable_name,
         })
-        self.assertEqual(response.return_code, 0, response.stderr)
-        self.assertEqual(len(response.stderr), 0, response.stderr)
+        self.assertEqual(response.return_code, 0)
+        self.assertEqual(len(response.stderr), 0)
 
         # Verify that the operating system has a partition table.
         response = OperatingSys.info({'id': os_id})
-        self.assertEqual(
-            len(response.stdout['partition-tables']),
-            1,
-            response.stdout['partition-tables']
-        )
+        self.assertEqual(len(response.stdout['partition-tables']), 1)
         self.assertEqual(response.stdout['partition-tables'][0], ptable_name)

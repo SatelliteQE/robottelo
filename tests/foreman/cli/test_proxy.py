@@ -83,17 +83,6 @@ class TestProxy(CLITestCase):
             proxy['name'],
             data['name'], "Input and output name should be consistent")
 
-        result = Proxy.info({u'id': proxy['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Proxy should be found"
-        )
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            "No error excepted"
-        )
         result = Proxy.delete({u'id': proxy['id']})
         self.assertEqual(
             result.return_code,

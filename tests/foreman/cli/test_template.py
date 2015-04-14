@@ -26,24 +26,17 @@ class TestTemplate(CLITestCase):
         @Assert: Template is created
 
         """
-
-        content = gen_string("alpha", 10)
-        name = gen_string("alpha", 10)
+        name = gen_string("alpha")
 
         try:
-            new_obj = make_template(
-                {
-                    'name': name,
-                    'content': content,
-                }
-            )
+            new_obj = make_template({
+                'name': name,
+                'content': gen_string("alpha"),
+            })
         except CLIFactoryError as e:
             self.fail(e)
 
-        result = Template.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+        self.assertEqual(new_obj['name'], name)
 
     def test_update_template_1(self):
         """@Test: Check if Template can be updated
@@ -53,27 +46,21 @@ class TestTemplate(CLITestCase):
         @Assert: Template is updated
 
         """
-
-        content = gen_string("alpha", 10)
-        name = gen_string("alpha", 10)
+        name = gen_string("alpha")
 
         try:
-            new_obj = make_template(
-                {
-                    'name': name,
-                    'content': content,
-                }
-            )
+            new_obj = make_template({
+                'name': name,
+                'content': gen_string("alpha"),
+            })
         except CLIFactoryError as e:
             self.fail(e)
 
-        result = Template.info({'id': new_obj['id']})
+        updated_name = gen_string("alpha")
+        result = Template.update({'id': new_obj['id'], 'name': updated_name})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
 
-        updated_name = gen_string("alpha", 10)
-        Template.update({'id': new_obj['id'], 'name': updated_name})
         result = Template.info({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
@@ -90,7 +77,7 @@ class TestTemplate(CLITestCase):
         try:
             new_loc = make_location()
             new_template = make_template({
-                'name': gen_string('alpha', 10),
+                'name': gen_string('alpha'),
                 'location-ids': new_loc['id'],
             })
         except CLIFactoryError as err:
@@ -108,7 +95,7 @@ class TestTemplate(CLITestCase):
         """
         with self.assertRaises(CLIFactoryError):
             make_template({
-                'name': gen_string('alpha', 10),
+                'name': gen_string('alpha'),
                 'locked': 'true',
             })
 
@@ -123,7 +110,7 @@ class TestTemplate(CLITestCase):
         try:
             new_org = make_org()
             new_template = make_template({
-                'name': gen_string('alpha', 10),
+                'name': gen_string('alpha'),
                 'organization-ids': new_org['id'],
             })
         except CLIFactoryError as err:
@@ -140,8 +127,8 @@ class TestTemplate(CLITestCase):
 
         """
 
-        content = gen_string("alpha", 10)
-        name = gen_string("alpha", 10)
+        content = gen_string("alpha")
+        name = gen_string("alpha")
 
         try:
             new_template = make_template({
@@ -176,8 +163,8 @@ class TestTemplate(CLITestCase):
 
         """
 
-        content = gen_string("alpha", 10)
-        name = gen_string("alpha", 10)
+        content = gen_string("alpha")
+        name = gen_string("alpha")
 
         try:
             new_obj = make_template(
@@ -230,23 +217,16 @@ class TestTemplate(CLITestCase):
         @Assert: Template is created with specific content
 
         """
+        content = gen_string('alpha')
+        name = gen_string('alpha')
 
-        content = gen_string("alpha", 10)
-        name = gen_string("alpha", 10)
+        template = make_template({
+            'name': name,
+            'content': content,
+        })
 
-        new_obj = make_template(
-            {
-                'name': name,
-                'content': content,
-            }
-        )
-
-        result = Template.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
-
-        template_content = Template.dump({'id': new_obj['id']})
+        self.assertEqual(template['name'], name)
+        template_content = Template.dump({'id': template['id']})
         self.assertIn(content, template_content.stdout[0])
 
     @skip_if_bug_open('bugzilla', 1096333)
@@ -260,23 +240,16 @@ class TestTemplate(CLITestCase):
         @BZ: 1096333
 
         """
+        name = gen_string('alpha')
 
-        content = gen_string("alpha", 10)
-        name = gen_string("alpha", 10)
+        new_obj = make_template({
+            'name': name,
+            'content': gen_string('alpha'),
+        })
 
-        new_obj = make_template(
-            {
-                'name': name,
-                'content': content,
-            }
-        )
-
-        result = Template.info({'id': new_obj['id']})
+        result = Template.delete({'id': new_obj['id']})
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
-
-        Template.delete({'id': new_obj['id']})
 
         result = Template.info({'id': new_obj['id']})
         self.assertNotEqual(result.return_code, 0)

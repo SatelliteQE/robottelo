@@ -41,28 +41,13 @@ class TestProduct(CLITestCase):
         @Assert: Product is created and has random name
 
         """
+        product = make_product({
+            u'name': test_name['name'],
+            u'organization-id': self.org['id']
+        })
 
-        new_product = make_product(
-            {
-                u'name': test_name['name'],
-                u'organization-id': self.org['id']
-            }
-        )
-
-        # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['name'], new_product['name'], "Names don't match")
-        self.assertGreater(
-            len(result.stdout['label']), 0, "Label not automatically created"
-        )
+        self.assertEqual(product['name'], test_name['name'])
+        self.assertGreater(len(product['label']), 0)
 
     @run_only_on('sat')
     @data(
@@ -79,7 +64,7 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('html', 15),
          u'label': gen_string('numeric', 15)},
     )
-    def test_positive_create_2(self, test_name):
+    def test_positive_create_2(self, test_data):
         """@Test: Check if product can be created with random labels
 
         @Feature: Product
@@ -87,29 +72,14 @@ class TestProduct(CLITestCase):
         @Assert: Product is created and has random label
 
         """
+        product = make_product({
+            u'name': test_data['name'],
+            u'label': test_data['label'],
+            u'organization-id': self.org['id']
+        })
 
-        new_product = make_product(
-            {
-                u'name': test_name['name'],
-                u'label': test_name['label'],
-                u'organization-id': self.org['id']
-            }
-        )
-
-        # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['name'], new_product['name'], "Names don't match")
-        self.assertEqual(
-            result.stdout['label'], new_product['label'], "Labels don't match"
-        )
+        self.assertEqual(product['name'], test_data['name'])
+        self.assertEqual(product['label'], test_data['label'])
 
     @run_only_on('sat')
     @data(
@@ -126,7 +96,7 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('html', 15),
          u'description': gen_string('html', 15)},
     )
-    def test_positive_create_3(self, test_name):
+    def test_positive_create_3(self, test_data):
         """@Test: Check if product can be created with random description
 
         @Feature: Product
@@ -134,31 +104,14 @@ class TestProduct(CLITestCase):
         @Assert: Product is created and has random description
 
         """
+        product = make_product({
+            u'name': test_data['name'],
+            u'description': test_data['description'],
+            u'organization-id': self.org['id']
+        })
 
-        new_product = make_product(
-            {
-                u'name': test_name['name'],
-                u'description': test_name['description'],
-                u'organization-id': self.org['id']
-            }
-        )
-
-        # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['name'], new_product['name'], "Names don't match")
-        self.assertEqual(
-            result.stdout['description'],
-            new_product['description'],
-            "Descriptions don't match"
-        )
+        self.assertEqual(product['name'], test_data['name'])
+        self.assertEqual(product['description'], test_data['description'])
 
     @run_only_on('sat')
     @data(
@@ -169,7 +122,7 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    def test_positive_create_4(self, test_name):
+    def test_positive_create_4(self, test_data):
         """@Test: Check if product can be created with gpg key
 
         @Feature: Product
@@ -177,33 +130,17 @@ class TestProduct(CLITestCase):
         @Assert: Product is created and has gpg key
 
         """
-
-        new_gpg_key = make_gpg_key(
+        gpg_key = make_gpg_key(
             {u'organization-id': self.org['id']}
         )
-        new_product = make_product(
-            {
-                u'name': test_name['name'],
-                u'organization-id': self.org['id'],
-                u'gpg-key-id': new_gpg_key['id'],
-            }
-        )
+        product = make_product({
+            u'name': test_data['name'],
+            u'gpg-key-id': gpg_key['id'],
+            u'organization-id': self.org['id']
+        })
 
-        # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['name'], new_product['name'], "Names don't match")
-        self.assertEqual(
-            result.stdout['gpg']['gpg-key-id'],
-            new_gpg_key['id'],
-            "GPG Keys don't match")
+        self.assertEqual(product['name'], test_data['name'])
+        self.assertEqual(product['gpg']['gpg-key-id'], gpg_key['id'])
 
     @run_only_on('sat')
     @data(
@@ -214,7 +151,7 @@ class TestProduct(CLITestCase):
         {u'name': gen_string('utf8', 15)},
         {u'name': gen_string('html', 15)},
     )
-    def test_positive_create_5(self, test_name):
+    def test_positive_create_5(self, test_data):
         """@Test: Check if product can be created with sync plan
 
         @Feature: Product
@@ -222,31 +159,15 @@ class TestProduct(CLITestCase):
         @Assert: Product is created and has random sync plan
 
         """
+        sync_plan = make_sync_plan({u'organization-id': self.org['id']})
+        product = make_product({
+            u'name': test_data['name'],
+            u'organization-id': self.org['id'],
+            u'sync-plan-id': sync_plan['id'],
+        })
 
-        new_sync_plan = make_sync_plan({u'organization-id': self.org['id']})
-        new_product = make_product(
-            {
-                u'name': test_name['name'],
-                u'organization-id': self.org['id'],
-                u'sync-plan-id': new_sync_plan['id'],
-            }
-        )
-
-        # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['name'], new_product['name'], "Names don't match")
-        self.assertEqual(
-            result.stdout['sync-plan-id'],
-            new_sync_plan['id'],
-            "Sync plans don't match")
+        self.assertEqual(product['name'], test_data['name'])
+        self.assertEqual(product['sync-plan-id'], sync_plan['id'])
 
     @run_only_on('sat')
     @data(
@@ -318,59 +239,30 @@ class TestProduct(CLITestCase):
         @Assert: Product description is updated
 
         """
-
-        new_product = make_product(
-            {
-                u'organization-id': self.org['id']
-            }
-        )
-
-        # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        product = make_product({
+            u'organization-id': self.org['id'],
+        })
 
         # Update the Descriptions
-        result = Product.update(
-            {u'id': new_product['id'],
-             u'description': test_data['description']}
-        )
+        result = Product.update({
+            u'id': product['id'],
+            u'description': test_data['description'],
+        })
 
         # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
+        result = Product.info({
+            u'id': product['id'],
+            u'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['description'],
-            test_data['description'],
-            "Description was not updated"
-        )
+            result.stdout['description'], test_data['description'])
         self.assertNotEqual(
-            result.stdout['description'],
-            new_product['description'],
-            "Descriptions should not match"
-        )
+            product['description'], result.stdout['description'])
 
     @run_only_on('sat')
-    @data(
-        {u'name': gen_string('alpha', 15)},
-        {u'name': gen_string('alphanumeric', 15)},
-        {u'name': gen_string('numeric', 15)},
-        {u'name': gen_string('latin1', 15)},
-        {u'name': gen_string('utf8', 15)},
-        {u'name': gen_string('html', 15)},
-    )
-    def test_positive_update_2(self, test_name):
+    def test_positive_update_2(self):
         """@Test: Update product's gpg keys
 
         @Feature: Product
@@ -378,93 +270,41 @@ class TestProduct(CLITestCase):
         @Assert: Product gpg key is updated
 
         """
-
         first_gpg_key = make_gpg_key(
             {u'organization-id': self.org['id']}
         )
         second_gpg_key = make_gpg_key(
             {u'organization-id': self.org['id']}
         )
-        new_product = make_product(
-            {
-                u'name': test_name['name'],
-                u'organization-id': self.org['id'],
-            }
-        )
+        product = make_product({
+            u'organization-id': self.org['id'],
+            u'gpg-key-id': first_gpg_key['id'],
+        })
+
+        # Update the Descriptions
+        result = Product.update({
+            u'id': product['id'],
+            u'gpg-key-id': second_gpg_key['id'],
+        })
 
         # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        # No gpg key yet
-        self.assertEqual(
-            len(result.stdout['gpg']['gpg-key-id']), 0, "No gpg key expected"
-        )
-
-        # Add first gpg key to product
-        result = Product.update(
-            {u'id': new_product['id'],
-             u'gpg-key-id': first_gpg_key['id']}
-        )
-
-        # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['gpg']['gpg-key-id'],
-            first_gpg_key['id'],
-            "GPG Keys don't match")
-        self.assertNotEqual(
-            result.stdout['gpg']['gpg-key-id'],
-            second_gpg_key['id'],
-            "GPG Keys should not match")
-
-        # Remove first key by updating product to use second key
-        result = Product.update(
-            {u'id': new_product['id'],
-             u'gpg-key-id': second_gpg_key['id']}
-        )
-
-        # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        result = Product.info({
+            u'id': product['id'],
+            u'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         self.assertEqual(
             result.stdout['gpg']['gpg-key-id'],
             second_gpg_key['id'],
-            "GPG Keys don't match"
         )
         self.assertNotEqual(
             result.stdout['gpg']['gpg-key-id'],
             first_gpg_key['id'],
-            "GPG Keys should not match")
+        )
 
     @run_only_on('sat')
-    @data(
-        {u'name': gen_string('alpha', 15)},
-        {u'name': gen_string('alphanumeric', 15)},
-        {u'name': gen_string('numeric', 15)},
-        {u'name': gen_string('latin1', 15)},
-        {u'name': gen_string('utf8', 15)},
-        {u'name': gen_string('html', 15)},
-    )
-    def test_positive_update_3(self, test_name):
+    def test_positive_update_3(self):
         """@Test: Update product's sync plan
 
         @Feature: Product
@@ -472,94 +312,41 @@ class TestProduct(CLITestCase):
         @Assert: Product sync plan is updated
 
         """
+        first_sync_plan = make_sync_plan({
+            u'organization-id': self.org['id'],
+        })
+        second_sync_plan = make_sync_plan({
+            u'organization-id': self.org['id'],
+        })
+        product = make_product({
+            u'organization-id': self.org['id'],
+            u'sync-plan-id': first_sync_plan['id'],
+        })
 
-        first_sync_plan = make_sync_plan(
-            {u'organization-id': self.org['id']}
-        )
-        second_sync_plan = make_sync_plan(
-            {u'organization-id': self.org['id']}
-        )
-        new_product = make_product(
-            {
-                u'name': test_name['name'],
-                u'organization-id': self.org['id'],
-            }
-        )
-
-        # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        # No sync plan yet
-        self.assertEqual(
-            len(result.stdout['sync-plan-id']), 0, "No sync plan expected"
-        )
-
-        # Add first sync plan to product
-        result = Product.update(
-            {u'id': new_product['id'],
-             u'sync-plan-id': first_sync_plan['id']}
-        )
+        # Update the Descriptions
+        result = Product.update({
+            u'id': product['id'],
+            u'sync-plan-id': second_sync_plan['id'],
+        })
 
         # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['sync-plan-id'],
-            first_sync_plan['id'],
-            "Sync plans don't match")
-        self.assertNotEqual(
-            result.stdout['sync-plan-id'],
-            second_sync_plan['id'],
-            "Sync plans should not match")
-
-        # Remove first sync plan by updating product to use second plan
-        result = Product.update(
-            {u'id': new_product['id'],
-             u'name': new_product['name'],
-             u'sync-plan-id': second_sync_plan['id']}
-        )
-
-        # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        result = Product.info({
+            u'id': product['id'],
+            u'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         self.assertEqual(
             result.stdout['sync-plan-id'],
             second_sync_plan['id'],
-            "Sync plans don't match"
         )
         self.assertNotEqual(
             result.stdout['sync-plan-id'],
             first_sync_plan['id'],
-            "Sync plans should not match")
+        )
 
     @run_only_on('sat')
-    @data(
-        {u'name': gen_string('alpha', 15)},
-        {u'name': gen_string('alphanumeric', 15)},
-        {u'name': gen_string('numeric', 15)},
-        {u'name': gen_string('latin1', 15)},
-        {u'name': gen_string('utf8', 15)},
-        {u'name': gen_string('html', 15)},
-    )
-    def test_positive_delete_1(self, test_name):
+    def test_positive_delete_1(self):
         """@Test: Check if product can be deleted
 
         @Feature: Product
@@ -567,47 +354,22 @@ class TestProduct(CLITestCase):
         @Assert: Product is deleted
 
         """
-
-        new_product = make_product(
-            {
-                u'name': test_name['name'],
-                u'organization-id': self.org['id']
-            }
-        )
-
-        # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not found")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-        self.assertEqual(
-            result.stdout['name'], new_product['name'], "Names don't match")
-        self.assertGreater(
-            len(result.stdout['label']), 0, "Label not automatically created"
-        )
+        new_product = make_product({
+            u'organization-id': self.org['id']
+        })
 
         # Delete it
         result = Product.delete({u'id': new_product['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Product was not deleted")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch it
-        result = Product.info(
-            {u'id': new_product['id'], u'organization-id': self.org['id']})
-        self.assertNotEqual(
-            result.return_code,
-            0,
-            "Product should not be found")
-        self.assertGreater(
-            len(result.stderr), 0, "Error was expected")
+        result = Product.info({
+            u'id': new_product['id'],
+            u'organization-id': self.org['id'],
+        })
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
 
     def test_add_syncplan_1(self):
         """@Test: Check if product can be assigned a syncplan
