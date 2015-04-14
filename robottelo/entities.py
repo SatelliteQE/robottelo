@@ -13,6 +13,14 @@ Each class contains an inner class named ``Meta``. This inner class contains
 any information about an entity that is not encoded in the JSON payload when
 creating an entity. That is, the inner class contains non-field information.
 
+Several classes contain work-arounds for bugs. These bugs often affect only
+specific server releases, and ideally, the work-arounds should only be
+attempted if communicating with an affected server. However, work-arounds can
+only be conditionally triggered if NailGun has a facility for determining which
+software version the server is running. Until then, the safe route will be
+taken, and all work-arounds will be attempted all the time. Each method that
+makes use of a work-around notes so in its docstring.
+
 """
 from datetime import datetime
 from fauxfactory import gen_alpha, gen_alphanumeric, gen_url
@@ -24,18 +32,6 @@ from nailgun.entity_mixins import (
     EntityReadMixin,
     _poll_task,
 )
-from robottelo.common.constants import (
-    FAKE_1_YUM_REPO,
-    OPERATING_SYSTEMS,
-    VALID_GPG_KEY_FILE,
-)
-from robottelo.common.decorators import bz_bug_is_open, rm_bug_is_open
-from robottelo.common.helpers import (
-    escape_search,
-    get_data_file,
-    get_external_docker_url,
-    get_internal_docker_url,
-)
 from time import sleep
 import httplib
 import random
@@ -46,6 +42,20 @@ import random
 # This has the same effect as passing `module='robottelo.entities'` to every
 # single OneToOneField and OneToManyField.
 entity_fields.ENTITIES_MODULE = 'robottelo.entities'
+
+
+_FAKE_YUM_REPO = 'http://inecas.fedorapeople.org/fakerepos/zoo3/'
+_OPERATING_SYSTEMS = (
+    'AIX',
+    'Archlinux',
+    'Debian',
+    'Freebsd',
+    'Gentoo',
+    'Redhat',
+    'Solaris',
+    'Suse',
+    'Windows',
+)
 
 
 class APIResponseError(Exception):
@@ -75,21 +85,22 @@ class ActivationKey(
         server_modes = ('sat', 'sam')
 
     def read_raw(self):
-        """Poll the server several times upon receiving a 404.
+        """Work around `Redmine #4638`_.
 
         Poll the server several times upon receiving a 404, just to be _really_
         sure that the requested activation key is non-existent. Do this because
         elasticsearch can be slow about indexing newly created activation keys,
         especially when the server is under load.
 
+        .. _Redmine #4638: http://projects.theforeman.org/issues/4638
+
         """
         super_read_raw = super(ActivationKey, self).read_raw
         response = super_read_raw()
-        if rm_bug_is_open(4638):
-            for _ in range(5):
-                if response.status_code == 404:
-                    sleep(5)
-                    response = super_read_raw()
+        for _ in range(5):
+            if response.status_code == 404:
+                sleep(5)
+                response = super_read_raw()
         return response
 
     def path(self, which=None):
@@ -316,8 +327,7 @@ class ComputeResource(
         # generate an URL pointing to a docker server
         if provider.lower() == 'docker':
             if 'url' not in vars(self):
-                self.url = random.choice((
-                    get_internal_docker_url(), get_external_docker_url()))
+                self.url = '{0}:2375'.format(self._server_config.url)
 
         # Now is good to call super create_missing
         super(ComputeResource, self).create_missing()
@@ -1072,22 +1082,10 @@ class ForemanTask(Entity, EntityReadMixin):
         return _poll_task(self.id, self._server_config, poll_rate, timeout)
 
 
-def _gpgkey_content():
-    """Return default content for a GPG key.
-
-    :returns: The contents of a GPG key.
-    :rtype: str
-
-    """
-    with open(get_data_file(VALID_GPG_KEY_FILE)) as handle:
-        return handle.read()
-
-
 class GPGKey(
         Entity, EntityCreateMixin, EntityDeleteMixin, EntityReadMixin):
     """A representation of a GPG Key entity."""
-    # public key block in DER encoding
-    content = entity_fields.StringField(required=True, default=_gpgkey_content())
+    content = entity_fields.StringField(required=True)
     name = entity_fields.StringField(required=True)
     organization = entity_fields.OneToOneField('Organization', required=True)
 
@@ -1536,8 +1534,12 @@ class OperatingSystem(
     """
     architecture = entity_fields.OneToManyField('Architecture')
     description = entity_fields.StringField(null=True)
-    family = entity_fields.StringField(null=True, choices=OPERATING_SYSTEMS)
-    major = entity_fields.StringField(required=True, str_type='numeric', length=(1, 5))
+    family = entity_fields.StringField(choices=_OPERATING_SYSTEMS, null=True)
+    major = entity_fields.StringField(
+        length=(1, 5),
+        required=True,
+        str_type='numeric',
+    )
     media = entity_fields.OneToManyField('Media')
     minor = entity_fields.StringField(null=True, str_type='numeric', length=(1, 16))
     name = entity_fields.StringField(required=True)
@@ -2030,7 +2032,7 @@ class Product(
             auth=self._server_config.auth,
             data={
                 u'organization_id': org_id,
-                u'search': 'name={}'.format(escape_search(name)),
+                u'search': 'name={0}'.format(name),
             },
             verify=self._server_config.verify,
         )
@@ -2138,7 +2140,10 @@ class PartitionTable(
     """A representation of a Partition Table entity."""
     name = entity_fields.StringField(required=True)
     layout = entity_fields.StringField(required=True)
-    os_family = entity_fields.StringField(null=True, choices=OPERATING_SYSTEMS)
+    os_family = entity_fields.StringField(
+        choices=_OPERATING_SYSTEMS,
+        null=True,
+    )
 
     class Meta(object):
         """Non-field information about this entity."""
@@ -2232,7 +2237,7 @@ class Repository(
     name = entity_fields.StringField(required=True)
     product = entity_fields.OneToOneField('Product', required=True)
     unprotected = entity_fields.BooleanField()
-    url = entity_fields.URLField(required=True, default=FAKE_1_YUM_REPO)
+    url = entity_fields.URLField(default=_FAKE_YUM_REPO, required=True)
 
     def path(self, which=None):
         """Extend ``nailgun.entity_mixins.Entity.path``.
@@ -2298,13 +2303,13 @@ class Repository(
         and repositories get automatically populated upon the manifest import.
 
         :param str org_id: The org Id for which repository listing is required.
-        :param str name: The repository name who's Id has to be searched.
-        :return: Returns the repository Id.
+        :param str name: The repository name who's ID has to be searched.
+        :return: Returns the repository ID.
         :rtype: str
         :raises: ``APIResponseError`` If the API does not return any results.
 
         """
-        for _ in range(5 if bz_bug_is_open(1176708) else 1):
+        for _ in range(5):
             response = client.get(
                 self.path(which=None),
                 auth=self._server_config.auth,
@@ -2313,7 +2318,7 @@ class Repository(
             )
             response.raise_for_status()
             results = response.json()['results']
-            if len(results) == 0 and bz_bug_is_open(1176708):
+            if len(results) == 0:
                 sleep(5)
             else:
                 break
@@ -2648,6 +2653,8 @@ class System(
     def path(self, which=None):
         """Extend ``nailgun.entity_mixins.Entity.path``.
 
+        This method contains a workaround for `Bugzilla #1202917`_.
+
         Most entities are uniquely identified by an ID. ``System`` is a bit
         different: it has both an ID and a UUID, and the UUID is used to
         uniquely identify a ``System``.
@@ -2657,6 +2664,8 @@ class System(
 
         * ``which is None``, or
         * ``which == 'this'``.
+
+        .. _Bugzilla #1202917: https://bugzilla.redhat.com/show_bug.cgi?id=1202917
 
         """
         if 'uuid' in vars(self) and (which is None or which == 'self'):
@@ -2669,8 +2678,7 @@ class System(
     def read(self, entity=None, attrs=None, ignore=()):
         if attrs is None:
             attrs = self.read_json()
-        if bz_bug_is_open(1202917):
-            ignore = tuple(set(ignore).union(('facts', 'type')))
+        ignore = tuple(set(ignore).union(('facts', 'type')))  # BZ 1202917
         attrs['last_checkin'] = attrs.pop('checkin_time')
         attrs['host_collections'] = attrs.pop('hostCollections')
         attrs['installed_products'] = attrs.pop('installedProducts')
@@ -2729,21 +2737,18 @@ class UserGroup(
         return {u'usergroup': super(UserGroup, self).create_payload()}
 
     def read(self, entity=None, attrs=None, ignore=()):
-        """Work around a bug with reading the ``admin`` attribute.
+        """Work around `Redmine #9594`_.
 
         An HTTP GET request to ``path('self')`` does not return the ``admin``
-        attribute, even though it should. Work around this issue. See:
+        attribute, even though it should. Also see `Bugzilla #1197871`_.
 
-        * http://projects.theforeman.org/issues/9594
-        * https://bugzilla.redhat.com/show_bug.cgi?id=1197871
+        .. _http://projects.theforeman.org/issues/9594:
+        .. _https://bugzilla.redhat.com/show_bug.cgi?id=1197871:
 
         """
         if attrs is None:
             attrs = self.read_json()
-        if (
-                'admin' not in attrs and
-                'admin' not in ignore and
-                rm_bug_is_open(9594)):  # BZ is private
+        if 'admin' not in attrs and 'admin' not in ignore:
             response = client.put(
                 self.path('self'),
                 {},
