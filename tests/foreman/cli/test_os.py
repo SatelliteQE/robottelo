@@ -243,8 +243,7 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is not created
 
         """
-
-        with self.assertRaises(Exception):
+        with self.assertRaises(CLIFactoryError):
             make_os(test_data)
 
     @data(*POSITIVE_UPDATE_DATA)

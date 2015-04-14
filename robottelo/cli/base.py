@@ -9,6 +9,10 @@ from robottelo.common import conf, ssh
 from robottelo.common.helpers import info_dictionary
 
 
+class CLIError(Exception):
+    """Indicates that a CLI command could not be run."""
+
+
 class Base(object):
     """
     @param command_base: base command of hammer.
@@ -106,7 +110,7 @@ class Base(object):
             info_options = {u'id': obj_id}
             if cls.command_requires_org:
                 if 'organization-id' not in options:
-                    raise Exception(
+                    raise CLIError(
                         'organization-id option is required for {0}.create'
                         .format(cls.__name__)
                     )
@@ -237,7 +241,7 @@ class Base(object):
             options = {}
 
         if cls.command_requires_org and 'organization-id' not in options:
-            raise Exception(
+            raise CLIError(
                 'organization-id option is required for {0}.info'
                 .format(cls.__name__)
             )
@@ -265,7 +269,7 @@ class Base(object):
             options[u'per-page'] = 10000
 
         if cls.command_requires_org and 'organization-id' not in options:
-            raise Exception(
+            raise CLIError(
                 'organization-id option is required for {0}.list'
                 .format(cls.__name__)
             )

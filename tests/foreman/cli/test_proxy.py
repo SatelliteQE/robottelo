@@ -28,7 +28,7 @@ class TestProxy(CLITestCase):
         """
 
         # Create a random proxy
-        with self.assertRaises(Exception):
+        with self.assertRaises(CLIFactoryError):
             make_proxy({
                 u'url': u'http://{0}:{1}'.format(
                     gen_string('alpha', 6),

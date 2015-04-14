@@ -1,14 +1,12 @@
-
-from robottelo.ui.base import Base
+"""Utilities to manipulate hosts via UI."""
+from robottelo.ui.base import Base, UIError
 from robottelo.common.constants import RESOURCE_DEFAULT
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
 class Hosts(Base):
-    """
-    Provides the CRUD functionality for Host.
-    """
+    """Provides the CRUD functionality for Host."""
 
     def _configure_hosts(self, domain, subnet, puppet_ca=None,
                          puppet_master=None, host_group=None,
@@ -64,9 +62,7 @@ class Hosts(Base):
                env=None, ip_addr=None, mac=None, os=None, arch=None,
                media=None, ptable=None, custom_ptable=None, root_pwd=None,
                cpus="1", memory="768 MB"):
-        """
-        Creates a host.
-        """
+        """Creates a host."""
         self.wait_until_element(locators["host.new"]).click()
         if self.wait_until_element(locators["host.name"]):
             self.find_element(locators["host.name"]).send_keys(name)
@@ -79,9 +75,21 @@ class Hosts(Base):
         type_deploy = self.find_element(locators["host.deploy"])
         Select(type_deploy).select_by_visible_text(resource)
 
-        self._configure_hosts(domain, subnet, host_group, resource, env,
-                              ip_addr, mac, os, arch, media, ptable,
-                              custom_ptable, root_pwd)
+        self._configure_hosts(
+            domain,
+            subnet,
+            host_group,
+            resource,
+            env,
+            ip_addr,
+            mac,
+            os,
+            arch,
+            media,
+            ptable,
+            custom_ptable,
+            root_pwd
+        )
         if resource != RESOURCE_DEFAULT:
             self.wait_until_element(tab_locators["host.tab_vm"]).click()
             vm_cpu = self.find_element(locators["host.vm_cpus"])
@@ -94,9 +102,7 @@ class Hosts(Base):
                resource=None, env=None, ip_addr=None, mac=None, os=None,
                arch=None, media=None, ptable=None, custom_ptable=None,
                root_pwd=None):
-        """
-        Updates a Host.
-        """
+        """Updates a Host."""
         element = self.search(old_name)
         if element:
             element.click()
@@ -106,24 +112,34 @@ class Hosts(Base):
             edit.click()
             if self.wait_until_element(locators["host.name"]) and new_name:
                 self.field_update("host.name", new_name)
-            self._configure_hosts(domain, subnet, host_group, resource, env,
-                                  ip_addr, mac, os, arch, media, ptable,
-                                  custom_ptable, root_pwd)
+            self._configure_hosts(
+                domain,
+                subnet,
+                host_group,
+                resource,
+                env,
+                ip_addr,
+                mac,
+                os,
+                arch,
+                media,
+                ptable,
+                custom_ptable,
+                root_pwd
+            )
         else:
-            raise Exception("Could not update the host '%s'" % old_name)
+            raise UIError('Could not update the host "{0}"'.format(old_name))
 
     def search(self, name):
-        """
-        Searches existing host from UI
-        """
-        element = self.search_entity(name, locators["host.select_name"])
-        return element
+        """Searches existing host from UI."""
+        return self.search_entity(name, locators["host.select_name"])
 
     def delete(self, name, really):
-        """
-        Deletes a host.
-        """
-
-        self.delete_entity(name, really, locators["host.select_name"],
-                           locators['host.delete'],
-                           drop_locator=locators["host.dropdown"])
+        """Deletes a host."""
+        self.delete_entity(
+            name,
+            really,
+            locators["host.select_name"],
+            locators['host.delete'],
+            drop_locator=locators["host.dropdown"]
+        )

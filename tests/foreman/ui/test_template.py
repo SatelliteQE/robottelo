@@ -7,6 +7,7 @@ from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import get_data_file, generate_strings_list
 from robottelo.test import UITestCase
+from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_templates
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
@@ -107,12 +108,18 @@ class Template(UITestCase):
         temp_type = ""
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
-            with self.assertRaises(Exception) as context:
-                make_templates(session, name=name, template_path=template_path,
-                               custom_really=True, template_type=temp_type)
-            self.assertEqual(context.exception.message,
-                             "Could not create template '%s'"
-                             " without type" % name)
+            with self.assertRaises(UIError) as context:
+                make_templates(
+                    session,
+                    name=name,
+                    template_path=template_path,
+                    custom_really=True,
+                    template_type=temp_type
+                )
+                self.assertEqual(
+                    context.exception.message,
+                    'Could not create template "{0}" without type'.format(name)
+                )
 
     def test_negative_create_template_6(self):
         """@Test: Template - Create a new template without uploading a template
@@ -126,11 +133,18 @@ class Template(UITestCase):
         temp_type = 'PXELinux'
         template_path = ""
         with Session(self.browser) as session:
-            with self.assertRaises(Exception) as context:
-                make_templates(session, name=name, template_path=template_path,
-                               custom_really=True, template_type=temp_type)
-            self.assertEqual(context.exception.message,
-                             "Could not create blank template '%s'" % name)
+            with self.assertRaises(UIError) as context:
+                make_templates(
+                    session,
+                    name=name,
+                    template_path=template_path,
+                    custom_really=True,
+                    template_type=temp_type
+                )
+                self.assertEqual(
+                    context.exception.message,
+                    'Could not create blank template "{0}"'.format(name)
+                )
 
     def test_negative_create_template_7(self):
         """@Test: Create a new template with 256 characters in audit comments

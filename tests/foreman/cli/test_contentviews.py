@@ -633,7 +633,7 @@ class TestContentView(CLITestCase):
         with self.assertRaises(CLIFactoryError):
             result = make_content_view({
                 u'organization-id': self.org['id'],
-                u'component-ids': cv_version.stdout[0]['id']
+                u'component-ids': cv_version.stdout[0]['id'],
             })
 
     def test_cv_associate_composite_dupe_repos_negative(self):

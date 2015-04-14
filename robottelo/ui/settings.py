@@ -60,7 +60,8 @@ class Settings(Base):
                 self.wait_for_ajax()
             else:
                 raise UINoSuchElementError(
-                    "Couldn't find edit button to update selected param")
+                    'Could not find edit button to update selected param'
+                )
         else:
             raise UINoSuchElementError(
                 "Couldn't find the tab with name: '%s'" % tab_locator)

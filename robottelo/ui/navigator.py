@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
-"""
-Implements Navigator UI
-"""
-
-from robottelo.ui.base import Base, UINoSuchElementError
+"""Implements Navigator UI."""
+from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import menu_locators
 from selenium.webdriver.common.action_chains import ActionChains
 
@@ -355,8 +352,9 @@ class Navigator(Base):
         if org == org_text:
             return org
         else:
-            raise Exception(
-                u'Could not select the organization: {0}'.format(org))
+            raise UIError(
+                u'Could not select the organization: {0}'.format(org)
+            )
 
     def go_to_select_loc(self, loc):
         """Selects the specified location.
@@ -379,5 +377,6 @@ class Navigator(Base):
         if loc == loc_text:
             return loc
         else:
-            raise Exception(
-                u'Could not select the location: {0}'.format(loc))
+            raise UIError(
+                u'Could not select the location: {0}'.format(loc)
+            )

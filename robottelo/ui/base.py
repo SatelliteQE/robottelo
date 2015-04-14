@@ -12,10 +12,15 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.ui import WebDriverWait
 
 
-class UINoSuchElementError(Exception):
-    """
-    Indicates that UI Element is not found.
-    """
+LOGGER = logging.getLogger(__name__)
+
+
+class UIError(Exception):
+    """Indicates that a UI action could not be done."""
+
+
+class UINoSuchElementError(UIError):
+    """Indicates that UI Element is not found."""
 
 
 class UIPageSubmitionFailed(Exception):
@@ -27,7 +32,7 @@ class Base(object):
     Base class for UI
     """
 
-    logger = logging.getLogger("robottelo")
+    logger = LOGGER
 
     def __init__(self, browser):
         """
@@ -36,9 +41,9 @@ class Base(object):
         self.browser = browser
 
     def find_element(self, locator):
-        """
-        Wrapper around Selenium's WebDriver that allows you to search for an
+        """Wrapper around Selenium's WebDriver that allows you to search for an
         element in the web page.
+
         """
         try:
             _webelement = self.browser.find_element(*locator)
@@ -47,41 +52,45 @@ class Base(object):
                 return _webelement
             else:
                 return None
-        except NoSuchElementException as e:
-            logging.debug("%s: Could not locate element %s.",
-                          type(e).__name__,
-                          locator[1])
-            return None
-        except Exception, error:
-            logging.debug("Failed to locate element. ERROR: %s", str(error))
-            return None
+        except NoSuchElementException as err:
+            self.logger.debug(
+                '%s: Could not locate element %s.',
+                type(err).__name__,
+                locator[1]
+            )
+        except TimeoutException as err:
+            self.logger.debug(
+                'Timeout while waiting for locator "%s": "%s"',
+                locator[0],
+                locator[1]
+            )
+        return None
 
     def search_entity(self, element_name, element_locator, search_key=None,
                       katello=None, timeout=None):
-        """
-        Uses the search box to locate an element from a list of elements.
-        """
+        """Uses the search box to locate an element from a list of elements."""
 
         search_key = search_key or "name"
         element = None
 
         if katello:
             searchbox = self.wait_until_element(common_locators["kt_search"])
-            search_button = self.wait_until_element(common_locators
-                                                    ["kt_search_button"])
+            search_button = self.wait_until_element(
+                common_locators["kt_search_button"])
         else:
             searchbox = self.wait_until_element(common_locators["search"])
-            search_button = self.wait_until_element(common_locators
-                                                    ["search_button"])
+            search_button = self.wait_until_element(
+                common_locators["search_button"])
 
         # Do not proceed if searchbox is not found
         if searchbox is None:
-            raise Exception("Search box not found.")
+            raise UINoSuchElementError('Search box not found.')
         else:
             searchbox.clear()
             if search_button:
-                searchbox.send_keys(search_key + " = " +
-                                    escape_search(element_name))
+                searchbox.send_keys(
+                    '{0} = {1}'.format(search_key, escape_search(element_name))
+                )
                 search_button.click()
             else:
                 searchbox.send_keys(escape_search(element_name))
@@ -164,11 +173,9 @@ class Base(object):
 
     def delete_entity(self, name, really, name_locator, del_locator,
                       drop_locator=None, search_key=None):
-        """
-        Delete an added entity, handles both with and without dropdown.
-        """
-        searched = self.search_entity(name, name_locator,
-                                      search_key=search_key)
+        """Delete an added entity, handles both with and without dropdown."""
+        searched = self.search_entity(
+            name, name_locator, search_key=search_key)
         if searched:
             if drop_locator:
                 strategy = drop_locator[0]
@@ -180,16 +187,18 @@ class Base(object):
             element = self.wait_until_element((strategy1, value1 % name))
             if element is None:
                 raise UINoSuchElementError(
-                    "Could not select the entity '%s' for deletion." % name)
+                    'Could not select the entity "{0}" for deletion.'
+                    .format(name)
+                )
             element.click()
             self.handle_alert(really)
         else:
-            raise Exception("Could not search the entity '%s'" % name)
+            raise UIError('Could not search the entity "{0}"'.format(name))
 
     def wait_until_element(self, locator, timeout=12, poll_frequency=0.5):
-        """
-        Wrapper around Selenium's WebDriver that allows you to pause your test
+        """Wrapper around Selenium's WebDriver that allows you to pause your test
         until an element in the web page is present.
+
         """
         try:
             element = WebDriverWait(
@@ -197,13 +206,12 @@ class Base(object):
             ).until(expected_conditions.visibility_of_element_located(locator))
             self.wait_for_ajax(poll_frequency=poll_frequency)
             return element
-        except TimeoutException as e:
-            logging.debug("%s: Timed out waiting for element '%s' to display.",
-                          type(e).__name__, locator[1])
-            return None
-        except Exception, error:
-            logging.debug("Failed to locate element. ERROR: %s",
-                          type(error).__name__)
+        except TimeoutException as err:
+            self.logger.debug(
+                "%s: Timed out waiting for element '%s' to display.",
+                type(err).__name__,
+                locator[1]
+            )
             return None
 
     def ajax_complete(self, driver):

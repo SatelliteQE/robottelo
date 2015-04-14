@@ -4,7 +4,7 @@
 from datetime import datetime, timedelta
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo.cli.factory import make_org, make_sync_plan
+from robottelo.cli.factory import CLIFactoryError, make_org, make_sync_plan
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.common.decorators import data
 from robottelo.test import CLITestCase
@@ -200,8 +200,7 @@ class TestSyncPlan(CLITestCase):
         @Assert: Sync plan is created and has random name
 
         """
-
-        with self.assertRaises(Exception):
+        with self.assertRaises(CLIFactoryError):
             self._make_sync_plan({u'name': test_data['name']})
 
     @data(

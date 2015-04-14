@@ -1,7 +1,5 @@
 # -*- encoding: utf-8 -*-
-"""
-Several helper methods and functions.
-"""
+"""Several helper methods and functions."""
 
 import logging
 import os
@@ -15,11 +13,14 @@ from nailgun import entity_mixins
 from nailgun.config import ServerConfig
 from robottelo.common import conf
 from robottelo.common.decorators import bz_bug_is_open
-from urllib2 import urlopen, Request, URLError
 from urlparse import urlunsplit
 
 
 LOGGER = logging.getLogger(__name__)
+
+
+class DataFileError(Exception):
+    """Indicates any issue when reading a data file."""
 
 
 def get_server_credentials():
@@ -340,45 +341,16 @@ def info_dictionary(result):
     return result
 
 
-def download_template(url):
-    """
-    Function to download the template from given URL
-    """
-    filename = '/tmp/custom_template'
-    if url[0:7] == 'http://' or url[0:8] == 'https://':
-        req = Request(url)
-        try:
-            response = urlopen(req)
-        except URLError, err:
-            if hasattr(err, 'reason'):
-                raise Exception(
-                    "Invalid URL, Reason:", err.reason)
-            elif hasattr(err, 'code'):
-                raise Exception(
-                    "The server couldn\'t fulfill the request", err.code)
-        else:
-            temp_file = open(filename, 'wb')
-            temp_file.write(response.read())
-            temp_file.close()
-            return filename
-    else:
-        raise Exception(
-            "Invalid URL '%s'" % url)
-
-
 def get_data_file(filename):
-    """
-    Returns correct path of file from data folder
-    """
-
-    path = os.path.realpath(os.path.join(os.path.dirname(__file__),
-                                         os.pardir, os.pardir))
+    """Returns correct path of file from data folder."""
+    path = os.path.realpath(
+        os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
     data_file = os.path.join(path, "tests", "foreman", "data", filename)
     if os.path.isfile(data_file):
         return data_file
     else:
-        raise Exception(
-            "Couldn't locate the data file '%s'" % data_file)
+        raise DataFileError(
+            'Could not locate the data file "{0}"'.format(data_file))
 
 
 def read_data_file(filename):

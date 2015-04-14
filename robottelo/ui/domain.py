@@ -1,8 +1,6 @@
 # -*- encoding: utf-8 -*-
-"""
-Implements Domain UI
-"""
-from robottelo.ui.base import Base
+"""Implements Domain UI"""
+from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
@@ -26,18 +24,16 @@ class Domain(Base):
         self.wait_for_ajax()
 
     def create(self, name, description=None, dns_proxy=None):
-        """
-        Creates new domain with name, description and dns_proxy
-        """
-
+        """Creates new domain with name, description and dns_proxy."""
         self.wait_until_element(locators["domain.new"]).click()
 
         if self.wait_until_element(locators["domain.name"]):
             self.find_element(locators["domain.name"]).send_keys(name)
             self._configure_domain(description, dns_proxy)
         else:
-            raise Exception(
-                "Could not create new domain '%s'" % name)
+            raise UIError(
+                'Could not create new domain "{0}"'.format(name)
+            )
 
     def search(self, description, timeout=None):
         """
@@ -63,11 +59,9 @@ class Domain(Base):
                            locators['domain.domain_description'],
                            locators['domain.delete'])
 
-    def update(self, old_description, new_name=None,
-               description=None, dns_proxy=None):
-        """
-        Update an existing domain's name, description and dns_proxy
-        """
+    def update(self, old_description, new_name=None, description=None,
+               dns_proxy=None):
+        """Update an existing domain's name, description and dns_proxy."""
         element = self.search(old_description)
 
         if element:
@@ -76,34 +70,31 @@ class Domain(Base):
                 self.field_update("domain.name", new_name)
             self._configure_domain(description, dns_proxy)
         else:
-            raise Exception(
-                "Could not update the domain '%s'" % old_description)
+            raise UIError(
+                'Could not update the domain "{0}"'.format(old_description)
+            )
 
-    def set_domain_parameter(self, domain_description,
-                             param_name, param_value):
-        """
-        Add new parameter for domain
-        """
-
+    def set_domain_parameter(self, domain_description, param_name,
+                             param_value):
+        """Add new parameter for domain."""
         element = self.search(domain_description)
 
         if element:
             element.click()
             self.set_parameter(param_name, param_value)
         else:
-            raise Exception(
-                "Could not set parameter '%s'" % param_name)
+            raise UIError(
+                'Could not set parameter "{0}"'.format(param_name)
+            )
 
     def remove_domain_parameter(self, domain_description, param_name):
-        """
-        Remove new parameter from domain
-        """
-
+        """Remove new parameter from domain."""
         element = self.search(domain_description)
 
         if element:
             element.click()
             self.remove_parameter(param_name)
         else:
-            raise Exception(
-                "Could not remove parameter '%s'" % param_name)
+            raise UIError(
+                'Could not remove parameter "{0}"'.format(param_name)
+            )

@@ -1,26 +1,19 @@
-"""
-Implements Sync Plans for UI
-"""
-
-from robottelo.ui.base import Base
+"""Implements Sync Plans for UI."""
+from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
 class Syncplan(Base):
-    """
-    Manipulates Sync Plans from UI
-    """
+    """Manipulates Sync Plans from UI."""
 
     def add_remove_products(self, products=None, tab_locator=None,
                             select_locator=None):
-        """
-        Add and Remove product association to Sync plans
-        """
+        """Add and Remove product association to Sync plans."""
         strategy = locators["sp.prd_select"][0]
         value = locators["sp.prd_select"][1]
-        self.wait_until_element(tab_locators["sp.tab_products"]).\
-            click()
+        self.wait_until_element(
+            tab_locators["sp.tab_products"]).click()
         self.wait_for_ajax()
         self.wait_until_element(tab_locator).click()
         self.wait_for_ajax()
@@ -32,9 +25,7 @@ class Syncplan(Base):
     def create(self, name, description=None, startdate=None,
                sync_interval=None, start_hour=None,
                start_minute=None, submit_validate=True):
-        """
-        Creates new Sync Plans from UI
-        """
+        """Creates new Sync Plans from UI."""
         self.wait_until_element(locators["sp.new"]).click()
         self.wait_for_ajax()
         self.text_field_update(common_locators["name"], name)
@@ -50,17 +41,15 @@ class Syncplan(Base):
         if startdate:
             self.text_field_update(locators["sp.start_date"], startdate)
             self.wait_for_ajax()
-        self.submit_and_validate(common_locators["create"],
-                                 validation=submit_validate)
+        self.submit_and_validate(
+            common_locators["create"], validation=submit_validate)
 
     def update(self, name, new_name=None, new_desc=None,
                new_sync_interval=None, add_products=None,
                rm_products=None):
-        """
-        Updates Sync Plans from UI
-        """
-        sp_element = self.search_entity(name, locators["sp.select"],
-                                        katello=True, timeout=20)
+        """Updates Sync Plans from UI."""
+        sp_element = self.search_entity(
+            name, locators["sp.select"], katello=True, timeout=20)
         if sp_element:
             sp_element.click()
             self.wait_for_ajax()
@@ -76,8 +65,8 @@ class Syncplan(Base):
                 self.text_field_update(locators["sp.desc_update"], new_name)
                 self.find_element(common_locators["save"]).click()
             if new_sync_interval:
-                self.wait_until_element(locators["sp.sync_interval_edit"]).\
-                    click()
+                self.wait_until_element(
+                    locators["sp.sync_interval_edit"]).click()
                 interval_update_loc = locators["sp.sync_interval_update"]
                 type_ele = self.wait_until_element(interval_update_loc)
                 Select(type_ele).select_by_visible_text(new_sync_interval)
@@ -86,23 +75,26 @@ class Syncplan(Base):
             if add_products:
                 tab_loc = tab_locators["sp.add_prd"]
                 select_loc = locators["sp.add_selected"]
-                self.add_remove_products(products=add_products,
-                                         tab_locator=tab_loc,
-                                         select_locator=select_loc)
+                self.add_remove_products(
+                    products=add_products,
+                    tab_locator=tab_loc,
+                    select_locator=select_loc
+                )
             if rm_products:
                 tab_loc = tab_locators["sp.list_prd"]
                 select_loc = locators["sp.remove_selected"]
-                self.add_remove_products(products=rm_products,
-                                         tab_locator=tab_loc,
-                                         select_locator=select_loc)
+                self.add_remove_products(
+                    products=rm_products,
+                    tab_locator=tab_loc,
+                    select_locator=select_loc
+                )
         else:
-            raise Exception(
-                "Unable to find the sync_plan '%s' for update." % name)
+            raise UIError(
+                'Unable to find the sync_plan "{0}" for update.'.format(name)
+            )
 
     def delete(self, sync_plan, really=True):
-        """
-        Deletes a sync_plan from UI
-        """
+        """Deletes a sync_plan from UI."""
         strategy = locators["sp.select"][0]
         value = locators["sp.select"][1]
         self.wait_until_element((strategy, value % sync_plan)).click()
@@ -115,9 +107,7 @@ class Syncplan(Base):
             self.wait_until_element(common_locators["cancel"]).click()
 
     def search(self, name):
-        """
-        Searches existing sync_plan from UI
-        """
-        element = self.search_entity(name, locators["sp.select"],
-                                     katello=True)
+        """Searches existing sync_plan from UI."""
+        element = self.search_entity(
+            name, locators["sp.select"], katello=True)
         return element

@@ -150,8 +150,7 @@ class TestHostCollection(CLITestCase):
         @Assert: Host collection is created and has random name
 
         """
-
-        with self.assertRaises(Exception):
+        with self.assertRaises(CLIFactoryError):
             self._new_host_collection({'name': test_data['name']})
 
     @data(
