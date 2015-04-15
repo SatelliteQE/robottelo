@@ -340,7 +340,7 @@ class TestOrg(CLITestCase):
 
         # Create new org with the same name as before
         # should yield an exception
-        with self.assertRaises(Exception):
+        with self.assertRaises(CLIFactoryError):
             make_org({'name': org['name']})
 
     # This Bugzilla bug is private. It is impossible to fetch info about it.

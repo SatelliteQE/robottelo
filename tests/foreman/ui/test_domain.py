@@ -5,6 +5,7 @@ from fauxfactory import gen_string
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
+from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_domain
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
@@ -152,10 +153,10 @@ class Domain(UITestCase):
             element = self.domain.search(description)
             self.assertIsNotNone(element)
             try:
-                self.domain.set_domain_parameter(description, param_name,
-                                                 param_value)
-            except Exception as e:
-                self.fail(e)
+                self.domain.set_domain_parameter(
+                    description, param_name, param_value)
+            except UIError as err:
+                self.fail(err)
 
     def test_positive_set_domain_parameter_2(self):
         """@Test: Set a parameter in a domain with 255 chars in name and value.
@@ -174,10 +175,10 @@ class Domain(UITestCase):
             element = self.domain.search(description)
             self.assertIsNotNone(element)
             try:
-                self.domain.set_domain_parameter(description, param_name,
-                                                 param_value)
-            except Exception as e:
-                self.fail(e)
+                self.domain.set_domain_parameter(
+                    description, param_name, param_value)
+            except UIError as err:
+                self.fail(err)
 
     def test_positive_set_domain_parameter_3(self):
         """@Test: Set a parameter in a domain with blank value.
@@ -196,10 +197,10 @@ class Domain(UITestCase):
             element = self.domain.search(description)
             self.assertIsNotNone(element)
             try:
-                self.domain.set_domain_parameter(description, param_name,
-                                                 param_value)
-            except Exception as e:
-                self.fail(e)
+                self.domain.set_domain_parameter(
+                    description, param_name, param_value)
+            except UIError as err:
+                self.fail(err)
 
     def test_set_domain_parameter_negative_1(self):
         """@Test: Set a parameter in a domain with 256 chars in name and value.
@@ -218,10 +219,10 @@ class Domain(UITestCase):
             element = self.domain.search(description)
             self.assertIsNotNone(element)
             try:
-                self.domain.set_domain_parameter(description, param_name,
-                                                 param_value)
-            except Exception as e:
-                self.fail(e)
+                self.domain.set_domain_parameter(
+                    description, param_name, param_value)
+            except UIError as err:
+                self.fail(err)
             self.assertIsNotNone(session.nav.wait_until_element(
                 common_locators["common_param_error"]))
 
@@ -245,12 +246,12 @@ class Domain(UITestCase):
             element = self.domain.search(description)
             self.assertIsNotNone(element)
             try:
-                self.domain.set_domain_parameter(description, param_name,
-                                                 param_value)
-                self.domain.set_domain_parameter(description, param_name,
-                                                 param_value)
-            except Exception as e:
-                self.fail(e)
+                self.domain.set_domain_parameter(
+                    description, param_name, param_value)
+                self.domain.set_domain_parameter(
+                    description, param_name, param_value)
+            except UIError as err:
+                self.fail(err)
             self.assertIsNotNone(session.nav.wait_until_element(
                 common_locators["common_param_error"]))
 
@@ -271,8 +272,8 @@ class Domain(UITestCase):
             element = self.domain.search(description)
             self.assertIsNotNone(element)
             try:
-                self.domain.set_domain_parameter(description, param_name,
-                                                 param_value)
+                self.domain.set_domain_parameter(
+                    description, param_name, param_value)
                 self.domain.remove_domain_parameter(description, param_name)
-            except Exception as e:
-                self.fail(e)
+            except UIError as err:
+                self.fail(err)

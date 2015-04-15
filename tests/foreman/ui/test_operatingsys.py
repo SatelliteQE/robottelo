@@ -10,6 +10,7 @@ from robottelo.common.decorators import data
 from robottelo.common.decorators import run_only_on, skip_if_bug_open
 from robottelo.common.helpers import get_data_file
 from robottelo.test import UITestCase
+from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_os
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
@@ -413,16 +414,15 @@ class OperatingSys(UITestCase):
         @Assert: OS is updated
 
         """
-
         param_name = gen_string("alpha", 4)
         param_value = gen_string("alpha", 3)
         os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser):
             try:
-                self.operatingsys.set_os_parameter(os_name, param_name,
-                                                   param_value)
-            except Exception as e:
-                self.fail(e)
+                self.operatingsys.set_os_parameter(
+                    os_name, param_name, param_value)
+            except UIError as err:
+                self.fail(err)
 
     def test_positive_set_os_parameter_2(self):
         """@Test: Set OS parameter with blank value
@@ -432,16 +432,15 @@ class OperatingSys(UITestCase):
         @Assert: Parameter is created with blank value
 
         """
-
         param_name = gen_string("alpha", 4)
         param_value = ""
         os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser):
             try:
-                self.operatingsys.set_os_parameter(os_name, param_name,
-                                                   param_value)
-            except Exception as e:
-                self.fail(e)
+                self.operatingsys.set_os_parameter(
+                    os_name, param_name, param_value)
+            except UIError as err:
+                self.fail(err)
 
     def test_remove_os_parameter(self):
         """@Test: Remove selected OS parameter
@@ -451,17 +450,16 @@ class OperatingSys(UITestCase):
         @Assert: OS is updated
 
         """
-
         param_name = gen_string("alpha", 4)
         param_value = gen_string("alpha", 3)
         os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser):
             try:
-                self.operatingsys.set_os_parameter(os_name, param_name,
-                                                   param_value)
+                self.operatingsys.set_os_parameter(
+                    os_name, param_name, param_value)
                 self.operatingsys.remove_os_parameter(os_name, param_name)
-            except Exception as e:
-                self.fail(e)
+            except UIError as err:
+                self.fail(err)
 
     def test_negative_set_os_parameter_1(self):
         """@Test: Set same OS parameter again as it was set earlier
@@ -473,20 +471,20 @@ class OperatingSys(UITestCase):
         @BZ: 1120663
 
         """
-
         param_name = gen_string("alpha", 4)
         param_value = gen_string("alpha", 3)
         os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser):
             try:
-                self.operatingsys.set_os_parameter(os_name, param_name,
-                                                   param_value)
-                self.operatingsys.set_os_parameter(os_name, param_name,
-                                                   param_value)
-            except Exception as e:
-                self.fail(e)
-            self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators["common_param_error"]))
+                self.operatingsys.set_os_parameter(
+                    os_name, param_name, param_value)
+                self.operatingsys.set_os_parameter(
+                    os_name, param_name, param_value)
+            except UIError as err:
+                self.fail(err)
+            self.assertIsNotNone(self.operatingsys.wait_until_element(
+                common_locators["common_param_error"]
+            ))
 
     def test_negative_set_os_parameter_2(self):
         """@Test: Set OS parameter with blank name and value
@@ -498,18 +496,18 @@ class OperatingSys(UITestCase):
         @BZ: 1120663
 
         """
-
         param_name = " "
         param_value = " "
         os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser):
             try:
-                self.operatingsys.set_os_parameter(os_name, param_name,
-                                                   param_value)
-            except Exception as e:
-                self.fail(e)
-            self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators["common_param_error"]))
+                self.operatingsys.set_os_parameter(
+                    os_name, param_name, param_value)
+            except UIError as err:
+                self.fail(err)
+            self.assertIsNotNone(self.operatingsys.wait_until_element(
+                common_locators["common_param_error"]
+            ))
 
     def test_negative_set_os_parameter_3(self):
         """@Test: Set OS parameter with name and value exceeding 255 characters
@@ -519,15 +517,15 @@ class OperatingSys(UITestCase):
         @Assert: Proper error should be raised, Name should contain a value
 
         """
-
         param_name = gen_string("alpha", 256)
         param_value = gen_string("alpha", 256)
         os_name = entities.OperatingSystem().create_json()['name']
         with Session(self.browser):
             try:
-                self.operatingsys.set_os_parameter(os_name, param_name,
-                                                   param_value)
-            except Exception as e:
-                self.fail(e)
-            self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators["common_param_error"]))
+                self.operatingsys.set_os_parameter(
+                    os_name, param_name, param_value)
+            except UIError as err:
+                self.fail(err)
+            self.assertIsNotNone(self.operatingsys.wait_until_element(
+                common_locators["common_param_error"]
+            ))

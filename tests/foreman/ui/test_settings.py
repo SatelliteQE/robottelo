@@ -5,6 +5,7 @@ from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import UITestCase
+from robottelo.ui.base import UIError
 from robottelo.ui.factory import edit_param
 from robottelo.ui.locators import tab_locators, common_locators
 from robottelo.ui.session import Session
@@ -533,15 +534,18 @@ class Settings(UITestCase):
         @Assert: Parameter is not editable
 
         """
-
         tab_locator = tab_locators["settings.tab_auth"]
         with Session(self.browser) as session:
-            with self.assertRaises(Exception) as context:
-                edit_param(session, tab_locator=tab_locator,
-                           param_name=test_data['param_name'])
-            self.assertEqual(context.exception.message,
-                             "Couldn't find edit button to update "
-                             "selected param")
+            with self.assertRaises(UIError) as context:
+                edit_param(
+                    session,
+                    tab_locator=tab_locator,
+                    param_name=test_data['param_name']
+                )
+                self.assertEqual(
+                    context.exception.message,
+                    'Could not find edit button to update selected param'
+                )
 
     @data({u'param_value': "true"},
           {u'param_value': "false"})

@@ -288,8 +288,7 @@ class TestContentHost(CLITestCase):
         @Assert: Content host is not created
 
         """
-
-        with self.assertRaises(Exception):
+        with self.assertRaises(CLIFactoryError):
             make_content_host({
                 u'name': test_data['name'],
                 u'organization-id': self.NEW_ORG['id'],
@@ -306,17 +305,17 @@ class TestContentHost(CLITestCase):
         @Assert: Content host is not created using new unpublished cv
 
         """
-
         con_view = make_content_view(
             {u'organization-id': TestContentHost.NEW_ORG['id']}
         )
-        with self.assertRaises(Exception):
+        with self.assertRaises(CLIFactoryError):
             env = TestContentHost.NEW_LIFECYCLE['id']
             make_content_host({
                 u'name': gen_string('alpha', 15),
                 u'organization-id': TestContentHost.NEW_ORG['id'],
                 u'content-view-id': con_view['id'],
-                u'lifecycle-environment-id': env})
+                u'lifecycle-environment-id': env,
+            })
 
     @data(
         {u'name': gen_string('alpha', 15)},

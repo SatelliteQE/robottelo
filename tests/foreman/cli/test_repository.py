@@ -363,8 +363,7 @@ class TestRepository(CLITestCase):
         @Assert: Repository cannot be created
 
         """
-
-        with self.assertRaises(Exception):
+        with self.assertRaises(CLIFactoryError):
             self._make_repository({u'name': name})
 
     @run_only_on('sat')

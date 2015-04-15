@@ -1,9 +1,6 @@
 # -*- encoding: utf-8 -*-
-"""
-Implements Template UI
-"""
-
-from robottelo.ui.base import Base, UINoSuchElementError
+"""Implements Template UI."""
+from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
@@ -20,12 +17,14 @@ class Template(Base):
         self.wait_until_element(locators["provision.template_new"]).click()
         if not self.wait_until_element(locators["provision.template_name"]):
             raise UINoSuchElementError(
-                "Could not create new provisioning template '{0}'"
-                .format(name))
+                'Could not create new provisioning template "{0}"'
+                .format(name)
+            )
         self.find_element(locators["provision.template_name"]).send_keys(name)
         if not template_path:
-            raise Exception(
-                "Could not create blank template '{0}'".format(name))
+            raise UIError(
+                'Could not create blank template "{0}"'.format(name)
+            )
         self.wait_until_element(tab_locators["tab_primary"]).click()
         self.find_element(
             locators["provision.template_template"]
@@ -45,9 +44,9 @@ class Template(Base):
             self.wait_until_element(tab_locators["provision.tab_type"]).click()
             self.find_element(locators["provision.template_snippet"]).click()
         else:
-            raise Exception(
-                "Could not create template '{0}' without type"
-                .format(name))
+            raise UIError(
+                'Could not create template "{0}" without type'.format(name)
+            )
         self.scroll_page()
         self.configure_entity(
             os_list,
@@ -57,12 +56,12 @@ class Template(Base):
         self.wait_for_ajax()
 
     def search(self, name):
-        """Searches existing template from UI"""
+        """Searches existing template from UI."""
         self.scroll_page()
         nav = Navigator(self.browser)
         nav.go_to_provisioning_templates()
-        element = self.search_entity(name,
-                                     locators["provision.template_select"])
+        element = self.search_entity(
+            name, locators["provision.template_select"])
         return element
 
     def update(self, name, custom_really=None, new_name=None,
@@ -71,9 +70,9 @@ class Template(Base):
         """Updates a given template."""
         element = self.search(name)
         if not element:
-            raise Exception(
-                "Could not update the template '{0}'"
-                .format(name))
+            raise UIError(
+                'Could not update the template "{0}"'.format(name)
+            )
         element.click()
         self.wait_for_ajax()
         if new_name:
@@ -109,8 +108,9 @@ class Template(Base):
         clone = self.wait_until_element(locators["provision.template_clone"])
         if not clone:
             raise UINoSuchElementError(
-                "Could not locate the clone button for template '{0}'"
-                .format(name))
+                'Could not locate the clone button for template "{0}"'
+                .format(name)
+            )
         clone.click()
         self.field_update("provision.template_name", clone_name)
         if template_path:
@@ -136,6 +136,10 @@ class Template(Base):
     def delete(self, name, really):
         """Deletes a template."""
         Navigator(self.browser).go_to_provisioning_templates()
-        self.delete_entity(name, really, locators["provision.template_select"],
-                           locators["provision.template_delete"],
-                           locators["provision.template_dropdown"])
+        self.delete_entity(
+            name,
+            really,
+            locators["provision.template_select"],
+            locators["provision.template_delete"],
+            locators["provision.template_dropdown"]
+        )

@@ -16,6 +16,7 @@ from robottelo.common.constants import (
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import invalid_names_list, valid_names_list
+from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
@@ -605,20 +606,24 @@ class TestContentViewsUI(UITestCase):
         that contains direct puppet repos.
 
         """
-
         composite_name = gen_string("alpha", 8)
         puppet_module = "httpd"
         module_ver = 'Latest'
         with Session(self.browser) as session:
-            make_contentview(session, org=self.org_name,
-                             name=composite_name, is_composite=True)
+            make_contentview(
+                session,
+                org=self.org_name,
+                name=composite_name,
+                is_composite=True
+            )
             self.assertIsNotNone(self.content_views.search(composite_name))
-            with self.assertRaises(Exception) as context:
-                self.content_views.add_puppet_module(composite_name,
-                                                     puppet_module,
-                                                     filter_term=module_ver)
-            self.assertEqual(context.exception.message,
-                             'Could not find tab to add puppet_modules')
+            with self.assertRaises(UIError) as context:
+                self.content_views.add_puppet_module(
+                    composite_name, puppet_module, filter_term=module_ver)
+                self.assertEqual(
+                    context.exception.message,
+                    'Could not find tab to add puppet_modules'
+                )
 
     def test_cv_associate_components_composite_negative(self):
         """@test: attempt to associate components to a non-composite
@@ -629,21 +634,22 @@ class TestContentViewsUI(UITestCase):
         @assert: User cannot add components to the view
 
         """
-
         cv1_name = gen_string("alpha", 8)
         cv2_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
-            make_contentview(session, org=self.org_name,
-                             name=cv1_name)
+            make_contentview(
+                session, org=self.org_name, name=cv1_name)
             self.assertIsNotNone(self.content_views.search(cv1_name))
-            make_contentview(session, org=self.org_name,
-                             name=cv2_name)
+            make_contentview(
+                session, org=self.org_name, name=cv2_name)
             self.assertIsNotNone(self.content_views.search(cv2_name))
-            with self.assertRaises(Exception) as context:
+            with self.assertRaises(UIError) as context:
                 self.content_views.add_remove_cv(cv1_name, [cv2_name])
-            self.assertEqual(context.exception.message,
-                             'Could not find ContentView tab, Please '
-                             'make sure selected view is composite')
+                self.assertEqual(
+                    context.exception.message,
+                    'Could not find ContentView tab, please make sure '
+                    'selected view is composite'
+                )
 
     def test_cv_associate_composite_dupe_repos_negative(self):
         """@test: attempt to associate the same repo multiple times within a
@@ -654,7 +660,6 @@ class TestContentViewsUI(UITestCase):
         @assert: User cannot add repos multiple times to the view
 
         """
-
         cv_name = gen_string("alpha", 8)
         repo_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
@@ -663,13 +668,15 @@ class TestContentViewsUI(UITestCase):
             make_contentview(session, org=self.org_name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
-            with self.assertRaises(Exception) as context:
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators["alert.success"]))
+            with self.assertRaises(UIError) as context:
                 self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertEqual(context.exception.message,
-                             "Couldn't find repo '%s'"
-                             "to add into CV" % repo_name)
+                self.assertEqual(
+                    context.exception.message,
+                    'Could not find repo "{0}" to add into CV'
+                    .format(repo_name)
+                )
 
     @stubbed()
     def test_cv_associate_composite_dupe_modules_negative(self):

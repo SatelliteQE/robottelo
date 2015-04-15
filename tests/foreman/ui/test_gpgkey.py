@@ -17,6 +17,7 @@ from robottelo.common.helpers import (
     get_data_file, read_data_file, valid_names_list, invalid_names_list,
     generate_strings_list)
 from robottelo.test import UITestCase
+from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_gpgkey
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
@@ -127,9 +128,9 @@ class GPGKey(UITestCase):
 
         """
         with Session(self.browser) as session:
-            with self.assertRaises(Exception):
-                make_gpgkey(session, org=self.org_name,
-                            name=name)
+            with self.assertRaises(UIError):
+                make_gpgkey(
+                    session, org=self.org_name, name=name)
             self.assertIsNone(self.gpgkey.search(name))
 
     @data(*invalid_names_list())

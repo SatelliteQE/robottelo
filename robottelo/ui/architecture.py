@@ -3,7 +3,7 @@
 Implements Architecture UI
 """
 
-from robottelo.ui.base import Base
+from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.navigator import Navigator
 from robottelo.common.constants import FILTER
@@ -27,8 +27,9 @@ class Architecture(Base):
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
-            raise Exception(
-                "Could not create new architecture '%s'" % name)
+            raise UIError(
+                'Could not create new architecture "{0}"'.format(name)
+            )
 
     def search(self, name):
         """
@@ -62,5 +63,6 @@ class Architecture(Base):
                 self.find_element(common_locators["submit"]).click()
                 self.wait_for_ajax()
         else:
-            raise Exception(
-                "Could not update the architecture '%s'" % old_name)
+            raise UIError(
+                'Could not update the architecture "{0}"'.format(old_name)
+            )

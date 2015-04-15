@@ -1,10 +1,8 @@
 # -*- encoding: utf-8 -*-
-"""
-Implements Activation keys UI
-"""
+"""Implements Activation keys UI."""
 
 from robottelo.common.helpers import escape_search
-from robottelo.ui.base import Base, UINoSuchElementError
+from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select
 
@@ -27,9 +25,7 @@ class ActivationKey(Base):
 
     def create(self, name, env, limit=None, description=None,
                content_view=None):
-        """
-        Creates new activation key from UI
-        """
+        """Creates new activation key from UI."""
 
         self.wait_for_ajax()
         self.wait_until_element(locators["ak.new"]).click()
@@ -51,9 +47,10 @@ class ActivationKey(Base):
                     element.click()
                     self.wait_for_ajax()
             else:
-                raise Exception(
-                    "Could not create new activation key '%s', \
-                    without env" % name)
+                raise UIError(
+                    'Could not create new activation key "{0}", without env'
+                    .format(name)
+                )
             if content_view:
                 Select(self.find_element
                        (locators["ak.content_view"]
@@ -65,8 +62,9 @@ class ActivationKey(Base):
             self.wait_until_element(common_locators["create"]).click()
             self.wait_for_ajax()
         else:
-            raise Exception(
-                "Could not create new activation key '%s'" % name)
+            raise UIError(
+                'Could not create new activation key "{0}"'.format(name)
+            )
 
     def search_key(self, element_name):
         """
@@ -125,8 +123,9 @@ class ActivationKey(Base):
                         element.click()
                         self.wait_for_ajax()
                     else:
-                        raise Exception(
-                            "Couldn't find the given env '%s'" % env)
+                        raise UIError(
+                            'Couldn not find the given env "{0}"'.format(env)
+                        )
                 # We need to select the CV, if we update the env and in this,
                 # case edit button disappears, but when we update only CV, then
                 # edit button appears; Following 'If' is just solving this
@@ -140,7 +139,9 @@ class ActivationKey(Base):
                 self.find_element(locators["ak.save_cv"]).click()
                 self.wait_for_ajax()
         else:
-            raise Exception("Could not update the activation key '%s'" % name)
+            raise UIError(
+                'Could not update the activation key "{0}"'.format(name)
+            )
 
     def delete(self, name, really):
         """
@@ -181,14 +182,16 @@ class ActivationKey(Base):
                     element.click()
                     self.wait_for_ajax()
                 else:
-                    raise Exception(
-                        "Couldn't find the product '%s'"
-                        "subscription" % product)
+                    raise UIError(
+                        'Could not find the product "{0}" subscription'
+                        .format(product)
+                    )
             self.wait_until_element(locators
                                     ["ak.add_selected_subscription"]).click()
         else:
-            raise Exception(
-                "Couldn't find the selected activation key '%s'" % name)
+            raise UIError(
+                'Could not find the selected activation key "{0}"'.format(name)
+            )
 
     def enable_repos(self, name, repos, enable=True):
         """Enables repository via product_content tab of the activation_key."""
@@ -206,7 +209,7 @@ class ActivationKey(Base):
         for repo in repos:
             repo_edit = self.wait_until_element((strategy, value % repo))
             if repo_edit is None:
-                raise Exception("Couldn't find the repo: {0}".format(repo))
+                raise UIError('Could not find the repo: {0}'.format(repo))
             repo_edit.click()
             self.wait_for_ajax()
             repo_select = self.wait_until_element((strategy1, value1 % repo))
@@ -232,11 +235,13 @@ class ActivationKey(Base):
                 result = self.find_element(locator).text
                 return result
             else:
-                raise Exception(
-                    "Couldn't get text attribute of a given locator")
+                raise UIError(
+                    'Could not get text attribute of a given locator'
+                )
         else:
-            raise Exception(
-                "Couldn't find the selected activation key '%s'" % name)
+            raise UIError(
+                'Could not find the selected activation key "{0}"'.format(name)
+            )
 
     def add_host_collection(self, name, host_collection_name):
         """
@@ -311,5 +316,4 @@ class ActivationKey(Base):
                              locators['ak.copy_name'],
                              new_name, locators['ak.copy_create'])
         else:
-            raise Exception('Could not copy activation key "{0}"'
-                            .format(name))
+            raise UIError('Could not copy activation key "{0}"'.format(name))

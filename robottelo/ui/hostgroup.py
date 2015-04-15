@@ -1,24 +1,16 @@
 # -*- encoding: utf-8 -*-
-"""
-Implements Host Group UI
-"""
-
-from robottelo.ui.base import Base
+"""Implements Host Group UI."""
+from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
 class Hostgroup(Base):
-    """
-    Manipulates hostgroup from UI
-    """
+    """Manipulates hostgroup from UI."""
 
     def create(self, name, parent=None, environment=None):
-        """
-        Creates a new hostgroup from UI
-        """
-
+        """Creates a new hostgroup from UI."""
         self.wait_until_element(locators["hostgroups.new"]).click()
 
         if self.wait_until_element(locators["hostgroups.name"]):
@@ -33,30 +25,27 @@ class Hostgroup(Base):
                 ).select_by_visible_text(environment)
             self.find_element(common_locators["submit"]).click()
         else:
-            raise Exception("Could not create new hostgroup.")
+            raise UIError('Could not create new hostgroup.')
 
     def search(self, name):
-        """
-        Searches existing hostgroup from UI
-        """
+        """Searches existing hostgroup from UI."""
         Navigator(self.browser).go_to_host_groups()
         element = self.search_entity(name, locators["hostgroups.hostgroup"])
         return element
 
     def delete(self, name, really=False):
-        """
-        Deletes existing hostgroup from UI
-        """
+        """Deletes existing hostgroup from UI."""
         Navigator(self.browser).go_to_host_groups()
-        self.delete_entity(name, really, locators["hostgroups.hostgroup"],
-                           locators['hostgroups.delete'],
-                           drop_locator=locators["hostgroups.dropdown"])
+        self.delete_entity(
+            name,
+            really,
+            locators["hostgroups.hostgroup"],
+            locators['hostgroups.delete'],
+            drop_locator=locators["hostgroups.dropdown"]
+        )
 
     def update(self, name, new_name=None, parent=None, environment=None):
-        """
-        Updates existing hostgroup from UI
-        """
-
+        """Updates existing hostgroup from UI."""
         element = self.search(name)
 
         if element:
@@ -74,4 +63,4 @@ class Hostgroup(Base):
                 self.field_update("hostgroups.name", new_name)
             self.find_element(common_locators["submit"]).click()
         else:
-            raise Exception("Could not find hostgroup '%s'" % name)
+            raise UIError('Could not find hostgroup "{0}"'.format(name))

@@ -1,33 +1,24 @@
 # -*- encoding: utf-8 -*-
-"""
-Implements Medium UI
-"""
+"""Implements Medium UI."""
 
-from robottelo.ui.base import Base
+from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
 class Medium(Base):
-    """
-    Implements the CRUD functions for Installation media
-    """
+    """Implements the CRUD functions for Installation media."""
 
     def _configure_medium(self, os_family=None):
-        """
-        Configures Installation media's OS family
-        """
+        """Configures Installation media's OS family."""
         if os_family:
-            Select(self.find_element(locators
-                                     ["medium.os_family"]
-                                     )).select_by_visible_text(os_family)
+            Select(
+                self.find_element(locators["medium.os_family"])
+            ).select_by_visible_text(os_family)
 
     def create(self, name, path, os_family=None):
-        """
-        Creates new Installation media
-        """
-
+        """Creates new Installation media."""
         self.wait_until_element(locators["medium.new"]).click()
 
         if self.wait_until_element(locators["medium.name"]):
@@ -38,16 +29,16 @@ class Medium(Base):
                 self.find_element(common_locators["submit"]).click()
                 self.wait_for_ajax()
             else:
-                raise Exception(
-                    "Could not create new installation media without path")
+                raise UIError(
+                    'Could not create new installation media without path'
+                )
         else:
-            raise Exception(
-                "Could not create new installation media '%s'" % name)
+            raise UIError(
+                'Could not create new installation media "{0}"'.format(name)
+            )
 
     def search(self, name):
-        """
-        Searches existing medium from UI
-        """
+        """Searches existing medium from UI."""
         Navigator(self.browser).go_to_installation_media()
         self.wait_for_ajax()
         if len(name) <= 30:
@@ -58,16 +49,16 @@ class Medium(Base):
         return element
 
     def delete(self, name, really):
-        """
-        Delete Installation media
-        """
-        self.delete_entity(name, really, locators["medium.medium_name"],
-                           locators['medium.delete'])
+        """Delete Installation media."""
+        self.delete_entity(
+            name,
+            really,
+            locators["medium.medium_name"],
+            locators['medium.delete']
+        )
 
     def update(self, old_name, new_name=None, new_path=None, os_family=None):
-        """
-        Update installation media name, media path and OS family
-        """
+        """Update installation media name, media path and OS family."""
         element = self.search(old_name)
 
         if element:
@@ -81,5 +72,7 @@ class Medium(Base):
             self.find_element(common_locators["submit"]).click()
             self.wait_for_ajax()
         else:
-            raise Exception(
-                "Could not update the installation media '%s'" % old_name)
+            raise UIError(
+                'Could not update the installation media "{0}"'
+                .format(old_name)
+            )
