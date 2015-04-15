@@ -1,11 +1,16 @@
 # -*- encoding: utf-8 -*-
 """Unit tests for the ``content_views`` paths."""
+import random
+
 from ddt import ddt
 from fauxfactory import gen_integer, gen_string, gen_utf8
 from nailgun import client
 from requests.exceptions import HTTPError
 from robottelo import entities
-from robottelo.common.constants import PUPPET_MODULE_NTP_PUPPETLABS
+from robottelo.common.constants import (
+    FAKE_0_PUPPET_REPO,
+    PUPPET_MODULE_NTP_PUPPETLABS
+)
 from robottelo.common.decorators import (
     bz_bug_is_open, data, run_only_on, stubbed)
 from robottelo.common.helpers import get_data_file, get_server_credentials
@@ -239,8 +244,10 @@ class CVPublishPromoteTestCase(APITestCase):
         cls.puppet_repo = entities.Repository(
             content_type='puppet',
             product=cls.product.id,
+            url=FAKE_0_PUPPET_REPO,
         )
         cls.puppet_repo.id = cls.puppet_repo.create_json()['id']
+        cls.puppet_repo.sync()
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             cls.puppet_repo.upload_content(handle)
 
@@ -287,19 +294,43 @@ class CVPublishPromoteTestCase(APITestCase):
             cvv = entities.ContentViewVersion(id=cvv_id)
             self.assertGreater(cvv.read_json()['package_count'], 0)
 
-    def test_positive_publish_3(self):
-        """@Test: Publish a content view that has puppet modules several times.
+    def test_publish_cv_with_puppet_once(self):
+        """@Test: Publish a content view that has puppet module once.
 
-        @Assert: The puppet module is referenced fromt he content view, the
+        @Assert: The puppet module is referenced from the content view, the
+        content view can be published once and corresponding version refer to
+        puppet module
+
+        @Feature: ContentView
+
+        """
+        content_view = entities.ContentView(organization=self.org.id).create()
+        puppet_module = random.choice(
+            content_view.available_puppet_modules()['results']
+        )
+        content_view.add_puppet_module(
+            puppet_module['author'],
+            puppet_module['name']
+        )
+        content_view.publish()
+        self.assertEqual(len(content_view.read_json()['versions']), 1)
+        self.assertEqual(len(content_view.read_json()['puppet_modules']), 1)
+
+    def test_publish_cv_with_puppet_multiple(self):
+        """@Test: Publish a content view that has puppet module
+        several times.
+
+        @Assert: The puppet module is referenced from the content view, the
         content view can be published several times, and each version
         references the puppet module.
 
         @Feature: ContentView
 
         """
-        content_view = entities.ContentView(organization=self.org.id)
-        content_view.id = content_view.create_json()['id']
-        puppet_module = content_view.available_puppet_modules()['results'][0]
+        content_view = entities.ContentView(organization=self.org.id).create()
+        puppet_module = random.choice(
+            content_view.available_puppet_modules()['results']
+        )
         content_view.add_puppet_module(
             puppet_module['author'],
             puppet_module['name']
@@ -310,8 +341,9 @@ class CVPublishPromoteTestCase(APITestCase):
 
         # Publish the content view several times and check that each version
         # has the puppet module added above.
-        for _ in range(REPEAT):
+        for i in range(random.randint(3, 5)):
             content_view.publish()
+            self.assertEqual(len(content_view.read_json()['versions']), i + 1)
         for cvv_id in (  # content view version ID
                 version['id']
                 for version
@@ -386,20 +418,60 @@ class CVPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(cvv_attrs['environments']), REPEAT + 1)
         self.assertGreater(cvv_attrs['package_count'], 0)
 
-    def test_positive_promote_3(self):
-        """@Test: Give a content view a puppet module, publish it once and
-        promote the content view version ``REPEAT + 1`` times.
+    def test_promote_cv_with_puppet_once(self):
+        """@Test: Give content view a puppet module. Publish
+        and promote it once
 
         @Assert: The content view has one puppet module, the content view
-        version is in ``REPEAT + 1`` lifecycle environments and it has one
-        puppet module.
+        version is in ``Library + 1`` lifecycle environments and it has one
+        puppet module assigned too.
 
         @Feature: ContentView
 
         """
-        content_view = entities.ContentView(organization=self.org.id)
-        content_view.id = content_view.create_json()['id']
-        puppet_module = content_view.available_puppet_modules()['results'][0]
+        content_view = entities.ContentView(organization=self.org.id).create()
+        puppet_module = random.choice(
+            content_view.available_puppet_modules()['results']
+        )
+        content_view.add_puppet_module(
+            puppet_module['author'],
+            puppet_module['name']
+        )
+        content_view.publish()
+
+        cvv = entities.ContentViewVersion(
+            id=content_view.read_json()['versions'][0]['id']
+        )
+        lc_env_id = entities.LifecycleEnvironment(
+            organization=self.org.id
+        ).create_json()['id']
+        cvv.promote(lc_env_id)
+
+        cv_attrs = content_view.read_json()
+        self.assertEqual(len(cv_attrs['versions']), 1)
+        self.assertEqual(len(cv_attrs['puppet_modules']), 1)
+
+        cvv_attrs = entities.ContentViewVersion(
+            id=cv_attrs['versions'][0]['id']
+        ).read_json()
+        self.assertEqual(len(cvv_attrs['environments']), 2)
+        self.assertEqual(len(cvv_attrs['puppet_modules']), 1)
+
+    def test_promote_cv_with_puppet_multiple(self):
+        """@Test: Give a content view a puppet module, publish it once and
+        promote the content view version ``Library + random`` times.
+
+        @Assert: The content view has one puppet module, the content view
+        version is in ``Library + random`` lifecycle environments and it has
+        one puppet module.
+
+        @Feature: ContentView
+
+        """
+        content_view = entities.ContentView(organization=self.org.id).create()
+        puppet_module = random.choice(
+            content_view.available_puppet_modules()['results']
+        )
         content_view.add_puppet_module(
             puppet_module['author'],
             puppet_module['name']
@@ -410,7 +482,8 @@ class CVPublishPromoteTestCase(APITestCase):
         cvv = entities.ContentViewVersion(
             id=content_view.read_json()['versions'][0]['id']  # only one ver
         )
-        for _ in range(REPEAT):
+        envs_amount = random.randint(3, 5)
+        for _ in range(envs_amount):
             lc_env_id = entities.LifecycleEnvironment(
                 organization=self.org.id
             ).create_json()['id']
@@ -425,7 +498,7 @@ class CVPublishPromoteTestCase(APITestCase):
         cvv_attrs = entities.ContentViewVersion(
             id=cv_attrs['versions'][0]['id']
         ).read_json()
-        self.assertEqual(len(cvv_attrs['environments']), REPEAT + 1)
+        self.assertEqual(len(cvv_attrs['environments']), envs_amount + 1)
         self.assertEqual(len(cvv_attrs['puppet_modules']), 1)
 
     def test_add_normal_cv_to_composite(self):
