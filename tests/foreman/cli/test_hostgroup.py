@@ -3,7 +3,15 @@
 
 from fauxfactory import gen_string
 from robottelo.cli.hostgroup import HostGroup
-from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.proxy import Proxy
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_environment,
+    make_hostgroup,
+    make_location,
+    make_org,
+    make_os,
+)
 from robottelo.common.decorators import run_only_on
 from robottelo.test import MetaCLITestCase
 
@@ -35,3 +43,107 @@ class TestHostGroup(MetaCLITestCase):
         ({'id': gen_string("utf8", 10)},
          {'name': ""}),
     )
+
+    def test_create_hostgroup_with_environment(self):
+        """@Test: Check if hostgroup with environment can be created
+
+        @Feature: Hostgroup - Positive create
+
+        @Assert: Hostgroup is created and has new environment assigned
+
+        """
+        try:
+            environment = make_environment()
+            hostgroup = make_hostgroup({'environment-id': environment['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertEqual(environment['name'], hostgroup['environment'])
+
+    def test_create_hostgroup_with_location(self):
+        """@Test: Check if hostgroup with location can be created
+
+        @Feature: Hostgroup - Positive create
+
+        @Assert: Hostgroup is created and has new location assigned
+
+        """
+        try:
+            location = make_location()
+            hostgroup = make_hostgroup({'location-ids': location['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertIn(location['name'], hostgroup['locations'])
+
+    def test_create_hostgroup_with_operating_system(self):
+        """@Test: Check if hostgroup with operating system can be created
+
+        @Feature: Hostgroup - Create
+
+        @Assert: Hostgroup is created and has operating system assigned
+
+        """
+        try:
+            os = make_os()
+            hostgroup = make_hostgroup({'operatingsystem-id': os['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertEqual(hostgroup['operating-system'], os['title'])
+
+    def test_create_hostgroup_with_organization(self):
+        """@Test: Check if hostgroup with organization can be created
+
+        @Feature: Hostgroup - Positive create
+
+        @Assert: Hostgroup is created and has new organization assigned
+
+        """
+        try:
+            org = make_org()
+            hostgroup = make_hostgroup({'organization-ids': org['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertIn(org['name'], hostgroup['organizations'])
+
+    def test_create_hostgroup_with_puppet_ca_proxy(self):
+        """@Test: Check if hostgroup with puppet CA proxy server can be created
+
+        @Feature: Hostgroup - Positive create
+
+        @Assert: Hostgroup is created and has puppet CA proxy server assigned
+
+        """
+        proxy_list = Proxy.list()
+        self.assertEqual(proxy_list.return_code, 0)
+        puppet_proxy = proxy_list.stdout[0]
+
+        try:
+            hostgroup = make_hostgroup(
+                {'puppet-ca-proxy': puppet_proxy['name']})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertEqual(
+            puppet_proxy['id'],
+            hostgroup['puppet-ca-proxy-id'],
+        )
+
+    def test_create_hostgroup_with_puppet_proxy(self):
+        """@Test: Check if hostgroup with puppet proxy server can be created
+
+        @Feature: Hostgroup - Positive create
+
+        @Assert: Hostgroup is created and has puppet proxy server assigned
+
+        """
+        proxy_list = Proxy.list()
+        self.assertEqual(proxy_list.return_code, 0)
+        puppet_proxy = proxy_list.stdout[0]
+
+        try:
+            hostgroup = make_hostgroup(
+                {'puppet-proxy': puppet_proxy['name']})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertEqual(
+            puppet_proxy['id'],
+            hostgroup['puppet-master-proxy-id'],
+        )
