@@ -4,7 +4,13 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.factory import (
-    CLIFactoryError, make_gpg_key, make_org, make_product, make_sync_plan)
+    CLIFactoryError,
+    make_gpg_key,
+    make_org,
+    make_product,
+    make_repository,
+    make_sync_plan,
+)
 from robottelo.cli.product import Product
 from robottelo.common.decorators import data, run_only_on
 from robottelo.test import CLITestCase
@@ -464,3 +470,90 @@ class TestProduct(CLITestCase):
             len(result.stdout['sync-plan-id']), 0,
             'Info should have no sync id.'
         )
+
+    def test_product_synchronize_by_id(self):
+        """@Test: Check if product can be synchronized.
+        Searches for product and organization by their IDs
+
+        @Feature: Product
+
+        @Assert: Product was synchronized
+
+        """
+        try:
+            org = make_org()
+            product = make_product({'organization-id': org['id']})
+            make_repository({'product-id': product['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        result = Product.synchronize({
+            'id': product['id'],
+            'organization-id': org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = Product.info({
+            'id': product['id'],
+            'organization-id': org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(u'finished', result.stdout['sync-state'])
+
+    def test_product_synchronize_by_name(self):
+        """@Test: Check if product can be synchronized.
+        Searches for product and organization by their Names
+
+        @Feature: Product
+
+        @Assert: Product was synchronized
+
+        """
+        try:
+            org = make_org()
+            product = make_product({'organization-id': org['id']})
+            make_repository({'product-id': product['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        result = Product.synchronize({
+            'name': product['name'],
+            'organization': org['name'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = Product.info({
+            'id': product['id'],
+            'organization-id': org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(u'finished', result.stdout['sync-state'])
+
+    def test_product_synchronize_by_label(self):
+        """@Test: Check if product can be synchronized.
+        Searches for organization by its label
+
+        @Feature: Product
+
+        @Assert: Product was synchronized
+
+        """
+        try:
+            org = make_org()
+            product = make_product({'organization-id': org['id']})
+            make_repository({'product-id': product['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        result = Product.synchronize({
+            'id': product['id'],
+            'organization-label': org['label'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = Product.info({
+            'id': product['id'],
+            'organization-id': org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(u'finished', result.stdout['sync-state'])

@@ -55,3 +55,10 @@ class Product(Base):
         result = cls.execute(cls._construct_command(options))
 
         return result
+
+    @classmethod
+    def synchronize(cls, options=None):
+        """Synchronize a product."""
+        cls.command_sub = 'synchronize'
+        result = cls.execute(cls._construct_command(options))
+        return result
