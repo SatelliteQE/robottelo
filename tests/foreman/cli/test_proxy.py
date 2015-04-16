@@ -157,3 +157,33 @@ class TestProxy(CLITestCase):
             data['update'],
             "Proxy name should be updated"
         )
+
+    def test_proxy_refresh_features_by_id(self):
+        """@Test: Refresh smart proxy features, search for proxy by id
+
+        @Feature: Smart Proxy
+
+        @Assert: Proxy features are refreshed
+
+        """
+        try:
+            proxy = make_proxy()
+        except CLIFactoryError as err:
+            self.fail(err)
+        result = Proxy.refresh_features({u'id': proxy['id']})
+        self.assertEqual(result.return_code, 0)
+
+    def test_proxy_refresh_features_by_name(self):
+        """@Test: Refresh smart proxy features, search for proxy by name
+
+        @Feature: Smart Proxy
+
+        @Assert: Proxy features are refreshed
+
+        """
+        try:
+            proxy = make_proxy()
+        except CLIFactoryError as err:
+            self.fail(err)
+        result = Proxy.refresh_features({u'name': proxy['name']})
+        self.assertEqual(result.return_code, 0)

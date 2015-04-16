@@ -74,3 +74,9 @@ class Proxy(Base):
         """Import puppet classes from puppet proxy."""
         cls.command_sub = 'import-classes'
         return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def refresh_features(cls, options=None):
+        """Refreshes smart proxy features"""
+        cls.command_sub = 'refresh-features'
+        return cls.execute(cls._construct_command(options))
