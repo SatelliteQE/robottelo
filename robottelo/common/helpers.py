@@ -373,6 +373,7 @@ def configure_entities():
       ``robottelo.entity_mixins.Entity`` for more information on the effects of
       this.
     * Set ``nailgun.entities.GPGKey.content.default``.
+    * Try to set ``nailgun.entities.ComputeResource.url.default``.
 
     Emit a warning and do not set anything if no ``robottelo.properties``
     configuration file is available.
@@ -391,3 +392,9 @@ def configure_entities():
             'NailGun configuration profile labeled "default".'
         )
     entities.GPGKey.content.default = read_data_file(VALID_GPG_KEY_FILE)
+    # If neither `docker.internal_url` or `docker.external_url` are set, let
+    # NailGun try to provide a value.
+    if conf.properties.get('docker.internal_url', '') != '':
+        entities.ComputeResource.url.default = get_internal_docker_url()
+    elif conf.properties.get('docker.external_url', '') != '':
+        entities.ComputeResource.url.default = get_external_docker_url()
