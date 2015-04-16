@@ -5,6 +5,7 @@ import unittest
 
 from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_string
+from nailgun.entities import Organization
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -18,7 +19,6 @@ from robottelo.cli.factory import (
 from robottelo.common import manifests
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
-from robottelo.entities import Organization
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.common.constants import FAKE_0_PUPPET_REPO, NOT_IMPLEMENTED
 from robottelo.common.decorators import (

@@ -3,9 +3,8 @@ import httplib
 import logging
 from ddt import data, ddt
 from functools import partial
-from nailgun import client, entity_fields
+from nailgun import client, entities, entity_fields
 from requests.exceptions import HTTPError
-from robottelo import entities
 from robottelo.common import conf
 from robottelo.common.decorators import (
     bz_bug_is_open, run_only_on, skip_if_bug_open)
@@ -93,10 +92,10 @@ def skip_if_sam(self, entity):
     The above code snippet skips the test when:
 
     * ``robottelo.properties`` is defined with ``main.project=sam``, and
-    * the corresponding entity's definition in :mod:`robottelo.entities` does
+    * the corresponding entity's definition in module ``nailgun.entities`` does
       not specify sam in server_modes. For example: ``server_modes = ('sat')``.
 
-    :param entity: One of the entities defined in :meth:`robottelo.entities`.
+    :param entity: One of the entities defined in module ``nailgun.entities``.
     :returns: Either ``self.skipTest`` or ``None``.
 
     """

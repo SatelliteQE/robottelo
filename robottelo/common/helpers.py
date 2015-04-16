@@ -9,9 +9,8 @@ from automation_tools import distro_info
 from fabric.api import execute, settings
 from fauxfactory import gen_string, gen_integer
 from itertools import izip
-from nailgun import entity_mixins
+from nailgun import entities, entity_mixins
 from nailgun.config import ServerConfig
-from robottelo import entities
 from robottelo.common import conf
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.decorators import bz_bug_is_open

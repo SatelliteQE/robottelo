@@ -3,7 +3,7 @@
 from ddt import ddt
 from datetime import datetime, timedelta
 from fauxfactory import gen_string
-from robottelo import entities
+from nailgun import entities
 from robottelo.common.constants import SYNC_INTERVAL
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.common.helpers import generate_strings_list

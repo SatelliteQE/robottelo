@@ -1,7 +1,7 @@
 """Test class for Subscriptions/Manifests UI"""
 
 from ddt import ddt
-from robottelo import entities
+from nailgun import entities
 from robottelo.common import manifests
 from robottelo.common.decorators import skipRemote
 from robottelo.common.ssh import upload_file

@@ -1,7 +1,7 @@
 """Unit tests for the Docker feature."""
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo import entities
+from nailgun import entities
 from robottelo.cli.docker import Docker
 from robottelo.cli.factory import (
     CLIFactoryError,

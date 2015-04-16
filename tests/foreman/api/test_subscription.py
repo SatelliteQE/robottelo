@@ -4,7 +4,7 @@ A full API reference for subscriptions can be found here:
 https://<sat6.com>/apidoc/v2/subscriptions.html
 
 """
-from robottelo import entities
+from nailgun import entities
 from robottelo.common import manifests
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904

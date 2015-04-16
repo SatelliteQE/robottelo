@@ -3,8 +3,7 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nailgun import client
-from robottelo import entities
+from nailgun import client, entities
 from robottelo.common import conf
 from robottelo.common.constants import (
     FAKE_1_YUM_REPO,

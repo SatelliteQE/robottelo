@@ -7,8 +7,8 @@ http://theforeman.org/api/apidoc/v2/environments.html
 import random
 from ddt import ddt
 from fauxfactory import gen_string
+from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo import entities
 from robottelo.common.decorators import data, run_only_on
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904

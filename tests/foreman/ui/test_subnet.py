@@ -3,7 +3,7 @@
 
 from ddt import ddt
 from fauxfactory import gen_ipaddr, gen_netmask, gen_string
-from robottelo import entities
+from nailgun import entities
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, bz_bug_is_open)
 from robottelo.common.helpers import generate_strings_list

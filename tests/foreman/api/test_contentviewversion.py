@@ -1,6 +1,6 @@
 """Unit tests for the ``content_view_versions`` paths."""
+from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo import entities
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 

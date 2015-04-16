@@ -6,10 +6,9 @@ tested can be found here: http://theforeman.org/api/apidoc/v2/users.html
 """
 import ddt
 from fauxfactory import gen_string
-from nailgun import client
+from nailgun import client, entities
 from random import randint
 from requests.exceptions import HTTPError
-from robottelo import entities
 from robottelo.common.helpers import get_server_credentials
 from robottelo.common import decorators
 from robottelo.test import APITestCase

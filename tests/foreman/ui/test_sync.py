@@ -1,7 +1,7 @@
 """Test class for Custom Sync UI"""
 
 from ddt import ddt
-from robottelo import entities
+from nailgun import entities
 from robottelo.common.constants import FAKE_1_YUM_REPO
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list

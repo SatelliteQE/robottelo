@@ -2,7 +2,7 @@
 """Test class for Life cycle environments UI"""
 
 from fauxfactory import gen_string
-from robottelo import entities
+from nailgun import entities
 from robottelo.common.decorators import run_only_on
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_lifecycle_environment

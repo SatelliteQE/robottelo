@@ -7,7 +7,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo import entities
+from nailgun import entities
 from robottelo.api import utils
 from robottelo.common import manifests
 from robottelo.common.constants import (
