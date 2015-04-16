@@ -11,7 +11,9 @@ from fauxfactory import gen_string, gen_integer
 from itertools import izip
 from nailgun import entity_mixins
 from nailgun.config import ServerConfig
+from robottelo import entities
 from robottelo.common import conf
+from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.decorators import bz_bug_is_open
 from urlparse import urlunsplit
 
@@ -363,12 +365,15 @@ def read_data_file(filename):
 
 
 def configure_entities():
-    """Set ``nailgun.entity_mixins.DEFAULT_SERVER_CONFIG``.
+    """Configure NailGun's entity classes.
 
-    Set ``nailgun.entity_mixins.DEFAULT_SERVER_CONFIG`` to whatever is returned
-    by :meth:`robottelo.common.helpers.get_nailgun_config`. See
-    ``robottelo.entity_mixins.Entity`` for more information on the effects of
-    this.
+    Do the following:
+
+    * Set ``nailgun.entity_mixins.DEFAULT_SERVER_CONFIG`` to whatever is
+      returned by :meth:`robottelo.common.helpers.get_nailgun_config`. See
+      ``robottelo.entity_mixins.Entity`` for more information on the effects of
+      this.
+    * Set ``nailgun.entities.GPGKey.content.default``.
 
     Emit a warning and do not set anything if no ``robottelo.properties``
     configuration file is available.
@@ -386,3 +391,4 @@ def configure_entities():
             '`nailgun.entity_mixins.DEFAULT_SERVER_CONFIG`, or you create a '
             'NailGun configuration profile labeled "default".'
         )
+    entities.GPGKey.content.default = read_data_file(VALID_GPG_KEY_FILE)
