@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Smoke tests for the ``API`` end-to-end scenario."""
 from fauxfactory import gen_string
-from nailgun import client
+from nailgun import client, entities
 from robottelo.api import utils
 from robottelo.api.utils import status_code_error
 from robottelo.common.constants import (
@@ -15,7 +15,6 @@ from robottelo.common.helpers import (
 from robottelo.common import conf
 from robottelo.common import helpers
 from robottelo.common import manifests
-from robottelo import entities
 from robottelo.vm import VirtualMachine
 from unittest import TestCase
 import httplib

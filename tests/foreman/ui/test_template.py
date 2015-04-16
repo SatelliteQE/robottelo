@@ -2,7 +2,7 @@
 """Test class for Template UI"""
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo import entities
+from nailgun import entities
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import get_data_file, generate_strings_list

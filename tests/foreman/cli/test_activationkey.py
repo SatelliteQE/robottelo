@@ -3,10 +3,10 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
+from nailgun.entities import Organization
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.entities import Organization
 from robottelo.cli.repository import Repository
 from robottelo.cli.factory import (
     CLIFactoryError,

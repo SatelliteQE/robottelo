@@ -1,9 +1,8 @@
 """Unit tests for the ``architectures`` paths."""
 from fauxfactory import gen_utf8
-from nailgun import client
+from nailgun import client, entities
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
-from robottelo import entities
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 

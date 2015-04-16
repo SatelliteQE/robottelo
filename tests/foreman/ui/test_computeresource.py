@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 from ddt import ddt
 from fauxfactory import gen_string
+from nailgun import entities
 from robottelo.common import conf
 from robottelo.common.constants import FOREMAN_PROVIDERS
 from robottelo.common.decorators import run_only_on
@@ -10,7 +11,6 @@ from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
-from robottelo import entities
 
 
 @run_only_on('sat')

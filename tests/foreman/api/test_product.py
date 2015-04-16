@@ -6,9 +6,8 @@ http://theforeman.org/api/apidoc/v2/products.html
 """
 from ddt import ddt
 from fauxfactory import gen_string
-from nailgun import client
+from nailgun import client, entities
 from random import randint
-from robottelo import entities
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import get_server_credentials, read_data_file

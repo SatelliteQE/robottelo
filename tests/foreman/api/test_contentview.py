@@ -4,9 +4,8 @@ import random
 
 from ddt import ddt
 from fauxfactory import gen_integer, gen_string, gen_utf8
-from nailgun import client
+from nailgun import client, entities
 from requests.exceptions import HTTPError
-from robottelo import entities
 from robottelo.common.constants import (
     FAKE_0_PUPPET_REPO,
     PUPPET_MODULE_NTP_PUPPETLABS

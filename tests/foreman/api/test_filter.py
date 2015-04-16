@@ -4,8 +4,8 @@ An API reference is available here:
 http://theforeman.org/api/apidoc/v2/filters.html
 
 """
+from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo import entities
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 

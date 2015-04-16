@@ -3,7 +3,7 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo import entities
+from nailgun import entities
 from robottelo.common.constants import (
     INSTALL_MEDIUM_URL, PARTITION_SCRIPT_DATA_FILE)
 from robottelo.common.decorators import data

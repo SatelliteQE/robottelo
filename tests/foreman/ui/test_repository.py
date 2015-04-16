@@ -3,7 +3,7 @@
 import time
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo import entities
+from nailgun import entities
 from robottelo.common.constants import (
     CHECKSUM_TYPE,
     DOCKER_REGISTRY_HUB,

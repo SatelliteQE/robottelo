@@ -1,12 +1,12 @@
 """Unit tests for host collections."""
+from nailgun import entities
 from robottelo.common.decorators import skip_if_bug_open
-from robottelo import entities
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
 class HostCollectionTestCase(APITestCase):
-    """Tests for :class:`robottelo.entities.HostCollection`."""
+    """Tests for host collections."""
 
     @classmethod
     def setUpClass(cls):

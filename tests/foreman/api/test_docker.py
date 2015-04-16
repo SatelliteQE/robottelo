@@ -3,10 +3,9 @@ import httplib
 
 from ddt import ddt
 from fauxfactory import gen_choice, gen_string, gen_url
-from nailgun import client
+from nailgun import client, entities
 from random import randint, shuffle
 from requests.exceptions import HTTPError
-from robottelo import entities
 from robottelo.common.constants import DOCKER_REGISTRY_HUB
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)

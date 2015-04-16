@@ -11,11 +11,6 @@ Submodules:
 
 .. automodule:: robottelo
 
-:mod:`robottelo.entities`
--------------------------
-
-.. automodule:: robottelo.entities
-
 :mod:`robottelo.log`
 --------------------
 

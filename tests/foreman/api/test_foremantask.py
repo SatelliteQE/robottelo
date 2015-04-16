@@ -1,6 +1,6 @@
 """Unit tests for the ``foreman_tasks/api/v2/tasks`` paths."""
+from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo import entities
 from robottelo.common.decorators import run_only_on, skip_if_bug_open
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904

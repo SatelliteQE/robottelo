@@ -2,9 +2,8 @@
 from datetime import datetime, timedelta
 from ddt import ddt
 from fauxfactory import gen_string
-from nailgun import client
+from nailgun import client, entities
 from robottelo.common.helpers import get_server_credentials, get_server_url
-from robottelo import entities
 from robottelo.common.decorators import (
     data,
     run_only_on,
