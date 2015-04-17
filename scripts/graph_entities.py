@@ -1,31 +1,20 @@
 #!/usr/bin/env python2
 """Graph relationships between entities.
 
-For each entity in :mod:`robottelo.entities`, determine which entities it
+For each entity in module ``nailgun.entities``, determine which entities it
 depends on. Print this dependency information to stdout in DOT format. To run
 this script and generate an image all in one go, use the ``graph-entities``
 command provided by the make file in the parent directory.
 
 """
 from __future__ import print_function
+import inspect
+from nailgun import entities
 from nailgun import entity_mixins
-import inspect  # noqa
-
-# Append parent dir to sys.path if not already present. Do this so that
-# robottelo can be imported.
-import os
-import sys
-ROBOTTELO_PATH = os.path.realpath(os.path.join(
-    os.path.dirname(__file__),
-    os.path.pardir
-))
-if ROBOTTELO_PATH not in sys.path:
-    sys.path.append(ROBOTTELO_PATH)
-from robottelo import entities  # noqa pylint:disable=import-error
 
 
 def graph():
-    """Read through ``robottelo/entities.py`` and graph their relationships."""
+    """Graph the relationships between the entity classes."""
     # Compile a dict of `entity_mixins.Entity` subclasses.
     entities_ = {}
     for name, klass in inspect.getmembers(entities, inspect.isclass):

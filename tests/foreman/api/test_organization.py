@@ -9,9 +9,8 @@ import ddt
 import httplib
 import sys
 from fauxfactory import gen_string
-from nailgun import client
+from nailgun import client, entities
 from requests.exceptions import HTTPError
-from robottelo import entities
 from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904

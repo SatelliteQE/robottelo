@@ -4,7 +4,7 @@
 
 from ddt import ddt
 from fauxfactory import gen_string, gen_ipaddr
-from robottelo import entities
+from nailgun import entities
 from robottelo.common import conf
 from robottelo.common.helpers import generate_strings_list
 from robottelo.common.decorators import (

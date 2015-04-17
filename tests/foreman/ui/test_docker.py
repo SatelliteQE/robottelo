@@ -1,7 +1,7 @@
 """Unit tests for the Docker feature."""
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo import entities
+from nailgun import entities
 from robottelo.common.decorators import data, run_only_on, stubbed
 from robottelo.common.helpers import (
     get_external_docker_url,

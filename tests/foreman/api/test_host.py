@@ -8,8 +8,7 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 import httplib
 from ddt import ddt
 from fauxfactory import gen_integer, gen_string
-from nailgun import client
-from robottelo import entities
+from nailgun import client, entities
 from robottelo.common.decorators import (
     bz_bug_is_open,
     data,

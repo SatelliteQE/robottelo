@@ -724,34 +724,35 @@ class ContentViews(Base):
                     "Couldn't find puppet-modules tab")
 
     def copy_view(self, name, new_name=None):
-        """
-        Copies an existing Content View
-        """
+        """Copies an existing Content View."""
         cv = self.search(name)
-        if cv and new_name:
+        if (cv is not None) and (new_name is not None):
             cv.click()
             self.wait_for_ajax()
-            self.edit_entity(locators['contentviews.copy'],
-                             locators['contentviews.copy_name'],
-                             new_name, locators['ak.copy_create'])
+            self.edit_entity(
+                locators['contentviews.copy'],
+                locators['contentviews.copy_name'],
+                new_name,
+                locators['ak.copy_create']
+            )
         else:
             raise UIError('Could not copy the Content View %s .', name)
 
     def fetch_yum_content_repo_name(self, cv_name):
-        """
-        Fetch associated content host from selected activation key
-        """
+        """Fetch associated content host from selected activation key."""
         # find content_view
         cv = self.search(cv_name)
-        if not cv:
+        if cv is None:
             raise UINoSuchElementError(
                 'Could not find CV %s', cv_name)
         cv.click()
         self.wait_for_ajax()
-        self.wait_until_element(tab_locators
-                                ["contentviews.tab_content"]).click()
-        self.wait_until_element(locators
-                                ["contentviews.yum_repositories"]).click()
+        self.wait_until_element(
+            tab_locators["contentviews.tab_content"]
+        ).click()
+        self.wait_until_element(
+            locators["contentviews.yum_repositories"]
+        ).click()
         self.wait_for_ajax()
         if self.wait_until_element(locators["contentviews.repo_name"]):
             result = self.find_element(locators["contentviews.repo_name"]).text

@@ -3,24 +3,27 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo import entities
+from nailgun import client, entities
+from robottelo.common import conf
 from robottelo.common.constants import (
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
     REPO_DISCOVERY_URL,
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
+    ZOO_CUSTOM_GPG_KEY,
 )
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import (
     get_data_file, read_data_file, valid_names_list, invalid_names_list,
-    generate_strings_list)
+    generate_strings_list, get_server_credentials)
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_gpgkey
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
+from robottelo.vm import VirtualMachine
 
 
 @run_only_on('sat')
@@ -33,6 +36,7 @@ class GPGKey(UITestCase):
         org_attrs = entities.Organization().create_json()
         cls.org_name = org_attrs['name']
         cls.org_id = org_attrs['id']
+        cls.org_label = org_attrs['label']
 
         super(GPGKey, cls).setUpClass()
 
@@ -363,17 +367,8 @@ class GPGKey(UITestCase):
                             (common_locators["alert.error"]))
             self.assertIsNone(self.gpgkey.search(new_name))
 
-    @stubbed()
-    @data("""DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-""")
-    def test_consume_content_1(self):
+    @data(*valid_names_list())
+    def test_consume_content_1(self, key_name):
         """@test: Hosts can install packages using gpg key associated with
         single custom repository
 
@@ -385,7 +380,121 @@ class GPGKey(UITestCase):
 
         """
 
-        pass
+        product_name = gen_string('alpha', 8)
+        repository_name = gen_string('alpha', 8)
+        activation_key_name = gen_string('alpha', 8)
+        key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
+        # step1: Create gpg-key
+        gpgkey_id = entities.GPGKey(
+            content=key_content,
+            name=key_name,
+            organization=self.org_id
+        ).create_json()['id']
+        # step 1.2: Create new lifecycle environments
+        lc_env_id = entities.LifecycleEnvironment(
+            organization=self.org_id
+        ).create_json()['id']
+        # step2: Creates new product without selecting GPGkey
+        product_id = entities.Product(
+            name=product_name,
+            organization=self.org_id
+        ).create_json()['id']
+        # step3: Creates new repository with GPGKey
+        repo = entities.Repository(
+            name=repository_name,
+            url=FAKE_1_YUM_REPO,
+            product=product_id,
+            gpg_key=gpgkey_id,
+        ).create()
+        # step 3.1: sync repository
+        repo.sync()
+        # step 4: Create content view
+        content_view = entities.ContentView(
+            organization=self.org_id
+        ).create()
+        # step 5: Associate repository to new content view
+        client.put(
+            content_view.path(),
+            {u'repository_ids': [repo.id]},
+            auth=get_server_credentials(),
+            verify=False,
+        ).raise_for_status()
+        # step 6: Publish content view
+        content_view.publish()
+        # step 6.2: Promote content view to lifecycle_env
+        cv = entities.ContentView(id=content_view.id).read_json()
+        self.assertEqual(len(cv['versions']), 1)
+        entities.ContentViewVersion(
+            id=cv['versions'][0]['id']
+        ).promote(lc_env_id)
+        # step 7: Create activation key
+        ak_id = entities.ActivationKey(
+            name=activation_key_name,
+            environment=lc_env_id,
+            organization=self.org_id,
+            content_view=content_view.id,
+        ).create_json()['id']
+        for subscription in entities.Organization(
+                id=self.org_id).subscriptions():
+            if subscription['product_name'] == product_name:
+                entities.ActivationKey(id=ak_id).add_subscriptions({
+                    'quantity': 1,
+                    'subscription_id': subscription['id'],
+                })
+                break
+        # Create VM
+        package_name = 'cow'
+        with VirtualMachine(distro='rhel66') as vm:
+            # Download and Install rpm
+            result = vm.run(
+                "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
+                .format(conf.properties['main.server.hostname'])
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                'failed to fetch katello-ca rpm: {0}, return code: {1}'
+                .format(result.stderr, result.return_code)
+            )
+            result = vm.run(
+                'rpm -i katello-ca-consumer*.noarch.rpm'
+            )
+            self.assertEqual(
+                result.return_code, 0,
+                'failed to install katello-ca rpm: {0} and return code: {1}'
+                .format(result.stderr, result.return_code)
+            )
+            # Register client with foreman server using activation-key
+            result = vm.run(
+                u'subscription-manager register --activationkey {0} '
+                '--org {1} --force'
+                .format(activation_key_name, self.org_label)
+            )
+            # Commenting following lines because:
+            # When we register a host without associating the installed OS
+            # subscriptions, SM register command succeed with exit code '1'.
+            # self.assertEqual(
+            #    result.return_code, 0,
+            #    "failed to register client:: {0} and return code: {1}"
+            #    .format(result.stderr, result.return_code)
+            # )
+
+            # Validate if gpgcheck flag is enabled in repo file
+            repo_file = '/etc/yum.repos.d/redhat.repo'
+            result = vm.run(
+                'cat {0} | grep gpgcheck | cut -d " " -f3'
+                .format(repo_file)
+            )
+            self.assertEqual(u'1', result.stdout[0])
+            # Install contents from sat6 server
+            result = vm.run('yum install -y {0}'.format(package_name))
+            self.assertEqual(
+                result.return_code, 0,
+                'Package install failed: {0} and return code: {1}'
+                .format(result.stderr, result.return_code)
+            )
+            # Verify if package is installed by query it
+            result = vm.run('rpm -q {0}'.format(package_name))
+            self.assertIn(package_name, result.stdout[0])
 
     @stubbed()
     @data("""DATADRIVENGOESHERE

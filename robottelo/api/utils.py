@@ -1,7 +1,6 @@
 """Module containing convenience functions for working with the API."""
-from nailgun import client
+from nailgun import client, entities
 from robottelo.common import helpers
-from robottelo import entities
 from urlparse import urljoin
 
 

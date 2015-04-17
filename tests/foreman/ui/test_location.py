@@ -4,7 +4,7 @@
 
 from ddt import ddt
 from fauxfactory import gen_string, gen_ipaddr
-from robottelo import entities
+from nailgun import entities
 from robottelo.common import conf
 from robottelo.common.decorators import (data, run_only_on, skip_if_bug_open,
                                          bz_bug_is_open)

@@ -1,9 +1,9 @@
 """CLI tests for ``hammer host``."""
+from nailgun import entities
 from robottelo.cli.host import Host
 from robottelo.cli.proxy import Proxy
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common import conf
-from robottelo import entities
 from robottelo.test import CLITestCase
 
 
