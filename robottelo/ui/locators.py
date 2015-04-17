@@ -1450,6 +1450,9 @@ locators = LocatorDict({
     "contentviews.content_repo": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'repositories')]"),
+    "contentviews.repo_name": (
+        By.XPATH,
+        "//a[@class='ng-binding' and contains(@ui-sref,'repositories.info')]"),
     "contentviews.select_repo": (
         By.XPATH,
         ("//div[@bst-table='repositoriesTable']"
@@ -1569,6 +1572,14 @@ locators = LocatorDict({
         By.XPATH, "//button[contains(@ng-click, 'detailsTable.search')]"),
     "contentviews.filter_name": (
         By.XPATH, "//tr[@row-select='filter']/td[2]/a[contains(., '%s')]"),
+    "contentviews.copy": (
+        By.XPATH, "//a[@ng-click='showCopy = true']"),
+    "contentviews.copy_name": (
+        By.XPATH, "//input[@ng-model='copyName']"),
+    "contentviews.copy_create": (
+        By.XPATH, "//button[@ng-click='copy(copyName)']"),
+    "contentviews.yum_repositories": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@ui-sref,'yum.list')]"),
 
     # System Groups
     "system-groups.new": (
