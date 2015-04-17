@@ -1,7 +1,7 @@
 # For all tests.
 ddt
 fauxfactory
-nailgun~=0.8.0
+nailgun==0.8.1
 python-bugzilla
 
 # For API tests.

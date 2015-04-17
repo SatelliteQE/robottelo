@@ -973,8 +973,6 @@ class TestContentViewsUI(UITestCase):
 
         @assert: Content view can be published
 
-        @status: Manual
-
         """
         repo_name = gen_string('alpha', 8)
         cv_name = gen_string('alpha', 8)
@@ -983,26 +981,22 @@ class TestContentViewsUI(UITestCase):
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
             make_contentview(session, org=self.org_name, name=cv_name)
-            self.assertIsNotNone(
-                self.content_views.search(cv_name)
-            )
+            self.assertIsNotNone(self.content_views.search(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(
                 self.content_views.wait_until_element(
-                    common_locators["alert.success"])
+                    common_locators['alert.success'])
             )
             # Publish the CV
             self.content_views.publish(cv_name)
             self.assertIsNotNone(
                 self.content_views.wait_until_element(
-                    common_locators["alert.success"])
+                    common_locators['alert.success'])
             )
             # Copy the CV
             self.content_views.copy_view(cv_name, copy_cv_name)
-            self.assertIsNotNone(
-                self.content_views.search(copy_cv_name)
-            )
+            self.assertIsNotNone(self.content_views.search(copy_cv_name))
             self.assertEqual(
                 repo_name,
                 self.content_views.fetch_yum_content_repo_name(copy_cv_name)

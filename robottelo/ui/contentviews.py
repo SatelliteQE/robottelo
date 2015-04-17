@@ -743,20 +743,19 @@ class ContentViews(Base):
         # find content_view
         cv = self.search(cv_name)
         if cv is None:
-            raise UINoSuchElementError(
-                'Could not find CV %s', cv_name)
+            raise UINoSuchElementError('Could not find CV %s', cv_name)
         cv.click()
         self.wait_for_ajax()
         self.wait_until_element(
-            tab_locators["contentviews.tab_content"]
+            tab_locators['contentviews.tab_content']
         ).click()
         self.wait_until_element(
-            locators["contentviews.yum_repositories"]
+            locators['contentviews.yum_repositories']
         ).click()
         self.wait_for_ajax()
-        if self.wait_until_element(locators["contentviews.repo_name"]):
-            result = self.find_element(locators["contentviews.repo_name"]).text
+        if self.wait_until_element(locators['contentviews.repo_name']):
+            result = self.find_element(locators['contentviews.repo_name']).text
             return result
         else:
             raise UINoSuchElementError(
-                "Couldn't get text attribute of repository locator")
+                'Could not get text attribute of repository locator')

@@ -8,9 +8,10 @@ http://theforeman.org/api/apidoc/v2/organizations.html
 import ddt
 import httplib
 import sys
-from fauxfactory import gen_string
+from fauxfactory import gen_alphanumeric, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
@@ -303,3 +304,84 @@ class OrganizationUpdateTestCase(APITestCase):
         )
         with self.assertRaises(HTTPError):
             response.raise_for_status()
+
+    @skip_if_bug_open('bugzilla', 1103157)
+    def test_bugzilla_1103157(self):
+        """@Test: Create organization and add two compute resources
+        one by one using different transactions and different users
+        to see that they actually added, but not overwrite each other
+
+        @Feature: Organization - Update
+
+        @Steps:
+
+        1. Use the admin user to create an organization and two compute
+           resources. Make one compute resource point at / belong to the
+           organization.
+        2. Create a user and give them the ability to update compute resources
+           and organizations. Have this user make the second compute resource
+           point at / belong to the organization.
+        3. Use the admin user to read information about the organization.
+           Verify that both compute resources are pointing at / belong to the
+           organization.
+
+        @Assert: Organization contains both compute resources
+
+        """
+        compute_resource_ids = [
+            entities.ComputeResource(
+                name=gen_string('alpha'),
+                provider='Libvirt',
+                url='qemu://host.example.com/system'
+            ).create_json()['id']
+            for _ in range(2)
+        ]
+
+        client.put(
+            self.organization.path(),
+            {'organization': {
+                'compute_resource_ids': [compute_resource_ids[0]]
+            }},
+            verify=False,
+            auth=get_server_credentials(),
+        ).raise_for_status()
+
+        self.assertEqual(
+            1,
+            len(self.organization.read_json()['compute_resources']),
+        )
+
+        login = gen_alphanumeric()
+        password = gen_alphanumeric()
+        user = entities.User(login=login, password=password).create()
+
+        role_id = entities.Role().create_json()['id']
+
+        for perm in ['edit_compute_resources', 'edit_organizations']:
+            permission_ids = [
+                permission['id']
+                for permission
+                in entities.Permission(name=perm).search()
+            ]
+            entities.Filter(permission=permission_ids, role=role_id).create()
+
+        client.put(
+            user.path(),
+            {u'user': {u'role_ids': [role_id]}},
+            auth=get_server_credentials(),
+            verify=False,
+        ).raise_for_status()
+
+        client.put(
+            self.organization.path(),
+            {'organization': {
+                'compute_resource_ids': [compute_resource_ids[1]]
+            }},
+            verify=False,
+            auth=(login, password),
+        ).raise_for_status()
+
+        self.assertEqual(
+            2,
+            len(self.organization.read_json()['compute_resources']),
+        )
