@@ -523,3 +523,9 @@ PERMISSIONS = {
 
 ANY_CONTEXT = {'org': "Any Organization",
                'location': "Any Location"}
+
+SUBNET_IPAM_TYPES = {
+    'dhcp': 'DHCP',
+    'internal': 'Internal DB',
+    'none': 'None',
+}

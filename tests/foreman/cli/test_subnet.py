@@ -3,9 +3,15 @@
 
 from ddt import ddt
 from fauxfactory import gen_string, gen_integer, gen_ipaddr
-from robottelo.cli.factory import make_subnet, CLIFactoryError
+from robottelo.cli.factory import make_domain, make_subnet, CLIFactoryError
 from robottelo.cli.subnet import Subnet
-from robottelo.common.decorators import bz_bug_is_open, data, run_only_on
+from robottelo.common.constants import SUBNET_IPAM_TYPES
+from robottelo.common.decorators import (
+    bz_bug_is_open,
+    data,
+    run_only_on,
+    skip_if_bug_open,
+)
 from robottelo.test import CLITestCase
 import re
 
@@ -67,6 +73,58 @@ class TestSubnet(CLITestCase):
             self.fail(err)
         self.assertEqual(subnet['from'], from_ip)
         self.assertEqual(subnet['to'], to_ip)
+
+    def test_create_subnet_with_domain(self):
+        """@Test: Check if subnet with domain can be created
+
+        @Feature: Subnet - Positive create
+
+        @Assert: Subnet is created and has new domain assigned
+
+        """
+        try:
+            domain = make_domain()
+            subnet = make_subnet({'domain-ids': domain['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertIn(domain['name'], subnet['domains'])
+
+    def test_create_subnet_with_gateway(self):
+        """@Test: Check if subnet with gateway can be created
+
+        @Feature: Subnet - Positive create
+
+        @Assert: Subnet is created and has gateway assigned
+
+        """
+        try:
+            gateway = gen_ipaddr(ip3=True)
+            subnet = make_subnet({'gateway': gateway})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertIn(gateway, subnet['gateway'])
+
+    @skip_if_bug_open('bugzilla', 1213437)
+    @data(
+        SUBNET_IPAM_TYPES['dhcp'],
+        SUBNET_IPAM_TYPES['internal'],
+        SUBNET_IPAM_TYPES['none'],
+    )
+    def test_create_subnet_with_ipam(self, ipam_type):
+        """@Test: Check if subnet with different ipam types can be created
+
+        @Feature: Subnet - Positive create
+
+        @Assert: Subnet is created and correct ipam type is assigned
+
+        @BZ: 1213437
+
+        """
+        try:
+            subnet = make_subnet({'ipam': ipam_type})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertIn(ipam_type, subnet['ipam'])
 
     @data(
         {u'name': ''},
