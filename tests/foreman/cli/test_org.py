@@ -1458,15 +1458,13 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @stubbed()
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
+    @stubbed("Needs to be re-worked!")
+    @data({'name': gen_string("latin1")},
+          {'name': gen_string("utf8")},
+          {'name': gen_string("alpha")},
+          {'name': gen_string("alphanumeric")},
+          {'name': gen_string("numeric")},
+          {'name': gen_string("html")})
     def test_add_smartproxy_1(self, test_data):
         """@test: Add a smart proxy by using organization name and smartproxy name
 
@@ -1474,11 +1472,14 @@ class TestOrg(CLITestCase):
 
         @assert: smartproxy is added
 
-        @status: manual
-
         """
-
-        pass
+        org_result = make_org()
+        proxy_result = make_proxy({'name': test_data['name']})
+        return_value = Org.add_smart_proxy({
+            'name': org_result['name'],
+            'smart-proxy': proxy_result['name']})
+        self.assertEqual(return_value.return_code, 0)
+        self.assertEqual(len(return_value.stderr), 0)
 
     @run_only_on('sat')
     @stubbed()
