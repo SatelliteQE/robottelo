@@ -10,7 +10,13 @@ When testing email validation [1] and [2] should be taken into consideration.
 
 from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_string
-from robottelo.cli.factory import CLIFactoryError, make_user, make_role
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_location,
+    make_org,
+    make_role,
+    make_user,
+)
 from robottelo.cli.user import User as UserObj
 from robottelo.common.decorators import data, stubbed, skip_if_bug_open
 from robottelo.test import CLITestCase
@@ -246,6 +252,50 @@ class User(CLITestCase):
         except CLIFactoryError as err:
             self.fail(err)
         self.__assert_exists(args)
+
+    @skip_if_bug_open('bugzilla', 1213426)
+    def test_create_user_with_default_location(self):
+        """@Test: Check if user with default location can be created
+
+        @Feature: User - Positive create
+
+        @Assert: User is created and has new default location assigned
+
+        @BZ: 1213426
+
+        """
+        try:
+            location = make_location()
+            user = make_user({
+                'location-ids': location['id'],
+                'default-location-id': location['id'],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertIn(location['name'], user['locations'])
+        self.assertEqual(location['name'], user['default-location'])
+
+    @skip_if_bug_open('bugzilla', 1213426)
+    def test_create_user_with_defaut_org(self):
+        """@Test: Check if user with default organization can be created
+
+        @Feature: User - Positive create
+
+        @Assert: User is created and has new default organization assigned
+
+        @BZ: 1213426
+
+        """
+        try:
+            org = make_org()
+            user = make_user({
+                'organization-ids': org['id'],
+                'default-organization-id': org['id'],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertIn(org['name'], user['organizations'])
+        self.assertEqual(org['name'], user['default-organization'])
 
     @stubbed()
     def test_positive_create_user_9(self):
