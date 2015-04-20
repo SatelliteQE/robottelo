@@ -250,6 +250,30 @@ class CVPublishPromoteTestCase(APITestCase):
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             cls.puppet_repo.upload_content(handle)
 
+    def add_content_views_to_composite(self, composite_cv, cv_amount=1):
+        """Add necessary number of content views to the composite one
+
+        :param composite_cv: Composite content view object
+        :param cv_amount: Amount of content views to be added
+
+        """
+        cvv_ids = []
+        for _ in range(cv_amount):
+            content_view = entities.ContentView(
+                organization=self.org.id
+            ).create()
+            content_view.publish()
+            cvv_ids.append(content_view.read_json()['versions'][0]['id'])
+        client.put(
+            composite_cv.path(),
+            {'component_ids': cvv_ids},
+            auth=get_server_credentials(),
+            verify=False,
+        ).raise_for_status()
+        self.assertEqual(
+            len(composite_cv.read_json()['components']), cv_amount
+        )
+
     def test_positive_publish_1(self):
         """@Test: Publish a content view several times.
 
@@ -292,6 +316,85 @@ class CVPublishPromoteTestCase(APITestCase):
                 in content_view.read_json()['versions']):
             cvv = entities.ContentViewVersion(id=cvv_id)
             self.assertGreater(cvv.read_json()['package_count'], 0)
+
+    def test_publish_composite_cv_once_1(self):
+        """@Test: Create empty composite view and assign one normal content
+        view to it. After that publish that composite content view once.
+
+        @Assert: Composite content view is published and corresponding
+        version is assigned to it.
+
+        @Feature: ContentView
+
+        """
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=self.org.id,
+        ).create()
+        self.add_content_views_to_composite(composite_cv)
+        composite_cv.publish()
+        self.assertEqual(len(composite_cv.read_json()['versions']), 1)
+
+    def test_publish_composite_cv_once_2(self):
+        """@Test: Create empty composite view and assign random number of
+        normal content views to it. After that publish that composite content
+        view once.
+
+        @Assert: Composite content view is published and corresponding
+        version is assigned to it.
+
+        @Feature: ContentView
+
+        """
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=self.org.id,
+        ).create()
+        self.add_content_views_to_composite(composite_cv, random.randint(3, 5))
+        composite_cv.publish()
+        self.assertEqual(len(composite_cv.read_json()['versions']), 1)
+
+    def test_publish_composite_cv_multiple_1(self):
+        """@Test: Create empty composite view and assign one normal content
+        view to it. After that publish that composite content view several
+        times.
+
+        @Assert: Composite content view is published several times
+        and corresponding versions are assigned to it.
+
+        @Feature: ContentView
+
+        """
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=self.org.id,
+        ).create()
+        self.add_content_views_to_composite(composite_cv)
+
+        for i in range(random.randint(3, 5)):
+            composite_cv.publish()
+            self.assertEqual(len(composite_cv.read_json()['versions']), i + 1)
+
+    def test_publish_composite_cv_multiple_2(self):
+        """@Test: Create empty composite view and assign random number of
+        normal content views to it. After that publish that composite content
+        view several times.
+
+        @Assert: Composite content view is published several times
+        and corresponding versions are assigned to it.
+
+        @Feature: ContentView
+
+        """
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=self.org.id,
+        ).create()
+        self.add_content_views_to_composite(composite_cv, random.randint(3, 5))
+
+        for i in range(random.randint(3, 5)):
+            composite_cv.publish()
+            self.assertEqual(len(composite_cv.read_json()['versions']), i + 1)
 
     def test_publish_cv_with_puppet_once(self):
         """@Test: Publish a content view that has puppet module once.
@@ -534,6 +637,145 @@ class CVPublishPromoteTestCase(APITestCase):
             content_view.id,
             cv_attrs['components'][0]['content_view_id'],
         )
+
+    def test_promote_composite_cv_once_1(self):
+        """@Test: Create empty composite view and assign one normal content
+        view to it. After that promote that composite content view once.
+
+        @Assert: Composite content view version points to
+        ``Library + 1`` lifecycle environments after the promotions.
+
+        @Feature: ContentView
+
+        """
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=self.org.id,
+        ).create()
+        self.add_content_views_to_composite(composite_cv)
+        composite_cv.publish()
+
+        cvv = entities.ContentViewVersion(
+            id=composite_cv.read_json()['versions'][0]['id']
+        )
+        lc_env_id = entities.LifecycleEnvironment(
+            organization=self.org.id
+        ).create_json()['id']
+        cvv.promote(lc_env_id)
+
+        cv_attrs = composite_cv.read_json()
+        self.assertEqual(len(cv_attrs['versions']), 1)
+
+        cvv_attrs = entities.ContentViewVersion(
+            id=cv_attrs['versions'][0]['id']
+        ).read_json()
+        self.assertEqual(len(cvv_attrs['environments']), 2)
+
+    def test_promote_composite_cv_once_2(self):
+        """@Test: Create empty composite view and assign random number of
+        normal content views to it. After that promote that composite
+        content view once.
+
+        @Assert: Composite content view version points to
+        ``Library + 1`` lifecycle environments after the promotions.
+
+        @Feature: ContentView
+
+        """
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=self.org.id,
+        ).create()
+        self.add_content_views_to_composite(composite_cv, random.randint(3, 5))
+        composite_cv.publish()
+
+        cvv = entities.ContentViewVersion(
+            id=composite_cv.read_json()['versions'][0]['id']
+        )
+        lc_env_id = entities.LifecycleEnvironment(
+            organization=self.org.id
+        ).create_json()['id']
+        cvv.promote(lc_env_id)
+
+        cv_attrs = composite_cv.read_json()
+        self.assertEqual(len(cv_attrs['versions']), 1)
+
+        cvv_attrs = entities.ContentViewVersion(
+            id=cv_attrs['versions'][0]['id']
+        ).read_json()
+        self.assertEqual(len(cvv_attrs['environments']), 2)
+
+    def test_promote_composite_cv_multiple_1(self):
+        """@Test: Create empty composite view and assign one normal content
+        view to it. After that promote that composite content view
+        ``Library + random`` times.
+
+        @Assert: Composite content view version points to
+        ``Library + random`` lifecycle environments after the promotions.
+
+        @Feature: ContentView
+
+        """
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=self.org.id,
+        ).create()
+        self.add_content_views_to_composite(composite_cv)
+        composite_cv.publish()
+
+        cvv = entities.ContentViewVersion(
+            id=composite_cv.read_json()['versions'][0]['id']
+        )
+        envs_amount = random.randint(3, 5)
+        for _ in range(envs_amount):
+            lc_env_id = entities.LifecycleEnvironment(
+                organization=self.org.id
+            ).create_json()['id']
+            cvv.promote(lc_env_id)
+
+        cv_attrs = composite_cv.read_json()
+        self.assertEqual(len(cv_attrs['versions']), 1)
+
+        cvv_attrs = entities.ContentViewVersion(
+            id=cv_attrs['versions'][0]['id']
+        ).read_json()
+        self.assertEqual(len(cvv_attrs['environments']), envs_amount + 1)
+
+    def test_promote_composite_cv_multiple_2(self):
+        """@Test: Create empty composite view and assign random number of
+        normal content views to it. After that promote that composite content
+        view ``Library + random`` times.
+
+        @Assert: Composite content view version points to
+        ``Library + random`` lifecycle environments after the promotions.
+
+        @Feature: ContentView
+
+        """
+        composite_cv = entities.ContentView(
+            composite=True,
+            organization=self.org.id,
+        ).create()
+        self.add_content_views_to_composite(composite_cv, random.randint(3, 5))
+        composite_cv.publish()
+
+        cvv = entities.ContentViewVersion(
+            id=composite_cv.read_json()['versions'][0]['id']
+        )
+        envs_amount = random.randint(3, 5)
+        for _ in range(envs_amount):
+            lc_env_id = entities.LifecycleEnvironment(
+                organization=self.org.id
+            ).create_json()['id']
+            cvv.promote(lc_env_id)
+
+        cv_attrs = composite_cv.read_json()
+        self.assertEqual(len(cv_attrs['versions']), 1)
+
+        cvv_attrs = entities.ContentViewVersion(
+            id=cv_attrs['versions'][0]['id']
+        ).read_json()
+        self.assertEqual(len(cvv_attrs['environments']), envs_amount + 1)
 
 
 @ddt
