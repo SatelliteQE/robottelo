@@ -22,8 +22,12 @@ from ddt import ddt
 from fauxfactory import gen_string, gen_url
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.common import conf
-from robottelo.common.decorators import data, run_only_on
-from robottelo.cli.factory import make_compute_resource
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.cli.factory import (
+    CLIFactoryError,
+    make_compute_resource,
+    make_location,
+)
 from robottelo.common.constants import FOREMAN_PROVIDERS
 from robottelo.test import CLITestCase
 
@@ -158,6 +162,52 @@ class TestComputeResource(CLITestCase):
 
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
+
+    def test_create_compute_resource_with_location(self):
+        """@Test: Create Compute Resource with location
+
+        @Feature: Compute Resource - Location Create
+
+        @Assert: Compute resource is created and has location assigned
+
+        """
+        try:
+            location = make_location()
+            comp_resource = make_compute_resource({
+                'location-ids': location['id'],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertEqual(1, len(comp_resource['locations']))
+        self.assertEqual(comp_resource['locations'][0], location['name'])
+
+    @skip_if_bug_open('bugzilla', 1214312)
+    @data(u'True', u'Yes', 1, u'False', u'No', 0)
+    def test_create_comp_res_with_console_password(self, console_password):
+        """@Test: Create Compute Resource with different values of
+        set-console-password parameter
+
+        @Feature: Compute Resource - Set Console Password
+
+        @Assert: Compute Resource is created and set-console-password
+        parameter is set
+
+        @BZ: 1214312
+
+        """
+        try:
+            comp_resource = make_compute_resource({
+                u'url': gen_url(),
+                u'provider': FOREMAN_PROVIDERS['libvirt'],
+                u'set-console-password': console_password,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+        result = ComputeResource.info({'id': comp_resource['id']})
+        if console_password in (u'True', u'Yes', 1):
+            self.assertEqual(result.stdout['set-console-password'], u'true')
+        else:
+            self.assertEqual(result.stdout['set-console-password'], u'false')
 
     # Negative create
 
