@@ -1098,26 +1098,31 @@ class TestSmoke(TestCase):
         ).promote(lifecycle_env['id'])
 
         # step 7: Create activation key
-        ak_id = entities.ActivationKey(
+        activation_key = entities.ActivationKey(
             name=activation_key_name,
             environment=lifecycle_env['id'],
             organization=org['id'],
             content_view=content_view['id'],
-        ).create_json()['id']
-
-        # Walk through the list of subscriptions. Find the "Red Hat Employee
-        # Subscription" and attach it to the just-created activation key.
+        ).create()
+        # step 7.1: Walk through the list of subscriptions.
+        # Find the "Red Hat Employee Subscription" and attach it to the
+        # recently-created activation key.
         for subscription in entities.Organization(id=org['id']).subscriptions():
             if subscription['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
                 # 'quantity' must be 1, not subscription['quantity']. Greater
                 # values produce this error: "RuntimeError: Error: Only pools
                 # with multi-entitlement product subscriptions can be added to
                 # the activation key with a quantity greater than one."
-                entities.ActivationKey(id=ak_id).add_subscriptions({
+                activation_key.add_subscriptions({
                     'quantity': 1,
                     'subscription_id': subscription['id'],
                 })
                 break
+        # step 7.2: Enable product content
+        activation_key.content_override(
+            content_label=u'rhel-6-server-rhev-agent-rpms',
+            value=u'1',
+        )
 
         # Create VM
         package_name = "python-kitchen"
@@ -1149,17 +1154,6 @@ class TestSmoke(TestCase):
             self.assertEqual(
                 result.return_code, 0,
                 "failed to register client:: {0} and return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
-            # Enable Red Hat Enterprise Virtualization Agents repo via cli
-            # As the below repo is disabled by default under ak's prd-content
-            result = vm.run(
-                'subscription-manager repos --enable '
-                'rhel-6-server-rhev-agent-rpms'
-            )
-            self.assertEqual(
-                result.return_code, 0,
-                "Enabling repo failed: {0} and return code: {1}"
                 .format(result.stderr, result.return_code)
             )
             # Install contents from sat6 server

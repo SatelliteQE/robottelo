@@ -665,6 +665,13 @@ class TestSmoke(CLITestCase):
             "Failed to add subscription: {0} and return code: {1}"
             .format(result.stderr, result.return_code)
         )
+        # Enable product content
+        ActivationKey.content_override({
+            u'id': activation_key['id'],
+            u'organization-id': new_org['id'],
+            u'content-label': 'rhel-6-server-rhev-agent-rpms',
+            u'value': '1',
+        })
         # Create VM
         package_name = "python-kitchen"
         server_name = conf.properties['main.server.hostname']
@@ -696,17 +703,6 @@ class TestSmoke(CLITestCase):
             self.assertEqual(
                 result.return_code, 0,
                 "failed to register client:: {0} and return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
-            # Enable Red Hat Enterprise Virtualization Agents repo via cli
-            # As the below repo is disabled by default under ak's prd-content
-            result = vm.run(
-                'subscription-manager repos --enable '
-                'rhel-6-server-rhev-agent-rpms'
-            )
-            self.assertEqual(
-                result.return_code, 0,
-                "Enabling repo failed: {0} and return code: {1}"
                 .format(result.stderr, result.return_code)
             )
             # Install contents from sat6 server
