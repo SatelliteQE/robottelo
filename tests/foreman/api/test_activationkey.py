@@ -184,15 +184,13 @@ class ActivationKeysTestCase(APITestCase):
         """
         # Create an activation key.
         try:
-            activation_key = entities.ActivationKey(
-                id=entities.ActivationKey().create_json()['id']
-            )
+            activation_key = entities.ActivationKey().create()
         except HTTPError as err:
             self.fail(err)
 
         # Update the activation key.
-        description = entities.ActivationKey.description.gen_value()
-        response = client.put(
+        description = activation_key.get_fields()['description'].gen_value()
+        client.put(
             activation_key.path(),
             {
                 'description': description,
@@ -201,14 +199,13 @@ class ActivationKeysTestCase(APITestCase):
             },
             auth=get_server_credentials(),
             verify=False,
-        )
-        response.raise_for_status()
+        ).raise_for_status()
 
         # Fetch the activation key. Assert that values have been updated.
-        real_attrs = activation_key.read_json()
-        self.assertEqual(real_attrs['description'], description)
-        self.assertEqual(real_attrs['max_content_hosts'], max_content_hosts)
-        self.assertFalse(real_attrs['unlimited_content_hosts'])
+        activation_key = activation_key.read()
+        self.assertEqual(activation_key.description, description)
+        self.assertEqual(activation_key.max_content_hosts, max_content_hosts)
+        self.assertFalse(activation_key.unlimited_content_hosts)
 
     @data(
         gen_string(str_type='alpha'),

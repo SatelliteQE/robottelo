@@ -785,13 +785,14 @@ class ContentViewUpdateTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         """Create a content view."""
-        cls.content_view = entities.ContentView(
-            id=entities.ContentView().create_json()['id']
-        )
+        cls.content_view = entities.ContentView().create()
 
     @data(
-        {u'name': entities.ContentView.name.gen_value()},
-        {u'description': entities.ContentView.description.gen_value()},
+        {u'name': entities.ContentView().get_fields()['name'].gen_value()},
+        {
+            u'description':
+            entities.ContentView().get_fields()['description'].gen_value()
+        },
     )
     def test_positive_update(self, attrs):
         """@Test: Update a content view and provide valid attributes.
