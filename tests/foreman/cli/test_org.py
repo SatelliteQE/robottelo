@@ -584,6 +584,22 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             result.stdout['compute-resources'][0], compute_res['name'])
 
+    def test_add_computeresource_by_id(self):
+        """@Test: Check if a Compute Resource can be added to an Org by ID
+
+        @Feature: Org - Compute Resource
+
+        @Assert: Compute Resource is added to the org
+
+        """
+        try:
+            compute_res = make_compute_resource()
+            org = make_org({'compute-resource-ids': compute_res['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertEqual(1, len(org['compute-resources']))
+        self.assertEqual(org['compute-resources'][0], compute_res['name'])
+
     @run_only_on('sat')
     @stubbed()
     def test_remove_computeresource(self):
@@ -669,6 +685,24 @@ class TestOrg(CLITestCase):
         self.assertIn(
             u'{0} ({1})'. format(template['name'], template['type']),
             result.stdout['templates']
+        )
+
+    def test_add_configtemplate_by_id(self):
+        """@Test: Check if a Config Template can be added to an Org by ID
+
+        @Feature: Org - Config Template
+
+        @Assert: Config Template is added to the org
+
+        """
+        try:
+            conf_templ = make_template()
+            org = make_org({'config-template-ids': conf_templ['id']})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertIn(
+            u'{0} ({1})'.format(conf_templ['name'], conf_templ['type']),
+            org['templates']
         )
 
     @run_only_on('sat')
