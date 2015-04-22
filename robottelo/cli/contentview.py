@@ -154,7 +154,13 @@ class ContentView(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def version_destroy(cls, options):
+    def version_delete(cls, options):
         """Removes content-view version."""
-        cls.command_sub = 'version destroy'
+        cls.command_sub = 'version delete'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def remove_from_environment(cls, options=None):
+        """Remove content-view from an enviornment"""
+        cls.command_sub = 'remove-from-environment'
         return cls.execute(cls._construct_command(options))
