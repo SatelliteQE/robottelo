@@ -271,6 +271,50 @@ class TestContentView(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0)
 
+    def test_delete_cv_version(self):
+        """@test: delete content view version
+
+        @feature: Content Views
+
+        @assert: content-view version deleted successfully
+
+        """
+        # Create new organization, product and repository
+        new_org = make_org({u'name': gen_alphanumeric()})
+        new_product = make_product({u'organization-id': new_org['id']})
+        new_repo = make_repository({u'product-id': new_product['id']})
+        # Sync REPO
+        result = Repository.synchronize({'id': new_repo['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        # Create new content-view and add repository to view
+        new_cv = make_content_view({u'organization-id': new_org['id']})
+        result = ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': new_repo['id'],
+            u'organization-id': new_org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        # Publish a version1 of CV
+        result = ContentView.publish({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0)
+        # Get the CV info
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0)
+        # Store the associated environment_id
+        env_id = result.stdout['lifecycle-environments'][0]['id']
+        # Store the version1 id
+        version1_id = result.stdout['versions'][0]['id']
+        # Remove the CV from selected environment
+        result = ContentView.remove_from_environment({
+            u'id': new_cv['id'],
+            u'lifecycle-environment-id': env_id,
+        })
+        self.assertEqual(result.return_code, 0)
+        # Delete the version
+        result = ContentView.version_delete({u'id': version1_id})
+        self.assertEqual(result.return_code, 0)
+
     def test_cv_composite_create(self):
         # Note: puppet repos cannot/should not be used in this test
         # It shouldn't work - and that is tested in a different case.
