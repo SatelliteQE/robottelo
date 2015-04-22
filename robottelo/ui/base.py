@@ -84,7 +84,12 @@ class Base(object):
 
         # Do not proceed if searchbox is not found
         if searchbox is None:
-            raise UINoSuchElementError('Search box not found.')
+            # For katello, search box should be always present on the page
+            # no matter we have entity on the page or not...
+            if katello:
+                raise UINoSuchElementError('Search box not found.')
+            # ...but not for foreman
+            return None
         else:
             searchbox.clear()
             if search_button:
