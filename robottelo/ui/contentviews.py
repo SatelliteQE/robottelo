@@ -118,38 +118,32 @@ class ContentViews(Base):
         self.wait_until_element(locators['contentviews.next_button']).click()
         self.wait_for_ajax()
 
-    def delete_version(self, name, env, cv, is_affected_comps=False,
-                       really=True):
-        """Deletes published content view's version and handles the associated
-        entities before deleting the selected CV.
+    def delete_version(self, name, version):
+        """Deletes published content view's version"""
 
-        """
         element = self.search(name)
 
-        if element:
-            element.click()
-            self.wait_for_ajax()
-            self.wait_until_element(locators['contentviews.remove']).click()
-            self.wait_for_ajax()
-            self.wait_until_element(
-                locators['contentviews.remove_cv_version']).click()
-            self.wait_for_ajax()
-            self.wait_until_element(
-                locators['contentviews.remove_checkbox']).click()
-            self.wait_until_element(
-                locators['contentviews.next_button']).click()
-            if is_affected_comps:
-                rm_ver = self.wait_until_element(
-                    locators['contentviews.remove_ver'])
-                while not rm_ver:
-                    self.move_affected_components(env, cv)
-            self.find_element(
-                locators['contentviews.remove_ver']).click()
-            self.wait_for_ajax()
-        else:
+        if element is None:
             raise UIError(
                 'Could not find the "{0}" content view.'.format(name)
             )
+        element.click()
+        self.wait_for_ajax()
+        strategy, value = locators['contentviews.remove']
+        remove_version = self.wait_until_element((strategy, value % version))
+        if remove_version is None:
+            raise UINoSuchElementError(
+                'Could not find button to delete version "{0}"'.format(version)
+            )
+        remove_version.click()
+        self.wait_for_ajax()
+        self.wait_until_element(
+            locators['contentviews.completely_remove_checkbox']
+        ).click()
+        self.wait_until_element(locators['contentviews.next_button']).click()
+        self.wait_for_ajax()
+        self.find_element(locators['contentviews.confirm_remove']).click()
+        self.wait_for_ajax()
 
     def search(self, element_name):
         """Uses the search box to locate an element from a list of elements """
@@ -759,3 +753,18 @@ class ContentViews(Base):
         else:
             raise UINoSuchElementError(
                 'Could not get text attribute of repository locator')
+
+    def validate_version_deleted(self, cv_name, version):
+        """Ensures the version is deleted from selected CV"""
+        element = self.search(cv_name)
+        if element is None:
+            raise UINoSuchElementError('Could not find CV %s', cv_name)
+        element.click()
+        self.wait_for_ajax()
+        strategy, value = locators['contentviews.version_name']
+        removed_version = self.find_element((strategy, value % version))
+        if removed_version:
+            raise UIError(
+                'Selected version "{0}" was not deleted successfully'
+                .format(version)
+            )

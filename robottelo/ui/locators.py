@@ -1414,12 +1414,13 @@ locators = LocatorDict({
         By.XPATH, "//div[contains(@class, 'has-error') and "
                   "contains(@class, 'form-group')]"),
     "contentviews.remove": (
-        By.XPATH, "//button[@ui-sref='content-views.details.deletion']"),
+        By.XPATH, ("//td/a[contains(., '%s')]/following::td/"
+                   "button[contains(@ui-sref, 'version-deletion')]")),
     "contentviews.remove_cv": (
         By.XPATH, "//button[@ng-click='removeContentViews()']"),
     "contentviews.remove_cv_version": (
         By.XPATH, "//a[contains(@ui-sref, 'version-deletion')]/button"),
-    "contentviews.remove_checkbox": (
+    "contentviews.completely_remove_checkbox": (
         By.XPATH, "//span/input[contains(@ng-model, 'deleteArchive')]"),
     "contentviews.next_button": (
         By.XPATH, "//button[@ng-click='processSelection()']"),
@@ -1431,7 +1432,9 @@ locators = LocatorDict({
     "contentviews.remove_ver": (
         By.XPATH, "//div[@class='fr']/button[@ng-click='performDeletion()']"),
     "contentviews.confirm_remove": (
-        By.XPATH, "//button[@ng-click='delete()']"),
+        By.XPATH, "//button[@ng-click='performDeletion()']"),
+    "contentviews.version_name": (
+        By.XPATH, "//td/a[contains(., '%s')]"),
     "contentviews.success_rm_alert": (
         By.XPATH,
         ("//div[contains(@class, 'alert-success')]"
