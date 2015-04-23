@@ -10,6 +10,11 @@
 # Compiled python code.
 *.pyc
 
+# Distribution / packaging
+/robottelo.egg-info
+/build/
+/dist/
+
 # Test results.
 /docs/robottelo.log
 /foreman-results.xml
