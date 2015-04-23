@@ -7,15 +7,17 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nailgun import entities
+from nailgun import client, entities
 from robottelo.api import utils
 from robottelo.common import manifests
 from robottelo.common.constants import (
     FILTER_CONTENT_TYPE, FILTER_TYPE, REPO_TYPE, FAKE_1_YUM_REPO,
-    FAKE_0_PUPPET_REPO)
+    FAKE_0_PUPPET_REPO, ZOO_CUSTOM_GPG_KEY)
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
-from robottelo.common.helpers import invalid_names_list, valid_names_list
+from robottelo.common.helpers import (
+    invalid_names_list, valid_names_list, get_server_credentials,
+    read_data_file)
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
 from robottelo.ui.locators import common_locators, locators
@@ -1179,3 +1181,55 @@ class TestContentViewsUI(UITestCase):
         @status: Manual
 
         """
+
+    def test_delete_version(self):
+        """@Test: Delete a content-view version associated to 'Library'
+
+        @Assert: Deletion fails
+
+        @Feature: ContentViewVersion
+
+        """
+        key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
+        org = entities.Organization().create()
+        gpgkey_id = entities.GPGKey(
+            content=key_content,
+            organization=org.id
+        ).create_json()['id']
+        # Creates new product without selecting GPGkey
+        product_id = entities.Product(
+            organization=org.id
+        ).create_json()['id']
+        # Creates new repository with GPGKey
+        repo = entities.Repository(
+            url=FAKE_1_YUM_REPO,
+            product=product_id,
+            gpg_key=gpgkey_id,
+        ).create()
+        # sync repository
+        repo.sync()
+        # Create content view
+        cv = entities.ContentView(
+            organization=org.id
+        ).create()
+        # Associate repository to new content view
+        client.put(
+            cv.path(),
+            {u'repository_ids': [repo.id]},
+            auth=get_server_credentials(),
+            verify=False,
+        ).raise_for_status()
+        # Publish content view
+        cv.publish()
+        # Get published content-view version info
+        cv_info = entities.ContentView(id=cv.id).read_json()
+        self.assertEqual(len(cv_info['versions']), 1)
+        # API returns version like '1.0'
+        version_num = cv_info['versions'][0]['version']
+        # WebUI displays version like 'Version 1.0'
+        version = 'Version {0}'.format(version_num)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            session.nav.go_to_content_views()
+            self.content_views.delete_version(cv.name, version)
+            self.content_views.validate_version_deleted(cv.name, version)
