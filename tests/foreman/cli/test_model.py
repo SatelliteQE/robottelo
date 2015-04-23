@@ -36,7 +36,7 @@ class TestModel(MetaCLITestCase):
         @Assert: Model is created with specific vendor class
 
         """
-        vendor_class = gen_string('utf8'),
+        vendor_class = gen_string('utf8')
         model = make_model({'vendor-class': vendor_class})
         self.assertEqual(model['vendor-class'], vendor_class)
 
