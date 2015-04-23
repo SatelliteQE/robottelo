@@ -176,18 +176,6 @@ def invalid_names_list():
     ]
 
 
-class STR:
-    """Stores constants to be used in generate_string function
-    """
-
-    alphanumeric = "alphanumeric"
-    alpha = "alpha"
-    numeric = "numeric"
-    html = "html"
-    latin1 = "latin1"
-    utf8 = "utf8"
-
-
 def generate_strings_list(len1=None, remove_str=None, bug_id=None):
     """Generates a list of all the input strings.
 
