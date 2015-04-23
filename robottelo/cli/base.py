@@ -5,8 +5,8 @@ Generic base class for cli hammer commands
 
 import logging
 
+from robottelo.cli import hammer
 from robottelo.common import conf, ssh
-from robottelo.common.helpers import info_dictionary
 
 
 class CLIError(Exception):
@@ -230,11 +230,7 @@ class Base(object):
 
     @classmethod
     def info(cls, options=None):
-        """
-        Gets information by provided: options dictionary.
-        @param options: ID (sometimes name or id).
-        """
-
+        """Reads the entity information."""
         cls.command_sub = 'info'
 
         if options is None:
@@ -247,11 +243,8 @@ class Base(object):
             )
 
         result = cls.execute(cls._construct_command(options))
-
-        # info_dictionary required to convert result.stdout to dic format
-        updated_result = info_dictionary(result)
-
-        return updated_result
+        result.stdout = hammer.parse_info(result.stdout)
+        return result
 
     @classmethod
     def list(cls, options=None, per_page=True):

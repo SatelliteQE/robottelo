@@ -32,8 +32,8 @@ Options::
     -h, --help                    print help
 """
 
+from robottelo.cli import hammer
 from robottelo.cli.base import Base
-from robottelo.common.helpers import info_dictionary
 
 
 class ContentView(Base):
@@ -75,10 +75,8 @@ class ContentView(Base):
             options = {}
 
         result = cls.execute(cls._construct_command(options))
-
-        # info_dictionary required to convert result.stdout
-        # to dictionary format
-        return info_dictionary(result)
+        result.stdout = hammer.parse_info(result.stdout)
+        return result
 
     @classmethod
     def puppet_module_add(cls, options):
@@ -96,10 +94,8 @@ class ContentView(Base):
             options = {}
 
         result = cls.execute(cls._construct_command(options))
-
-        # info_dictionary required to convert result.stdout
-        # to dictionary format
-        return info_dictionary(result)
+        result.stdout = hammer.parse_info(result.stdout)
+        return result
 
     @classmethod
     def filter_info(cls, options):
@@ -111,10 +107,8 @@ class ContentView(Base):
             options = {}
 
         result = cls.execute(cls._construct_command(options))
-
-        # info_dictionary required to convert result.stdout
-        # to dictionary format
-        return info_dictionary(result)
+        result.stdout = hammer.parse_info(result.stdout)
+        return result
 
     @classmethod
     def filter_create(cls, options):
