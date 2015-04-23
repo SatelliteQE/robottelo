@@ -134,6 +134,38 @@ class TestHostCollection(CLITestCase):
         # Assert that limit matches data passed
         self.assertEqual(new_host_col['max-content-hosts'], str(test_data))
 
+    @skip_if_bug_open('bugzilla', 1214675)
+    @data(u'True', u'Yes', 1, u'False', u'No', 0)
+    def test_create_hc_with_unlimited_content_hosts(self, unlimited):
+        """@Test: Create Host Collection with different values of
+        unlimited-content-hosts parameter
+
+        @Feature: Host Collection - Unlimited Content Hosts
+
+        @Assert: Host Collection is created and unlimited-content-hosts
+        parameter is set
+
+        @BZ: 1214675
+
+        """
+        try:
+            host_collection = make_host_collection({
+                u'organization-id': self.org['id'],
+                u'unlimited-content-hosts': unlimited,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+        result = HostCollection.info({
+            u'id': host_collection['id'],
+            u'organization-id': self.org['id'],
+        })
+        if unlimited in (u'True', u'Yes', 1):
+            self.assertEqual(
+                result.stdout['unlimited-content-hosts'], u'true')
+        else:
+            self.assertEqual(
+                result.stdout['unlimited-content-hosts'], u'false')
+
     @data(
         {'name': gen_string('alpha', 300)},
         {'name': gen_string('alphanumeric', 300)},
