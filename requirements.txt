@@ -1,20 +1,7 @@
-# For all tests.
-ddt
-fauxfactory
-nailgun==0.8.1
-python-bugzilla
-
-# For API tests.
-requests
-rstr
-
-# For CLI tests.
-paramiko
+--editable .
 
 # For Installer tests.
 git+https://github.com/SatelliteQE/automation-tools.git
 
 # For UI tests.
-selenium
 git+https://github.com/smartkiwi/SeleniumFactory-for-Python.git#egg=SeleniumFactory
-sauceclient
