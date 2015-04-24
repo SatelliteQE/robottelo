@@ -570,8 +570,9 @@ API_PATHS = {
         u'/katello/api/organizations/:organization_id/products/:product_id/sync',
     ),
     u'system_errata': (
-        u'/katello/api/systems/:system_id/errata/apply',
+        u'/katello/api/systems/:system_id/errata',
         u'/katello/api/systems/:system_id/errata/:id',
+        u'/katello/api/systems/:system_id/errata/apply',
     ),
     u'system_packages': (
         u'/katello/api/systems/:system_id/packages/install',
@@ -597,7 +598,6 @@ API_PATHS = {
         u'/katello/api/systems/:id',
         u'/katello/api/systems/:id',
         u'/katello/api/systems/:id/available_host_collections',
-        u'/katello/api/systems/:id/errata',
         u'/katello/api/systems/:id/events',
         u'/katello/api/systems/:id/packages',
         u'/katello/api/systems/:id/pools',
