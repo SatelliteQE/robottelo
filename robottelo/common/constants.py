@@ -174,6 +174,7 @@ DEFAULT_ORG = "Default Organization"
 #: Name (not label!) of the default location.
 DEFAULT_LOC = "Default Location"
 DEFAULT_CV = "Default Organization View"
+DEFAULT_SUBSCRIPTION_NAME = 'Employee SKU'
 
 LANGUAGES = ["en", "en_GB",
              "fr", "gl",

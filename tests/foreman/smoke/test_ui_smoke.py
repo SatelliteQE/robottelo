@@ -5,8 +5,17 @@ from fauxfactory import gen_string, gen_ipaddr
 from robottelo.common import conf
 from robottelo.common import manifests
 from robottelo.common.constants import (
-    FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO, REPO_TYPE, FOREMAN_PROVIDERS,
-    DOMAIN, DEFAULT_ORG, DEFAULT_LOC, RHVA_REPO_TREE, REPOSET)
+    DEFAULT_LOC,
+    DEFAULT_ORG,
+    DEFAULT_SUBSCRIPTION_NAME,
+    DOMAIN,
+    FAKE_0_PUPPET_REPO,
+    FOREMAN_PROVIDERS,
+    GOOGLE_CHROME_REPO,
+    REPOSET,
+    REPO_TYPE,
+    RHVA_REPO_TREE,
+)
 from robottelo.common.decorators import bz_bug_is_open
 from robottelo.common.ssh import upload_file
 from robottelo.test import UITestCase
@@ -229,7 +238,7 @@ class TestSmoke(UITestCase):
         cv_name = gen_string("alpha", 6)
         activation_key_name = gen_string("alpha", 6)
         env_name = gen_string("alpha", 6)
-        product_name = "Red Hat Employee Subscription"
+        product_name = DEFAULT_SUBSCRIPTION_NAME
         repo_names = [
             "Red Hat Enterprise Virtualization Agents for RHEL 6 Server "
             "RPMs x86_64 6.5",
