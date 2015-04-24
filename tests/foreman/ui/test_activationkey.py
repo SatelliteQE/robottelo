@@ -7,7 +7,13 @@ from nailgun import client, entities
 from robottelo.api import utils
 from robottelo.common import manifests
 from robottelo.common.constants import (
-    ENVIRONMENT, FAKE_1_YUM_REPO, FAKE_2_YUM_REPO, DEFAULT_CV, REPO_TYPE)
+    DEFAULT_CV,
+    DEFAULT_SUBSCRIPTION_NAME,
+    ENVIRONMENT,
+    FAKE_1_YUM_REPO,
+    FAKE_2_YUM_REPO,
+    REPO_TYPE,
+)
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import (
@@ -1068,7 +1074,7 @@ class ActivationKey(UITestCase):
             'basearch': "x86_64",
             'releasever': "6Server",
         }
-        product_subscription = "Red Hat Employee Subscription"
+        product_subscription = DEFAULT_SUBSCRIPTION_NAME
         # Create new org to import manifest
         org_attrs = entities.Organization().create_json()
         org_id = org_attrs['id']
@@ -1147,7 +1153,7 @@ class ActivationKey(UITestCase):
             'basearch': "x86_64",
             'releasever': "6Server",
         }
-        product_subscription = "Red Hat Employee Subscription"
+        product_subscription = DEFAULT_SUBSCRIPTION_NAME
         custom_product_name = gen_string("alpha", 8)
         repo_name = gen_string("alpha", 8)
         # Create new org to import manifest

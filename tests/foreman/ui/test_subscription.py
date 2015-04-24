@@ -3,6 +3,7 @@
 from ddt import ddt
 from nailgun import entities
 from robottelo.common import manifests
+from robottelo.common.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.common.decorators import skipRemote
 from robottelo.common.ssh import upload_file
 from robottelo.test import UITestCase
@@ -86,4 +87,4 @@ class SubscriptionTestCase(UITestCase):
             self.assertTrue(self.subscriptions.wait_until_element(alert_loc))
             self.assertTrue(self.subscriptions.wait_until_element(del_mf))
             self.assertIsNone(
-                self.subscriptions.search("Red Hat Employee Subscription"))
+                self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))

@@ -21,7 +21,12 @@ from robottelo.cli.subnet import Subnet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.common.constants import (
-    DEFAULT_LOC, DEFAULT_ORG, FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO)
+    DEFAULT_LOC,
+    DEFAULT_ORG,
+    DEFAULT_SUBSCRIPTION_NAME,
+    FAKE_0_PUPPET_REPO,
+    GOOGLE_CHROME_REPO
+)
 from robottelo.common.helpers import generate_strings_list
 from robottelo.common import manifests
 from robottelo.common.ssh import upload_file
@@ -641,7 +646,7 @@ class TestSmoke(CLITestCase):
         )
         # Get the subscription ID from subscriptions list
         for subscription in result.stdout:
-            if subscription['name'] == "Red Hat Employee Subscription":
+            if subscription['name'] == DEFAULT_SUBSCRIPTION_NAME:
                 subscription_id = subscription['id']
                 subscription_quantity = int(subscription['quantity'])
         self.assertGreater(

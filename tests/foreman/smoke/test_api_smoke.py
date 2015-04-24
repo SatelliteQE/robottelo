@@ -5,7 +5,12 @@ from nailgun import client, entities
 from robottelo.api import utils
 from robottelo.api.utils import status_code_error
 from robottelo.common.constants import (
-    DEFAULT_LOC, DEFAULT_ORG, FAKE_0_PUPPET_REPO, GOOGLE_CHROME_REPO)
+    DEFAULT_LOC,
+    DEFAULT_ORG,
+    DEFAULT_SUBSCRIPTION_NAME,
+    FAKE_0_PUPPET_REPO,
+    GOOGLE_CHROME_REPO,
+)
 from robottelo.common.decorators import bz_bug_is_open, skip_if_bug_open
 from robottelo.common.helpers import (
     get_distro_info,
@@ -1103,7 +1108,7 @@ class TestSmoke(TestCase):
         # Walk through the list of subscriptions. Find the "Red Hat Employee
         # Subscription" and attach it to the just-created activation key.
         for subscription in entities.Organization(id=org['id']).subscriptions():
-            if subscription['product_name'] == "Red Hat Employee Subscription":
+            if subscription['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
                 # 'quantity' must be 1, not subscription['quantity']. Greater
                 # values produce this error: "RuntimeError: Error: Only pools
                 # with multi-entitlement product subscriptions can be added to
