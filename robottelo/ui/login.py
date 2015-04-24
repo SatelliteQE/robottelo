@@ -1,7 +1,8 @@
 # -*- encoding: utf-8 -*-
 """Implements Login UI"""
-
+import requests
 from robottelo.ui.base import Base, UINoSuchElementError
+from robottelo.common.helpers import get_server_url
 from robottelo.ui.locators import locators, common_locators
 from robottelo.ui.navigator import Navigator
 
@@ -38,8 +39,22 @@ class Login(Base):
         self.wait_for_ajax()
 
     def is_logged(self):
-        """Checks whether an user is logged"""
-        if self.wait_until_element(locators["login.gravatar"]):
-            return True
-        else:
-            return False
+        """Checks whether user is logged by validating a session cookie"""
+        cookies = dict(
+            (cookie['name'], cookie['value'])
+            for cookie in self.browser.get_cookies()
+        )
+        # construct the link to the Dashboard web page
+        url_root = get_server_url() + '/dashboard'
+
+        response = requests.get(
+            url_root,
+            verify=False,
+            allow_redirects=False,
+            cookies=cookies
+        )
+        response.raise_for_status()
+        return (
+            response.status_code != 302
+            or not response.headers['location'].endswith('/login')
+        )
