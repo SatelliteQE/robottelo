@@ -1,21 +1,12 @@
-"""
-Utility module to handle the shared ssh connection
-"""
-
+"""Utility module to handle the shared ssh connection."""
 import json
 import logging
+import paramiko
 import re
-import sys
 
 from contextlib import contextmanager
+from robottelo.cli import hammer
 from robottelo.common import conf
-from robottelo.common.helpers import csv_to_dictionary
-
-try:
-    import paramiko
-except ImportError:
-    print "Please install paramiko."
-    sys.exit(-1)
 
 logger = logging.getLogger(__name__)
 
@@ -32,7 +23,7 @@ class SSHCommandResult(object):
         #  Does not make sense to return suspicious output if ($? <> 0)
         if output_format and self.return_code == 0:
             if output_format == 'csv':
-                self.stdout = csv_to_dictionary(stdout) if stdout else {}
+                self.stdout = hammer.parse_csv(stdout) if stdout else {}
             if output_format == 'json':
                 self.stdout = json.loads(stdout) if stdout else None
 

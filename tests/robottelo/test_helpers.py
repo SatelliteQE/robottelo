@@ -1,11 +1,16 @@
 """Tests for module ``robottelo.common.helpers``."""
 # (Too many public methods) pylint: disable=R0904
 import unittest
+
 from robottelo.common import conf
 from robottelo.common.helpers import (
-    escape_search, generate_strings_list, get_server_url,
-    get_server_credentials, info_dictionary, invalid_names_list,
-    valid_data_list, valid_names_list,
+    escape_search,
+    generate_strings_list,
+    get_server_credentials,
+    get_server_url,
+    invalid_names_list,
+    valid_data_list,
+    valid_names_list,
 )
 
 
@@ -166,90 +171,3 @@ class EscapeSearchTestCase(unittest.TestCase):
         term = escape_search('term')
         self.assertEqual(term[0], '"')
         self.assertEqual(term[-1], '"')
-
-
-class InfoDictionaryTestCase(unittest.TestCase):
-    def test_parse_simple(self):
-        """Can parse a simple info output"""
-        output = FakeSSHResult(stdout=[
-            'Id:                 19',
-            'Full name:          4iv01o2u 10.5',
-            'Release name:',
-            '',
-            'Family:',
-            'Name:               4iv01o2u',
-            'Major version:      10',
-            'Minor version:      5',
-        ])
-
-        result = info_dictionary(output)
-        self.assertDictEqual(result.stdout, {
-            'id': '19',
-            'full-name': '4iv01o2u 10.5',
-            'release-name': {},
-            'family': {},
-            'name': '4iv01o2u',
-            'major-version': '10',
-            'minor-version': '5',
-        })
-
-    def test_parse_numbered_list_attributes(self):
-        """Can parse numbered list attributes"""
-        output = FakeSSHResult(stdout=[
-            'Partition tables:',
-            ' 1) ptable1',
-            ' 2) ptable2',
-            ' 3) ptable3',
-            ' 4) ptable4',
-        ])
-
-        result = info_dictionary(output)
-        self.assertDictEqual(result.stdout, {
-            'partition-tables': [
-                'ptable1',
-                'ptable2',
-                'ptable3',
-                'ptable4',
-            ],
-        })
-
-    def test_parse_list_attributes(self):
-        """Can parse list attributes"""
-        output = FakeSSHResult(stdout=[
-            'Partition tables:',
-            ' ptable1',
-            ' ptable2',
-            ' ptable3',
-            ' ptable4',
-        ])
-
-        result = info_dictionary(output)
-        self.assertDictEqual(result.stdout, {
-            'partition-tables': [
-                'ptable1',
-                'ptable2',
-                'ptable3',
-                'ptable4',
-            ],
-        })
-
-    def test_parse_dict_attributes(self):
-        """Can parse dict attributes"""
-        output = FakeSSHResult(stdout=[
-            'Content:',
-            ' 1) Repo Name: repo1',
-            '    URL:       /custom/url1',
-            ' 2) Repo Name: repo2',
-            '    URL:       /custom/url2',
-        ])
-
-        result = info_dictionary(output)
-        self.assertDictEqual(result.stdout, {
-            'content': [{
-                'repo-name': 'repo1',
-                'url': '/custom/url1',
-            }, {
-                'repo-name': 'repo2',
-                'url': '/custom/url2',
-            }],
-        })
