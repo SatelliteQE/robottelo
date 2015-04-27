@@ -173,3 +173,93 @@ class TestEnvironment(MetaCLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(result.stdout['name'], updates_dict['new-name'])
+
+    @data(*NEGATIVE_UPDATE_DATA)
+    def test_update_negative(self, test_data):
+        """@Test: Update the environment with invalid values
+
+        @Feature: Environment - Update
+
+        @Assert: Environment is not updated
+
+        """
+        orig_dict, updates_dict = test_data
+        try:
+            env = make_environment({'name': orig_dict['name']})
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        result = Environment.update({
+            'name': orig_dict['name'],
+            'new-name': updates_dict['new-name']
+        })
+        self.assertNotEqual(result.return_code, 0)
+        self.assertNotEqual(len(result.stderr), 0)
+
+        result = Environment.info({'id': env['id']})
+        # Verify that value is not updated and left as it was before update
+        # command was executed
+        self.assertEqual(result.stdout['name'], orig_dict['name'])
+        self.assertNotEqual(result.stdout['name'], updates_dict['new-name'])
+
+    def test_update_location(self):
+        """@Test: Update environment location with new value
+
+        @Feature: Environment - Update
+
+        @Assert: Environment Update finished and new location is assigned
+
+        """
+        try:
+            old_loc = make_location()
+            new_loc = make_location()
+            env_name = gen_string('alphanumeric', 10)
+            make_environment({
+                'name': env_name,
+                'location-ids': old_loc['id'],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+        result = Environment.info({'name': env_name})
+        self.assertIn(old_loc['name'], result.stdout['locations'])
+
+        result = Environment.update({
+            'name': env_name,
+            'location-ids': new_loc['id']
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = Environment.info({'name': env_name})
+        self.assertIn(new_loc['name'], result.stdout['locations'])
+        self.assertNotIn(old_loc['name'], result.stdout['locations'])
+
+    def test_update_organization(self):
+        """@Test: Update environment organization with new value
+
+        @Feature: Environment - Update
+
+        @Assert: Environment Update finished and new organization is assigned
+
+        """
+        try:
+            old_org = make_org()
+            new_org = make_org()
+            env_name = gen_string('alphanumeric', 10)
+            make_environment({
+                'name': env_name,
+                'organization-ids': old_org['id'],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+        result = Environment.info({'name': env_name})
+        self.assertIn(old_org['name'], result.stdout['organizations'])
+
+        result = Environment.update({
+            'name': env_name,
+            'organization-ids': new_org['id']
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = Environment.info({'name': env_name})
+        self.assertIn(new_org['name'], result.stdout['organizations'])
+        self.assertNotIn(old_org['name'], result.stdout['organizations'])
