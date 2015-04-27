@@ -22,6 +22,61 @@ DOCKER_PROVIDER = 'Docker'
 EXTERNAL_DOCKER_URL = get_external_docker_url()
 INTERNAL_DOCKER_URL = get_internal_docker_url()
 STRING_TYPES = ['alpha', 'alphanumeric', 'cjk', 'utf8', 'latin1']
+INVALID_DOCKER_UPSTREAM_NAMES = (
+    # boundaries
+    gen_string('alphanumeric', 2),
+    gen_string('alphanumeric', 31),
+    u'{0}/{0}'.format(
+        gen_string('alphanumeric', 3),
+        gen_string('alphanumeric', 3)
+    ),
+    u'{0}/{0}'.format(
+        gen_string('alphanumeric', 4),
+        gen_string('alphanumeric', 2)
+    ),
+    u'{0}/{0}'.format(
+        gen_string('alphanumeric', 31),
+        gen_string('alphanumeric', 30)
+    ),
+    u'{0}/{0}'.format(
+        gen_string('alphanumeric', 30),
+        gen_string('alphanumeric', 31)
+    ),
+    # not allowed non alphanumeric character
+    u'{0}+{1}_{2}/{2}-{1}_{0}.{3}'.format(
+        gen_string('alphanumeric', randint(3, 6)),
+        gen_string('alphanumeric', randint(3, 6)),
+        gen_string('alphanumeric', randint(3, 6)),
+        gen_string('alphanumeric', randint(3, 6)),
+    ),
+    u'{0}-{1}_{2}/{2}+{1}_{0}.{3}'.format(
+        gen_string('alphanumeric', randint(3, 6)),
+        gen_string('alphanumeric', randint(3, 6)),
+        gen_string('alphanumeric', randint(3, 6)),
+        gen_string('alphanumeric', randint(3, 6)),
+    ),
+)
+VALID_DOCKER_UPSTREAM_NAMES = (
+    # boundaries
+    gen_string('alphanumeric', 3).lower(),
+    gen_string('alphanumeric', 30).lower(),
+    u'{0}/{0}'.format(
+        gen_string('alphanumeric', 4).lower(),
+        gen_string('alphanumeric', 3).lower(),
+    ),
+    u'{0}/{0}'.format(
+        gen_string('alphanumeric', 30).lower(),
+        gen_string('alphanumeric', 30).lower(),
+    ),
+    # allowed non alphanumeric character
+    u'{0}-{1}_{2}/{2}-{1}_{0}.{3}'.format(
+        gen_string('alphanumeric', randint(3, 6)).lower(),
+        gen_string('alphanumeric', randint(3, 6)).lower(),
+        gen_string('alphanumeric', randint(3, 6)).lower(),
+        gen_string('alphanumeric', randint(3, 6)).lower(),
+    ),
+    u'-_-_/-_.',
+)
 
 
 def _create_repository(prod_id, name=None, upstream_name=None):
@@ -118,6 +173,45 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertEqual(real_attrs['name'], name)
         self.assertEqual(real_attrs['docker_upstream_name'], u'busybox')
         self.assertEqual(real_attrs['content_type'], u'docker')
+
+    @run_only_on('sat')
+    @data(*VALID_DOCKER_UPSTREAM_NAMES)
+    def test_create_docker_repo_valid_upstream_name(self, upstream_name):
+        """@Test: Create a Docker-type repository with a valid docker upstream
+        name
+
+        @Assert: A repository is created with the specified upstream name.
+
+        @Feature: Docker
+
+        """
+        product = entities.Product(
+            organization=self.org_id
+        ).create()
+
+        repo_id = _create_repository(
+            product.id, upstream_name=upstream_name)['id']
+        repository = entities.Repository(id=repo_id).read()
+        self.assertEqual(repository.docker_upstream_name, upstream_name)
+        self.assertEqual(repository.content_type, u'docker')
+
+    @run_only_on('sat')
+    @data(*INVALID_DOCKER_UPSTREAM_NAMES)
+    def test_create_docker_repo_invalid_upstream_name(self, upstream_name):
+        """@Test: Create a Docker-type repository with a invalid docker
+        upstream name.
+
+        @Assert: A repository is not created and a proper error is raised.
+
+        @Feature: Docker
+
+        """
+        product = entities.Product(
+            organization=self.org_id
+        ).create()
+
+        with self.assertRaises(HTTPError):
+            _create_repository(product.id, upstream_name=upstream_name)['id']
 
     @run_only_on('sat')
     def test_create_multiple_docker_repo(self):
