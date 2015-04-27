@@ -253,8 +253,10 @@ def configure_entities():
       returned by :meth:`robottelo.common.helpers.get_nailgun_config`. See
       ``robottelo.entity_mixins.Entity`` for more information on the effects of
       this.
-    * Set ``nailgun.entities.GPGKey.content.default``.
-    * Try to set ``nailgun.entities.ComputeResource.url.default``.
+    * Set a default value for ``nailgun.entities.GPGKey.content``.
+    * Set the default value for ``nailgun.entities.ComputeResource.url`` if
+      either ``docker.internal_url`` or ``docker.external_url`` is set in the
+      configuration file.
 
     Emit a warning and do not set anything if no ``robottelo.properties``
     configuration file is available.
@@ -272,10 +274,27 @@ def configure_entities():
             '`nailgun.entity_mixins.DEFAULT_SERVER_CONFIG`, or you create a '
             'NailGun configuration profile labeled "default".'
         )
-    entities.GPGKey.content.default = read_data_file(VALID_GPG_KEY_FILE)
-    # If neither `docker.internal_url` or `docker.external_url` are set, let
-    # NailGun try to provide a value.
+
+    gpgkey_init = entities.GPGKey.__init__
+
+    def patched_gpgkey_init(self, server_config=None, **kwargs):
+        """Set a default value on the ``content`` field."""
+        gpgkey_init(self, server_config, **kwargs)
+        self._fields['content'].default = read_data_file(VALID_GPG_KEY_FILE)
+    entities.GPGKey.__init__ = patched_gpgkey_init
+
+    # NailGun provides a default value for ComputeResource.url. We override
+    # that value if `docker.internal_url` or `docker.external_url` is set.
+    docker_url = None
     if conf.properties.get('docker.internal_url', '') != '':
-        entities.ComputeResource.url.default = get_internal_docker_url()
+        docker_url = get_internal_docker_url()
     elif conf.properties.get('docker.external_url', '') != '':
-        entities.ComputeResource.url.default = get_external_docker_url()
+        docker_url = get_external_docker_url()
+    if docker_url is not None:
+        computeresource_init = entities.ComputeResource.__init__
+
+        def patched_computeresource_init(self, server_config=None, **kwargs):
+            """Set a default value on the ``docker_url`` field."""
+            computeresource_init(self, server_config, **kwargs)
+            self._fields['url'].default = docker_url
+        entities.ComputeResource.__init__ = patched_computeresource_init

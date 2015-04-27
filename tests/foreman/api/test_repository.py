@@ -108,18 +108,12 @@ class RepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        name = entities.Repository.name.gen_value()
-        repo1_attrs = entities.Repository(
-            name=name,
-            product=self.prod_id
-        ).create_json()
-        repo2_attrs = entities.Repository(name=name).create_json()
-        for attrs in (
-                repo1_attrs,
-                repo2_attrs,
-                entities.Repository(id=repo1_attrs['id']).read_json(),
-                entities.Repository(id=repo2_attrs['id']).read_json()):
-            self.assertEqual(attrs['name'], name)
+        repo1 = entities.Repository()
+        repo1.name = name = repo1.get_fields()['name'].gen_value()
+        repo1 = repo1.create()
+        repo2 = entities.Repository(name=name).create()
+        for repo in (repo1, repo2, repo1.read(), repo2.read()):
+            self.assertEqual(repo.name, name)
 
     @run_only_on('sat')
     @data(*_test_data())  # (star-args) pylint:disable=W0142
@@ -363,15 +357,12 @@ class DockerRepositoryTestCase(APITestCase):
         """
         if content_type == 'docker' and bz_bug_is_open(1194476):
             self.skipTest(1194476)
-        repo_id = entities.Repository(
-            content_type=content_type
-        ).create_json()['id']
-        name = entities.Repository.name.gen_value()
-        repository = entities.Repository(id=repo_id)
+        repository = entities.Repository(content_type=content_type).create()
+        name = repository.get_fields()['name'].gen_value()
         client.put(
             repository.path(),
             {'name': name},
             auth=get_server_credentials(),
             verify=False,
         ).raise_for_status()
-        self.assertEqual(name, repository.read_json()['name'])
+        self.assertEqual(name, repository.read().name)

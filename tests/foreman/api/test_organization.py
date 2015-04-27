@@ -49,12 +49,12 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organization
 
         """
-        attrs = entities.Organization().create_json()
-        self.assertTrue('label' in attrs.keys())
+        org = entities.Organization().create()
+        self.assertTrue(hasattr(org, 'label'))
         if sys.version_info[0] is 2:
-            self.assertIsInstance(attrs['label'], unicode)
+            self.assertIsInstance(org.label, unicode)
         else:
-            self.assertIsInstance(attrs['label'], str)
+            self.assertIsInstance(org.label, str)
 
     def test_positive_create_2(self):
         """@Test: Create an org and provide a name and identical label.
@@ -64,14 +64,14 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organzation
 
         """
-        # A label has a more restrictive allowable charset than a name.
-        name_label = entities.Organization.label.gen_value()
-        attrs = entities.Organization(
-            name=name_label,
-            label=name_label,
-        ).create_json()
-        self.assertEqual(attrs['name'], name_label)
-        self.assertEqual(attrs['label'], name_label)
+        # A label has a more restrictive allowable charset than a name, so we
+        # use it for populating both name and label.
+        org = entities.Organization()
+        name_label = org.get_fields()['label'].gen_value()
+        org.name = org.label = name_label
+        org = org.create()
+        self.assertEqual(name_label, org.name)
+        self.assertEqual(name_label, org.label)
 
     def test_positive_create_3(self):
         """@Test: Create an organization and provide a name and label.
@@ -81,11 +81,12 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organization
 
         """
-        name = entities.Organization.name.gen_value()
-        label = entities.Organization.label.gen_value()
-        attrs = entities.Organization(name=name, label=label).create_json()
-        self.assertEqual(attrs['name'], name)
-        self.assertEqual(attrs['label'], label)
+        org = entities.Organization()
+        org.name = name = org.get_fields()['name'].gen_value()
+        org.label = label = org.get_fields()['label'].gen_value()
+        org = org.create()
+        self.assertEqual(name, org.name)
+        self.assertEqual(label, org.label)
 
     @ddt.data(
         # two-tuples of data
@@ -112,20 +113,20 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organization
 
         """
-        attrs = entities.Organization(
+        org = entities.Organization(
             name=name,
             description=description,
-        ).create_json()
-        self.assertEqual(name, attrs['name'])
-        self.assertEqual(description, attrs['description'])
+        ).create()
+        self.assertEqual(org.name, name)
+        self.assertEqual(org.description, description)
 
         # Was a label auto-generated?
-        self.assertTrue('label' in attrs.keys())
+        self.assertTrue(hasattr(org, 'label'))
         if sys.version_info[0] is 2:
-            self.assertIsInstance(attrs['label'], unicode)
+            self.assertIsInstance(org.label, unicode)
         else:
-            self.assertIsInstance(attrs['label'], str)
-        self.assertGreater(len(attrs['label']), 0)
+            self.assertIsInstance(org.label, str)
+        self.assertGreater(len(org.label), 0)
 
     def test_positive_create_5(self):
         """@Test: Create an org and provide a name, label and description.
@@ -135,17 +136,14 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organization
 
         """
-        name = entities.Organization.name.gen_value()
-        label = entities.Organization.label.gen_value()
-        description = entities.Organization.description.gen_value()
-        attrs = entities.Organization(
-            name=name,
-            label=label,
-            description=description,
-        ).create_json()
-        self.assertEqual(attrs['name'], name)
-        self.assertEqual(attrs['label'], label)
-        self.assertEqual(attrs['description'], description)
+        org = entities.Organization()
+        org.name = name = org.get_fields()['name'].gen_value()
+        org.label = label = org.get_fields()['label'].gen_value()
+        org.description = desc = org.get_fields()['description'].gen_value()
+        org = org.create()
+        self.assertEqual(org.name, name)
+        self.assertEqual(org.label, label)
+        self.assertEqual(org.description, desc)
 
     @ddt.data(
         gen_string('utf8', length=256),  # longer than 255
@@ -171,10 +169,9 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organization
 
         """
-        name = entities.Organization.name.gen_value()
-        entities.Organization(name=name).create_json()
+        name = entities.Organization().create().name
         with self.assertRaises(HTTPError):
-            entities.Organization(name=name).create_json()
+            entities.Organization(name=name).create()
 
     def test_positive_search(self):
         """@Test: Create an organization, then search for it by name.
@@ -184,7 +181,7 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organization
 
         """
-        name = entities.Organization().create_json()['name']
+        name = entities.Organization().create().name
         response = client.get(
             entities.Organization().path(),
             auth=get_server_credentials(),
@@ -203,9 +200,7 @@ class OrganizationUpdateTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         """Create an organization."""
-        cls.organization = entities.Organization(
-            id=entities.Organization().create_json()['id']
-        ).read()
+        cls.organization = entities.Organization().create()
 
     @ddt.data(
         {'description': gen_string(str_type='alpha')},
@@ -221,8 +216,9 @@ class OrganizationUpdateTestCase(APITestCase):
         {'name': gen_string(str_type='numeric')},
         {'name': gen_string(str_type='utf8')},
         {  # can we update two attrs at once?
-            'description': entities.Organization.description.gen_value(),
-            'name': entities.Organization.name.gen_value(),
+            'description':
+            entities.Organization().get_fields()['description'].gen_value(),
+            'name': entities.Organization().get_fields()['name'].gen_value(),
         },
     )
     def test_positive_update(self, attrs):
