@@ -528,6 +528,7 @@ class Repos(UITestCase):
             url=DOCKER_REGISTRY_HUB,
             product=product_attrs['id'],
             content_type=REPO_TYPE['docker'],
+            docker_upstream_name=u'busybox',
         ).create_json()
         with Session(self.browser) as session:
             self.setup_navigate_syncnow(session,
