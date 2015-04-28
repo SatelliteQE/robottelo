@@ -2,8 +2,8 @@
 Implements Puppet Classes UI
 """
 
-from robottelo.ui.base import Base
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.base import Base, UINoSuchElementError
+from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -58,3 +58,64 @@ class PuppetClasses(Base):
 
         self.delete_entity(name, really, locators["puppetclass.select_name"],
                            locators['puppetclass.delete'])
+
+    def import_scap_client_puppet_classes(self):
+        """Imports puppet-foreman_scap_client puppet classes."""
+        Navigator(self.browser).go_to_puppet_classes()
+        self.wait_for_ajax()
+        self.find_element(locators['puppetclass.import']).click()
+        # Checking if the scap client puppet classes are already imported
+        if self.wait_until_element(
+                locators['puppetclass.environment_default_check']):
+            self.find_element(
+                locators['puppetclass.environment_default_check']
+            ).click()
+            self.find_element(locators['puppetclass.update']).click()
+        else:
+            self.find_element(locators['puppetclass.cancel']).click()
+
+    def update_class_parameter_description(
+            self, class_name=None, parameter_name=None, description=None):
+        """Updates the description field of a given puppet class parameter."""
+        puppet_class = self.search(class_name)
+        if puppet_class is None:
+            raise UINoSuchElementError(
+                "Couldn't find the puppet class '{0}'.".format(class_name)
+            )
+        puppet_class.click()
+        self.find_element(tab_locators['puppetclass.parameters']).click()
+        if self.wait_until_element(
+            locators['puppetclass.paramfilter']
+        ) and parameter_name:
+            self.field_update('puppetclass.paramfilter', parameter_name)
+        self.find_element(locators['puppetclass.parameter']).click()
+        if self.wait_until_element(
+            locators['puppetclass.param_description']
+        ) and description:
+            self.field_update('puppetclass.param_description', description)
+        self.find_element(common_locators['submit']).click()
+
+    def fetch_class_parameter_description(
+            self, class_name=None, parameter_name=None):
+        """Fetches the description of a given puppet class parameter."""
+        description = None
+        puppet_class = self.search(class_name)
+        if puppet_class is None:
+            raise UINoSuchElementError(
+                "Couldn't find the puppet class '{0}'.".format(class_name)
+            )
+        puppet_class.click()
+        self.find_element(tab_locators['puppetclass.parameters']).click()
+        if self.wait_until_element(
+            locators['puppetclass.paramfilter']
+        ) and parameter_name:
+            self.field_update('puppetclass.paramfilter', parameter_name)
+        self.find_element(locators['puppetclass.parameter']).click()
+        if self.wait_until_element(
+            locators['puppetclass.param_description']
+        ):
+            description = self.find_element(
+                locators['puppetclass.param_description']
+            ).text
+        self.find_element(locators['puppetclass.cancel']).click()
+        return description
