@@ -761,12 +761,10 @@ class ActivationKey(UITestCase):
 
         @Steps:
         1. Create Activation key
-        2. Update Content View for all variations in [1] and include both
-        RH and custom products
+        2. Update the Content view with another Content view
+        which has custom products
 
         @Assert: Activation key is updated
-
-        @BZ: 1078676
 
         """
 
@@ -795,7 +793,68 @@ class ActivationKey(UITestCase):
                                  (common_locators["alert.success"]))
             selected_cv = self.activationkey.get_attribute(name, cv_locator)
             self.assertEqual(cv2_name, selected_cv)
-            # TODO: Need to check for RH Product too
+
+    @run_only_on('sat')
+    @data(*valid_data_list())
+    def test_positive_update_activation_key_with_rh_product(self, cv2_name):
+        """@Test: Update Content View in an Activation key
+
+        @Feature: Activation key - Positive Update
+
+        @Steps:
+        1. Create an activation key
+        2. Update the content view with another content view which has RH
+            products
+
+        @Assert: Activation key is updated
+
+        """
+        name = gen_string('alpha', 8)
+        env1_name = gen_string('alpha', 8)
+        env2_name = gen_string('alpha', 8)
+        cv1_name = gen_string('alpha', 8)
+        rh_repo1 = {
+            'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 '
+                     'Server RPMs x86_64 6Server'),
+            'product': 'Red Hat Enterprise Linux Server',
+            'reposet': ('Red Hat Enterprise Virtualization Agents '
+                        'for RHEL 6 Server (RPMs)'),
+            'basearch': 'x86_64',
+            'releasever': '6Server',
+        }
+        rh_repo2 = {
+            'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 '
+                     'Server RPMs i386 6Server'),
+            'product': 'Red Hat Enterprise Linux Server',
+            'reposet': ('Red Hat Enterprise Virtualization Agents '
+                        'for RHEL 6 Server (RPMs)'),
+            'basearch': 'i386',
+            'releasever': '6Server',
+        }
+        org = entities.Organization().create()
+        manifest_path = manifests.clone()
+        org.upload_manifest(path=manifest_path)
+        repo1_id = self.enable_sync_redhat_repo(rh_repo1, org.id)
+        self.cv_publish_promote(cv1_name, env1_name, repo1_id, org.id)
+        repo2_id = self.enable_sync_redhat_repo(rh_repo2, org.id)
+        self.cv_publish_promote(cv2_name, env2_name, repo2_id, org.id)
+
+        with Session(self.browser) as session:
+            make_activationkey(
+                session, org=org.name, name=name, env=env1_name,
+                description=gen_string('alpha', 16),
+                content_view=cv1_name,
+            )
+            self.assertIsNotNone(self.activationkey.search_key(name))
+            cv_locator = locators['ak.selected_cv']
+            selected_cv = self.activationkey.get_attribute(name, cv_locator)
+            self.assertEqual(cv1_name, selected_cv)
+            self.activationkey.update(
+                name, content_view=cv2_name, env=env2_name)
+            self.assertIsNotNone(self.activationkey.wait_until_element(
+                common_locators['alert.success']))
+            selected_cv = self.activationkey.get_attribute(name, cv_locator)
+            self.assertEqual(cv2_name, selected_cv)
 
     def test_positive_update_activation_key_5(self):
         """@Test: Update Usage limit from Unlimited to a finite number
