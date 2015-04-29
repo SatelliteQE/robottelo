@@ -9,6 +9,8 @@ from nailgun.entities import Organization
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     CLIFactoryError,
+    make_activation_key,
+    make_content_host,
     make_content_view,
     make_lifecycle_environment,
     make_org,
@@ -272,7 +274,8 @@ class TestContentView(CLITestCase):
         self.assertGreater(len(result.stderr), 0)
 
     def test_delete_cv_version(self):
-        """@test: delete content view version
+        """@test: delete content view version through 'remove-from-environment'
+        command
 
         @feature: Content Views
 
@@ -314,6 +317,179 @@ class TestContentView(CLITestCase):
         # Delete the version
         result = ContentView.version_delete({u'id': version1_id})
         self.assertEqual(result.return_code, 0)
+
+    def test_remove_cv_environment(self):
+        """@Test: Remove content view from lifecycle environment assignment
+
+        @Feature: Content Views
+
+        @Assert: Content view removed from environment successfully
+
+        """
+        new_org = make_org({u'name': gen_alphanumeric()})
+        new_cv = make_content_view({u'organization-id': new_org['id']})
+        ContentView.publish({u'id': new_cv['id']})
+        result = ContentView.info({u'id': new_cv['id']})
+        env = result.stdout['lifecycle-environments'][0]
+
+        result = ContentView.remove({
+            u'id': new_cv['id'],
+            u'environment-ids': env['id'],
+            u'organization-id': new_org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(result.stdout['lifecycle-environments']), 0)
+
+    def test_remove_cv_env_and_reassign_key(self):
+        """Test: Remove content view environment and re-assign activation key
+        to another environment and content view
+
+        @Feature: Content Views
+
+        @Assert: Activation key re-assigned successfully
+
+        """
+        new_org = make_org({u'name': gen_alphanumeric()})
+        env = [
+            make_lifecycle_environment({u'organization-id': new_org['id']})
+            for _ in range(2)
+        ]
+
+        source_cv = make_content_view({u'organization-id': new_org['id']})
+        ContentView.publish({u'id': source_cv['id']})
+        result = ContentView.info({u'id': source_cv['id']})
+        cvv = result.stdout['versions'][0]
+        result = ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': env[0]['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        destination_cv = make_content_view({u'organization-id': new_org['id']})
+        ContentView.publish({u'id': destination_cv['id']})
+        result = ContentView.info({u'id': destination_cv['id']})
+        cvv = result.stdout['versions'][0]
+        result = ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': env[1]['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        ac_key = make_activation_key({
+            u'name': gen_alphanumeric(),
+            u'organization-id': new_org['id'],
+            u'lifecycle-environment-id': env[0]['id'],
+            u'content-view-id': source_cv['id'],
+        })
+        result = ContentView.info({u'id': source_cv['id']})
+        self.assertEqual(result.stdout['activation-keys'][0], ac_key['name'])
+        result = ContentView.info({u'id': destination_cv['id']})
+        self.assertEqual(len(result.stdout['activation-keys']), 0)
+
+        result = ContentView.remove({
+            u'id': source_cv['id'],
+            u'environment-ids': env[0]['id'],
+            u'key-content-view-id': destination_cv['id'],
+            u'key-environment-id': env[1]['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        result = ContentView.info({u'id': source_cv['id']})
+        self.assertEqual(len(result.stdout['activation-keys']), 0)
+        result = ContentView.info({u'id': destination_cv['id']})
+        self.assertEqual(result.stdout['activation-keys'][0], ac_key['name'])
+
+    def test_remove_cv_env_and_reassign_content_host(self):
+        """Test: Remove content view environment and re-assign content host
+        to another environment and content view
+
+        @Feature: Content Views
+
+        @Assert: Content host re-assigned successfully
+
+        """
+        new_org = make_org({u'name': gen_alphanumeric()})
+        env = [
+            make_lifecycle_environment({u'organization-id': new_org['id']})
+            for _ in range(2)
+        ]
+
+        source_cv = make_content_view({u'organization-id': new_org['id']})
+        ContentView.publish({u'id': source_cv['id']})
+        result = ContentView.info({u'id': source_cv['id']})
+        cvv = result.stdout['versions'][0]
+        result = ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': env[0]['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        destination_cv = make_content_view({u'organization-id': new_org['id']})
+        ContentView.publish({u'id': destination_cv['id']})
+        result = ContentView.info({u'id': destination_cv['id']})
+        cvv = result.stdout['versions'][0]
+        result = ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': env[1]['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.info({u'id': source_cv['id']})
+        self.assertEqual(result.stdout['content-host-count'], '0')
+
+        make_content_host({
+            u'name': gen_alphanumeric(),
+            u'organization-id': new_org['id'],
+            u'lifecycle-environment-id': env[0]['id'],
+            u'content-view-id': source_cv['id'],
+        })
+
+        result = ContentView.info({u'id': source_cv['id']})
+        self.assertEqual(result.stdout['content-host-count'], '1')
+        result = ContentView.info({u'id': destination_cv['id']})
+        self.assertEqual(result.stdout['content-host-count'], '0')
+
+        result = ContentView.remove({
+            u'name': source_cv['name'],
+            u'organization': new_org['name'],
+            u'environment-ids': env[0]['id'],
+            u'system-content-view-id': destination_cv['id'],
+            u'system-environment-id': env[1]['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        result = ContentView.info({u'id': source_cv['id']})
+        self.assertEqual(result.stdout['content-host-count'], '0')
+        result = ContentView.info({u'id': destination_cv['id']})
+        self.assertEqual(result.stdout['content-host-count'], '1')
+
+    def test_remove_cv_version(self):
+        """@Test: Delete content view version through 'remove' command
+
+        @Feature: Content Views
+
+        @Assert: Content view version deleted successfully
+
+        """
+        new_org = make_org({u'name': gen_alphanumeric()})
+        new_cv = make_content_view({u'organization-id': new_org['id']})
+        ContentView.publish({u'id': new_cv['id']})
+        result = ContentView.info({u'id': new_cv['id']})
+        env = result.stdout['lifecycle-environments'][0]
+        cvv = result.stdout['versions'][0]
+        result = ContentView.remove_from_environment({
+            u'id': new_cv['id'],
+            u'lifecycle-environment-id': env['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.remove({
+            u'id': new_cv['id'],
+            u'content-view-version-ids': cvv['id'],
+            u'organization-id': new_org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(result.stdout['versions']), 0)
 
     def test_cv_composite_create(self):
         # Note: puppet repos cannot/should not be used in this test
