@@ -249,6 +249,9 @@ def configure_entities():
 
     Do the following:
 
+    * Set ``entity_mixins.CREATE_MISSING`` to ``True``. This causes method
+      ``EntityCreateMixin.create_raw`` to generate values for empty and
+      required fields.
     * Set ``nailgun.entity_mixins.DEFAULT_SERVER_CONFIG`` to whatever is
       returned by :meth:`robottelo.common.helpers.get_nailgun_config`. See
       ``robottelo.entity_mixins.Entity`` for more information on the effects of
@@ -262,6 +265,7 @@ def configure_entities():
     configuration file is available.
 
     """
+    entity_mixins.CREATE_MISSING = True
     try:
         entity_mixins.DEFAULT_SERVER_CONFIG = get_nailgun_config()
     except KeyError:
