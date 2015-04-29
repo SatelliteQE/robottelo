@@ -158,3 +158,12 @@ class ContentView(Base):
         """Remove content-view from an enviornment"""
         cls.command_sub = 'remove-from-environment'
         return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def remove(cls, options=None):
+        """Remove versions and/or environments from a content view and
+        reassign content hosts and keys
+
+        """
+        cls.command_sub = 'remove'
+        return cls.execute(cls._construct_command(options))
