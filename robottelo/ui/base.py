@@ -94,7 +94,8 @@ class Base(object):
             searchbox.clear()
             if search_button:
                 searchbox.send_keys(
-                    '{0} = {1}'.format(search_key, escape_search(element_name))
+                    u'{0} = {1}'.format(
+                        search_key, escape_search(element_name))
                 )
                 search_button.click()
             else:

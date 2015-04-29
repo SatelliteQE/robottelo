@@ -531,7 +531,9 @@ tab_locators = LocatorDict({
         "//a[@data-toggle='tab' and contains(@href, 'ForemanTasks')]"),
     "settings.tab_provisioning": (
         By.XPATH,
-        "//a[@data-toggle='tab' and contains(@href, 'Provisioning')]")
+        "//a[@data-toggle='tab' and contains(@href, 'Provisioning')]"),
+    "puppetclass.parameters": (
+        By.XPATH, "//a[contains(@href,'class_param')]"),
 })
 
 common_locators = LocatorDict({
@@ -1040,7 +1042,20 @@ locators = LocatorDict({
                    " and contains(.,'%s')]")),
     "puppetclass.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
-
+    "puppetclass.import": (
+        By.XPATH, "//a[contains(@href,'import')]"),
+    "puppetclass.environment_default_check": (
+        By.XPATH, "//input[contains(@id,'KT_Default_Organization_Library')]"),
+    "puppetclass.update": (
+        By.XPATH, "//input[@value='Update']"),
+    "puppetclass.paramfilter": (
+        By.XPATH, "//input[contains(@placeholder,'Filter')]"),
+    "puppetclass.parameter": (
+        By.XPATH, "//li[@class='active search-marker']"),
+    "puppetclass.param_description": (
+        By.XPATH, "//textarea[contains(@id,'description')]"),
+    "puppetclass.cancel": (
+        By.XPATH, "//a[@class='btn btn-default']"),
     # Repository
     "repo.new": (By.XPATH, "//button[contains(@ui-sref,'repositories.new')]"),
     "repo.type": (By.ID, "content_type"),
