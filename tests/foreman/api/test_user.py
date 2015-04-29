@@ -95,3 +95,68 @@ class UsersTestCase(APITestCase):
         )
         response.raise_for_status()
         self.assertEqual(user.read().admin, not admin)
+
+
+class UserRoleTestCase(APITestCase):
+    """Test associations between users and roles."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create two roles and fetch the 'Anonymous' role."""
+        cls.roles = [entities.Role().create() for _ in range(2)]
+        response = client.get(
+            entities.Role().path(),
+            auth=get_server_credentials(),
+            data={'search': 'name=Anonymous'},
+            verify=False,
+        )
+        response.raise_for_status()
+        cls.anon_role = entities.Role(id=response.json()['results'][0]['id'])
+
+    def test_create_with_role(self):
+        """@Test: Create a user with the ``role`` attribute.
+
+        @Assert: A user is created with the given role(s) and the default
+        'Anonymous' role.
+
+        @Feature: User
+
+        This test targets BZ 1216239.
+
+        """
+        for i in range(2):
+            chosen_roles = self.roles[0:i]
+            user = entities.User(role=chosen_roles).create()
+            self.assertEqual(len(user.role), i + 1)
+            self.assertEqual(
+                set([role.id for role in chosen_roles] + [self.anon_role.id]),
+                set([role.id for role in user.role]),
+            )
+
+    def test_update_with_role(self):
+        """@Test: Update an existing user and give it roles.
+
+        @Assert: The user has whatever roles are given, plus the 'Anonymous'
+        role.
+
+        @Feature: User
+
+        This test targets BZ 1216239.
+
+        """
+        user = entities.User().create()
+        self.assertEqual(len(user.role), 1)  # the 'Anonymous' role
+        self.assertEqual(user.role[0].id, self.anon_role.id)
+        for i in range(2):
+            chosen_roles = self.roles[0:i]
+            client.put(
+                user.path(),
+                {'user': {'role_ids': [role.id for role in chosen_roles]}},
+                auth=get_server_credentials(),
+                verify=False,
+            ).raise_for_status()
+            user = user.read()
+            self.assertEqual(
+                set([role.id for role in chosen_roles] + [self.anon_role.id]),
+                set([role.id for role in user.role]),
+            )
