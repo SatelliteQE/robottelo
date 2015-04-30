@@ -14,6 +14,10 @@ class HammerCommandsTestCase(CLITestCase):
     are present.
 
     """
+    def __init__(self, *args, **kwargs):
+        super(HammerCommandsTestCase, self).__init__(*args, **kwargs)
+        self.differences = {}
+
     def _fetch_command_info(self, command):
         """Fetch command info from expected commands info dictionary."""
         info = HAMMER_COMMANDS
@@ -27,10 +31,7 @@ class HammerCommandsTestCase(CLITestCase):
                         found = True
                         break
             if not found:
-                self.fail(
-                    'Was not possible to fetch information for "{0}" command.'
-                    .format(command)
-                )
+                return None
         return info
 
     def _traverse_command_tree(self, command):
@@ -41,31 +42,44 @@ class HammerCommandsTestCase(CLITestCase):
         output = hammer.parse_help(
             ssh.command('{0} --help'.format(command)).stdout
         )
-        info = self._fetch_command_info(command)
-        for option in output['options']:
-            if (command == 'hammer sync-plan create' and
-                    option['name'] == 'sync-date'):
-                # sync-date option use the current server time as the default
-                # value in help text. As we use a previous created json file
-                # with the commands information we need a special treatment for
-                # this option.
-                info_option = None
-                for opt in info['options']:
-                    if opt['name'] == 'sync-date':
-                        info_option = opt
-                        break
-                self.assertIsNotNone(info_option)
-                self.assertEqual(option['name'], opt['name'])
-                self.assertEqual(option['shortname'], opt['shortname'])
-                self.assertEqual(option['value'], opt['value'])
-                # Drop the default value, and assert if the remaining string is
-                # present on the help text.
-                help = option['help'][:option['help'].find('Default: "')]
-                self.assertIn(help, opt['help'])
-            else:
-                self.assertIn(option, info['options'])
-        if len(info['subcommands']) > 0:
-            for subcommand in info['subcommands']:
+        command_options = set([option['name'] for option in output['options']])
+        command_subcommands = set(
+            [subcommand['name'] for subcommand in output['subcommands']]
+        )
+        expected = self._fetch_command_info(command)
+        expected_options = set()
+        expected_subcommands = set()
+
+        if expected is not None:
+            expected_options = set(
+                [option['name'] for option in expected['options']]
+            )
+            expected_subcommands = set(
+                [subcommand['name'] for subcommand in expected['subcommands']]
+            )
+
+        added_options = tuple(command_options - expected_options)
+        removed_options = tuple(expected_options - command_options)
+        added_subcommands = tuple(command_subcommands - expected_subcommands)
+        removed_subcommands = tuple(expected_subcommands - command_subcommands)
+
+        if (added_options or added_subcommands or removed_options or
+                removed_subcommands):
+            diff = {
+                'added_command': expected is None,
+            }
+            if added_options:
+                diff['added_options'] = added_options
+            if removed_options:
+                diff['removed_options'] = removed_options
+            if added_subcommands:
+                diff['added_subcommands'] = added_subcommands
+            if removed_subcommands:
+                diff['removed_subcommands'] = removed_subcommands
+            self.differences[command] = diff
+
+        if len(output['subcommands']) > 0:
+            for subcommand in output['subcommands']:
                 self._traverse_command_tree(
                     '{0} {1}'.format(command, subcommand['name'])
                 )
@@ -80,3 +94,7 @@ class HammerCommandsTestCase(CLITestCase):
         """
         self.maxDiff = None
         self._traverse_command_tree('hammer')
+        if self.differences:
+            self.fail(
+                json.dumps(self.differences, indent=True, sort_keys=True)
+            )
