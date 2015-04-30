@@ -1310,7 +1310,7 @@ locators = LocatorDict({
     "sp.fetch_startdate": (
         By.XPATH,
         ("//span[contains(.,'Start Date')]/../"
-         "span[contains(@class,'info-value')]")),
+         "div/form/div[2]/div/span[contains(@class,'editable')]")),
 
     # Enable RH Repos expander
     "rh.prd_expander": (
