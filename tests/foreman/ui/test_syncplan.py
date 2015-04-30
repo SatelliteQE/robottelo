@@ -106,7 +106,7 @@ class Syncplan(UITestCase):
         # Formatting current_date to web-UI format "%b %d, %Y %I:%M:%S %p" and
         # removed zero-padded date(%-d) and hrs(%l) as fetching via web-UI
         # doesn't have it
-        formatted_date_time = startdate.strftime("%b %-d, %Y %l:%M:%S %p")
+        formatted_date_time = startdate.strftime("%b %-d, %Y%l:%M:%S %p")
         # Removed the seconds info as it would be too quick to validate via UI.
         starttime = formatted_date_time.rpartition(':')[0]
         with Session(self.browser) as session:
