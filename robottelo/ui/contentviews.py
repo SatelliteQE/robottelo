@@ -129,7 +129,7 @@ class ContentViews(Base):
             )
         element.click()
         self.wait_for_ajax()
-        strategy, value = locators['contentviews.remove']
+        strategy, value = locators['contentviews.remove_ver']
         remove_version = self.wait_until_element((strategy, value % version))
         if remove_version is None:
             raise UINoSuchElementError(
@@ -142,7 +142,7 @@ class ContentViews(Base):
         ).click()
         self.wait_until_element(locators['contentviews.next_button']).click()
         self.wait_for_ajax()
-        self.find_element(locators['contentviews.confirm_remove']).click()
+        self.find_element(locators['contentviews.confirm_remove_ver']).click()
         self.wait_for_ajax()
 
     def search(self, element_name):
@@ -494,7 +494,7 @@ class ContentViews(Base):
                 locators["contentviews.new_filter"]).click()
             if self.wait_until_element(common_locators["name"]):
                 self.find_element(
-                    common_locators["name"].send_keys(filter_name))
+                    common_locators["name"]).send_keys(filter_name)
                 if content_type:
                     Select(
                         self.find_element(

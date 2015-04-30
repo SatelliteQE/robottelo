@@ -152,9 +152,9 @@ class Sync(Base):
         strategy4, value4 = locators["rh.reposet_spinner"]
         strategy5, value5 = locators["rh.repo_spinner"]
         for prd in repos_tree:
-            # UI is slow here. Hence timeout is 90 seconds.
+            # UI is slow here. Hence timeout is 100 seconds.
             prd_element = self.wait_until_element(
-                (strategy, value % PRDS[prd]), 90)
+                (strategy, value % PRDS[prd]), 100)
             if prd_element:
                 prd_element.click()
             else:
