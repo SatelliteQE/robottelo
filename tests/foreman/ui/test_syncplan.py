@@ -85,7 +85,7 @@ class Syncplan(UITestCase):
                           sync_interval=test_data['interval'])
             self.assertIsNotNone(self.syncplan.search(test_data['name']))
 
-    @skip_if_bug_open('bugzilla', 1131661)
+    @skip_if_bug_open('bugzilla', 1202811)
     def test_positive_create_2(self):
         """@Test: Create Sync plan with specified start time
 
