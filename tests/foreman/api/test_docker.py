@@ -8,7 +8,11 @@ from random import randint, shuffle
 from requests.exceptions import HTTPError
 from robottelo.common.constants import DOCKER_REGISTRY_HUB
 from robottelo.common.decorators import (
-    data, run_only_on, skip_if_bug_open, stubbed)
+    data,
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+)
 from robottelo.common.helpers import (
     get_external_docker_url,
     get_internal_docker_url,
@@ -258,6 +262,7 @@ class DockerRepositoryTestCase(APITestCase):
                 )
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1217603)
     def test_sync_docker_repo(self):
         """@Test: Create and sync a Docker-type repository
 
@@ -540,6 +545,7 @@ class DockerContentViewTestCase(APITestCase):
 
         """
 
+    @skip_if_bug_open('bugzilla', 1217603)
     @run_only_on('sat')
     def test_add_synced_docker_repo_to_content_view(self):
         """@Test: Create and sync a Docker-type repository
@@ -705,6 +711,7 @@ class DockerContentViewTestCase(APITestCase):
         self.assertIsNotNone(new_attrs['last_published'])
         self.assertGreater(new_attrs['next_version'], 1)
 
+    @skip_if_bug_open('bugzilla', 1217635)
     @run_only_on('sat')
     def test_publish_once_docker_repo_composite_content_view(self):
         """@Test: Add Docker-type repository to composite
