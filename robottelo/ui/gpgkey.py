@@ -28,7 +28,7 @@ class GPGKey(Base):
                     locators["gpgkey.content"]).send_keys(key_content)
             else:
                 raise UIError(
-                    'Could not create new gpgkey "{0}" without contents'
+                    u'Could not create new gpgkey "{0}" without contents'
                     .format(name)
                 )
             self.wait_until_element(common_locators["create"]).click()

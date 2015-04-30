@@ -193,7 +193,7 @@ class Base(object):
             element = self.wait_until_element((strategy1, value1 % name))
             if element is None:
                 raise UINoSuchElementError(
-                    'Could not select the entity "{0}" for deletion.'
+                    u'Could not select the entity "{0}" for deletion.'
                     .format(name)
                 )
             element.click()
@@ -202,8 +202,8 @@ class Base(object):
             raise UIError('Could not search the entity "{0}"'.format(name))
 
     def wait_until_element(self, locator, timeout=12, poll_frequency=0.5):
-        """Wrapper around Selenium's WebDriver that allows you to pause your test
-        until an element in the web page is present.
+        """Wrapper around Selenium's WebDriver that allows you to pause your
+        test until an element in the web page is present.
 
         """
         try:

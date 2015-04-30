@@ -122,8 +122,6 @@ class PartitionTable(UITestCase):
                                 os_family=os_family)
             self.assertIsNotNone(self.partitiontable.search(name))
             self.partitiontable.delete(name, really=True)
-            self.assertIsNotNone(self.partitiontable.wait_until_element
-                                 (common_locators["notif.success"]))
             self.assertIsNone(self.partitiontable.search(name))
 
     @data({u'name': gen_string('alpha'),
