@@ -14,7 +14,12 @@ from robottelo.common.constants import (
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
 )
-from robottelo.common.decorators import bz_bug_is_open, data, run_only_on
+from robottelo.common.decorators import (
+    bz_bug_is_open,
+    data,
+    run_only_on,
+    skip_if_bug_open,
+)
 from robottelo.common.helpers import (
     get_server_credentials, get_data_file, read_data_file)
 from robottelo.test import APITestCase
@@ -319,6 +324,7 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertEqual(real_attrs['content_type'], content_type)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1217603)
     def test_sync_docker_repo(self):
         """@Test: Create and sync a Docker-type repository
 
