@@ -21,9 +21,12 @@ from robottelo.common.decorators import (
     skip_if_bug_open,
 )
 from robottelo.common.helpers import (
-    get_server_credentials, get_data_file, read_data_file)
+    get_data_file,
+    get_server_credentials,
+    read_data_file,
+)
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
+# pylint:disable=too-many-public-methods
 
 
 # FIXME: Use unittest's subTest context manager instead of this and @ddt.data.
@@ -52,13 +55,11 @@ class RepositoryTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         """Create an organization and product which can be re-used in tests."""
-        cls.org_id = entities.Organization().create_json()['id']
-        cls.prod_id = entities.Product(
-            organization=cls.org_id
-        ).create_json()['id']
+        cls.org = entities.Organization().create()
+        cls.product = entities.Product(organization=cls.org).create()
 
     @run_only_on('sat')
-    @data(*_test_data())  # (star-args) pylint:disable=W0142
+    @data(*_test_data())
     def test_create_attrs(self, attrs):
         """@Test: Create a repository and provide valid attributes.
 
@@ -67,14 +68,11 @@ class RepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        repo_id = entities.Repository(  # (star-args) pylint:disable=W0142
-            product=self.prod_id,
-            **attrs
-        ).create_json()['id']
-        real_attrs = entities.Repository(id=repo_id).read_json()
+        repo = entities.Repository(product=self.product, **attrs).create()
+        repo_attrs = repo.read_json()
         for name, value in attrs.items():
-            self.assertIn(name, real_attrs.keys())
-            self.assertEqual(value, real_attrs[name])
+            self.assertIn(name, repo_attrs.keys())
+            self.assertEqual(value, repo_attrs[name])
 
     @run_only_on('sat')
     def test_create_gpgkey(self):
@@ -90,18 +88,17 @@ class RepositoryTestCase(APITestCase):
         # repository -> product -.
         #           `-> gpg key --`-> organization
         #
-        gpgkey_id = entities.GPGKey(
+        gpg_key = entities.GPGKey(
             content=read_data_file(VALID_GPG_KEY_FILE),
-            organization=self.org_id,
-        ).create_json()['id']
-        repo_id = entities.Repository(
-            gpg_key=gpgkey_id,
-            product=self.prod_id,
-        ).create_json()['id']
+            organization=self.org,
+        ).create()
+        repo = entities.Repository(
+            gpg_key=gpg_key,
+            product=self.product,
+        ).create()
 
         # Verify that the given GPG key ID is used.
-        repo_attrs = entities.Repository(id=repo_id).read_json()
-        self.assertEqual(repo_attrs['gpg_key_id'], gpgkey_id)
+        self.assertEqual(gpg_key.id, repo.read().gpg_key.id)
 
     @run_only_on('sat')
     def test_create_same_name(self):
@@ -113,15 +110,13 @@ class RepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        repo1 = entities.Repository()
-        repo1.name = name = repo1.get_fields()['name'].gen_value()
-        repo1 = repo1.create()
-        repo2 = entities.Repository(name=name).create()
+        repo1 = entities.Repository().create()
+        repo2 = entities.Repository(name=repo1.name).create()
         for repo in (repo1, repo2, repo1.read(), repo2.read()):
-            self.assertEqual(repo.name, name)
+            self.assertEqual(repo.name, repo1.name)
 
     @run_only_on('sat')
-    @data(*_test_data())  # (star-args) pylint:disable=W0142
+    @data(*_test_data())
     def test_delete(self, attrs):
         """@Test: Create a repository with attributes ``attrs`` and delete it.
 
@@ -130,13 +125,10 @@ class RepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        repo_id = entities.Repository(  # (star-args) pylint:disable=W0142
-            product=self.prod_id,
-            **attrs
-        ).create_json()['id']
-        entities.Repository(id=repo_id).delete()
+        repo = entities.Repository(product=self.product, **attrs).create()
+        repo.delete()
         with self.assertRaises(HTTPError):
-            entities.Repository(id=repo_id).read_json()
+            repo.read()
 
     @run_only_on('sat')
     def test_update_gpgkey(self):
@@ -148,30 +140,29 @@ class RepositoryTestCase(APITestCase):
 
         """
         # Create a repo and make it point to a GPG key.
-        key_1_id = entities.GPGKey(
+        gpg_key_1 = entities.GPGKey(
             content=read_data_file(VALID_GPG_KEY_FILE),
-            organization=self.org_id,
-        ).create_json()['id']
-        repo_id = entities.Repository(
-            gpg_key=key_1_id,
-            product=self.prod_id,
-        ).create_json()['id']
+            organization=self.org,
+        ).create()
+        repo = entities.Repository(
+            gpg_key=gpg_key_1,
+            product=self.product,
+        ).create()
 
         # Update the repo and make it point to a new GPG key.
-        key_2_id = entities.GPGKey(
+        gpg_key_2 = entities.GPGKey(
             content=read_data_file(VALID_GPG_KEY_BETA_FILE),
-            organization=self.org_id,
-        ).create_json()['id']
+            organization=self.org,
+        ).create()
         client.put(
-            entities.Repository(id=repo_id).path(),
-            {u'gpg_key_id': key_2_id},
+            repo.path(),
+            {u'gpg_key_id': gpg_key_2.id},
             auth=get_server_credentials(),
             verify=False,
         ).raise_for_status()
 
         # Verify the repository's attributes.
-        attrs = entities.Repository(id=repo_id).read_json()
-        self.assertEqual(attrs['gpg_key_id'], key_2_id)
+        self.assertEqual(repo.read().gpg_key.id, gpg_key_2.id)
 
     @run_only_on('sat')
     def test_update_contents(self):
@@ -183,9 +174,9 @@ class RepositoryTestCase(APITestCase):
 
         """
         # Create a repository and upload RPM content.
-        repo_id = entities.Repository(product=self.prod_id).create_json()['id']
+        repo = entities.Repository(product=self.product).create()
         client.post(
-            entities.Repository(id=repo_id).path(which='upload_content'),
+            repo.path(which='upload_content'),
             {},
             auth=get_server_credentials(),
             files={u'content': open(get_data_file(RPM_TO_UPLOAD), 'rb')},
@@ -193,8 +184,7 @@ class RepositoryTestCase(APITestCase):
         ).raise_for_status()
 
         # Verify the repository's contents.
-        attrs = entities.Repository(id=repo_id).read_json()
-        self.assertEqual(attrs[u'content_counts'][u'rpm'], 1)
+        self.assertEqual(repo.read_json()[u'content_counts'][u'rpm'], 1)
 
     def test_sync(self):
         """@Test: Create a repo and sync it.
@@ -204,10 +194,9 @@ class RepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        repo_id = entities.Repository(product=self.prod_id).create_json()['id']
-        entities.Repository(id=repo_id).sync()
-        attrs = entities.Repository(id=repo_id).read_json()
-        self.assertGreaterEqual(attrs[u'content_counts'][u'rpm'], 1)
+        repo = entities.Repository(product=self.product).create()
+        repo.sync()
+        self.assertGreaterEqual(repo.read_json()[u'content_counts'][u'rpm'], 1)
 
 
 @ddt
@@ -217,12 +206,10 @@ class RepositoryUpdateTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         """Create a repository which can be repeatedly updated."""
-        cls.repository = entities.Repository(
-            id=entities.Repository().create_json()['id']
-        )
+        cls.repository = entities.Repository().create()
 
     @run_only_on('sat')
-    @data(*_test_data())  # (star-args) pylint:disable=W0142
+    @data(*_test_data())
     def test_update(self, attrs):
         """@Test: Create a repository and update its attributes.
 
@@ -243,7 +230,7 @@ class RepositoryUpdateTestCase(APITestCase):
             if name == 'content_type':
                 # Cannot update a repository's content type.
                 self.assertEqual(
-                    entities.Repository.content_type.default,
+                    self.repository.get_fields()['content_type'].default,
                     real_attrs[name]
                 )
             else:
@@ -263,18 +250,15 @@ class RepositorySyncTestCase(APITestCase):
 
         """
         cloned_manifest_path = manifests.clone()
-        org_id = entities.Organization().create_json()['id']
-        repo = "Red Hat Enterprise Linux 6 Server - RH Common RPMs x86_64 6.3"
-        entities.Organization(id=org_id).upload_manifest(
-            path=cloned_manifest_path
-        )
+        org = entities.Organization().create()
+        org.upload_manifest(path=cloned_manifest_path)
         repo_id = utils.enable_rhrepo_and_fetchid(
-            "x86_64",
-            org_id,
-            "Red Hat Enterprise Linux Server",
-            repo,
-            "Red Hat Enterprise Linux 6 Server - RH Common (RPMs)",
-            "6.3",
+            'x86_64',
+            org.id,
+            'Red Hat Enterprise Linux Server',
+            'Red Hat Enterprise Linux 6 Server - RH Common RPMs x86_64 6.3',
+            'Red Hat Enterprise Linux 6 Server - RH Common (RPMs)',
+            '6.3',
         )
         entities.Repository(id=repo_id).sync()
 
@@ -286,7 +270,7 @@ class DockerRepositoryTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         """Create an organization and product which can be re-used in tests."""
-        cls.org_id = entities.Organization().create_json()['id']
+        cls.org = entities.Organization().create()
 
     @run_only_on('sat')
     @data(
@@ -305,23 +289,18 @@ class DockerRepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        upstream_name = u'busybox'
-        content_type = u'docker'
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
-
-        repo_id = entities.Repository(
-            product=prod_id,
-            content_type=content_type,
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(
+            content_type=u'docker',
+            docker_upstream_name=u'busybox',
             name=name,
-            docker_upstream_name=upstream_name,
-            url=DOCKER_REGISTRY_HUB
-        ).create_json()['id']
-        real_attrs = entities.Repository(id=repo_id).read_json()
-        self.assertEqual(real_attrs['name'], name)
-        self.assertEqual(real_attrs['docker_upstream_name'], upstream_name)
-        self.assertEqual(real_attrs['content_type'], content_type)
+            product=product,
+            url=DOCKER_REGISTRY_HUB,
+        ).create()
+        repo2 = repo.read()
+        self.assertEqual(repo.name, repo2.name)
+        self.assertEqual(repo.docker_upstream_name, repo2.docker_upstream_name)
+        self.assertEqual(repo.content_type, repo2.content_type)
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1217603)
@@ -334,20 +313,23 @@ class DockerRepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        prod_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
-        repo_id = entities.Repository(
-            product=prod_id,
-            content_type=u'docker',
-            name=u'busybox',
-            docker_upstream_name=u'busybox',
-            url=DOCKER_REGISTRY_HUB
-        ).create_json()['id']
+        from pprint import PrettyPrinter
+        printer = PrettyPrinter().pprint
 
-        entities.Repository(id=repo_id).sync()
-        attrs = entities.Repository(id=repo_id).read_json()
-        self.assertGreaterEqual(attrs[u'content_counts'][u'docker_image'], 1)
+        product = entities.Product(organization=self.org).create()
+        repository = entities.Repository(
+            content_type=u'docker',
+            docker_upstream_name=u'busybox',
+            name=u'busybox',
+            product=product,
+            url=DOCKER_REGISTRY_HUB,
+        ).create()
+        printer(repository.id)
+        printer(repository.sync())
+        self.assertGreaterEqual(
+            repository.read_json()[u'content_counts'][u'docker_image'],
+            1
+        )
 
     @data('yum', 'docker')
     def test_update_name(self, content_type):
