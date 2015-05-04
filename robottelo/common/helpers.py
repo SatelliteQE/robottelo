@@ -2,6 +2,7 @@
 """Several helper methods and functions."""
 import logging
 import os
+from os.path import join
 
 from automation_tools import distro_info
 from fabric.api import execute, settings
@@ -315,3 +316,31 @@ def configure_entities():
             computeresource_init(self, server_config, **kwargs)
             self._fields['url'].default = docker_url
         entities.ComputeResource.__init__ = patched_computeresource_init
+
+
+def prepare_import_data(tar_path=None):
+    """Fetch and uncompress the CSV files from the source."""
+    tmpdir = ssh.command('mktemp -d').stdout[0]
+    # if path to tar file not specified, download the default one
+    if tar_path is None:
+        tar_remote_path = conf.properties['transitions.export_tar.url']
+        cmd = u'wget {0} -O - | tar -xzvC {1}'.format(tar_remote_path, tmpdir)
+    else:
+        cmd = u'tar -xzvf {0} -C {1}'.format(tar_path, tmpdir)
+
+    files = {}
+    for file in ssh.command(cmd).stdout:
+        for key in (
+            'activation-keys',
+            'channels',
+            'config-files-latest.csv',
+            'kickstart-scripts',
+            'repositories',
+            'system-groups.csv'
+            'system-profiles',
+            'users'
+        ):
+            if file.endswith(key + '.csv'):
+                files[key] = join(tmpdir, file)
+                break
+    return tmpdir, files
