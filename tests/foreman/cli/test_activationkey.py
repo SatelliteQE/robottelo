@@ -1711,36 +1711,3 @@ class TestActivationKey(CLITestCase):
 
         self.assertEqual(result.return_code, 0)
         self.assertIn(result.stdout[0], 'Updated content override')
-
-    def test_positive_delete(self):
-        """@Test: Positive delete activation key
-
-        @Feature: Activation key delete
-
-        @Steps:
-
-        1. Create activation key
-        2. Delete the activation key
-        3. Verify that the deletion succeeded
-
-        @Assert: Activation key delete was successful
-
-        """
-
-        try:
-            ak_id = self._make_activation_key({
-                u'organization-id': self.org['id'],
-            })['id']
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        try:
-            result = ActivationKey.delete({
-                u'id': ak_id,
-                u'organization-id': self.org['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        self.assertEqual(result.return_code, 0)
-        self.assertIn(result.stdout[0], 'Activation key deleted')

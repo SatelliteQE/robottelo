@@ -59,12 +59,6 @@ class ActivationKey(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def delete(cls, options=None):
-        """Delete an activation key"""
-        cls.command_sub = 'delete'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
     def host_collection(cls, options=None):
         """List associated host collections"""
         cls.command_sub = 'host-collections'
