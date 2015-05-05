@@ -394,12 +394,12 @@ class OperatingSys(UITestCase):
         """
         os_name = gen_string("alpha", 4)
         template_name = gen_string("alpha", 4)
-        os_attrs = entities.OperatingSystem(name=os_name).create_json()
+        os = entities.OperatingSystem(name=os_name).create()
         entities.ConfigTemplate(
             name=template_name,
-            operatingsystem=[os_attrs['id']],
+            operatingsystem=[os],
             organization=[self.org_id],
-        ).create_json()
+        ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             self.operatingsys.update(os_name, template=template_name)
