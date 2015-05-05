@@ -438,7 +438,7 @@ class TestActivationKey(CLITestCase):
         gen_string('utf8'),
         gen_string('html'),
     )
-    def test_positive_delete_activation_key_1(self, name):
+    def test_delete_activation_key_by_name(self, name):
         """@Test: Create Activation key and delete it for all variations of
         Activation key name
 
@@ -446,178 +446,158 @@ class TestActivationKey(CLITestCase):
 
         @Steps:
 
-        1. Create Activation key for all valid Activation Key names in [1]
-        using valid Description, Environment, Content View, Usage limit
+        1. Create Activation key for all valid Activation Key names
         2. Delete the Activation key
 
         @Assert: Activation key is deleted
 
         """
         try:
-            activation_key_id = self._make_activation_key({
+            activation_key = self._make_activation_key({
                 u'name': name,
                 u'organization-id': self.org['id'],
-            })['id']
+            })
         except CLIFactoryError as err:
             self.fail(err)
 
-        result = ActivationKey.delete({'id': activation_key_id})
-        self.assertEqual(
-            result.return_code, 0, 'Failed to delete activation key')
-        self.assertEqual(
-            len(result.stderr), 0, result.stderr)
+        result = ActivationKey.delete({
+            'name': activation_key['name'],
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0, result.stderr)
 
-        # Can we find the object?
-        result = ActivationKey.info({'id': activation_key_id})
-        self.assertNotEqual(
-            result.return_code, 0, 'Activation key should be deleted')
-        self.assertGreater(
-            len(result.stderr), 0, 'There should be an error here')
-        self.assertEqual(
-            len(result.stdout), 0, 'Output should be blank')
+        result = ActivationKey.info({'id': activation_key['id']})
+        self.assertNotEqual(result.return_code, 0)
 
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_positive_delete_activation_key_2(self, description):
-        """@Test: Create Activation key and delete it for all variations of
-        Description
+    def test_delete_activation_key_by_org_name(self):
+        """@Test: Create Activation key and delete it using organization name
+        for which that key was created
 
         @Feature: Activation key - Positive Delete
 
         @Steps:
 
-        1. Create Activation key for all valid Description in [1]
-        using valid Name, Environment, Content View, Usage limit
-        2. Delete the Activation key
+        1. Create Activation key
+        2. Delete Activation key using organization name
 
         @Assert: Activation key is deleted
 
         """
         try:
-            activation_key_id = self._make_activation_key({
-                u'description': description,
+            activation_key = self._make_activation_key({
+                u'name': gen_string('alpha'),
+                u'description': gen_string('alpha'),
                 u'organization-id': self.org['id'],
-            })['id']
+            })
         except CLIFactoryError as err:
             self.fail(err)
 
-        result = ActivationKey.delete({'id': activation_key_id})
-        self.assertEqual(
-            result.return_code, 0, 'Failed to delete activation key')
-        self.assertEqual(
-            len(result.stderr), 0, result.stderr)
+        result = ActivationKey.delete({
+            'name': activation_key['name'],
+            'organization': self.org['name'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0, result.stderr)
 
-        # Can we find the object?
-        result = ActivationKey.info({'id': activation_key_id})
-        self.assertNotEqual(
-            result.return_code, 0, 'Activation key should be deleted')
-        self.assertGreater(
-            len(result.stderr), 0, 'There should be an error here')
-        self.assertEqual(
-            len(result.stdout), 0, 'Output should be blank')
+        result = ActivationKey.info({'id': activation_key['id']})
+        self.assertNotEqual(result.return_code, 0)
 
-    @stubbed()
-    def test_positive_delete_activation_key_3(self):
-        """@Test: Create Activation key and delete it for all variations of
-        Environment
+    def test_delete_activation_key_by_org_label(self):
+        """@Test: Create Activation key and delete it using organization
+        label for which that key was created
 
         @Feature: Activation key - Positive Delete
 
         @Steps:
 
-        1. Create Activation key for all valid Environments in [1]
-        using valid Name, Description, Content View, Usage limit
-        2. Delete the Activation key
+        1. Create Activation key
+        2. Delete Activation key using organization label
 
         @Assert: Activation key is deleted
 
-        @Status: Manual
-
         """
-        pass
+        try:
+            activation_key = self._make_activation_key({
+                u'name': gen_string('alpha'),
+                u'organization-id': self.org['id'],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
 
-    @stubbed()
-    def test_positive_delete_activation_key_4(self):
-        """@Test: Create Activation key and delete it for all variations of
-        Content Views
+        result = ActivationKey.delete({
+            'name': activation_key['name'],
+            'organization-label': self.org['label'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0, result.stderr)
+
+        result = ActivationKey.info({'id': activation_key['id']})
+        self.assertNotEqual(result.return_code, 0)
+
+    def test_delete_activation_key_with_content_view(self):
+        """@Test: Create activation key with content view assigned to it and delete
+        it using activation key id
 
         @Feature: Activation key - Positive Delete
 
         @Steps:
 
-        1. Create Activation key for all valid Content Views in [1]
-        using valid Name, Description, Environment, Usage limit
-        2. Delete the Activation key
+        1. Create Activation key with content view assigned to it
+        2. Delete Activation key using activation key id
 
         @Assert: Activation key is deleted
 
-        @Status: Manual
-
         """
-        pass
+        try:
+            cv = make_content_view({u'organization-id': self.org['id']})
+            activation_key = self._make_activation_key({
+                u'name': gen_string('alpha'),
+                u'content-view': cv['name'],
+                u'organization-id': self.org['id'],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
 
-    @stubbed()
-    def test_positive_delete_activation_key_5(self):
-        """@Test: Delete an Activation key which has registered systems
+        result = ActivationKey.delete({'id': activation_key['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0, result.stderr)
+
+        result = ActivationKey.info({'id': activation_key['id']})
+        self.assertNotEqual(result.return_code, 0)
+
+    def test_delete_activation_key_with_lifecycle_environment(self):
+        """@Test: Create activation key with lifecycle environment assigned to
+        it and delete it using activation key id
 
         @Feature: Activation key - Positive Delete
 
         @Steps:
 
-        1. Create an Activation key
-        2. Register systems to it
-        3. Delete the Activation key
+        1. Create Activation key with lifecycle environment assigned to it
+        2. Delete Activation key using activation key id
 
         @Assert: Activation key is deleted
 
-        @Status: Manual
-
         """
-        pass
+        try:
+            env = make_lifecycle_environment({
+                u'organization-id': self.org['id'],
+            })
+            activation_key = self._make_activation_key({
+                u'name': gen_string('alpha'),
+                u'lifecycle-environment': env['name'],
+                u'organization-id': self.org['id'],
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
 
-    @stubbed()
-    def test_positive_delete_activation_key_6(self):
-        """@Test: Delete a Content View associated to an Activation Key deletes
-        the Activation Key
+        result = ActivationKey.delete({'id': activation_key['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0, result.stderr)
 
-        @Feature: Activation key - Positive Delete
-
-        @Steps:
-
-        1. Create an Activation key with a Content View
-        2. Delete the Content View
-
-        @Assert: Activation key is deleted or updated accordingly
-
-        @Status: Manual
-
-        """
-        pass
-
-    @stubbed()
-    def test_negative_delete_activation_key_1(self):
-        """@Test: [UI ONLY] Attempt to delete an Activation Key and cancel it
-
-        @Feature: Activation key - Positive Delete
-
-        @Steps:
-
-        1. Create an Activation key
-        2. Attempt to remove an Activation Key
-        3. Click Cancel in the confirmation dialog box
-
-        @Assert: Activation key is not deleted
-
-        @Status: Manual
-
-        """
-        pass  # Skip for CLI as this is UI only
+        result = ActivationKey.info({'id': activation_key['id']})
+        self.assertNotEqual(result.return_code, 0)
 
     @data(
         gen_string('alpha'),
