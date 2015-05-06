@@ -1088,7 +1088,6 @@ class ActivationKey(UITestCase):
             vm1.destroy()
             vm2.destroy()
 
-    @stubbed()
     def test_associate_host(self):
         """@Test: Test that hosts can be associated to Activation Keys
 
@@ -1101,12 +1100,34 @@ class ActivationKey(UITestCase):
 
         @Assert: Hosts are successfully associated to Activation key
 
-        @Status: Manual
-
         @BZ: 1078676
 
         """
-        pass
+        key_name = gen_string("utf8")
+        with Session(self.browser) as session:
+            make_activationkey(
+                session, org=self.org_name, name=key_name, env=ENVIRONMENT)
+            self.assertIsNotNone(self.activationkey.search_key(key_name))
+            # Creating VM
+            with VirtualMachine(distro='rhel66') as vm:
+                # Downloading and Installing rpm
+                result = vm.run(
+                    "wget -nd -r -l1 --no-parent -A "
+                    "'*.noarch.rpm' http://{0}/pub/"
+                    .format(self.server_name)
+                )
+                self.assertEqual(result.return_code, 0)
+                result = vm.run('rpm -i katello-ca-consumer*.noarch.rpm')
+                self.assertEqual(result.return_code, 0)
+                # Registering client with Satellite server using activation-key
+                result = vm.run(
+                    u'subscription-manager register --activationkey {0} '
+                    '--org {1} --force'.format(key_name, self.org_label)
+                )
+                vm_host_name = vm.run('hostname').stdout
+            host_name = self.activationkey.fetch_associated_content_host(
+                key_name)
+            self.assertEqual(vm_host_name[0], host_name)
 
     @run_only_on('sat')
     def test_associate_product_1(self):
