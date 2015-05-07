@@ -108,37 +108,29 @@ class TestGPGKey(CLITestCase):
 
         self.assertEqual(gpg_key['content'], content)
 
-    @skip_if_bug_open('bugzilla', 1108227)
-    def test_bugzilla_1108227(self):
-        """@Test: Hammer fails to get a gpg info by name
+    def test_info_by_name(self):
+        """@Test: Create single gpg key and get its info by name
 
         @Feature: GPG Keys
 
-        @Assert: can get gpg key info by name
-
-        @BZ: 1108227
+        @Assert: specific information for GPG key matches the creation name
 
         """
         name = gen_string('utf8')
-        result = GPGKey.create({
-            'name': name,
-            'organization-id': self.org['id'],
-            'key': VALID_GPG_KEY_FILE_PATH,
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
         try:
-            new_obj = make_gpg_key(data)
+            new_obj = make_gpg_key({
+                u'key': VALID_GPG_KEY_FILE_PATH,
+                u'name': name,
+                u'organization-id': self.org['id'],
+            })
         except CLIFactoryError as err:
             self.fail(err)
 
-        # Can we find the new object?
         result = GPGKey().info({
-            'name': new_obj['name'],
-            'organization-id': self.org['id'],
+            u'name': new_obj['name'],
+            u'organization-id': self.org['id'],
         })
-
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
         self.assertEqual(result.stdout['name'], name)
@@ -1765,29 +1757,6 @@ class TestGPGKey(CLITestCase):
         @feature: GPG Keys
 
         @assert: gpg key can be found
-
-        @status: manual
-
-        """
-
-        pass
-
-    """DATADRIVENGOESHERE
-        name is alpha
-        name is numeric
-        name is alphanumeric
-        name is utf-8
-        name is latin1
-        name is html
-        gpg key file is valid always
-    """
-    @stubbed()
-    def test_info_key_1(self):
-        """@test: Create single gpg key and get its info
-
-        @feature: GPG Keys
-
-        @assert: specific information for gpg key matches the creation values
 
         @status: manual
 
