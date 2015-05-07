@@ -237,26 +237,24 @@ class TestLifeCycleEnvironment(CLITestCase):
         @Assert: Lifecycle environment name is updated
 
         """
-
-        payload = {
+        new_obj = make_lifecycle_environment({
             'organization-id': self.org['id'],
-        }
-
-        new_obj = make_lifecycle_environment(payload)
+        })
 
         # Update its name
         result = LifecycleEnvironment.update({
-            'organization-id': self.org['id'],
             'id': new_obj['id'],
             'new-name': test_data['name'],
+            'organization-id': self.org['id'],
+            'prior': new_obj['prior-lifecycle-environment'],
         })
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
 
         # Fetch the object
         result = LifecycleEnvironment.info({
-            'organization-id': self.org['id'],
             'id': new_obj['id'],
+            'organization-id': self.org['id'],
         })
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
@@ -280,31 +278,25 @@ class TestLifeCycleEnvironment(CLITestCase):
         @Assert: Lifecycle environment description is updated
 
         """
-
-        payload = {
+        new_obj = make_lifecycle_environment({
             'organization-id': self.org['id'],
-        }
-
-        new_obj = make_lifecycle_environment(payload)
+        })
 
         # Update its description
-        result = LifecycleEnvironment.update(
-            {
-                'organization-id': self.org['id'],
-                'id': new_obj['id'],
-                'description': test_data['description'],
-            }
-        )
+        result = LifecycleEnvironment.update({
+            'description': test_data['description'],
+            'id': new_obj['id'],
+            'organization-id': self.org['id'],
+            'prior': new_obj['prior-lifecycle-environment'],
+        })
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
 
         # Fetch the object
-        result = LifecycleEnvironment.info(
-            {
-                'organization-id': self.org['id'],
-                'id': new_obj['id'],
-            }
-        )
+        result = LifecycleEnvironment.info({
+            'id': new_obj['id'],
+            'organization-id': self.org['id'],
+        })
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
         self.assertGreater(len(result.stdout), 0)
