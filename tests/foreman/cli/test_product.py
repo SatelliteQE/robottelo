@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Test class for Product CLI"""
+import time
 
 from ddt import ddt
 from fauxfactory import gen_string
@@ -13,6 +14,7 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.product import Product
 from robottelo.common.decorators import data, run_only_on
+from robottelo.common.helpers import bz_bug_is_open
 from robottelo.test import CLITestCase
 
 
@@ -374,6 +376,16 @@ class TestProduct(CLITestCase):
             u'id': new_product['id'],
             u'organization-id': self.org['id'],
         })
+        if bz_bug_is_open(1219490):
+            for _ in range(5):
+                if result.return_code == 0:
+                    time.sleep(5)
+                    result = Product.info({
+                        u'id': new_product['id'],
+                        u'organization-id': self.org['id'],
+                    })
+                else:
+                    break
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0)
 
