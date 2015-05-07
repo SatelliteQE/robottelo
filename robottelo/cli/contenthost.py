@@ -44,3 +44,17 @@ class ContentHost(Base):
             cls._construct_command(options), output_format='csv')
 
         return result
+
+    @classmethod
+    def errata_info(cls, options):
+        """Retrieve a single errata for a system"""
+        cls.command_sub = 'errata info'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def errata_apply(cls, options):
+        """Schedule errata for installation"""
+        cls.command_sub = 'errata apply'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')

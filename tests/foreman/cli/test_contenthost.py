@@ -5,13 +5,37 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.factory import (
-    CLIFactoryError, make_org, make_content_view,
-    make_lifecycle_environment, make_content_host)
+    CLIFactoryError,
+    make_activation_key,
+    make_content_host,
+    make_content_view,
+    make_lifecycle_environment,
+    make_org,
+    make_product,
+    make_repository,
+)
+from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
+from robottelo.cli.repository import Repository
+from robottelo.cli.repository_set import RepositorySet
+from robottelo.cli.subscription import Subscription
+from robottelo.common import conf
+from robottelo.common import manifests
+from robottelo.common.constants import (
+    DEFAULT_SUBSCRIPTION_NAME,
+    FAKE_0_CUSTOM_PACKAGE,
+    FAKE_0_ERRATA_ID,
+    FAKE_0_YUM_REPO,
+    PRDS,
+    REPOS,
+    REPOSET,
+)
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.ssh import upload_file
 from robottelo.test import CLITestCase
+from robottelo.vm import VirtualMachine
 
 
 @ddt
@@ -532,3 +556,269 @@ class TestContentHost(CLITestCase):
                 u'content-view-id': self.DEFAULT_CV['id'],
                 u'lifecycle-environment-id': self.LIBRARY['id'],
             })
+
+
+class TestContentHostKatelloAgent(CLITestCase):
+    """Content-host tests, which require VM with installed katello-agent."""
+
+    def setUp(self):
+        """Create VM, subscribe it to satellite-tools repo, install katello-ca
+        and katello-agent packages
+
+        """
+        super(TestContentHostKatelloAgent, self).setUp()
+        # Create new org and environment
+        self.org = make_org()
+        self.env = make_lifecycle_environment({
+            u'organization-id': self.org['id'],
+        })
+        # Clone manifest and upload it
+        manifest = manifests.clone()
+        upload_file(manifest, remote_file=manifest)
+        result = Subscription.upload({
+            u'file': manifest,
+            u'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        # Enable repo from Repository Set
+        result = RepositorySet.enable({
+            u'name': REPOSET['rhst7'],
+            u'organization-id': self.org['id'],
+            u'product': PRDS['rhel'],
+            u'releasever': '7Server',
+            u'basearch': 'x86_64',
+        })
+        self.assertEqual(result.return_code, 0)
+        # Fetch repository info
+        result = Repository.info({
+            u'name': REPOS['rhst7']['name'],
+            u'product': PRDS['rhel'],
+            u'organization-id': self.org['id'],
+        })
+        rhel_repo = result.stdout
+        # Synchronize the RH repository
+        result = Repository.synchronize({
+            u'name': REPOS['rhst7']['name'],
+            u'organization-id': self.org['id'],
+            u'product': PRDS['rhel'],
+        })
+        self.assertEqual(result.return_code, 0)
+        # Create CV and associate repo with it
+        self.cv = make_content_view({u'organization-id': self.org['id']})
+        result = ContentView.add_repository({
+            u'id': self.cv['id'],
+            u'repository-id': rhel_repo['id'],
+            u'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        # Publish a version1 of CV
+        result = ContentView.publish({u'id': self.cv['id']})
+        self.assertEqual(result.return_code, 0)
+        # Get the version1 id
+        result = ContentView.info({u'id': self.cv['id']})
+        self.assertEqual(result.return_code, 0)
+        cvv = result.stdout['versions'][0]
+        # Promote version1 to next env
+        result = ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': self.env['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        # Create activation key
+        self.activation_key = make_activation_key({
+            u'lifecycle-environment-id': self.env['id'],
+            u'organization-id': self.org['id'],
+            u'content-view': self.cv['name'],
+        })
+        # List the subscriptions in given org
+        result = Subscription.list(
+            {u'organization-id': self.org['id']},
+            per_page=False
+        )
+        self.assertEqual(result.return_code, 0)
+        # Add subscription to activation-key
+        for subscription in result.stdout:
+            if subscription['name'] == DEFAULT_SUBSCRIPTION_NAME:
+                self.assertGreater(int(subscription['quantity']), 0)
+                result = ActivationKey.add_subscription({
+                    u'id': self.activation_key['id'],
+                    u'subscription-id': subscription['id'],
+                    u'quantity': 1,
+                })
+                self.assertEqual(result.return_code, 0)
+        # Create VM
+        self.vm = VirtualMachine(distro='rhel71')
+        self.vm.create()
+        # Download and Install katello-ca rpm
+        result = self.vm.run(
+            'wget -nd -r -l1 --no-parent -A \'*.noarch.rpm\' http://{0}/pub/'
+            .format(conf.properties['main.server.hostname'])
+        )
+        self.assertEqual(result.return_code, 0)
+        result = self.vm.run('rpm -i katello-ca-consumer*.noarch.rpm')
+        self.assertEqual(result.return_code, 0)
+        # Register client with foreman server using activation-key
+        result = self.vm.run(
+            'subscription-manager register --activationkey {0} '
+            '--org {1} --force'
+            .format(self.activation_key['name'], self.org['label'])
+        )
+        self.assertEqual(result.return_code, 0)
+        # Enable Red Hat Satellite Tools repo
+        result = self.vm.run(
+            'subscription-manager repos --enable {0}'
+            .format(REPOS['rhst7']['id'])
+        )
+        self.assertEqual(result.return_code, 0)
+        # Install katello-agent package
+        result = self.vm.run('yum install -y katello-agent')
+        self.assertEqual(result.return_code, 0)
+        # Verify if package is installed by query it
+        result = self.vm.run('rpm -q katello-agent')
+        self.assertIn('katello-agent', result.stdout[0])
+
+    def tearDown(self):
+        self.vm.destroy()
+        super(TestContentHostKatelloAgent, self).tearDown()
+
+    @run_only_on('sat')
+    def test_contenthost_get_errata_info(self):
+        """@Test: Get errata info
+
+        @Feature: Content Host - Errata
+
+        @Assert: Errata info was displayed
+
+        """
+        # Create custom product and repository
+        custom_product = make_product({u'organization-id': self.org['id']})
+        custom_repo = make_repository({
+            u'url': FAKE_0_YUM_REPO,
+            u'content-type': 'yum',
+            u'product-id': custom_product['id'],
+        })
+        # Synchronize custom repository
+        result = Repository.synchronize({'id': custom_repo['id']})
+        self.assertEqual(result.return_code, 0)
+        # Associate repo with CV
+        result = ContentView.add_repository({
+            u'id': self.cv['id'],
+            u'repository-id': custom_repo['id'],
+            u'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        # Publish a new version of CV
+        result = ContentView.publish({u'id': self.cv['id']})
+        self.assertEqual(result.return_code, 0)
+        # Get the version id
+        result = ContentView.info({u'id': self.cv['id']})
+        self.assertEqual(result.return_code, 0)
+        cvv = result.stdout['versions'][-1]
+        # Promote version to next env
+        result = ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': self.env['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        # List the subscriptions in given org
+        result = Subscription.list(
+            {u'organization-id': self.org['id']},
+            per_page=False
+        )
+        self.assertEqual(result.return_code, 0)
+        # Add subscription to activation-key
+        for subscription in result.stdout:
+            if subscription['name'] == custom_product['name']:
+                self.assertNotEqual(int(subscription['quantity']), 0)
+                result = ActivationKey.add_subscription({
+                    u'id': self.activation_key['id'],
+                    u'subscription-id': subscription['id'],
+                })
+                self.assertEqual(result.return_code, 0)
+        # Install custom package
+        result = self.vm.run(
+            'wget -nd -r -l1 --no-parent -A \'{0}.rpm\' {1}'
+            .format(FAKE_0_CUSTOM_PACKAGE, FAKE_0_YUM_REPO)
+        )
+        self.assertEqual(result.return_code, 0)
+        result = self.vm.run('rpm -i {0}.rpm'.format(FAKE_0_CUSTOM_PACKAGE))
+        self.assertEqual(result.return_code, 0)
+        # Get errata info
+        result = ContentHost.errata_info({
+            u'organization-id': self.org['id'],
+            u'content-host': self.vm.target_image,
+            u'id': FAKE_0_ERRATA_ID,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout[0]['errata-id'], FAKE_0_ERRATA_ID)
+        self.assertEqual(result.stdout[0]['packages'], FAKE_0_CUSTOM_PACKAGE)
+
+    @run_only_on('sat')
+    def test_contenthost_apply_errata(self):
+        """@Test: Apply errata to content host
+
+        @Feature: Content Host - Errata
+
+        @Assert: Errata is scheduled for installation
+
+        """
+        # Create custom product and repository
+        custom_product = make_product({u'organization-id': self.org['id']})
+        custom_repo = make_repository({
+            u'url': FAKE_0_YUM_REPO,
+            u'content-type': 'yum',
+            u'product-id': custom_product['id'],
+        })
+        # Synchronize custom repository
+        result = Repository.synchronize({'id': custom_repo['id']})
+        self.assertEqual(result.return_code, 0)
+        # Associate repo with CV
+        result = ContentView.add_repository({
+            u'id': self.cv['id'],
+            u'repository-id': custom_repo['id'],
+            u'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        # Publish a new version of CV
+        result = ContentView.publish({u'id': self.cv['id']})
+        self.assertEqual(result.return_code, 0)
+        # Get the version id
+        result = ContentView.info({u'id': self.cv['id']})
+        self.assertEqual(result.return_code, 0)
+        cvv = result.stdout['versions'][-1]
+        # Promote version to next env
+        result = ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': self.env['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        # List the subscriptions in given org
+        result = Subscription.list(
+            {u'organization-id': self.org['id']},
+            per_page=False
+        )
+        self.assertEqual(result.return_code, 0)
+        # Add subscription to activation-key
+        for subscription in result.stdout:
+            if subscription['name'] == custom_product['name']:
+                self.assertNotEqual(int(subscription['quantity']), 0)
+                result = ActivationKey.add_subscription({
+                    u'id': self.activation_key['id'],
+                    u'subscription-id': subscription['id'],
+                })
+                self.assertEqual(result.return_code, 0)
+        # Install custom package
+        result = self.vm.run(
+            'wget -nd -r -l1 --no-parent -A \'{0}.rpm\' {1}'
+            .format(FAKE_0_CUSTOM_PACKAGE, FAKE_0_YUM_REPO)
+        )
+        self.assertEqual(result.return_code, 0)
+        result = self.vm.run('rpm -i {0}.rpm'.format(FAKE_0_CUSTOM_PACKAGE))
+        self.assertEqual(result.return_code, 0)
+        # Apply errata to content host
+        result = ContentHost.errata_apply({
+            u'organization-id': self.org['id'],
+            u'content-host': self.vm.target_image,
+            u'errata-ids': FAKE_0_ERRATA_ID,
+        })
+        self.assertEqual(result.return_code, 0)

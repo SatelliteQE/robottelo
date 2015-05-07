@@ -5,7 +5,7 @@ virtual machine images are stored on the ``image_dir`` path on the provisioning
 server.
 
 Make sure to configure the ``clients`` section on the configuration file. Also
-make sure that the server have in place: the base images for rhel65 and rhel7,
+make sure that the server have in place: the base images for rhel66 and rhel71,
 snap-guest and its dependencies and the ``image_dir`` path created.
 
 """
@@ -16,7 +16,7 @@ import time
 from robottelo.common import conf, ssh
 
 
-BASE_IMAGES = ('rhel7', 'rhel65', 'rhel66')
+BASE_IMAGES = ('rhel71', 'rhel70', 'rhel66', 'rhel65')
 
 logger = logging.getLogger(__name__)
 
