@@ -768,3 +768,35 @@ class ContentViews(Base):
                 'Selected version "{0}" was not deleted successfully'
                 .format(version)
             )
+
+    def validate_version_cannot_be_deleted(self, name, version):
+        """Check that version cannot be deleted from selected CV, because it
+        has activation key or content host assigned to it
+
+        """
+        element = self.search(name)
+
+        if element is None:
+            raise UIError(
+                'Could not find the "{0}" content view.'.format(name)
+            )
+        element.click()
+        self.wait_for_ajax()
+        strategy, value = locators['contentviews.remove_ver']
+        remove_version = self.wait_until_element((strategy, value % version))
+        if remove_version is None:
+            raise UINoSuchElementError(
+                'Could not find button to delete version "{0}"'.format(version)
+            )
+        remove_version.click()
+        self.wait_for_ajax()
+        self.wait_until_element(locators['contentviews.next_button']).click()
+        self.wait_for_ajax()
+        self.wait_until_element(locators['contentviews.affected_button'])
+        self.wait_for_ajax()
+        self.wait_until_element(locators['contentviews.next_button'])
+        self.wait_for_ajax()
+        if self.is_element_enabled(locators['contentviews.next_button']):
+            raise UIError(
+                '"Next" button is enabled when it should not'
+            )

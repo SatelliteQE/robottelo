@@ -11,8 +11,15 @@ from nailgun import client, entities
 from robottelo.api import utils
 from robottelo.common import manifests
 from robottelo.common.constants import (
-    FILTER_CONTENT_TYPE, FILTER_TYPE, REPO_TYPE, FAKE_1_YUM_REPO,
-    FAKE_0_PUPPET_REPO, ZOO_CUSTOM_GPG_KEY)
+    DEFAULT_CV,
+    ENVIRONMENT,
+    FAKE_0_PUPPET_REPO,
+    FAKE_1_YUM_REPO,
+    FILTER_CONTENT_TYPE,
+    FILTER_TYPE,
+    REPO_TYPE,
+    ZOO_CUSTOM_GPG_KEY,
+)
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import (
@@ -1182,7 +1189,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    def test_delete_version(self):
+    def test_delete_version_default(self):
         """@Test: Delete a content-view version associated to 'Library'
 
         @Assert: Deletion fails
@@ -1230,6 +1237,92 @@ class TestContentViewsUI(UITestCase):
         version = 'Version {0}'.format(version_num)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
+            session.nav.go_to_content_views()
+            self.content_views.delete_version(cv.name, version)
+            self.content_views.validate_version_deleted(cv.name, version)
+
+    def test_delete_version_non_default(self):
+        """@Test: Delete a content-view version associated to non-default
+        environment
+
+        @Assert: Deletion fails
+
+        @Feature: ContentViewVersion
+
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        repo = entities.Repository(product=product).create()
+        repo.sync()
+        cv = entities.ContentView(
+            name=gen_string('alpha'),
+            organization=org,
+        ).create()
+        cv.set_repository_ids([repo.id])
+        cv.publish()
+
+        cv_info = cv.read_json()['versions'][0]
+        version = 'Version {0}'.format(cv_info['version'])
+        cvv = entities.ContentViewVersion(id=cv_info['id'])
+        lc_env = entities.LifecycleEnvironment(organization=org).create()
+        cvv.promote(lc_env.id)
+
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            session.nav.go_to_content_views()
+            self.content_views.delete_version(cv.name, version)
+            self.content_views.validate_version_deleted(cv.name, version)
+
+    def test_delete_version_with_ak(self):
+        """@Test: Delete a content-view version that had associated activation
+        key to it
+
+        @Assert: Deletion fails
+
+        @Feature: ContentViewVersion
+
+        """
+
+        org = entities.Organization().create()
+        cv = entities.ContentView(
+            name=gen_string('alpha'),
+            organization=org,
+        ).create()
+        cv.publish()
+
+        cv_info = cv.read_json()['versions'][0]
+        version = 'Version {0}'.format(cv_info['version'])
+        cvv = entities.ContentViewVersion(id=cv_info['id'])
+        lc_env = entities.LifecycleEnvironment(organization=org).create()
+        cvv.promote(lc_env.id)
+
+        ak = entities.ActivationKey(
+            name=gen_string('alphanumeric'),
+            environment=lc_env.id,
+            organization=org,
+            content_view=cv,
+        ).create_json()
+
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            session.nav.go_to_content_views()
+            self.content_views.validate_version_cannot_be_deleted(
+                cv.name,
+                version,
+            )
+            # That call should be made to remove any reference from DOM to
+            # search field on the page and prevent StaleElementException in
+            # our search functionality as our code does not differentiate
+            # search field locator for ActivationKey or ContentView or any
+            # other possible entities in the application.
+            session.nav.go_to_dashboard()
+            session.nav.go_to_activation_keys()
+            self.activationkey.update(
+                ak['name'],
+                content_view=DEFAULT_CV,
+                env=ENVIRONMENT,
+            )
+            session.nav.go_to_dashboard()
             session.nav.go_to_content_views()
             self.content_views.delete_version(cv.name, version)
             self.content_views.validate_version_deleted(cv.name, version)
