@@ -563,8 +563,8 @@ class ContentViews(Base):
                 'Could not find the content view "{0}"'.format(cv_name)
             )
 
-    def select_package_version_value(self, version_type, value1=None,
-                                     value2=None):
+    def select_package_version_value(
+            self, version_type, value1=None, value2=None):
         """Select package version and set values: versions are: 'All'  'Equal
         To' 'Greater Than' 'Less Than' 'Range'.
 
@@ -577,18 +577,18 @@ class ContentViews(Base):
         """
         if version_type == 'Equal To':
             self.find_element(
-                locators["contentviews.equal_value"].send_keys(value1))
+                locators["contentviews.equal_value"]).send_keys(value1)
         elif version_type == 'Greater Than':
             self.find_element(
-                locators["contentviews.greater_min_value"].send_keys(value1))
+                locators["contentviews.greater_min_value"]).send_keys(value1)
         elif version_type == 'Less Than':
             self.find_element(
-                locators["contentviews.less_max_value"].send_keys(value1))
+                locators["contentviews.less_max_value"]).send_keys(value1)
         elif version_type == 'Range':
             self.find_element(
-                locators["contentviews.greater_min_value"].send_keys(value1))
+                locators["contentviews.greater_min_value"]).send_keys(value1)
             self.find_element(
-                locators["contentviews.less_max_value"].send_keys(value2))
+                locators["contentviews.less_max_value"]).send_keys(value2)
         else:
             raise UIError('Could not find valid version type')
 
