@@ -145,7 +145,17 @@ REPOSET = {
     'rhct6': "Red Hat CloudForms Tools for RHEL 6 (RPMs)",
     'rhel6': "Red Hat Enterprise Linux 6 Server (RPMs)",
     'rhva6': "Red Hat Enterprise Virtualization Agents "
-    "for RHEL 6 Server (RPMs)"
+    "for RHEL 6 Server (RPMs)",
+    # TODO: Remove 'Beta' after release
+    'rhst7': "Red Hat Satellite Tools 6 Beta (for RHEL 7 Server) (RPMs)",
+}
+
+REPOS = {
+    'rhst7': {  # TODO: Remove 'beta' after release
+        'id': "rhel-7-server-satellite-tools-6-beta-rpms",
+        'name': "Red Hat Satellite Tools 6 Beta for RHEL 7 Server "
+                "RPMs x86_64 7Server",
+        }
 }
 
 # The 'create_repos_tree' function under 'sync' module uses the following
@@ -203,6 +213,8 @@ FAKE_3_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet03"
 FAKE_4_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet04"
 FAKE_5_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet05"
 REPO_DISCOVERY_URL = "http://omaciel.fedorapeople.org/"
+FAKE_0_CUSTOM_PACKAGE = 'bear-4.1-1.noarch'
+FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
 
 PUPPET_MODULE_NTP_PUPPETLABS = "puppetlabs-ntp-3.2.1.tar.gz"
 

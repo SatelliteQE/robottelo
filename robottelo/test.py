@@ -291,7 +291,7 @@ class UITestCase(TestCase):
 class InstallerTestCase(TestCase):
     vm_cpu = 2
     vm_ram = 6144
-    vm_os = 'rhel7'
+    vm_os = 'rhel71'
 
     @classmethod
     def setUpClass(cls):  # noqa
