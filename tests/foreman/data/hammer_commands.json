@@ -3139,6 +3139,18 @@
               "value": "BY"
             },
             {
+              "help": "Content view name",
+              "name": "content-view",
+              "shortname": null,
+              "value": "CONTENT_VIEW_NAME"
+            },
+            {
+              "help": "content view numeric identifier",
+              "name": "content-view-id",
+              "shortname": null,
+              "value": "CONTENT_VIEW_ID"
+            },
+            {
               "help": "Filter by systems that need any one of multiple Errata by uuid Comma separated list of values.",
               "name": "errata-ids",
               "shortname": null,
@@ -6680,6 +6692,253 @@
               "name": "name",
               "shortname": null,
               "value": "NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "description": "Manipulate discovered rules.",
+      "name": "discovery-rule",
+      "options": [
+        {
+          "help": "print help",
+          "name": "help",
+          "shortname": "h",
+          "value": null
+        }
+      ],
+      "subcommands": [
+        {
+          "description": "Create a discovery rule",
+          "name": "create",
+          "options": [
+            {
+              "help": "flag is used for temporary shutdown of rules One of true/false, yes/no, 1/0.",
+              "name": "enabled",
+              "shortname": null,
+              "value": "ENABLED"
+            },
+            {
+              "help": "Hostgroup name",
+              "name": "hostgroup",
+              "shortname": null,
+              "value": "HOSTGROUP_NAME"
+            },
+            {
+              "help": "",
+              "name": "hostgroup-id",
+              "shortname": null,
+              "value": "HOSTGROUP_ID"
+            },
+            {
+              "help": "defines a pattern to assign human-readable hostnames to the matching hosts",
+              "name": "hostname",
+              "shortname": null,
+              "value": "HOSTNAME"
+            },
+            {
+              "help": "",
+              "name": "hosts-limit",
+              "shortname": null,
+              "value": "HOSTS_LIMIT"
+            },
+            {
+              "help": "enables to limit maximum amount of provisioned hosts per rule",
+              "name": "max-count",
+              "shortname": null,
+              "value": "MAX_COUNT"
+            },
+            {
+              "help": "represents rule name shown to the users",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "puts the rules in order, low numbers go first. Must be greater then zero",
+              "name": "priority",
+              "shortname": null,
+              "value": "PRIORITY"
+            },
+            {
+              "help": "query to match discovered hosts for the particular rule",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Delete a rule",
+          "name": "delete",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Show a discovery rule",
+          "name": "info",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "List all discovery rules",
+          "name": "list",
+          "options": [
+            {
+              "help": "sort results",
+              "name": "order",
+              "shortname": null,
+              "value": "ORDER"
+            },
+            {
+              "help": "paginate results",
+              "name": "page",
+              "shortname": null,
+              "value": "PAGE"
+            },
+            {
+              "help": "number of entries per request",
+              "name": "per-page",
+              "shortname": null,
+              "value": "PER_PAGE"
+            },
+            {
+              "help": "filter results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Update a rule",
+          "name": "update",
+          "options": [
+            {
+              "help": "flag is used for temporary shutdown of rules One of true/false, yes/no, 1/0.",
+              "name": "enabled",
+              "shortname": null,
+              "value": "ENABLED"
+            },
+            {
+              "help": "Hostgroup name",
+              "name": "hostgroup",
+              "shortname": null,
+              "value": "HOSTGROUP_NAME"
+            },
+            {
+              "help": "",
+              "name": "hostgroup-id",
+              "shortname": null,
+              "value": "HOSTGROUP_ID"
+            },
+            {
+              "help": "defines a pattern to assign human-readable hostnames to the matching hosts",
+              "name": "hostname",
+              "shortname": null,
+              "value": "HOSTNAME"
+            },
+            {
+              "help": "",
+              "name": "hosts-limit",
+              "shortname": null,
+              "value": "HOSTS_LIMIT"
+            },
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "enables to limit maximum amount of provisioned hosts per rule",
+              "name": "max-count",
+              "shortname": null,
+              "value": "MAX_COUNT"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "represents rule name shown to the users",
+              "name": "new-name",
+              "shortname": null,
+              "value": "NEW_NAME"
+            },
+            {
+              "help": "puts the rules in order, low numbers go first. Must be greater then zero",
+              "name": "priority",
+              "shortname": null,
+              "value": "PRIORITY"
+            },
+            {
+              "help": "query to match discovered hosts for the particular rule",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
             },
             {
               "help": "print help",
@@ -12154,6 +12413,18 @@
               "value": "ORGANIZATION_LABEL"
             },
             {
+              "help": "Name of the prior enviroment",
+              "name": "prior",
+              "shortname": null,
+              "value": "PRIOR"
+            },
+            {
+              "help": "ID of an environment that is prior to the new environment in the chain. It has to be either the ID of Library or the ID of an environment at the end of a chain.",
+              "name": "prior-id",
+              "shortname": null,
+              "value": "PRIOR_ID"
+            },
+            {
               "help": "ID of an environment that is prior to the new environment in the chain. It has to be either the ID of Library or the ID of an environment at the end of a chain.",
               "name": "prior",
               "shortname": null,
@@ -12385,6 +12656,18 @@
               "name": "prior",
               "shortname": null,
               "value": "PRIOR"
+            },
+            {
+              "help": "Name of the prior enviroment",
+              "name": "prior",
+              "shortname": null,
+              "value": "PRIOR"
+            },
+            {
+              "help": "ID of an environment that is prior to the new environment in the chain. It has to be either the ID of Library or the ID of an environment at the end of a chain.",
+              "name": "prior-id",
+              "shortname": null,
+              "value": "PRIOR_ID"
             },
             {
               "help": "print help",
@@ -15335,6 +15618,30 @@
           "name": "create",
           "options": [
             {
+              "help": "IDs of associated architectures Comma separated list of values.",
+              "name": "architecture-ids",
+              "shortname": null,
+              "value": "ARCHITECTURE_IDS"
+            },
+            {
+              "help": "Comma separated list of values.",
+              "name": "architectures",
+              "shortname": null,
+              "value": "ARCHITECTURE_NAMES"
+            },
+            {
+              "help": "IDs of associated provisioning templates Comma separated list of values.",
+              "name": "config-template-ids",
+              "shortname": null,
+              "value": "CONFIG_TEMPLATE_IDS"
+            },
+            {
+              "help": "Comma separated list of values.",
+              "name": "config-templates",
+              "shortname": null,
+              "value": "CONFIG_TEMPLATE_NAMES"
+            },
+            {
               "help": "",
               "name": "description",
               "shortname": null,
@@ -15353,6 +15660,18 @@
               "value": "MAJOR"
             },
             {
+              "help": "Comma separated list of values.",
+              "name": "media",
+              "shortname": null,
+              "value": "MEDIUM_NAMES"
+            },
+            {
+              "help": "IDs of associated media Comma separated list of values.",
+              "name": "medium-ids",
+              "shortname": null,
+              "value": "MEDIUM_IDS"
+            },
+            {
               "help": "",
               "name": "minor",
               "shortname": null,
@@ -15363,6 +15682,18 @@
               "name": "name",
               "shortname": null,
               "value": "NAME"
+            },
+            {
+              "help": "IDs of associated partition tables Comma separated list of values.",
+              "name": "partition-table-ids",
+              "shortname": null,
+              "value": "PARTITION_TABLE_IDS"
+            },
+            {
+              "help": "Comma separated list of values.",
+              "name": "partition-tables",
+              "shortname": null,
+              "value": "PARTITION_TABLE_NAMES"
             },
             {
               "help": "Root password hash function to use, one of MD5, SHA256, SHA512",
@@ -15754,6 +16085,30 @@
           "name": "update",
           "options": [
             {
+              "help": "IDs of associated architectures Comma separated list of values.",
+              "name": "architecture-ids",
+              "shortname": null,
+              "value": "ARCHITECTURE_IDS"
+            },
+            {
+              "help": "Comma separated list of values.",
+              "name": "architectures",
+              "shortname": null,
+              "value": "ARCHITECTURE_NAMES"
+            },
+            {
+              "help": "IDs of associated provisioning templates Comma separated list of values.",
+              "name": "config-template-ids",
+              "shortname": null,
+              "value": "CONFIG_TEMPLATE_IDS"
+            },
+            {
+              "help": "Comma separated list of values.",
+              "name": "config-templates",
+              "shortname": null,
+              "value": "CONFIG_TEMPLATE_NAMES"
+            },
+            {
               "help": "",
               "name": "description",
               "shortname": null,
@@ -15778,6 +16133,18 @@
               "value": "MAJOR"
             },
             {
+              "help": "Comma separated list of values.",
+              "name": "media",
+              "shortname": null,
+              "value": "MEDIUM_NAMES"
+            },
+            {
+              "help": "IDs of associated media Comma separated list of values.",
+              "name": "medium-ids",
+              "shortname": null,
+              "value": "MEDIUM_IDS"
+            },
+            {
               "help": "",
               "name": "minor",
               "shortname": null,
@@ -15788,6 +16155,18 @@
               "name": "name",
               "shortname": null,
               "value": "NAME"
+            },
+            {
+              "help": "IDs of associated partition tables Comma separated list of values.",
+              "name": "partition-table-ids",
+              "shortname": null,
+              "value": "PARTITION_TABLE_IDS"
+            },
+            {
+              "help": "Comma separated list of values.",
+              "name": "partition-tables",
+              "shortname": null,
+              "value": "PARTITION_TABLE_NAMES"
             },
             {
               "help": "Root password hash function to use, one of MD5, SHA256, SHA512",

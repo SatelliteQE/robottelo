@@ -3,7 +3,7 @@ import json
 
 from robottelo.cli import hammer
 from robottelo.common import ssh
-from robottelo.common.helpers import read_data_file
+from robottelo.common.helpers import bz_bug_is_open, read_data_file
 from robottelo.test import CLITestCase
 
 HAMMER_COMMANDS = json.loads(read_data_file('hammer_commands.json'))
@@ -39,6 +39,10 @@ class HammerCommandsTestCase(CLITestCase):
         the expected options are present.
 
         """
+        if (command == 'hammer content-host errata list' and
+                bz_bug_is_open(1219593)):
+            # Skip until the bug gets fixed
+            return
         output = hammer.parse_help(
             ssh.command('{0} --help'.format(command)).stdout
         )
@@ -46,7 +50,13 @@ class HammerCommandsTestCase(CLITestCase):
         command_subcommands = set(
             [subcommand['name'] for subcommand in output['subcommands']]
         )
-        expected = self._fetch_command_info(command)
+        if 'discovery_rule' in command and bz_bug_is_open(1219610):
+            # Adjust the discovery_rule subcommand name. The expected data is
+            # already with the naming convetion name
+            expected = self._fetch_command_info(
+                command.replace('discovery_rule', 'discovery-rule'))
+        else:
+            expected = self._fetch_command_info(command)
         expected_options = set()
         expected_subcommands = set()
 
@@ -57,6 +67,11 @@ class HammerCommandsTestCase(CLITestCase):
             expected_subcommands = set(
                 [subcommand['name'] for subcommand in expected['subcommands']]
             )
+
+        if command == 'hammer' and bz_bug_is_open(1219610):
+            # Adjust the discovery_rule subcommand name
+            command_subcommands.discard('discovery_rule')
+            command_subcommands.add('discovery-rule')
 
         added_options = tuple(command_options - expected_options)
         removed_options = tuple(expected_options - command_options)
