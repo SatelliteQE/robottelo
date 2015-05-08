@@ -5,7 +5,8 @@ from fauxfactory import gen_string
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_environment, make_location, make_org
-from robottelo.common.decorators import run_only_on, data
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.helpers import bz_bug_is_open
 from robottelo.test import MetaCLITestCase
 
 
@@ -263,3 +264,47 @@ class TestEnvironment(MetaCLITestCase):
         result = Environment.info({'name': env_name})
         self.assertIn(new_org['name'], result.stdout['organizations'])
         self.assertNotIn(old_org['name'], result.stdout['organizations'])
+
+    @skip_if_bug_open('bugzilla', 1219934)
+    def test_sc_params_by_environment_id(self):
+        """@Test: Check if environment sc-param subcommand works passing
+        an environment id
+
+        @Feature: Environment
+
+        @Assert: The command runs without raising an error
+
+        @BZ: 1219934
+
+        """
+        environment = make_environment()
+        result = Environment.sc_params({
+            'environment-id': environment['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        if not bz_bug_is_open(1219934):
+            self.fail('BZ #1219934 is closed, should assert the content')
+
+    @skip_if_bug_open('bugzilla', 1219934)
+    def test_sc_params_by_environment_name(self):
+        """@Test: Check if environment sc-param subcommand works passing
+        an environment name
+
+        @Feature: Environment
+
+        @Assert: The command runs without raising an error
+
+        @BZ: 1219934
+
+        """
+        environment = make_environment()
+        result = Environment.sc_params({
+            'environment': environment['name'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        if not bz_bug_is_open(1219934):
+            self.fail('BZ #1219934 is closed, should assert the content')
