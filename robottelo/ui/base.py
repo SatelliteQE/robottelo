@@ -394,3 +394,14 @@ class Base(object):
         self.wait_for_ajax()
         if self.wait_until_element(locator) and validation:
             raise UIPageSubmitionFailed("Page submission failed.")
+
+    def is_element_enabled(self, locator):
+        """Check whether UI element is enabled or disabled
+
+        :param locator: The locator of the element.
+        :return: Returns True if element is enabled and False otherwise
+
+        """
+        element = self.wait_until_element(locator)
+        self.wait_for_ajax()
+        return element.is_enabled()

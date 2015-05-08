@@ -1441,13 +1441,13 @@ locators = LocatorDict({
         By.XPATH, "//span/input[contains(@ng-model, 'deleteArchive')]"),
     "contentviews.next_button": (
         By.XPATH, "//button[@ng-click='processSelection()']"),
+    "contentviews.affected_button": (
+        By.XPATH, "//button[contains(@ng-show, '!show')]"),
     "contentviews.change_env": (
         By.XPATH,
         "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
     "contentviews.change_cv": (
         By.XPATH, "//select[@ng-model='selectedContentViewId']"),
-    "contentviews.remove_ver": (
-        By.XPATH, "//div[@class='fr']/button[@ng-click='performDeletion()']"),
     "contentviews.confirm_remove_ver": (
         By.XPATH, "//button[@ng-click='performDeletion()']"),
     "contentviews.confirm_remove": (
