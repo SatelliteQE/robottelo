@@ -125,7 +125,7 @@ class ContentViews(Base):
 
         if element is None:
             raise UIError(
-                'Could not find the "{0}" content view.'.format(name)
+                u'Could not find the "{0}" content view.'.format(name)
             )
         element.click()
         self.wait_for_ajax()

@@ -909,7 +909,7 @@ locators = LocatorDict({
     "arch.name": (By.ID, "architecture_name"),
     "arch.delete": (
         By.XPATH,
-        "//a[contains(@href, '%s') and @class='delete']"),
+        "//a[contains(@data-confirm, '%s') and @class='delete']"),
     "arch.arch_name": (By.XPATH, "//a[contains(., '%s')]"),
 
     # Medium
