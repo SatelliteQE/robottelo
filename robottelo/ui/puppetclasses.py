@@ -83,7 +83,8 @@ class PuppetClasses(Base):
                 "Couldn't find the puppet class '{0}'.".format(class_name)
             )
         puppet_class.click()
-        self.find_element(tab_locators['puppetclass.parameters']).click()
+        if self.wait_until_element(tab_locators['puppetclass.parameters']):
+            self.find_element(tab_locators['puppetclass.parameters']).click()
         if self.wait_until_element(
             locators['puppetclass.paramfilter']
         ) and parameter_name:
