@@ -2,7 +2,8 @@
 """Test class for Domain UI"""
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.decorators import (
+    data, run_only_on, skip_if_bug_open, bz_bug_is_open)
 from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -86,7 +87,7 @@ class Domain(UITestCase):
           {'name': gen_string('latin1', 10),
            'newname': gen_string('latin1', 10)},
           {'name': gen_string('html', 10),
-           'newname': gen_string('html', 10)})
+           'newname': gen_string('html', 10), 'bugzilla': 1220104})
     def test_update_domain(self, testdata):
         """@Test: Update a domain with name and description\
 
@@ -95,6 +96,10 @@ class Domain(UITestCase):
         @Assert: Domain is updated
 
         """
+        bug_id = testdata.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
+
         domain_name = description = DOMAIN % testdata['name']
         new_name = new_description = DOMAIN % testdata['newname']
         with Session(self.browser) as session:

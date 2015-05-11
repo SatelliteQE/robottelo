@@ -152,13 +152,7 @@ class ComputeResource(UITestCase):
           {'name': gen_string('numeric'),
            'newname': gen_string('numeric')},
           {'name': gen_string('alphanumeric'),
-           'newname': gen_string('alphanumeric')},
-          {'name': gen_string('utf8'),
-           'newname': gen_string('utf8')},
-          {'name': gen_string('latin1'),
-           'newname': gen_string('latin1')},
-          {'name': gen_string('html'),
-           'newname': gen_string('html')})
+           'newname': gen_string('alphanumeric')})
     def test_update_resource(self, testdata):
         """@Test: Update a libvirt Compute Resource's Organization
 

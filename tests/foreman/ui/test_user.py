@@ -828,7 +828,7 @@ class User(UITestCase):
         password = gen_string("alpha", 8)
         with Session(self.browser) as session:
             make_user(session, username=name, password1=password,
-                      password2=password)
+                      password2=password, edit=True, roles=['Viewer'])
             self.user.update(search_key, name, new_username)
             self.assertIsNotNone(
                 self.user.search(new_username, search_key))
