@@ -34,7 +34,8 @@ class PuppetClasses(UITestCase):
         with Session(self.browser):
             # Importing puppet classes from puppet-foreman_scap_client
             # module for update process
-            self.puppetclasses.import_scap_client_puppet_classes()
+            if self.puppetclasses.search(class_name) is None:
+                self.puppetclasses.import_scap_client_puppet_classes()
             self.assertIsNotNone(self.puppetclasses.search(class_name))
             self.puppetclasses.update_class_parameter_description(
                 class_name,
