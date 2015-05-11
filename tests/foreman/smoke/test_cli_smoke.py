@@ -27,9 +27,8 @@ from robottelo.common.constants import (
     FAKE_0_PUPPET_REPO,
     GOOGLE_CHROME_REPO
 )
-from robottelo.common.helpers import generate_strings_list
-from robottelo.common import manifests
-from robottelo.common.ssh import upload_file
+from robottelo.common.helpers import generate_strings_list, get_server_software
+from robottelo.common import manifests, ssh
 from robottelo.common import conf
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -95,6 +94,23 @@ class TestSmoke(CLITestCase):
             u"Admin User does not have admin role: 'Admin' = '{0}'".format(
                 result.stdout['admin'])
         )
+
+    def test_foreman_version(self):
+        """@Test: Check if /usr/share/foreman/VERSION does not contain the
+        develop tag.
+
+        @Feature: Smoke Test
+
+        @Assert: The file content does not have the develop tag.
+
+        """
+        result = ssh.command('cat /usr/share/foreman/VERSION')
+        self.assertEqual(result.return_code, 0)
+
+        if get_server_software() == 'downstream':
+            self.assertNotIn('develop', u''.join(result.stdout))
+        else:
+            self.assertIn('develop', u''.join(result.stdout))
 
     def test_smoke(self):
         """@Test: Check that basic content can be created
@@ -548,7 +564,7 @@ class TestSmoke(CLITestCase):
         })
         # Clone manifest and upload it
         manifest = manifests.clone()
-        upload_file(manifest, remote_file=manifest)
+        ssh.upload_file(manifest, remote_file=manifest)
         result = Subscription.upload({
             u'file': manifest,
             u'organization-id': new_org['id'],

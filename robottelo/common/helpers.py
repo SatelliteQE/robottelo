@@ -8,7 +8,7 @@ from fabric.api import execute, settings
 from fauxfactory import gen_string, gen_integer
 from nailgun import entities, entity_mixins
 from nailgun.config import ServerConfig
-from robottelo.common import conf
+from robottelo.common import conf, ssh
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.decorators import bz_bug_is_open
 from urlparse import urlunsplit
@@ -32,6 +32,19 @@ def get_server_credentials():
         conf.properties['foreman.admin.username'],
         conf.properties['foreman.admin.password']
     )
+
+
+def get_server_software():
+    """Figure out which product distribution is installed on the server.
+
+    :return: Either 'upstream' or 'downstream'.
+    :rtype: str
+
+    """
+    return_code = ssh.command(
+        '[ -f /usr/share/foreman/lib/satellite/version.rb ]'
+    ).return_code
+    return 'downstream' if return_code == 0 else 'upstream'
 
 
 def get_server_url():
