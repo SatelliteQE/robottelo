@@ -5,6 +5,7 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 
 """
 from nailgun import entities
+from nailgun.entity_mixins import TaskFailedError
 from robottelo.common import manifests
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
@@ -52,12 +53,10 @@ class SubscriptionsTestCase(APITestCase):
         """
         manifest_path = manifests.clone()
 
-        # Upload the manifest to one organization.
-        org_id = entities.Organization().create_json()['id']
-        entities.Organization(id=org_id).upload_manifest(manifest_path)
+        first_org = entities.Organization().create()
+        first_org.upload_manifest(manifest_path)
 
-        # Upload the manifest to a second organization.
-        org = entities.Organization()
-        org.id = org.create_json()['id']
-        org.upload_manifest(manifest_path)
-        self.assertEqual([], org.subscriptions())
+        second_org = entities.Organization().create()
+        with self.assertRaises(TaskFailedError):
+            second_org.upload_manifest(manifest_path)
+        self.assertEqual([], second_org.subscriptions())
