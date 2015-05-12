@@ -463,6 +463,10 @@ PERMISSIONS = {
         'console_hosts',
         'ipmi_boot',
         'puppetrun_hosts',
+        'view_discovered_hosts',
+        'provision_discovered_hosts',
+        'edit_discovered_hosts',
+        'destroy_discovered_hosts',
     ),
     'Katello::ActivationKey': (
         'view_activation_keys',
