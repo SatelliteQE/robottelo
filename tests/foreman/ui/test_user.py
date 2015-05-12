@@ -80,7 +80,7 @@ class User(UITestCase):
         user_name = gen_string("alpha", 6)
         new_password = gen_string("alpha", 8)
         with Session(self.browser) as session:
-            make_user(session, username=user_name)
+            make_user(session, username=user_name, edit=True, roles=['Viewer'])
             self.user.update(search_key, user_name, password=new_password)
             self.login.logout()
             self.login.login(user_name, new_password)
