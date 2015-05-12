@@ -78,8 +78,11 @@ class TestActivationKey(CLITestCase):
         if TestActivationKey.pub_key is None:
             TestActivationKey.pub_key = {}
             try:
-                TestActivationKey.pub_key['org_id'] = self.org['id']
-                TestActivationKey.pub_key['prod_id'] = self.product['id']
+                organization_id = make_org()['id']
+                TestActivationKey.pub_key['org_id'] = organization_id
+                TestActivationKey.pub_key['prod_id'] = make_product({
+                    'organization-id': organization_id,
+                })['id']
                 TestActivationKey.pub_key['manifest'] = manifests.clone()
                 Organization(
                     id=TestActivationKey.pub_key['org_id']
@@ -126,7 +129,8 @@ class TestActivationKey(CLITestCase):
                     u'subscription-id': subscription_result.stdout[0]['id'],
                 })
             except CLIFactoryError as err:
-                TestActivationKey.fail(err)
+                TestActivationKey.pub_key = None
+                self.fail(err)
 
     @data(
         gen_string('alpha'),
@@ -1409,7 +1413,7 @@ class TestActivationKey(CLITestCase):
         manifest = manifests.clone()
         upload_file(manifest, remote_file=manifest)
         try:
-            org_id = make_org(cached=True)['id']
+            org_id = make_org()['id']
             activation_key_id = self._make_activation_key({
                 u'organization-id': org_id,
             })['id']
@@ -1540,7 +1544,7 @@ class TestActivationKey(CLITestCase):
 
         """
         # Begin test setup
-        org_id = make_org(cached=True)['id']
+        org_id = make_org()['id']
         parent_id = make_activation_key(
             {u'organization-id': org_id})['id']
 
