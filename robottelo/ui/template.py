@@ -112,6 +112,7 @@ class Template(Base):
                 .format(name)
             )
         clone.click()
+        self.wait_for_ajax()
         self.field_update("provision.template_name", clone_name)
         if template_path:
             self.find_element(

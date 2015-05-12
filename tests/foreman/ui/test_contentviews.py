@@ -23,7 +23,7 @@ from robottelo.common.constants import (
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import (
-    invalid_names_list, valid_names_list, get_server_credentials,
+    invalid_names_list, valid_data_list, get_server_credentials,
     read_data_file)
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
@@ -86,7 +86,7 @@ class TestContentViewsUI(UITestCase):
         entities.Repository(id=repo_id).sync()
 
     @skip_if_bug_open('bugzilla', 1083086)
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_cv_create(self, name):
         """@test: create content views (positive)
 
@@ -330,7 +330,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators["alert.success"]))
 
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_cv_update_name(self, new_name):
         """@test: Positive update content views - name.
 
@@ -371,7 +371,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(invalid)
             self.assertIsNone(self.content_views.search(new_name))
 
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_cv_update_description(self, new_description):
         """@test: Positive update content views - description.
 
