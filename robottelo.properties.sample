@@ -60,3 +60,9 @@ admin.password=changeme
 driver=firefox
 
 # NOTE: Candlepin url accepts just the hostname.
+
+# Section for declaring Sat5->Sat6 transition parameters
+[transitions]
+# URL of the  exported data archive (typically a .tgz containing a bunch of CSV
+# files together with repo data)
+#export_tar.url=http://example.org/sat5_export_data.tgz
