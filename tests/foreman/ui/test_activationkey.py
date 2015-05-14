@@ -17,8 +17,7 @@ from robottelo.common.constants import (
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import (
-    valid_names_list, invalid_names_list,
-    valid_data_list, get_server_credentials)
+    invalid_names_list, valid_data_list, get_server_credentials)
 from robottelo.ui.factory import make_activationkey, set_context
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.session import Session
@@ -1413,7 +1412,7 @@ class ActivationKey(UITestCase):
         pass
 
     @run_only_on('sat')
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_copy_activation_key(self, new_name):
         """@Test: Create Activation key and copy it
 

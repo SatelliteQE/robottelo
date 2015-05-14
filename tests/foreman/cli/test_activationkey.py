@@ -1700,6 +1700,7 @@ class TestActivationKey(CLITestCase):
 
         self.assertIn("'--auto-attach': value must be one of", result.stderr)
 
+    @skip_if_bug_open('bugzilla', 1221778)
     @data(
         u'1',
         u'0',
@@ -1718,6 +1719,8 @@ class TestActivationKey(CLITestCase):
 
         @Assert: Activation key content override was successful
 
+        @BZ: 1221778
+
         """
         if not bz_bug_is_open(1180282):
             self.fail('BZ 1180282 has been closed. This test should be '
@@ -1726,24 +1729,20 @@ class TestActivationKey(CLITestCase):
         if self.pub_key is None:
             self._make_public_key()
 
-        try:
-            result = ActivationKey.product_content({
-                u'id': self.pub_key['key_id'],
-                u'organization-id': self.pub_key['org_id'],
-            })
-            product_label = result.stdout[3].split('|')[5].replace(' ', '')
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        try:
-            result = ActivationKey.content_override({
-                u'id': self.pub_key['key_id'],
-                u'organization-id': self.pub_key['org_id'],
-                u'content-label': product_label,
-                u'value': override_value,
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        result = ActivationKey.product_content({
+            u'id': self.pub_key['key_id'],
+            u'organization-id': self.pub_key['org_id'],
+        })
         self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        product_label = result.stdout[3].split('|')[5].replace(' ', '')
+
+        result = ActivationKey.content_override({
+            u'id': self.pub_key['key_id'],
+            u'organization-id': self.pub_key['org_id'],
+            u'content-label': product_label,
+            u'value': override_value,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         self.assertIn(result.stdout[0], 'Updated content override')

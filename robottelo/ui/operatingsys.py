@@ -58,6 +58,7 @@ class OperatingSys(Base):
         if template:
             self.wait_until_element(
                 tab_locators["operatingsys.tab_templates"]).click()
+            self.wait_for_ajax()
             Select(
                 self.find_element(locators["operatingsys.template"])
             ).select_by_visible_text(template)
