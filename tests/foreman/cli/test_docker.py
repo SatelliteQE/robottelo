@@ -32,7 +32,7 @@ INTERNAL_DOCKER_URL = get_internal_docker_url()
 class DockerImageTestCase(CLITestCase):
     """Tests related to docker image command"""
 
-    @skip_if_bug_open('bugzilla', 1205826)
+    @skip_if_bug_open('bugzilla', 1221729)
     def test_bugzilla_1190122(self):
         """@Test: docker image displays tags information for a docker image
 
@@ -40,7 +40,7 @@ class DockerImageTestCase(CLITestCase):
 
         @Assert: docker image displays tags information for a docker image
 
-        @BZ: 1205826
+        @BZ: 1221729
 
         """
         try:
@@ -79,9 +79,10 @@ class DockerImageTestCase(CLITestCase):
             self.assertEqual(len(result.stderr), 0)
 
             # Extract the list of repository ids of the available image's tags
-            tag_repository_ids = [
-                tag['repository-id'] for tag in result.stdout['tags']
-            ]
+            tag_repository_ids = []
+            for tag in result.stdout['tags']:
+                tag_repository_ids.append(tag['repository-id'])
+                self.assertGreater(len(tag['name']), 0)
             self.assertIn(repository['id'], tag_repository_ids)
 
 
