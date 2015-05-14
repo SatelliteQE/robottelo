@@ -6952,6 +6952,842 @@
       ]
     },
     {
+      "description": "Manipulate docker content",
+      "name": "docker",
+      "options": [
+        {
+          "help": "print help",
+          "name": "help",
+          "shortname": "h",
+          "value": null
+        }
+      ],
+      "subcommands": [
+        {
+          "description": "Manage docker containers",
+          "name": "container",
+          "options": [
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": [
+            {
+              "description": "Create a container",
+              "name": "create",
+              "options": [
+                {
+                  "help": "One of true/false, yes/no, 1/0.",
+                  "name": "attach-stderr",
+                  "shortname": null,
+                  "value": "ATTACH_STDERR"
+                },
+                {
+                  "help": "One of true/false, yes/no, 1/0.",
+                  "name": "attach-stdin",
+                  "shortname": null,
+                  "value": "ATTACH_STDIN"
+                },
+                {
+                  "help": "One of true/false, yes/no, 1/0.",
+                  "name": "attach-stdout",
+                  "shortname": null,
+                  "value": "ATTACH_STDOUT"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "capsule",
+                  "shortname": null,
+                  "value": "CAPSULE_NAME"
+                },
+                {
+                  "help": "Id of the capsule",
+                  "name": "capsule-id",
+                  "shortname": null,
+                  "value": "CAPSULE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "command",
+                  "shortname": null,
+                  "value": "COMMAND"
+                },
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "cpu-sets",
+                  "shortname": null,
+                  "value": "CPU_SETS"
+                },
+                {
+                  "help": "",
+                  "name": "cpu-shares",
+                  "shortname": null,
+                  "value": "CPU_SHARES"
+                },
+                {
+                  "help": "",
+                  "name": "entrypoint",
+                  "shortname": null,
+                  "value": "ENTRYPOINT"
+                },
+                {
+                  "help": "REPLACE locations with given ids Comma separated list of values.",
+                  "name": "location-ids",
+                  "shortname": null,
+                  "value": "LOCATION_IDS"
+                },
+                {
+                  "help": "Comma separated list of values.",
+                  "name": "locations",
+                  "shortname": null,
+                  "value": "LOCATION_NAMES"
+                },
+                {
+                  "help": "",
+                  "name": "memory",
+                  "shortname": null,
+                  "value": "MEMORY"
+                },
+                {
+                  "help": "",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "REPLACE organizations with given ids. Comma separated list of values.",
+                  "name": "organization-ids",
+                  "shortname": null,
+                  "value": "ORGANIZATION_IDS"
+                },
+                {
+                  "help": "Comma separated list of values.",
+                  "name": "organizations",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAMES"
+                },
+                {
+                  "help": "Registry this container will have to use to get the image",
+                  "name": "registry-id",
+                  "shortname": null,
+                  "value": "REGISTRY_ID"
+                },
+                {
+                  "help": "Name of the repository to use to create the container. e.g: centos",
+                  "name": "repository-name",
+                  "shortname": null,
+                  "value": "REPOSITORY_NAME"
+                },
+                {
+                  "help": "Tag to use to create the container. e.g: latest",
+                  "name": "tag",
+                  "shortname": null,
+                  "value": "TAG"
+                },
+                {
+                  "help": "One of true/false, yes/no, 1/0.",
+                  "name": "tty",
+                  "shortname": null,
+                  "value": "TTY"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Delete a container",
+              "name": "delete",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Show a container",
+              "name": "info",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "List all containers",
+              "name": "list",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "paginate results",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "PAGE"
+                },
+                {
+                  "help": "number of entries per request",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "PER_PAGE"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Show container logs",
+              "name": "logs",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "One of true/false, yes/no, 1/0.",
+                  "name": "stderr",
+                  "shortname": null,
+                  "value": "STDERR"
+                },
+                {
+                  "help": "One of true/false, yes/no, 1/0.",
+                  "name": "stdout",
+                  "shortname": null,
+                  "value": "STDOUT"
+                },
+                {
+                  "help": "Number of lines to tail. Default: 100",
+                  "name": "tail",
+                  "shortname": null,
+                  "value": "TAIL"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Power a container on",
+              "name": "start",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Run power operation on a container",
+              "name": "status",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Power a container off",
+              "name": "stop",
+              "options": [
+                {
+                  "help": "Compute resource name",
+                  "name": "compute-resource",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "compute-resource-id",
+                  "shortname": null,
+                  "value": "COMPUTE_RESOURCE_ID"
+                },
+                {
+                  "help": "",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            }
+          ]
+        },
+        {
+          "description": "Manage docker images",
+          "name": "image",
+          "options": [
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": [
+            {
+              "description": "Show a docker image",
+              "name": "info",
+              "options": [
+                {
+                  "help": "a docker image identifier",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Repository name to search by",
+                  "name": "repository",
+                  "shortname": null,
+                  "value": "REPOSITORY_NAME"
+                },
+                {
+                  "help": "repository ID",
+                  "name": "repository-id",
+                  "shortname": null,
+                  "value": "REPOSITORY_ID"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "List docker_images",
+              "name": "list",
+              "options": [
+                {
+                  "help": "Field to sort the results on",
+                  "name": "by",
+                  "shortname": null,
+                  "value": "BY"
+                },
+                {
+                  "help": "Content view name",
+                  "name": "content-view",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_NAME"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "content-view-filter",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_FILTER_NAME"
+                },
+                {
+                  "help": "filter identifier",
+                  "name": "content-view-filter-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_FILTER_ID"
+                },
+                {
+                  "help": "content view numeric identifier",
+                  "name": "content-view-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_ID"
+                },
+                {
+                  "help": "Content view version number",
+                  "name": "content-view-version",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_VERSION_VERSION"
+                },
+                {
+                  "help": "Content view version identifier",
+                  "name": "content-view-version-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_VERSION_ID"
+                },
+                {
+                  "help": "Whether or not to show all results One of true/false, yes/no, 1/0.",
+                  "name": "full-results",
+                  "shortname": null,
+                  "value": "FULL_RESULTS"
+                },
+                {
+                  "help": "ids to filter content by Comma separated list of values.",
+                  "name": "ids",
+                  "shortname": null,
+                  "value": "IDS"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "lifecycle-environment",
+                  "shortname": null,
+                  "value": "LIFECYCLE_ENVIRONMENT_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "lifecycle-environment-id",
+                  "shortname": null,
+                  "value": "LIFECYCLE_ENVIRONMENT_ID"
+                },
+                {
+                  "help": "Sort field and order, eg. 'name DESC'",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "ORDER"
+                },
+                {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
+                },
+                {
+                  "help": "Page number, starting at 1",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "PAGE"
+                },
+                {
+                  "help": "Number of results per page to return",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "PER_PAGE"
+                },
+                {
+                  "help": "Product name to search by",
+                  "name": "product",
+                  "shortname": null,
+                  "value": "PRODUCT_NAME"
+                },
+                {
+                  "help": "product numeric identifier",
+                  "name": "product-id",
+                  "shortname": null,
+                  "value": "PRODUCT_ID"
+                },
+                {
+                  "help": "Repository name to search by",
+                  "name": "repository",
+                  "shortname": null,
+                  "value": "REPOSITORY_NAME"
+                },
+                {
+                  "help": "repository ID",
+                  "name": "repository-id",
+                  "shortname": null,
+                  "value": "REPOSITORY_ID"
+                },
+                {
+                  "help": "Search string",
+                  "name": "search",
+                  "shortname": null,
+                  "value": "SEARCH"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            }
+          ]
+        },
+        {
+          "description": "Manage docker tags",
+          "name": "tag",
+          "options": [
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": [
+            {
+              "description": "Show a docker tag",
+              "name": "info",
+              "options": [
+                {
+                  "help": "a docker tag identifier",
+                  "name": "id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "name",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Repository name to search by",
+                  "name": "repository",
+                  "shortname": null,
+                  "value": "REPOSITORY_NAME"
+                },
+                {
+                  "help": "repository ID",
+                  "name": "repository-id",
+                  "shortname": null,
+                  "value": "REPOSITORY_ID"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "List docker_tags",
+              "name": "list",
+              "options": [
+                {
+                  "help": "Field to sort the results on",
+                  "name": "by",
+                  "shortname": null,
+                  "value": "BY"
+                },
+                {
+                  "help": "Content view name",
+                  "name": "content-view",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_NAME"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "content-view-filter",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_FILTER_NAME"
+                },
+                {
+                  "help": "filter identifier",
+                  "name": "content-view-filter-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_FILTER_ID"
+                },
+                {
+                  "help": "content view numeric identifier",
+                  "name": "content-view-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_ID"
+                },
+                {
+                  "help": "Content view version number",
+                  "name": "content-view-version",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_VERSION_VERSION"
+                },
+                {
+                  "help": "Content view version identifier",
+                  "name": "content-view-version-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_VERSION_ID"
+                },
+                {
+                  "help": "Whether or not to show all results One of true/false, yes/no, 1/0.",
+                  "name": "full-results",
+                  "shortname": null,
+                  "value": "FULL_RESULTS"
+                },
+                {
+                  "help": "ids to filter content by Comma separated list of values.",
+                  "name": "ids",
+                  "shortname": null,
+                  "value": "IDS"
+                },
+                {
+                  "help": "Name to search by",
+                  "name": "lifecycle-environment",
+                  "shortname": null,
+                  "value": "LIFECYCLE_ENVIRONMENT_NAME"
+                },
+                {
+                  "help": "",
+                  "name": "lifecycle-environment-id",
+                  "shortname": null,
+                  "value": "LIFECYCLE_ENVIRONMENT_ID"
+                },
+                {
+                  "help": "Sort field and order, eg. 'name DESC'",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "ORDER"
+                },
+                {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
+                },
+                {
+                  "help": "Page number, starting at 1",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "PAGE"
+                },
+                {
+                  "help": "Number of results per page to return",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "PER_PAGE"
+                },
+                {
+                  "help": "Product name to search by",
+                  "name": "product",
+                  "shortname": null,
+                  "value": "PRODUCT_NAME"
+                },
+                {
+                  "help": "product numeric identifier",
+                  "name": "product-id",
+                  "shortname": null,
+                  "value": "PRODUCT_ID"
+                },
+                {
+                  "help": "Repository name to search by",
+                  "name": "repository",
+                  "shortname": null,
+                  "value": "REPOSITORY_NAME"
+                },
+                {
+                  "help": "repository ID",
+                  "name": "repository-id",
+                  "shortname": null,
+                  "value": "REPOSITORY_ID"
+                },
+                {
+                  "help": "Search string",
+                  "name": "search",
+                  "shortname": null,
+                  "value": "SEARCH"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            }
+          ]
+        }
+      ]
+    },
+    {
       "description": "Manipulate domains.",
       "name": "domain",
       "options": [
