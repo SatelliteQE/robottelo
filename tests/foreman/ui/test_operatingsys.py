@@ -349,7 +349,7 @@ class OperatingSys(UITestCase):
         path = INSTALL_MEDIUM_URL % medium_name
         entities.Media(
             name=medium_name,
-            media_path=path,
+            path_=path,
             organization=[self.org_id],
         ).create_json()
         os_name = entities.OperatingSystem().create_json()['name']

@@ -7,13 +7,16 @@ from nailgun import client, entities, entity_fields
 from requests.exceptions import HTTPError
 from robottelo.common import conf
 from robottelo.common.decorators import (
-    bz_bug_is_open, run_only_on, skip_if_bug_open)
+    bz_bug_is_open,
+    run_only_on,
+    skip_if_bug_open,
+)
 from robottelo.common.helpers import get_nailgun_config, get_server_credentials
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 
 
-logger = logging.getLogger(__name__)  # pylint:disable=C0103
+logger = logging.getLogger(__name__)  # pylint:disable=invalid-name
 
 
 BZ_1118015_ENTITIES = (
@@ -28,28 +31,17 @@ BZ_1154156_ENTITIES = (entities.ConfigTemplate, entities.Host, entities.User)
 BZ_1187366_ENTITIES = (entities.LifecycleEnvironment, entities.Organization)
 
 
-def _get_partial_func(obj):
-    """Return ``obj.func`` if ``obj`` is a partial, or ``obj`` otherwise."""
-    if isinstance(obj, partial):
-        return obj.func
-    return obj
-
-
 def _get_readable_attributes(entity):
     """Return a dict of attributes matching what can be read from the server.
 
     When one reads an entity from the server, some attributes such as passwords
     are not returned. In addition, it is extremely hard to predict the exact
     format or naming of certain types of foreign key attributes. The remaining
-    attributes, however, definitely should be present. Even this, though, is
-    made more complicated by the fact that an entity class may have fields
-    named differently than what the server expects, as described by
-    ``Meta.api_keys``.
+    attributes, however, definitely should be present.
 
     Collect attributes from the ``entity`` object, drop attributes that the
-    server doesn't hand back like passwords, drop foreign keys, and rename
-    attributes according to ``Meta.api_keys``. What remains should match what
-    the server will return.
+    server doesn't hand back like passwords, drop foreign keys. What remains
+    should match what the server will return.
 
     """
     attributes = entity.get_values()
@@ -72,10 +64,10 @@ def _get_readable_attributes(entity):
         ):
             del attributes[field_name]
 
-    # Rename fields according to Meta.api_names.
-    for before, after in getattr(entity.Meta, 'api_names', {}).items():
-        if before in attributes:
-            attributes[after] = attributes.pop(before)
+    # The server deals with a field named "path", but we name the same field
+    # "path_" due to a naming conflict with a method by that name.
+    if isinstance(entity, entities.Media):
+        attributes['path'] = attributes.pop('path_')
 
     return attributes
 
@@ -103,7 +95,7 @@ def skip_if_sam(self, entity):
     server_modes = [
         server_mode.lower()
         for server_mode
-        in _get_partial_func(entity).Meta.server_modes
+        in entity()._meta['server_modes']  # pylint:disable=protected-access
     ]
 
     if robottelo_mode == 'sam' and 'sam' not in server_modes:
@@ -212,13 +204,7 @@ class EntityTestCase(APITestCase):
         entities.Architecture,
         entities.AuthSourceLDAP,
         entities.ComputeProfile,
-        partial(entities.ComputeResource, provider='EC2'),
-        partial(entities.ComputeResource, provider='GCE'),
-        partial(entities.ComputeResource, provider='Libvirt'),
-        partial(entities.ComputeResource, provider='Openstack'),
-        partial(entities.ComputeResource, provider='Ovirt'),
-        partial(entities.ComputeResource, provider='Rackspace'),
-        partial(entities.ComputeResource, provider='Vmware'),
+        # partial(entities.ComputeResource, provider='Libvirt'),
         entities.ConfigTemplate,
         entities.ContentView,
         entities.Domain,
@@ -252,10 +238,10 @@ class EntityTestCase(APITestCase):
         logger.debug('test_post_status_code arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
 
-        # Some arguments are "normal" classes and others are objects produced
-        # by functools.partial. Also, `partial(SomeClass).func == SomeClass`.
-        if (_get_partial_func(entity_cls) in BZ_1118015_ENTITIES and
-                bz_bug_is_open(1118015)):
+        # Libvirt compute resources suffer from BZ 1118015. However, partials
+        # cannot be compared for class identity and the class hierarchy needs
+        # fixing (SatelliteQE/nailgun#42), so we just comment it out above.
+        if entity_cls in BZ_1118015_ENTITIES and bz_bug_is_open(1118015):
             self.skipTest('Bugzilla bug 1118015 is open.')
 
         response = entity_cls().create_raw()
