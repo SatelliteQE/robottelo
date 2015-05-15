@@ -924,6 +924,7 @@ class TestContentView(CLITestCase):
         )
 
     @skip_if_bug_open('bugzilla', 1162799)
+    @skip_if_bug_open('bugzilla', 1222118)
     def test_cv_associate_composite_dupe_modules_negative(self):
         """@test: attempt to associate duplicate puppet module(s) within a
         content view
@@ -932,13 +933,13 @@ class TestContentView(CLITestCase):
 
         @assert: User cannot add modules multiple times to the view
 
-        @bz: 1162799
+        @bz: 1162799, 1222118
 
         """
         try:
             repository = make_repository({
-                u'product-id': self.product['id'],
                 u'content-type': u'puppet',
+                u'product-id': self.product['id'],
                 u'url': FAKE_0_PUPPET_REPO,
             })
         except CLIFactoryError as err:
@@ -946,11 +947,13 @@ class TestContentView(CLITestCase):
 
         # Sync REPO
         result = Repository.synchronize({'id': repository['id']})
-        self.assertEqual(
-            result.return_code, 0,
-            'Repository was not synchronized'
-        )
+        self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
+
+        result = Repository.info({'id': repository['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        puppet_modules = int(result.stdout['content-counts']['puppet-modules'])
 
         # Create CV
         try:
@@ -965,35 +968,29 @@ class TestContentView(CLITestCase):
             u'repository-id': repository['id'],
             u'per-page': False,
         })
-        self.assertEqual(
-            puppet_result.return_code,
-            0,
-            'List of puppet modules was not generated')
-        self.assertEqual(
-            len(puppet_result.stderr), 0)
-        puppet_module = random.choice(puppet_result.stdout)
+        self.assertEqual(puppet_result.return_code, 0)
+        self.assertEqual(len(puppet_result.stderr), 0)
+        self.assertEqual(len(puppet_result.stdout), puppet_modules)
 
-        # Associate puppet module to CV
-        result = ContentView.puppet_module_add({
-            u'content-view-id': content_view['id'],
-            u'name': puppet_module['name']
-        })
-        self.assertEqual(
-            result.return_code, 0,
-            'Puppet module was not associated'
-        )
-        self.assertEqual(len(result.stderr), 0)
+        for puppet_module in puppet_result.stdout:
+            # Associate puppet module to CV
+            result = ContentView.puppet_module_add({
+                u'content-view-id': content_view['id'],
+                u'name': puppet_module['name']
+            })
+            self.assertEqual(result.return_code, 0)
+            self.assertEqual(len(result.stderr), 0)
 
-        # Re-associate same puppet module to CV
-        result = ContentView.puppet_module_add({
-            u'content-view-id': content_view['id'],
-            u'name': puppet_module['name'],
-        })
-        self.assertNotEqual(
-            result.return_code, 0,
-            'Same puppet module should not be associated twice'
-        )
-        self.assertGreater(len(result.stderr), 0)
+            # Re-associate same puppet module to CV
+            result = ContentView.puppet_module_add({
+                u'content-view-id': content_view['id'],
+                u'name': puppet_module['name'],
+            })
+            self.assertNotEqual(
+                result.return_code, 0,
+                'An already added puppet module should not be added twice'
+            )
+            self.assertGreater(len(result.stderr), 0)
 
     # Content View: promotions
     # katello content view promote --label=MyView --env=Dev --org=ACME
