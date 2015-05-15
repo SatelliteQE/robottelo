@@ -16,7 +16,7 @@ from robottelo.common.constants import (
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import (
-    get_data_file, read_data_file, valid_names_list, invalid_names_list,
+    get_data_file, read_data_file, valid_data_list, invalid_names_list,
     generate_strings_list, get_server_credentials)
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -195,7 +195,7 @@ class GPGKey(UITestCase):
 
     # Positive Delete
 
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_delete_1(self, name):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then delete it
@@ -214,7 +214,7 @@ class GPGKey(UITestCase):
             self.gpgkey.delete(name, True)
             self.assertIsNone(self.gpgkey.search(name))
 
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_positive_delete_2(self, name):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then delete it
@@ -367,7 +367,7 @@ class GPGKey(UITestCase):
                             (common_locators["alert.error"]))
             self.assertIsNone(self.gpgkey.search(new_name))
 
-    @data(*valid_names_list())
+    @data(*valid_data_list())
     def test_consume_content_1(self, key_name):
         """@test: Hosts can install packages using gpg key associated with
         single custom repository

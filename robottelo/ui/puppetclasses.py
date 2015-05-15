@@ -106,7 +106,9 @@ class PuppetClasses(Base):
                 "Couldn't find the puppet class '{0}'.".format(class_name)
             )
         puppet_class.click()
+        self.wait_for_ajax()
         self.find_element(tab_locators['puppetclass.parameters']).click()
+        self.wait_for_ajax()
         if self.wait_until_element(
             locators['puppetclass.paramfilter']
         ) and parameter_name:
