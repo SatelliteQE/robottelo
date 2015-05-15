@@ -6,9 +6,14 @@ from ddt import ddt
 from fauxfactory import gen_integer, gen_string, gen_utf8
 from nailgun import client, entities
 from requests.exceptions import HTTPError
+from robottelo.api import utils
+from robottelo.common import manifests
 from robottelo.common.constants import (
     FAKE_0_PUPPET_REPO,
-    PUPPET_MODULE_NTP_PUPPETLABS
+    PUPPET_MODULE_NTP_PUPPETLABS,
+    REPOS,
+    REPOSET,
+    PRDS,
 )
 from robottelo.common.decorators import (
     bz_bug_is_open, data, run_only_on, stubbed)
@@ -143,6 +148,108 @@ class ContentViewTestCase(APITestCase):
         entities.ContentViewVersion(
             id=cloned_cv.read_json()['versions'][0]['id']
         ).promote(le_clone.id)
+
+    def test_cv_associate_custom_content(self):
+        """@Test: Associate custom content in a view
+
+        @Assert: Custom content assigned and present in content view
+
+        @Feature: Content Views
+
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        yum_repo = entities.Repository(product=product).create()
+        yum_repo.sync()
+        content_view = entities.ContentView(organization=org).create()
+        self.assertEqual(len(content_view.read_json()['repositories']), 0)
+        content_view.set_repository_ids([yum_repo.id])
+        self.assertEqual(len(content_view.read_json()['repositories']), 1)
+        self.assertEqual(
+            content_view.read_json()['repositories'][0]['name'],
+            yum_repo.name
+        )
+
+    def test_cv_associate_puppet_repo_negative(self):
+        """@Test: Attempt to associate puppet repos within a custom
+        content view directly
+
+        @Assert: User cannot create a non-composite content view
+        that contains direct puppet repos reference.
+
+        @Feature: Content Views
+
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        puppet_repo = entities.Repository(
+            content_type='puppet',
+            product=product,
+            url=FAKE_0_PUPPET_REPO,
+        ).create()
+        puppet_repo.sync()
+        with self.assertRaises(HTTPError):
+            entities.ContentView(
+                organization=org,
+                repository=[puppet_repo.id],
+            ).create()
+
+    def test_cv_associate_composite_dupe_repos_negative(self):
+        """@Test: Attempt to associate the same repo multiple times within a
+        content view
+
+        @Assert: User cannot add repos multiple times to the view
+
+        @Feature: Content Views
+
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        yum_repo = entities.Repository(product=product).create()
+        yum_repo.sync()
+
+        content_view = entities.ContentView(organization=org).create()
+        self.assertEqual(len(content_view.read_json()['repositories']), 0)
+        with self.assertRaises(HTTPError):
+            content_view.set_repository_ids([yum_repo.id, yum_repo.id])
+        self.assertEqual(len(content_view.read_json()['repositories']), 0)
+
+    def test_cv_associate_composite_dupe_modules_negative(self):
+        """@Test: Attempt to associate duplicate puppet modules within a
+        content view
+
+        @Assert: User cannot add same modules multiple times to the view
+
+        @Feature: Content Views
+
+        """
+        org = entities.Organization().create()
+        product = entities.Product(organization=org).create()
+        puppet_repo = entities.Repository(
+            content_type='puppet',
+            product=product,
+            url=FAKE_0_PUPPET_REPO,
+        ).create()
+        puppet_repo.sync()
+
+        content_view = entities.ContentView(organization=org).create()
+        puppet_module = random.choice(
+            content_view.available_puppet_modules()['results']
+        )
+
+        self.assertEqual(len(content_view.read_json()['puppet_modules']), 0)
+        content_view.add_puppet_module(
+            puppet_module['author'],
+            puppet_module['name']
+        )
+        self.assertEqual(len(content_view.read_json()['puppet_modules']), 1)
+
+        with self.assertRaises(HTTPError):
+            content_view.add_puppet_module(
+                puppet_module['author'],
+                puppet_module['name']
+            )
+        self.assertEqual(len(content_view.read_json()['puppet_modules']), 1)
 
 
 @ddt
@@ -638,6 +745,35 @@ class CVPublishPromoteTestCase(APITestCase):
             cv_attrs['components'][0]['content_view_id'],
         )
 
+    def test_cv_associate_components_composite_negative(self):
+        """@Test: Attempt to associate components in a non-composite
+        content view
+
+        @Assert: User cannot add components to the view
+
+        @Feature: Content Views
+
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.set_repository_ids([self.yum_repo.id])
+        content_view.publish()
+        cvv_id = content_view.read_json()['versions'][0]['id']
+
+        non_composite_cv = entities.ContentView(
+            composite=False,
+            organization=self.org,
+        ).create()
+
+        with self.assertRaises(HTTPError):
+            client.put(
+                non_composite_cv.path(),
+                {'content_view': {'component_ids': [cvv_id]}},
+                auth=get_server_credentials(),
+                verify=False,
+            ).raise_for_status()
+
+        self.assertEqual(len(non_composite_cv.read_json()['components']), 0)
+
     def test_promote_composite_cv_once_1(self):
         """@Test: Create empty composite view and assign one normal content
         view to it. After that promote that composite content view once.
@@ -841,6 +977,80 @@ class ContentViewUpdateTestCase(APITestCase):
             response.raise_for_status()
 
 
+class CVRedHatContent(APITestCase):
+    """Tests for publishing and promoting content views."""
+
+    @classmethod
+    def setUpClass(cls):  # noqa
+        """Set up organization, product and repositories for tests."""
+        super(CVRedHatContent, cls).setUpClass()
+        cls.org = entities.Organization().create()
+
+        manifest = manifests.clone()
+        cls.org.upload_manifest(path=manifest)
+
+        cls.repo_id = utils.enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=cls.org.id,
+            product=PRDS['rhel'],
+            repo=REPOS['rhelc6'],
+            reposet=REPOSET['rhelc6'],
+            releasever='6.3',
+        )
+        entities.Repository(id=cls.repo_id).sync()
+
+    def test_cv_associate_rh(self):
+        """@Test: associate Red Hat content in a view
+
+        @Assert: RH Content assigned and present in a view
+
+        @Feature: Content Views
+
+        """
+        content_view = entities.ContentView(organization=self.org.id).create()
+        self.assertEqual(len(content_view.read_json()['repositories']), 0)
+        content_view.set_repository_ids([self.repo_id])
+        self.assertEqual(len(content_view.read_json()['repositories']), 1)
+        self.assertEqual(
+            content_view.read_json()['repositories'][0]['name'],
+            REPOS['rhelc6']
+        )
+
+    def test_cv_associate_rh_custom_spin(self):
+        """@Test: Associate Red Hat content in a view and filter it using rule
+
+        @Feature: Content Views
+
+        @Assert: Filtered RH content is available and can be seen in a
+        view
+
+        """
+        content_view = entities.ContentView(organization=self.org.id).create()
+        content_view.set_repository_ids([self.repo_id])
+        self.assertEqual(len(content_view.read_json()['repositories']), 1)
+
+        cv_filter = entities.ContentViewFilter(
+            content_view=content_view,
+            type='rpm',
+            inclusion='true',
+            name=gen_string('alphanumeric'),
+        ).create()
+        self.assertEqual(
+            cv_filter.read_json()['content_view']['id'],
+            content_view.id
+        )
+
+        cv_filter_rule = entities.ContentViewFilterRule(
+            content_view_filter=cv_filter,
+            name=gen_string('alphanumeric'),
+            version='1.0',
+        ).create()
+        self.assertEqual(
+            cv_filter_rule.read_json()['content_view_filter_id'],
+            cv_filter.id
+        )
+
+
 @run_only_on('sat')
 class ContentViewTestCaseStub(APITestCase):
     """Incomplete tests for content views."""
@@ -863,91 +1073,6 @@ class ContentViewTestCaseStub(APITestCase):
         # in filter)
         #   * A filter on severity (only content of specific errata
         # severity.
-
-    # Content Views: Adding products/repos
-    # katello content definition add_filter --label=MyView
-    #   --filter=stable --org=ACME
-    # katello content definition add_product --label=MyView
-    #   --product=product1 --org=ACME
-    # katello content definition add_repo --label=MyView
-    #   --repo=repo1 --org=ACME
-
-    @stubbed()
-    def test_associate_view_rh(self):
-        """
-        @test: associate Red Hat content in a view
-        @feature: Content Views
-        @setup: Sync RH content
-        @assert: RH Content can be seen in a view
-        @status: Manual
-        """
-
-    @stubbed()
-    def test_associate_view_rh_custom_spin(self):
-        """
-        @test: associate Red Hat content in a view
-        @feature: Content Views
-        @setup: Sync RH content
-        @steps: 1. Assure filter(s) applied to associated content
-        @assert: Filtered RH content only is available/can be seen in a view
-        @status: Manual
-        """
-        # Variations might be:
-        #   * A filter on errata date (only content that matches date
-        # in filter)
-        #   * A filter on severity (only content of specific errata
-        # severity.
-
-    @stubbed()
-    def test_associate_view_custom_content(self):
-        """
-        @test: associate Red Hat content in a view
-        @feature: Content Views
-        @setup: Sync custom content
-        @assert: Custom content can be seen in a view
-        @status: Manual
-        """
-
-    @stubbed()
-    def test_cv_associate_puppet_repo_negative(self):
-        """
-        @test: attempt to associate puppet repos within a custom
-        content view
-        @feature: Content Views
-        @assert: User cannot create a composite content view
-        that contains direct puppet repos.
-        @status: Manual
-        """
-
-    @stubbed()
-    def test_cv_associate_components_composite_negative(self):
-        """
-        @test: attempt to associate components n a non-composite
-        content view
-        @feature: Content Views
-        @assert: User cannot add components to the view
-        @status: Manual
-        """
-
-    @stubbed()
-    def test_cv_associate_composite_dupe_repos_negative(self):
-        """
-        @test: attempt to associate the same repo multiple times within a
-        content view
-        @feature: Content Views
-        @assert: User cannot add repos multiple times to the view
-        @status: Manual
-        """
-
-    @stubbed()
-    def test_cv_associate_composite_dupe_modules_negative(self):
-        """
-        @test: attempt to associate duplicate puppet module(s) within a
-        content view
-        @feature: Content Views
-        @assert: User cannot add modules multiple times to the view
-        @status: Manual
-        """
 
     # Content View: promotions
     # katello content view promote --label=MyView --env=Dev --org=ACME

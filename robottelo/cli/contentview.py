@@ -112,7 +112,7 @@ class ContentView(Base):
 
     @classmethod
     def filter_create(cls, options):
-        """Provides filter info related to content-view's version."""
+        """Add new filter to content view entity."""
         cls.command_sub = 'filter create'
 
         if options is None:
@@ -122,7 +122,7 @@ class ContentView(Base):
 
     @classmethod
     def filter_rule_create(cls, options):
-        """Provides filter info related to content-view's version."""
+        """Add new rule to content view filter."""
         cls.command_sub = 'filter rule create'
 
         if options is None:
