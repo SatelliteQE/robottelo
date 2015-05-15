@@ -152,6 +152,83 @@ class VirtualMachine(object):
         if result.return_code > 0:
             logger.warning(result.stderr)
 
+    def download_install_rpm(self, repo_url, package_name):
+        """Downloads and installs custom rpm on the virtual machine.
+
+        :param repo_url: URL to repository, where package is located.
+        :param package_name: Desired package name.
+        :return: None.
+        :raises robottelo.vm.VirtualMachineError: If package wasn't installed.
+
+        """
+        self.run(
+            'wget -nd -r -l1 --no-parent -A \'{0}.rpm\' {1}'
+            .format(package_name, repo_url)
+        )
+        self.run('rpm -i {0}.rpm'.format(package_name))
+        result = self.run('rpm -q {0}'.format(package_name))
+        if result.return_code != 0:
+            raise VirtualMachineError(
+                'Failed to install {0} rpm.'.format(package_name)
+            )
+
+    def enable_repo(self, repo):
+        """Enables specified Red Hat repository on the virtual machine.
+
+        :param repo: Red Hat repository name.
+        :return: None.
+
+        """
+        self.run('subscription-manager repos --enable {0}'.format(repo))
+
+    def install_katello_agent(self):
+        """Installs katello agent on the virtual machine.
+
+        :return: None.
+        :raises robottelo.vm.VirtualMachineError: If katello-ca wasn't
+            installed.
+
+        """
+        self.run('yum install -y katello-agent')
+        result = self.run('rpm -q katello-agent')
+        if result.return_code != 0:
+            raise VirtualMachineError('Failed to install katello-agent')
+
+    def install_katello_cert(self):
+        """Downloads and installs katello-ca rpm on the virtual machine.
+
+        :return: None.
+        :raises robottelo.vm.VirtualMachineError: If katello-ca wasn't
+            installed.
+
+        """
+        self.run(
+            'wget -nd -r -l1 --no-parent -A \'*.noarch.rpm\' http://{0}/pub/'
+            .format(conf.properties['main.server.hostname'])
+        )
+        self.run('rpm -i katello-ca-consumer*.noarch.rpm')
+        result = self.run(
+            'rpm -q katello-ca-consumer-{0}'
+            .format(conf.properties['main.server.hostname'])
+        )
+        if result.return_code != 0:
+            raise VirtualMachineError('Failed to install katello-ca rpm')
+
+    def register_contenthost(self, activation_key, org):
+        """Registers content host on foreman server using activation-key.
+
+        :param activation_key: Activation key name to register content host
+            with.
+        :param org: Organization name to register content host for.
+        :return: None.
+
+        """
+        self.run(
+            'subscription-manager register --activationkey {0} '
+            '--org {1} --force'
+            .format(activation_key, org)
+        )
+
     def run(self, cmd):
         """Runs a ssh command on the virtual machine
 
