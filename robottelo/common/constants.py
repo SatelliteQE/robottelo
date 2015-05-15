@@ -144,6 +144,7 @@ PRDS = {'rhcf': "Red Hat CloudForms",
 REPOSET = {
     'rhct6': "Red Hat CloudForms Tools for RHEL 6 (RPMs)",
     'rhel6': "Red Hat Enterprise Linux 6 Server (RPMs)",
+    'rhelc6': "Red Hat Enterprise Linux 6 Server - RH Common (RPMs)",
     'rhva6': "Red Hat Enterprise Virtualization Agents "
     "for RHEL 6 Server (RPMs)",
     # TODO: Remove 'Beta' after release
@@ -151,6 +152,7 @@ REPOSET = {
 }
 
 REPOS = {
+    'rhelc6': "Red Hat Enterprise Linux 6 Server - RH Common RPMs x86_64 6.3",
     'rhst7': {  # TODO: Remove 'beta' after release
         'id': "rhel-7-server-satellite-tools-6-beta-rpms",
         'name': "Red Hat Satellite Tools 6 Beta for RHEL 7 Server "
