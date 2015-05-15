@@ -448,7 +448,7 @@ class Location(UITestCase):
         path = INSTALL_MEDIUM_URL % gen_string("alpha", 6)
         medium = entities.Media(
             name=medium_name,
-            media_path=path,
+            path_=path,
             os_family='Redhat',
         ).create_json()
         self.assertEqual(medium['name'], medium_name)
@@ -748,7 +748,7 @@ class Location(UITestCase):
         path = INSTALL_MEDIUM_URL % gen_string("alpha", 6)
         medium = entities.Media(
             name=medium_name,
-            media_path=path,
+            path_=path,
             os_family='Redhat',
         ).create_json()
         self.assertEqual(medium['name'], medium_name)
