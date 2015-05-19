@@ -187,17 +187,16 @@ class User(CLITestCase):
         self.__assert_exists(args)
 
     @data(
-        u'{0}@example.com'.format(gen_string("latin1")),
-        u'{0}@example.com'.format(gen_string("utf8")),
-        u'{0}@example.com'.format(gen_string("alpha")),
-        u'{0}@example.com'.format(gen_string("alphanumeric")),
-        u'{0}@example.com'.format(gen_string("numeric")),
-        u'{0}@example.com'.format(gen_string("alphanumeric", 48)),
+        u'{0}@example.com'.format(gen_string('alpha')),
+        u'{0}@example.com'.format(gen_string('alphanumeric')),
+        u'{0}@example.com'.format(gen_string('numeric')),
+        u'{0}@example.com'.format(gen_string('alphanumeric', 48)),
         u'{0}+{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
         u'{0}.{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
-        r"!#$%&*+-/=?^\`{|}~@example.com",
+        u'"():;"@example.com',
+        r'!#$%&*+-/=?^`{|}~@example.com',
     )
-    def test_positive_create_user_4(self, test_data):
+    def test_positive_create_user_4(self, email):
         """@Test: Create User for all variations of Email Address
 
         @Feature: User - Positive Create
@@ -209,11 +208,14 @@ class User(CLITestCase):
         @Assert: User is created
 
         """
+        # The email must be escaped because some characters to not fail the
+        # parsing of the generated shell command
+        escaped_email = email.replace('"', r'\"').replace('`', r'\`')
         try:
-            args = make_user({'mail': test_data})
+            user = make_user({'mail': escaped_email})
         except CLIFactoryError as err:
             self.fail(err)
-        self.__assert_exists(args)
+        self.assertEqual(user['email'], email)
 
     @data({'password': gen_string("latin1")},
           {'password': gen_string("utf8")},
