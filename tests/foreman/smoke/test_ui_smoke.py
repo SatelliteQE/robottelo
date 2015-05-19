@@ -352,4 +352,4 @@ class TestSmoke(UITestCase):
                 )
                 # Verify if package is installed by query it
                 result = vm.run('rpm -q {0}'.format(package_name))
-                self.assertIn(package_name, result.stdout[0])
+                self.assertEqual(result.return_code, 0)
