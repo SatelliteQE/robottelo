@@ -49,6 +49,7 @@ from robottelo.ui.sync import Sync
 from robottelo.ui.syncplan import Syncplan
 from robottelo.ui.systemgroup import SystemGroup
 from robottelo.ui.template import Template
+from robottelo.ui.trend import Trend
 from robottelo.ui.usergroup import UserGroup
 from robottelo.ui.user import User
 from robottelo.vm import VirtualMachine
@@ -210,6 +211,7 @@ class UITestCase(TestCase):
         self.syncplan = Syncplan(self.browser)
         self.systemgroup = SystemGroup(self.browser)
         self.template = Template(self.browser)
+        self.trend = Trend(self.browser)
         self.user = User(self.browser)
         self.usergroup = UserGroup(self.browser)
 

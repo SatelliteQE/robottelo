@@ -689,6 +689,23 @@ locators = LocatorDict({
         By.XPATH,
         "//input[@id='organization_label' and @value='%s']"),
 
+    # Trends
+    "trend.new": (By.XPATH, "//a[contains(@href, '/trends/new')]"),
+    "trend.type": (By.ID, "trend_trendable_type"),
+    "trend.trendable": (By.ID, "trend_trendable_id"),
+    "trend.name": (By.ID, "trend_name"),
+    "trend.trend_name": (By.XPATH, "//a[text()='%s']"),
+    "trend.edit": (
+        By.XPATH,
+        "//a[contains(@href,'%s') and contains(.,'Edit')]"),
+    "trend.edit_entity": (By.XPATH, "//td[contains(., '%s')]/../td[2]/input"),
+    "trend.dropdown": (
+        By.XPATH,
+        "//a[contains(@href,'%s') and contains(.,'Edit')]/../../a"),
+    "trend.delete": (
+        By.XPATH,
+        "//a[contains(@href,'%s') and contains(.,'Delete')]"),
+
     # Operating system (OS)
     "operatingsys.new": (
         By.XPATH, "//a[contains(@href, '/operatingsystems/new')]"),
