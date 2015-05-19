@@ -1,4 +1,5 @@
 """Helpers to interact with hammer command line utility."""
+import csv
 import re
 
 from itertools import izip
@@ -6,19 +7,14 @@ from itertools import izip
 
 def parse_csv(output):
     """Parse CSV output from Hammer CLI and convert it to python dictionary."""
-    result = []
+    reader = csv.reader(output)
     # Generate the key names, spaces will be converted to dashes "-"
     keys = [
-        header.replace(' ', '-').lower() for header in output.pop(0).split(',')
+        header.replace(' ', '-').lower() for header in reader.next()
     ]
 
-    # For each entry, split the values and create a dict mapping each key with
-    # each value
-    for line in output:
-        if len(line) > 0:
-            result.append(dict(izip(keys, line.split(','))))
-
-    return result
+    # For each entry, create a dict mapping each key with each value
+    return [dict(izip(keys, values)) for values in reader if len(values) > 0]
 
 
 def parse_help(output):

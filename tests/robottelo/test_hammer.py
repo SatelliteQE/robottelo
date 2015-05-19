@@ -11,6 +11,7 @@ class ParseCSVTestCase(unittest.TestCase):
             'Header,Header with spaces',
             'header value 1,header with spaces value',
             'MixEd CaSe ValUe,ALL CAPS VALUE',
+            '"""double quote escaped value""","," escaped value',
         ]
         self.assertEqual(
             hammer.parse_csv(output_lines),
@@ -22,6 +23,10 @@ class ParseCSVTestCase(unittest.TestCase):
                 {
                     'header': 'MixEd CaSe ValUe',
                     'header-with-spaces': 'ALL CAPS VALUE',
+                },
+                {
+                    'header': '"double quote escaped value"',
+                    'header-with-spaces': ', escaped value',
                 },
             ]
         )
