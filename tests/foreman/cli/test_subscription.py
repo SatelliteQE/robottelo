@@ -1,12 +1,11 @@
 """Test class for Subscriptions"""
-
 from ddt import ddt
-from robottelo.common.decorators import skip_if_bug_open
-from robottelo.cli.subscription import Subscription
+from robottelo.cli.factory import make_org
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
-from robottelo.cli.factory import make_org
+from robottelo.cli.subscription import Subscription
 from robottelo.common import manifests
+from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -14,15 +13,22 @@ from robottelo.test import CLITestCase
 @ddt
 class TestSubscription(CLITestCase):
     """Manifest CLI tests"""
-    signing_key = None
-    fake_manifest = None
 
     def setUp(self):  # noqa
         """Tests for content-view via Hammer CLI"""
-
         super(TestSubscription, self).setUp()
-        self.org = make_org(cached=True)
+        self.org = make_org()
         self.manifest = manifests.clone()
+
+    def _upload_manifest(self, manifest, org_id):
+        """Uploads a manifest file and import it into an organization"""
+        upload_file(manifest, remote_file=manifest)
+        result = Subscription.upload({
+            'file': manifest,
+            'organization-id': org_id,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
     def test_manifest_upload(self):
         """@Test: upload manifest (positive)
@@ -32,26 +38,12 @@ class TestSubscription(CLITestCase):
         @Assert: Manifest are uploaded properly
 
         """
-
-        upload_file(self.manifest, remote_file=self.manifest)
-        result = Subscription.upload({
-            'file': self.manifest,
-            'organization-id': self.org['id'],
-        })
-        self.assertEqual(result.return_code, 0,
-                         "Failed to upload manifest")
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an exception while uploading manifest.")
-
+        self._upload_manifest(self.manifest, self.org['id'])
         result = Subscription.list(
             {'organization-id': self.org['id']},
             per_page=False)
-        self.assertEqual(result.return_code, 0,
-                         "Failed to list manifests in this org.")
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an exception while listing the manifest.")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
     @skip_if_bug_open('bugzilla', 1207501)
     def test_manifest_delete(self):
@@ -64,44 +56,26 @@ class TestSubscription(CLITestCase):
         @BZ: 1207501
 
         """
-
-        upload_file(self.manifest, remote_file=self.manifest)
-        result = Subscription.upload({
-            'file': self.manifest,
-            'organization-id': self.org['id'],
-        })
-        self.assertEqual(result.return_code, 0,
-                         "Failed to upload manifest")
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an exception while uploading manifest.")
-
+        self._upload_manifest(self.manifest, self.org['id'])
         result = Subscription.list(
             {'organization-id': self.org['id']},
-            per_page=False)
-        self.assertEqual(result.return_code, 0,
-                         "Failed to list manifests in this org.")
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an exception while listing the manifest.")
+            per_page=False
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         result = Subscription.delete_manifest({
             'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0,
-                         "Failed to delete manifest")
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an exception while deleting manifest.")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         result = Subscription.list(
             {'organization-id': self.org['id']},
-            per_page=False)
-        self.assertEqual(result.return_code, 0,
-                         "Failed to list manifests in this org.")
-        self.assertEqual(
-            len(result.stdout), 0,
-            "There should not be any subscriptions in this org.")
+            per_page=False
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout), 0)
 
     def test_enable_manifest_repository_set(self):
         """@Test: enable repository set (positive)
@@ -112,24 +86,13 @@ class TestSubscription(CLITestCase):
         repository contained in a manifest
 
         """
-
-        upload_file(self.manifest, remote_file=self.manifest)
-        result = Subscription.upload({
-            'file': self.manifest,
-            'organization-id': self.org['id'],
-        })
-        self.assertEqual(result.return_code, 0,
-                         "Failed to upload manifest")
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an exception while uploading manifest.")
-
+        self._upload_manifest(self.manifest, self.org['id'])
         result = Subscription.list(
             {'organization-id': self.org['id']},
-            per_page=False)
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an exception while listing the manifest.")
+            per_page=False
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         result = RepositorySet.enable({
             'name': (
@@ -141,8 +104,8 @@ class TestSubscription(CLITestCase):
             'releasever': '6Workstation',
             'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0, "Repo was not enabled")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         result = Repository.synchronize({
             'name': (
@@ -154,8 +117,8 @@ class TestSubscription(CLITestCase):
             'product': 'Red Hat Enterprise Linux Workstation',
         })
 
-        self.assertEqual(result.return_code, 0, "Repo was not synchronized")
-        self.assertEqual(len(result.stderr), 0, "No error was expected")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
     def test_manifest_history(self):
         """@Test: upload manifest (positive) and check history
@@ -165,40 +128,23 @@ class TestSubscription(CLITestCase):
         @Assert: Manifest history is shown properly
 
         """
-        upload_file(self.manifest, remote_file=self.manifest)
-        result = Subscription.upload({
-            'file': self.manifest,
-            'organization-id': self.org['id'],
-        })
-        self.assertEqual(result.return_code, 0,
-                         "return code must be 0, instead got {0}"
-                         ''.format(result.return_code))
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an exception while uploading manifest.")
-
+        self._upload_manifest(self.manifest, self.org['id'])
         result = Subscription.list(
-            {'organization-id': self.org['id']}, per_page=None)
-        self.assertEqual(result.return_code, 0,
-                         "return code must be 0, instead got {0}"
-                         ''.format(result.return_code))
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an exception while listing the manifest.")
-        self.assertGreater(len(result.stdout), 0)
+            {'organization-id': self.org['id']},
+            per_page=None
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         result = Subscription.manifest_history({
             'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0,
-                         "return code must be 0, instead got {0}"
-                         ''.format(result.return_code))
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an exception for manifest history.")
-        self.assertIn('{0} file imported successfully.'
-                      ''.format(self.org['name']),
-                      ''.join(result.stdout))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertIn(
+            '{0} file imported successfully.'.format(self.org['name']),
+            ''.join(result.stdout)
+        )
 
     @skip_if_bug_open('bugzilla', 1147559)
     def test_manifest_refresh(self):
@@ -211,35 +157,16 @@ class TestSubscription(CLITestCase):
         @BZ 1147559
 
         """
-        upload_file(self.manifest, remote_file=self.manifest)
-        result = Subscription.upload({
-            'file': self.manifest,
-            'organization-id': self.org['id'],
-        })
-        self.assertEqual(result.return_code, 0,
-                         "return code must be 0, instead got {0}"
-                         ''.format(result.return_code))
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an exception while uploading manifest.")
-
+        self._upload_manifest(self.manifest, self.org['id'])
         result = Subscription.list(
             {'organization-id': self.org['id']},
-            per_page=False)
-        self.assertEqual(result.return_code, 0,
-                         "return code must be 0, instead got {0}"
-                         ''.format(result.return_code))
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an exception while listing the manifest.")
-        self.assertGreater(len(result.stdout), 0)
+            per_page=False
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         result = Subscription.refresh_manifest({
             'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0,
-                         "return code must be 0, instead got {0}"
-                         ''.format(result.return_code))
-        self.assertEqual(
-            len(result.stderr), 0,
-            "There should not be an exception while refreshing the manifest .")
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
