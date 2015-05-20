@@ -544,3 +544,12 @@ SUBNET_IPAM_TYPES = {
     'internal': 'Internal DB',
     'none': 'None',
 }
+
+TREND_TYPES = {
+    'environment': 'Environment',
+    'os': 'Operating system',
+    'model': 'Model',
+    'facts': 'Facts',
+    'host_group': 'Host group',
+    'compute_resource': 'Compute resource',
+}
