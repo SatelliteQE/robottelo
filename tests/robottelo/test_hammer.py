@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 """Tests for Robottelo's hammer helpers"""
 import unittest
 
@@ -8,25 +9,30 @@ class ParseCSVTestCase(unittest.TestCase):
     """Tests for parsing CSV hammer output"""
     def test_parse_csv(self):
         output_lines = [
-            'Header,Header with spaces',
-            'header value 1,header with spaces value',
-            'MixEd CaSe ValUe,ALL CAPS VALUE',
-            '"""double quote escaped value""","," escaped value',
+            u'Header,Header 2',
+            u'header value 1,header with spaces value',
+            u'MixEd CaSe ValUe,ALL CAPS VALUE',
+            u'"""double quote escaped value""","," escaped value',
+            u'unicode,chårs',
         ]
         self.assertEqual(
             hammer.parse_csv(output_lines),
             [
                 {
                     'header': 'header value 1',
-                    'header-with-spaces': 'header with spaces value',
+                    'header-2': 'header with spaces value',
                 },
                 {
                     'header': 'MixEd CaSe ValUe',
-                    'header-with-spaces': 'ALL CAPS VALUE',
+                    'header-2': 'ALL CAPS VALUE',
                 },
                 {
                     'header': '"double quote escaped value"',
-                    'header-with-spaces': ', escaped value',
+                    'header-2': ', escaped value',
+                },
+                {
+                    'header': 'unicode',
+                    'header-2': 'chårs',
                 },
             ]
         )

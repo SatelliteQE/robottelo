@@ -7,7 +7,12 @@ from itertools import izip
 
 def parse_csv(output):
     """Parse CSV output from Hammer CLI and convert it to python dictionary."""
-    reader = csv.reader(output)
+    # From python docs "Note: This version of the csv module doesn't support
+    # Unicode input. Also, there are currently some issues regarding ASCII NUL
+    # characters. Accordingly, all input should be UTF-8 or printable ASCII to
+    # be safe;"
+    reader = csv.reader([line.encode('utf8') for line in output])
+
     # Generate the key names, spaces will be converted to dashes "-"
     keys = [
         header.replace(' ', '-').lower() for header in reader.next()
