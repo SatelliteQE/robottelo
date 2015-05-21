@@ -2096,6 +2096,7 @@ class TestContentView(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(result.stdout['content-host-count'], '1')
 
+    @skip_if_bug_open('bugzilla', 1222118)
     def test_cv_subscribe_system_puppet(self):
         """@test: Attempt to subscribe content host to content view that has
         puppet module assigned to it
@@ -2104,6 +2105,8 @@ class TestContentView(CLITestCase):
 
         @assert: Content Host can be subscribed to content view with puppet
         module
+
+        @bz: 1222118
 
         """
         new_org = make_org()
