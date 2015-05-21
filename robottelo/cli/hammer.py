@@ -5,19 +5,34 @@ import re
 from itertools import izip
 
 
+def _csv_reader(output):
+    """An unicode CSV reader which processes unicode strings and return unicode
+    strings data.
+
+    This is needed because the builtin module does not support unicode strings,
+    from Python 2 docs::
+
+        Note: This version of the csv module doesn't support Unicode input.
+        Also, there are currently some issues regarding ASCII NUL characters.
+        Accordingly, all input should be UTF-8 or printable ASCII to be safe;"
+
+    On Python 3 this generator is not needed because the default string type is
+    unicode.
+
+    :param output: can be any object which supports the iterator protocol and
+    returns a unicode string each time its next() method is called.
+    :return: generator that will yield a list of unicode string values.
+
+    """
+    for row in csv.reader([line.encode('utf8') for line in output]):
+        yield [value.decode('utf8') for value in row]
+
+
 def parse_csv(output):
     """Parse CSV output from Hammer CLI and convert it to python dictionary."""
-    # From python docs "Note: This version of the csv module doesn't support
-    # Unicode input. Also, there are currently some issues regarding ASCII NUL
-    # characters. Accordingly, all input should be UTF-8 or printable ASCII to
-    # be safe;"
-    reader = csv.reader([line.encode('utf8') for line in output])
-
+    reader = _csv_reader(output)
     # Generate the key names, spaces will be converted to dashes "-"
-    keys = [
-        header.replace(' ', '-').lower() for header in reader.next()
-    ]
-
+    keys = [header.replace(' ', '-').lower() for header in next(reader)]
     # For each entry, create a dict mapping each key with each value
     return [dict(izip(keys, values)) for values in reader if len(values) > 0]
 
