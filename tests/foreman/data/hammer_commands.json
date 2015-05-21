@@ -19313,6 +19313,12 @@
               "value": "ENVIRONMENT_ID"
             },
             {
+              "help": "UUID of an erratum to find repositories that contain the erratum",
+              "name": "erratum-id",
+              "shortname": null,
+              "value": "ENVIRONMENT_ID"
+            },
+            {
               "help": "Whether or not to show all results One of true/false, yes/no, 1/0.",
               "name": "full-results",
               "shortname": null,
