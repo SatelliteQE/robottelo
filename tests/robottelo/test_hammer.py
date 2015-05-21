@@ -19,20 +19,20 @@ class ParseCSVTestCase(unittest.TestCase):
             hammer.parse_csv(output_lines),
             [
                 {
-                    'header': 'header value 1',
-                    'header-2': 'header with spaces value',
+                    u'header': u'header value 1',
+                    u'header-2': u'header with spaces value',
                 },
                 {
-                    'header': 'MixEd CaSe ValUe',
-                    'header-2': 'ALL CAPS VALUE',
+                    u'header': u'MixEd CaSe ValUe',
+                    u'header-2': u'ALL CAPS VALUE',
                 },
                 {
-                    'header': '"double quote escaped value"',
-                    'header-2': ', escaped value',
+                    u'header': u'"double quote escaped value"',
+                    u'header-2': u', escaped value',
                 },
                 {
-                    'header': 'unicode',
-                    'header-2': 'chårs',
+                    u'header': u'unicode',
+                    u'header-2': u'chårs',
                 },
             ]
         )
