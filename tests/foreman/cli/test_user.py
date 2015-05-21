@@ -694,9 +694,8 @@ class User(CLITestCase):
         '@',
         'Abc.example.com',
         'A@b@c@example.com',
-        'email@brazil.b',
-        '{0}@example.com'.format(
-            gen_string('alpha', 49)),  # total length 61
+        'email@example..c',
+        '{0}@example.com'.format(gen_string('alpha', 49)),  # total length 61
         '{0}@example.com'.format(gen_string('html')),
         's p a c e s@example.com',
         'dot..dot@example.com'
