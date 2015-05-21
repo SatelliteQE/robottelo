@@ -27,6 +27,7 @@ from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.location import Location
+from robottelo.common import manifests
 from robottelo.cli.medium import Medium
 from robottelo.cli.model import Model
 from robottelo.cli.operatingsys import OperatingSys
@@ -35,13 +36,16 @@ from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
 from robottelo.cli.proxy import Proxy, SSHTunnelError, default_url_on_new_port
 from robottelo.cli.repository import Repository
+from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
 from robottelo.cli.subnet import Subnet
+from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
 from robottelo.common import ssh
 from robottelo.common.constants import (
+    DEFAULT_SUBSCRIPTION_NAME,
     FAKE_1_YUM_REPO,
     FOREMAN_PROVIDERS,
     OPERATING_SYSTEMS,
@@ -50,6 +54,7 @@ from robottelo.common.constants import (
 )
 from robottelo.common.decorators import cacheable
 from robottelo.common.helpers import update_dictionary
+from robottelo.common.ssh import upload_file
 from tempfile import mkstemp
 
 logger = logging.getLogger(__name__)
@@ -1540,3 +1545,282 @@ def make_template(options=None):
     # End - Special handling for template factory
 
     return create_object(Template, args, options)
+
+
+@cacheable
+def activationkey_add_subscription_to_repo(options=None):
+    """
+    Adds subscription to activation key.
+
+    Args::
+
+        organization-id - ID of organization
+        activationkey-id - ID of activation key
+        subscription - subscription name
+
+    """
+    if(
+            not options or
+            not options.get('organization-id', None) or
+            not options.get('activationkey-id', None) or
+            not options.get('subscription', None)):
+        raise CLIFactoryError(
+            'Please provide valid organization, activation key and '
+            'subscription.'
+        )
+    # List the subscriptions in given org
+    result = Subscription.list(
+        {u'organization-id': options.get('organization-id', None)},
+        per_page=False
+    )
+    # Add subscription to activation-key
+    for subscription in result.stdout:
+        if subscription['name'] == options.get('subscription', None):
+            if int(subscription['quantity']) == 0:
+                raise CLIFactoryError(
+                    'All the subscriptions are already consumed')
+            result = ActivationKey.add_subscription({
+                u'id': options.get('activationkey-id', None),
+                u'subscription-id': subscription['id'],
+                u'quantity': 1,
+            })
+            if result.return_code != 0:
+                raise CLIFactoryError(
+                    'Failed to add subscription to activation key')
+
+
+@cacheable
+def setup_org_for_a_custom_repo(options=None):
+    """
+    Sets up Org for the given custom repo by:
+
+    1. Checks if organization and lifecycle environment were given, otherwise
+        creates new ones.
+    2. Creates a new product with the custom repo. Synchronizes the repo.
+    3. Checks if content view was given, otherwise creates a new one and
+        - adds the RH repo
+        - publishes
+        - promotes to the lifecycle environment
+    4. Checks if activation key was given, otherwise creates a new one and
+        associates it with the content view.
+    5. Adds the custom repo subscription to the activation key
+
+    Args::
+
+        url - URL to custom repository
+        organization-id (optional) - ID of organization to use (or create a new
+                                    one if empty)
+        lifecycle-environment-id (optional) - ID of lifecycle environment to
+                                             use (or create a new one if empty)
+        content-view-id (optional) - ID of content view to use (or create a new
+                                    one if empty)
+        activationkey-id (optional) - ID of activation key (or create a new one
+                                    if empty)
+
+    """
+    if(
+            not options or
+            not options.get('url', None)):
+        raise CLIFactoryError('Please provide valid custom repo URL.')
+    # Create new organization and lifecycle environment if needed
+    org_id = options.get('organization-id', make_org()['id'])
+    env_id = options.get(
+        'lifecycle-environment-id',
+        make_lifecycle_environment({u'organization-id': org_id})['id']
+    )
+    # Create custom product and repository
+    custom_product = make_product({u'organization-id': org_id})
+    custom_repo = make_repository({
+        u'url': options.get('url', None),
+        u'content-type': 'yum',
+        u'product-id': custom_product['id'],
+    })
+    # Synchronize custom repository
+    result = Repository.synchronize({'id': custom_repo['id']})
+    if result.return_code != 0:
+        raise CLIFactoryError('Failed to synchronize repository')
+    # Create CV if needed and associate repo with it
+    cv_id = options.get(
+        'content-view-id',
+        make_content_view({u'organization-id': org_id})['id']
+    )
+    result = ContentView.add_repository({
+        u'id': cv_id,
+        u'repository-id': custom_repo['id'],
+        u'organization-id': org_id,
+    })
+    if result.return_code != 0:
+        raise CLIFactoryError('Failed to add repository to content view')
+    # Publish a new version of CV
+    result = ContentView.publish({u'id': cv_id})
+    if result.return_code != 0:
+        raise CLIFactoryError('Failed to publish new version of content view')
+    # Get the version id
+    result = ContentView.info({u'id': cv_id})
+    cvv = result.stdout['versions'][-1]
+    # Promote version to next env
+    result = ContentView.version_promote({
+        u'id': cvv['id'],
+        u'to-lifecycle-environment-id': env_id,
+        u'organization-id': org_id,
+    })
+    if result.return_code != 0:
+        raise CLIFactoryError('Failed to promote version to next environment')
+    # Create activation key if needed and associate content view with it
+    if 'activationkey-id' not in options:
+        activationkey_id = make_activation_key({
+            u'content-view-id': cv_id,
+            u'lifecycle-environment-id': env_id,
+            u'organization-id': org_id,
+        })['id']
+    else:
+        activationkey_id = options.get('activationkey-id', None)
+        # Given activation key may have no (or different) CV associated.
+        # Associate activation key with CV just to be sure
+        result = ActivationKey.update({
+            u'id': activationkey_id,
+            u'organization-id': org_id,
+            u'content-view-id': cv_id,
+        })
+        if result.return_code != 0:
+            raise CLIFactoryError(
+                'Failed to associate activation-key with CV')
+    # Add subscription to activation-key
+    activationkey_add_subscription_to_repo({
+        u'organization-id': org_id,
+        u'activationkey-id': activationkey_id,
+        u'subscription': custom_product['name'],
+    })
+
+
+@cacheable
+def setup_org_for_a_rh_repo(options=None):
+    """
+    Sets up Org for the given Red Hat repository by:
+
+    1. Checks if organization and lifecycle environment were given, otherwise
+        creates new ones.
+    2. Clones and uploads manifest.
+    3. Enables RH repo and synchronizes it.
+    4. Checks if content view was given, otherwise creates a new one and
+        - adds the RH repo
+        - publishes
+        - promotes to the lifecycle environment
+    5. Checks if activation key was given, otherwise creates a new one and
+        associates it with the content view.
+    6. Adds the RH repo subscription to the activation key
+
+    Args::
+
+        product - RH product name
+        repository-set - RH repository set name
+        repository - RH repository name
+        organization-id (optional) - ID of organization to use (or create a new
+                                    one if empty)
+        lifecycle-environment-id (optional) - ID of lifecycle environment to
+                                             use (or create a new one if empty)
+        content-view-id (optional) - ID of content view to use (or create a new
+                                    one if empty)
+        activationkey-id (optional) - ID of activation key (or create a new one
+                                    if empty)
+
+    """
+    if (
+            not options or
+            not options.get('product', None) or
+            not options.get('repository-set', None) or
+            not options.get('repository', None)):
+        raise CLIFactoryError(
+            'Please provide valid product, repository-set and repo.')
+    # Create new organization and lifecycle environment if needed
+    org_id = options.get('organization-id', make_org()['id'])
+    env_id = options.get(
+        'lifecycle-environment-id',
+        make_lifecycle_environment({u'organization-id': org_id})['id']
+    )
+    # Clone manifest and upload it
+    manifest = manifests.clone()
+    upload_file(manifest, remote_file=manifest)
+    result = Subscription.upload({
+        u'file': manifest,
+        u'organization-id': org_id,
+    })
+    if result.return_code != 0:
+        raise CLIFactoryError('Failed to upload manifest')
+    # Enable repo from Repository Set
+    result = RepositorySet.enable({
+        u'name': options.get('repository-set', None),
+        u'organization-id': org_id,
+        u'product': options.get('product', None),
+        u'releasever': '7Server',
+        u'basearch': 'x86_64',
+    })
+    if result.return_code != 0:
+        raise CLIFactoryError('Failed to enable repository set')
+    # Fetch repository info
+    result = Repository.info({
+        u'name': options.get('repository', None),
+        u'product': options.get('product', None),
+        u'organization-id': org_id,
+    })
+    rhel_repo = result.stdout
+    # Synchronize the RH repository
+    result = Repository.synchronize({
+        u'name': options.get('repository', None),
+        u'organization-id': org_id,
+        u'product': options.get('product', None),
+    })
+    if result.return_code != 0:
+        raise CLIFactoryError('Failed to synchronize repository')
+    # Create CV if needed and associate repo with it
+    cv_id = options.get(
+        'content-view-id',
+        make_content_view({u'organization-id': org_id})['id']
+    )
+    result = ContentView.add_repository({
+        u'id': cv_id,
+        u'repository-id': rhel_repo['id'],
+        u'organization-id': org_id,
+    })
+    if result.return_code != 0:
+        raise CLIFactoryError('Failed to add repository to content view')
+    # Publish a new version of CV
+    result = ContentView.publish({u'id': cv_id})
+    if result.return_code != 0:
+        raise CLIFactoryError('Failed to publish new version of content view')
+    # Get the version id
+    result = ContentView.info({u'id': cv_id})
+    cvv = result.stdout['versions'][-1]
+    # Promote version1 to next env
+    result = ContentView.version_promote({
+        u'id': cvv['id'],
+        u'to-lifecycle-environment-id': env_id,
+        u'organization-id': org_id,
+    })
+    if result.return_code != 0:
+        raise CLIFactoryError('Failed to promote version to next environment')
+    # Create activation key if needed and associate content view with it
+    if 'activationkey-id' not in options:
+        activationkey_id = make_activation_key({
+            u'content-view-id': cv_id,
+            u'lifecycle-environment-id': env_id,
+            u'organization-id': org_id,
+        })['id']
+    else:
+        activationkey_id = options.get('activationkey-id', None)
+        # Given activation key may have no (or different) CV associated.
+        # Associate activation key with CV just to be sure
+        result = ActivationKey.update({
+            u'id': activationkey_id,
+            u'organization-id': org_id,
+            u'content-view-id': cv_id,
+        })
+        if result.return_code != 0:
+            raise CLIFactoryError(
+                'Failed to associate activation-key with CV')
+    # Add subscription to activation-key
+    activationkey_add_subscription_to_repo({
+        u'organization-id': org_id,
+        u'activationkey-id': activationkey_id,
+        u'subscription': DEFAULT_SUBSCRIPTION_NAME,
+    })
