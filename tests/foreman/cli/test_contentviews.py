@@ -1847,6 +1847,319 @@ class TestContentView(CLITestCase):
             "version1 still exists in the next env"
         )
 
+    def test_cv_subscribe_system(self):
+        """@test: Attempt to subscribe content host to content view
+
+        @feature: Content Views
+
+        @assert: Content host can be subscribed to content view
+
+        """
+        new_org = make_org()
+        env = make_lifecycle_environment({u'organization-id': new_org['id']})
+        cv = make_content_view({u'organization-id': new_org['id']})
+        result = ContentView.publish({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        cvv = result.stdout['versions'][0]
+        result = ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': env['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['content-host-count'], '0')
+
+        make_content_host({
+            u'name': gen_alphanumeric(),
+            u'organization-id': new_org['id'],
+            u'lifecycle-environment-id': env['id'],
+            u'content-view-id': cv['id'],
+        })
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['content-host-count'], '1')
+
+    def test_cv_subscribe_system_rh(self):
+        """@test: Attempt to subscribe content host to content view that has
+        Red Hat repository assigned to it
+
+        @feature: Content Views
+
+        @assert: Content Host can be subscribed to content view with Red Hat
+        repository
+
+        """
+        self.create_rhel_content()
+        env = make_lifecycle_environment({
+            u'organization-id': self.rhel_content_org['id'],
+        })
+        cv = make_content_view({
+            u'organization-id': self.rhel_content_org['id'],
+        })
+        result = ContentView.add_repository({
+            u'id': cv['id'],
+            u'repository-id': TestContentView.rhel_repo['id'],
+            u'organization-id': TestContentView.rhel_content_org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(
+            result.stdout['yum-repositories'][0]['name'],
+            self.rhel_repo_name,
+        )
+        result = ContentView.publish({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        cvv = result.stdout['versions'][0]
+        result = ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': env['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['content-host-count'], '0')
+
+        make_content_host({
+            u'name': gen_alphanumeric(),
+            u'organization-id': self.rhel_content_org['id'],
+            u'lifecycle-environment-id': env['id'],
+            u'content-view-id': cv['id'],
+        })
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['content-host-count'], '1')
+
+    def test_cv_subscribe_system_rh_spin(self):
+        """@test: Attempt to subscribe content host to filtered content view
+        that has Red Hat repository assigned to it
+
+        @feature: Content Views
+
+        @assert: Content Host can be subscribed to filtered content view with
+        Red Hat repository
+
+        """
+        self.create_rhel_content()
+        env = make_lifecycle_environment({
+            u'organization-id': self.rhel_content_org['id'],
+        })
+        cv = make_content_view({
+            u'organization-id': self.rhel_content_org['id'],
+        })
+        result = ContentView.add_repository({
+            u'id': cv['id'],
+            u'repository-id': TestContentView.rhel_repo['id'],
+            u'organization-id': TestContentView.rhel_content_org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(
+            result.stdout['yum-repositories'][0]['name'],
+            self.rhel_repo_name,
+        )
+
+        name = gen_string('utf8')
+        result = ContentView.filter_create({
+            'content-view-id': cv['id'],
+            'type': 'rpm',
+            'inclusion': 'true',
+            'name': name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result_rl = ContentView.filter_rule_create({
+            'content-view-id': cv['id'],
+            'name': gen_string('utf8'),
+            'content-view-filter': name,
+        })
+        self.assertEqual(result_rl.return_code, 0)
+
+        result = ContentView.publish({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        cvv = result.stdout['versions'][0]
+        result = ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': env['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['content-host-count'], '0')
+
+        make_content_host({
+            u'name': gen_alphanumeric(),
+            u'organization-id': self.rhel_content_org['id'],
+            u'lifecycle-environment-id': env['id'],
+            u'content-view-id': cv['id'],
+        })
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['content-host-count'], '1')
+
+    def test_cv_subscribe_system_custom(self):
+        """@test: Attempt to subscribe content host to content view that has
+        custom repository assigned to it
+
+        @feature: Content Views
+
+        @assert: Content Host can be subscribed to content view with custom
+        repository
+
+        """
+        new_org = make_org()
+        new_product = make_product({u'organization-id': new_org['id']})
+        new_repo = make_repository({u'product-id': new_product['id']})
+        env = make_lifecycle_environment({u'organization-id': new_org['id']})
+        result = Repository.synchronize({'id': new_repo['id']})
+        self.assertEqual(result.return_code, 0)
+        cv = make_content_view({u'organization-id': new_org['id']})
+        result = ContentView.add_repository({
+            u'id': cv['id'],
+            u'repository-id': new_repo['id'],
+            u'organization-id': new_org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.publish({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        cvv = result.stdout['versions'][0]
+        result = ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': env['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['content-host-count'], '0')
+
+        make_content_host({
+            u'name': gen_alphanumeric(),
+            u'organization-id': new_org['id'],
+            u'lifecycle-environment-id': env['id'],
+            u'content-view-id': cv['id'],
+        })
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['content-host-count'], '1')
+
+    def test_cv_subscribe_system_composite(self):
+        """@test: Attempt to subscribe content host to composite content view
+
+        @feature: Content Views
+
+        @assert: Content host can be subscribed to composite content view
+
+        """
+        new_org = make_org()
+        env = make_lifecycle_environment({u'organization-id': new_org['id']})
+        cv = make_content_view({
+            'organization-id': new_org['id'],
+            'composite': True,
+        })
+        result = ContentView.publish({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        cvv = result.stdout['versions'][0]
+        result = ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': env['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['content-host-count'], '0')
+
+        make_content_host({
+            u'name': gen_alphanumeric(),
+            u'organization-id': new_org['id'],
+            u'lifecycle-environment-id': env['id'],
+            u'content-view-id': cv['id'],
+        })
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['content-host-count'], '1')
+
+    def test_cv_subscribe_system_puppet(self):
+        """@test: Attempt to subscribe content host to content view that has
+        puppet module assigned to it
+
+        @feature: Content Views
+
+        @assert: Content Host can be subscribed to content view with puppet
+        module
+
+        """
+        new_org = make_org()
+        new_product = make_product({u'organization-id': new_org['id']})
+
+        repository = make_repository({
+            u'content-type': u'puppet',
+            u'product-id': new_product['id'],
+            u'url': FAKE_0_PUPPET_REPO,
+        })
+        result = Repository.synchronize({'id': repository['id']})
+        self.assertEqual(result.return_code, 0)
+
+        cv = make_content_view({u'organization-id': new_org['id']})
+
+        puppet_result = PuppetModule.list({
+            u'repository-id': repository['id'],
+            u'per-page': False,
+        })
+        self.assertEqual(puppet_result.return_code, 0)
+
+        for puppet_module in puppet_result.stdout:
+            # Associate puppet module to CV
+            result = ContentView.puppet_module_add({
+                u'content-view-id': cv['id'],
+                u'name': puppet_module['name']
+            })
+            self.assertEqual(result.return_code, 0)
+
+        env = make_lifecycle_environment({u'organization-id': new_org['id']})
+
+        result = ContentView.publish({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        cvv = result.stdout['versions'][0]
+        result = ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': env['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['content-host-count'], '0')
+
+        make_content_host({
+            u'name': gen_alphanumeric(),
+            u'organization-id': new_org['id'],
+            u'lifecycle-environment-id': env['id'],
+            u'content-view-id': cv['id'],
+        })
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['content-host-count'], '1')
+
     @unittest.skip(NOT_IMPLEMENTED)
     def test_cv_clone_within_same_env(self):
         # Dev note: "not implemented yet"
@@ -1882,28 +2195,6 @@ class TestContentView(CLITestCase):
         @feature: Content Views
 
         @assert: Content view can be published
-
-        @status: Manual
-
-        """
-
-    @unittest.skip(NOT_IMPLEMENTED)
-    def test_cv_subscribe_system(self):
-        # Notes:
-        # this should be limited to only those content views
-        # to which you have permission, but there are/will be
-        # other tests for that.
-        # Variations:
-        # * rh content
-        # * rh custom spins
-        # * custom content
-        # * composite
-        # * CVs with puppet modules
-        """@test: attempt to  subscribe systems to content view(s)
-
-        @feature: Content Views
-
-        @assert: Systems can be subscribed to content view(s)
 
         @status: Manual
 
