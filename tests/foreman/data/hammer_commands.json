@@ -17894,6 +17894,12 @@
               "value": "FULL_RESULTS"
             },
             {
+              "help": "Whether to include available content attribute in results",
+              "name": "include-available-content",
+              "shortname": null,
+              "value": "INCLUDE_AVAILABLE_CONTENT"
+            },
+            {
               "help": "Filter products by name",
               "name": "name",
               "shortname": null,
