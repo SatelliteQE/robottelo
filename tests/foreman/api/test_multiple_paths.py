@@ -441,7 +441,7 @@ class EntityIdTestCase(APITestCase):
         """
         logger.debug('test_delete_status_code arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
-        if entity_cls is entities.ConfigTemplate and bz_bug_is_open(1096333):
+        if entity_cls == entities.ConfigTemplate and bz_bug_is_open(1096333):
             self.skipTest('Cannot delete config templates.')
         try:
             entity = entity_cls(id=entity_cls().create_json()['id'])
@@ -692,6 +692,8 @@ class EntityReadTestCase(APITestCase):
         """
         logger.debug('test_entity_read arg: %s', entity_cls)
         skip_if_sam(self, entity_cls)
+        if entity_cls == entities.System and bz_bug_is_open(1223494):
+            self.skipTest('Cannot read all system attributes.')
         entity_id = entity_cls().create_json()['id']
         self.assertIsInstance(entity_cls(id=entity_id).read(), entity_cls)
 

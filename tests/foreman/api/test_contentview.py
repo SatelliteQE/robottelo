@@ -16,7 +16,12 @@ from robottelo.common.constants import (
     PRDS,
 )
 from robottelo.common.decorators import (
-    bz_bug_is_open, data, run_only_on, stubbed)
+    bz_bug_is_open,
+    data,
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+)
 from robottelo.common.helpers import get_data_file, get_server_credentials
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
@@ -32,6 +37,7 @@ REPEAT = 3
 class ContentViewTestCase(APITestCase):
     """Tests for content views."""
 
+    @skip_if_bug_open('bugzilla', 1223494)
     def test_subscribe_system_to_cv(self):
         """@Test: Subscribe a system to a content view.
 
