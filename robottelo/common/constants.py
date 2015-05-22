@@ -223,7 +223,7 @@ PUPPET_MODULE_NTP_PUPPETLABS = "puppetlabs-ntp-3.2.1.tar.gz"
 #: All permissions exposed by the server.
 #: :mod:`tests.foreman.api.test_permission` makes use of this.
 PERMISSIONS = {
-    None: (
+    None: [
         'access_dashboard',
         'access_settings',
         'commit_containers',
@@ -239,41 +239,41 @@ PERMISSIONS = {
         'view_registries',
         'view_statistics',
         'view_tasks',
-    ),
-    'Architecture': (
+    ],
+    'Architecture': [
         'view_architectures',
         'create_architectures',
         'edit_architectures',
         'destroy_architectures',
-    ),
-    'Audit': (
+    ],
+    'Audit': [
         'view_audit_logs',
-    ),
-    'AuthSourceLdap': (
+    ],
+    'AuthSourceLdap': [
         'view_authenticators',
         'create_authenticators',
         'edit_authenticators',
         'destroy_authenticators',
-    ),
-    'Bookmark': (
+    ],
+    'Bookmark': [
         'view_bookmarks',
         'create_bookmarks',
         'edit_bookmarks',
         'destroy_bookmarks',
-    ),
-    'ConfigGroup': (
+    ],
+    'ConfigGroup': [
         'view_config_groups',
         'create_config_groups',
         'edit_config_groups',
         'destroy_config_groups',
-    ),
-    'ComputeProfile': (
+    ],
+    'ComputeProfile': [
         'view_compute_profiles',
         'create_compute_profiles',
         'edit_compute_profiles',
         'destroy_compute_profiles',
-    ),
-    'ComputeResource': (
+    ],
+    'ComputeResource': [
         'view_compute_resources',
         'create_compute_resources',
         'edit_compute_resources',
@@ -284,139 +284,139 @@ PERMISSIONS = {
         'destroy_compute_resources_vms',
         'power_compute_resources_vms',
         'console_compute_resources_vms',
-    ),
-    'ConfigTemplate': (
+    ],
+    'ConfigTemplate': [
         'view_templates',
         'create_templates',
         'edit_templates',
         'destroy_templates',
         'deploy_templates',
         'lock_templates',
-    ),
-    'Domain': (
+    ],
+    'Domain': [
         'view_domains',
         'create_domains',
         'edit_domains',
         'destroy_domains',
-    ),
-    'Environment': (
+    ],
+    'Environment': [
         'view_environments',
         'create_environments',
         'edit_environments',
         'destroy_environments',
         'import_environments',
-    ),
-    'ExternalUsergroups': (
+    ],
+    'ExternalUsergroups': [
         'view_external_usergroups',
         'create_external_usergroups',
         'edit_external_usergroups',
         'destroy_external_usergroups',
-    ),
-    'LookupKey': (
+    ],
+    'LookupKey': [
         'view_external_variables',
         'create_external_variables',
         'edit_external_variables',
         'destroy_external_variables',
-    ),
-    'FactValue': (
+    ],
+    'FactValue': [
         'view_facts',
         'upload_facts',
-    ),
-    'Filter': (
+    ],
+    'Filter': [
         'view_filters',
         'create_filters',
         'edit_filters',
         'destroy_filters',
-    ),
-    'ForemanTasks::Task': (
+    ],
+    'ForemanTasks::Task': [
         u'edit_foreman_tasks',
         u'view_foreman_tasks',
-    ),
-    'CommonParameter': (
+    ],
+    'CommonParameter': [
         'view_globals',
         'create_globals',
         'edit_globals',
         'destroy_globals',
-    ),
-    'HostClass': (
+    ],
+    'HostClass': [
         'edit_classes',
-    ),
-    'Parameter': (
+    ],
+    'Parameter': [
         'create_params',
         'edit_params',
         'destroy_params',
-    ),
-    'Hostgroup': (
+    ],
+    'Hostgroup': [
         'view_hostgroups',
         'create_hostgroups',
         'edit_hostgroups',
         'destroy_hostgroups',
-    ),
-    'Image': (
+    ],
+    'Image': [
         'view_images',
         'create_images',
         'edit_images',
         'destroy_images',
-    ),
-    'Location': (
+    ],
+    'Location': [
         'view_locations',
         'create_locations',
         'edit_locations',
         'destroy_locations',
         'assign_locations',
-    ),
-    'MailNotification': (
+    ],
+    'MailNotification': [
         'view_mail_notifications',
-    ),
-    'Medium': (
+    ],
+    'Medium': [
         'view_media',
         'create_media',
         'edit_media',
         'destroy_media',
-    ),
-    'Model': (
+    ],
+    'Model': [
         'view_models',
         'create_models',
         'edit_models',
         'destroy_models',
-    ),
-    'Operatingsystem': (
+    ],
+    'Operatingsystem': [
         'view_operatingsystems',
         'create_operatingsystems',
         'edit_operatingsystems',
         'destroy_operatingsystems',
-    ),
-    'Ptable': (
+    ],
+    'Ptable': [
         'view_ptables',
         'create_ptables',
         'edit_ptables',
         'destroy_ptables',
-    ),
-    'Puppetclass': (
+    ],
+    'Puppetclass': [
         'view_puppetclasses',
         'create_puppetclasses',
         'edit_puppetclasses',
         'destroy_puppetclasses',
         'import_puppetclasses',
-    ),
-    'Realm': (
+    ],
+    'Realm': [
         'view_realms',
         'create_realms',
         'edit_realms',
         'destroy_realms',
-    ),
-    'Report': (
+    ],
+    'Report': [
         'view_reports',
         'destroy_reports',
         'upload_reports',
-    ),
-    'Role': (
+    ],
+    'Role': [
         'view_roles',
         'create_roles',
         'edit_roles',
         'destroy_roles',
-    ),
-    'SmartProxy': (
+    ],
+    'SmartProxy': [
         'view_smart_proxies',
         'create_smart_proxies',
         'edit_smart_proxies',
@@ -428,34 +428,34 @@ PERMISSIONS = {
         'edit_smart_proxies_puppetca',
         'destroy_smart_proxies_puppetca',
         'manage_capsule_content',
-    ),
-    'Subnet': (
+    ],
+    'Subnet': [
         'view_subnets',
         'create_subnets',
         'edit_subnets',
         'destroy_subnets',
         'import_subnets',
-    ),
-    'Trend': (
+    ],
+    'Trend': [
         'view_trends',
         'create_trends',
         'edit_trends',
         'destroy_trends',
         'update_trends',
-    ),
-    'Usergroup': (
+    ],
+    'Usergroup': [
         'view_usergroups',
         'create_usergroups',
         'edit_usergroups',
         'destroy_usergroups',
-    ),
-    'User': (
+    ],
+    'User': [
         'view_users',
         'create_users',
         'edit_users',
         'destroy_users',
-    ),
-    'Host': (
+    ],
+    'Host': [
         'view_hosts',
         'create_hosts',
         'edit_hosts',
@@ -469,54 +469,54 @@ PERMISSIONS = {
         'provision_discovered_hosts',
         'edit_discovered_hosts',
         'destroy_discovered_hosts',
-    ),
-    'Katello::ActivationKey': (
+    ],
+    'Katello::ActivationKey': [
         'view_activation_keys',
         'create_activation_keys',
         'edit_activation_keys',
         'destroy_activation_keys',
-    ),
-    'Katello::System': (
+    ],
+    'Katello::System': [
         'view_content_hosts',
         'create_content_hosts',
         'edit_content_hosts',
         'destroy_content_hosts',
-    ),
-    'Katello::ContentView': (
+    ],
+    'Katello::ContentView': [
         'view_content_views',
         'create_content_views',
         'edit_content_views',
         'destroy_content_views',
         'publish_content_views',
         'promote_or_remove_content_views',
-    ),
-    'Katello::GpgKey': (
+    ],
+    'Katello::GpgKey': [
         'view_gpg_keys',
         'create_gpg_keys',
         'edit_gpg_keys',
         'destroy_gpg_keys',
-    ),
-    'Katello::HostCollection': (
+    ],
+    'Katello::HostCollection': [
         'view_host_collections',
         'create_host_collections',
         'edit_host_collections',
         'destroy_host_collections',
-    ),
-    'Katello::KTEnvironment': (
+    ],
+    'Katello::KTEnvironment': [
         'view_lifecycle_environments',
         'create_lifecycle_environments',
         'edit_lifecycle_environments',
         'destroy_lifecycle_environments',
         'promote_or_remove_content_views_to_environments',
-    ),
-    'Katello::Product': (
+    ],
+    'Katello::Product': [
         'view_products',
         'create_products',
         'edit_products',
         'destroy_products',
         'sync_products',
-    ),
-    'Organization': (
+    ],
+    'Organization': [
         'view_organizations',
         'create_organizations',
         'edit_organizations',
@@ -527,13 +527,13 @@ PERMISSIONS = {
         'unattach_subscriptions',
         'import_manifest',
         'delete_manifest',
-    ),
-    'Katello::SyncPlan': (
+    ],
+    'Katello::SyncPlan': [
         'view_sync_plans',
         'create_sync_plans',
         'edit_sync_plans',
         'destroy_sync_plans',
-    ),
+    ],
 }
 
 ANY_CONTEXT = {'org': "Any Organization",
