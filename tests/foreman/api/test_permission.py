@@ -5,34 +5,50 @@ Each ``APITestCase`` subclass tests a single URL. A full list of URLs to be
 tested can be found here: http://theforeman.org/api/apidoc/v2/permissions.html
 
 """
+import json
 import re
-from ddt import data as ddt_data, ddt
+
+from ddt import ddt
 from fauxfactory import gen_alphanumeric
 from itertools import chain
 from nailgun import client, entities
 from requests.exceptions import HTTPError
 from robottelo.common.constants import PERMISSIONS
-from robottelo.common.decorators import bz_bug_is_open, data, run_only_on
-from robottelo.common.helpers import get_nailgun_config, get_server_credentials
+from robottelo.common.decorators import data, run_only_on
+from robottelo.common.helpers import (
+    get_nailgun_config,
+    get_server_credentials,
+    get_server_software,
+)
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
-
-
-#: e.g. ['Architecture', 'Audit', 'AuthSourceLdap', …]
-PERMISSION_RESOURCE_TYPES = [key for key in PERMISSIONS.keys()]
-#: e.g. ['view_architectures', 'create_architectures', 'edit_architectures', …]
-PERMISSION_NAMES = [
-    value for value in chain.from_iterable(PERMISSIONS.values())
-]
 
 
 @ddt
 class PermissionsTestCase(APITestCase):
     """Tests for the ``permissions`` path."""
+    @classmethod
+    def setUpClass(cls):
+        super(PermissionsTestCase, cls).setUpClass()
+        cls.permissions = PERMISSIONS.copy()
+        if get_server_software() == 'upstream':
+            cls.permissions[None].extend(cls.permissions.pop('DiscoveryRule'))
+            cls.permissions[None].remove('app_root')
+            cls.permissions[None].remove('attachments')
+            cls.permissions[None].remove('configuration')
+            cls.permissions[None].remove('logs')
+            cls.permissions[None].remove('view_cases')
+            cls.permissions[None].remove('view_log_viewer')
+            cls.permissions[None].remove('view_search')
+
+        #: e.g. ['Architecture', 'Audit', 'AuthSourceLdap', …]
+        cls.permission_resource_types = list(cls.permissions.keys())
+        #: e.g. ['view_architectures', 'create_architectures', …]
+        cls.permission_names = list(
+            chain.from_iterable(cls.permissions.values()))
 
     @run_only_on('sat')
-    @ddt_data(*PERMISSION_NAMES)
-    def test_search_by_name(self, permission_name):
+    def test_search_by_name(self):
         """@test: Search for a permission by name.
 
         @feature: Permissions
@@ -41,17 +57,22 @@ class PermissionsTestCase(APITestCase):
         is the one searched for.
 
         """
-        if (
-                permission_name == 'power_compute_resources_vms' and
-                bz_bug_is_open(1198731)):
-            self.skipTest('BZ 1198731 is open.')
-        result = entities.Permission(name=permission_name).search()
-        self.assertEqual(len(result), 1, permission_name)
-        self.assertEqual(permission_name, result[0]['name'])
+        failures = {}
+        for permission_name in self.permission_names:
+            result = entities.Permission(name=permission_name).search()
+            length = len(result)
+            name = result[0]['name'] if length > 0 else None
+            if length != 1 or permission_name != name:
+                failures[permission_name] = {
+                    'length': len(result),
+                    'returned_name': name,
+                }
+
+        if failures:
+            self.fail(json.dumps(failures, indent=True, sort_keys=True))
 
     @run_only_on('sat')
-    @ddt_data(*PERMISSION_RESOURCE_TYPES)
-    def test_search_by_resource_type(self, resource_type):
+    def test_search_by_resource_type(self):
         """@test: Search for permissions by resource type.
 
         @feature: Permissions
@@ -60,16 +81,26 @@ class PermissionsTestCase(APITestCase):
         resource type in :data:`robottelo.common.constants.PERMISSIONS`.
 
         """
-        if resource_type is None:
-            self.skipTest(
-                "Can't search for permissions that have a resource_type of nil"
-            )
-        perm_group = entities.Permission(resource_type=resource_type).search()
-        self.assertItemsEqual(
-            PERMISSIONS[resource_type],
-            [perm['name'] for perm in perm_group],
-        )
-        self.assertEqual(len(perm_group), len(PERMISSIONS[resource_type]))
+        failures = {}
+        for resource_type in self.permission_resource_types:
+            if resource_type is None:
+                continue
+            perm_group = entities.Permission(
+                resource_type=resource_type).search()
+            permissions = set([perm['name'] for perm in perm_group])
+            expected_permissions = set(self.permissions[resource_type])
+            added = tuple(permissions - expected_permissions)
+            removed = tuple(expected_permissions - permissions)
+
+            if added or removed:
+                failures[resource_type] = {}
+            if added or removed:
+                failures[resource_type]['added'] = added
+            if removed:
+                failures[resource_type]['removed'] = removed
+
+        if failures:
+            self.fail(json.dumps(failures, indent=True, sort_keys=True))
 
     @run_only_on('sat')
     def test_search_permissions(self):
@@ -80,18 +111,30 @@ class PermissionsTestCase(APITestCase):
         @assert: Search returns a list of all expected permissions
 
         """
-        perms = entities.Permission().search()
-        perm_names = [perm['name'] for perm in perms]
-        perm_resource_types = [perm['resource_type'] for perm in perms]
+        permissions = entities.Permission().search()
+        names = set([perm['name'] for perm in permissions])
+        resource_types = set([perm['resource_type'] for perm in permissions])
+        expected_names = set(self.permission_names)
+        expected_resource_types = set(self.permission_resource_types)
 
-        self.assertEqual(
-            frozenset(PERMISSION_RESOURCE_TYPES),
-            frozenset(perm_resource_types),
-        )
-        self.assertEqual(
-            frozenset(PERMISSION_NAMES),
-            frozenset(perm_names),
-        )
+        added_resource_types = tuple(resource_types - expected_resource_types)
+        removed_resource_types = tuple(
+            expected_resource_types - resource_types)
+        added_names = tuple(names - expected_names)
+        removed_names = tuple(expected_names - names)
+
+        diff = {}
+        if added_resource_types:
+            diff['added_resource_types'] = added_resource_types
+        if removed_resource_types:
+            diff['removed_resource_types'] = removed_resource_types
+        if added_names:
+            diff['added_names'] = added_names
+        if removed_names:
+            diff['removed_names'] = removed_names
+
+        if diff:
+            self.fail(json.dumps(diff, indent=True, sort_keys=True))
 
 
 # FIXME: This method is a hack. This information should somehow be tied
