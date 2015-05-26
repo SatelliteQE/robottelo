@@ -1015,13 +1015,12 @@ class DockerComputeResourceTestCase(APITestCase):
         @Feature: Docker
 
         """
-        compute_resource_id = entities.ComputeResource(
+        compute_resource_id = entities.DockerComputeResource(
             name=name,
-            provider=DOCKER_PROVIDER,
             url=INTERNAL_DOCKER_URL
         ).create_json()['id']
 
-        compute_resource = entities.ComputeResource(
+        compute_resource = entities.DockerComputeResource(
             id=compute_resource_id).read_json()
 
         self.assertEqual(compute_resource['name'], name)
@@ -1076,13 +1075,12 @@ class DockerComputeResourceTestCase(APITestCase):
         @Feature: Docker
 
         """
-        compute_resource_id = entities.ComputeResource(
+        compute_resource_id = entities.DockerComputeResource(
             name=name,
-            provider=DOCKER_PROVIDER,
             url=EXTERNAL_DOCKER_URL
         ).create_json()['id']
 
-        compute_resource = entities.ComputeResource(
+        compute_resource = entities.DockerComputeResource(
             id=compute_resource_id).read_json()
 
         self.assertEqual(compute_resource['name'], name)
@@ -1132,21 +1130,20 @@ class DockerComputeResourceTestCase(APITestCase):
         @Feature: Docker
 
         """
-        compute_resource_id = entities.ComputeResource(
-            provider=DOCKER_PROVIDER,
+        compute_resource_id = entities.DockerComputeResource(
             url=url
         ).create_json()['id']
 
-        compute_resource = entities.ComputeResource(
+        compute_resource = entities.DockerComputeResource(
             id=compute_resource_id).read_json()
         self.assertEqual(compute_resource['url'], url)
         self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
 
-        entities.ComputeResource(id=compute_resource_id).delete()
+        entities.DockerComputeResource(id=compute_resource_id).delete()
 
         self.assertEqual(
             httplib.NOT_FOUND,
-            entities.ComputeResource(
+            entities.DockerComputeResource(
                 id=compute_resource_id).read_raw().status_code
         )
 

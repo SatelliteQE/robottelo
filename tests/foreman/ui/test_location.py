@@ -417,9 +417,8 @@ class Location(UITestCase):
         loc_name = gen_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
-        resource = entities.ComputeResource(
+        resource = entities.LibvirtComputeResource(
             name=resource_name,
-            provider='Libvirt',
             url=url
         ).create_json()
         self.assertEqual(resource['name'], resource_name)
@@ -708,9 +707,8 @@ class Location(UITestCase):
         loc_name = gen_string("alpha", 8)
         libvirt_url = "qemu+tcp://%s:16509/system"
         url = (libvirt_url % conf.properties['main.server.hostname'])
-        resource = entities.ComputeResource(
+        resource = entities.LibvirtComputeResource(
             name=resource_name,
-            provider='Libvirt',
             url=url
         ).create_json()
         self.assertEqual(resource['name'], resource_name)

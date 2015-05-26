@@ -325,9 +325,8 @@ class OrganizationUpdateTestCase(APITestCase):
 
         """
         compute_resource_ids = [
-            entities.ComputeResource(
+            entities.LibvirtComputeResource(
                 name=gen_string('alpha'),
-                provider='Libvirt',
                 url='qemu://host.example.com/system'
             ).create_json()['id']
             for _ in range(2)
