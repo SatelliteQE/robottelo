@@ -271,9 +271,9 @@ def configure_entities():
       ``robottelo.entity_mixins.Entity`` for more information on the effects of
       this.
     * Set a default value for ``nailgun.entities.GPGKey.content``.
-    * Set the default value for ``nailgun.entities.ComputeResource.url`` if
-      either ``docker.internal_url`` or ``docker.external_url`` is set in the
-      configuration file.
+    * Set the default value for ``nailgun.entities.DockerComputeResource.url``
+      if either ``docker.internal_url`` or ``docker.external_url`` is set in
+      the configuration file.
 
     Emit a warning and do not set anything if no ``robottelo.properties``
     configuration file is available.
@@ -309,13 +309,13 @@ def configure_entities():
     elif conf.properties.get('docker.external_url', '') != '':
         docker_url = get_external_docker_url()
     if docker_url is not None:
-        computeresource_init = entities.ComputeResource.__init__
+        dockercr_init = entities.DockerComputeResource.__init__
 
-        def patched_computeresource_init(self, server_config=None, **kwargs):
+        def patched_dockercr_init(self, server_config=None, **kwargs):
             """Set a default value on the ``docker_url`` field."""
-            computeresource_init(self, server_config, **kwargs)
+            dockercr_init(self, server_config, **kwargs)
             self._fields['url'].default = docker_url
-        entities.ComputeResource.__init__ = patched_computeresource_init
+        entities.DockerComputeResource.__init__ = patched_dockercr_init
 
 
 def prepare_import_data(tar_path=None):

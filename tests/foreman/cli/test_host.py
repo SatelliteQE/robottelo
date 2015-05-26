@@ -64,8 +64,7 @@ class HostTestCase(CLITestCase):
         message is returned.
 
         """
-        compute_resource_id = entities.ComputeResource(
-            provider='Libvirt',
+        compute_resource_id = entities.LibvirtComputeResource(
             url='qemu+tcp://{0}:16509/system'.format(
                 conf.properties['main.server.hostname']
             ),
