@@ -43,6 +43,7 @@ class Navigator(Base):
                 "arguments[0].click();",
                 tertiary_element,
             )
+        self.wait_for_ajax()
 
     def go_to_dashboard(self):
         self.menu_click(

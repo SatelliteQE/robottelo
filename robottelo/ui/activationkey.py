@@ -85,6 +85,32 @@ class ActivationKey(Base):
             element = self.wait_until_element((strategy, value % element_name))
         return element
 
+    def search_key_subscriptions(self, ak_name, subscription_name):
+        """Fetch associated subscriptions from selected activation key"""
+        activation_key = self.search_key(ak_name)
+        if activation_key is None:
+            raise UINoSuchElementError(
+                u'Could not find activation key {0}'.format(ak_name))
+        activation_key.click()
+        self.wait_for_ajax()
+        if self.wait_until_element(tab_locators['ak.subscriptions']) is None:
+            raise UINoSuchElementError('Could not find Subscriptions tab')
+        self.find_element(tab_locators['ak.subscriptions']).click()
+        self.wait_for_ajax()
+        searchbox = self.wait_until_element(
+            locators['ak.subscriptions.search'])
+        if searchbox is None:
+            raise UINoSuchElementError(
+                'Could not find Subscriptions search box')
+        searchbox.clear()
+        searchbox.send_keys(escape_search(subscription_name))
+        self.find_element(locators['ak.subscriptions.search_button']).click()
+        self.wait_for_ajax()
+        strategy, value = locators['ak.get_subscription_name']
+        element = self.wait_until_element(
+            (strategy, value % subscription_name))
+        return element
+
     def update(self, name, new_name=None, description=None,
                limit=None, content_view=None, env=None):
         """

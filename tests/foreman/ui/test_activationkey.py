@@ -1276,8 +1276,6 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element
                                  (common_locators["alert.success"]))
 
-    @skip_if_bug_open('bugzilla', 1078676)
-    @stubbed()
     def test_delete_manifest(self):
         """@Test: Check if deleting a manifest removes it from Activation key
 
@@ -1290,11 +1288,42 @@ class ActivationKey(UITestCase):
 
         @Assert: Deleting a manifest removes it from the Activation key
 
-        @Status: Manual
-
-        @BZ: 1078676
-
         """
+        # Upload manifest
+        manifest_path = manifests.clone()
+        org = entities.Organization().create()
+        org.upload_manifest(path=manifest_path)
+        # Create activation key
+        activation_key = entities.ActivationKey(
+            organization=org.id,
+        ).create()
+        # Associate a manifest to the activation key
+        for subscription in org.subscriptions():
+            if subscription['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
+                activation_key.add_subscriptions({
+                    'quantity': 1,
+                    'subscription_id': subscription['id'],
+                })
+                break
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            # Verify subscription is assigned to activation key
+            self.navigator.go_to_activation_keys()
+            self.assertIsNotNone(
+                self.activationkey.search_key_subscriptions(
+                    activation_key.name, DEFAULT_SUBSCRIPTION_NAME)
+            )
+            # Delete the manifest
+            self.navigator.go_to_red_hat_subscriptions()
+            self.subscriptions.delete()
+            self.assertIsNotNone(self.subscriptions.wait_until_element(
+                common_locators['alert.success']))
+            # Verify the subscription was removed from the activation key
+            self.navigator.go_to_activation_keys()
+            self.assertIsNone(
+                self.activationkey.search_key_subscriptions(
+                    activation_key.name, DEFAULT_SUBSCRIPTION_NAME)
+            )
 
     @run_only_on('sat')
     def test_multiple_activation_keys_to_system(self):
