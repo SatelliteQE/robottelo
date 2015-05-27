@@ -122,7 +122,7 @@ class Syncplan(UITestCase):
             saved_starttime = str(starttime_text).rpartition(':')[0]
             self.assertEqual(saved_starttime, starttime)
 
-    @skip_if_bug_open('bugzilla', 1202811)
+    @skip_if_bug_open('bugzilla', 1219263)
     def test_positive_create_3(self):
         """@Test: Create Sync plan with specified start date
 
