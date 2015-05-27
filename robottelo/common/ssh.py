@@ -143,7 +143,7 @@ def command(cmd, hostname=None, output_format=None, timeout=None):
 
     hostname = hostname or conf.properties['main.server.hostname']
 
-    logger.debug(">>> [%s] %s", hostname, cmd)
+    logger.debug('>>> [%s] %s', hostname, cmd)
 
     with _get_connection(hostname=hostname) as connection:
         _, stdout, stderr = connection.exec_command(cmd, timeout)
@@ -153,26 +153,20 @@ def command(cmd, hostname=None, output_format=None, timeout=None):
 
     if stdout:
         stdout = stdout.decode('utf-8')
-        logger.debug("<<<\n%s", stdout)
+        logger.debug('<<<\n%s', stdout)
+    if stderr:
+        stderr = stderr.decode('utf-8')
+        logger.debug('<<< %s', stderr)
 
     if stdout and output_format != 'json':
         # For output we don't really want to see all of Rails traffic
         # information, so strip it out.
         # Empty fields are returned as "" which gives us u'""'
         stdout = stdout.replace('""', '')
-        stdout = u"".join(stdout).split("\n")
+        stdout = u''.join(stdout).split('\n')
         stdout = [
-            regex.sub('', line) for line in stdout if not line.startswith("[")
+            regex.sub('', line) for line in stdout if not line.startswith('[')
         ]
 
-    # Ignore stderr if errorcode == 0. This is necessary since
-    # we're running Foreman in verbose mode which generates a lot
-    # of output return as stderr.
-    errors = [] if errorcode == 0 else stderr
-
-    if errors:
-        errors = regex.sub('', "".join(errors))
-        logger.debug("<<< %s", errors)
-
     return SSHCommandResult(
-        stdout, errors, errorcode, output_format)
+        stdout, stderr, errorcode, output_format)
