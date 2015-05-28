@@ -32,15 +32,10 @@ class Subscription(Base):
 
     @classmethod
     def upload(cls, options=None):
-        """
-        Upload a subscription manifest
-        """
-
+        """Upload a subscription manifest."""
         cls.command_sub = 'upload'
-
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls._remove_task_status(
+            cls.execute(cls._construct_command(options)))
 
     @classmethod
     def delete_manifest(cls, options=None):

@@ -19,7 +19,6 @@ Subcommands::
     update                        Update a repository
     upload-content                Upload content into the repository
 """
-
 from robottelo.cli.base import Base
 
 
@@ -55,16 +54,10 @@ class Repository(Base):
 
     @classmethod
     def synchronize(cls, options):
-        """
-        Synchronizes a repository.
-        """
-
+        """Synchronizes a repository."""
         cls.command_sub = 'synchronize'
-
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
-
-        return result
+        return cls._remove_task_status(
+            cls.execute(cls._construct_command(options), output_format='csv'))
 
     @classmethod
     def upload_content(cls, options):

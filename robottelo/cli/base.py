@@ -1,12 +1,15 @@
 # -*- encoding: utf-8 -*-
-"""
-Generic base class for cli hammer commands
-"""
-
+"""Generic base class for cli hammer commands."""
 import logging
+import re
 
 from robottelo.cli import hammer
 from robottelo.common import conf, ssh
+
+# Example for a task status message: "Task b18d3363-f4b8-44eb-871c-760e51444d22
+# success: 1.0/1, 100%, elapsed: 00:00:02\n"
+TASK_STATUS_REGEX = re.compile(
+    r'Task [\w-]+ \w+: [\d./]+, \d+%, elapsed: [\d:]+\n')
 
 
 class CLIError(Exception):
@@ -125,15 +128,10 @@ class Base(object):
 
     @classmethod
     def delete(cls, options=None):
-        """
-        Deletes existing record.
-        """
-
+        """Deletes existing record."""
         cls.command_sub = 'delete'
-
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls._remove_task_status(
+            cls.execute(cls._construct_command(options)))
 
     @classmethod
     def delete_parameter(cls, options=None):
@@ -376,3 +374,13 @@ class Base(object):
         )
 
         return cmd
+
+    @classmethod
+    def _remove_task_status(cls, result):
+        """Remove all task status entries from the stderr if command return
+        code is 0.
+
+        """
+        if result.return_code == 0:
+            result.stderr = TASK_STATUS_REGEX.sub('', result.stderr)
+        return result
