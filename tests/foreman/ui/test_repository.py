@@ -406,6 +406,7 @@ class Repos(UITestCase):
             self.assertIsNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1225740)
     def test_discover_repo_1(self):
         """@Test: Create repository via repo-discovery under existing product
 
