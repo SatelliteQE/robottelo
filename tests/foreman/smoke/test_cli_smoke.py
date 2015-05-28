@@ -50,11 +50,7 @@ class TestSmoke(CLITestCase):
         """
         query = {u'name': DEFAULT_ORG}
         result = self._search(Org, query)
-        self.assertEqual(
-            result.stdout['name'],
-            DEFAULT_ORG,
-            u'Could not find the "Default Organization"'
-        )
+        self.assertEqual(result.stdout['name'], DEFAULT_ORG)
 
     def test_find_default_location(self):
         """@Test: Check if 'Default Location' is present
@@ -66,11 +62,7 @@ class TestSmoke(CLITestCase):
         """
         query = {u'name': DEFAULT_LOC}
         result = self._search(Location, query)
-        self.assertEqual(
-            result.stdout['name'],
-            DEFAULT_LOC,
-            u'Could not find the "Default Location"'
-        )
+        self.assertEqual(result.stdout['name'], DEFAULT_LOC)
 
     def test_find_admin_user(self):
         """@Test: Check if Admin User is present
@@ -82,18 +74,8 @@ class TestSmoke(CLITestCase):
         """
         query = {u'login': u'admin'}
         result = self._search(User, query)
-        self.assertEqual(
-            result.stdout['login'],
-            'admin',
-            u'Admin User login does not match: "admin" != "{0}"'.format(
-                result.stdout['login'])
-        )
-        self.assertEqual(
-            result.stdout['admin'],
-            'yes',
-            u"Admin User does not have admin role: 'Admin' = '{0}'".format(
-                result.stdout['admin'])
-        )
+        self.assertEqual(result.stdout['login'], 'admin')
+        self.assertEqual(result.stdout['admin'], 'yes')
 
     def test_foreman_version(self):
         """@Test: Check if /usr/share/foreman/VERSION does not contain the
@@ -215,28 +197,16 @@ class TestSmoke(CLITestCase):
             new_user['login'],
             new_user['password']
         ).synchronize({u'id': new_repo1['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code))
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"Failed to synchronize YUM repo: {0}".format(result.stderr))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Synchronize puppet repository
         result = Repository.with_user(
             new_user['login'],
             new_user['password']
         ).synchronize({u'id': new_repo2['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code))
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"Failed to synchronize Puppet repo: {0}".format(result.stderr))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Create a Content View
         new_cv = self._create(
@@ -256,15 +226,8 @@ class TestSmoke(CLITestCase):
             u'id': new_cv['id'],
             u'repository-id': new_repo1['id'],
         })
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code))
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"Failed to add YUM repo to content view: {0}".format(
-                result.stderr))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Fetch puppet module
         puppet_result = PuppetModule.with_user(
@@ -274,15 +237,8 @@ class TestSmoke(CLITestCase):
             u'repository-id': new_repo2['id'],
             u'per-page': False,
         })
-        self.assertEqual(
-            puppet_result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code))
-        self.assertEqual(
-            len(puppet_result.stderr),
-            0,
-            u"Puppet modules list was not generated: {0}".format(
-                result.stderr))
+        self.assertEqual(puppet_result.return_code, 0)
+        self.assertEqual(len(puppet_result.stderr), 0)
 
         # Associate puppet repository to content view
         result = ContentView.with_user(
@@ -292,43 +248,24 @@ class TestSmoke(CLITestCase):
             u'content-view-id': new_cv['id'],
             u'id': puppet_result.stdout[0]['id'],
         })
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code))
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"Failed to add YUM repo to content view: {0}".format(
-                result.stderr))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Publish content view
         result = ContentView.with_user(
             new_user['login'],
             new_user['password']
         ).publish({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code))
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"Failed to publish content view: {0}".format(result.stderr))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Only after we publish version1 the info is populated.
         result = ContentView.with_user(
             new_user['login'],
             new_user['password']
         ).info({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code))
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"Could not fetch content view info: {0}".format(result.stderr))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Let us now store the version1 id
         version1_id = result.stdout['versions'][0]['id']
@@ -341,15 +278,8 @@ class TestSmoke(CLITestCase):
             u'id': result.stdout['versions'][0]['id'],
             u'to-lifecycle-environment-id': lifecycle1['id'],
         })
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code))
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"Failed to promote content view to lifecycle '{0}': {1}".format(
-                lifecycle1['name'], result.stderr))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Promote content view to second lifecycle
         result = ContentView.with_user(
@@ -359,15 +289,8 @@ class TestSmoke(CLITestCase):
             u'id': version1_id,
             u'to-lifecycle-environment-id': lifecycle2['id'],
         })
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code))
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"Failed to promote content view to lifecycle '{0}': {1}".format(
-                lifecycle2['name'], result.stderr))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         # Create a new libvirt compute resource
         result = self._create(
@@ -417,23 +340,14 @@ class TestSmoke(CLITestCase):
         ).list({
             u'search': u'organization="{0}"'.format(new_org['name']),
         })
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code))
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"Failed to fetch puppet environments: {0}".format(
-                result.stderr))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         # Now look for the puppet environment that matches lifecycle2
         puppet_env = [
-            env for env in result.stdout if env['name'].startswith(
-                env_name)]
-        self.assertEqual(
-            len(puppet_env),
-            1,
-            u'Could not find the puppet environment: {0}'.format(env_name))
+            env for env in result.stdout
+            if env['name'].startswith(env_name)
+        ]
+        self.assertEqual(len(puppet_env), 1)
 
         # Create a hostgroup...
         new_hg = self._create(
@@ -454,15 +368,8 @@ class TestSmoke(CLITestCase):
             u'id': new_org['id'],
             u'hostgroup-id': new_hg['id'],
         })
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code))
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"Failed to add hostgroup '{0}' to org '{1}': {2}".format(
-                new_hg['name'], new_org['name'], result.stderr))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
     def _create(self, user, entity, attrs):
         """Creates a Foreman entity and returns it.
@@ -483,16 +390,8 @@ class TestSmoke(CLITestCase):
         ).create(attrs)
 
         # Assertion
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            "Error creating {0}: {1}".format(
-                entity.__name__, result.stderr))
-        self.assertEqual(
-            result.return_code,
-            0,
-            "Command return code is non-zero: {0}".format(
-                result.return_code))
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(result.return_code, 0)
 
         return result.stdout
 
@@ -508,17 +407,8 @@ class TestSmoke(CLITestCase):
 
         """
         result = entity.info(attrs)
-        self.assertEqual(
-            result.return_code,
-            0,
-            u"Return code is non-zero: {0}".format(result.return_code)
-        )
-        self.assertEqual(
-            len(result.stderr),
-            0,
-            u"There was an error fetching the entity: {0}".format(
-                result.stderr)
-        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
 
         return result
 
@@ -569,11 +459,7 @@ class TestSmoke(CLITestCase):
             u'file': manifest,
             u'organization-id': new_org['id'],
         })
-        self.assertEqual(
-            result.return_code, 0,
-            "Failed to upload manifest: {0} and return code: {1}"
-            .format(result.stderr, result.return_code)
-        )
+        self.assertEqual(result.return_code, 0)
         # Enable repo from Repository Set
         result = RepositorySet.enable({
             u'name': rhel_repo_set,
@@ -582,11 +468,7 @@ class TestSmoke(CLITestCase):
             u'releasever': '6Server',
             u'basearch': 'x86_64',
         })
-        self.assertEqual(
-            result.return_code, 0,
-            "Repo was not enabled: {0} and return code: {1}"
-            .format(result.stderr, result.return_code)
-        )
+        self.assertEqual(result.return_code, 0)
         # Fetch repository info
         result = Repository.info({
             u'name': rhel_repo_name,
@@ -600,11 +482,7 @@ class TestSmoke(CLITestCase):
             u'organization-id': new_org['id'],
             u'product': rhel_product_name,
         })
-        self.assertEqual(
-            result.return_code, 0,
-            "Repo was not synchronized: {0} and return code: {1}"
-            .format(result.stderr, result.return_code)
-        )
+        self.assertEqual(result.return_code, 0)
         # Create CV and associate repo to it
         new_cv = make_content_view({u'organization-id': new_org['id']})
         result = ContentView.add_repository({
@@ -612,25 +490,13 @@ class TestSmoke(CLITestCase):
             u'repository-id': rhel_repo['id'],
             u'organization-id': new_org['id'],
         })
-        self.assertEqual(
-            result.return_code, 0,
-            "Failed repository association: {0} and return code: {1}"
-            .format(result.stderr, result.return_code)
-        )
+        self.assertEqual(result.return_code, 0)
         # Publish a version1 of CV
         result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code, 0,
-            "Version1 publishing failed: {0} and return code: {1}"
-            .format(result.stderr, result.return_code)
-        )
+        self.assertEqual(result.return_code, 0)
         # Get the CV info
         result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code, 0,
-            "ContentView was not found: {0} and return code: {1}"
-            .format(result.stderr, result.return_code)
-        )
+        self.assertEqual(result.return_code, 0)
         # Store the version1 id
         version1_id = result.stdout['versions'][0]['id']
         # Promotion of version1 to next env
@@ -638,11 +504,7 @@ class TestSmoke(CLITestCase):
             u'id': version1_id,
             u'to-lifecycle-environment-id': new_env['id'],
         })
-        self.assertEqual(
-            result.return_code, 0,
-            "version1 promotion failed: {0} and return code: {1}"
-            .format(result.stderr, result.return_code)
-        )
+        self.assertEqual(result.return_code, 0)
         # Create activation key
         activation_key = make_activation_key({
             u'name': gen_alphanumeric(),
@@ -655,32 +517,20 @@ class TestSmoke(CLITestCase):
             {u'organization-id': new_org['id']},
             per_page=False
         )
-        self.assertEqual(
-            result.return_code, 0,
-            "Failed to list subscriptions: {0} and return code: {1}"
-            .format(result.stderr, result.return_code)
-        )
+        self.assertEqual(result.return_code, 0)
         # Get the subscription ID from subscriptions list
         for subscription in result.stdout:
             if subscription['name'] == DEFAULT_SUBSCRIPTION_NAME:
                 subscription_id = subscription['id']
                 subscription_quantity = int(subscription['quantity'])
-        self.assertGreater(
-            int(subscription_quantity), 0,
-            'Unexpected subscription quantity {0}'
-            .format(subscription_quantity)
-        )
+        self.assertGreater(int(subscription_quantity), 0)
         # Add the subscriptions to activation-key
         result = ActivationKey.add_subscription({
             u'id': activation_key['id'],
             u'subscription-id': subscription_id,
             u'quantity': 1,
         })
-        self.assertEqual(
-            result.return_code, 0,
-            "Failed to add subscription: {0} and return code: {1}"
-            .format(result.stderr, result.return_code)
-        )
+        self.assertEqual(result.return_code, 0)
         # Enable product content
         ActivationKey.content_override({
             u'id': activation_key['id'],
@@ -697,37 +547,21 @@ class TestSmoke(CLITestCase):
                 "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
                 .format(server_name)
             )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to fetch katello-ca rpm: {0}, return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
+            self.assertEqual(result.return_code, 0)
             result = vm.run(
                 'rpm -i katello-ca-consumer*.noarch.rpm'
             )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to install katello-ca rpm: {0} and return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
+            self.assertEqual(result.return_code, 0)
             # Register client with foreman server using activation-key
             result = vm.run(
                 u'subscription-manager register --activationkey {0} '
                 '--org {1} --force'
                 .format(activation_key['name'], new_org['label'])
             )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to register client:: {0} and return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
+            self.assertEqual(result.return_code, 0)
             # Install contents from sat6 server
             result = vm.run('yum install -y {0}'.format(package_name))
-            self.assertEqual(
-                result.return_code, 0,
-                "Package install failed: {0} and return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
+            self.assertEqual(result.return_code, 0)
             # Verify if package is installed by query it
             result = vm.run('rpm -q {0}'.format(package_name))
             self.assertEqual(result.return_code, 0)
