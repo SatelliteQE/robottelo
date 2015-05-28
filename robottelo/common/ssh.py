@@ -152,11 +152,13 @@ def command(cmd, hostname=None, output_format=None, timeout=None):
         stderr = stderr.read()
 
     if stdout:
+        # Convert to unicode string
         stdout = stdout.decode('utf-8')
-        logger.debug('<<<\n%s', stdout)
+        logger.debug('<<< stdout\n%s', stdout)
     if stderr:
-        stderr = stderr.decode('utf-8')
-        logger.debug('<<< %s', stderr)
+        # Convert to unicode string and remove all color codes characters
+        stderr = regex.sub('', stderr.decode('utf-8'))
+        logger.debug('<<< stderr\n%s', stderr)
 
     if stdout and output_format != 'json':
         # For output we don't really want to see all of Rails traffic
