@@ -18,6 +18,7 @@ from xml.parsers.expat import ExpatError, errors
 from xmlrpclib import Fault
 
 
+LOGGER = logging.getLogger(__name__)
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
 BUGZILLA_OPEN_BUG_STATUSES = ('NEW', 'ASSIGNED', 'POST', 'MODIFIED')
 REDMINE_URL = 'http://projects.theforeman.org'
@@ -178,9 +179,9 @@ def _get_bugzilla_bug(bug_id):
     """
     # Is bug ``bug_id`` in the cache?
     if bug_id in _bugzilla:
-        logging.debug('Bugzilla bug {0} found in cache.'.format(bug_id))
+        LOGGER.debug('Bugzilla bug {0} found in cache.'.format(bug_id))
     else:
-        logging.info('Bugzilla bug {0} not in cache. Fetching.'.format(bug_id))
+        LOGGER.info('Bugzilla bug {0} not in cache. Fetching.'.format(bug_id))
         # Make a network connection to the Bugzilla server.
         try:
             bz_conn = bugzilla.RHBugzilla()
@@ -240,10 +241,10 @@ def _get_redmine_bug_status_id(bug_id):
 
     """
     if bug_id in _redmine['issues']:
-        logging.debug('Redmine bug {0} found in cache.'.format(bug_id))
+        LOGGER.debug('Redmine bug {0} found in cache.'.format(bug_id))
     else:
         # Get info about bug.
-        logging.info('Redmine bug {0} not in cache. Fetching.'.format(bug_id))
+        LOGGER.info('Redmine bug {0} not in cache. Fetching.'.format(bug_id))
         result = requests.get(
             '{0}/issues/{1}.json'.format(REDMINE_URL, bug_id)
         )
@@ -280,7 +281,7 @@ def bz_bug_is_open(bug_id):
     try:
         bug = _get_bugzilla_bug(bug_id)
     except BugFetchError as err:
-        logging.warning(err.message)
+        LOGGER.warning(err.message)
     if bug is None or bug.status not in BUGZILLA_OPEN_BUG_STATUSES:
         return False
     return True
@@ -301,7 +302,7 @@ def rm_bug_is_open(bug_id):
     try:
         status_id = _get_redmine_bug_status_id(bug_id)
     except BugFetchError as err:
-        logging.warning(err.message)
+        LOGGER.warning(err.message)
     if status_id is None or status_id in _redmine_closed_issue_statuses():
         return False
     return True
@@ -349,11 +350,23 @@ class skip_if_bug_open(object):  # noqa pylint:disable=C0103,R0903
                     '"bugzilla" or "redmine"?'.format(self.bug_type)
                 )
             if self.bug_type == 'bugzilla' and bz_bug_is_open(self.bug_id):
+                LOGGER.debug(
+                    'Skipping test %s in module %s due to Bugzilla bug #%s',
+                    func.__name__,
+                    func.__module__,
+                    self.bug_id
+                )
                 raise unittest.SkipTest(
                     'Skipping test due to open Bugzilla bug #{0}.'
                     ''.format(self.bug_id)
                 )
             if self.bug_type == 'redmine' and rm_bug_is_open(self.bug_id):
+                LOGGER.debug(
+                    'Skipping test %s in module %s due to Redmine bug #%s',
+                    func.__name__,
+                    func.__module__,
+                    self.bug_id
+                )
                 raise unittest.SkipTest(
                     'Skipping test due to open Redmine bug #{0}.'
                     ''.format(self.bug_id)
