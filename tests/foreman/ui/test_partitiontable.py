@@ -2,7 +2,8 @@
 """Test class for Partition Table UI"""
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.decorators import (
+    data, run_only_on, skip_if_bug_open, bz_bug_is_open)
 from robottelo.common.constants import PARTITION_SCRIPT_DATA_FILE
 from robottelo.common.helpers import read_data_file, generate_strings_list
 from robottelo.test import UITestCase
@@ -127,7 +128,7 @@ class PartitionTable(UITestCase):
     @data({u'name': gen_string('alpha'),
            u'new_name': gen_string('alpha')},
           {u'name': gen_string('html'),
-           u'new_name': gen_string('html')},
+           u'new_name': gen_string('html'), 'bugzilla': 1225857},
           {u'name': gen_string('utf8'),
            u'new_name': gen_string('utf8')},
           {u'name': gen_string('alphanumeric'),
@@ -140,6 +141,11 @@ class PartitionTable(UITestCase):
         @Assert: Partition table is updated
 
         """
+        bug_id = test_data.pop('bugzilla', None)
+        if bug_id is not None and bz_bug_is_open(bug_id):
+            self.skipTest(
+                'Bugzilla bug {0} is open for html data.'.format(bug_id)
+            )
         layout = "test layout"
         new_layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
         os_family = "Debian"
