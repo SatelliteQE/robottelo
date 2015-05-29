@@ -397,6 +397,7 @@ class OperatingSys(UITestCase):
         os = entities.OperatingSystem(name=os_name).create()
         entities.ConfigTemplate(
             name=template_name,
+            snippet=False,
             operatingsystem=[os],
             organization=[self.org_id],
         ).create()
