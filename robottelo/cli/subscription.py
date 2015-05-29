@@ -39,27 +39,17 @@ class Subscription(Base):
 
     @classmethod
     def delete_manifest(cls, options=None):
-        """
-        Deletes a subscription manifest
-        """
-
+        """Deletes a subscription manifest."""
         cls.command_sub = 'delete-manifest'
-
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls._remove_task_status(
+            cls.execute(cls._construct_command(options)))
 
     @classmethod
     def refresh_manifest(cls, options=None):
-        """
-        Refreshes a subscription manifest
-        """
-
+        """Refreshes a subscription manifest."""
         cls.command_sub = 'refresh-manifest'
-
-        result = cls.execute(cls._construct_command(options))
-
-        return result
+        return cls._remove_task_status(
+            cls.execute(cls._construct_command(options)))
 
     @classmethod
     def manifest_history(cls, options=None):

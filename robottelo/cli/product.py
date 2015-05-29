@@ -60,5 +60,5 @@ class Product(Base):
     def synchronize(cls, options=None):
         """Synchronize a product."""
         cls.command_sub = 'synchronize'
-        result = cls.execute(cls._construct_command(options))
-        return result
+        return cls._remove_task_status(
+            cls.execute(cls._construct_command(options)))

@@ -6,10 +6,15 @@ import re
 from robottelo.cli import hammer
 from robottelo.common import conf, ssh
 
-# Example for a task status message: "Task b18d3363-f4b8-44eb-871c-760e51444d22
-# success: 1.0/1, 100%, elapsed: 00:00:02\n"
+# Task status message have two formats:
+#   * "Task b18d3363-f4b8-44eb-871c-760e51444d22 success: 1.0/1, 100%,
+#     elapsed: 00:00:02\n"
+#   * "Task 6ba9d82a-ea55-4934-8aab-0e057102ee11 running: 0.005/1, 0%, 0.0/s,
+#     elapsed: 00:00:02, ETA: 00:06:55\n"
 TASK_STATUS_REGEX = re.compile(
-    r'Task [\w-]+ \w+: [\d./]+, \d+%, elapsed: [\d:]+\n\n?')
+    r'Task [\w-]+ \w+: [\d./]+, \d+%,( [\d./s]+,)? elapsed: [\d:]+'
+    '(, ETA: [\d:]+)?\n\n?'
+)
 
 
 class CLIError(Exception):

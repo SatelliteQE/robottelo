@@ -144,19 +144,22 @@ class ContentView(Base):
     def version_promote(cls, options):
         """Promotes content-view version to next env."""
         cls.command_sub = 'version promote'
-        return cls.execute(cls._construct_command(options))
+        return cls._remove_task_status(
+            cls.execute(cls._construct_command(options)))
 
     @classmethod
     def version_delete(cls, options):
         """Removes content-view version."""
         cls.command_sub = 'version delete'
-        return cls.execute(cls._construct_command(options))
+        return cls._remove_task_status(
+            cls.execute(cls._construct_command(options)))
 
     @classmethod
     def remove_from_environment(cls, options=None):
         """Remove content-view from an enviornment"""
         cls.command_sub = 'remove-from-environment'
-        return cls.execute(cls._construct_command(options))
+        return cls._remove_task_status(
+            cls.execute(cls._construct_command(options)))
 
     @classmethod
     def remove(cls, options=None):
@@ -165,4 +168,5 @@ class ContentView(Base):
 
         """
         cls.command_sub = 'remove'
-        return cls.execute(cls._construct_command(options))
+        return cls._remove_task_status(
+            cls.execute(cls._construct_command(options)))

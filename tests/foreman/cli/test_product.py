@@ -398,36 +398,26 @@ class TestProduct(CLITestCase):
 
         """
         try:
-            new_product = make_product(
-                {
-                    u'organization-id': self.org['id']
-                }
-            )
+            new_product = make_product({
+                u'organization-id': self.org['id']
+            })
             sync_plan = make_sync_plan({'organization-id': self.org['id']})
         except CLIFactoryError as err:
             self.fail(err)
 
-        result = Product.set_sync_plan(
-            {
-                'sync-plan-id': sync_plan['id'],
-                'id': new_product['id']
-            }
-        )
+        result = Product.set_sync_plan({
+            'sync-plan-id': sync_plan['id'],
+            'id': new_product['id'],
+        })
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(
-            len(result.stderr), 0,
-            "Running set_sync_plan should cause no errors.")
+        self.assertEqual(len(result.stderr), 0)
         result = Product.info({
             'id': new_product['id'],
             'organization-id': self.org['id'],
         })
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(
-            result.stderr, [],
-            "Running product info should cause no errors.")
-        self.assertEqual(
-            result.stdout['sync-plan-id'], sync_plan['id'],
-            "Info should have consistent sync ids.")
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(result.stdout['sync-plan-id'], sync_plan['id'])
 
     def test_remove_syncplan_1(self):
         """@Test: Check if product can be assigned a syncplan
@@ -440,48 +430,34 @@ class TestProduct(CLITestCase):
         try:
             product = make_product({u'organization-id': self.org['id']})
             sync_plan = make_sync_plan({'organization-id': self.org['id']})
-            result = Product.set_sync_plan({
-                'sync-plan-id': sync_plan['id'],
-                'id': product['id'],
-            })
         except CLIFactoryError as err:
             self.fail(err)
 
-        self.assertEqual(
-            result.stderr, [],
-            'Running set_sync_plan should cause no errors.'
-        )
+        result = Product.set_sync_plan({
+            'sync-plan-id': sync_plan['id'],
+            'id': product['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         result = Product.info({
             'id': product['id'],
             'organization-id': self.org['id'],
         })
-        self.assertEqual(
-            result.stderr, [],
-            'Running product info should cause no errors.'
-        )
-        self.assertEqual(
-            result.stdout['sync-plan-id'], sync_plan['id'],
-            'Info should have consistent sync ids.'
-        )
-        r_result = Product.remove_sync_plan({
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(result.stdout['sync-plan-id'], sync_plan['id'])
+        result = Product.remove_sync_plan({
             'id': product['id'],
         })
-        self.assertEqual(
-            r_result.stderr, [],
-            'Running product remove_sync_plan should cause no errors.'
-        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
         result = Product.info({
             'id': product['id'],
             'organization-id': self.org['id'],
         })
-        self.assertEqual(
-            result.stderr, [],
-            'Running product info should cause no errors.'
-        )
-        self.assertEqual(
-            len(result.stdout['sync-plan-id']), 0,
-            'Info should have no sync id.'
-        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(len(result.stdout['sync-plan-id']), 0)
 
     def test_product_synchronize_by_id(self):
         """@Test: Check if product can be synchronized.
