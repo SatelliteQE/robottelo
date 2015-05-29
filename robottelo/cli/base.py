@@ -9,7 +9,7 @@ from robottelo.common import conf, ssh
 # Example for a task status message: "Task b18d3363-f4b8-44eb-871c-760e51444d22
 # success: 1.0/1, 100%, elapsed: 00:00:02\n"
 TASK_STATUS_REGEX = re.compile(
-    r'Task [\w-]+ \w+: [\d./]+, \d+%, elapsed: [\d:]+\n')
+    r'Task [\w-]+ \w+: [\d./]+, \d+%, elapsed: [\d:]+\n\n?')
 
 
 class CLIError(Exception):
