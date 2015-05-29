@@ -41,8 +41,8 @@ class TrendTest(UITestCase):
         @Assert: Trend entity is updated
 
         """
-        name = gen_string('utf8')
-        new_name = gen_string('utf8')
+        name = gen_string('alphanumeric')
+        new_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
             make_trend(
                 session,
