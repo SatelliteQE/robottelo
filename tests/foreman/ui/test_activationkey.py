@@ -569,11 +569,7 @@ class ActivationKey(UITestCase):
                 "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
                 .format(self.server_name)
             )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to fetch katello-ca rpm: {0}, return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
+            self.assertEqual(result.return_code, 0)
             result = vm.run(
                 'rpm -i katello-ca-consumer*.noarch.rpm'
             )
@@ -1025,11 +1021,7 @@ class ActivationKey(UITestCase):
                 "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
                 .format(self.server_name)
             )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to fetch katello-ca rpm: {0}, return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
+            self.assertEqual(result.return_code, 0)
             result = vm1.run(
                 'rpm -i katello-ca-consumer*.noarch.rpm'
             )
@@ -1057,11 +1049,7 @@ class ActivationKey(UITestCase):
                 "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
                 .format(self.server_name)
             )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to fetch katello-ca rpm: {0}, return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
+            self.assertEqual(result.return_code, 0)
             result = vm2.run(
                 'rpm -i katello-ca-consumer*.noarch.rpm'
             )
@@ -1382,11 +1370,7 @@ class ActivationKey(UITestCase):
                 "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
                 .format(self.server_name)
             )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to fetch katello-ca rpm: {0}, return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
+            self.assertEqual(result.return_code, 0)
             result = vm.run(
                 'rpm -i katello-ca-consumer*.noarch.rpm'
             )
