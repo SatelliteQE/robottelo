@@ -452,7 +452,7 @@ class GPGKey(UITestCase):
             )
             self.assertEqual(
                 result.return_code, 0,
-                'failed to fetch katello-ca rpm: {0}, return code: {1}'
+                u'failed to fetch katello-ca rpm: {0}, return code: {1}'
                 .format(result.stderr, result.return_code)
             )
             result = vm.run(
