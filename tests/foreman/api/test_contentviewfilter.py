@@ -28,7 +28,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         """
         response = client.get(
-            entities.ContentViewFilter().path(),
+            entities.AbstractContentViewFilter().path(),
             auth=get_server_credentials(),
             verify=False,
         )
@@ -49,7 +49,7 @@ class ContentViewFilterTestCase(APITestCase):
 
         """
         response = client.get(
-            entities.ContentViewFilter().path(),
+            entities.AbstractContentViewFilter().path(),
             auth=get_server_credentials(),
             verify=False,
             data={'foo': 'bar'},
