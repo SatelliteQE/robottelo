@@ -990,12 +990,11 @@ class CVRedHatContent(APITestCase):
     def setUpClass(cls):  # noqa
         """Set up organization, product and repositories for tests."""
         super(CVRedHatContent, cls).setUpClass()
+
         cls.org = entities.Organization().create()
+        cls.org.upload_manifest(path=manifests.clone())
 
-        manifest = manifests.clone()
-        cls.org.upload_manifest(path=manifest)
-
-        cls.repo_id = utils.enable_rhrepo_and_fetchid(
+        repo_id = utils.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=cls.org.id,
             product=PRDS['rhel'],
@@ -1003,7 +1002,8 @@ class CVRedHatContent(APITestCase):
             reposet=REPOSET['rhelc6'],
             releasever='6.3',
         )
-        entities.Repository(id=cls.repo_id).sync()
+        cls.repo = entities.Repository(id=repo_id)
+        cls.repo.sync()
 
     def test_cv_associate_rh(self):
         """@Test: associate Red Hat content in a view
@@ -1014,12 +1014,13 @@ class CVRedHatContent(APITestCase):
 
         """
         content_view = entities.ContentView(organization=self.org.id).create()
-        self.assertEqual(len(content_view.read_json()['repositories']), 0)
-        content_view.set_repository_ids([self.repo_id])
-        self.assertEqual(len(content_view.read_json()['repositories']), 1)
+        self.assertEqual(len(content_view.repository), 0)
+        content_view.set_repository_ids([self.repo.id])
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.repository), 1)
         self.assertEqual(
-            content_view.read_json()['repositories'][0]['name'],
-            REPOS['rhelc6']
+            content_view.repository[0].read().name,
+            REPOS['rhelc6'],
         )
 
     def test_cv_associate_rh_custom_spin(self):
@@ -1032,29 +1033,24 @@ class CVRedHatContent(APITestCase):
 
         """
         content_view = entities.ContentView(organization=self.org.id).create()
-        content_view.set_repository_ids([self.repo_id])
-        self.assertEqual(len(content_view.read_json()['repositories']), 1)
+        content_view.set_repository_ids([self.repo.id])
+        self.assertEqual(len(content_view.read().repository), 1)
 
-        cv_filter = entities.ContentViewFilter(
+        # content_view ← cv_filter
+        cv_filter = entities.RPMContentViewFilter(
             content_view=content_view,
-            type='rpm',
             inclusion='true',
             name=gen_string('alphanumeric'),
         ).create()
-        self.assertEqual(
-            cv_filter.read_json()['content_view']['id'],
-            content_view.id
-        )
+        self.assertEqual(content_view.id, cv_filter.content_view.id)
 
+        # content_view ← cv_filter ← cv_filter_rule
         cv_filter_rule = entities.ContentViewFilterRule(
             content_view_filter=cv_filter,
             name=gen_string('alphanumeric'),
             version='1.0',
         ).create()
-        self.assertEqual(
-            cv_filter_rule.read_json()['content_view_filter_id'],
-            cv_filter.id
-        )
+        self.assertEqual(cv_filter.id, cv_filter_rule.content_view_filter.id)
 
 
 @run_only_on('sat')
