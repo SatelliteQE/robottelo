@@ -29,3 +29,8 @@ Submodules:
 ---------------------------
 
 .. automodule:: robottelo.common.ssh
+
+:mod:`robottelo.common.system_facts`
+------------------------------------
+
+.. automodule:: robottelo.common.system_facts

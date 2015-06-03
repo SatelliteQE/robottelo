@@ -344,13 +344,13 @@ class Multinetwork(UITestCase):
         3. Choose Type: 'Interface'
         4. mac address: mac should be same as of primary interface
         5. Identifier: eth0:0
-        5. Select 'Managed'
-        6. Select 'Virtual Nic'
-        7. attached_to: identifier of primary interface(eth0)
-        8. Go to Infrastructure → Subnet
-        9. Set IPAM mode to 'Internal DB'
-        10. BootMode 'Static'
-        11. Fill all other details correctly in new host form and submit it
+        6. Select 'Managed'
+        7. Select 'Virtual Nic'
+        8. attached_to: identifier of primary interface(eth0)
+        9. Go to Infrastructure → Subnet
+        10. Set IPAM mode to 'Internal DB'
+        11. BootMode 'Static'
+        12. Fill all other details correctly in new host form and submit it
 
         @Assert: Interface should be configured successfully and correct
         configuration should displayed on proviisoned host

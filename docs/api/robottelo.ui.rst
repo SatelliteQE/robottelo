@@ -23,6 +23,11 @@
 
 .. automodule:: robottelo.ui.computeresource
 
+:mod:`robottelo.ui.configgroups`
+--------------------------------
+
+.. automodule:: robottelo.ui.configgroups
+
 :mod:`robottelo.ui.contentenv`
 ------------------------------
 
@@ -52,6 +57,11 @@
 --------------------------
 
 .. automodule:: robottelo.ui.gpgkey
+
+:mod:`robottelo.ui.hardwaremodel`
+---------------------------------
+
+.. automodule:: robottelo.ui.hardwaremodel
 
 :mod:`robottelo.ui.hostgroup`
 -----------------------------
@@ -108,6 +118,11 @@
 
 .. automodule:: robottelo.ui.products
 
+:mod:`robottelo.ui.puppetclasses`
+---------------------------------
+
+.. automodule:: robottelo.ui.puppetclasses
+
 :mod:`robottelo.ui.repository`
 ------------------------------
 
@@ -123,6 +138,11 @@
 
 .. automodule:: robottelo.ui.session
 
+:mod:`robottelo.ui.settings`
+----------------------------
+
+.. automodule:: robottelo.ui.settings
+
 :mod:`robottelo.ui.subnet`
 --------------------------
 
@@ -133,15 +153,15 @@
 
 .. automodule:: robottelo.ui.subscription
 
-:mod:`robottelo.ui.syncplan`
-----------------------------
-
-.. automodule:: robottelo.ui.syncplan
-
 :mod:`robottelo.ui.sync`
 ------------------------
 
 .. automodule:: robottelo.ui.sync
+
+:mod:`robottelo.ui.syncplan`
+----------------------------
+
+.. automodule:: robottelo.ui.syncplan
 
 :mod:`robottelo.ui.systemgroup`
 -------------------------------
@@ -153,12 +173,17 @@
 
 .. automodule:: robottelo.ui.template
 
-:mod:`robottelo.ui.usergroup`
------------------------------
+:mod:`robottelo.ui.trend`
+-------------------------
 
-.. automodule:: robottelo.ui.usergroup
+.. automodule:: robottelo.ui.trend
 
 :mod:`robottelo.ui.user`
 ------------------------
 
 .. automodule:: robottelo.ui.user
+
+:mod:`robottelo.ui.usergroup`
+-----------------------------
+
+.. automodule:: robottelo.ui.usergroup
