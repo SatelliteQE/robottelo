@@ -8,6 +8,11 @@
 
 .. automodule:: tests.foreman.ui.test_activationkey
 
+:mod:`tests.foreman.ui.test_adusergroups`
+-----------------------------------------
+
+.. automodule:: tests.foreman.ui.test_adusergroups
+
 :mod:`tests.foreman.ui.test_architecture`
 -----------------------------------------
 
@@ -42,6 +47,11 @@
 --------------------------------------
 
 .. automodule:: tests.foreman.ui.test_discovery
+
+:mod:`tests.foreman.ui.test_docker`
+-----------------------------------
+
+.. automodule:: tests.foreman.ui.test_docker
 
 :mod:`tests.foreman.ui.test_domain`
 -----------------------------------
@@ -88,6 +98,11 @@
 
 .. automodule:: tests.foreman.ui.test_hw_model
 
+:mod:`tests.foreman.ui.test_isodownload`
+----------------------------------------
+
+.. automodule:: tests.foreman.ui.test_isodownload
+
 :mod:`tests.foreman.ui.test_location`
 -------------------------------------
 
@@ -103,10 +118,20 @@
 
 .. automodule:: tests.foreman.ui.test_medium
 
+:mod:`tests.foreman.ui.test_multinetwork`
+-----------------------------------------
+
+.. automodule:: tests.foreman.ui.test_multinetwork
+
 :mod:`tests.foreman.ui.test_myaccount`
 --------------------------------------
 
 .. automodule:: tests.foreman.ui.test_myaccount
+
+:mod:`tests.foreman.ui.test_openscap`
+-------------------------------------
+
+.. automodule:: tests.foreman.ui.test_openscap
 
 :mod:`tests.foreman.ui.test_operatingsys`
 -----------------------------------------
@@ -182,6 +207,11 @@
 -------------------------------------
 
 .. automodule:: tests.foreman.ui.test_template
+
+:mod:`tests.foreman.ui.test_trend`
+----------------------------------
+
+.. automodule:: tests.foreman.ui.test_trend
 
 :mod:`tests.foreman.ui.test_user`
 ---------------------------------

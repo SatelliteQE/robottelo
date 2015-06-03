@@ -797,9 +797,10 @@ class ActivationKey(UITestCase):
         @Feature: Activation key - Positive Update
 
         @Steps:
+
         1. Create an activation key
         2. Update the content view with another content view which has RH
-            products
+           products
 
         @Assert: Activation key is updated
 

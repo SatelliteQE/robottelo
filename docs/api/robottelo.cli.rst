@@ -54,15 +54,15 @@ Submodules:
 
 .. automodule:: robottelo.cli.environment
 
-:mod:`robottelo.cli.factory`
-----------------------------
-
-.. automodule:: robottelo.cli.factory
-
 :mod:`robottelo.cli.fact`
 -------------------------
 
 .. automodule:: robottelo.cli.fact
+
+:mod:`robottelo.cli.factory`
+----------------------------
+
+.. automodule:: robottelo.cli.factory
 
 :mod:`robottelo.cli.globalparam`
 --------------------------------
@@ -74,6 +74,16 @@ Submodules:
 
 .. automodule:: robottelo.cli.gpgkey
 
+:mod:`robottelo.cli.hammer`
+---------------------------
+
+.. automodule:: robottelo.cli.hammer
+
+:mod:`robottelo.cli.host`
+-------------------------
+
+.. automodule:: robottelo.cli.host
+
 :mod:`robottelo.cli.hostcollection`
 -----------------------------------
 
@@ -84,15 +94,20 @@ Submodules:
 
 .. automodule:: robottelo.cli.hostgroup
 
-:mod:`robottelo.cli.host`
--------------------------
+:mod:`robottelo.cli.import_`
+----------------------------
 
-.. automodule:: robottelo.cli.host
+.. automodule:: robottelo.cli.import_
 
 :mod:`robottelo.cli.lifecycleenvironment`
 -----------------------------------------
 
 .. automodule:: robottelo.cli.lifecycleenvironment
+
+:mod:`robottelo.cli.location`
+-----------------------------
+
+.. automodule:: robottelo.cli.location
 
 :mod:`robottelo.cli.medium`
 ---------------------------
@@ -129,15 +144,15 @@ Submodules:
 
 .. automodule:: robottelo.cli.proxy
 
-:mod:`robottelo.cli.puppetmodule`
----------------------------------
-
-.. automodule:: robottelo.cli.puppetmodule
-
 :mod:`robottelo.cli.puppet`
 ---------------------------
 
 .. automodule:: robottelo.cli.puppet
+
+:mod:`robottelo.cli.puppetmodule`
+---------------------------------
+
+.. automodule:: robottelo.cli.puppetmodule
 
 :mod:`robottelo.cli.report`
 ---------------------------
@@ -148,6 +163,16 @@ Submodules:
 -------------------------------
 
 .. automodule:: robottelo.cli.repository
+
+:mod:`robottelo.cli.repository_set`
+-----------------------------------
+
+.. automodule:: robottelo.cli.repository_set
+
+:mod:`robottelo.cli.role`
+-------------------------
+
+.. automodule:: robottelo.cli.role
 
 :mod:`robottelo.cli.smartclass`
 -------------------------------

@@ -43,6 +43,16 @@
 
 .. automodule:: tests.foreman.cli.test_contentviews
 
+:mod:`tests.foreman.cli.test_discovery`
+---------------------------------------
+
+.. automodule:: tests.foreman.cli.test_discovery
+
+:mod:`tests.foreman.cli.test_docker`
+------------------------------------
+
+.. automodule:: tests.foreman.cli.test_docker
+
 :mod:`tests.foreman.cli.test_domain`
 ------------------------------------
 
@@ -73,6 +83,11 @@
 
 .. automodule:: tests.foreman.cli.test_gpgkey
 
+:mod:`tests.foreman.cli.test_hammer`
+------------------------------------
+
+.. automodule:: tests.foreman.cli.test_hammer
+
 :mod:`tests.foreman.cli.test_host`
 ----------------------------------
 
@@ -92,6 +107,11 @@
 ---------------------------------------
 
 .. automodule:: tests.foreman.cli.test_hostgroup
+
+:mod:`tests.foreman.cli.test_import`
+------------------------------------
+
+.. automodule:: tests.foreman.cli.test_import
 
 :mod:`tests.foreman.cli.test_installer`
 ---------------------------------------

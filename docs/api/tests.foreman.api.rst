@@ -13,6 +13,11 @@
 
 .. automodule:: tests.foreman.api.test_architecture
 
+:mod:`tests.foreman.api.test_config_template`
+---------------------------------------------
+
+.. automodule:: tests.foreman.api.test_config_template
+
 :mod:`tests.foreman.api.test_contentview`
 -----------------------------------------
 
@@ -27,6 +32,16 @@
 ------------------------------------------------
 
 .. automodule:: tests.foreman.api.test_contentviewversion
+
+:mod:`tests.foreman.api.test_discovery`
+---------------------------------------
+
+.. automodule:: tests.foreman.api.test_discovery
+
+:mod:`tests.foreman.api.test_docker`
+------------------------------------
+
+.. automodule:: tests.foreman.api.test_docker
 
 :mod:`tests.foreman.api.test_email`
 -----------------------------------
@@ -62,6 +77,11 @@
 ----------------------------------
 
 .. automodule:: tests.foreman.api.test_host
+
+:mod:`tests.foreman.api.test_hostcollection`
+--------------------------------------------
+
+.. automodule:: tests.foreman.api.test_hostcollection
 
 :mod:`tests.foreman.api.test_hostgroup`
 ---------------------------------------
@@ -127,6 +147,11 @@
 ------------------------------------------
 
 .. automodule:: tests.foreman.api.test_subscription
+
+:mod:`tests.foreman.api.test_syncplan`
+--------------------------------------
+
+.. automodule:: tests.foreman.api.test_syncplan
 
 :mod:`tests.foreman.api.test_user`
 ----------------------------------

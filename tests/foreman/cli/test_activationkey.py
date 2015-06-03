@@ -1292,7 +1292,7 @@ class TestActivationKey(CLITestCase):
         2. Create host collection
         3. Associate host collection to Activation key
         4. Remove host collection associated to Activation key using id of that
-        collection
+           collection
 
         @Assert: Host collection successfully removed from activation key
 
@@ -1350,7 +1350,7 @@ class TestActivationKey(CLITestCase):
         2. Create host collection
         3. Associate host collection to Activation key
         4. Remove the host collection associated to Activation key using name
-        of that collection
+           of that collection
 
         @Assert: Host collection successfully removed from activation key
 
