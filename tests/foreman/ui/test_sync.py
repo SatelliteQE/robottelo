@@ -75,10 +75,11 @@ class Sync(UITestCase):
         manifest_path = manifests.clone()
         # upload_file function should take care of uploading to sauce labs.
         upload_file(manifest_path, remote_file=manifest_path)
+        entities.Organization(
+            id=self.org_id
+        ).upload_manifest(path=manifest_path)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
-            session.nav.go_to_red_hat_subscriptions()
-            self.subscriptions.upload(manifest_path)
             session.nav.go_to_red_hat_repositories()
             self.sync.enable_rh_repos(repos)
             session.nav.go_to_sync_status()
