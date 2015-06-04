@@ -1993,7 +1993,7 @@ class User(CLITestCase):
         # non-existing user info
         result = UserObj.info({'id': 0})
         self.assertNotEqual(result.return_code, 0)
-        self.assertNotRegexpMatches(str(result.stderr), 'undefined method')
+        self.assertNotRegexpMatches(result.stderr, 'undefined method')
 
         # list users
         result = UserObj.list()

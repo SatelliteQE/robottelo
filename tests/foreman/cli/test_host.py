@@ -87,8 +87,8 @@ class HostTestCase(CLITestCase):
             u'root-pass': host.root_pass,
         })
         self.assertNotEqual(result.return_code, 0)
-        self.assertNotIn('mac value is blank', result.stderr)
+        self.assertNotIn(u'mac value is blank', result.stderr)
         self.assertIn(
-            'you must specify either compute attributes or a compute profile',
+            u'you must specify either compute attributes or a compute profile',
             result.stderr
         )
