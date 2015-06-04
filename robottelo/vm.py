@@ -131,26 +131,19 @@ class VirtualMachine(object):
         if not self._created:
             return
 
-        result = ssh.command(
+        ssh.command(
             'virsh destroy {0}'.format(self.target_image),
             hostname=self.provisioning_server
         )
-        if result.return_code > 0:
-            logger.warning(result.stderr)
-        result = ssh.command(
+        ssh.command(
             'virsh undefine {0}'.format(self.target_image),
             hostname=self.provisioning_server
         )
-        if result.return_code > 0:
-            logger.warning(result.stderr)
-
         image_name = '{0}.img'.format(self.target_image)
-        result = ssh.command(
+        ssh.command(
             'rm {0}'.format(os.path.join(self.image_dir, image_name)),
             hostname=self.provisioning_server
         )
-        if result.return_code > 0:
-            logger.warning(result.stderr)
 
     def download_install_rpm(self, repo_url, package_name):
         """Downloads and installs custom rpm on the virtual machine.
