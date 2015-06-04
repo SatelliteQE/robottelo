@@ -1698,7 +1698,7 @@ class TestActivationKey(CLITestCase):
         except CLIFactoryError as err:
             self.fail(err)
 
-        self.assertIn("'--auto-attach': value must be one of", result.stderr)
+        self.assertIn(u"'--auto-attach': value must be one of", result.stderr)
 
     @skip_if_bug_open('bugzilla', 1221778)
     @data(

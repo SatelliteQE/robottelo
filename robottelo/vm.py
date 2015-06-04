@@ -110,7 +110,7 @@ class VirtualMachine(object):
 
         if result.return_code != 0:
             raise VirtualMachineError(
-                'Failed to run snap-guest: {0}'.format(result.stderr))
+                u'Failed to run snap-guest: {0}'.format(result.stderr))
 
         # Give some time to machine boot
         time.sleep(60)
