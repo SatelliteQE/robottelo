@@ -26,7 +26,6 @@ class TestHostCollection(CLITestCase):
 
     def setUp(self):  # noqa
         """Tests for Host Collections via Hammer CLI"""
-
         super(TestHostCollection, self).setUp()
 
         if TestHostCollection.org is None:
@@ -34,36 +33,41 @@ class TestHostCollection(CLITestCase):
         if TestHostCollection.new_lifecycle is None:
             TestHostCollection.new_lifecycle = make_lifecycle_environment(
                 {u'organization-id': TestHostCollection.org['id']},
-                cached=True)
-        if TestHostCollection.library is None:
-            library_result = LifecycleEnvironment.info(
-                {u'organization-id': TestHostCollection.org['id'],
-                 u'name': u'Library'}
+                cached=True
             )
-            TestHostCollection.library = library_result.stdout
+        if TestHostCollection.library is None:
+            result = LifecycleEnvironment.info({
+                u'organization-id': TestHostCollection.org['id'],
+                u'name': u'Library',
+            })
+            self.assertEqual(result.return_code, 0)
+            TestHostCollection.library = result.stdout
         if TestHostCollection.default_cv is None:
-            cv_result = ContentView.info(
+            result = ContentView.info(
                 {u'organization-id': TestHostCollection.org['id'],
                  u'name': u'Default Organization View'}
             )
-            TestHostCollection.default_cv = cv_result.stdout
+            self.assertEqual(result.return_code, 0)
+            TestHostCollection.default_cv = result.stdout
         if TestHostCollection.new_cv is None:
             TestHostCollection.new_cv = make_content_view(
                 {u'organization-id': TestHostCollection.org['id']}
             )
             TestHostCollection.promoted_cv = None
             cv_id = TestHostCollection.new_cv['id']
-            ContentView.publish({u'id': cv_id})
+            result = ContentView.publish({u'id': cv_id})
+            self.assertEqual(result.return_code, 0)
             result = ContentView.version_list({u'content-view-id': cv_id})
+            self.assertEqual(result.return_code, 0)
             version_id = result.stdout[0]['id']
-            promotion = ContentView.version_promote({
+            result = ContentView.version_promote({
                 u'id': version_id,
                 u'to-lifecycle-environment-id': (
                     TestHostCollection.new_lifecycle['id']),
                 u'organization-id': TestHostCollection.org['id']
             })
-            if promotion.stderr == []:
-                TestHostCollection.promoted_cv = TestHostCollection.new_cv
+            self.assertEqual(result.return_code, 0)
+            TestHostCollection.promoted_cv = TestHostCollection.new_cv
 
     def _new_host_collection(self, options=None):
         """Make a host collection and asserts its success"""

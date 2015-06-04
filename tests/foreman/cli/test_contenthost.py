@@ -43,7 +43,6 @@ class TestContentHost(CLITestCase):
 
     def setUp(self):  # noqa
         """Tests for Content Host via Hammer CLI"""
-
         super(TestContentHost, self).setUp()
 
         if TestContentHost.NEW_ORG is None:
@@ -53,34 +52,38 @@ class TestContentHost(CLITestCase):
                 {u'organization-id': TestContentHost.NEW_ORG['id']},
                 cached=True)
         if TestContentHost.LIBRARY is None:
-            library_result = LifecycleEnvironment.info(
-                {u'organization-id': TestContentHost.NEW_ORG['id'],
-                 u'name': u'Library'}
-            )
-            TestContentHost.LIBRARY = library_result.stdout
+            result = LifecycleEnvironment.info({
+                u'organization-id': TestContentHost.NEW_ORG['id'],
+                u'name': u'Library',
+            })
+            self.assertEqual(result.return_code, 0)
+            TestContentHost.LIBRARY = result.stdout
         if TestContentHost.DEFAULT_CV is None:
-            cv_result = ContentView.info(
-                {u'organization-id': TestContentHost.NEW_ORG['id'],
-                 u'name': u'Default Organization View'}
-            )
-            TestContentHost.DEFAULT_CV = cv_result.stdout
+            result = ContentView.info({
+                u'organization-id': TestContentHost.NEW_ORG['id'],
+                u'name': u'Default Organization View',
+            })
+            self.assertEqual(result.return_code, 0)
+            TestContentHost.DEFAULT_CV = result.stdout
         if TestContentHost.NEW_CV is None:
-            TestContentHost.NEW_CV = make_content_view(
-                {u'organization-id': TestContentHost.NEW_ORG['id']}
-            )
+            TestContentHost.NEW_CV = make_content_view({
+                u'organization-id': TestContentHost.NEW_ORG['id'],
+            })
             TestContentHost.PROMOTED_CV = None
             cv_id = TestContentHost.NEW_CV['id']
-            ContentView.publish({u'id': cv_id})
+            result = ContentView.publish({u'id': cv_id})
+            self.assertEqual(result.return_code, 0)
             result = ContentView.version_list({u'content-view-id': cv_id})
+            self.assertEqual(result.return_code, 0)
             version_id = result.stdout[0]['id']
-            promotion = ContentView.version_promote({
+            result = ContentView.version_promote({
                 u'id': version_id,
                 u'to-lifecycle-environment-id': TestContentHost.NEW_LIFECYCLE[
                     'id'],
                 u'organization-id': TestContentHost.NEW_ORG['id']
             })
-            if promotion.stderr == []:
-                TestContentHost.PROMOTED_CV = TestContentHost.NEW_CV
+            self.assertEqual(result.return_code, 0)
+            TestContentHost.PROMOTED_CV = TestContentHost.NEW_CV
 
     @data(
         {u'name': gen_string('alpha', 15)},
