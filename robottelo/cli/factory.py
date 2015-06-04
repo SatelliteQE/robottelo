@@ -4,6 +4,7 @@ Factory object creation for all CLI methods
 """
 
 import datetime
+import json
 import logging
 import os
 import random
@@ -68,15 +69,6 @@ class CLIFactoryError(Exception):
     """Indicates an error occurred while creating an entity using hammer"""
 
 
-def _format_error_msg(msg):
-    """Ident each line by two spaces of an error ``msg``
-
-    :param str msg: command error message to be formated.
-
-    """
-    return u'\n'.join(['  {0}'.format(line) for line in msg.split('\n')])
-
-
 def create_object(cli_object, options, values):
     """
     Creates <object> with dictionary of arguments.
@@ -96,12 +88,10 @@ def create_object(cli_object, options, values):
 
     # If the object is not created, raise exception, stop the show.
     if result.return_code != 0:
-        logger.debug(result.stderr)  # Show why creation failed.
         raise CLIFactoryError(
-            'Failed to create %s with %r data due to:\n%s' % (
+            'Failed to create {0} with data:\n{1}'.format(
                 cli_object.__name__,
-                options,
-                _format_error_msg(result.stderr),
+                json.dumps(options, indent=2, sort_keys=True)
             )
         )
 
