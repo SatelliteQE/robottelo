@@ -800,7 +800,6 @@ class TestSmoke(TestCase):
             u"Not all services seem to be up and running!"
         )
 
-    # FIXME: This test is still being developed and is not complete yet.
     def test_smoke(self):
         """@Test: Check that basic content can be created
 
@@ -836,162 +835,126 @@ class TestSmoke(TestCase):
         # this auth mode. We then further restrict ourselves to the
         # alphanumeric charset, because Foreman complains about incomplete
         # multi-byte chars when latin1 chars are used.
-        #
         login = gen_string('alphanumeric')
         password = gen_string('alphanumeric')
 
         # step 1: Create a new user with admin permissions
-        entities.User(admin=True, login=login, password=password).create_json()
+        entities.User(admin=True, login=login, password=password).create()
 
         # step 2.1: Create a new organization
         server_config = get_nailgun_config()
         server_config.auth = (login, password)
-        org = entities.Organization(server_config).create_json()
+        org = entities.Organization(server_config).create()
 
         # step 2.2: Create 2 new lifecycle environments
         le1 = entities.LifecycleEnvironment(
-            organization=org['id']
-        ).create_json()
+            server_config,
+            organization=org
+        ).create()
         le2 = entities.LifecycleEnvironment(
-            organization=org['id'],
-            prior=le1['id'],
-        ).create_json()
+            server_config,
+            organization=org,
+            prior=le1,
+        ).create()
 
         # step 2.3: Create a custom product
-        prod = entities.Product(organization=org['id']).create_json()
+        prod = entities.Product(server_config, organization=org).create()
 
         # step 2.4: Create custom YUM repository
         repo1 = entities.Repository(
-            product=prod['id'],
+            server_config,
+            product=prod,
             content_type=u'yum',
             url=GOOGLE_CHROME_REPO
-        ).create_json()
+        ).create()
 
         # step 2.5: Create custom PUPPET repository
         repo2 = entities.Repository(
-            product=prod['id'],
+            server_config,
+            product=prod,
             content_type=u'puppet',
             url=FAKE_0_PUPPET_REPO
-        ).create_json()
+        ).create()
 
         # step 2.6: Synchronize both repositories
         for repo in [repo1, repo2]:
-            response = client.post(
-                entities.Repository(id=repo['id']).path('sync'),
-                {u'ids': [repo['id']], u'organization_id': org['id']},
-                auth=get_server_credentials(),
-                verify=False,
-            ).json()
-            self.assertGreater(
-                len(response['id']),
-                1,
-                u'Was not able to fetch a task ID.')
-            entities.ForemanTask(id=response['id']).poll()
+            repo.sync()
 
         # step 2.7: Create content view
         content_view = entities.ContentView(
-            organization=org['id']
-        ).create_json()
+            server_config,
+            organization=org
+        ).create()
 
         # step 2.8: Associate YUM repository to new content view
-        response = client.put(
-            entities.ContentView(id=content_view['id']).path(),
-            {u'repository_ids': [repo1['id']]},
-            auth=get_server_credentials(),
-            verify=False,
-        )
+        content_view.set_repository_ids([repo1.id])
 
         # Fetch all available puppet modules
-        puppet_mods = client.get(
-            entities.ContentView(id=content_view['id']).path(
-                'available_puppet_module_names'
-            ),
-            auth=get_server_credentials(),
-            verify=False).json()
-        self.assertGreater(
-            puppet_mods['results'],
-            0,
-            u"No puppet modules were found")
+        puppet_mods = content_view.available_puppet_modules()
+        self.assertGreater(puppet_mods['results'], 0)
 
         # Select a random puppet module from the results
         puppet_mod = random.choice(puppet_mods['results'])
         # ... and associate it to the content view
-        path = entities.ContentView(id=content_view['id']).path(
-            'content_view_puppet_modules')
-        response = client.post(
-            path,
-            {u'name': puppet_mod['module_name']},
-            auth=get_server_credentials(),
-            verify=False,
+        response = content_view.add_puppet_module(
+            puppet_mod['author'],
+            puppet_mod['name']
         )
         self.assertEqual(
-            response.status_code,
-            httplib.OK,
-            status_code_error(path, httplib.OK, response)
-        )
-        self.assertEqual(
-            response.json()['name'],
-            puppet_mod['module_name'],
+            response['name'],
+            puppet_mod['name'],
         )
 
         # step 2.9: Publish content view
-        entities.ContentView(id=content_view['id']).publish()
+        content_view.publish()
 
         # step 2.10: Promote content view to both lifecycles
-        content_view = entities.ContentView(id=content_view['id']).read_json()
-        self.assertEqual(
-            len(content_view['versions']),
-            1,
-            u'There should only be 1 version published.')
-        self.assertEqual(
-            len(content_view['versions'][0]['environment_ids']),
-            1,
-            u"Content view should be present on 1 lifecycle only")
-        entities.ContentViewVersion(
-            id=content_view['versions'][0]['id']
-        ).promote(le1['id'])
+        versions = content_view.read_json()['versions']
+        self.assertEqual(len(versions), 1)
+        self.assertEqual(len(versions[0]['environment_ids']), 1)
+        entities.ContentViewVersion(id=versions[0]['id']).promote(le1.id)
         # Check that content view exists in 2 lifecycles
-        content_view = entities.ContentView(id=content_view['id']).read_json()
-        self.assertEqual(
-            len(content_view['versions']),
-            1,
-            u'There should only be 1 version published.')
-        self.assertEqual(
-            len(content_view['versions'][0]['environment_ids']),
-            2,
-            u"Content view should be present on 2 lifecycles only")
-        entities.ContentViewVersion(
-            id=content_view['versions'][0]['id']
-        ).promote(le2['id'])
+        versions = content_view.read_json()['versions']
+        self.assertEqual(len(versions), 1)
+        self.assertEqual(len(versions[0]['environment_ids']), 2)
+        entities.ContentViewVersion(id=versions[0]['id']).promote(le2.id)
         # Check that content view exists in 2 lifecycles
-        content_view = entities.ContentView(id=content_view['id']).read_json()
-        self.assertEqual(
-            len(content_view['versions']),
-            1,
-            u'There should only be 1 version published.')
-        self.assertEqual(
-            len(content_view['versions'][0]['environment_ids']),
-            3,
-            u"Content view should be present on 3 lifecycle only")
+        versions = content_view.read_json()['versions']
+        self.assertEqual(len(versions), 1)
+        self.assertEqual(len(versions[0]['environment_ids']), 3)
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
         content_host = entities.System(
-            content_view=content_view['id'],
-            environment=le2['id']
+            server_config,
+            content_view=content_view,
+            environment=le2.id  # FIXME: pass the environment instance
         ).create_json()
         # Check that content view matches what we passed
-        self.assertEqual(
-            content_host['content_view_id'],
-            content_view['id'],
-            u"Content views do not match."
-        )
+        self.assertEqual(content_host['content_view']['id'], content_view.id)
         # Check that lifecycle environment matches
-        self.assertEqual(
-            content_host['environment']['id'],
-            le2['id'],
-            u"Environments do not match."
-        )
+        self.assertEqual(content_host['environment']['id'], le2.id)
+
+        # step 2.11: Create a new libvirt compute resource
+        entities.LibvirtComputeResource(
+            server_config,
+            url=u'qemu+tcp://{0}:16509/system'.format(
+                conf.properties['main.server.hostname']),
+        ).create()
+
+        # step 2.12: Create a new subnet
+        subnet = entities.Subnet(server_config).create()
+
+        # step 2.13: Create a new domain
+        domain = entities.Domain(server_config).create()
+
+        # step 2.14: Create a new hostgroup and associate previous entities to
+        # it
+        host_group = entities.HostGroup(
+            server_config,
+            domain=domain,
+            subnet=subnet
+        ).create()
 
     def _search(self, entity, query, auth=None):
         """Performs a GET ``api/v2/<entity>`` and specify the ``search``
@@ -1052,20 +1015,20 @@ class TestSmoke(TestCase):
         activation_key_name = gen_string('alpha')
 
         # step 1.1: Create a new organization
-        org = entities.Organization().create_json()
+        org = entities.Organization().create()
 
         # step 1.2: Create new lifecycle environments
         lifecycle_env = entities.LifecycleEnvironment(
-            organization=org['id']
-        ).create_json()
+            organization=org.id
+        ).create()
 
         # step 2: Upload manifest
         manifest_path = manifests.clone()
-        entities.Organization(id=org['id']).upload_manifest(path=manifest_path)
+        org.upload_manifest(path=manifest_path)
         # step 3.1: Enable RH repo and fetch repository_id
         repo_id = utils.enable_rhrepo_and_fetchid(
             basearch="x86_64",
-            org_id=org['id'],
+            org_id=org.id,
             product=product,
             repo=repo,
             reposet=reposet,
@@ -1076,11 +1039,11 @@ class TestSmoke(TestCase):
 
         # step 4: Create content view
         content_view = entities.ContentView(
-            organization=org['id']
-        ).create_json()
+            organization=org.id
+        ).create()
         # step 5: Associate repository to new content view
         response = client.put(
-            entities.ContentView(id=content_view['id']).path(),
+            entities.ContentView(id=content_view.id).path(),
             {u'repository_ids': [repo_id]},
             auth=get_server_credentials(),
             verify=False,
@@ -1088,26 +1051,26 @@ class TestSmoke(TestCase):
         response.raise_for_status()
 
         # step 6.1: Publish content view
-        entities.ContentView(id=content_view['id']).publish()
+        content_view.publish()
 
         # step 6.2: Promote content view to lifecycle_env
-        content_view = entities.ContentView(id=content_view['id']).read_json()
-        self.assertEqual(len(content_view['versions']), 1)
+        versions = content_view.read_json()['versions']
+        self.assertEqual(len(versions), 1)
         entities.ContentViewVersion(
-            id=content_view['versions'][0]['id']
-        ).promote(lifecycle_env['id'])
+            id=versions[0]['id']
+        ).promote(lifecycle_env.id)
 
         # step 7: Create activation key
         activation_key = entities.ActivationKey(
             name=activation_key_name,
-            environment=lifecycle_env['id'],
-            organization=org['id'],
-            content_view=content_view['id'],
+            environment=lifecycle_env.id,
+            organization=org.id,
+            content_view=content_view.id,
         ).create()
         # step 7.1: Walk through the list of subscriptions.
         # Find the "Red Hat Employee Subscription" and attach it to the
         # recently-created activation key.
-        for subscription in entities.Organization(id=org['id']).subscriptions():
+        for subscription in org.subscriptions():
             if subscription['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
                 # 'quantity' must be 1, not subscription['quantity']. Greater
                 # values produce this error: "RuntimeError: Error: Only pools
@@ -1129,40 +1092,20 @@ class TestSmoke(TestCase):
         with VirtualMachine(distro='rhel66') as vm:
             # Download and Install rpm
             result = vm.run(
-                "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
+                'rpm -Uvh http://{0}/pub/katello-ca-consumer-latest.noarch.rpm'
                 .format(conf.properties['main.server.hostname'])
             )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to fetch katello-ca rpm: {0}, return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
-            result = vm.run(
-                'rpm -i katello-ca-consumer*.noarch.rpm'
-            )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to install katello-ca rpm: {0} and return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
+            self.assertEqual(result.return_code, 0)
             # Register client with foreman server using activation-key
             result = vm.run(
                 u'subscription-manager register --activationkey {0} '
                 '--org {1} --force'
-                .format(activation_key_name, org['label'])
+                .format(activation_key_name, org.label)
             )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to register client:: {0} and return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
+            self.assertEqual(result.return_code, 0)
             # Install contents from sat6 server
             result = vm.run('yum install -y {0}'.format(package_name))
-            self.assertEqual(
-                result.return_code, 0,
-                "Package install failed: {0} and return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
+            self.assertEqual(result.return_code, 0)
             # Verify if package is installed by query it
             result = vm.run('rpm -q {0}'.format(package_name))
             self.assertEqual(result.return_code, 0)
