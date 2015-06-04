@@ -764,7 +764,8 @@ locators = LocatorDict({
     # Hosts
 
     # host.primary
-    "host.new": (By.XPATH, "//a[contains(@href, '/hosts/new')]"),
+    "host.new": (By.XPATH, "//a[contains(@href, '/hosts/new') and "
+                           "contains(@class, 'btn')]"),
     "host.name": (By.ID, "host_name"),
     "host.clone": (
         By.XPATH, "//a[contains(@href,'%s') and contains(.,'Clone')]"),
@@ -781,6 +782,8 @@ locators = LocatorDict({
         By.XPATH,
         ("//input[contains(@id,'host_ids')]"
             "/../../td[@class='ellipsis']/a[contains(@href,'%s')]")),
+    "host.lifecycle_env": (By.ID, "host_lifecycle_environment_id"),
+    "host.cv": (By.ID, "host_content_view_id"),
 
     # host.network
     "host.mac": (By.ID, "host_mac"),
@@ -792,6 +795,7 @@ locators = LocatorDict({
     "host.arch": (By.ID, "host_architecture_id"),
     "host.os": (By.ID, "host_operatingsystem_id"),
     "host.org": (By.ID, "host_organization_id"),
+    "host.loc": (By.ID, "host_location_id"),
     "host.edit": (By.XPATH,
                   "//a[@class='btn btn-default' and contains(@href,'edit')]"),
     "host.puppet_ca": (By.ID, "host_puppet_ca_proxy_id"),
