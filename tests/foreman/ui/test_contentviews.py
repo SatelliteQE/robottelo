@@ -17,6 +17,9 @@ from robottelo.common.constants import (
     FAKE_1_YUM_REPO,
     FILTER_CONTENT_TYPE,
     FILTER_TYPE,
+    PRDS,
+    REPOS,
+    REPOSET,
     REPO_TYPE,
     ZOO_CUSTOM_GPG_KEY,
 )
@@ -477,13 +480,11 @@ class TestContentViewsUI(UITestCase):
         cv_name2 = gen_string("alpha", 8)
         composite_name = gen_string("alpha", 8)
         rh_repo = {
-            "name": ("Red Hat Enterprise Linux 6 Server "
-                     "- RH Common RPMs x86_64 6.3"),
-            "product": "Red Hat Enterprise Linux Server",
-            "reposet": ("Red Hat Enterprise Linux 6 Server "
-                        "- RH Common (RPMs)"),
-            "basearch": "x86_64",
-            "releasever": "6.3",
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': '7Server',
         }
         # Create new org to import manifest
         org_attrs = entities.Organization().create_json()
@@ -541,13 +542,11 @@ class TestContentViewsUI(UITestCase):
         """
         cv_name = gen_string("alpha", 8)
         rh_repo = {
-            'name': ("Red Hat Enterprise Linux 6 Server "
-                     "- RH Common RPMs x86_64 6.3"),
-            'product': "Red Hat Enterprise Linux Server",
-            'reposet': ("Red Hat Enterprise Linux 6 Server "
-                        "- RH Common (RPMs)"),
-            'basearch': "x86_64",
-            'releasever': "6.3"
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': '7Server',
         }
         # Create new org to import manifest
         org_attrs = entities.Organization().create_json()
@@ -712,13 +711,11 @@ class TestContentViewsUI(UITestCase):
         """
         cv_name = gen_string("alpha", 8)
         rh_repo = {
-            'name': ("Red Hat Enterprise Linux 6 Server "
-                     "- RH Common RPMs x86_64 6.3"),
-            'product': "Red Hat Enterprise Linux Server",
-            'reposet': ("Red Hat Enterprise Linux 6 Server "
-                        "- RH Common (RPMs)"),
-            'basearch': "x86_64",
-            'releasever': "6.3"
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': '7Server',
         }
         env_name = gen_string("alpha", 8)
         publish_version = "Version 1"
@@ -839,13 +836,11 @@ class TestContentViewsUI(UITestCase):
         """
         cv_name = gen_string("alpha", 8)
         rh_repo = {
-            'name': ("Red Hat Enterprise Linux 6 Server "
-                     "- RH Common RPMs x86_64 6.3"),
-            'product': "Red Hat Enterprise Linux Server",
-            'reposet': ("Red Hat Enterprise Linux 6 Server "
-                        "- RH Common (RPMs)"),
-            'basearch': "x86_64",
-            'releasever': "6.3"
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': '7Server',
         }
         # Create new org to import manifest
         org_attrs = entities.Organization().create_json()
