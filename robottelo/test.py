@@ -25,6 +25,7 @@ from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.contentenv import ContentEnvironment
 from robottelo.ui.contentviews import ContentViews
+from robottelo.ui.contentsearch import ContentSearch
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
@@ -186,6 +187,7 @@ class UITestCase(TestCase):
         self.configgroups = ConfigGroups(self.browser)
         self.contentenv = ContentEnvironment(self.browser)
         self.content_views = ContentViews(self.browser)
+        self.content_search = ContentSearch(self.browser)
         self.domain = Domain(self.browser)
         self.environment = Environment(self.browser)
         self.gpgkey = GPGKey(self.browser)
