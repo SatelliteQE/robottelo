@@ -80,7 +80,8 @@ class User(UITestCase):
         user_name = gen_string("alpha", 6)
         new_password = gen_string("alpha", 8)
         with Session(self.browser) as session:
-            make_user(session, username=user_name, edit=True, roles=['Viewer'])
+            # Role 'Site' meaning 'Site Manager' here
+            make_user(session, username=user_name, edit=True, roles=['Site'])
             self.user.update(search_key, user_name, password=new_password)
             self.login.logout()
             self.login.login(user_name, new_password)
@@ -827,8 +828,9 @@ class User(UITestCase):
         name = gen_string("alpha", 6)
         password = gen_string("alpha", 8)
         with Session(self.browser) as session:
+            # Role Site meaning 'Site Manager' here
             make_user(session, username=name, password1=password,
-                      password2=password, edit=True, roles=['Viewer'])
+                      password2=password, edit=True, roles=['Site'])
             self.user.update(search_key, name, new_username)
             self.assertIsNotNone(
                 self.user.search(new_username, search_key))
