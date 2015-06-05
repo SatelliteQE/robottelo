@@ -2,10 +2,7 @@
 """Tests for the ``hostgroups`` paths."""
 from fauxfactory import gen_string
 from nailgun import client, entities, entity_fields
-from robottelo.common.constants import (
-    FAKE_0_PUPPET_REPO,
-    PUPPET_MODULE_NTP_PUPPETLABS,
-)
+from robottelo.common.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.common.decorators import stubbed
 from robottelo.common.helpers import get_data_file, get_server_credentials
 from robottelo.test import APITestCase
@@ -36,9 +33,9 @@ class HostGroupTestCase(APITestCase):
         puppet_repo = entities.Repository(
             content_type='puppet',
             product=product,
-            url=FAKE_0_PUPPET_REPO,
         ).create()
-        puppet_repo.sync()
+        # Working with 'ntp' module as we know for sure that it contains at
+        # least few puppet classes
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             puppet_repo.upload_content(handle)
 
@@ -46,16 +43,13 @@ class HostGroupTestCase(APITestCase):
             organization=org,
             name=gen_string('alpha'),
         ).create()
-        results = content_view.available_puppet_modules()['results']
-        # Working with 'ntp' module as we know for sure that it contains at
-        # least few puppet classes
-        for result in results:
-            if result['name'] == 'ntp':
-                content_view.add_puppet_module(
-                    result['author'],
-                    result['name']
-                )
-                break
+
+        result = content_view.available_puppet_modules()['results']
+        self.assertEqual(len(result), 1)
+        content_view.add_puppet_module(
+            result[0]['author'],
+            result[0]['name']
+        )
 
         content_view.publish()
         cvv = entities.ContentViewVersion(
