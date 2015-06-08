@@ -201,9 +201,29 @@ class Base(object):
         else:
             raise UIError('Could not search the entity "{0}"'.format(name))
 
-    def wait_until_element(self, locator, timeout=12, poll_frequency=0.5):
+    def wait_until_element_exists(
+            self, locator, timeout=12, poll_frequency=0.5):
         """Wrapper around Selenium's WebDriver that allows you to pause your
         test until an element in the web page is present.
+
+        """
+        try:
+            element = WebDriverWait(
+                self.browser, timeout, poll_frequency
+            ).until(expected_conditions.presence_of_element_located(locator))
+            self.wait_for_ajax(poll_frequency=poll_frequency)
+            return element
+        except TimeoutException as err:
+            self.logger.debug(
+                "%s: Timed out waiting for element '%s' to exists.",
+                type(err).__name__,
+                locator[1]
+            )
+            return None
+
+    def wait_until_element(self, locator, timeout=12, poll_frequency=0.5):
+        """Wrapper around Selenium's WebDriver that allows you to pause your
+        test until an element in the web page is present and visible.
 
         """
         try:
@@ -215,6 +235,29 @@ class Base(object):
         except TimeoutException as err:
             self.logger.debug(
                 "%s: Timed out waiting for element '%s' to display.",
+                type(err).__name__,
+                locator[1]
+            )
+            return None
+
+    def wait_until_element_is_clickable(
+            self, locator, timeout=12, poll_frequency=0.5):
+        """Wrapper around Selenium's WebDriver that allows you to pause your
+        test until an element in the web page is present and can be clicked.
+
+        """
+        try:
+            element = WebDriverWait(
+                self.browser, timeout, poll_frequency
+            ).until(expected_conditions.element_to_be_clickable(locator))
+            self.wait_for_ajax(poll_frequency=poll_frequency)
+            if element.get_attribute('disabled') == u'true':
+                return None
+            return element
+        except TimeoutException as err:
+            self.logger.debug(
+                "%s: Timed out waiting for element '%s' to display or to be "
+                "clickable.",
                 type(err).__name__,
                 locator[1]
             )
@@ -403,5 +446,20 @@ class Base(object):
 
         """
         element = self.wait_until_element(locator)
+        if element is None:
+            return False
         self.wait_for_ajax()
         return element.is_enabled()
+
+    def is_element_visible(self, locator):
+        """Check whether UI element is visible
+
+        :param locator: The locator of the element.
+        :return: Returns True if element is visible and False otherwise
+
+        """
+        element = self.wait_until_element_exists(locator)
+        if element is None:
+            return False
+        self.wait_for_ajax()
+        return element.is_displayed()

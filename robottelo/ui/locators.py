@@ -1635,6 +1635,66 @@ locators = LocatorDict({
     "contentviews.yum_repositories": (
         By.XPATH, "//a[@class='ng-scope' and contains(@ui-sref,'yum.list')]"),
 
+    # Content Search
+    "contentsearch.open_filter_dropdown": (
+        By.XPATH,
+        "//div[@id='content_chzn']/a/div"),
+    "contentsearch.select_filter": (
+        By.XPATH,
+        "//fieldset[@id='content_selector']/div/div/div/ul/li[text()='%s']"),
+    "contentsearch.content_views": (
+        By.XPATH,
+        "//input[@id='view_auto_complete']"),
+    "contentsearch.products": (
+        By.XPATH,
+        "//input[@id='product_auto_complete']"),
+    "contentsearch.repositories": (
+        By.XPATH,
+        "//input[@id='repo_auto_complete']"),
+    "contentsearch.add_content_views_filter": (
+        By.XPATH,
+        "//div[@id='view_autocomplete_list']/a"),
+    "contentsearch.add_products_filter": (
+        By.XPATH,
+        "//div[@id='product_autocomplete_list']/a"),
+    "contentsearch.repositories_auto_radio": (
+        By.XPATH,
+        "//input[@id='repos_auto_complete_radio']"),
+    "contentsearch.repositories_search_radio": (
+        By.XPATH,
+        "//input[@id='repos_search_radio']"),
+    "contentsearch.add_repositories_filter": (
+        By.XPATH,
+        "//div[@id='repo_autocomplete_list']/a"),
+    "contentsearch.autocomplete_field": (
+        By.XPATH,
+        "//ul[contains(@class, 'ui-autocomplete')]/li/a[contains(., '%s')]"),
+    "contentsearch.repositories_search": (
+        By.XPATH,
+        "//input[@id='repo_search_input']"),
+    "contentsearch.packages_search": (
+        By.XPATH,
+        "//div[@id='package_search']/input[@id='search']"),
+    "contentsearch.puppet_modules_search": (
+        By.XPATH,
+        "//div[@id='puppet_modules_search']/input[@id='search']"),
+    "contentsearch.search": (
+        By.ID, "browse_button"),
+    "contentsearch.result_entity": (
+        By.XPATH,
+        "//article[@id='comparison_grid']//span[contains(., '%s')]"),
+    "contentsearch.result_entity_open_list": (
+        By.XPATH,
+        "//article[@id='comparison_grid']//span[contains(., '%s')]/../"
+        "i[contains(@class, 'right')]"),
+    "contentsearch.open_view_dropdown": (
+        By.XPATH,
+        "//div[@id='right_select']/div/a/div"),
+    "contentsearch.select_view": (
+        By.XPATH,
+        "//div[@id='right_select']/div/div/ul/li[text()='%s']"),
+
+
     # System Groups
     "system-groups.new": (
         By.XPATH, "//button[@ui-sref='system-groups.new.form']"),
