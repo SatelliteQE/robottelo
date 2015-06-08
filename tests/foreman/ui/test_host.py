@@ -1,14 +1,15 @@
 # -*- encoding: utf-8 -*-
-from fauxfactory import gen_string
-from robottelo.common.decorators import run_only_on, stubbed
+from nailgun import entities
+from robottelo.common.constants import ENVIRONMENT
+from robottelo.common.decorators import run_only_on
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
+from robottelo.ui.session import Session
 
 
 @run_only_on('sat')
 class Host(UITestCase):
 
-    @stubbed('Test needs to create other required stuff')
     def test_create_host(self):
         """@Test: Create a new Host
 
@@ -17,46 +18,73 @@ class Host(UITestCase):
         @Assert: Host is created
 
         """
+        host = entities.Host()
+        host.create_missing()
+        os_name = u'{0} {1}'.format(
+            host.operatingsystem.name, host.operatingsystem.major)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(host.organization.name)
+            self.navigator.go_to_hosts()
+            self.hosts.create(
+                arch=host.architecture.name,
+                domain=host.domain.name,
+                env=host.environment.name,
+                loc=host.location.name,
+                lifecycle_env=ENVIRONMENT,
+                mac=host.mac,
+                media=host.medium.name,
+                name=host.name,
+                org=host.organization.name,
+                os=os_name,
+                ptable=host.ptable.name,
+                root_pwd=host.root_pass,
+            )
+            self.navigator.go_to_dashboard()
+            self.navigator.go_to_hosts()
+            # confirm the Host appears in the UI
+            search = self.hosts.search(
+                u'{0}.{1}'.format(host.name, host.domain.name)
+            )
+            self.assertIsNotNone(search)
 
-        name = gen_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_hosts()
-        self.hosts.create(name, "some.domain.redhat.com",
-                          "lab2-subnet (10.10.10.0/24)", host_group=None,
-                          resource="KVM_201199 (Libvirt)", env="test",
-                          ip_addr=None, mac=None, os="rhel 6.5", arch="x86_64",
-                          media="redhat_64", ptable="Kickstart default",
-                          custom_ptable=None, root_pwd="redhat", cpus="1",
-                          memory="768 MB")
-        self.navigator.go_to_hosts()
-        # confirm the Host appears in the UI
-        search = self.hosts.search(name)
-        self.assertIsNotNone(search)
-
-    @stubbed('Test needs to create other required stuff')
-    def test_create_delete(self):
+    def test_delete_host(self):
         """@Test: Delete a Host
 
         @Feature: Host - Positive Delete
 
         @Assert: Host is deleted
 
-        @status: manual
-
         """
-
-        name = gen_string("alpha", 8)
-        self.login.login(self.katello_user, self.katello_passwd)
-        self.navigator.go_to_hosts()
-        self.hosts.create(name, "some.domain.redhat.com",
-                          "lab2-subnet (10.10.10.0/24)", host_group=None,
-                          resource="KVM_201199 (Libvirt)", env="test",
-                          ip_addr=None, mac=None, os="rhel 6.5", arch="x86_64",
-                          media="redhat_64", ptable="Kickstart default",
-                          custom_ptable=None, root_pwd="redhat", cpus="1",
-                          memory="768 MB")
-        self.navigator.go_to_hosts()
-        # confirm the Host appears in the UI
-        self.hosts.delete(name, really=True)
-        self.assertTrue(
-            self.user.wait_until_element(common_locators["notif.success"]))
+        host = entities.Host()
+        host.create_missing()
+        os_name = u'{0} {1}'.format(
+            host.operatingsystem.name, host.operatingsystem.major)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(host.organization.name)
+            self.navigator.go_to_hosts()
+            self.hosts.create(
+                arch=host.architecture.name,
+                domain=host.domain.name,
+                env=host.environment.name,
+                loc=host.location.name,
+                lifecycle_env=ENVIRONMENT,
+                mac=host.mac,
+                media=host.medium.name,
+                name=host.name,
+                org=host.organization.name,
+                os=os_name,
+                ptable=host.ptable.name,
+                root_pwd=host.root_pass,
+            )
+            self.navigator.go_to_dashboard()
+            self.navigator.go_to_hosts()
+            # Delete host
+            self.hosts.delete(
+                u'{0}.{1}'.format(host.name, host.domain.name), really=True)
+            self.assertIsNotNone(
+                self.user.wait_until_element(common_locators['notif.success']))
+            # confirm the Host disappeared from the UI
+            search = self.hosts.search(
+                u'{0}.{1}'.format(host.name, host.domain.name)
+            )
+            self.assertIsNone(search)

@@ -91,7 +91,7 @@ FILTER = {'arch_os': "architecture_operatingsystem",
           'loc_org': "location_organization",
           'sub_domain': "subnet_domain"}
 
-RESOURCE_DEFAULT = "baremetal"
+RESOURCE_DEFAULT = 'Bare Metal'
 
 OS_TEMPLATE_DATA_FILE = "os_template.txt"
 
