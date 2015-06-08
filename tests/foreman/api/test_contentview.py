@@ -998,9 +998,9 @@ class CVRedHatContent(APITestCase):
             basearch='x86_64',
             org_id=cls.org.id,
             product=PRDS['rhel'],
-            repo=REPOS['rhelc6'],
-            reposet=REPOSET['rhelc6'],
-            releasever='6.3',
+            repo=REPOS['rhst7']['name'],
+            reposet=REPOSET['rhst7'],
+            releasever='7Server',
         )
         cls.repo = entities.Repository(id=repo_id)
         cls.repo.sync()
@@ -1020,7 +1020,7 @@ class CVRedHatContent(APITestCase):
         self.assertEqual(len(content_view.repository), 1)
         self.assertEqual(
             content_view.repository[0].read().name,
-            REPOS['rhelc6'],
+            REPOS['rhst7']['name'],
         )
 
     def test_cv_associate_rh_custom_spin(self):

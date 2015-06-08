@@ -10,6 +10,9 @@ from robottelo.common.constants import (
     DOCKER_REGISTRY_HUB,
     FAKE_0_PUPPET_REPO,
     FAKE_2_YUM_REPO,
+    PRDS,
+    REPOS,
+    REPOSET,
     RPM_TO_UPLOAD,
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
@@ -255,10 +258,10 @@ class RepositorySyncTestCase(APITestCase):
         repo_id = utils.enable_rhrepo_and_fetchid(
             'x86_64',
             org.id,
-            'Red Hat Enterprise Linux Server',
-            'Red Hat Enterprise Linux 6 Server - RH Common RPMs x86_64 6.3',
-            'Red Hat Enterprise Linux 6 Server - RH Common (RPMs)',
-            '6.3',
+            PRDS['rhel'],
+            REPOS['rhst7']['name'],
+            REPOSET['rhst7'],
+            '7Server',
         )
         entities.Repository(id=repo_id).sync()
 
