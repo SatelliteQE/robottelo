@@ -59,11 +59,19 @@ That done, you can run tests using ``make``::
     $ make test-foreman-ui
     $ make test-foreman-smoke
 
-If you want to run the test suite without the aid of ``make``, you can do that
-with either `unittest`_ or `nose`_::
+Robottelo provides two test suites, one for testing Robottelo itself and
+another for testing Foreman/Satellite 6. Robottelo's tests are under the
+tests/robottelo directory and the Foreman/Satellite 6 tests are under the
+tests/foreman directory.
 
-    $ python -m unittest discover -s tests -t .
-    $ nosetests -c robottelo.properties
+If you want to run tests without the aid of ``make``, you can do that with
+either `unittest`_ or `nose`_. Just specify the path for the test suite you
+want to run::
+
+    $ python -m unittest discover -s tests/robottelo -t .
+    $ python -m unittest discover -s tests/foreman -t .
+    $ nosetests tests/robottelo
+    $ nosetests tests/foreman
 
 The following sections discuss, in detail, how to update the configuration file
 and run tests directly.
@@ -75,12 +83,13 @@ To configure Robottelo, create a file named ``robottelo.properties``. You can
 use the ``robottelo.properties.sample`` file as a starting point. Then, edit the
 configuration file so that at least the following attributes are set::
 
-    server.hostname=[FULLY QUALIFIED DOMAIN NAME]
+    server.hostname=[FULLY QUALIFIED DOMAIN NAME OR IP ADDRESS]
     server.ssh.key_private=[PATH TO YOUR SSH KEY]
     server.ssh.username=root
-    project=foreman
+    project=sat
     locale=en_US
     remote=0
+    smoke=0
 
     [foreman]
     admin.username=admin
@@ -129,26 +138,24 @@ You must have `nose`_ installed to execute the ``nosetests`` command.
 
 To run all tests::
 
-    $ nosetests -c robottelo.properties
+    $ nosetests
 
 It is possible to run a specific subset of tests::
 
-    $ nosetests -c robottelo.properties tests.robottelo.test_decorators
-    $ nosetests -c robottelo.properties tests.robottelo.test_decorators:DataDecoratorTestCase
-    $ nosetests -c robottelo.properties tests.robottelo.test_decorators:DataDecoratorTestCase.test_data_decorator_smoke
+    $ nosetests tests.robottelo.test_decorators
+    $ nosetests tests.robottelo.test_decorators:DataDecoratorTestCase
+    $ nosetests tests.robottelo.test_decorators:DataDecoratorTestCase.test_data_decorator_smoke
 
 To get more verbose output, or run multiple tests::
 
-    $ nosetests -c robottelo.properties -v
-    $ nosetests -c robottelo.properties \
-        tests.robottelo.test_decorators \
-        tests.robottelo.test_cli
+    $ nosetests -v
+    $ nosetests tests.robottelo.test_decorators tests.robottelo.test_cli
 
 To test The Foreman's API, CLI or UI, use the following commands respectively::
 
-    $ nosetests -c robottelo.properties tests.foreman.api
-    $ nosetests -c robottelo.properties tests.foreman.cli
-    $ nosetests -c robottelo.properties tests.foreman.ui
+    $ nosetests tests.foreman.api
+    $ nosetests tests.foreman.cli
+    $ nosetests tests.foreman.ui
 
 Many of the existing tests use the `DDT module`_ to allow for a more data-driven
 methodology and in order to run a specific test you need override the way
@@ -156,8 +163,7 @@ methodology and in order to run a specific test you need override the way
 ``test_positive_create_1`` data-driven tests for the ``foreman.cli.test_org``
 module::
 
-    $ nosetests -c robottelo.properties -m test_positive_create_1 \
-        tests.foreman.cli.test_org
+    $ nosetests -m test_positive_create_1 tests.foreman.cli.test_org
 
 Running UI Tests On a Headless Server
 -------------------------------------
