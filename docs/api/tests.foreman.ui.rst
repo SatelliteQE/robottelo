@@ -102,6 +102,11 @@
 ----------------------------------------
 
 .. automodule:: tests.foreman.ui.test_isodownload
+   
+:mod:`tests.foreman.ui.test_ldap_auth`
+--------------------------------------
+
+.. automodule:: tests.foreman.ui.test_ldap_auth
 
 :mod:`tests.foreman.ui.test_location`
 -------------------------------------
