@@ -62,6 +62,7 @@ class ParseHelpTestCase(unittest.TestCase):
 
             'Options:',
             ' --autocomplete LINE           Get list of possible endings',
+            ' --name, --deprecation-name    An option with a deprecation name',
             ' --csv                         Output as CSV (same as',
             '                               --output=csv)',
             ' --csv-separator SEPARATOR     Character to separate the values',
@@ -106,6 +107,12 @@ class ParseHelpTestCase(unittest.TestCase):
                         'shortname': None,
                         'value': 'LINE',
                         'help': 'Get list of possible endings',
+                    },
+                    {
+                        'name': 'name',
+                        'shortname': None,
+                        'value': None,
+                        'help': 'An option with a deprecation name',
                     },
                     {
                         'name': 'csv',
