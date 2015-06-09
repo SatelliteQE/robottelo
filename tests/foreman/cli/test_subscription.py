@@ -146,7 +146,6 @@ class TestSubscription(CLITestCase):
             ''.join(result.stdout)
         )
 
-    @skip_if_bug_open('bugzilla', 1147559)
     def test_manifest_refresh(self):
         """@Test: upload manifest (positive) and refresh
 
@@ -154,7 +153,37 @@ class TestSubscription(CLITestCase):
 
         @Assert: Manifests can be refreshed
 
-        @BZ 1147559
+        """
+        self._upload_manifest(
+            manifests.download_manifest_template(), self.org['id'])
+        result = Subscription.list(
+            {'organization-id': self.org['id']},
+            per_page=False
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = Subscription.refresh_manifest({
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = Subscription.delete_manifest({
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+    @skip_if_bug_open('bugzilla', 1226425)
+    def test_invalid_manifest_refresh(self):
+        """@Test: manifest refresh must fail with a cloned manifest
+
+        @Feature: Subscriptions/Manifest refresh
+
+        @Assert: the refresh command returns a non-zero return code
+
+        @BZ: 1226425
 
         """
         self._upload_manifest(self.manifest, self.org['id'])
@@ -168,5 +197,5 @@ class TestSubscription(CLITestCase):
         result = Subscription.refresh_manifest({
             'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        self.assertNotEqual(result.return_code, 0)
+        self.assertNotEqual(len(result.stderr), 0)
