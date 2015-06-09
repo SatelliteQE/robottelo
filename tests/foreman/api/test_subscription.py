@@ -8,7 +8,6 @@ from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from robottelo.common import manifests
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 class SubscriptionsTestCase(APITestCase):
@@ -23,10 +22,8 @@ class SubscriptionsTestCase(APITestCase):
 
         """
         cloned_manifest_path = manifests.clone()
-        org_id = entities.Organization().create_json()['id']
-        entities.Organization(id=org_id).upload_manifest(
-            path=cloned_manifest_path
-        )
+        org = entities.Organization().create()
+        org.upload_manifest(path=cloned_manifest_path)
 
     def test_positive_delete_1(self):
         """@Test: Delete an Uploaded manifest.
@@ -37,11 +34,11 @@ class SubscriptionsTestCase(APITestCase):
 
         """
         cloned_manifest_path = manifests.clone()
-        org_id = entities.Organization().create_json()['id']
-        entities.Organization(id=org_id).upload_manifest(
-            path=cloned_manifest_path
-        )
-        entities.Organization(id=org_id).delete_manifest()
+        org = entities.Organization().create()
+        org.upload_manifest(path=cloned_manifest_path)
+        self.assertGreater(len(org.subscriptions()), 0)
+        org.delete_manifest()
+        self.assertEqual(len(org.subscriptions()), 0)
 
     def test_negative_create_1(self):
         """@Test: Upload the same manifest to two organizations.
@@ -52,11 +49,8 @@ class SubscriptionsTestCase(APITestCase):
 
         """
         manifest_path = manifests.clone()
-
-        first_org = entities.Organization().create()
-        first_org.upload_manifest(manifest_path)
-
-        second_org = entities.Organization().create()
+        orgs = [entities.Organization().create() for _ in range(2)]
+        orgs[0].upload_manifest(manifest_path)
         with self.assertRaises(TaskFailedError):
-            second_org.upload_manifest(manifest_path)
-        self.assertEqual([], second_org.subscriptions())
+            orgs[1].upload_manifest(manifest_path)
+        self.assertEqual(len(orgs[1].subscriptions()), 0)

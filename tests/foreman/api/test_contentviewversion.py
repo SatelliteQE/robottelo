@@ -4,7 +4,6 @@ from robottelo.common.constants import FAKE_1_YUM_REPO, ZOO_CUSTOM_GPG_KEY
 from robottelo.common.helpers import get_server_credentials, read_data_file
 from requests.exceptions import HTTPError
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 class CVVersionTestCase(APITestCase):
@@ -18,9 +17,9 @@ class CVVersionTestCase(APITestCase):
         @Feature: ContentViewVersion
 
         """
-        env_id = entities.Environment().create_json()['id']
+        env = entities.Environment().create()
         with self.assertRaises(HTTPError):
-            entities.ContentViewVersion(id=1).promote(env_id)
+            entities.ContentViewVersion(id=1).promote(env.id)
 
     def test_negative_promote_2(self):
         """@Test: Promote a content view version using an invalid environment.
@@ -42,52 +41,41 @@ class CVVersionTestCase(APITestCase):
 
         """
         key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
-        org_id = entities.Organization().create_json()['id']
-        gpgkey_id = entities.GPGKey(
+        org = entities.Organization().create()
+        gpgkey = entities.GPGKey(
             content=key_content,
-            organization=org_id
-        ).create_json()['id']
+            organization=org,
+        ).create()
         # Creates new product without selecting GPGkey
-        product_id = entities.Product(
-            organization=org_id
-        ).create_json()['id']
+        product = entities.Product(organization=org).create()
         # Creates new repository with GPGKey
         repo = entities.Repository(
+            gpg_key=gpgkey,
+            product=product,
             url=FAKE_1_YUM_REPO,
-            product=product_id,
-            gpg_key=gpgkey_id,
         ).create()
         # sync repository
         repo.sync()
         # Create content view
-        content_view = entities.ContentView(
-            organization=org_id
-        ).create()
+        content_view = entities.ContentView(organization=org).create()
         # Associate repository to new content view
-        client.put(
-            content_view.path(),
-            {u'repository_ids': [repo.id]},
-            auth=get_server_credentials(),
-            verify=False,
-        ).raise_for_status()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
         # Publish content view
         content_view.publish()
+        content_view = content_view.read()
         # Get published content-view version id
-        cv = entities.ContentView(id=content_view.id).read_json()
-        self.assertEqual(len(cv['versions']), 1)
-        cv_version_id = cv['versions'][0]['id']
+        self.assertEqual(len(content_view.version), 1)
         # Get 'Library' life-cycle environment id
         response = client.get(
             entities.LifecycleEnvironment().path(),
             auth=get_server_credentials(),
-            data={u'organization_id': org_id},
+            data={u'organization_id': org.id},
             verify=False,
         )
         response.raise_for_status()
         lc_env_id = response.json()['results'][0]['id']
         # Delete the content-view version from selected env
-        entities.ContentView(
-            id=content_view.id
-        ).delete_from_environment(lc_env_id)
+        content_view.delete_from_environment(lc_env_id)
         # Delete the version
-        entities.ContentViewVersion(id=cv_version_id).delete()
+        content_view.version[0].delete()

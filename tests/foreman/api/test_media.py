@@ -1,7 +1,6 @@
 """Tests for the ``media`` paths."""
 from robottelo.common.decorators import run_only_on, stubbed
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')

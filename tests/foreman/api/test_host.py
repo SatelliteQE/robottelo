@@ -16,7 +16,6 @@ from robottelo.common.decorators import (
 )
 from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')
@@ -75,11 +74,8 @@ class HostsTestCase(APITestCase):
         host = entities.Host()
         host.create_missing()
         host.owner_type = owner_type
-        host_id = host.create_json(create_missing=False)['id']
-        self.assertEqual(
-            entities.Host(id=host_id).read_json()['owner_type'],
-            owner_type,
-        )
+        host = host.create(create_missing=False)
+        self.assertEqual(host.owner_type, owner_type)
 
     @data('User', 'Usergroup')
     def test_update_owner_type(self, owner_type):
@@ -93,15 +89,7 @@ class HostsTestCase(APITestCase):
         """
         if owner_type == 'Usergroup' and bz_bug_is_open(1210001):
             self.skipTest('BZ 1210001: host update should block or yield task')
-        host_id = entities.Host().create_json()['id']
-        response = client.put(
-            entities.Host(id=host_id).path(),
-            {'host': {'owner_type': owner_type}},
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        response.raise_for_status()
-        self.assertEqual(
-            entities.Host(id=host_id).read_json()['owner_type'],
-            owner_type,
-        )
+        host = entities.Host().create()
+        host.owner_type = owner_type
+        host = host.update(['owner_type'])
+        self.assertEqual(host.owner_type, owner_type)

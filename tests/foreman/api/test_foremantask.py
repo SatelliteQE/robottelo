@@ -3,7 +3,6 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.common.decorators import run_only_on, skip_if_bug_open
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')
@@ -22,4 +21,4 @@ class ForemanTasksIdTestCase(APITestCase):
 
         """
         with self.assertRaises(HTTPError):
-            entities.ForemanTask(id='abc123').read_json()
+            entities.ForemanTask(id='abc123').read()

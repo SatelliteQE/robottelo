@@ -11,17 +11,12 @@ import re
 from ddt import ddt
 from fauxfactory import gen_alphanumeric
 from itertools import chain
-from nailgun import client, entities
+from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.common.constants import PERMISSIONS
 from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import (
-    get_nailgun_config,
-    get_server_credentials,
-    get_server_software,
-)
+from robottelo.common.helpers import get_nailgun_config, get_server_software
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 @ddt
@@ -180,16 +175,12 @@ class UserRoleTestCase(APITestCase):
 
     def setUp(self):  # noqa
         """Create a set of credentials and a user."""
-        self.server_config = get_nailgun_config()
-        self.server_config.auth = (
-            gen_alphanumeric(),  # username
-            gen_alphanumeric(),  # password
-        )
-        self.user = entities.User()
-        self.user.id = entities.User(
-            login=self.server_config.auth[0],
-            password=self.server_config.auth[1],
-        ).create_json()['id']
+        self.cfg = get_nailgun_config()
+        self.cfg.auth = (gen_alphanumeric(), gen_alphanumeric())  # user, pass
+        self.user = entities.User(
+            login=self.cfg.auth[0],
+            password=self.cfg.auth[1],
+        ).create()
 
     def give_user_permission(self, perm_name):
         """Give ``self.user`` the ``perm_name`` permission.
@@ -208,21 +199,16 @@ class UserRoleTestCase(APITestCase):
         :returns: Nothing.
 
         """
-        role_id = entities.Role().create_json()['id']
-        permission_ids = [
-            permission['id']
+        role = entities.Role().create()
+        permissions = [
+            entities.Permission(id=permission['id'])
             for permission
             in entities.Permission(name=perm_name).search()
         ]
-        self.assertEqual(len(permission_ids), 1)
-        entities.Filter(permission=permission_ids, role=role_id).create_json()
-        # NOTE: An extra hash is used due to an API bug.
-        client.put(
-            self.user.path(),
-            {u'user': {u'role_ids': [role_id]}},
-            auth=get_server_credentials(),
-            verify=False,
-        ).raise_for_status()
+        self.assertEqual(len(permissions), 1)
+        entities.Filter(permission=permissions, role=role).create()
+        self.user.role = [role]
+        self.user = self.user.update(['role'])
 
     @data(
         entities.Architecture,
@@ -238,10 +224,10 @@ class UserRoleTestCase(APITestCase):
 
         """
         with self.assertRaises(HTTPError):
-            entity_cls(self.server_config).create_json()
+            entity_cls(self.cfg).create()
         self.give_user_permission(_permission_name(entity_cls, 'create'))
-        entity_id = entity_cls(self.server_config).create_json()['id']
-        entity_cls(id=entity_id).read_json()  # read as an admin user
+        entity_id = entity_cls(self.cfg).create_json()['id']
+        entity_cls(id=entity_id).read()  # As admin user.
 
     @data(
         entities.Architecture,
@@ -256,12 +242,11 @@ class UserRoleTestCase(APITestCase):
         @Feature: Role
 
         """
-        entity_id = entity_cls().create_json()['id']
-        entity = entity_cls(self.server_config, id=entity_id)
+        entity_id = entity_cls().create().id
         with self.assertRaises(HTTPError):
-            entity.read_json()
+            entity_cls(self.cfg, id=entity_id).read()
         self.give_user_permission(_permission_name(entity_cls, 'read'))
-        entity.read_json()
+        entity_cls(self.cfg, id=entity_id).read()
 
     @data(
         entities.Architecture,
@@ -276,14 +261,13 @@ class UserRoleTestCase(APITestCase):
         @Feature: Role
 
         """
-        entity_id = entity_cls().create_json()['id']
-        entity = entity_cls(self.server_config, id=entity_id)
+        entity = entity_cls().create()
         with self.assertRaises(HTTPError):
-            entity.delete()
+            entity_cls(self.cfg, id=entity.id).delete()
         self.give_user_permission(_permission_name(entity_cls, 'delete'))
-        entity.delete()
+        entity_cls(self.cfg, id=entity.id).delete()
         with self.assertRaises(HTTPError):
-            entity.read_json()  # As admin user
+            entity.read()  # As admin user
 
     @data(
         entities.Architecture,
@@ -300,19 +284,10 @@ class UserRoleTestCase(APITestCase):
         NOTE: This method will only work if ``entity`` has a name.
 
         """
-        entity_id = entity_cls().create_json()['id']
-        entity = entity_cls(self.server_config, id=entity_id)
+        entity = entity_cls().create()
+        name = entity.get_fields()['name'].gen_value()
         with self.assertRaises(HTTPError):
-            client.put(
-                entity.path(),
-                {u'name': entity.get_fields()['name'].gen_value()},
-                auth=self.server_config.auth,
-                verify=self.server_config.verify,
-            ).raise_for_status()
+            entity_cls(self.cfg, id=entity.id, name=name).update(['name'])
         self.give_user_permission(_permission_name(entity_cls, 'update'))
-        client.put(
-            entity.path(),
-            {u'name': entity.get_fields()['name'].gen_value()},
-            auth=self.server_config.auth,
-            verify=self.server_config.verify,
-        ).raise_for_status()
+        # update() calls read() under the hood, which triggers permission error
+        entity_cls(self.cfg, id=entity.id, name=name).update_json(['name'])

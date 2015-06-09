@@ -9,9 +9,8 @@ References for the relevant paths can be found here:
 from fauxfactory import gen_integer, gen_utf8
 from httplib import NOT_FOUND
 from nailgun import entities
-from robottelo.common.decorators import run_only_on
+from robottelo.common.decorators import run_only_on, skip_if_bug_open
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')
@@ -28,7 +27,7 @@ class OSParameterTestCase(APITestCase):
         """
         # Check whether OS 1 exists.
         if (entities.OperatingSystem(id=1).read_raw().status_code == NOT_FOUND
-                and entities.OperatingSystem().create_json()['id'] != 1):
+                and entities.OperatingSystem().create().id != 1):
             self.skipTest(
                 'Cannot execute test, as operating system 1 is not available.'
             )
@@ -39,17 +38,13 @@ class OSParameterTestCase(APITestCase):
         # measure.
         name = gen_utf8(20)
         value = gen_utf8(20)
-        osp_id = entities.OperatingSystemParameter(
+        os_param = entities.OperatingSystemParameter(
             name=name,
             operatingsystem=1,
             value=value,
-        ).create_json()['id']
-        attrs = entities.OperatingSystemParameter(
-            id=osp_id,
-            operatingsystem=1,
-        ).read_json()
-        self.assertEqual(attrs['name'], name)
-        self.assertEqual(attrs['value'], value)
+        ).create()
+        self.assertEqual(os_param.name, name)
+        self.assertEqual(os_param.value, value)
 
 
 @run_only_on('sat')
@@ -65,13 +60,10 @@ class OSTestCase(APITestCase):
         @Feature: OperatingSystem
 
         """
-        arch_id = entities.Architecture().create_json()['id']
-        os_id = entities.OperatingSystem(
-            architecture=[arch_id]
-        ).create_json()['id']
-        attrs = entities.OperatingSystem(id=os_id).read_json()
-        self.assertEqual(len(attrs['architectures']), 1)
-        self.assertEqual(attrs['architectures'][0]['id'], arch_id)
+        arch = entities.Architecture().create()
+        operating_sys = entities.OperatingSystem(architecture=[arch]).create()
+        self.assertEqual(len(operating_sys.architecture), 1)
+        self.assertEqual(operating_sys.architecture[0].id, arch.id)
 
     def test_point_to_ptable(self):
         """@Test: Create an operating system that points at a partition table.
@@ -82,14 +74,12 @@ class OSTestCase(APITestCase):
         @Feature: OperatingSystem
 
         """
-        ptable_id = entities.PartitionTable().create_json()['id']
-        os_id = entities.OperatingSystem(
-            ptable=[ptable_id]
-        ).create_json()['id']
-        attrs = entities.OperatingSystem(id=os_id).read_json()
-        self.assertEqual(len(attrs['ptables']), 1)
-        self.assertEqual(attrs['ptables'][0]['id'], ptable_id)
+        ptable = entities.PartitionTable().create()
+        operating_sys = entities.OperatingSystem(ptable=[ptable]).create()
+        self.assertEqual(len(operating_sys.ptable), 1)
+        self.assertEqual(operating_sys.ptable[0].id, ptable.id)
 
+    @skip_if_bug_open('bugzilla', 1230902)
     def test_create_with_minor(self):
         """@Test: Create an operating system with an integer minor version.
 
@@ -101,8 +91,5 @@ class OSTestCase(APITestCase):
 
         """
         minor = gen_integer(0, 9999999999999999)  # max len: 16 chars
-        os_id = entities.OperatingSystem(minor=minor).create_json()['id']
-        self.assertEqual(
-            entities.OperatingSystem(id=os_id).read().minor,
-            str(minor),
-        )
+        operating_sys = entities.OperatingSystem(minor=minor).create()
+        self.assertEqual(operating_sys.minor, str(minor))

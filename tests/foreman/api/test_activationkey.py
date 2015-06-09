@@ -8,7 +8,6 @@ from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 @ddt
@@ -24,11 +23,9 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        try:
-            attrs = entities.ActivationKey().create_json()
-        except HTTPError as err:
-            self.fail(err)
-        self.assertTrue(attrs['unlimited_content_hosts'])
+        self.assertTrue(
+            entities.ActivationKey().create().unlimited_content_hosts
+        )
 
     @data(
         gen_integer(min_value=1, max_value=20),
@@ -42,26 +39,12 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        try:
-            attrs = entities.ActivationKey(
-                unlimited_content_hosts=False,
-                max_content_hosts=max_content_hosts,
-            ).create_json()
-        except HTTPError as err:
-            self.fail(err)
-        # Assert that it defaults to limited content host...
-        self.assertFalse(
-            attrs['unlimited_content_hosts'],
-            u"Unlimited content hosts is {0}".format(
-                attrs['unlimited_content_hosts'])
-        )
-        # ...and matches value passed
-        self.assertEqual(
-            attrs['max_content_hosts'],
-            max_content_hosts,
-            u"Max content hosts values don't match: {0} != {1}".format(
-                attrs['max_content_hosts'], max_content_hosts)
-        )
+        act_key = entities.ActivationKey(
+            max_content_hosts=max_content_hosts,
+            unlimited_content_hosts=False,
+        ).create()
+        self.assertEqual(act_key.max_content_hosts, max_content_hosts)
+        self.assertFalse(act_key.unlimited_content_hosts)
 
     @data(
         gen_string(str_type='alpha'),
@@ -77,18 +60,9 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        try:
-            attrs = entities.ActivationKey(name=name).create_json()
-        except HTTPError as err:
-            self.fail(err)
-
-        # Fetch the activation key. Assert that initial values match.
-        real_attrs = entities.ActivationKey(id=attrs['id']).read_json()
         self.assertEqual(
-            real_attrs['name'],
+            entities.ActivationKey(name=name).create().name,
             name,
-            u"Initial attribute values mismatch: {0} != {1}".format(
-                real_attrs['name'], name)
         )
 
     @data(
@@ -105,16 +79,8 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        try:
-            entity_id = entities.ActivationKey(
-                description=description
-            ).create_json()['id']
-        except HTTPError as err:
-            self.fail(err)
-
-        # Fetch the activation key. Assert that initial values match.
-        attrs = entities.ActivationKey(id=entity_id).read_json()
-        self.assertEqual(attrs['description'], description)
+        act_key = entities.ActivationKey(description=description).create()
+        self.assertEqual(act_key.description, description)
 
     def test_negative_create_1(self):
         """@Test: Create activation key with limited content hosts but no limit
@@ -126,7 +92,7 @@ class ActivationKeysTestCase(APITestCase):
 
         """
         with self.assertRaises(HTTPError):
-            entities.ActivationKey(unlimited_content_hosts=False).create_json()
+            entities.ActivationKey(unlimited_content_hosts=False).create()
 
     @data(
         gen_string(str_type='alpha'),
@@ -144,9 +110,9 @@ class ActivationKeysTestCase(APITestCase):
         """
         with self.assertRaises(HTTPError):
             entities.ActivationKey(
+                max_content_hosts=max_content_hosts,
                 unlimited_content_hosts=False,
-                max_content_hosts=max_content_hosts
-            ).create_json()
+            ).create()
 
     @skip_if_bug_open('bugzilla', 1156555)
     @data(
@@ -165,9 +131,9 @@ class ActivationKeysTestCase(APITestCase):
         """
         with self.assertRaises(HTTPError):
             entities.ActivationKey(
+                max_content_hosts=max_content_hosts,
                 unlimited_content_hosts=True,
-                max_content_hosts=max_content_hosts
-            ).create_json()
+            ).create()
 
     @data(
         gen_integer(min_value=1, max_value=30),
@@ -182,30 +148,16 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        # Create an activation key.
-        try:
-            activation_key = entities.ActivationKey().create()
-        except HTTPError as err:
-            self.fail(err)
-
-        # Update the activation key.
-        description = activation_key.get_fields()['description'].gen_value()
-        client.put(
-            activation_key.path(),
-            {
-                'description': description,
-                'max_content_hosts': max_content_hosts,
-                'unlimited_content_hosts': False,
-            },
-            auth=get_server_credentials(),
-            verify=False,
-        ).raise_for_status()
-
-        # Fetch the activation key. Assert that values have been updated.
-        activation_key = activation_key.read()
-        self.assertEqual(activation_key.description, description)
-        self.assertEqual(activation_key.max_content_hosts, max_content_hosts)
-        self.assertFalse(activation_key.unlimited_content_hosts)
+        # Create and update an activation key.
+        act_key = entities.ActivationKey().create()
+        attrs = {
+            'description': act_key.get_fields()['description'].gen_value(),
+            'max_content_hosts': max_content_hosts,
+            'unlimited_content_hosts': False,
+        }
+        act_key = entities.ActivationKey(id=act_key.id, **attrs).update()
+        for field_name, field_value in attrs.items():
+            self.assertEqual(getattr(act_key, field_name), field_value)
 
     @data(
         gen_string(str_type='alpha'),
@@ -217,6 +169,7 @@ class ActivationKeysTestCase(APITestCase):
         """@Test: Create activation key then update its limit to invalid value.
 
         @Assert:
+
         1. Activation key is created
         2. Update fails
         3. Record is not changed
@@ -224,37 +177,17 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        try:
-            attrs = entities.ActivationKey().create_json()
-        except HTTPError as err:
-            self.fail(err)
-        activationkey = entities.ActivationKey(id=attrs['id'])
-
-        # Update the activation key with semantically incorrect values.
-        response = client.put(
-            activationkey.path(),
-            {
-                u'unlimited_content_hosts': False,
-                u'max_content_hosts': max_content_hosts
-            },
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        self.assertEqual(
-            response.status_code,
-            httplib.UNPROCESSABLE_ENTITY,
-            status_code_error(
-                activationkey.path(),
-                httplib.UNPROCESSABLE_ENTITY,
-                response
-            ),
-        )
-
-        # Make sure no attributes have changed.
-        new_attrs = activationkey.read_json()
-        for attr in ('unlimited_content_hosts', 'max_content_hosts'):
-            self.assertEqual(attrs[attr], new_attrs[attr])
-        self.assertTrue(new_attrs['unlimited_content_hosts'])
+        act_key = entities.ActivationKey().create()
+        self.assertTrue(act_key.unlimited_content_hosts)
+        with self.assertRaises(HTTPError):
+            entities.ActivationKey(
+                id=act_key.id,
+                max_content_hosts=max_content_hosts,
+                unlimited_content_hosts=False,
+            ).update(['max_content_hosts', 'unlimited_content_hosts'])
+        act_key_2 = act_key.read()
+        for attr in ('max_content_hosts', 'unlimited_content_hosts'):
+            self.assertEqual(getattr(act_key, attr), getattr(act_key_2, attr))
 
     def test_update_max_content_hosts(self):
         """@Test: Create an activation key with ``max_content_hosts == 1``,
@@ -265,25 +198,13 @@ class ActivationKeysTestCase(APITestCase):
         @Assert: The update fails with an HTTP 422 return code.
 
         """
-        attrs = entities.ActivationKey(max_content_hosts=1).create_json()
-        path = entities.ActivationKey(id=attrs['id']).path()
-        new_attrs = attrs.copy()
-        new_attrs['max_content_hosts'] = 'foo'
-        response = client.put(
-            path,
-            new_attrs,
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        self.assertEqual(
-            response.status_code,
-            httplib.UNPROCESSABLE_ENTITY,
-            status_code_error(path, httplib.UNPROCESSABLE_ENTITY, response),
-        )
-
-        # Status code is OK. Was `max_content_hosts` changed, or is it still 1?
-        response = entities.ActivationKey(id=attrs['id']).read_json()
-        self.assertEqual(response['max_content_hosts'], 1)
+        act_key = entities.ActivationKey(max_content_hosts=1).create()
+        with self.assertRaises(HTTPError):
+            entities.ActivationKey(
+                id=act_key.id,
+                max_content_hosts='foo',
+            ).update(['max_content_hosts'])
+        self.assertEqual(act_key.read().max_content_hosts, 1)
 
     def test_get_releases_status_code(self):
         """@Test: Get an activation key's releases. Check response format.
@@ -293,11 +214,8 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        try:
-            attrs = entities.ActivationKey().create_json()
-        except HTTPError as err:
-            self.fail(err)
-        path = entities.ActivationKey(id=attrs['id']).path(which='releases')
+        act_key = entities.ActivationKey().create()
+        path = act_key.path('releases')
         response = client.get(
             path,
             auth=get_server_credentials(),
@@ -319,12 +237,9 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        try:
-            attrs = entities.ActivationKey().create_json()
-        except HTTPError as err:
-            self.fail(err)
+        act_key = entities.ActivationKey().create()
         response = client.get(
-            entities.ActivationKey(id=attrs['id']).path(which='releases'),
+            act_key.path('releases'),
             auth=get_server_credentials(),
             verify=False,
         ).json()
@@ -335,75 +250,40 @@ class ActivationKeysTestCase(APITestCase):
         """@Test: Associate an activation key with several host collections.
 
         @Assert:
+
         1. By default, an activation key is associated with no host
-        collections.
+           collections.
         2. After associating an activation key with some set of host
-        collections and reading that activation key, the correct host
-        collections are listed.
+           collections and reading that activation key, the correct host
+           collections are listed.
 
         @Feature: ActivationKey
 
         """
-        # Let's create an organization and re-use it in several places. Doing
-        # so will speed up this test.
-        org = entities.Organization().create_json()
+        org = entities.Organization().create()  # re-use this to speed up test
 
-        # By default, an activation key should have no host collections.
-        act_key = entities.ActivationKey(organization=org['id']).create_json()
-        self.assertEqual(act_key['host_collections'], [])
+        # An activation key has no host collections by default.
+        act_key = entities.ActivationKey(organization=org).create()
+        self.assertEqual(len(act_key.host_collection), 0)
 
-        # Associate our activation key with one host collection.
-        host_coll_1 = entities.HostCollection(
-            organization=org['id']
-        ).create_json()
-        client.put(
-            entities.ActivationKey(id=act_key['id']).path(),
-            verify=False,
-            auth=get_server_credentials(),
-            data={u'host_collection_ids': [host_coll_1['id']]},
+        # Give activation key one host collection.
+        act_key.host_collection.append(
+            entities.HostCollection(organization=org).create()
         )
+        act_key = act_key.update(['host_collection'])
+        self.assertEqual(len(act_key.host_collection), 1)
 
-        # Verify that the association succeeded.
-        act_key = entities.ActivationKey(id=act_key['id']).read_json()
-        self.assertEqual(len(act_key['host_collections']), 1)
-        self.assertEqual(
-            act_key['host_collections'][0]['id'],
-            host_coll_1['id'],
+        # Give activation key second host collection.
+        act_key.host_collection.append(
+            entities.HostCollection(organization=org).create()
         )
+        act_key = act_key.update(['host_collection'])
+        self.assertEqual(len(act_key.host_collection), 2)
 
-        # Associate our activation key with two host collections.
-        host_coll_2 = entities.HostCollection(
-            organization=org['id']
-        ).create_json()
-        client.put(
-            entities.ActivationKey(id=act_key['id']).path(),
-            verify=False,
-            auth=get_server_credentials(),
-            data={
-                u'host_collection_ids': [host_coll_1['id'], host_coll_2['id']]
-            },
-        )
-
-        # Verify that the association succeeded.
-        act_key = entities.ActivationKey(id=act_key['id']).read_json()
-        self.assertEqual(len(act_key['host_collections']), 2)
-        for host_coll in act_key['host_collections']:
-            self.assertIn(
-                host_coll['id'],
-                (host_coll_1['id'], host_coll_2['id'])
-            )
-
-        # Finally, associate our activation key with zero host collections.
-        client.put(
-            entities.ActivationKey(id=act_key['id']).path(),
-            verify=False,
-            auth=get_server_credentials(),
-            data={u'host_collection_ids': []},
-        )
-
-        # Verify that the association succeeded.
-        act_key = entities.ActivationKey(id=act_key['id']).read_json()
-        self.assertEqual(act_key['host_collections'], [])
+        # Give activation key zero host collections.
+        act_key.host_collection = []
+        act_key = act_key.update(['host_collection'])
+        self.assertEqual(len(act_key.host_collection), 0)
 
     def test_update_auto_attach(self):
         """@Test: Create an activation key, then update the auto_attach
@@ -411,22 +291,12 @@ class ActivationKeysTestCase(APITestCase):
 
         @Feature: ActivationKey
 
-        @Assert:
-        1. The update succeeds with an HTTP 200 return code.
-        2. The value was changed.
+        @Assert: The value is changed.
 
         """
-        attrs = entities.ActivationKey().create_json()
-        activation_key = entities.ActivationKey(id=attrs['id'])
-        client.put(
-            activation_key.path(),
-            {'auto_attach': not attrs['auto_attach']},
-            auth=get_server_credentials(),
-            verify=False,
-        ).raise_for_status()
-
-        # Status code is OK. Was `auto_attach` changed?
-        self.assertNotEqual(
-            activation_key.read_json()['auto_attach'],
-            attrs['auto_attach'],
-        )
+        act_key = entities.ActivationKey().create()
+        act_key_2 = entities.ActivationKey(
+            id=act_key.id,
+            auto_attach=(not act_key.auto_attach),
+        ).update(['auto_attach'])
+        self.assertNotEqual(act_key.auto_attach, act_key_2.auto_attach)

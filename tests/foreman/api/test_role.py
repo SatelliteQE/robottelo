@@ -13,12 +13,10 @@ from fauxfactory import (
     gen_numeric_string,
     gen_utf8,
 )
-from nailgun import client, entities
+from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.common import decorators
-from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 @ddt.ddt
@@ -48,13 +46,7 @@ class RoleTestCase(APITestCase):
                 name_generator is gen_utf8):
             self.skipTest('Bugzilla bug 1112657 is open.')
         name = name_generator()
-        try:
-            role_id = entities.Role(name=name).create_json()['id']
-        except HTTPError as err:
-            self.fail(err)  # fail instead of error
-
-        # GET the role and verify it's name.
-        self.assertEqual(entities.Role(id=role_id).read_json()['name'], name)
+        self.assertEqual(entities.Role(name=name).create().name, name)
 
     @decorators.data(
         gen_alpha,
@@ -78,16 +70,11 @@ class RoleTestCase(APITestCase):
                 name_generator is gen_utf8):
             self.skipTest('Bugzilla bug 1112657 is open.')
         name = name_generator()
-        try:
-            role_id = entities.Role(name=name).create_json()['id']
-        except HTTPError as err:
-            self.fail(err)  # fail instead of error
-
-        # DELETE the role and verify that it cannot be fetched
-        role = entities.Role(id=role_id)
+        role = entities.Role(name=name).create()
+        self.assertEqual(role.name, name)
         role.delete()
         with self.assertRaises(HTTPError):
-            role.read_json()
+            role.read()
 
     @decorators.data(
         gen_alpha,
@@ -110,18 +97,7 @@ class RoleTestCase(APITestCase):
                 name_generator is gen_latin1 or
                 name_generator is gen_utf8):
             self.skipTest('Bugzilla bug 1112657 is open.')
-        try:
-            role_id = entities.Role().create_json()['id']
-        except HTTPError as err:
-            self.fail(err)  # fail instead of error
-
-        role = entities.Role(id=role_id)
+        role = entities.Role().create()
         name = name_generator()
-        response = client.put(
-            role.path(),
-            {u'name': name},
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        response.raise_for_status()
-        self.assertEqual(role.read_json()['name'], name)
+        role.name = name
+        self.assertEqual(role.update(['name']).name, name)

@@ -7,11 +7,17 @@ http://theforeman.org/api/apidoc/v2/filters.html
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 class FilterTestCase(APITestCase):
     """Tests for ``api/v2/filters``."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Search for config template permissions. Set ``cls.ct_perms``."""
+        cls.ct_perms = (
+            entities.Permission(resource_type='ConfigTemplate').search()
+        )
 
     def test_create_filter_with_perms(self):
         """@Test: Create a filter and assign it some permissions.
@@ -22,18 +28,13 @@ class FilterTestCase(APITestCase):
 
         """
         # Create a filter and assign all ConfigTemplate permissions to it.
-        ct_perms = entities.Permission(resource_type='ConfigTemplate').search()
-        filter_id = entities.Filter(
-            permission=[
-                permission['id']
-                for permission
-                in ct_perms
-            ]
-        ).create_json()['id']
-
-        # Find all permissions assigned to filter `filter_id`.
-        filter_perms = entities.Filter(id=filter_id).read_json()['permissions']
-        self.assertListEqual(ct_perms, filter_perms)
+        filter_ = entities.Filter(
+            permission=[permission['id'] for permission in self.ct_perms]
+        ).create()
+        self.assertListEqual(
+            [perm.id for perm in filter_.permission],
+            [perm['id'] for perm in self.ct_perms],
+        )
 
     def test_directly_delete_filter(self):
         """@Test: Create a filter and delete it.
@@ -43,16 +44,12 @@ class FilterTestCase(APITestCase):
         @Feature: Filter
 
         """
-        filter_ = entities.Filter(id=entities.Filter(
-            permission=[
-                permission['id']
-                for permission
-                in entities.Permission(resource_type='ConfigTemplate').search()
-            ],
-        ).create_json()['id'])
+        filter_ = entities.Filter(
+            permission=[permission['id'] for permission in self.ct_perms],
+        ).create()
         filter_.delete()
         with self.assertRaises(HTTPError):
-            filter_.read_json()
+            filter_.read()
 
     def test_implicitly_delete_filter(self):
         """@Test: Create a filter and delete the role it points at.
@@ -62,17 +59,16 @@ class FilterTestCase(APITestCase):
         @Feature: Filter
 
         """
-        role = entities.Role(id=entities.Role().create_json()['id'])
-        ct_perms = entities.Permission(resource_type='ConfigTemplate').search()
-        filter_ = entities.Filter(id=entities.Filter(
-            permission=[permission['id'] for permission in ct_perms],
-            role=role.id,
-        ).create_json()['id'])
+        role = entities.Role().create()
+        filter_ = entities.Filter(
+            permission=[permission['id'] for permission in self.ct_perms],
+            role=role,
+        ).create()
 
         # A filter depends on a role. Deleting a role implicitly deletes the
         # filter pointing at it.
         role.delete()
         with self.assertRaises(HTTPError):
-            role.read_json()
+            role.read()
         with self.assertRaises(HTTPError):
-            filter_.read_json()
+            filter_.read()

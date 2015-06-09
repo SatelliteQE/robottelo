@@ -2,7 +2,6 @@
 from nailgun import entities
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 class HostCollectionTestCase(APITestCase):
@@ -11,9 +10,9 @@ class HostCollectionTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create systems that can be shared by tests."""
-        cls.org_id = entities.Organization().create_json()['id']
-        cls.system_uuids = [
-            entities.System(organization=cls.org_id).create_json()['id']
+        cls.org = entities.Organization().create()
+        cls.systems = [
+            entities.System(organization=cls.org).create()
             for _
             in range(2)
         ]
@@ -27,14 +26,11 @@ class HostCollectionTestCase(APITestCase):
         content host.
 
         """
-        hc_id = entities.HostCollection(
-            organization=self.org_id,
-            system=[self.system_uuids[0]],
-        ).create_json()['id']
-        self.assertEqual(
-            len(entities.HostCollection(id=hc_id).read().system),
-            1
-        )
+        host_collection = entities.HostCollection(
+            organization=self.org,
+            system=[self.systems[0]],
+        ).create()
+        self.assertEqual(len(host_collection.system), 1)
 
     def test_create_with_systems(self):
         """@Test: Create a host collection that contains content hosts.
@@ -45,14 +41,11 @@ class HostCollectionTestCase(APITestCase):
         content hosts.
 
         """
-        hc_id = entities.HostCollection(
-            organization=self.org_id,
-            system=self.system_uuids,
-        ).create_json()['id']
-        self.assertEqual(
-            len(entities.HostCollection(id=hc_id).read().system),
-            len(self.system_uuids),
-        )
+        host_collection = entities.HostCollection(
+            organization=self.org,
+            system=self.systems,
+        ).create()
+        self.assertEqual(len(host_collection.system), len(self.systems))
 
     @skip_if_bug_open('bugzilla', 1203323)
     def test_read_system_ids(self):
@@ -64,12 +57,11 @@ class HostCollectionTestCase(APITestCase):
         creating the host collection.
 
         """
-        hc_id = entities.HostCollection(
-            organization=self.org_id,
-            system=self.system_uuids,
-        ).create_json()['id']
-        hc_attrs = entities.HostCollection(id=hc_id).read_json()
+        host_collection = entities.HostCollection(
+            organization=self.org,
+            system=self.systems,
+        ).create()
         self.assertEqual(
-            frozenset(hc_attrs['system_ids']),
-            frozenset(self.system_uuids),
+            frozenset((system.id for system in host_collection.system)),
+            frozenset((system.id for system in self.systems)),
         )

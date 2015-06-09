@@ -3,7 +3,6 @@
 from fauxfactory import gen_string
 from nailgun import client, entities
 from robottelo.api import utils
-from robottelo.api.utils import status_code_error
 from robottelo.common.constants import (
     DEFAULT_LOC,
     DEFAULT_ORG,
@@ -950,7 +949,7 @@ class TestSmoke(TestCase):
 
         # step 2.14: Create a new hostgroup and associate previous entities to
         # it
-        host_group = entities.HostGroup(
+        entities.HostGroup(
             server_config,
             domain=domain,
             subnet=subnet
@@ -1026,29 +1025,23 @@ class TestSmoke(TestCase):
         manifest_path = manifests.clone()
         org.upload_manifest(path=manifest_path)
         # step 3.1: Enable RH repo and fetch repository_id
-        repo_id = utils.enable_rhrepo_and_fetchid(
+        repository = entities.Repository(id=utils.enable_rhrepo_and_fetchid(
             basearch="x86_64",
             org_id=org.id,
             product=product,
             repo=repo,
             reposet=reposet,
             releasever="6Server",
-        )
+        ))
         # step 3.2: sync repository
-        entities.Repository(id=repo_id).sync()
+        repository.sync()
 
         # step 4: Create content view
-        content_view = entities.ContentView(
-            organization=org.id
-        ).create()
+        content_view = entities.ContentView(organization=org).create()
+
         # step 5: Associate repository to new content view
-        response = client.put(
-            entities.ContentView(id=content_view.id).path(),
-            {u'repository_ids': [repo_id]},
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        response.raise_for_status()
+        content_view.repository = [repository]
+        content_view = content_view.update(['repository'])
 
         # step 6.1: Publish content view
         content_view.publish()

@@ -8,7 +8,6 @@ import httplib
 from nailgun import client
 from robottelo.common.helpers import get_server_credentials, get_server_url
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 class RHSMTestCase(APITestCase):
