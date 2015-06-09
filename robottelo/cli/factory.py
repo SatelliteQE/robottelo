@@ -628,26 +628,28 @@ def make_subnet(options=None):
 
     Options::
 
+        --boot-mode BOOT_MODE         Default boot mode for interfaces assigned
+                                      to this subnet, valid values are
+                                      "Static", "DHCP"
         --dhcp-id DHCP_ID             DHCP Proxy to use within this subnet
         --dns-id DNS_ID               DNS Proxy to use within this subnet
         --dns-primary DNS_PRIMARY     Primary DNS for this subnet
-        --dns-secondary DNS_SECONDARY Secondary DNS for this subnet suggestion
-        --domain-ids DOMAIN_IDS       Domains in which this subnet is part
-                                      Comma separated list of values.
+        --dns-secondary DNS_SECONDARY Secondary DNS for this subnet
+        --domain-ids DOMAIN_IDS       Numerical ID or domain name
+        --domains DOMAIN_NAMES        Comma separated list of values.
         --from FROM                   Starting IP Address for IP auto
+                                      suggestion
         --gateway GATEWAY             Primary DNS for this subnet
         --ipam IPAM                   IP Address auto suggestion mode for this
                                       subnet, valid values are
                                       'DHCP', 'Internal DB', 'None'
-        --location-ids LOCATION_IDS   REPLACE locations with given ids
-                                      Comma separated list of values.
-
+        --location-ids LOCATION_IDS
+        --locations LOCATION_NAMES    Comma separated list of values.
         --mask MASK                   Netmask for this subnet
         --name NAME                   Subnet name
         --network NETWORK             Subnet network
-        --organization-ids ORGANIZATION_IDS REPLACE organizations with given
-                                            ids. Comma separated list of values
-
+        --organization-ids ORGANIZATION_IDS organization ID
+        --organizations ORGANIZATION_NAMES Comma separated list of values.
         --tftp-id TFTP_ID             TFTP Proxy to use within this subnet
         --to TO                       Ending IP Address for IP auto suggestion
         --vlanid VLANID               VLAN ID for this subnet
@@ -655,19 +657,23 @@ def make_subnet(options=None):
 
     """
     args = {
+        u'boot-mode': None,
         u'dhcp-id': None,
         u'dns-id': None,
         u'dns-primary': None,
         u'dns-secondary': None,
         u'domain-ids': None,
+        u'domains': None,
         u'from': None,
         u'gateway': None,
         u'ipam': None,
         u'location-ids': None,
+        u'locations': None,
         u'mask': gen_netmask(),
         u'name': gen_alphanumeric(8),
         u'network': gen_ipaddr(ip3=True),
         u'organization-ids': None,
+        u'organizations': None,
         u'tftp-id': None,
         u'to': None,
         u'vlanid': None,

@@ -13,6 +13,7 @@ from robottelo.common.decorators import (
     skip_if_bug_open,
 )
 from robottelo.test import CLITestCase
+import random
 import re
 
 
@@ -88,6 +89,26 @@ class TestSubnet(CLITestCase):
         except CLIFactoryError as err:
             self.fail(err)
         self.assertIn(domain['name'], subnet['domains'])
+
+    def test_create_subnet_with_multiple_domains(self):
+        """@Test: Check if subnet with different amount of domains can be
+        created in the system
+
+        @Feature: Subnet - Positive create
+
+        @Assert: Subnet is created and has new domains assigned
+
+        """
+        try:
+            domains_amount = random.randint(3, 5)
+            domains = [make_domain() for _ in range(domains_amount)]
+            domain_ids = ','.join(domain['id'] for domain in domains)
+            subnet = make_subnet({'domain-ids': str(domain_ids)})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertEqual(len(subnet['domains']), domains_amount)
+        for domain in domains:
+            self.assertIn(domain['name'], subnet['domains'])
 
     def test_create_subnet_with_gateway(self):
         """@Test: Check if subnet with gateway can be created
