@@ -984,7 +984,7 @@
               "value": "NAME"
             },
             {
-              "help": "Operating system IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "operatingsystem-ids",
               "shortname": null,
               "value": "OPERATINGSYSTEM_IDS"
@@ -1163,7 +1163,7 @@
               "value": "NEW_NAME"
             },
             {
-              "help": "Operating system IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "operatingsystem-ids",
               "shortname": null,
               "value": "OPERATINGSYSTEM_IDS"
@@ -1957,7 +1957,7 @@
               "value": "DESCRIPTION"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -1975,7 +1975,7 @@
               "value": "NAME"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -2545,7 +2545,7 @@
               "value": "ID"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -2569,7 +2569,7 @@
               "value": "NEW_NAME"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -2741,7 +2741,7 @@
               "value": "GUEST_IDS"
             },
             {
-              "help": "Specify the host collections as an array Comma separated list of values.",
+              "help": "Id of the host collection Comma separated list of values.",
               "name": "host-collection-ids",
               "shortname": null,
               "value": "HOST_COLLECTION_IDS"
@@ -2991,6 +2991,18 @@
                   "value": "BY"
                 },
                 {
+                  "help": "Name to search by",
+                  "name": "content-host",
+                  "shortname": null,
+                  "value": "CONTENT_HOST_NAME"
+                },
+                {
+                  "help": "UUID of the content host",
+                  "name": "content-host-id",
+                  "shortname": null,
+                  "value": "CONTENT_HOST_ID"
+                },
+                {
                   "help": "Content view name",
                   "name": "content-view",
                   "shortname": null,
@@ -3019,18 +3031,6 @@
                   "name": "full-results",
                   "shortname": null,
                   "value": "FULL_RESULTS"
-                },
-                {
-                  "help": "UUID of the content host",
-                  "name": "id",
-                  "shortname": null,
-                  "value": "ID"
-                },
-                {
-                  "help": "Name to search by",
-                  "name": "name",
-                  "shortname": null,
-                  "value": "NAME"
                 },
                 {
                   "help": "Sort field and order, eg. 'name DESC'",
@@ -3673,7 +3673,7 @@
               "value": "GUEST_IDS"
             },
             {
-              "help": "Specify the host collections as an array Comma separated list of values.",
+              "help": "Id of the host collection Comma separated list of values.",
               "name": "host-collection-ids",
               "shortname": null,
               "value": "HOST_COLLECTION_IDS"
@@ -4060,7 +4060,7 @@
               "value": "ID"
             },
             {
-              "help": "Content view name",
+              "help": "content view name",
               "name": "name",
               "shortname": null,
               "value": "NAME"
@@ -4151,7 +4151,7 @@
               "value": "REPOSITORY_NAMES"
             },
             {
-              "help": "List of repository ids Comma separated list of values.",
+              "help": "repository ID Comma separated list of values.",
               "name": "repository-ids",
               "shortname": null,
               "value": "REPOSITORY_IDS"
@@ -4370,7 +4370,7 @@
                   "value": "REPOSITORY_NAMES"
                 },
                 {
-                  "help": "list of repository ids Comma separated list of values.",
+                  "help": "repository ID Comma separated list of values.",
                   "name": "repository-ids",
                   "shortname": null,
                   "value": "REPOSITORY_IDS"
@@ -5126,7 +5126,7 @@
                   "value": "REPOSITORY_NAMES"
                 },
                 {
-                  "help": "list of repository ids Comma separated list of values.",
+                  "help": "repository ID Comma separated list of values.",
                   "name": "repository-ids",
                   "shortname": null,
                   "value": "REPOSITORY_IDS"
@@ -5794,7 +5794,7 @@
               "value": "ID"
             },
             {
-              "help": "Content view name",
+              "help": "content view name",
               "name": "name",
               "shortname": null,
               "value": "NAME"
@@ -5885,7 +5885,7 @@
               "value": "REPOSITORY_NAMES"
             },
             {
-              "help": "List of repository ids Comma separated list of values.",
+              "help": "repository ID Comma separated list of values.",
               "name": "repository-ids",
               "shortname": null,
               "value": "REPOSITORY_IDS"
@@ -5922,6 +5922,18 @@
                   "value": null
                 },
                 {
+                  "help": "Content view name",
+                  "name": "content-view",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_NAME"
+                },
+                {
+                  "help": "content view numeric identifier",
+                  "name": "content-view-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_ID"
+                },
+                {
                   "help": "Name to search by",
                   "name": "environment",
                   "shortname": null,
@@ -5938,6 +5950,24 @@
                   "name": "id",
                   "shortname": null,
                   "value": "ID"
+                },
+                {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
                 },
                 {
                   "help": "Content view version number",
@@ -6019,7 +6049,7 @@
                   "value": "IDS"
                 },
                 {
-                  "help": "Package uuids to copy into the new versions. Comma separated list of values.",
+                  "help": "a package identifier Comma separated list of values.",
                   "name": "package-ids",
                   "shortname": null,
                   "value": "PACKAGE_IDS"
@@ -6037,7 +6067,7 @@
                   "value": "PROPAGATE_ALL_COMPOSITES"
                 },
                 {
-                  "help": "Puppet Modules to copy into the new versions. Comma separated list of values.",
+                  "help": "a puppet module identifier Comma separated list of values.",
                   "name": "puppet-module-ids",
                   "shortname": null,
                   "value": "PUPPET_MODULE_IDS"
@@ -6080,6 +6110,18 @@
               "name": "info",
               "options": [
                 {
+                  "help": "Content view name",
+                  "name": "content-view",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_NAME"
+                },
+                {
+                  "help": "content view numeric identifier",
+                  "name": "content-view-id",
+                  "shortname": null,
+                  "value": "CONTENT_VIEW_ID"
+                },
+                {
                   "help": "Name to search by",
                   "name": "environment",
                   "shortname": null,
@@ -6096,6 +6138,24 @@
                   "name": "id",
                   "shortname": null,
                   "value": "ID"
+                },
+                {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
                 },
                 {
                   "help": "Content view version number",
@@ -6116,6 +6176,12 @@
               "description": "List content view versions",
               "name": "list",
               "options": [
+                {
+                  "help": "Field to sort the results on",
+                  "name": "by",
+                  "shortname": null,
+                  "value": "BY"
+                },
                 {
                   "help": "Filter versions that are components in the specified composite version",
                   "name": "composite-version-id",
@@ -6145,6 +6211,54 @@
                   "name": "environment-id",
                   "shortname": null,
                   "value": "ENVIRONMENT_ID"
+                },
+                {
+                  "help": "Whether or not to show all results One of true/false, yes/no, 1/0.",
+                  "name": "full-results",
+                  "shortname": null,
+                  "value": "FULL_RESULTS"
+                },
+                {
+                  "help": "Sort field and order, eg. 'name DESC'",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "ORDER"
+                },
+                {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
+                },
+                {
+                  "help": "Page number, starting at 1",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "PAGE"
+                },
+                {
+                  "help": "Number of results per page to return",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "PER_PAGE"
+                },
+                {
+                  "help": "Search string",
+                  "name": "search",
+                  "shortname": null,
+                  "value": "SEARCH"
                 },
                 {
                   "help": "Filter versions by version number",
@@ -6245,7 +6359,7 @@
       ]
     },
     {
-      "description": "Discovery related actions.",
+      "description": "Manipulate discovered hosts.",
       "name": "discovery",
       "options": [
         {
@@ -7046,7 +7160,7 @@
                   "value": "ENTRYPOINT"
                 },
                 {
-                  "help": "REPLACE locations with given ids Comma separated list of values.",
+                  "help": "Comma separated list of values.",
                   "name": "location-ids",
                   "shortname": null,
                   "value": "LOCATION_IDS"
@@ -7070,7 +7184,7 @@
                   "value": "NAME"
                 },
                 {
-                  "help": "REPLACE organizations with given ids. Comma separated list of values.",
+                  "help": "organization ID Comma separated list of values.",
                   "name": "organization-ids",
                   "shortname": null,
                   "value": "ORGANIZATION_IDS"
@@ -7822,7 +7936,7 @@
               "value": "DNS_ID"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -7840,7 +7954,7 @@
               "value": "NAME"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -8080,7 +8194,7 @@
               "value": "ID"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -8104,7 +8218,7 @@
               "value": "NEW_NAME"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -8143,7 +8257,7 @@
           "name": "create",
           "options": [
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -8161,7 +8275,7 @@
               "value": "NAME"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -8412,7 +8526,7 @@
               "value": "ID"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -8436,7 +8550,7 @@
               "value": "NEW_NAME"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -8796,7 +8910,7 @@
               "value": "LOCATION_NAMES"
             },
             {
-              "help": "Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -8944,7 +9058,7 @@
               "value": "LOCATION_NAMES"
             },
             {
-              "help": "Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -9937,16 +10051,40 @@
           "name": "puppet-classes",
           "options": [
             {
+              "help": "Environment name [DEPRECATED]",
+              "name": "environment",
+              "shortname": null,
+              "value": "ENVIRONMENT"
+            },
+            {
+              "help": "Environment Id [DEPRECATED]",
+              "name": "environment-id",
+              "shortname": null,
+              "value": "ENVIRONMENT_ID"
+            },
+            {
               "help": "Host name",
               "name": "host",
               "shortname": null,
-              "value": "HOST_NAME"
+              "value": "HOST"
             },
             {
               "help": "",
               "name": "host-id",
               "shortname": null,
               "value": "HOST_ID"
+            },
+            {
+              "help": "Hostgroup name [DEPRECATED]",
+              "name": "hostgroup",
+              "shortname": null,
+              "value": "HOSTGROUP"
+            },
+            {
+              "help": "Hostgroup Id [DEPRECATED]",
+              "name": "hostgroup-id",
+              "shortname": null,
+              "value": "HOSTGROUP_ID"
             },
             {
               "help": "sort results",
@@ -10669,7 +10807,7 @@
           "name": "add-content-host",
           "options": [
             {
-              "help": "Array of content host ids Comma separated list of values.",
+              "help": "UUID of the content host Comma separated list of values.",
               "name": "content-host-ids",
               "shortname": null,
               "value": "CONTENT_HOST_IDS"
@@ -10810,7 +10948,7 @@
           "name": "create",
           "options": [
             {
-              "help": "List of content host uuids to be in the host collection Comma separated list of values.",
+              "help": "UUID of the content host Comma separated list of values.",
               "name": "content-host-ids",
               "shortname": null,
               "value": "CONTENT_HOST_IDS"
@@ -11451,7 +11589,7 @@
           "name": "remove-content-host",
           "options": [
             {
-              "help": "Array of content host ids Comma separated list of values.",
+              "help": "UUID of the content host Comma separated list of values.",
               "name": "content-host-ids",
               "shortname": null,
               "value": "CONTENT_HOST_IDS"
@@ -11506,7 +11644,7 @@
           "name": "update",
           "options": [
             {
-              "help": "List of content host uuids to be in the host collection Comma separated list of values.",
+              "help": "UUID of the content host Comma separated list of values.",
               "name": "content-host-ids",
               "shortname": null,
               "value": "CONTENT_HOST_IDS"
@@ -11671,7 +11809,7 @@
               "value": "LIFECYCLE_ENVIRONMENT_ID"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -11713,7 +11851,7 @@
               "value": "OPERATINGSYSTEM_ID"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -11976,6 +12114,30 @@
           "name": "puppet-classes",
           "options": [
             {
+              "help": "Environment name [DEPRECATED]",
+              "name": "environment",
+              "shortname": null,
+              "value": "ENVIRONMENT"
+            },
+            {
+              "help": "Environment Id [DEPRECATED]",
+              "name": "environment-id",
+              "shortname": null,
+              "value": "ENVIRONMENT_ID"
+            },
+            {
+              "help": "Host name [DEPRECATED]",
+              "name": "host",
+              "shortname": null,
+              "value": "HOST"
+            },
+            {
+              "help": "Host Id [DEPRECATED]",
+              "name": "host-id",
+              "shortname": null,
+              "value": "HOST_ID"
+            },
+            {
               "help": "Hostgroup name",
               "name": "hostgroup",
               "shortname": null,
@@ -12231,7 +12393,7 @@
               "value": "LIFECYCLE_ENVIRONMENT_ID"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -12279,7 +12441,7 @@
               "value": "OPERATINGSYSTEM_ID"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -13034,7 +13196,7 @@
               "value": "RECOVER"
             },
             {
-              "help": "JSON file mapping channel-labels to repository information Default: \"/usr/share/gems/gems/hammer_cli_import-0.10.6.3/channel_data_pretty.json\"",
+              "help": "JSON file mapping channel-labels to repository information Default: \"/usr/share/gems/gems/hammer_cli_import-0.10.16/channel_data_pretty.json\"",
               "name": "repository-map",
               "shortname": null,
               "value": "FILE_NAME"
@@ -13261,12 +13423,6 @@
               "value": "PRIOR_ID"
             },
             {
-              "help": "ID of an environment that is prior to the new environment in the chain. It has to be either the ID of Library or the ID of an environment at the end of a chain.",
-              "name": "prior",
-              "shortname": null,
-              "value": "PRIOR"
-            },
-            {
               "help": "print help",
               "name": "help",
               "shortname": "h",
@@ -13488,13 +13644,7 @@
               "value": "ORGANIZATION_LABEL"
             },
             {
-              "help": "ID of an environment that is prior to the new environment in the chain. It has to be either the ID of Library or the ID of an environment at the end of a chain.",
-              "name": "prior",
-              "shortname": null,
-              "value": "PRIOR"
-            },
-            {
-              "help": "Name of the prior enviroment",
+              "help": "ID of an environment that is prior to the new environment in the chain. It has to be either the ID of Library or the ID of an environment at the end of a chain. This param exists for backwards compatibility purposes. Please use prior_id.",
               "name": "prior",
               "shortname": null,
               "value": "PRIOR"
@@ -13903,7 +14053,7 @@
           "name": "create",
           "options": [
             {
-              "help": "Compute resource IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "compute-resource-ids",
               "shortname": null,
               "value": "COMPUTE_RESOURCE_IDS"
@@ -13915,7 +14065,7 @@
               "value": "COMPUTE_RESOURCE_NAMES"
             },
             {
-              "help": "Provisioning template IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "config-template-ids",
               "shortname": null,
               "value": "CONFIG_TEMPLATE_IDS"
@@ -13933,7 +14083,7 @@
               "value": "DESCRIPTION"
             },
             {
-              "help": "Domain IDs Comma separated list of values.",
+              "help": "Numerical ID or domain name Comma separated list of values.",
               "name": "domain-ids",
               "shortname": null,
               "value": "DOMAIN_IDS"
@@ -13945,7 +14095,7 @@
               "value": "DOMAIN_NAMES"
             },
             {
-              "help": "Environment IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "environment-ids",
               "shortname": null,
               "value": "ENVIRONMENT_IDS"
@@ -13957,7 +14107,7 @@
               "value": "ENVIRONMENT_NAMES"
             },
             {
-              "help": "Host group IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "hostgroup-ids",
               "shortname": null,
               "value": "HOSTGROUP_IDS"
@@ -13981,13 +14131,19 @@
               "value": "MEDIA_IDS"
             },
             {
+              "help": "Comma separated list of values.",
+              "name": "medium-ids",
+              "shortname": null,
+              "value": "MEDIUM_IDS"
+            },
+            {
               "help": "",
               "name": "name",
               "shortname": null,
               "value": "NAME"
             },
             {
-              "help": "Realm IDs Comma separated list of values.",
+              "help": "Numerical ID or realm name Comma separated list of values.",
               "name": "realm-ids",
               "shortname": null,
               "value": "REALM_IDS"
@@ -14005,13 +14161,13 @@
               "value": "SMART_PROXY_NAMES"
             },
             {
-              "help": "Smart proxy IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "smart-proxy-ids",
               "shortname": null,
               "value": "SMART_PROXY_IDS"
             },
             {
-              "help": "Subnet IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "subnet-ids",
               "shortname": null,
               "value": "SUBNET_IDS"
@@ -14023,7 +14179,7 @@
               "value": "SUBNET_NAMES"
             },
             {
-              "help": "User IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "user-ids",
               "shortname": null,
               "value": "USER_IDS"
@@ -14505,7 +14661,7 @@
           "name": "update",
           "options": [
             {
-              "help": "Compute resource IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "compute-resource-ids",
               "shortname": null,
               "value": "COMPUTE_RESOURCE_IDS"
@@ -14517,7 +14673,7 @@
               "value": "COMPUTE_RESOURCE_NAMES"
             },
             {
-              "help": "Provisioning template IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "config-template-ids",
               "shortname": null,
               "value": "CONFIG_TEMPLATE_IDS"
@@ -14535,7 +14691,7 @@
               "value": "DESCRIPTION"
             },
             {
-              "help": "Domain IDs Comma separated list of values.",
+              "help": "Numerical ID or domain name Comma separated list of values.",
               "name": "domain-ids",
               "shortname": null,
               "value": "DOMAIN_IDS"
@@ -14547,7 +14703,7 @@
               "value": "DOMAIN_NAMES"
             },
             {
-              "help": "Environment IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "environment-ids",
               "shortname": null,
               "value": "ENVIRONMENT_IDS"
@@ -14559,7 +14715,7 @@
               "value": "ENVIRONMENT_NAMES"
             },
             {
-              "help": "Host group IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "hostgroup-ids",
               "shortname": null,
               "value": "HOSTGROUP_IDS"
@@ -14589,6 +14745,12 @@
               "value": "MEDIA_IDS"
             },
             {
+              "help": "Comma separated list of values.",
+              "name": "medium-ids",
+              "shortname": null,
+              "value": "MEDIUM_IDS"
+            },
+            {
               "help": "",
               "name": "name",
               "shortname": null,
@@ -14601,7 +14763,7 @@
               "value": "NEW_NAME"
             },
             {
-              "help": "Realm IDs Comma separated list of values.",
+              "help": "Numerical ID or realm name Comma separated list of values.",
               "name": "realm-ids",
               "shortname": null,
               "value": "REALM_IDS"
@@ -14619,13 +14781,13 @@
               "value": "SMART_PROXY_NAMES"
             },
             {
-              "help": "Smart proxy IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "smart-proxy-ids",
               "shortname": null,
               "value": "SMART_PROXY_IDS"
             },
             {
-              "help": "Subnet IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "subnet-ids",
               "shortname": null,
               "value": "SUBNET_IDS"
@@ -14637,7 +14799,7 @@
               "value": "SUBNET_NAMES"
             },
             {
-              "help": "User IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "user-ids",
               "shortname": null,
               "value": "USER_IDS"
@@ -14713,7 +14875,7 @@
           "name": "create",
           "options": [
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -14743,7 +14905,7 @@
               "value": "OPERATINGSYSTEM_TITLES"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -14946,7 +15108,7 @@
               "value": "ID"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -14982,7 +15144,7 @@
               "value": "OPERATINGSYSTEM_TITLES"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -15553,7 +15715,7 @@
           "name": "create",
           "options": [
             {
-              "help": "Compute resource IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "compute-resource-ids",
               "shortname": null,
               "value": "COMPUTE_RESOURCE_IDS"
@@ -15565,7 +15727,7 @@
               "value": "COMPUTE_RESOURCE_NAMES"
             },
             {
-              "help": "Provisioning template IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "config-template-ids",
               "shortname": null,
               "value": "CONFIG_TEMPLATE_IDS"
@@ -15583,7 +15745,7 @@
               "value": "DESCRIPTION"
             },
             {
-              "help": "Domain IDs Comma separated list of values.",
+              "help": "Numerical ID or domain name Comma separated list of values.",
               "name": "domain-ids",
               "shortname": null,
               "value": "DOMAIN_IDS"
@@ -15595,7 +15757,7 @@
               "value": "DOMAIN_NAMES"
             },
             {
-              "help": "Environment IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "environment-ids",
               "shortname": null,
               "value": "ENVIRONMENT_IDS"
@@ -15607,7 +15769,7 @@
               "value": "ENVIRONMENT_NAMES"
             },
             {
-              "help": "Host group IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "hostgroup-ids",
               "shortname": null,
               "value": "HOSTGROUP_IDS"
@@ -15637,13 +15799,19 @@
               "value": "MEDIA_IDS"
             },
             {
+              "help": "Comma separated list of values.",
+              "name": "medium-ids",
+              "shortname": null,
+              "value": "MEDIUM_IDS"
+            },
+            {
               "help": "name",
               "name": "name",
               "shortname": null,
               "value": "NAME"
             },
             {
-              "help": "Realm IDs Comma separated list of values.",
+              "help": "Numerical ID or realm name Comma separated list of values.",
               "name": "realm-ids",
               "shortname": null,
               "value": "REALM_IDS"
@@ -15661,13 +15829,13 @@
               "value": "SMART_PROXY_NAMES"
             },
             {
-              "help": "Smart proxy IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "smart-proxy-ids",
               "shortname": null,
               "value": "SMART_PROXY_IDS"
             },
             {
-              "help": "Subnet IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "subnet-ids",
               "shortname": null,
               "value": "SUBNET_IDS"
@@ -15679,7 +15847,7 @@
               "value": "SUBNET_NAMES"
             },
             {
-              "help": "User IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "user-ids",
               "shortname": null,
               "value": "USER_IDS"
@@ -16154,7 +16322,7 @@
           "name": "update",
           "options": [
             {
-              "help": "Compute resource IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "compute-resource-ids",
               "shortname": null,
               "value": "COMPUTE_RESOURCE_IDS"
@@ -16166,7 +16334,7 @@
               "value": "COMPUTE_RESOURCE_NAMES"
             },
             {
-              "help": "Provisioning template IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "config-template-ids",
               "shortname": null,
               "value": "CONFIG_TEMPLATE_IDS"
@@ -16184,7 +16352,7 @@
               "value": "DESCRIPTION"
             },
             {
-              "help": "Domain IDs Comma separated list of values.",
+              "help": "Numerical ID or domain name Comma separated list of values.",
               "name": "domain-ids",
               "shortname": null,
               "value": "DOMAIN_IDS"
@@ -16196,7 +16364,7 @@
               "value": "DOMAIN_NAMES"
             },
             {
-              "help": "Environment IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "environment-ids",
               "shortname": null,
               "value": "ENVIRONMENT_IDS"
@@ -16208,7 +16376,7 @@
               "value": "ENVIRONMENT_NAMES"
             },
             {
-              "help": "Host group IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "hostgroup-ids",
               "shortname": null,
               "value": "HOSTGROUP_IDS"
@@ -16244,6 +16412,12 @@
               "value": "MEDIA_IDS"
             },
             {
+              "help": "Comma separated list of values.",
+              "name": "medium-ids",
+              "shortname": null,
+              "value": "MEDIUM_IDS"
+            },
+            {
               "help": "Organization name",
               "name": "name",
               "shortname": null,
@@ -16256,7 +16430,7 @@
               "value": "NEW_NAME"
             },
             {
-              "help": "Realm IDs Comma separated list of values.",
+              "help": "Numerical ID or realm name Comma separated list of values.",
               "name": "realm-ids",
               "shortname": null,
               "value": "REALM_IDS"
@@ -16286,13 +16460,13 @@
               "value": "SMART_PROXY_NAMES"
             },
             {
-              "help": "Smart proxy IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "smart-proxy-ids",
               "shortname": null,
               "value": "SMART_PROXY_IDS"
             },
             {
-              "help": "Subnet IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "subnet-ids",
               "shortname": null,
               "value": "SUBNET_IDS"
@@ -16304,7 +16478,7 @@
               "value": "SUBNET_NAMES"
             },
             {
-              "help": "User IDs Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "user-ids",
               "shortname": null,
               "value": "USER_IDS"
@@ -16454,7 +16628,7 @@
           "name": "create",
           "options": [
             {
-              "help": "IDs of associated architectures Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "architecture-ids",
               "shortname": null,
               "value": "ARCHITECTURE_IDS"
@@ -16466,7 +16640,7 @@
               "value": "ARCHITECTURE_NAMES"
             },
             {
-              "help": "IDs of associated provisioning templates Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "config-template-ids",
               "shortname": null,
               "value": "CONFIG_TEMPLATE_IDS"
@@ -16502,7 +16676,7 @@
               "value": "MEDIUM_NAMES"
             },
             {
-              "help": "IDs of associated media Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "medium-ids",
               "shortname": null,
               "value": "MEDIUM_IDS"
@@ -16520,7 +16694,7 @@
               "value": "NAME"
             },
             {
-              "help": "IDs of associated partition tables Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "partition-table-ids",
               "shortname": null,
               "value": "PARTITION_TABLE_IDS"
@@ -16921,7 +17095,7 @@
           "name": "update",
           "options": [
             {
-              "help": "IDs of associated architectures Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "architecture-ids",
               "shortname": null,
               "value": "ARCHITECTURE_IDS"
@@ -16933,7 +17107,7 @@
               "value": "ARCHITECTURE_NAMES"
             },
             {
-              "help": "IDs of associated provisioning templates Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "config-template-ids",
               "shortname": null,
               "value": "CONFIG_TEMPLATE_IDS"
@@ -16975,7 +17149,7 @@
               "value": "MEDIUM_NAMES"
             },
             {
-              "help": "IDs of associated media Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "medium-ids",
               "shortname": null,
               "value": "MEDIUM_IDS"
@@ -16993,7 +17167,7 @@
               "value": "NAME"
             },
             {
-              "help": "IDs of associated partition tables Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "partition-table-ids",
               "shortname": null,
               "value": "PARTITION_TABLE_IDS"
@@ -17894,7 +18068,7 @@
               "value": "FULL_RESULTS"
             },
             {
-              "help": "Whether to include available content attribute in results",
+              "help": "Whether to include available content attribute in results One of true/false, yes/no, 1/0.",
               "name": "include-available-content",
               "shortname": null,
               "value": "INCLUDE_AVAILABLE_CONTENT"
@@ -18025,6 +18199,18 @@
               "name": "organization-label",
               "shortname": null,
               "value": "ORGANIZATION_LABEL"
+            },
+            {
+              "help": "sync plan name",
+              "name": "sync-plan",
+              "shortname": null,
+              "value": "SYNC_PLAN"
+            },
+            {
+              "help": "sync plan numeric identifier",
+              "name": "sync-plan-id",
+              "shortname": null,
+              "value": "SYNC_PLAN_ID"
             },
             {
               "help": "print help",
@@ -18255,7 +18441,7 @@
           "name": "create",
           "options": [
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -18273,7 +18459,7 @@
               "value": "NAME"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -18495,7 +18681,7 @@
               "value": "ID"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -18519,7 +18705,7 @@
               "value": "NEW_NAME"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -18821,6 +19007,24 @@
               "value": "NAME"
             },
             {
+              "help": "Organization name to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "organization ID",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "Organization label to search by",
+              "name": "organization-label",
+              "shortname": null,
+              "value": "ORGANIZATION_LABEL"
+            },
+            {
               "help": "Repository name to search by",
               "name": "repository",
               "shortname": null,
@@ -18852,6 +19056,12 @@
               "value": "BY"
             },
             {
+              "help": "Content view name",
+              "name": "content-view",
+              "shortname": null,
+              "value": "CONTENT_VIEW_NAME"
+            },
+            {
               "help": "Name to search by",
               "name": "content-view-filter",
               "shortname": null,
@@ -18862,6 +19072,12 @@
               "name": "content-view-filter-id",
               "shortname": null,
               "value": "CONTENT_VIEW_FILTER_ID"
+            },
+            {
+              "help": "content view numeric identifier",
+              "name": "content-view-id",
+              "shortname": null,
+              "value": "CONTENT_VIEW_ID"
             },
             {
               "help": "Content view version number",
@@ -18904,6 +19120,24 @@
               "name": "order",
               "shortname": null,
               "value": "ORDER"
+            },
+            {
+              "help": "Organization name to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "organization ID",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "Organization label to search by",
+              "name": "organization-label",
+              "shortname": null,
+              "value": "ORGANIZATION_LABEL"
             },
             {
               "help": "Page number, starting at 1",
@@ -19322,7 +19556,7 @@
               "help": "UUID of an erratum to find repositories that contain the erratum",
               "name": "erratum-id",
               "shortname": null,
-              "value": "ENVIRONMENT_ID"
+              "value": "ERRATUM_ID"
             },
             {
               "help": "Whether or not to show all results One of true/false, yes/no, 1/0.",
@@ -20450,7 +20684,7 @@
               "value": "DNS_SECONDARY"
             },
             {
-              "help": "Domains in which this subnet is part Comma separated list of values.",
+              "help": "Numerical ID or domain name Comma separated list of values.",
               "name": "domain-ids",
               "shortname": null,
               "value": "DOMAIN_IDS"
@@ -20480,7 +20714,7 @@
               "value": "IPAM"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -20510,7 +20744,7 @@
               "value": "NETWORK"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -20706,7 +20940,7 @@
               "value": "DNS_SECONDARY"
             },
             {
-              "help": "Domains in which this subnet is part Comma separated list of values.",
+              "help": "Numerical ID or domain name Comma separated list of values.",
               "name": "domain-ids",
               "shortname": null,
               "value": "DOMAIN_IDS"
@@ -20742,7 +20976,7 @@
               "value": "IPAM"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -20778,7 +21012,7 @@
               "value": "NEW_NAME"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -21148,7 +21382,7 @@
               "value": "ORGANIZATION_LABEL"
             },
             {
-              "help": "start date and time of the synchronization defaults to now Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Default: \"2015-04-23 14:44:59\"",
+              "help": "start date and time of the synchronization defaults to now Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format Default: \"2015-06-09 08:46:52\"",
               "name": "sync-date",
               "shortname": null,
               "value": "SYNC_DATE"
@@ -21477,7 +21711,7 @@
               "value": "TEMPLATE"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -21501,7 +21735,7 @@
               "value": "NAME"
             },
             {
-              "help": "Array of operating system IDs to associate with the template Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "operatingsystem-ids",
               "shortname": null,
               "value": "OPERATINGSYSTEM_IDS"
@@ -21513,7 +21747,7 @@
               "value": "OPERATINGSYSTEM_TITLES"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -21760,7 +21994,7 @@
               "value": "ID"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -21790,7 +22024,7 @@
               "value": "NEW_NAME"
             },
             {
-              "help": "Array of operating system IDs to associate with the template Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "operatingsystem-ids",
               "shortname": null,
               "value": "OPERATINGSYSTEM_IDS"
@@ -21802,7 +22036,7 @@
               "value": "OPERATINGSYSTEM_TITLES"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -21920,7 +22154,7 @@
               "value": "LASTNAME"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -21944,7 +22178,7 @@
               "value": "MAIL"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"
@@ -22201,7 +22435,7 @@
               "value": "LASTNAME"
             },
             {
-              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "help": "Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
               "value": "LOCATION_IDS"
@@ -22231,7 +22465,7 @@
               "value": "NEW_LOGIN"
             },
             {
-              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "help": "organization ID Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
               "value": "ORGANIZATION_IDS"

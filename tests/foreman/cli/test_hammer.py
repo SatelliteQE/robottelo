@@ -69,12 +69,6 @@ class HammerCommandsTestCase(CLITestCase):
             command_subcommands.discard('discovery_rule')
             command_subcommands.add('discovery-rule')
 
-        if (command == 'hammer content-host errata list' and
-                bz_bug_is_open(1223930)):
-            expected_options.discard('organization')
-            expected_options.discard('organization-id')
-            expected_options.discard('organization-label')
-
         added_options = tuple(command_options - expected_options)
         removed_options = tuple(expected_options - command_options)
         added_subcommands = tuple(command_subcommands - expected_subcommands)
