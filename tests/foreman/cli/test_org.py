@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 # pylint: disable=R0904
 """Test class for Organization CLI"""
+import random
 
 from ddt import ddt
 from fauxfactory import gen_string
@@ -688,11 +689,12 @@ class TestOrg(CLITestCase):
         )
 
     def test_add_configtemplate_by_id(self):
-        """@Test: Check if a Config Template can be added to an Org by ID
+        """@Test: Check that new organization with config template associated
+        to it can be created in the system
 
         @Feature: Org - Config Template
 
-        @Assert: Config Template is added to the org
+        @Assert: Organization with config template created successfully
 
         """
         try:
@@ -704,6 +706,29 @@ class TestOrg(CLITestCase):
             u'{0} ({1})'.format(conf_templ['name'], conf_templ['type']),
             org['templates']
         )
+
+    def test_add_multiple_configtemplate_by_id(self):
+        """@Test: Check that new organization with multiple config templates
+        associated to it can be created in the system
+
+        @Feature: Org - Config Template
+
+        @Assert: Organization with config templates created successfully
+
+        """
+        try:
+            templates_amount = random.randint(3, 5)
+            templates = [make_template() for _ in range(templates_amount)]
+            template_ids = ','.join(template['id'] for template in templates)
+            org = make_org({'config-template-ids': template_ids})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertGreaterEqual(len(org['templates']), templates_amount)
+        for template in templates:
+            self.assertIn(
+                u'{0} ({1})'.format(template['name'], template['type']),
+                org['templates']
+            )
 
     @run_only_on('sat')
     @data(
