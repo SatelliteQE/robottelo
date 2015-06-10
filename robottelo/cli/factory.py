@@ -1139,7 +1139,13 @@ def make_org(options=None):
         --compute-resource-ids COMPUTE_RESOURCE_IDS Compute resource IDs
                                                     Comma separated list
                                                     of values.
+        --compute-resources COMPUTE_RESOURCE_NAMES  Compute resource Names
+                                                    Comma separated list
+                                                    of values.
         --config-template-ids CONFIG_TEMPLATE_IDS   Provisioning template IDs
+                                                    Comma separated list
+                                                    of values.
+        --config-templates CONFIG_TEMPLATE_NAMES    Provisioning template Names
                                                     Comma separated list
                                                     of values.
         --description DESCRIPTION                   description
@@ -1149,15 +1155,30 @@ def make_org(options=None):
         --environment-ids ENVIRONMENT_IDS           Environment IDs
                                                     Comma separated list
                                                     of values.
+        --environments ENVIRONMENT_NAMES            Environment Names
+                                                    Comma separated list
+                                                    of values.
         --hostgroup-ids HOSTGROUP_IDS               Host group IDs
                                                     Comma separated list
                                                     of values.
+        --hostgroups HOSTGROUP_NAMES                Host group Names
+                                                    Comma separated list
+                                                    of values.
         --label LABEL                               unique label
+        --media MEDIUM_NAMES                        Media Names
+                                                    Comma separated list
+                                                    of values.
         --media-ids MEDIA_IDS                       Media IDs
                                                     Comma separated list
                                                     of values.
         --name NAME                                 name
+        --realms REALM_NAMES                        Realm Names
+                                                    Comma separated list
+                                                    of values.
         --realm-ids REALM_IDS                       Realm IDs
+                                                    Comma separated list
+                                                    of values.
+        --smart-proxies SMART_PROXY_NAMES           Smart proxy Names
                                                     Comma separated list
                                                     of values.
         --smart-proxy-ids SMART_PROXY_IDS           Smart proxy IDs
@@ -1166,7 +1187,13 @@ def make_org(options=None):
         --subnet-ids SUBNET_IDS                     Subnet IDs
                                                     Comma separated list
                                                     of values.
+        --subnets SUBNET_NAMES                      Subnet Names
+                                                    Comma separated list
+                                                    of values.
         --user-ids USER_IDS                         User IDs
+                                                    Comma separated list
+                                                    of values.
+        --users USER_NAMES                          User Names
                                                     Comma separated list
                                                     of values.
         -h, --help                                  print help
@@ -1175,18 +1202,27 @@ def make_org(options=None):
     # Assigning default values for attributes
     args = {
         u'compute-resource-ids': None,
+        u'compute-resources': None,
         u'config-template-ids': None,
+        u'config-templates': None,
         u'description': None,
         u'domain-ids': None,
         u'environment-ids': None,
+        u'environments': None,
         u'hostgroup-ids': None,
+        u'hostgroups': None,
         u'label': None,
         u'media-ids': None,
+        u'media': None,
         u'name': gen_alphanumeric(6),
         u'realm-ids': None,
+        u'realms': None,
         u'smart-proxy-ids': None,
+        u'smart-proxies': None,
         u'subnet-ids': None,
+        u'subnets': None,
         u'user-ids': None,
+        u'users': None,
     }
 
     return create_object(Org, args, options)
