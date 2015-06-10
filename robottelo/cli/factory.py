@@ -1078,11 +1078,11 @@ def make_compute_resource(options=None):
     Options::
 
         --description DESCRIPTION
-        --location-ids LOCATION_IDS   REPLACE locations with given ids
+        --location-ids LOCATION_IDS   Comma separated list of values.
+        --locations LOCATION_NAMES    Comma separated list of values.
         --name NAME
-        --organization-ids ORGANIZATION_IDS REPLACE organizations with
-                                            given ids.
-                                            Comma separated list of values.
+        --organization-ids ORGANIZATION_IDS  Comma separated list of values.
+        --organizations ORGANIZATION_NAMES   Comma separated list of values.
         --password PASSWORD           Password for Ovirt, EC2, Vmware,
                                       Openstack. Access Key for EC2.
         --provider PROVIDER           Providers include Libvirt, Ovirt, EC2,
@@ -1103,8 +1103,10 @@ def make_compute_resource(options=None):
     args = {
         u'description': None,
         u'location-ids': None,
+        u'locations': None,
         u'name': gen_alphanumeric(8),
         u'organization-ids': None,
+        u'organizations': None,
         u'password': None,
         u'provider': None,
         u'region': None,
