@@ -18,6 +18,8 @@ Subcommands::
     image                         View and manage compute resource's images
 
 """
+import random
+
 from ddt import ddt
 from fauxfactory import gen_string, gen_url
 from robottelo.cli.computeresource import ComputeResource
@@ -180,6 +182,28 @@ class TestComputeResource(CLITestCase):
             self.fail(err)
         self.assertEqual(1, len(comp_resource['locations']))
         self.assertEqual(comp_resource['locations'][0], location['name'])
+
+    def test_create_compute_resource_with_multiple_locations(self):
+        """@Test: Create Compute Resource with multiple locations
+
+        @Feature: Compute Resource - Location Create
+
+        @Assert: Compute resource is created and has multiple locations
+        assigned
+
+        """
+        try:
+            locations_amount = random.randint(3, 5)
+            locations = [make_location() for _ in range(locations_amount)]
+            location_ids = ','.join(location['id'] for location in locations)
+            comp_resource = make_compute_resource({
+                'location-ids': location_ids,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertEqual(len(comp_resource['locations']), locations_amount)
+        for location in locations:
+            self.assertIn(location['name'], comp_resource['locations'])
 
     @skip_if_bug_open('bugzilla', 1214312)
     @data(u'True', u'Yes', 1, u'False', u'No', 0)
