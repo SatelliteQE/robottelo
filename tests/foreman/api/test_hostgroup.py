@@ -3,7 +3,7 @@
 from fauxfactory import gen_string
 from nailgun import client, entities, entity_fields
 from robottelo.common.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.common.decorators import stubbed
+from robottelo.common.decorators import skip_if_bug_open, stubbed
 from robottelo.common.helpers import get_data_file, get_server_credentials
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
@@ -12,6 +12,7 @@ from robottelo.test import APITestCase
 class HostGroupTestCase(APITestCase):
     """Tests for host group entity."""
 
+    @skip_if_bug_open('bugzilla', 1222118)
     def test_bz_1107708(self):
         """@Test: Host that created from HostGroup entity with PuppetClass
         assigned to it should inherit such puppet class information under
