@@ -5,7 +5,7 @@ import os
 import tempfile
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo.common import ssh
+from robottelo.common import manifests, ssh
 from robottelo.common.helpers import prepare_import_data
 from robottelo.common.decorators import (
     bz_bug_is_open,
@@ -17,9 +17,23 @@ from robottelo.cli.factory import make_org
 from robottelo.cli.org import Org
 
 
-@ddt
-def csv_to_dataset(csv):
-    """Converts the csv with header as a first entry to a python dict"""
+def csv_to_dataset(csv_file):
+    """Process a remote CSV file.
+
+    Read a remote CSV file, process it and return it.
+
+    :param csv_file: A string. The path to a CSV file that resides
+    on a remote server.
+
+    :returns: A dictionary holding the contents of the CSV file.
+
+    """
+    ssh_cat = ssh.command('cat {0}'.format(csv_file))
+    if ssh_cat.return_code != 0:
+        raise Exception(ssh_cat.stderr())
+    else:
+        ssh_cat.stdout.pop()
+        csv = ssh_cat.stdout
     keys = csv[0].split(',')
     del csv[0]
     return [
@@ -29,6 +43,23 @@ def csv_to_dataset(csv):
     ]
 
 
+def build_csv_file(rows=None):
+    """Generates a csv file, feeds it by the provided data
+    (a list of dictionary objects) and returns a path to it
+
+    """
+    if rows is None:
+        rows = [{}]
+    file_name = tempfile.mkstemp()[1]
+    with open(file_name, 'wb') as csv_file:
+        csv_writer = csv.DictWriter(csv_file, fieldnames=rows[0].keys())
+        csv_writer.writeheader()
+        for row in rows:
+            csv_writer.writerow(row)
+    return file_name
+
+
+@ddt
 class TestImport(CLITestCase):
     """Import CLI tests.
 
@@ -37,6 +68,7 @@ class TestImport(CLITestCase):
     specified in robottelo.properties.
 
     """
+
     def test_import_orgs_default(self):
         """@test: Import all organizations from the default data set
         (predefined source).
@@ -48,15 +80,12 @@ class TestImport(CLITestCase):
         """
         files = prepare_import_data()[1]
         ssh_import = Import.organization({'csv-file': files['users']})
-        ssh_cat = ssh.command('cat {0}'.format(files['users']))
-        # pop the array as ssh.command appends 1 empty item at the end
-        ssh_cat.stdout.pop()
 
         # now to check whether the orgs from csv appeared in sattelite
         orgs = set(org['name'] for org in Org.list().stdout)
-        imporgs = set(
+        imp_orgs = set(
             org['organization'] for
-            org in csv_to_dataset(ssh_cat.stdout)
+            org in csv_to_dataset(files['users'])
         )
 
         self.assertEqual(ssh_import.return_code, 0)
@@ -64,11 +93,41 @@ class TestImport(CLITestCase):
             ssh_import.stdout,
             [
                 u'Summary',
-                u'  Created {0} organizations.'.format(len(imporgs)),
+                u'  Created {0} organizations.'.format(len(imp_orgs)),
                 u''
             ]
         )
-        self.assertEqual(False in [org in orgs for org in imporgs], False)
+        self.assertTrue(all((org in orgs for org in imp_orgs)))
+
+    def test_import_orgs_manifests(self):
+        """@test: Import all organizations from the default data set
+        (predefined source) and upload manifests for each of them
+
+        @feature: Import Organizations including Manifests
+
+        @assert: 3 Organizations are created with 3 manifests uploaded
+
+        """
+        files = prepare_import_data()[1]
+        csv_records = csv_to_dataset(files['users'])
+        # create number of manifests corresponding to the number of orgs
+        manifest_list = []
+        man_dir = ssh.command('mktemp -d').stdout[1]
+        for org in set([rec['organization'] for rec in csv_records]):
+            for char in [' ', '.', '#']:
+                org = org.replace(char, '_')
+            man_file = manifests.clone()
+            ssh.upload_file(man_file, '{0}/{1}.zip'.format(man_dir, org))
+            manifest_list.append('{0}/{1}.zip'.format(man_dir, org))
+            os.remove(man_file)
+        ssh_import = Import.organization({
+            'csv-file': files['users'],
+            'upload-manifests-from': man_dir,
+        })
+        # cleanup the file on remote and perform the assertions
+        ssh.command('rm -rf {}'.format(man_dir))
+        self.assertIn('Created 3 organizations.', ''.join(ssh_import.stdout))
+        self.assertIn('Uploaded 3 manifests.', ''.join(ssh_import.stdout))
 
     def test_import_users_default(self):
         """@test: Import all 3 users from the our default data set (predefined
@@ -157,24 +216,27 @@ class TestImport(CLITestCase):
         csv_contents = u'\n'.join(
             u'{0}={1}'.format(i['name'], i['macro']) for i in data
         )
-        csv_header = [
-            u'org_id', u'channel_id', u'channel', u'channel_type', u'path',
-            u'file_type', u'file_id', u'revision', u'is_binary', u'contents',
-            u'delim_start', u'delim_end', u'username', u'groupname',
-            u'filemode', u'symbolic_link', u'selinux_ctx'
-        ]
-        csv_row = [
-            u'1', u'3', u'config-1', u'normal',
-            u'/etc/sysconfig/rhn/systemid', u'file', u'8', u'1', u'N',
-            csv_contents + u'\n',
-            u'{|', u'|}', u'root', u'root', u'600', u'', u''
-        ]
 
-        file_name = tempfile.mkstemp()[1]
-        with open(file_name, 'wb') as csv_file:
-            csv_writer = csv.writer(csv_file)
-            csv_writer.writerow(csv_header)
-            csv_writer.writerow(csv_row)
+        csv_row = {
+            u'org_id': u'1',
+            u'channel_id': u'3',
+            u'channel': u'config-1',
+            u'channel_type': u'normal',
+            u'path': u'/etc/sysconfig/rhn/systemid',
+            u'file_type': u'file',
+            u'file_id': u'8',
+            u'revision': u'1',
+            u'is_binary': u'N',
+            u'contents': u'{}\n'.format(csv_contents),
+            u'delim_start': u'{|',
+            u'delim_end': u'|}',
+            u'username': u'root',
+            u'groupname': u'root',
+            u'filemode': u'600',
+            u'symbolic_link': u'',
+            u'selinux_ctx': u'',
+        }
+        file_name = build_csv_file([csv_row])
 
         # create a random org that will be mapped to sat5 org with id = 1
         if bz_bug_is_open(1226981):
