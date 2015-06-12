@@ -167,7 +167,6 @@ class Syncplan(UITestCase):
             invalid = self.syncplan.wait_until_element(locator)
             self.assertIsNotNone(invalid)
 
-    @skip_if_bug_open('bugzilla', 1087425)
     @data(*generate_strings_list(len1=256))
     def test_negative_create_2(self, name):
         """@Test: Create Sync Plan with 256 characters in name
@@ -176,16 +175,13 @@ class Syncplan(UITestCase):
 
         @Assert: Sync Plan is not created with more than 255 chars
 
-        @BZ: 1087425
-
         """
-        locator = common_locators["common_haserror"]
-        description = "more than 255 chars"
+        description = 'more than 255 chars'
         with Session(self.browser) as session:
             make_syncplan(session, org=self.org_name, name=name,
                           description=description, submit_validate=False)
-            error = self.syncplan.wait_until_element(locator)
-            self.assertIsNotNone(error)
+            self.assertIsNotNone(self.syncplan.wait_until_element(
+                common_locators['common_invalid']))
 
     @data(*generate_strings_list())
     def test_negative_create_3(self, name):
@@ -195,19 +191,15 @@ class Syncplan(UITestCase):
 
         @Assert: Sync Plan cannot be created with existing name
 
-        @BZ: 1087425
-
         """
-        description = "with same name"
-        # TODO: Due to bug 1087425 using common_haserror instead of name_error
-        locator = common_locators["common_haserror"]
+        description = 'with same name'
         with Session(self.browser) as session:
             make_syncplan(session, org=self.org_name, name=name)
             self.assertIsNotNone(self.syncplan.search(name))
             make_syncplan(session, org=self.org_name, name=name,
                           description=description, submit_validate=False)
-            error = self.syncplan.wait_until_element(locator)
-            self.assertIsNotNone(error)
+            self.assertIsNotNone(self.syncplan.wait_until_element(
+                common_locators['common_invalid']))
 
     @data(*generate_strings_list())
     def test_positive_update_1(self, plan_name):
