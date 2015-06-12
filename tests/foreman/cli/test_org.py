@@ -585,12 +585,13 @@ class TestOrg(CLITestCase):
         self.assertEqual(
             result.stdout['compute-resources'][0], compute_res['name'])
 
-    def test_add_computeresource_by_id(self):
-        """@Test: Check if a Compute Resource can be added to an Org by ID
+    def test_add_compute_resource_by_id(self):
+        """@Test: Check that new organization with compute resource associated
+        to it can be created in the system
 
         @Feature: Org - Compute Resource
 
-        @Assert: Compute Resource is added to the org
+        @Assert: Organization with compute resource created successfully
 
         """
         try:
@@ -600,6 +601,26 @@ class TestOrg(CLITestCase):
             self.fail(err)
         self.assertEqual(1, len(org['compute-resources']))
         self.assertEqual(org['compute-resources'][0], compute_res['name'])
+
+    def test_add_multiple_compute_resources_by_id(self):
+        """@Test: Check that new organization with multiple compute resources
+        associated to it can be created in the system
+
+        @Feature: Org - Compute Resource
+
+        @Assert: Organization with compute resources created successfully
+
+        """
+        try:
+            cr_amount = random.randint(3, 5)
+            resources = [make_compute_resource() for _ in range(cr_amount)]
+            resource_ids = ','.join(resource['id'] for resource in resources)
+            org = make_org({'compute-resource-ids': resource_ids})
+        except CLIFactoryError as err:
+            self.fail(err)
+        self.assertEqual(len(org['compute-resources']), cr_amount)
+        for resource in resources:
+            self.assertIn(resource['name'], org['compute-resources'])
 
     @run_only_on('sat')
     @stubbed()
