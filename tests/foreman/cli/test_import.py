@@ -99,6 +99,14 @@ class TestImport(CLITestCase):
         )
         self.assertTrue(all((org in orgs for org in imp_orgs)))
 
+        # do the cleanup
+        ssh_delete = Import.organization({
+            'csv-file': files['users'],
+            'delete': True
+        })
+        ssh.command('rm -rf ${{HOME}}/.transition_data')
+        self.assertEqual(ssh_delete.return_code, 0)
+
     def test_import_orgs_manifests(self):
         """@test: Import all organizations from the default data set
         (predefined source) and upload manifests for each of them
@@ -145,6 +153,7 @@ class TestImport(CLITestCase):
             'csv-file': files['users'],
             'new-passwords': pwdfile
         })
+        ssh.command('rm -f ${{HOME}}/.transition_data {}'.format(pwdfile))
         self.assertEqual(ssh_import.return_code, 0)
         self.assertEqual(
             ssh_import.stdout,
