@@ -273,3 +273,151 @@ class TestRepositorySet(CLITestCase):
             if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
         ][0]
         self.assertEqual(enabled, 'true')
+
+    def test_repositoryset_disable_by_name(self):
+        """@Test: Disable repo from reposet by names of reposet, org and product
+
+        @Feature: Repository-set
+
+        @Assert: Repository was disabled
+
+        """
+        org = make_org()
+        manifest = manifests.clone()
+        upload_file(manifest, remote_file=manifest)
+        result = Subscription.upload({
+            u'file': manifest,
+            u'organization-id': org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        result = RepositorySet.enable({
+            u'name': REPOSET['rhva6'],
+            u'organization': org['name'],
+            u'product': PRDS['rhel'],
+            u'releasever': '6Server',
+            u'basearch': 'x86_64',
+        })
+        self.assertEqual(result.return_code, 0)
+        result = RepositorySet.disable({
+            u'name': REPOSET['rhva6'],
+            u'organization': org['name'],
+            u'product': PRDS['rhel'],
+            u'releasever': '6Server',
+            u'basearch': 'x86_64',
+        })
+        self.assertEqual(result.return_code, 0)
+        result = RepositorySet.available_repositories({
+            u'name': REPOSET['rhva6'],
+            u'organization': org['name'],
+            u'product': PRDS['rhel'],
+        })
+        self.assertEqual(result.return_code, 0)
+        enabled = [
+            repo['enabled']
+            for repo
+            in result.stdout
+            if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
+        ][0]
+        self.assertEqual(enabled, 'false')
+
+    def test_repositoryset_disable_by_label(self):
+        """@Test: Disable repo from reposet by org label, reposet and product
+        names
+
+        @Feature: Repository-set
+
+        @Assert: Repository was disabled
+
+        """
+        org = make_org()
+        manifest = manifests.clone()
+        upload_file(manifest, remote_file=manifest)
+        result = Subscription.upload({
+            u'file': manifest,
+            u'organization-id': org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        result = RepositorySet.enable({
+            u'name': REPOSET['rhva6'],
+            u'organization-label': org['label'],
+            u'product': PRDS['rhel'],
+            u'releasever': '6Server',
+            u'basearch': 'x86_64',
+        })
+        self.assertEqual(result.return_code, 0)
+        result = RepositorySet.disable({
+            u'name': REPOSET['rhva6'],
+            u'organization-label': org['label'],
+            u'product': PRDS['rhel'],
+            u'releasever': '6Server',
+            u'basearch': 'x86_64',
+        })
+        self.assertEqual(result.return_code, 0)
+        result = RepositorySet.available_repositories({
+            u'name': REPOSET['rhva6'],
+            u'organization-label': org['label'],
+            u'product': PRDS['rhel'],
+        })
+        self.assertEqual(result.return_code, 0)
+        enabled = [
+            repo['enabled']
+            for repo
+            in result.stdout
+            if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
+        ][0]
+        self.assertEqual(enabled, 'false')
+
+    def test_repositoryset_disable_by_id(self):
+        """@Test: Disable repo from reposet by IDs of reposet, org and product
+
+        @Feature: Repository-set
+
+        @Assert: Repository was disabled
+
+        """
+        org = make_org()
+        manifest = manifests.clone()
+        upload_file(manifest, remote_file=manifest)
+        result = Subscription.upload({
+            u'file': manifest,
+            u'organization-id': org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        product_id = Product.info({
+            u'name': PRDS['rhel'],
+            u'organization-id': org['id'],
+        }).stdout['id']
+        reposet_id = RepositorySet.info({
+            u'name': REPOSET['rhva6'],
+            u'organization-id': org['id'],
+            u'product-id': product_id,
+        }).stdout['id']
+        result = RepositorySet.enable({
+            u'id': reposet_id,
+            u'organization-id': org['id'],
+            u'product-id': product_id,
+            u'releasever': '6Server',
+            u'basearch': 'x86_64',
+        })
+        self.assertEqual(result.return_code, 0)
+        result = RepositorySet.disable({
+            u'id': reposet_id,
+            u'organization-id': org['id'],
+            u'product-id': product_id,
+            u'releasever': '6Server',
+            u'basearch': 'x86_64',
+        })
+        self.assertEqual(result.return_code, 0)
+        result = RepositorySet.available_repositories({
+            u'id': reposet_id,
+            u'organization-id': org['id'],
+            u'product-id': product_id,
+        })
+        self.assertEqual(result.return_code, 0)
+        enabled = [
+            repo['enabled']
+            for repo
+            in result.stdout
+            if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
+        ][0]
+        self.assertEqual(enabled, 'false')
