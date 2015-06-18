@@ -5,12 +5,12 @@
 from ddt import ddt
 from fauxfactory import gen_string, gen_ipaddr
 from nailgun import entities
-from robottelo.common import conf
+from robottelo.common import conf, manifests
 from robottelo.common.helpers import generate_strings_list
 from robottelo.common.decorators import (
     data, run_only_on, stubbed, skip_if_bug_open)
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_org
+from robottelo.ui.factory import make_org, make_lifecycle_environment
 from robottelo.ui.locators import common_locators, tab_locators, locators
 from robottelo.ui.session import Session
 
@@ -292,7 +292,6 @@ class Org(UITestCase):
 
     # Positive Delete
 
-    @stubbed('Organization deletion is disabled')
     @data(*generate_strings_list())
     def test_positive_delete_1(self, org_name):
         """@test: Create organization with valid values then delete it.
@@ -305,6 +304,30 @@ class Org(UITestCase):
         with Session(self.browser) as session:
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
+            self.org.remove(org_name, really=True)
+            self.assertIsNone(self.org.search(org_name))
+
+    @skip_if_bug_open('bugzilla', 1225588)
+    @data(*generate_strings_list())
+    def test_positive_delete_bz1225588(self, org_name):
+        """@test: Create Organization with valid values and upload manifest.
+        Then try to delete the organization.
+
+        @feature: Organization Positive Delete Test.
+
+        @assert: Organization is deleted.
+
+        """
+        entities.Organization(name=org_name).create().upload_manifest(
+            path=manifests.clone())
+        with Session(self.browser) as session:
+            make_lifecycle_environment(session, org_name, name='DEV')
+            make_lifecycle_environment(
+                session, org_name, name='QE', prior='DEV'
+            )
+            # Org cannot be deleted when selected,
+            # So switching to Default Org and then deleting.
+            session.nav.go_to_select_org('Default Organization')
             self.org.remove(org_name, really=True)
             self.assertIsNone(self.org.search(org_name))
 

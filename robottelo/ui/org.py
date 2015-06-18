@@ -165,13 +165,13 @@ class Org(Base):
         searched = self.search(org_name)
         if searched is None:
             raise UINoSuchElementError(
-                'Could not search the entity {0}'.format(org_name))
+                u'Could not search the entity {0}'.format(org_name))
         strategy, value = locators["org.dropdown"]
         self.wait_until_element((strategy, value % org_name)).click()
         strategy1, value1 = locators['org.delete']
         element = self.wait_until_element((strategy1, value1 % org_name))
         if element is None:
             raise UINoSuchElementError(
-                'Could not select entity {0} for deletion.'.format(org_name))
+                u'Could not select entity {0} for deletion.'.format(org_name))
         element.click()
         self.handle_alert(really)
