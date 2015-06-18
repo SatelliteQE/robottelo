@@ -9,7 +9,8 @@ from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
 from random import randint
-from robottelo.common.constants import VALID_GPG_KEY_FILE
+from robottelo.common import manifests
+from robottelo.common.constants import PRDS, REPOSET, VALID_GPG_KEY_FILE
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import read_data_file
 from robottelo.test import APITestCase
@@ -105,3 +106,43 @@ class ProductUpdateTestCase(APITestCase):
         setattr(self.product, attrs[0], attrs[1])
         self.product = self.product.update()
         self.assertEqual(getattr(self.product, attrs[0]), attrs[1])
+
+
+@run_only_on('sat')
+class RepositorySetsTestCase(APITestCase):
+    """Tests for ``katello/api/v2/products/<product_id>/repository_sets``."""
+
+    def test_repositoryset_enable(self):
+        """@Test: Enable repo from reposet
+
+        @Feature: Repository-set
+
+        @Assert: Repository was enabled
+
+        """
+        org = entities.Organization().create()
+        org.upload_manifest(path=manifests.clone())
+        prd_id = entities.Product().fetch_rhproduct_id(
+            name=PRDS['rhel'],
+            org_id=org.id,
+        )
+        reposet_id = entities.Product(id=prd_id).fetch_reposet_id(
+            name=REPOSET['rhva6'],
+        )
+        entities.Product(id=prd_id).enable_rhrepo(
+            base_arch='x86_64',
+            release_ver='6Server',
+            reposet_id=reposet_id,
+        )
+        result = entities.Product(
+            id=prd_id,
+        ).repository_sets_available_repositories(
+            reposet_id=reposet_id,
+        )
+        self.assertTrue([
+            repo['enabled']
+            for repo
+            in result
+            if (repo['substitutions']['basearch'] == 'x86_64' and
+                repo['substitutions']['releasever'] == '6Server')
+        ][0])
