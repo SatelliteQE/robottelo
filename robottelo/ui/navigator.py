@@ -217,6 +217,12 @@ class Navigator(Base):
             menu_locators['menu.configure'], menu_locators['menu.host_groups'],
         )
 
+    def go_to_discovery_rules(self):
+        self.menu_click(
+            menu_locators['menu.configure'],
+            menu_locators['menu.discovery_rules'],
+        )
+
     def go_to_global_parameters(self):
         self.menu_click(
             menu_locators['menu.configure'],

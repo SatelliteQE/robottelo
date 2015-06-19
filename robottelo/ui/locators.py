@@ -189,6 +189,10 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
          "//a[@id='menu_item_hostgroups']")),
+    "menu.discovery_rules": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_discovery_rules']")),
     "menu.global_parameters": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
@@ -1813,5 +1817,27 @@ locators = LocatorDict({
         By.XPATH, "//a[contains(@href,'models') and contains(.,'%s')]"),
     "hwmodels.delete": (
         By.XPATH, ("//a[contains(@data-confirm,'%s')"
-                   " and @class='delete']"))
+                   " and @class='delete']")),
+    # Discovery Rules
+    "discoveryrules.new": (
+        By.XPATH, "//a[@data-id='aid_discovery_rules_new']"),
+    "discoveryrules.name": (
+        By.XPATH, "//input[@id='discovery_rule_name']"),
+    "discoveryrules.search": (
+        By.XPATH, "//input[@id='search']"),
+    "discoveryrules.hostgroup": (
+        By.ID, "discovery_rule_hostgroup_id"),
+    "discoveryrules.hostname": (
+        By.ID, "discovery_rule_hostname"),
+    "discoveryrules.host_limit": (
+        By.ID, "discovery_rule_max_count"),
+    "discoveryrules.priority": (
+        By.ID, "discovery_rule_priority"),
+    "discoveryrules.enabled": (
+        By.ID, "discovery_rule_enabled"),
+    "discoveryrules.rule_name": (
+        By.XPATH, ("//a[contains(@href, 'discovery_rules')"
+                   " and contains(., '%s')]")),
+    "discoveryrules.rule_delete": (
+        By.XPATH, "//a[contains(@data-confirm, '%s') and @class='delete']")
 })

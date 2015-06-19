@@ -10,6 +10,7 @@ from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.contentenv import ContentEnvironment
 from robottelo.ui.contentviews import ContentViews
+from robottelo.ui.discoveryrules import DiscoveryRules
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
@@ -351,6 +352,25 @@ def make_hostgroup(session, org=None, loc=None, force_context=True, **kwargs):
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
     Hostgroup(session.browser).create(**create_args)
+
+
+def make_discoveryrule(session, org=None, loc=None, force_context=True,
+                       **kwargs):
+    """Creates a discovery rule"""
+
+    create_args = {
+        u'name': None,
+        u'search_rule': "cpu_count = 1",
+        u'hostgroup': None,
+        u'hostname': None,
+        u'host_limit': None,
+        u'priority': None,
+        u'enabled': False,
+    }
+    page = session.nav.go_to_discovery_rules
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc, force_context=force_context)
+    DiscoveryRules(session.browser).create(**create_args)
 
 
 def make_env(session, org=None, loc=None, force_context=True, **kwargs):
