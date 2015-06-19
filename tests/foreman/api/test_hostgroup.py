@@ -6,7 +6,6 @@ from robottelo.common.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.common.decorators import skip_if_bug_open, stubbed
 from robottelo.common.helpers import get_data_file, get_server_credentials
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 class HostGroupTestCase(APITestCase):
@@ -41,33 +40,32 @@ class HostGroupTestCase(APITestCase):
             puppet_repo.upload_content(handle)
 
         content_view = entities.ContentView(
-            organization=org,
             name=gen_string('alpha'),
+            organization=org,
         ).create()
 
         result = content_view.available_puppet_modules()['results']
         self.assertEqual(len(result), 1)
-        content_view.add_puppet_module(
-            result[0]['author'],
-            result[0]['name']
-        )
+        content_view.add_puppet_module(result[0]['author'], result[0]['name'])
 
         content_view.publish()
-        cvv = entities.ContentViewVersion(
-            id=content_view.read_json()['versions'][0]['id']
-        )
+        content_view = content_view.read()
         lc_env = entities.LifecycleEnvironment(
+            name=gen_string('alpha'),
             organization=org,
-            name=gen_string('alpha')
         ).create()
-        cvv.promote(lc_env.id)
-        cv_attrs = content_view.read_json()
-        self.assertEqual(len(cv_attrs['versions']), 1)
-        self.assertEqual(len(cv_attrs['puppet_modules']), 1)
+        content_view.version[0].promote(lc_env.id)
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 1)
+        self.assertEqual(len(content_view.puppet_module), 1)
 
         # Form environment name variable for our test
         env_name = 'KT_{0}_{1}_{2}_{3}'.format(
-            org.name, lc_env.name, content_view.name, str(content_view.id))
+            org.name,
+            lc_env.name,
+            content_view.name,
+            str(content_view.id),
+        )
 
         # Get all environments for current organization.
         # We have two environments (one created after publishing and one more
@@ -75,9 +73,7 @@ class HostGroupTestCase(APITestCase):
         response = client.get(
             entities.Environment().path(),
             auth=get_server_credentials(),
-            data={
-                u'organization_id': org.id,
-            },
+            data={u'organization_id': org.id},
             verify=False,
         )
         response.raise_for_status()
@@ -88,11 +84,9 @@ class HostGroupTestCase(APITestCase):
             if result['name'] == env_name:
                 env_id = result['id']
                 break
-        environment = entities.Environment(
-            id=env_id
-        ).read()
+        environment = entities.Environment(id=env_id).read()
 
-        # Prepare necessary data for HostGroup entity
+        # Create a host group and it dependencies.
         mac = entity_fields.MACAddressField().gen_value()
         root_pass = entity_fields.StringField(length=(8, 30)).gen_value()
         domain = entities.Domain().create()
@@ -102,27 +96,23 @@ class HostGroupTestCase(APITestCase):
             architecture=[architecture],
             ptable=[ptable],
         ).create()
-        medium = entities.Media(
-            operatingsystem=[operatingsystem]
-        ).create()
-
+        medium = entities.Media(operatingsystem=[operatingsystem]).create()
         host_group = entities.HostGroup(
-            name=gen_string('alpha'),
             architecture=architecture,
-            environment=environment,
-            operatingsystem=operatingsystem,
-            ptable=ptable,
             domain=domain,
-            medium=medium,
+            environment=environment,
             location=[location.id],
+            medium=medium,
+            name=gen_string('alpha'),
+            operatingsystem=operatingsystem,
             organization=[org.id],
+            ptable=ptable,
         ).create()
-
         self.assertEqual(len(host_group.read_json()['all_puppetclasses']), 0)
 
         # Get puppet class id for ntp module
         response = client.get(
-            entities.Environment(id=env_id).path()+'/puppetclasses',
+            environment.path('self') + '/puppetclasses',
             auth=get_server_credentials(),
             verify=False,
         )
@@ -132,15 +122,16 @@ class HostGroupTestCase(APITestCase):
 
         # Assign puppet class
         client.post(
-            entities.HostGroup(id=host_group.id).path()+'/puppetclass_ids',
+            host_group.path('self') + '/puppetclass_ids',
             data={u'puppetclass_id': puppet_class_id},
             auth=get_server_credentials(),
             verify=False
         ).raise_for_status()
-        self.assertEqual(len(host_group.read_json()['all_puppetclasses']), 1)
+        host_group_attrs = host_group.read_json()
+        self.assertEqual(len(host_group_attrs['all_puppetclasses']), 1)
         self.assertEqual(
-            host_group.read_json()['all_puppetclasses'][0]['name'],
-            'ntp'
+            host_group_attrs['all_puppetclasses'][0]['name'],
+            'ntp',
         )
 
         # Create Host entity using HostGroup
@@ -153,12 +144,9 @@ class HostGroupTestCase(APITestCase):
             organization=org,
             name=gen_string('alpha')
         ).create(False)
-
-        self.assertEqual(len(host.read_json()['all_puppetclasses']), 1)
-        self.assertEqual(
-            host.read_json()['all_puppetclasses'][0]['name'],
-            'ntp'
-        )
+        host_attrs = host.read_json()
+        self.assertEqual(len(host_attrs['all_puppetclasses']), 1)
+        self.assertEqual(host_attrs['all_puppetclasses'][0]['name'], 'ntp')
 
 
 class HostGroupTestCaseStub(APITestCase):

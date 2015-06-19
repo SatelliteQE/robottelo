@@ -11,7 +11,6 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.common.decorators import data, run_only_on
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')
@@ -33,12 +32,12 @@ class EnvironmentTestCase(APITestCase):
 
         """
         # Create an environment and validate the returned data.
-        attrs = entities.Environment(name=name).create_json()
-        self.assertEqual(attrs['name'], name)
+        env = entities.Environment(name=name).create()
+        self.assertEqual(env.name, name)
 
         # Let's double-check by reading the environment.
-        attrs = entities.Environment(id=attrs['id']).read_json()
-        self.assertEqual(attrs['name'], name)
+        env = env.read()
+        self.assertEqual(env.name, name)
 
     @data(
         gen_string('alpha', 256),
@@ -63,4 +62,4 @@ class EnvironmentTestCase(APITestCase):
 
         """
         with self.assertRaises(HTTPError):
-            entities.Environment(name=name).create_json()
+            entities.Environment(name=name).create()

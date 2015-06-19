@@ -9,7 +9,6 @@ from nailgun import client, entities
 from robottelo.common.decorators import run_only_on
 from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 @run_only_on('sat')

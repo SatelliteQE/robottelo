@@ -11,7 +11,6 @@ from robottelo.common.decorators import (
     stubbed,
 )
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 class SyncPlanTestCase(APITestCase):
@@ -27,18 +26,18 @@ class SyncPlanTestCase(APITestCase):
         Targets BZ 1132817.
 
         """
-        org_id = entities.Organization().create_json()['id']
-        entities.SyncPlan(organization=org_id).create_json()['id']
+        org = entities.Organization().create()
+        entities.SyncPlan(organization=org).create()
         response1 = client.get(
             '{0}/katello/api/v2/sync_plans'.format(get_server_url()),
             auth=get_server_credentials(),
-            data={'organization_id': org_id},
+            data={'organization_id': org.id},
             verify=False,
         )
         response2 = client.get(
             '{0}/katello/api/v2/organizations/{1}/sync_plans'.format(
                 get_server_url(),
-                org_id
+                org.id
             ),
             auth=get_server_credentials(),
             verify=False,
@@ -59,7 +58,7 @@ class SyncPlanCreateTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
-        cls.org_id = entities.Organization().create_json()['id']
+        cls.org = entities.Organization().create()
         super(SyncPlanCreateTestCase, cls).setUpClass()
 
     @stubbed()
@@ -178,7 +177,7 @@ class SyncPlanUpdateTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
-        cls.org_id = entities.Organization().create_json()['id']
+        cls.org = entities.Organization().create()
         super(SyncPlanUpdateTestCase, cls).setUpClass()
 
     @stubbed()
@@ -294,7 +293,7 @@ class SyncPlanProductTestCase(APITestCase):
         tests.
 
         """
-        cls.org_id = entities.Organization().create_json()['id']
+        cls.org = entities.Organization().create()
         super(SyncPlanProductTestCase, cls).setUpClass()
 
     @run_only_on('sat')
@@ -306,18 +305,12 @@ class SyncPlanProductTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
-        syncplan_id = entities.SyncPlan(
-            organization=self.org_id
-        ).create_json()['id']
-        product_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
-        syncplan = entities.SyncPlan(id=syncplan_id, organization=self.org_id)
-
-        syncplan.add_products([product_id])
-        syncplan_products = syncplan.read_json()['products']
-        self.assertEqual(len(syncplan_products), 1)
-        self.assertEqual(syncplan_products[0]['id'], product_id)
+        syncplan = entities.SyncPlan(organization=self.org).create()
+        product = entities.Product(organization=self.org).create()
+        syncplan.add_products([product.id])
+        syncplan = syncplan.read()
+        self.assertEqual(len(syncplan.product), 1)
+        self.assertEqual(syncplan.product[0].id, product.id)
 
     @run_only_on('sat')
     def test_add_products(self):
@@ -329,21 +322,16 @@ class SyncPlanProductTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
-        syncplan_id = entities.SyncPlan(
-            organization=self.org_id
-        ).create_json()['id']
-        product_ids = tuple(
-            entities.Product(organization=self.org_id).create_json()['id']
-            for _ in range(2)
-        )
-        syncplan = entities.SyncPlan(id=syncplan_id, organization=self.org_id)
-
-        syncplan.add_products(product_ids)
-        syncplan_products = syncplan.read_json()['products']
-        self.assertEqual(len(syncplan_products), 2)
+        syncplan = entities.SyncPlan(organization=self.org).create()
+        products = [
+            entities.Product(organization=self.org).create() for _ in range(2)
+        ]
+        syncplan.add_products([product.id for product in products])
+        syncplan = syncplan.read()
+        self.assertEqual(len(syncplan.product), 2)
         self.assertEqual(
-            set(product_ids),
-            set((syncplan_products[0]['id'], syncplan_products[1]['id'])),
+            set((product.id for product in products)),
+            set((product.id for product in syncplan.product)),
         )
 
     @skip_if_bug_open('bugzilla', 1199150)
@@ -358,21 +346,16 @@ class SyncPlanProductTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
-        syncplan_id = entities.SyncPlan(
-            organization=self.org_id
-        ).create_json()['id']
-        product_ids = tuple(
-            entities.Product(organization=self.org_id).create_json()['id']
-            for _ in range(2)
-        )
-        syncplan = entities.SyncPlan(id=syncplan_id, organization=self.org_id)
-
-        syncplan.add_products(product_ids)
-        self.assertEqual(len(syncplan.read_json()['products']), 2)
-        syncplan.remove_products([product_ids[0]])
-        syncplan_products = syncplan.read_json()['products']
-        self.assertEqual(len(syncplan_products), 1)
-        self.assertEqual(syncplan_products[0]['id'], product_ids[1])
+        syncplan = entities.SyncPlan(organization=self.org).create()
+        products = [
+            entities.Product(organization=self.org).create() for _ in range(2)
+        ]
+        syncplan.add_products([product.id for product in products])
+        self.assertEqual(len(syncplan.read().product), 2)
+        syncplan.remove_products([products[0].id])
+        syncplan = syncplan.read()
+        self.assertEqual(len(syncplan.product), 1)
+        self.assertEqual(syncplan.product[0].id, products[1].id)
 
     @run_only_on('sat')
     def test_remove_products(self):
@@ -385,19 +368,14 @@ class SyncPlanProductTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
-        syncplan_id = entities.SyncPlan(
-            organization=self.org_id
-        ).create_json()['id']
-        product_ids = tuple(
-            entities.Product(organization=self.org_id).create_json()['id']
-            for _ in range(2)
-        )
-        syncplan = entities.SyncPlan(id=syncplan_id, organization=self.org_id)
-
-        syncplan.add_products(product_ids)
-        self.assertEqual(len(syncplan.read_json()['products']), 2)
-        syncplan.remove_products(product_ids)
-        self.assertEqual(len(syncplan.read_json()['products']), 0)
+        syncplan = entities.SyncPlan(organization=self.org).create()
+        products = [
+            entities.Product(organization=self.org).create() for _ in range(2)
+        ]
+        syncplan.add_products([product.id for product in products])
+        self.assertEqual(len(syncplan.read().product), 2)
+        syncplan.remove_products([product.id for product in products])
+        self.assertEqual(len(syncplan.read().product), 0)
 
     @skip_if_bug_open('bugzilla', 1199150)
     @run_only_on('sat')
@@ -410,19 +388,13 @@ class SyncPlanProductTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
-        syncplan_id = entities.SyncPlan(
-            organization=self.org_id
-        ).create_json()['id']
-        product_id = entities.Product(
-            organization=self.org_id
-        ).create_json()['id']
-        syncplan = entities.SyncPlan(id=syncplan_id, organization=self.org_id)
-
+        syncplan = entities.SyncPlan(organization=self.org).create()
+        product = entities.Product(organization=self.org).create()
         for _ in range(5):
-            syncplan.add_products([product_id])
-            self.assertEqual(len(syncplan.read_json()['products']), 1)
-            syncplan.remove_products([product_id])
-            self.assertEqual(len(syncplan.read_json()['products']), 0)
+            syncplan.add_products([product.id])
+            self.assertEqual(len(syncplan.read().product), 1)
+            syncplan.remove_products([product.id])
+            self.assertEqual(len(syncplan.read().product), 0)
 
 
 @stubbed()
@@ -433,13 +405,10 @@ class SyncPlanSynchronizeTestCase(APITestCase):
     def setUpClass(cls):
         """Create an organization and products which can be re-used in
         tests."""
-        cls.org_id = entities.Organization().create_json()['id']
-        cls.prod1_id = entities.Product(
-            organization=cls.org_id
-        ).create_json()['id']
-        cls.prod2_id = entities.Product(
-            organization=cls.org_id
-        ).create_json()['id']
+        cls.org = entities.Organization().create()
+        cls.products = [
+            entities.Product(organization=cls.org).create() for _ in range(2)
+        ]
         super(SyncPlanSynchronizeTestCase, cls).setUpClass()
 
     @stubbed()
@@ -474,7 +443,7 @@ class SyncPlanDeleteTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
-        cls.org_id = entities.Organization().create_json()['id']
+        cls.org = entities.Organization().create()
         super(SyncPlanDeleteTestCase, cls).setUpClass()
 
     @stubbed()

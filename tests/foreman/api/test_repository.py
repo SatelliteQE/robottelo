@@ -29,7 +29,6 @@ from robottelo.common.helpers import (
     read_data_file,
 )
 from robottelo.test import APITestCase
-# pylint:disable=too-many-public-methods
 
 
 # FIXME: Use unittest's subTest context manager instead of this and @ddt.data.
@@ -157,15 +156,9 @@ class RepositoryTestCase(APITestCase):
             content=read_data_file(VALID_GPG_KEY_BETA_FILE),
             organization=self.org,
         ).create()
-        client.put(
-            repo.path(),
-            {u'gpg_key_id': gpg_key_2.id},
-            auth=get_server_credentials(),
-            verify=False,
-        ).raise_for_status()
-
-        # Verify the repository's attributes.
-        self.assertEqual(repo.read().gpg_key.id, gpg_key_2.id)
+        repo.gpg_key = gpg_key_2
+        repo = repo.update()
+        self.assertEqual(repo.gpg_key.id, gpg_key_2.id)
 
     @run_only_on('sat')
     def test_update_contents(self):
@@ -350,10 +343,6 @@ class DockerRepositoryTestCase(APITestCase):
             self.skipTest(1194476)
         repository = entities.Repository(content_type=content_type).create()
         name = repository.get_fields()['name'].gen_value()
-        client.put(
-            repository.path(),
-            {'name': name},
-            auth=get_server_credentials(),
-            verify=False,
-        ).raise_for_status()
-        self.assertEqual(name, repository.read().name)
+        repository.name = name
+        repository = repository.update()
+        self.assertEqual(repository.name, name)

@@ -30,56 +30,36 @@ class ConfigTemplateTestCase(APITestCase):
         response.raise_for_status()
         self.assertIsInstance(response.json(), dict)
 
-    def test_associate_config_template_with_organization(self):
-        """@Test: Associate config template with organization
+    def test_config_template_orgs(self):
+        """@Test: Associate a config template with organizations.
 
         @Assert: Config template is associated with organization
 
         @Feature: ConfigTemplate
 
         """
-        org_1 = entities.Organization().create()
-        org_2 = entities.Organization().create()
+        orgs = [entities.Organization().create() for _ in range(2)]
 
         # By default, a configuration template should have no organizations.
         conf_templ = entities.ConfigTemplate().create()
         self.assertEqual(0, len(conf_templ.organization))
 
         # Associate our configuration template with one organization.
-        client.put(
-            conf_templ.path(),
-            {'config_template': {'organization_ids': [org_1.id]}},
-            verify=False,
-            auth=get_server_credentials(),
-        ).raise_for_status()
-
-        # Verify that the association succeeded.
-        conf_templ = conf_templ.read()
-        self.assertEqual(1, len(conf_templ.organization))
-        self.assertEqual(org_1.id, conf_templ.organization[0].id)
+        conf_templ.organization = orgs[:1]
+        conf_templ = conf_templ.update(['organization'])
+        self.assertEqual(len(conf_templ.organization), 1)
+        self.assertEqual(conf_templ.organization[0].id, orgs[0].id)
 
         # Associate our configuration template with two organizations.
-        client.put(
-            conf_templ.path(),
-            {'config_template': {'organization_ids': [org_1.id, org_2.id]}},
-            verify=False,
-            auth=get_server_credentials(),
-        ).raise_for_status()
-
-        # Verify that the association succeeded.
-        conf_templ = conf_templ.read()
-        self.assertEqual(2, len(conf_templ.organization))
-        for org in conf_templ.organization:
-            self.assertIn(org.id, (org_1.id, org_2.id))
+        conf_templ.organization = orgs
+        conf_templ = conf_templ.update(['organization'])
+        self.assertEqual(len(conf_templ.organization), 2)
+        self.assertEqual(
+            set((org.id for org in conf_templ.organization)),
+            set((org.id for org in orgs)),
+        )
 
         # Finally, associate our config template with zero organizations.
-        client.put(
-            conf_templ.path(),
-            {'config_template': {'organization_ids': []}},
-            verify=False,
-            auth=get_server_credentials(),
-        ).raise_for_status()
-
-        # Verify that the association succeeded.
-        conf_templ = conf_templ.read()
-        self.assertEqual(conf_templ.organization, [])
+        conf_templ.organization = []
+        conf_templ = conf_templ.update(['organization'])
+        self.assertEqual(len(conf_templ.organization), 0)

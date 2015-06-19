@@ -7,14 +7,12 @@ http://theforeman.org/api/apidoc/v2/organizations.html
 """
 import ddt
 import httplib
-import sys
 from fauxfactory import gen_alphanumeric, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
 from robottelo.common.decorators import skip_if_bug_open
-from robottelo.common.helpers import get_server_credentials
+from robottelo.common.helpers import get_nailgun_config, get_server_credentials
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 
 @ddt.ddt
@@ -51,10 +49,7 @@ class OrganizationTestCase(APITestCase):
         """
         org = entities.Organization().create()
         self.assertTrue(hasattr(org, 'label'))
-        if sys.version_info[0] is 2:
-            self.assertIsInstance(org.label, unicode)
-        else:
-            self.assertIsInstance(org.label, str)
+        self.assertIsInstance(org.label, type(u''))
 
     def test_positive_create_2(self):
         """@Test: Create an org and provide a name and identical label.
@@ -122,10 +117,7 @@ class OrganizationTestCase(APITestCase):
 
         # Was a label auto-generated?
         self.assertTrue(hasattr(org, 'label'))
-        if sys.version_info[0] is 2:
-            self.assertIsInstance(org.label, unicode)
-        else:
-            self.assertIsInstance(org.label, str)
+        self.assertIsInstance(org.label, type(u''))
         self.assertGreater(len(org.label), 0)
 
     def test_positive_create_5(self):
@@ -159,7 +151,7 @@ class OrganizationTestCase(APITestCase):
 
         """
         with self.assertRaises(HTTPError):
-            entities.Organization(name=name).create_json()
+            entities.Organization(name=name).create()
 
     def test_negative_create_duplicate(self):
         """@Test: Create two organizations with identical names.
@@ -215,11 +207,8 @@ class OrganizationUpdateTestCase(APITestCase):
         {'name': gen_string(str_type='latin1')},
         {'name': gen_string(str_type='numeric')},
         {'name': gen_string(str_type='utf8')},
-        {  # can we update two attrs at once?
-            'description':
-            entities.Organization().get_fields()['description'].gen_value(),
-            'name': entities.Organization().get_fields()['name'].gen_value(),
-        },
+        # Can we update two attrs at once?
+        {'description': gen_string('alpha'), 'name': gen_string('alpha')},
     )
     def test_positive_update(self, attrs):
         """@Test: Update an organization's attributes with valid values.
@@ -229,20 +218,16 @@ class OrganizationUpdateTestCase(APITestCase):
         @Feature: Organization
 
         """
-        client.put(
-            self.organization.path(),
-            attrs,
-            verify=False,
-            auth=get_server_credentials(),
-        ).raise_for_status()
+        for field_name, field_value in attrs.items():
+            setattr(self.organization, field_name, field_value)
+        self.organization = self.organization.update(attrs.keys())
+        for field_name, field_value in attrs.items():
+            self.assertEqual(
+                getattr(self.organization, field_name),
+                field_value,
+            )
 
-        # Read the organization and validate its attributes.
-        new_attrs = self.organization.read_json()
-        for name, value in attrs.items():
-            self.assertIn(name, new_attrs.keys())
-            self.assertEqual(new_attrs[name], value)
-
-    def test_associate_user_with_organization(self):
+    def test_associate_with_user(self):
         """@Test: Update an organization, associate user with it.
 
         @Assert: User is associated with organization.
@@ -250,18 +235,13 @@ class OrganizationUpdateTestCase(APITestCase):
         @Feature: Organization
 
         """
-        user_id = entities.User().create_json()['id']
-        client.put(
-            self.organization.path(),
-            {'organization': {'user_ids': [user_id]}},
-            verify=False,
-            auth=get_server_credentials(),
-        ).raise_for_status()
-        new_attrs = self.organization.read_json()
-        self.assertEqual(1, len(new_attrs['users']))
-        self.assertEqual(user_id, new_attrs['users'][0]['id'])
+        user = entities.User().create()
+        self.organization.user = [user]
+        self.organization = self.organization.update(['user'])
+        self.assertEqual(len(self.organization.user), 1)
+        self.assertEqual(self.organization.user[0].id, user.id)
 
-    def test_associate_subnet_with_organization(self):
+    def test_associate_with_subnet(self):
         """@Test: Update an organization, associate subnet with it.
 
         @Assert: Subnet is associated with organization.
@@ -269,16 +249,26 @@ class OrganizationUpdateTestCase(APITestCase):
         @Feature: Organization
 
         """
-        subnet_id = entities.Subnet().create_json()['id']
-        client.put(
-            self.organization.path(),
-            {'organization': {'subnet_ids': [subnet_id]}},
-            verify=False,
-            auth=get_server_credentials(),
-        ).raise_for_status()
-        new_attrs = self.organization.read_json()
-        self.assertEqual(1, len(new_attrs['subnets']))
-        self.assertEqual(subnet_id, new_attrs['subnets'][0]['id'])
+        subnet = entities.Subnet().create()
+        self.organization.subnet = [subnet]
+        self.organization = self.organization.update(['subnet'])
+        self.assertEqual(len(self.organization.subnet), 1)
+        self.assertEqual(self.organization.subnet[0].id, subnet.id)
+
+    @skip_if_bug_open('bugzilla', 1230865)
+    def test_associate_with_media(self):
+        """@Test: Update an organization and associate it with a media.
+
+        @Assert: An organization is associated with a media.
+
+        @Feature: Organziation
+
+        """
+        media = entities.Media().create()
+        self.organization.media = [media]
+        self.organization = self.organization.update(['media'])
+        self.assertEqual(len(self.organization.media), 1)
+        self.assertEqual(self.organization.media[0].id, media.id)
 
     @ddt.data(
         {'name': gen_string(str_type='utf8', length=256)},
@@ -292,20 +282,17 @@ class OrganizationUpdateTestCase(APITestCase):
         @Feature: Organization
 
         """
-        response = client.put(
-            self.organization.path(),
-            attrs,
-            verify=False,
-            auth=get_server_credentials(),
-        )
         with self.assertRaises(HTTPError):
-            response.raise_for_status()
+            entities.Organization(
+                id=self.organization.id,
+                **attrs
+            ).update(attrs.keys())
 
     @skip_if_bug_open('bugzilla', 1103157)
     def test_bugzilla_1103157(self):
-        """@Test: Create organization and add two compute resources
-        one by one using different transactions and different users
-        to see that they actually added, but not overwrite each other
+        """@Test: Create organization and add two compute resources one by one
+        using different transactions and different users to see that they
+        actually added, but not overwrite each other
 
         @Feature: Organization - Update
 
@@ -324,59 +311,42 @@ class OrganizationUpdateTestCase(APITestCase):
         @Assert: Organization contains both compute resources
 
         """
-        compute_resource_ids = [
+        # setUpClass() creates an organization w/admin user. Here, we use admin
+        # to make two compute resources and make first belong to organization.
+        compute_resources = [
             entities.LibvirtComputeResource(
                 name=gen_string('alpha'),
                 url='qemu://host.example.com/system'
-            ).create_json()['id']
+            ).create()
             for _ in range(2)
         ]
+        self.organization.compute_resource = compute_resources[:1]  # list
+        self.organization = self.organization.update(['compute_resource'])
+        self.assertEqual(len(self.organization.compute_resource), 1)
 
-        client.put(
-            self.organization.path(),
-            {'organization': {
-                'compute_resource_ids': [compute_resource_ids[0]]
-            }},
-            verify=False,
-            auth=get_server_credentials(),
-        ).raise_for_status()
-
-        self.assertEqual(
-            1,
-            len(self.organization.read_json()['compute_resources']),
-        )
-
+        # Create a new user and give them minimal permissions.
         login = gen_alphanumeric()
         password = gen_alphanumeric()
         user = entities.User(login=login, password=password).create()
-
-        role_id = entities.Role().create_json()['id']
-
+        role = entities.Role().create()
         for perm in ['edit_compute_resources', 'edit_organizations']:
-            permission_ids = [
-                permission['id']
+            permissions = [
+                entities.Permission(id=permission['id'])
                 for permission
                 in entities.Permission(name=perm).search()
             ]
-            entities.Filter(permission=permission_ids, role=role_id).create()
+            entities.Filter(permission=permissions, role=role).create()
+        user.role = [role]
+        user = user.update(['role'])
 
-        client.put(
-            user.path(),
-            {u'user': {u'role_ids': [role_id]}},
-            auth=get_server_credentials(),
-            verify=False,
-        ).raise_for_status()
+        # Make new user assign second compute resource to org.
+        cfg = get_nailgun_config()
+        cfg.auth = (login, password)
+        entities.Organization(
+            cfg,
+            id=self.organization.id,
+            compute_resource=compute_resources[1:],  # slice returns list
+        ).update(['compute_resource'])
 
-        client.put(
-            self.organization.path(),
-            {'organization': {
-                'compute_resource_ids': [compute_resource_ids[1]]
-            }},
-            verify=False,
-            auth=(login, password),
-        ).raise_for_status()
-
-        self.assertEqual(
-            2,
-            len(self.organization.read_json()['compute_resources']),
-        )
+        # Use admin to verify both compute resources belong to organization.
+        self.assertEqual(len(self.organization.read().compute_resource), 2)

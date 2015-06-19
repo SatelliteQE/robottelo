@@ -12,7 +12,6 @@ from requests.exceptions import HTTPError
 from robottelo.common.helpers import get_server_credentials
 from robottelo.common import decorators
 from robottelo.test import APITestCase
-# pylint:disable=too-many-public-methods
 
 
 def _user_attrs():
@@ -54,12 +53,9 @@ class UsersTestCase(APITestCase):
         @Feature: User
 
         """
-        # Create a user and validate its attributes.
-        user_id = entities.User(**attrs).create_json()['id']
-        real_attrs = entities.User(id=user_id).read_json()
+        user = entities.User(**attrs).create()
         for name, value in attrs.items():
-            self.assertIn(name, real_attrs.keys())
-            self.assertEqual(value, real_attrs[name])
+            self.assertEqual(getattr(user, name), value)
 
     @decorators.data(*_user_attrs())
     def test_delete(self, attrs):
@@ -70,11 +66,10 @@ class UsersTestCase(APITestCase):
         @Feature: User
 
         """
-        # Create a user and delete it immediately afterward.
-        user_id = entities.User(**attrs).create_json()['id']
-        entities.User(id=user_id).delete()
+        user = entities.User(**attrs).create()
+        user.delete()
         with self.assertRaises(HTTPError):
-            entities.User(id=user_id).read_json()
+            user.read()
 
     @decorators.data(True, False)
     def test_update_admin(self, admin):
@@ -85,16 +80,9 @@ class UsersTestCase(APITestCase):
         @Feature: User
 
         """
-        user_id = entities.User(admin=admin).create_json()['id']
-        user = entities.User(id=user_id)
-        response = client.put(
-            user.path(),
-            {'admin': not admin},
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        response.raise_for_status()
-        self.assertEqual(user.read().admin, not admin)
+        user = entities.User(admin=admin).create()
+        user.admin = not admin
+        self.assertEqual(user.update().admin, not admin)
 
 
 class UserRoleTestCase(APITestCase):
@@ -129,8 +117,9 @@ class UserRoleTestCase(APITestCase):
             user = entities.User(role=chosen_roles).create()
             self.assertEqual(len(user.role), i + 1)
             self.assertEqual(
-                set([role.id for role in chosen_roles] + [self.anon_role.id]),
                 set([role.id for role in user.role]),
+                # pylint:disable=no-member
+                set([role.id for role in chosen_roles] + [self.anon_role.id]),
             )
 
     def test_update_with_role(self):
@@ -146,17 +135,16 @@ class UserRoleTestCase(APITestCase):
         """
         user = entities.User().create()
         self.assertEqual(len(user.role), 1)  # the 'Anonymous' role
-        self.assertEqual(user.role[0].id, self.anon_role.id)
+        self.assertEqual(
+            user.role[0].id,
+            self.anon_role.id  # pylint:disable=no-member
+        )
         for i in range(2):
             chosen_roles = self.roles[0:i]
-            client.put(
-                user.path(),
-                {'user': {'role_ids': [role.id for role in chosen_roles]}},
-                auth=get_server_credentials(),
-                verify=False,
-            ).raise_for_status()
-            user = user.read()
+            user.role = chosen_roles
+            user = user.update(['role'])
             self.assertEqual(
-                set([role.id for role in chosen_roles] + [self.anon_role.id]),
                 set([role.id for role in user.role]),
+                # pylint:disable=no-member
+                set([role.id for role in chosen_roles] + [self.anon_role.id]),
             )
