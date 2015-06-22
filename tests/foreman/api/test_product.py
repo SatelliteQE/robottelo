@@ -126,23 +126,57 @@ class RepositorySetsTestCase(APITestCase):
             name=PRDS['rhel'],
             org_id=org.id,
         )
-        reposet_id = entities.Product(id=prd_id).fetch_reposet_id(
-            name=REPOSET['rhva6'],
-        )
-        entities.Product(id=prd_id).enable_rhrepo(
+        product = entities.Product(id=prd_id)
+        reposet_id = product.fetch_reposet_id(name=REPOSET['rhva6'])
+        product.enable_rhrepo(
             base_arch='x86_64',
             release_ver='6Server',
             reposet_id=reposet_id,
         )
-        result = entities.Product(
-            id=prd_id,
-        ).repository_sets_available_repositories(
+        repositories = product.repository_sets_available_repositories(
             reposet_id=reposet_id,
         )
         self.assertTrue([
             repo['enabled']
             for repo
-            in result
+            in repositories
+            if (repo['substitutions']['basearch'] == 'x86_64' and
+                repo['substitutions']['releasever'] == '6Server')
+        ][0])
+
+    def test_repositoryset_disable(self):
+        """@Test: Disable repo from reposet
+
+        @Feature: Repository-set
+
+        @Assert: Repository was disabled
+
+        """
+        org = entities.Organization().create()
+        org.upload_manifest(path=manifests.clone())
+        prd_id = entities.Product().fetch_rhproduct_id(
+            name=PRDS['rhel'],
+            org_id=org.id,
+        )
+        product = entities.Product(id=prd_id)
+        reposet_id = product.fetch_reposet_id(name=REPOSET['rhva6'])
+        product.enable_rhrepo(
+            base_arch='x86_64',
+            release_ver='6Server',
+            reposet_id=reposet_id,
+        )
+        product.disable_rhrepo(
+            base_arch='x86_64',
+            release_ver='6Server',
+            reposet_id=reposet_id,
+        )
+        repositories = product.repository_sets_available_repositories(
+            reposet_id=reposet_id,
+        )
+        self.assertFalse([
+            repo['enabled']
+            for repo
+            in repositories
             if (repo['substitutions']['basearch'] == 'x86_64' and
                 repo['substitutions']['releasever'] == '6Server')
         ][0])
