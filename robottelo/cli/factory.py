@@ -356,47 +356,84 @@ def make_location(options=None):
         --compute-resource-ids COMPUTE_RESOURCE_IDS Compute resource IDs
                                                     Comma separated list of
                                                     values.
+        --compute-resources COMPUTE_RESOURCE_NAMES  Compute resource names
+                                                    Comma separated list of
+                                                    values.
         --config-template-ids CONFIG_TEMPLATE_IDS   Provisioning template IDs
                                                     Comma separated list of
                                                     values.
+        --config-templates CONFIG_TEMPLATE_NAMES    Provisioning template names
+                                                    Comma separated list of
+                                                    values.
+        --description DESCRIPTION                   Location description
         --domain-ids DOMAIN_IDS                     Domain IDs
+                                                    Comma separated list of
+                                                    values.
+        --domains DOMAIN_NAMES                      Domain names
                                                     Comma separated list of
                                                     values.
         --environment-ids ENVIRONMENT_IDS           Environment IDs
                                                     Comma separated list of
                                                     values.
+        --environments ENVIRONMENT_NAMES            Environment names
+                                                    Comma separated list of
+                                                    values.
         --hostgroup-ids HOSTGROUP_IDS               Host group IDs
                                                     Comma separated list of
                                                     values.
-        --media-ids MEDIA_IDS                       Media IDs
+        --hostgroups HOSTGROUP_NAMES                Host group names
+                                                    Comma separated list of
+                                                    values.
+        --medium-ids MEDIUM_IDS                     Media IDs
                                                     Comma separated list of
                                                     values.
         --name NAME
         --realm-ids REALM_IDS                       Realm IDs
                                                     Comma separated list of
                                                     values.
+        --realms REALM_NAMES                        Realm names
+                                                    Comma separated list of
+                                                    values.
         --smart-proxy-ids SMART_PROXY_IDS           Smart proxy IDs
+                                                    Comma separated list of
+                                                    values.
+        --smart-proxies SMART_PROXY_NAMES           Smart proxy names
                                                     Comma separated list of
                                                     values.
         --subnet-ids SUBNET_IDS                     Subnet IDs
                                                     Comma separated list of
                                                     values.
+        --subnets SUBNET_NAMES                      Subnet names
+                                                    Comma separated list of
         --user-ids USER_IDS                         User IDs
+                                                    Comma separated list of
+                                                    values.
+        --users USER_LOGINS                         User names
                                                     Comma separated list of
                                                     values.
     """
     args = {
         u'compute-resource-ids': None,
+        u'compute-resources': None,
         u'config-template-ids': None,
+        u'config-templates': None,
+        u'description': None,
         u'domain-ids': None,
+        u'domains': None,
         u'environment-ids': None,
+        u'environments': None,
         u'hostgroup-ids': None,
-        u'media-ids': None,
+        u'hostgroups': None,
+        u'medium-ids': None,
         u'name': gen_alphanumeric(),
         u'realm-ids': None,
+        u'realms': None,
         u'smart-proxy-ids': None,
+        u'smart-proxies': None,
         u'subnet-ids': None,
+        u'subnets': None,
         u'user-ids': None,
+        u'users': None,
     }
 
     return create_object(Location, args, options)
