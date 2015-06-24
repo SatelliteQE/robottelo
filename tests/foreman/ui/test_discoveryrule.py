@@ -171,3 +171,28 @@ class DiscoveryRules(UITestCase):
             self.assertIsNotNone(self.discoveryrules.search(name))
             self.discoveryrules.delete(name)
             self.assertIsNone(self.discoveryrules.search(name))
+
+    @data(*generate_strings_list(len1=8))
+    def test_update_discovery_rule_1(self, new_name):
+        """@Test: Update discovery rule name
+
+        @Feature: Discovery Rule - Update
+
+        @Assert: Rule name is updated
+
+        """
+        name = gen_string("alpha", 6)
+        with Session(self.browser) as session:
+            make_discoveryrule(
+                session, name=name,
+                hostgroup=self.hostgroup_name
+            )
+            self.assertIsNotNone(
+                self.discoveryrules.search(name)
+            )
+            self.discoveryrules.update(
+                name=name, new_name=new_name,
+            )
+            self.assertIsNotNone(
+                self.discoveryrules.search(new_name)
+            )
