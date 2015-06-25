@@ -1,13 +1,19 @@
 """Test class for Active Directory Feature"""
+from ddt import ddt
+from robottelo.common.constants import LDAP_SERVER_TYPE, LDAP_ATTR
+from robottelo.common.decorators import data, stubbed
+from robottelo.common.helpers import generate_strings_list
 from robottelo.test import UITestCase
-from robottelo.common.decorators import stubbed
+from robottelo.ui.factory import make_ldapauth
+from robottelo.ui.session import Session
 
 
+@ddt
 class ADUserGroups(UITestCase):
     """Implements Active Directory feature tests in UI."""
 
-    @stubbed()
-    def test_create_ldap_auth_withad(self):
+    @data(*generate_strings_list())
+    def test_create_ldap_auth_withad(self, server_name):
         """@Test: Create LDAP authentication with AD
 
         @Feature: LDAP Authentication - Active Directory - create LDAP AD
@@ -19,12 +25,26 @@ class ADUserGroups(UITestCase):
 
         @Assert: Whether creating LDAP Auth with AD is successful.
 
-        @Status: Manual
-
         """
+        with Session(self.browser) as session:
+            make_ldapauth(
+                session,
+                name=server_name,
+                server=self.ldap_hostname,
+                server_type=LDAP_SERVER_TYPE['ad'],
+                login_name=LDAP_ATTR['login_ad'],
+                first_name=LDAP_ATTR['firstname'],
+                surname=LDAP_ATTR['surname'],
+                mail=LDAP_ATTR['mail'],
+                account_user=self.ldap_username,
+                account_passwd=self.ldap_passwd,
+                account_basedn=self.ldap_basedn,
+                account_grpbasedn=self.ldap_grpbasedn
+            )
+            self.assertIsNotNone(self.ldapusergroups.search(server_name))
 
-    @stubbed()
-    def test_delete_ldap_auth_withad(self):
+    @data(*generate_strings_list())
+    def test_delete_ldap_auth_withad(self, server_name):
         """@Test: Delete LDAP authentication with AD
 
         @Feature: LDAP Authentication - Active Directory - delete LDAP AD
@@ -36,9 +56,24 @@ class ADUserGroups(UITestCase):
 
         @Assert: Whether deleting LDAP Auth with AD is successful.
 
-        @Status: Manual
-
         """
+        with Session(self.browser) as session:
+            make_ldapauth(
+                session,
+                name=server_name,
+                server=self.ldap_hostname,
+                server_type=LDAP_SERVER_TYPE['ad'],
+                login_name=LDAP_ATTR['login_ad'],
+                first_name=LDAP_ATTR['firstname'],
+                surname=LDAP_ATTR['surname'],
+                mail=LDAP_ATTR['mail'],
+                account_user=self.ldap_username,
+                account_passwd=self.ldap_passwd,
+                account_basedn=self.ldap_basedn,
+                account_grpbasedn=self.ldap_grpbasedn
+            )
+            self.assertIsNotNone(self.ldapusergroups.search(server_name))
+            self.ldapusergroups.delete(server_name)
 
     @stubbed()
     def test_adusergroup_admin_role(self):

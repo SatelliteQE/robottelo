@@ -33,6 +33,7 @@ from robottelo.ui.template import Template
 from robottelo.ui.trend import Trend
 from robottelo.ui.user import User
 from robottelo.ui.usergroup import UserGroup
+from robottelo.ui.ldapusergroups import LdapAuth
 
 
 def core_factory(create_args, kwargs, session, page, org=None, loc=None,
@@ -584,3 +585,28 @@ def make_trend(session, **kwargs):
     page = session.nav.go_to_trends
     core_factory(create_args, kwargs, session, page)
     Trend(session.browser).create(**create_args)
+
+
+def make_ldapauth(session, **kwargs):
+    """Cretes a Ldap Auth"""
+    create_args = {
+        u'name': None,
+        u'server': None,
+        u'ldaps': False,
+        u'port': None,
+        u'server_type': None,
+        u'login_name': None,
+        u'first_name': None,
+        u'surname': None,
+        u'mail': None,
+        u'photo': None,
+        u'account_user': None,
+        u'account_passwd': None,
+        u'account_basedn': None,
+        u'account_grpbasedn': None,
+        u'ldap_filter': False,
+        u'otf_register': True
+    }
+    page = session.nav.go_to_ldap_auth
+    core_factory(create_args, kwargs, session, page)
+    LdapAuth(session.browser).create(**create_args)

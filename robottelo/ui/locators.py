@@ -538,6 +538,12 @@ tab_locators = LocatorDict({
         "//a[@data-toggle='tab' and contains(@href, 'Provisioning')]"),
     "puppetclass.parameters": (
         By.XPATH, "//a[contains(@href,'class_param')]"),
+
+    # LDAP Authentication
+    "ldapserver.tab_account": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'account')]"),
+    "ldapserver.tab_attributes": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'attributes')]"),
 })
 
 common_locators = LocatorDict({
@@ -1839,5 +1845,44 @@ locators = LocatorDict({
         By.XPATH, ("//a[contains(@href, 'discovery_rules')"
                    " and contains(., '%s')]")),
     "discoveryrules.rule_delete": (
-        By.XPATH, "//a[contains(@data-confirm, '%s') and @class='delete']")
+        By.XPATH, "//a[contains(@data-confirm, '%s') and @class='delete']"),
+    # LDAP Authentication
+    "ldapsource.new": (
+        By.XPATH, "//a[@href='/auth_source_ldaps/new']"),
+    "ldapserver.name": (
+        By.ID, "auth_source_ldap_name"),
+    "ldapserver.server": (
+        By.ID, "auth_source_ldap_host"),
+    "ldapserver.ldaps": (
+        By.ID, "auth_source_ldap_tls"),
+    "ldapserver.port": (
+        By.ID, "auth_source_ldap_port"),
+    "ldapserver.server_type": (
+        By.ID, "auth_source_ldap_server_type"),
+    "ldapserver.loginname": (
+        By.ID, "auth_source_ldap_attr_login"),
+    "ldapserver.firstname": (
+        By.ID, "auth_source_ldap_attr_firstname"),
+    "ldapserver.surname": (
+        By.ID, "auth_source_ldap_attr_lastname"),
+    "ldapserver.mail": (
+        By.ID, "auth_source_ldap_attr_mail"),
+    "ldapserver.photo": (
+        By.ID, "auth_source_ldap_attr_photo"),
+    "ldapserver.acc_user": (
+        By.ID, "auth_source_ldap_account"),
+    "ldapserver.acc_passwd": (
+        By.ID, "auth_source_ldap_account_password"),
+    "ldapserver.basedn": (
+        By.ID, "auth_source_ldap_base_dn"),
+    "ldapserver.group_basedn": (
+        By.ID, "auth_source_ldap_groups_base"),
+    "ldapserver.ldap_filter": (
+        By.ID, "auth_source_ldap_ldap_filter"),
+    "ldapserver.otf_register": (
+        By.ID, "auth_source_ldap_onthefly_register"),
+    "ldapserver.ldap_delete": (
+        By.XPATH, "//a[@data-confirm='Delete %s?']"),
+    "ldapserver.ldap_servername": (
+        By.XPATH, "//a[contains(@href, 'edit') and contains(@href, '%s')]"),
 })

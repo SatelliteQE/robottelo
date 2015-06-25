@@ -582,3 +582,17 @@ TREND_TYPES = {
     'host_group': 'Host group',
     'compute_resource': 'Compute resource',
 }
+
+LDAP_SERVER_TYPE = {
+    'ipa': 'FreeIPA',
+    'ad': 'Active Directory',
+    'posix': 'POSIX',
+}
+
+LDAP_ATTR = {
+    'login_ad': 'sAMAccountName',
+    'login': 'uid',
+    'firstname': 'givenName',
+    'surname': 'sn',
+    'mail': 'mail',
+}

@@ -33,6 +33,7 @@ from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hardwaremodel import HardwareModel
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.hosts import Hosts
+from robottelo.ui.ldapusergroups import LdapAuth
 from robottelo.ui.location import Location
 from robottelo.ui.login import Login
 from robottelo.ui.medium import Medium
@@ -122,6 +123,11 @@ class UITestCase(TestCase):
         cls.verbosity = int(conf.properties['main.verbosity'])
         cls.remote = int(conf.properties['main.remote'])
         cls.server_name = conf.properties.get('main.server.hostname')
+        cls.ldap_hostname = conf.properties.get('main.ldap.hostname')
+        cls.ldap_username = conf.properties.get('main.ldap.username')
+        cls.ldap_passwd = conf.properties.get('main.ldap.passwd')
+        cls.ldap_basedn = conf.properties.get('main.ldap.basedn')
+        cls.ldap_grpbasedn = conf.properties.get('main.ldap.grpbasedn')
         cls.screenshots_dir = conf.properties.get('main.screenshots.base_path')
 
         if int(conf.properties.get('main.virtual_display', '0')):
@@ -196,6 +202,7 @@ class UITestCase(TestCase):
         self.hardwaremodel = HardwareModel(self.browser)
         self.hostgroup = Hostgroup(self.browser)
         self.hosts = Hosts(self.browser)
+        self.ldapusergroups = LdapAuth(self.browser)
         self.location = Location(self.browser)
         self.login = Login(self.browser)
         self.medium = Medium(self.browser)
