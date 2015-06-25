@@ -16,6 +16,7 @@ from robottelo.cli.factory import (
     make_template,
     make_user,
 )
+from robottelo.cli.location import Location
 from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.test import CLITestCase
 
@@ -364,7 +365,7 @@ class TestLocation(CLITestCase):
 
         """
         with self.assertRaises(CLIFactoryError):
-            make_location({'compute-resource-ids': gen_string('numeric', 150)})
+            make_location({'compute-resource-ids': gen_string('numeric', 6)})
 
     def test_create_location_with_user_by_name_negative(self):
         """@Test: Try to create new location with incorrect user assigned to it
@@ -377,3 +378,214 @@ class TestLocation(CLITestCase):
         """
         with self.assertRaises(CLIFactoryError):
             make_location({'users': gen_string('utf8', 80)})
+
+    @data(
+        gen_string('alphanumeric', randint(1, 255)),
+        gen_string('alpha', randint(1, 255)),
+        gen_string('cjk', randint(1, 85)),
+        gen_string('latin1', randint(1, 255)),
+        gen_string('numeric', randint(1, 255)),
+        gen_string('utf8', randint(1, 85)),
+        gen_string('html', 85),
+    )
+    def test_update_location_with_different_names(self, name):
+        """@Test: Try to update location using different value types as a name
+
+        @Feature: Location
+
+        @Assert: Location is updated successfully and has proper and expected
+        name
+
+        """
+        loc = make_location()
+        self.assertNotEqual(loc['name'], name)
+
+        result = Location.update({
+            'id': loc['id'],
+            'new-name': name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = Location.info({'id': loc['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['name'], name)
+
+    def test_update_location_with_user_by_id(self):
+        """@Test: Create new location with assigned user to it. Try to update
+        that location and change assigned user on another one. Use user id as a
+        parameter
+
+        @Feature: Location
+
+        @Assert: Location is updated successfully and has correct user assigned
+        to it
+
+        """
+        user = [make_user() for _ in range(2)]
+        loc = make_location({'user-ids': user[0]['id']})
+        self.assertEqual(loc['users'][0], user[0]['login'])
+
+        result = Location.update({
+            'id': loc['id'],
+            'user-ids': user[1]['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = Location.info({'id': loc['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['users'][0], user[1]['login'])
+
+    def test_update_location_with_subnet_by_name(self):
+        """@Test: Create new location with assigned subnet to it. Try to update
+        that location and change assigned subnet on another one. Use subnet
+        name as a parameter
+
+        @Feature: Location
+
+        @Assert: Location is updated successfully and has correct subnet with
+        expected network address assigned to it
+
+        """
+        subnet = [make_subnet() for _ in range(2)]
+        loc = make_location({'subnets': subnet[0]['name']})
+        self.assertIn(subnet[0]['name'], loc['subnets'][0])
+        self.assertIn(subnet[0]['network'], loc['subnets'][0])
+
+        result = Location.update({
+            'id': loc['id'],
+            'subnets': subnet[1]['name'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = Location.info({'id': loc['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertIn(subnet[1]['name'], result.stdout['subnets'][0])
+        self.assertIn(subnet[1]['network'], result.stdout['subnets'][0])
+
+    def test_update_location_with_multiple_comp_resources_to_single(self):
+        """@Test: Create location with multiple (not less than three) compute
+        resources assigned to it. Try to update location and overwrite all
+        compute resources with a new single compute resource. Use compute
+        resource id as a parameter
+
+        @Feature: Location
+
+        @Assert: Location updated successfully and has correct compute resource
+        assigned to it
+
+        """
+        resources_amount = randint(3, 5)
+        resources = [make_compute_resource() for _ in range(resources_amount)]
+        resource_ids = ','.join(resource['id'] for resource in resources)
+        loc = make_location({'compute-resource-ids': resource_ids})
+        self.assertEqual(len(loc['compute-resources']), resources_amount)
+        for resource in resources:
+            self.assertIn(resource['name'], loc['compute-resources'])
+
+        new_resource = make_compute_resource()
+        result = Location.update({
+            'id': loc['id'],
+            'compute-resource-ids': new_resource['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = Location.info({'id': loc['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout['compute-resources']), 1)
+        self.assertEqual(
+            result.stdout['compute-resources'][0], new_resource['name'])
+
+    def test_update_location_with_multiple_host_group_to_multiple(self):
+        """@Test: Create location with multiple (three) host groups assigned to
+        it. Try to update location and overwrite all host groups by new
+        multiple (two) host groups. Use host groups name as a parameter
+
+        @Feature: Location
+
+        @Assert: Location updated successfully and has correct and expected
+        host groups assigned to it
+
+        """
+
+        host_groups = [make_hostgroup() for _ in range(3)]
+        host_group_names = ','.join(hg['name'] for hg in host_groups)
+        loc = make_location({'hostgroups': host_group_names})
+        self.assertEqual(len(loc['hostgroups']), 3)
+        for host_group in host_groups:
+            self.assertIn(host_group['name'], loc['hostgroups'])
+
+        new_host_groups = [make_hostgroup() for _ in range(2)]
+        new_host_group_names = ','.join(hg['name'] for hg in new_host_groups)
+        result = Location.update({
+            'id': loc['id'],
+            'hostgroups': new_host_group_names,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = Location.info({'id': loc['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout['hostgroups']), 2)
+        for host_group in new_host_groups:
+            self.assertIn(host_group['name'], result.stdout['hostgroups'])
+
+    @data(
+        '',
+        ' ',
+        gen_string('alphanumeric', 300),
+        gen_string('alpha', 300),
+        gen_string('cjk', 300),
+        gen_string('latin1', 300),
+        gen_string('numeric', 300),
+        gen_string('utf8', 300),
+        gen_string('html', 300),
+    )
+    def test_update_location_with_different_names_negative(self, name):
+        """@Test: Try to update location using invalid names only
+
+        @Feature: Location
+
+        @Assert: Location is not updated
+
+        """
+        loc = make_location()
+
+        result = Location.update({
+            'id': loc['id'],
+            'new-name': name,
+        })
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
+
+    def test_update_location_with_domain_by_id_negative(self):
+        """@Test: Try to update existing location with incorrect domain. Use
+        domain id as a parameter
+
+        @Feature: Location
+
+        @Assert: Location is not updated
+
+        """
+        loc = make_location()
+        result = Location.update({
+            'id': loc['id'],
+            'domain-ids': gen_string('numeric', 6),
+        })
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
+
+    def test_update_location_with_template_by_name_negative(self):
+        """@Test: Try to update existing location with incorrect config
+        template. Use template name as a parameter
+
+        @Feature: Location
+
+        @Assert: Location is not updated
+
+        """
+        loc = make_location()
+        result = Location.update({
+            'id': loc['id'],
+            'config-templates': gen_string('utf8', 80),
+        })
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
