@@ -16,6 +16,7 @@ from robottelo.test import CLITestCase
 from robottelo.cli.import_ import Import
 from robottelo.cli.factory import make_org
 from robottelo.cli.org import Org
+from robottelo.cli.user import User
 
 
 def csv_to_dataset(csv_file):
@@ -242,6 +243,51 @@ class TestImport(CLITestCase):
         )
         os.remove(new_dataset)
         ssh.command('rm -rf ${{HOME}}/.transition_data {}'.format(tmp_dir))
+
+    @data(*positive_import_user_data())
+    def test_merge_orgs(self, data):
+        """@test: Try to Import all organizations and their users from CSV
+        to a mapped organizaition.
+
+        @feature: Import User Mapped Org
+
+        @assert: 3 Organizations Mapped and their Users created
+        in a single Organization
+
+        """
+        # create a new Organization and prepare CSV files
+        new_org = make_org()
+        tmp_dir, files = prepare_import_data()
+        pwdfile = os.path.join(tmp_dir, gen_string('alpha', 6))
+        new_dataset = update_csv_values(
+            files['users'],
+            *positive_import_user_data()
+        )
+        ssh.upload_file(new_dataset, new_dataset)
+        files['users'] = new_dataset
+        ssh_map = Import.organization({
+            'csv-file': files['users'],
+            'into-org-id': new_org['id'],
+            'verbose': True,
+        })
+        self.assertIn(u'Mapped 3 organizations.', ''.join(ssh_map.stdout))
+        Import.user({'csv-file': files['users'], 'new-passwords': pwdfile})
+
+        # list users by org-id and check whether users from csv are in listing
+        users = User().list({u'organization-id': new_org['id']})
+        logins = set(user['login'] for user in users.stdout)
+        imp_users = set(
+            user['username']
+            for user in csv_to_dataset(files['users'])
+        )
+        self.assertTrue(all((user in logins for user in imp_users)))
+
+        # do the cleanup
+        os.remove(new_dataset)
+        ssh.command(
+            'rm -rf ${{HOME}}/.transition_data {0} {1}'
+            .format(pwdfile, tmp_dir)
+        )
 
     @data(*positive_import_user_data())
     def test_import_users_default(self, data):
