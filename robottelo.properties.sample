@@ -10,6 +10,14 @@ server.hostname=
 
 server.ssh.key_private=/home/whoami/.ssh/id_hudson_dsa
 server.ssh.username=root
+
+# For LDAP Authentication.
+ldap.hostname=
+ldap.username=
+ldap.passwd=
+ldap.basedn=
+ldap.grpbasedn=
+
 # The directory where screenshots will be saved.
 # Note:- Content under /tmp may be deleted after a reboot.
 screenshots.base_path=/tmp/robottelo/screenshots/
@@ -58,8 +66,6 @@ admin.password=changeme
 
 [saucelabs]
 driver=firefox
-
-# NOTE: Candlepin url accepts just the hostname.
 
 # Section for declaring Sat5->Sat6 transition parameters
 [transitions]
