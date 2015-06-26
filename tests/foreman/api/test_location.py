@@ -8,6 +8,7 @@ from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
 from random import randint
+from requests.exceptions import HTTPError
 from robottelo.common.decorators import data
 from robottelo.test import APITestCase
 
@@ -199,3 +200,16 @@ class LocationTestCase(APITestCase):
         self.assertEqual(len(location.organization), orgs_amount)
         for org in location.organization:
             self.assertIn(org.id, org_ids)
+
+    def test_delete_location(self):
+        """@Test: Delete location
+
+        @Assert: Location was deleted
+
+        @Feature: Location - Delete
+
+        """
+        location = entities.Location().create()
+        location.delete()
+        with self.assertRaises(HTTPError):
+            location.read()
