@@ -207,6 +207,21 @@ class Location(UITestCase):
                 common_locators["name_haserror"])
             self.assertIsNotNone(error)
 
+    @data(*generate_strings_list())
+    def test_positive_delete(self, loc_name):
+        """@test: Create location with valid values then delete it.
+
+        @feature: Location Positive Delete test.
+
+        @assert: Location is deleted
+
+        """
+        with Session(self.browser) as session:
+            make_loc(session, name=loc_name)
+            self.assertIsNotNone(self.location.search(loc_name))
+            self.location.delete(loc_name, really=True)
+            self.assertIsNone(self.location.search(loc_name))
+
     # Miscellaneous
 
     @data(*generate_strings_list())
