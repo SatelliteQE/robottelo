@@ -54,7 +54,9 @@ def build_csv_file(rows=None):
         rows = [{}]
     file_name = tempfile.mkstemp()[1]
     with open(file_name, 'wb') as csv_file:
-        csv_writer = csv.DictWriter(csv_file, fieldnames=rows[0].keys())
+        csv_writer = csv.DictWriter(
+            csv_file, fieldnames=rows[0].keys(), lineterminator='\n'
+        )
         csv_writer.writeheader()
         for row in rows:
             csv_writer.writerow(row)
@@ -96,33 +98,46 @@ def update_csv_values(csv_file, new_data=None):
     result = csv_to_dataset(csv_file)
     for change in new_data:
         for record in result:
-            if record['organization_id'] == change['org_id']:
+            if record['organization_id'] == change['organization_id']:
                 record.update(change)
     return build_csv_file(result)
 
 
 def positive_import_org_data():
+    """Random data for Organization Import tests"""
+
     return ([
-        {u'org_id': u'1', u'organization': gen_string('alphanumeric')},
-        {u'org_id': u'2', u'organization': gen_string('alphanumeric')},
-        {u'org_id': u'3', u'organization': gen_string('alphanumeric')},
+        {
+            u'organization_id': u'1',
+            u'organization': gen_string('alphanumeric')
+        },
+        {
+            u'organization_id': u'2',
+            u'organization': gen_string('alphanumeric')
+        },
+        {
+            u'organization_id': u'3',
+            u'organization': gen_string('alphanumeric')
+        },
     ],)
 
 
 def positive_import_user_data():
+    """Random data for User Import tests"""
+
     return ([
         {
-            u'org_id': u'1',
+            u'organization_id': u'1',
             u'organization': gen_string('alphanumeric'),
             u'username': gen_string('alphanumeric')
         },
         {
-            u'org_id': u'2',
+            u'organization_id': u'2',
             u'organization': gen_string('alphanumeric'),
             u'username': gen_string('alphanumeric')
         },
         {
-            u'org_id': u'3',
+            u'organization_id': u'3',
             u'organization': gen_string('alphanumeric'),
             u'username': gen_string('alphanumeric')
         },
@@ -138,8 +153,20 @@ class TestImport(CLITestCase):
     specified in robottelo.properties.
 
     """
+    @classmethod
+    def setUpClass(cls):
+        super(TestImport, cls).setUpClass()
+        # prepare the default dataset
+        cls.default_dataset = prepare_import_data()
+
+    @classmethod
+    def tearDownClass(cls):
+        super(TestImport, cls).tearDownClass()
+        # remove the dataset
+        ssh.command('rm -rf {}'.format(cls.default_dataset[0]))
+
     @data(*positive_import_org_data())
-    def test_import_orgs_default(self, data):
+    def test_import_orgs_default(self, test_data):
         """@test: Import all organizations from the default data set
         (predefined source).
 
@@ -148,10 +175,10 @@ class TestImport(CLITestCase):
         @assert: 3 Organizations are created
 
         """
-        tmp_dir, files = prepare_import_data()
+        files = dict(self.default_dataset[1])
         new_dataset = update_csv_values(
             files['users'],
-            *positive_import_org_data()
+            test_data
         )
         ssh.upload_file(new_dataset, new_dataset)
         files['users'] = new_dataset
@@ -165,7 +192,7 @@ class TestImport(CLITestCase):
             org in csv_to_dataset(files['users'])
         )
         os.remove(new_dataset)
-        ssh.command('rm -rf ${{HOME}}/.transition_data {}'.format(tmp_dir))
+        ssh.command('rm -rf ${HOME}/.transition_data')
         self.assertEqual(ssh_import.return_code, 0)
         self.assertEqual(
             ssh_import.stdout,
@@ -178,8 +205,8 @@ class TestImport(CLITestCase):
         self.assertTrue(all((org in orgs for org in imp_orgs)))
 
     @data(*positive_import_org_data())
-    def test_import_orgs_manifests(self, data):
-        """@test: Import all organizations from the default data set
+    def test_import_orgs_manifests(self, test_data):
+        """@test: Import all organizations with from the default data set
         (predefined source) and upload manifests for each of them
 
         @feature: Import Organizations including Manifests
@@ -187,10 +214,10 @@ class TestImport(CLITestCase):
         @assert: 3 Organizations are created with 3 manifests uploaded
 
         """
-        tmp_dir, files = prepare_import_data()
+        files = dict(self.default_dataset[1])
         new_dataset = update_csv_values(
             files['users'],
-            *positive_import_org_data()
+            test_data
         )
         ssh.upload_file(new_dataset, new_dataset)
         files['users'] = new_dataset
@@ -212,14 +239,14 @@ class TestImport(CLITestCase):
         # cleanup the files and perform the assertions
         os.remove(new_dataset)
         ssh.command(
-            'rm -rf ${{HOME}}/.transition_data {0} {1}'
-            .format(man_dir, tmp_dir)
+            'rm -rf ${{HOME}}/.transition_data {}'
+            .format(man_dir)
         )
         self.assertIn('Created 3 organizations.', ''.join(ssh_import.stdout))
         self.assertIn('Uploaded 3 manifests.', ''.join(ssh_import.stdout))
 
     @data(*positive_import_org_data())
-    def test_reimport_orgs_default(self, data):
+    def test_reimport_orgs_default(self, test_data):
         """@test: Try to Import all organizations from the
         predefined source and try to import them again
 
@@ -228,10 +255,10 @@ class TestImport(CLITestCase):
         @assert: 2nd Import will result in No Action Taken
 
         """
-        tmp_dir, files = prepare_import_data()
+        files = dict(self.default_dataset[1])
         new_dataset = update_csv_values(
             files['users'],
-            *positive_import_org_data()
+            test_data
         )
         ssh.upload_file(new_dataset, new_dataset)
         files['users'] = new_dataset
@@ -242,10 +269,10 @@ class TestImport(CLITestCase):
             [u'Summary', u'  No action taken.', u'']
         )
         os.remove(new_dataset)
-        ssh.command('rm -rf ${{HOME}}/.transition_data {}'.format(tmp_dir))
+        ssh.command('rm -rf ${HOME}/.transition_data')
 
     @data(*positive_import_user_data())
-    def test_merge_orgs(self, data):
+    def test_merge_orgs(self, test_data):
         """@test: Try to Import all organizations and their users from CSV
         to a mapped organizaition.
 
@@ -261,7 +288,7 @@ class TestImport(CLITestCase):
         pwdfile = os.path.join(tmp_dir, gen_string('alpha', 6))
         new_dataset = update_csv_values(
             files['users'],
-            *positive_import_user_data()
+            test_data
         )
         ssh.upload_file(new_dataset, new_dataset)
         files['users'] = new_dataset
@@ -290,7 +317,7 @@ class TestImport(CLITestCase):
         )
 
     @data(*positive_import_user_data())
-    def test_import_users_default(self, data):
+    def test_import_users_default(self, test_data):
         """@test: Import all 3 users from the our default data set (predefined
         source).
 
@@ -299,12 +326,13 @@ class TestImport(CLITestCase):
         @assert: 3 Users created
 
         """
-        tmp_dir, files = prepare_import_data()
+        tmp_dir = self.default_dataset[0]
+        files = dict(self.default_dataset[1])
         pwdfile = os.path.join(tmp_dir, gen_string('alpha', 6))
 
         new_dataset = update_csv_values(
             files['users'],
-            *positive_import_user_data()
+            test_data
         )
         ssh.upload_file(new_dataset, new_dataset)
         files['users'] = new_dataset
@@ -315,8 +343,8 @@ class TestImport(CLITestCase):
         })
         os.remove(new_dataset)
         ssh.command(
-            'rm -rf ${{HOME}}/.transition_data {0} {1}'
-            .format(pwdfile, tmp_dir)
+            'rm -rf ${{HOME}}/.transition_data {}'
+            .format(pwdfile)
         )
         self.assertEqual(
             ssh_import.stdout,
@@ -337,7 +365,7 @@ class TestImport(CLITestCase):
 
         """
         # prepare data (craft csv)
-        data = [
+        test_data = [
             {
                 u'name': u'hostname',
                 u'macro': u'{| rhn.system.hostname |}',
@@ -368,7 +396,7 @@ class TestImport(CLITestCase):
             },
         ]
         csv_contents = u'\n'.join(
-            u'{0}={1}'.format(i['name'], i['macro']) for i in data
+            u'{0}={1}'.format(i['name'], i['macro']) for i in test_data
         )
 
         csv_row = {
@@ -432,7 +460,7 @@ class TestImport(CLITestCase):
         # compare the contains with the expected format
         self.assertEqual(
             cat_cmd.stdout[:-1],
-            [fact['name'] + '=' + fact['fact'] for fact in data],
+            [fact['name'] + '=' + fact['fact'] for fact in test_data],
         )
         # cleanup the remote part
         ssh.command(u'rm -rf $HOME/.transition_data ~/puppet_work_dir')
