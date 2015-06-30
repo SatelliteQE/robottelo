@@ -103,7 +103,7 @@ def update_csv_values(csv_file, new_data=None):
     return build_csv_file(result)
 
 
-def positive_import_org_data():
+def import_org_data():
     """Random data for Organization Import tests"""
 
     return ([
@@ -122,7 +122,7 @@ def positive_import_org_data():
     ],)
 
 
-def positive_import_user_data():
+def import_user_data():
     """Random data for User Import tests"""
 
     return ([
@@ -165,7 +165,7 @@ class TestImport(CLITestCase):
         # remove the dataset
         ssh.command('rm -rf {}'.format(cls.default_dataset[0]))
 
-    @data(*positive_import_org_data())
+    @data(*import_org_data())
     def test_import_orgs_default(self, test_data):
         """@test: Import all organizations from the default data set
         (predefined source).
@@ -204,9 +204,9 @@ class TestImport(CLITestCase):
         )
         self.assertTrue(all((org in orgs for org in imp_orgs)))
 
-    @data(*positive_import_org_data())
+    @data(*import_org_data())
     def test_import_orgs_manifests(self, test_data):
-        """@test: Import all organizations with from the default data set
+        """@test: Import all organizations from the default data set
         (predefined source) and upload manifests for each of them
 
         @feature: Import Organizations including Manifests
@@ -245,8 +245,8 @@ class TestImport(CLITestCase):
         self.assertIn('Created 3 organizations.', ''.join(ssh_import.stdout))
         self.assertIn('Uploaded 3 manifests.', ''.join(ssh_import.stdout))
 
-    @data(*positive_import_org_data())
-    def test_reimport_orgs_default(self, test_data):
+    @data(*import_org_data())
+    def test_reimport_orgs_default_negative(self, test_data):
         """@test: Try to Import all organizations from the
         predefined source and try to import them again
 
@@ -269,9 +269,11 @@ class TestImport(CLITestCase):
             [u'Summary', u'  No action taken.', u'']
         )
         os.remove(new_dataset)
-        ssh.command('rm -rf ${HOME}/.transition_data')
+        ssh.command(
+            'rm -rf ${{HOME}}/.transition_data {}'.format(files['users'])
+        )
 
-    @data(*positive_import_user_data())
+    @data(*import_user_data())
     def test_merge_orgs(self, test_data):
         """@test: Try to Import all organizations and their users from CSV
         to a mapped organizaition.
@@ -316,7 +318,7 @@ class TestImport(CLITestCase):
             .format(pwdfile, tmp_dir)
         )
 
-    @data(*positive_import_user_data())
+    @data(*import_user_data())
     def test_import_users_default(self, test_data):
         """@test: Import all 3 users from the our default data set (predefined
         source).
@@ -349,6 +351,48 @@ class TestImport(CLITestCase):
         self.assertEqual(
             ssh_import.stdout,
             [u'Summary', u'  Created 3 users.', u'']
+        )
+
+    @data(*import_user_data())
+    def test_reimport_users_default_negative(self, test_data):
+        """@test: Try to Import all users from the
+        predefined source and try to import them again
+
+        @feature: Import Users twice
+
+        @assert: 2nd Import will result in No Action Taken
+
+        """
+        tmp_dir = self.default_dataset[0]
+        files = dict(self.default_dataset[1])
+        pwdfile = os.path.join(tmp_dir, gen_string('alpha', 6))
+        new_dataset = update_csv_values(
+            files['users'],
+            test_data
+        )
+        ssh.upload_file(new_dataset, new_dataset)
+        files['users'] = new_dataset
+        # Import the organizations first
+        self.assertEqual(
+            Import.organization({
+                'csv-file': files['users'],
+            }).return_code, 0)
+        self.assertEqual(
+            Import.user({
+                'csv-file': files['users'],
+                'new-passwords': pwdfile,
+            }).stderr, '')
+        ssh.command(u'rm -rf {}'.format(pwdfile))
+        self.assertEqual(
+            Import.user({
+                'csv-file': files['users'],
+                'new-passwords': pwdfile,
+            }).stdout,
+            [u'Summary', u'  No action taken.', u'']
+        )
+        os.remove(new_dataset)
+        ssh.command(
+            'rm -rf ${{HOME}}/.transition_data {}'.format(files['users'])
         )
 
     @skip_if_bug_open('bugzilla', 1160847)
