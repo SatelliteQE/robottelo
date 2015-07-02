@@ -33,7 +33,7 @@ class TestLocation(CLITestCase):
         gen_string('latin1', randint(1, 255)),
         gen_string('numeric', randint(1, 255)),
         gen_string('utf8', randint(1, 85)),
-        gen_string('html', 85),
+        gen_string('html', randint(1, 85)),
     )
     def test_create_location_with_different_names(self, name):
         """@Test: Try to create location using different value types as a name
@@ -386,7 +386,7 @@ class TestLocation(CLITestCase):
         gen_string('latin1', randint(1, 255)),
         gen_string('numeric', randint(1, 255)),
         gen_string('utf8', randint(1, 85)),
-        gen_string('html', 85),
+        gen_string('html', randint(1, 85)),
     )
     def test_update_location_with_different_names(self, name):
         """@Test: Try to update location using different value types as a name
@@ -589,3 +589,49 @@ class TestLocation(CLITestCase):
         })
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0)
+
+    @data(
+        gen_string('alphanumeric', randint(1, 255)),
+        gen_string('alpha', randint(1, 255)),
+        gen_string('cjk', randint(1, 85)),
+        gen_string('latin1', randint(1, 255)),
+        gen_string('numeric', randint(1, 255)),
+        gen_string('utf8', randint(1, 85)),
+        gen_string('html', randint(1, 85)),
+    )
+    def test_delete_location_by_name(self, name):
+        """@Test: Try to delete location using name of that location as a
+        parameter. Use different value types for testing.
+
+        @Feature: Location
+
+        @Assert: Location is deleted successfully
+
+        """
+        loc = make_location({'name': name})
+        self.assertEqual(loc['name'], name)
+        result = Location.delete({'name': loc['name']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = Location.info({'id': loc['id']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertNotEqual(len(result.stderr), 0)
+
+    def test_delete_location_by_id(self):
+        """@Test: Try to delete location using id of that location as a
+        parameter
+
+        @Feature: Location
+
+        @Assert: Location is deleted successfully
+
+        """
+        loc = make_location()
+        result = Location.delete({'id': loc['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = Location.info({'id': loc['id']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertNotEqual(len(result.stderr), 0)
