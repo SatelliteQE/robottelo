@@ -111,7 +111,36 @@ class ContentView(Base):
 
     @classmethod
     def filter_create(cls, options):
-        """Add new filter to content view entity."""
+        """Add new filter to content view entity.
+
+        Usage::
+
+            hammer content-view filter create [OPTIONS]
+
+        Options::
+
+            --content-view CONTENT_VIEW_NAME    Content view name
+            --content-view-id CONTENT_VIEW_ID   Content view numeric identifier
+            --description DESCRIPTION           Description of the filter
+            --inclusion INCLUSION               Specifies if content should be
+                                                included or excluded, default:
+                                                inclusion=false (One of yes/no,
+                                                1/0, true/false)
+            --name NAME                         name of the filter
+            --organization ORGANIZATION_NAME    Organization name to search by
+            --organization-id ORGANIZATION_ID   Organization ID
+            --organization-label ORGANIZATION_LABEL   Organization label to
+                                                      search by
+            --original-packages ORIGINAL_PACKAGES     Add all packages without
+                                                      Errata to the included/
+                                                      excluded list. (Package
+                                                      Filter only)
+            --repositories REPOSITORY_NAMES      Comma separated list of values
+            --repository-ids REPOSITORY_IDS      Repository ID
+            --type TYPE                          type of filter (e.g. rpm,
+                                                 package_group, erratum)
+
+        """
         cls.command_sub = 'filter create'
 
         if options is None:

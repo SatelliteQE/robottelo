@@ -662,7 +662,7 @@ class TestContentView(CLITestCase):
             'inclusion': 'true',
             'name': name,
         })
-        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result_flt.return_code, 0)
         self.assertEqual(len(result_flt.stderr), 0)
 
         result_rl = ContentView.filter_rule_create({
