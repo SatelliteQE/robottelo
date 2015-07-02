@@ -71,7 +71,7 @@ class DockerImageTestCase(CLITestCase):
         # Some images do not have tags associated with it, ignore those because
         # we want to check the tag information
         images = [
-            image for image in result.stdout if int(image['tags']) > 0
+            image for image in result.stdout if int(image['tag-count']) > 0
         ]
         for image in images:
             result = Docker.image.info({'id': image['id']})
@@ -82,7 +82,7 @@ class DockerImageTestCase(CLITestCase):
             tag_repository_ids = []
             for tag in result.stdout['tags']:
                 tag_repository_ids.append(tag['repository-id'])
-                self.assertGreater(len(tag['name']), 0)
+                self.assertGreater(len(tag['tag']), 0)
             self.assertIn(repository['id'], tag_repository_ids)
 
 
