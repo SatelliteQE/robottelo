@@ -1538,7 +1538,7 @@ locators = LocatorDict({
         By.XPATH,
         "//input[@ng-model='item.selected']/parent::label[contains(., '%s')]"),
     "contentviews.promote_version": (
-        By.XPATH, "//button[@ng-click='promote()']"),
+        By.XPATH, "//button[@ng-click='verifySelection()']"),
     "contentview.version_filter": (
         By.XPATH, "//input[@ng-model='filterTerm' and @placeholder='Filter']"),
     "contentviews.add_module": (
