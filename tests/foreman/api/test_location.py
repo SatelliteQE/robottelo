@@ -19,11 +19,11 @@ class LocationTestCase(APITestCase):
     # TODO Add coverage for media, smart_proxy, realms once they implemented
 
     @data(
-        gen_string('alphanumeric', randint(1, 255)),
-        gen_string('alpha', randint(1, 255)),
+        gen_string('alphanumeric', randint(1, 246)),
+        gen_string('alpha', randint(1, 246)),
         gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 255)),
-        gen_string('numeric', randint(1, 255)),
+        gen_string('latin1', randint(1, 246)),
+        gen_string('numeric', randint(1, 246)),
         gen_string('utf8', randint(1, 85)),
     )
     def test_create_location_with_different_names(self, name):
