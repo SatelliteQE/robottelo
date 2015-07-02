@@ -27,15 +27,15 @@ class TestLocation(CLITestCase):
     # TODO Add coverage for smart_proxy and realm once we can create ssh tunnel
 
     @data(
-        gen_string('alphanumeric', randint(1, 255)),
-        gen_string('alpha', randint(1, 255)),
+        gen_string('alphanumeric', randint(1, 246)),
+        gen_string('alpha', randint(1, 246)),
         gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 255)),
-        gen_string('numeric', randint(1, 255)),
+        gen_string('latin1', randint(1, 246)),
+        gen_string('numeric', randint(1, 246)),
         gen_string('utf8', randint(1, 85)),
         gen_string('html', randint(1, 85)),
     )
-    def test_create_location_with_different_names(self, name):
+    def test_create_location_with_different_names_positive(self, name):
         """@Test: Try to create location using different value types as a name
 
         @Feature: Location
@@ -380,11 +380,11 @@ class TestLocation(CLITestCase):
             make_location({'users': gen_string('utf8', 80)})
 
     @data(
-        gen_string('alphanumeric', randint(1, 255)),
-        gen_string('alpha', randint(1, 255)),
+        gen_string('alphanumeric', randint(1, 246)),
+        gen_string('alpha', randint(1, 246)),
         gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 255)),
-        gen_string('numeric', randint(1, 255)),
+        gen_string('latin1', randint(1, 246)),
+        gen_string('numeric', randint(1, 246)),
         gen_string('utf8', randint(1, 85)),
         gen_string('html', randint(1, 85)),
     )
@@ -591,11 +591,11 @@ class TestLocation(CLITestCase):
         self.assertGreater(len(result.stderr), 0)
 
     @data(
-        gen_string('alphanumeric', randint(1, 255)),
-        gen_string('alpha', randint(1, 255)),
+        gen_string('alphanumeric', randint(1, 246)),
+        gen_string('alpha', randint(1, 246)),
         gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 255)),
-        gen_string('numeric', randint(1, 255)),
+        gen_string('latin1', randint(1, 246)),
+        gen_string('numeric', randint(1, 246)),
         gen_string('utf8', randint(1, 85)),
         gen_string('html', randint(1, 85)),
     )
