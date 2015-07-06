@@ -156,6 +156,27 @@ class Products(UITestCase):
 
     @run_only_on('sat')
     @data(*generate_strings_list())
+    def test_positive_update_2(self, prd_name):
+        """@Test: Rename Product back to original name.
+
+        @Feature: Content Product - Positive Update
+
+        @Assert: Product Renamed to original.
+
+        """
+        new_prd_name = gen_string("alpha", 8)
+        with Session(self.browser) as session:
+            make_product(
+                session, org=self.org_name, loc=self.loc_name, name=prd_name)
+            self.assertIsNotNone(self.products.search(prd_name))
+            self.products.update(prd_name, new_name=new_prd_name)
+            self.assertIsNotNone(self.products.search(new_prd_name))
+            # Rename Product to original and verify
+            self.products.update(new_prd_name, new_name=prd_name)
+            self.assertIsNotNone(self.products.search(prd_name))
+
+    @run_only_on('sat')
+    @data(*generate_strings_list())
     def test_negative_update_1(self, prd_name):
         """@Test: Update Content Product with too long input parameters
 
