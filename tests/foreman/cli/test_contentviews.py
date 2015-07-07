@@ -273,13 +273,54 @@ class TestContentView(CLITestCase):
         self.assertNotEqual(result.return_code, 0)
         self.assertGreater(len(result.stderr), 0)
 
-    def test_delete_cv_version(self):
-        """@test: delete content view version through 'remove-from-environment'
-        command
+    def test_delete_cv_version_name(self):
+        """@test: Create content view and publish it. After that try to
+        disassociate content view from 'Library' environment through
+        'remove-from-environment' command and delete content view version from
+        that content view. Use content view version name as a parameter.
 
         @feature: Content Views
 
-        @assert: content-view version deleted successfully
+        @assert: Content view version deleted successfully
+
+        """
+        cv = make_content_view({u'organization-id': self.org['id']})
+        result = ContentView.publish({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout['versions']), 1)
+        cvv = result.stdout['versions'][0]
+
+        env_id = result.stdout['lifecycle-environments'][0]['id']
+        result = ContentView.remove_from_environment({
+            u'id': cv['id'],
+            u'lifecycle-environment-id': env_id,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.version_delete({
+            u'organization': self.org['name'],
+            u'content-view': cv['name'],
+            u'version': cvv['version'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout['versions']), 0)
+
+    def test_delete_cv_version_id(self):
+        """@test: Create content view and publish it. After that try to
+        disassociate content view from 'Library' environment through
+        'remove-from-environment' command and delete content view version from
+        that content view. Use content view version id as a parameter. Also,
+        add repository to initial content view for better coverage.
+
+        @feature: Content Views
+
+        @assert: Content view version deleted successfully
 
         """
         # Create new organization, product and repository
@@ -304,6 +345,7 @@ class TestContentView(CLITestCase):
         # Get the CV info
         result = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout['versions']), 1)
         # Store the associated environment_id
         env_id = result.stdout['lifecycle-environments'][0]['id']
         # Store the version1 id
@@ -317,6 +359,37 @@ class TestContentView(CLITestCase):
         # Delete the version
         result = ContentView.version_delete({u'id': version1_id})
         self.assertEqual(result.return_code, 0)
+
+        result = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout['versions']), 0)
+
+    def test_delete_cv_version_negative(self):
+        """@test: Create content view and publish it. Try to delete content
+        view version while content view is still associated with lifecycle
+        environment
+
+        @feature: Content Views
+
+        @assert: Content view version is not deleted
+
+        """
+        cv = make_content_view({u'organization-id': self.org['id']})
+        result = ContentView.publish({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout['versions']), 1)
+        cvv = result.stdout['versions'][0]
+        # Try to delete content view version while it is in environment Library
+        result = ContentView.version_delete({u'id': cvv['id']})
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
+        # Check that version was not actually removed from the cv
+        result = ContentView.info({u'id': cv['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout['versions']), 1)
 
     def test_remove_cv_environment(self):
         """@Test: Remove content view from lifecycle environment assignment
