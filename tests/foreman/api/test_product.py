@@ -12,7 +12,7 @@ from random import randint
 from robottelo.common import manifests
 from robottelo.common.constants import PRDS, REPOSET, VALID_GPG_KEY_FILE
 from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import read_data_file
+from robottelo.common.helpers import read_data_file, generate_strings_list
 from robottelo.test import APITestCase
 
 
@@ -106,6 +106,23 @@ class ProductUpdateTestCase(APITestCase):
         setattr(self.product, attrs[0], attrs[1])
         self.product = self.product.update()
         self.assertEqual(getattr(self.product, attrs[0]), attrs[1])
+
+    @data(*generate_strings_list())
+    def test_positive_update_2(self, new_name):
+        """@Test: Rename Product back to original name
+
+        @Feature: Product
+
+        @Assert: Product Renamed to original
+
+        """
+        old_name = self.product.name
+        # Update new product name
+        self.product.name = new_name
+        self.assertEqual(self.product.name, self.product.update(['name']).name)
+        # Rename product to old name and verify
+        self.product.name = old_name
+        self.assertEqual(self.product.name, self.product.update(['name']).name)
 
 
 @run_only_on('sat')

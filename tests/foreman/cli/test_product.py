@@ -14,7 +14,7 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.product import Product
 from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import bz_bug_is_open
+from robottelo.common.helpers import bz_bug_is_open, generate_strings_list
 from robottelo.test import CLITestCase
 
 
@@ -352,6 +352,48 @@ class TestProduct(CLITestCase):
             result.stdout['sync-plan-id'],
             first_sync_plan['id'],
         )
+
+    @run_only_on('sat')
+    @data(*generate_strings_list())
+    def test_positive_update_4(self, prod_name):
+        """@Test: Rename Product back to original name
+
+        @Feature: Product
+
+        @Assert: Product Renamed to original
+
+        """
+        prod = make_product({
+            u'name': prod_name,
+            u'organization-id': self.org['id'],
+        })
+        new_prod_name = gen_string('alpha', 8)
+        # Update the product name
+        Product.update({
+            u'id': prod['id'],
+            u'name': new_prod_name,
+        })
+        # Verify Updated
+        result = Product.info({
+            u'id': prod['id'],
+            u'organization-id': self.org['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(result.stdout['name'], new_prod_name)
+        # Now, Rename product to original
+        Product.update({
+            u'id': prod['id'],
+            u'name': prod_name,
+        })
+        result = Product.info({
+            u'id': prod['id'],
+            u'organization-id': self.org['id'],
+        })
+        # Verify renamed back to Original name.
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(result.stdout['name'], prod_name)
 
     @run_only_on('sat')
     def test_positive_delete_1(self):
