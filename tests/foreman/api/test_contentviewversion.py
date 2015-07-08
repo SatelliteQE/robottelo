@@ -1,7 +1,7 @@
 """Unit tests for the ``content_view_versions`` paths."""
-from nailgun import client, entities
+from nailgun import entities
 from robottelo.common.constants import FAKE_1_YUM_REPO, ZOO_CUSTOM_GPG_KEY
-from robottelo.common.helpers import get_server_credentials, read_data_file
+from robottelo.common.helpers import read_data_file
 from requests.exceptions import HTTPError
 from robottelo.test import APITestCase
 
@@ -33,9 +33,13 @@ class CVVersionTestCase(APITestCase):
             entities.ContentViewVersion(id=1).promote(-1)
 
     def test_delete_version(self):
-        """@Test: Delete a content-view version associated to 'Library'
+        """@Test: Create content view and publish it. After that try to
+        disassociate content view from 'Library' environment through
+        'delete_from_environment' command and delete content view version from
+        that content view. Add repository and gpg key to initial content view
+        for better coverage
 
-        @Assert: Deletion fails
+        @Assert: Content version deleted successfully
 
         @Feature: ContentViewVersion
 
@@ -66,16 +70,62 @@ class CVVersionTestCase(APITestCase):
         content_view = content_view.read()
         # Get published content-view version id
         self.assertEqual(len(content_view.version), 1)
-        # Get 'Library' life-cycle environment id
-        response = client.get(
-            entities.LifecycleEnvironment().path(),
-            auth=get_server_credentials(),
-            data={u'organization_id': org.id},
-            verify=False,
-        )
-        response.raise_for_status()
-        lc_env_id = response.json()['results'][0]['id']
+        cvv = content_view.version[0].read()
+        self.assertEqual(len(cvv.environment), 1)
         # Delete the content-view version from selected env
-        content_view.delete_from_environment(lc_env_id)
+        content_view.delete_from_environment(cvv.environment[0].id)
         # Delete the version
         content_view.version[0].delete()
+        # Make sure that content view version is really removed
+        self.assertEqual(len(content_view.read().version), 0)
+
+    def test_delete_version_non_default(self):
+        """@Test: Create content view and publish and promote it to new
+        environment. After that try to disassociate content view from 'Library'
+        and one more non-default environments through 'delete_from_environment'
+        command and delete content view version from that content view.
+
+        @Assert: Content view version deleted successfully
+
+        @Feature: ContentViewVersion
+
+        """
+        org = entities.Organization().create()
+        content_view = entities.ContentView(organization=org).create()
+        # Publish content view
+        content_view.publish()
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 1)
+        self.assertEqual(len(content_view.version[0].read().environment), 1)
+        content_view.version[0].promote(
+            entities.LifecycleEnvironment(organization=org).create().id
+        )
+        cvv = content_view.version[0].read()
+        self.assertEqual(len(cvv.environment), 2)
+        # Delete the content-view version from selected environments
+        for env in reversed(cvv.environment):
+            content_view.delete_from_environment(env.id)
+        content_view.version[0].delete()
+        # Make sure that content view version is really removed
+        self.assertEqual(len(content_view.read().version), 0)
+
+    def test_delete_version_negative(self):
+        """@Test: Create content view and publish it. Try to delete content
+        view version while content view is still associated with lifecycle
+        environment
+
+        @Assert: Content view version is not deleted
+
+        @Feature: ContentViewVersion
+
+        """
+        org = entities.Organization().create()
+        content_view = entities.ContentView(organization=org).create()
+        # Publish content view
+        content_view.publish()
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 1)
+        with self.assertRaises(HTTPError):
+            content_view.version[0].delete()
+        # Make sure that content view version is still present
+        self.assertEqual(len(content_view.read().version), 1)
