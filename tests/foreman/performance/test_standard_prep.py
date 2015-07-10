@@ -32,7 +32,7 @@ class StandardPrepTestCase(TestCase):
             'performance.test.manifest.location']
 
         # parameters for uploading manifests
-        cls.manifest_file = conf.properties['performance.test.manifest.file']
+        cls.manifest_file = conf.properties.get('main.manifest.fake_url')
         cls.org_id = conf.properties['performance.test.organization.id']
 
         # parameters for changing cdn address

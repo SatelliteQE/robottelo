@@ -396,7 +396,8 @@ class ConcurrentTestCase(TestCase):
     @classmethod
     def _set_testcase_parameters(cls, savepoint_name,
                                  raw_file_path, stat_file_path):
-        cls.savepoint = conf.properties[savepoint_name]
+        # note: set savepoint empty to continue test without restore
+        cls.savepoint = conf.properties.get(savepoint_name, '')
         cls.raw_file_name = conf.properties[raw_file_path]
         cls.stat_file_name = conf.properties[stat_file_path]
 
@@ -409,6 +410,9 @@ class ConcurrentTestCase(TestCase):
 
     def _restore_from_savepoint(self, savepoint):
         """Restore from savepoint"""
+        if savepoint == '':
+            self.logger.warning('No savepoint while continuing test!')
+            return
         self.logger.info('Reset db from /home/backup/{}'.format(savepoint))
         ssh.command('./reset-db.sh /home/backup/{}'.format(savepoint))
 

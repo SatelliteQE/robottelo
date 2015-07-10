@@ -72,3 +72,10 @@ driver=firefox
 # URL of the  exported data archive (typically a .tgz containing a bunch of CSV
 # files together with repo data)
 #export_tar.url=http://example.org/sat5_export_data.tgz
+
+# Section for performance tests parameters.
+[performance]
+# Control whether or not to time on hammer commands in robottelo/cli/base.py
+# Default set to be 0, i.e. no timing of performance is measured and thus no
+# interference to original robottelo tests.
+test.foreman.perf=0

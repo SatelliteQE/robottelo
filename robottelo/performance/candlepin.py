@@ -119,7 +119,7 @@ class Candlepin(object):
 
         if response.status_code != 204:
             LOGGER.error(
-                'Fail to delete {0} on thread-{}!'.format(uuid, thread_id))
+                'Fail to delete {0} on thread-{1}!'.format(uuid, thread_id))
             LOGGER.error(response.content)
             return
         LOGGER.info(
