@@ -194,12 +194,15 @@ class Base(object):
         """Executes the cli ``command`` on the server via ssh"""
         user, password = cls._get_username_password(user, password)
 
-        cmd = u'LANG={0} hammer -v -u {1} -p {2} {3} {4}'.format(
+        # add time to measure hammer performance
+        perf_test = conf.properties['performance.test.foreman.perf']
+        cmd = u'LANG={0} {1} hammer -v -u {2} -p {3} {4} {5}'.format(
             conf.properties['main.locale'],
+            u'time -p' if perf_test == '1' else '',
             user,
             password,
             u'--output={0}'.format(output_format) if output_format else u'',
-            command
+            command,
         )
 
         return ssh.command(

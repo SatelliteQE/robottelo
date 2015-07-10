@@ -10,6 +10,7 @@ REQUIRES = [
     'python-bugzilla',
     'requests',
     'selenium',
+    'numpy',
 ]
 
 with open('README.rst', 'r') as f:
