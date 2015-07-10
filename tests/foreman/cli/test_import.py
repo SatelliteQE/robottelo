@@ -73,7 +73,7 @@ def update_csv_values(csv_file, new_data=None):
     :param new_data: A list of dictionary objects. Each object has to
         contain an org_id key corresponding to organization_id of the record
         being updated and the key-value pairs of attributes to be changed for
-        the particular records. For example:
+        the particular records. For example::
 
             [
                 {

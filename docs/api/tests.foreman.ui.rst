@@ -38,6 +38,11 @@
 
 .. automodule:: tests.foreman.ui.test_contentenv
 
+:mod:`tests.foreman.ui.test_contentsearch`
+------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_contentsearch
+
 :mod:`tests.foreman.ui.test_contentviews`
 -----------------------------------------
 
@@ -47,6 +52,11 @@
 --------------------------------------
 
 .. automodule:: tests.foreman.ui.test_discovery
+
+:mod:`tests.foreman.ui.test_discoveryrule`
+------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_discoveryrule
 
 :mod:`tests.foreman.ui.test_docker`
 -----------------------------------

@@ -8,6 +8,7 @@ Submodules:
     tests.foreman.api
     tests.foreman.cli
     tests.foreman.installer
+    tests.foreman.performance
     tests.foreman.smoke
     tests.foreman.ui
 

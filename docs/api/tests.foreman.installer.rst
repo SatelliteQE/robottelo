@@ -3,6 +3,11 @@
 
 .. automodule:: tests.foreman.installer
 
+:mod:`tests.foreman.installer.test_basic_installer`
+---------------------------------------------------
+
+.. automodule:: tests.foreman.installer.test_basic_installer
+
 :mod:`tests.foreman.installer.test_installer`
 ---------------------------------------------
 
