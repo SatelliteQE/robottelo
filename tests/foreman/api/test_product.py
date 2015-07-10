@@ -11,7 +11,7 @@ from nailgun import entities
 from random import randint
 from robottelo.common import manifests
 from robottelo.common.constants import PRDS, REPOSET, VALID_GPG_KEY_FILE
-from robottelo.common.decorators import data, run_only_on
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import read_data_file, generate_strings_list
 from robottelo.test import APITestCase
 
@@ -161,6 +161,7 @@ class RepositorySetsTestCase(APITestCase):
                 repo['substitutions']['releasever'] == '6Server')
         ][0])
 
+    @skip_if_bug_open('bugzilla', 1242017)
     def test_repositoryset_disable(self):
         """@Test: Disable repo from reposet
 
