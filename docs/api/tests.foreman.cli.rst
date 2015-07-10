@@ -38,6 +38,11 @@
 
 .. automodule:: tests.foreman.cli.test_contenthost
 
+:mod:`tests.foreman.cli.test_contentviewfilter`
+-----------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_contentviewfilter
+
 :mod:`tests.foreman.cli.test_contentviews`
 ------------------------------------------
 
@@ -117,6 +122,11 @@
 ---------------------------------------
 
 .. automodule:: tests.foreman.cli.test_installer
+
+:mod:`tests.foreman.cli.test_location`
+--------------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_location
 
 :mod:`tests.foreman.cli.test_lifecycleenvironment`
 --------------------------------------------------

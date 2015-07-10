@@ -3,6 +3,11 @@
 
 .. automodule:: tests.foreman.smoke
 
+:mod:`tests.foreman.smoke.test_smoke`
+-----------------------------------------
+
+.. automodule:: tests.foreman.smoke.test_smoke
+
 :mod:`tests.foreman.smoke.test_api_smoke`
 -----------------------------------------
 

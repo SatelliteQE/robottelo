@@ -235,7 +235,9 @@ class UITestCase(TestCase):
 
     def take_screenshot(self, testmethodname):
         """Takes screenshot of the UI and saves it to the disk by creating
-        a directory same as that of the test method name."""
+        a directory same as that of the test method name.
+
+        """
         # testmethodname varies so trying to handle various scenarios.
         # pop depending on ddt, normal test or ddt's 1st job.
         # For ddt tests with maps.
@@ -336,9 +338,10 @@ class ConcurrentTestCase(TestCase):
     """Test utilities for writing performance tests.
 
     Define ConcurrentTestCase as base class of performance test case:
-    1) concurrent subscription by AK,
-    2) concurrent subscription by register and attach,
-    3) concurrent subscription deletion.
+
+    1. concurrent subscription by AK,
+    2. concurrent subscription by register and attach,
+    3. concurrent subscription deletion.
 
     """
 
@@ -416,10 +419,11 @@ class ConcurrentTestCase(TestCase):
         :param int current_num_threads: number of clients or threads
 
         Example:
-        1) split 5k total_iterations evenly between 10 clients,
-           thus each client would conduct 500 iterations concurrently;
-        2) split 6k evenly between 6 clients,
-           thus each client would conduct 1000 iterations concurrently;
+
+        1. split 5k total_iterations evenly between 10 clients, thus each
+           client would conduct 500 iterations concurrently;
+        2. split 6k evenly between 6 clients, thus each client would conduct
+           1000 iterations concurrently;
 
         """
         self.num_iterations = total_iterations / current_num_threads
@@ -539,7 +543,7 @@ class ConcurrentTestCase(TestCase):
         """Write bucketized stat of per-test to csv file
 
         note: each bucket of all clients would merge into a chunk;
-        generate stat for each such chunk. For example:
+        generate stat for each such chunk. For example::
 
             Input: # of clients = 10
             thread-0: [(50 data) | (50 data)|...]
@@ -711,7 +715,7 @@ class ConcurrentTestCase(TestCase):
         """Refactor out concurrent system deletion test case
 
         :param int current_num_threads: number of threads
-        :param int total_iterations
+        :param int total_iterations: FIXME
 
         """
         # Get list of all uuids of registered systems

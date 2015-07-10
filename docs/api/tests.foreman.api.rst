@@ -93,6 +93,11 @@
 
 .. automodule:: tests.foreman.api.test_lifecycleenvironment
 
+:mod:`tests.foreman.api.test_location`
+--------------------------------------
+
+.. automodule:: tests.foreman.api.test_location
+
 :mod:`tests.foreman.api.test_media`
 -----------------------------------
 
@@ -113,6 +118,11 @@
 
 .. automodule:: tests.foreman.api.test_organization
 
+:mod:`tests.foreman.api.test_partitiontable`
+--------------------------------------------
+
+.. automodule:: tests.foreman.api.test_partitiontable
+
 :mod:`tests.foreman.api.test_permission`
 ----------------------------------------
 
@@ -127,6 +137,11 @@
 ----------------------------------------
 
 .. automodule:: tests.foreman.api.test_repository
+
+:mod:`tests.foreman.api.test_rhci`
+----------------------------------
+
+.. automodule:: tests.foreman.api.test_rhci
 
 :mod:`tests.foreman.api.test_rhsm`
 ----------------------------------

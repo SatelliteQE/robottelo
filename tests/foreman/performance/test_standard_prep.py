@@ -12,10 +12,11 @@ class StandardPrepTestCase(TestCase):
     """Standard process of preparation after fresh install Sattellite 6.
 
     Standard Preparation Process:
-    1) upload manifest,
-    2) change CDN address,
-    3) enable repositories,
-    4) make savepoint
+
+    1. upload manifest,
+    2. change CDN address,
+    3. enable repositories,
+    4. make savepoint
 
     """
 
