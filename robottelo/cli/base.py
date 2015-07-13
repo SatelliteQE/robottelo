@@ -195,7 +195,7 @@ class Base(object):
         user, password = cls._get_username_password(user, password)
 
         # add time to measure hammer performance
-        perf_test = conf.properties['performance.test.foreman.perf']
+        perf_test = conf.properties.get('performance.test.foreman.perf', '0')
         cmd = u'LANG={0} {1} hammer -v -u {2} -p {3} {4} {5}'.format(
             conf.properties['main.locale'],
             u'time -p' if perf_test == '1' else '',

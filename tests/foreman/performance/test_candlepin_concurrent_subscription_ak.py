@@ -33,7 +33,7 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
 
         # Create activation key
         self.logger.info('Create activation key: ')
-        # (ak_id, ak_name) = self._create_activation_key()
+        (ak_id, ak_name) = self._create_activation_key()
 
         # Get subscription id
         self.logger.info('Get subscription id: ')
@@ -41,7 +41,7 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
         self.sub_id = sub_id
 
         # Add activation key to subscription
-        # self._add_ak_to_subscription(ak_id, sub_id)
+        self._add_ak_to_subscription(ak_id, sub_id)
 
     def _create_activation_key(self):
         """Create a new activation key named ak-1"""
