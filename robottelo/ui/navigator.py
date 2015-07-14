@@ -338,6 +338,34 @@ class Navigator(Base):
             menu_locators['menu.account'], menu_locators['menu.sign_out'],
         )
 
+    def go_to_insights_overview(self):
+        """Navigates to Red Hat Access Insights Overview"""
+        self.menu_click(
+            menu_locators['menu.insights'],
+            menu_locators['insights.overview']
+        )
+
+    def go_to_insights_rules(self):
+        """Navigates to Red Hat Access Insights Rules"""
+        self.menu_click(
+            menu_locators['menu.insights'],
+            menu_locators['insights.rules'],
+        )
+
+    def go_to_insights_systems(self):
+        """ Navigates to Red Hat Access Insights Systems"""
+        self.menu_click(
+            menu_locators['menu.insights'],
+            menu_locators['insights.systems'],
+        )
+
+    def go_to_insights_manage(self):
+        """ Navigates to Red Hat Access Insights Manage Systems"""
+        self.menu_click(
+            menu_locators['menu.insights'],
+            menu_locators['insights.manage'],
+        )
+
     def go_to_select_org(self, org):
         """Selects the specified organization.
 
