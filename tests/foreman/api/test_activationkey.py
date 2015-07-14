@@ -4,7 +4,6 @@ from ddt import data, ddt
 from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
-from robottelo.api.utils import status_code_error
 from robottelo.common.decorators import skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
@@ -222,11 +221,7 @@ class ActivationKeysTestCase(APITestCase):
             verify=False,
         )
         status_code = httplib.OK
-        self.assertEqual(
-            status_code,
-            response.status_code,
-            status_code_error(path, status_code, response),
-        )
+        self.assertEqual(status_code, response.status_code)
         self.assertIn('application/json', response.headers['content-type'])
 
     def test_get_releases_content(self):
