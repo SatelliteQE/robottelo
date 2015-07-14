@@ -49,14 +49,16 @@ class ActivationKey(UITestCase):
         cls.base_key_name = entities.ActivationKey(
             organization=cls.org_id
         ).create_json()['name']
+        cls.vm_distro = 'rhel65'
 
         super(ActivationKey, cls).setUpClass()
 
-    def create_sync_custom_repo(self, product_name=None, repo_name=None,
-                                repo_url=None, repo_type=None, org_id=None):
+    def create_sync_custom_repo(
+            self, product_name=None, repo_name=None, repo_url=None,
+            repo_type=None, org_id=None):
         """Create product/repo, sync it and returns repo_id"""
-        product_name = product_name or gen_string("alpha", 8)
-        repo_name = repo_name or gen_string("alpha", 8)
+        product_name = product_name or gen_string('alpha', 8)
+        repo_name = repo_name or gen_string('alpha', 8)
         # Creates new product and repository via API's
         product_attrs = entities.Product(
             name=product_name,
@@ -145,8 +147,11 @@ class ActivationKey(UITestCase):
         """
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=ENVIRONMENT,
-                description=gen_string("alpha", 16)
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT,
+                description=gen_string('alpha', 16)
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
 
@@ -165,11 +170,15 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-        name = gen_string("alpha", 8)
+        name = gen_string('alpha', 8)
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT,
-                               description=description)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT,
+                description=description
+            )
             self.assertIsNotNone(self.activationkey.search_key(name))
 
     @run_only_on('sat')
@@ -188,17 +197,19 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-
-        name = gen_string("alpha", 8)
-        cv_name = gen_string("alpha", 8)
+        name = gen_string('alpha', 8)
+        cv_name = gen_string('alpha', 8)
         # Helper function to create and sync custom repository
         repo_id = self.create_sync_custom_repo()
         # Helper function to create and promote CV to next environment
         self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=env_name,
-                description=gen_string("alpha", 16),
+                session,
+                org=self.org_name,
+                name=name,
+                env=env_name,
+                description=gen_string('alpha', 16),
                 content_view=cv_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
@@ -219,16 +230,18 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-
-        name = gen_string("alpha", 8)
-        env_name = gen_string("alpha", 6)
+        name = gen_string('alpha', 8)
+        env_name = gen_string('alpha', 6)
         # Helper function to create and promote CV to next environment
         repo_id = self.create_sync_custom_repo()
         self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=env_name,
-                description=gen_string("alpha", 16),
+                session,
+                org=self.org_name,
+                name=name,
+                env=env_name,
+                description=gen_string('alpha', 16),
                 content_view=cv_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
@@ -246,7 +259,6 @@ class ActivationKey(UITestCase):
         @Assert: Activation key is created
 
         """
-
         name = gen_string(str_type='alpha')
 
         # create Host Collection using API
@@ -256,8 +268,12 @@ class ActivationKey(UITestCase):
         ).create_json()
 
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT
+            )
             self.assertIsNotNone(self.activationkey.search_key(name))
             # add Host Collection
             self.activationkey.add_host_collection(name, host_col['name'])
@@ -267,10 +283,11 @@ class ActivationKey(UITestCase):
 
             # check added host collection is listed
             self.activationkey.wait_until_element(
-                tab_locators['ak.host_collections.list']).click()
-            strategy, value = tab_locators["ak.host_collections.add.select"]
-            host_collection = self.activationkey.wait_until_element((
-                strategy, value % host_col['name']))
+                tab_locators['ak.host_collections.list']
+            ).click()
+            strategy, value = tab_locators['ak.host_collections.add.select']
+            host_collection = self.activationkey.wait_until_element(
+                (strategy, value % host_col['name']))
             self.assertIsNotNone(host_collection)
 
     def test_positive_create_activation_key_6(self):
@@ -287,12 +304,14 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-
-        name = gen_string("alpha", 10)
+        name = gen_string('alpha', 10)
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=ENVIRONMENT,
-                description=gen_string("alpha", 16)
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT,
+                description=gen_string('alpha', 16)
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
 
@@ -310,15 +329,18 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-
-        name = gen_string("alpha", 10)
-        description = gen_string("alpha", 10)
-        limit = "6"
+        name = gen_string('alpha', 10)
+        description = gen_string('alpha', 10)
+        limit = '6'
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT,
-                               limit=limit,
-                               description=description)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT,
+                limit=limit,
+                description=description
+            )
             self.assertIsNotNone(self.activationkey.search_key(name))
 
     def test_positive_create_activation_key_8(self):
@@ -335,11 +357,14 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-
-        name = gen_string("alpha", 10)
+        name = gen_string('alpha', 10)
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT
+            )
             self.assertIsNotNone(self.activationkey.search_key(name))
 
     @data(*invalid_names_list())
@@ -355,12 +380,15 @@ class ActivationKey(UITestCase):
         @Assert: Activation key is not created. Appropriate error shown.
 
         """
-
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT)
-            invalid = self.products.wait_until_element(common_locators
-                                                       ["common_invalid"])
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT
+            )
+            invalid = self.products.wait_until_element(
+                common_locators['common_invalid'])
             self.assertIsNotNone(invalid)
             self.assertIsNone(self.activationkey.search_key(name))
 
@@ -379,15 +407,21 @@ class ActivationKey(UITestCase):
         @BZ: 1177158
 
         """
-
-        name = gen_string("alpha", 10)
-        description = gen_string("alpha", 1001)
+        name = gen_string('alpha', 10)
+        description = gen_string('alpha', 1001)
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT,
-                               description=description)
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["common_haserror"]))
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT,
+                description=description
+            )
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['common_haserror']
+                )
+            )
             self.assertIsNone(self.activationkey.search_key(name))
 
     @skip_if_bug_open('bugzilla', 1139576)
@@ -406,14 +440,17 @@ class ActivationKey(UITestCase):
         @BZ: 1139576
 
         """
-
-        name = gen_string("alpha", 10)
+        name = gen_string('alpha', 10)
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT,
-                               limit=limit)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT,
+                limit=limit
+            )
             invalid = self.activationkey.wait_until_element(
-                locators["ak.invalid_limit"]
+                locators['ak.invalid_limit']
             )
             self.assertIsNotNone(invalid)
             self.assertIsNone(self.activationkey.search_key(name))
@@ -433,11 +470,13 @@ class ActivationKey(UITestCase):
         @Assert: Activation key is deleted
 
         """
-
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=ENVIRONMENT,
-                description=gen_string("alpha", 16)
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT,
+                description=gen_string('alpha', 16)
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.delete(name, True)
@@ -458,12 +497,15 @@ class ActivationKey(UITestCase):
         @Assert: Activation key is deleted
 
         """
-
-        name = gen_string("alpha", 10)
+        name = gen_string('alpha', 10)
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT,
-                               description=description)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT,
+                description=description
+            )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.delete(name, True)
             self.assertIsNone(self.activationkey.search_key(name))
@@ -484,16 +526,18 @@ class ActivationKey(UITestCase):
         @Assert: Activation key is deleted
 
         """
-
-        name = gen_string("alpha", 8)
-        cv_name = gen_string("alpha", 8)
+        name = gen_string('alpha', 8)
+        cv_name = gen_string('alpha', 8)
         # Helper function to create and promote CV to next environment
         repo_id = self.create_sync_custom_repo()
         self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=env_name,
-                description=gen_string("alpha", 16)
+                session,
+                org=self.org_name,
+                name=name,
+                env=env_name,
+                description=gen_string('alpha', 16)
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.delete(name, True)
@@ -515,16 +559,18 @@ class ActivationKey(UITestCase):
         @Assert: Activation key is deleted
 
         """
-
-        name = gen_string("alpha", 8)
-        env_name = gen_string("alpha", 6)
+        name = gen_string('alpha', 8)
+        env_name = gen_string('alpha', 6)
         # Helper function to create and promote CV to next environment
         repo_id = self.create_sync_custom_repo()
         self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=env_name,
-                description=gen_string("alpha", 16),
+                session,
+                org=self.org_name,
+                name=name,
+                env=env_name,
+                description=gen_string('alpha', 16),
                 content_view=cv_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
@@ -544,56 +590,35 @@ class ActivationKey(UITestCase):
         @Assert: Activation key is deleted
 
         """
-        name = gen_string("alpha", 8)
-        cv_name = gen_string("alpha", 8)
-        env_name = gen_string("alpha", 8)
-        product_name = gen_string("alpha", 8)
+        name = gen_string('alpha', 8)
+        cv_name = gen_string('alpha', 8)
+        env_name = gen_string('alpha', 8)
+        product_name = gen_string('alpha', 8)
         # Helper function to create and promote CV to next environment
         repo_id = self.create_sync_custom_repo(product_name=product_name)
         self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=env_name,
-                description=gen_string("alpha", 16),
+                session,
+                org=self.org_name,
+                name=name,
+                env=env_name,
+                description=gen_string('alpha', 16),
                 content_view=cv_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.associate_product(name, [product_name])
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["alert.success"]))
-            # Create VM
-            vm = VirtualMachine(distro='rhel65')
-            vm.create()
-            # Download and Install rpm
-            result = vm.run(
-                "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
-                .format(self.server_name)
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['alert.success']
+                )
             )
-            self.assertEqual(result.return_code, 0)
-            result = vm.run(
-                'rpm -i katello-ca-consumer*.noarch.rpm'
-            )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to install katello-ca rpm: {0}, return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
-            # Register client with foreman server using activation-key
-            result = vm.run(
-                'subscription-manager register --activationkey {0} '
-                '--org {1} --force'
-                .format(name, self.org_label)
-            )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to register client:: {0} and return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
-            # Delete the activation key
-            self.activationkey.delete(name, True)
-            self.assertIsNone(self.activationkey.search_key(name))
-            # Delete the virtual machine
-            vm.destroy()
+            with VirtualMachine(distro=self.vm_distro) as vm:
+                vm.install_katello_cert()
+                result = vm.register_contenthost(name, self.org_label)
+                self.assertEqual(result.return_code, 0)
+                self.activationkey.delete(name, True)
+                self.assertIsNone(self.activationkey.search_key(name))
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1117753)
@@ -611,23 +636,29 @@ class ActivationKey(UITestCase):
         @BZ: 1117753
 
         """
-
-        name = gen_string("alpha", 8)
-        env_name = gen_string("alpha", 6)
-        cv_name = gen_string("alpha", 6)
+        name = gen_string('alpha', 8)
+        env_name = gen_string('alpha', 6)
+        cv_name = gen_string('alpha', 6)
         # Helper function to create and promote CV to next environment
         repo_id = self.create_sync_custom_repo()
         self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=env_name,
-                description=gen_string("alpha", 16),
+                session,
+                org=self.org_name,
+                name=name,
+                env=env_name,
+                description=gen_string('alpha', 16),
                 content_view=cv_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
             session.nav.go_to_content_views()
-            self.content_views.delete_version(cv_name, is_affected_comps=True,
-                                              env=ENVIRONMENT, cv=DEFAULT_CV)
+            self.content_views.delete_version(
+                cv_name,
+                is_affected_comps=True,
+                env=ENVIRONMENT,
+                cv=DEFAULT_CV
+            )
             self.content_views.delete(name, True)
             self.assertIsNone(self.content_views.search(name))
             self.assertIsNotNone(self.activationkey.search_key(name))
@@ -647,12 +678,14 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-
-        name = gen_string("alpha", 10)
+        name = gen_string('alpha', 10)
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=ENVIRONMENT,
-                description=gen_string("alpha", 16)
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT,
+                description=gen_string('alpha', 16)
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.delete(name, really=False)
@@ -674,11 +707,14 @@ class ActivationKey(UITestCase):
         @BZ: 1177330
 
         """
-
-        name = gen_string("alpha", 10)
+        name = gen_string('alpha', 10)
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT
+            )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.update(name, new_name)
             self.assertIsNotNone(self.activationkey.search_key(new_name))
@@ -698,17 +734,23 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-
-        name = gen_string("alpha", 10)
-        description = gen_string("alpha", 10)
+        name = gen_string('alpha', 10)
+        description = gen_string('alpha', 10)
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT,
-                               description=description)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT,
+                description=description
+            )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.update(name, description=new_description)
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['alert.success']
+                )
+            )
 
     @run_only_on('sat')
     @data(*valid_data_list())
@@ -727,23 +769,29 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = gen_string("alpha", 8)
-        cv_name = gen_string("alpha", 8)
+        name = gen_string('alpha', 8)
+        cv_name = gen_string('alpha', 8)
         # Helper function to create and promote CV to next environment
         repo_id = self.create_sync_custom_repo()
         self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=ENVIRONMENT,
-                description=gen_string("alpha", 16)
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT,
+                description=gen_string('alpha', 16)
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
-            env_locator = locators["ak.selected_env"]
+            env_locator = locators['ak.selected_env']
             selected_env = self.activationkey.get_attribute(name, env_locator)
             self.assertEqual(ENVIRONMENT, selected_env)
             self.activationkey.update(name, content_view=cv_name, env=env_name)
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['alert.success']
+                )
+            )
             selected_env = self.activationkey.get_attribute(name, env_locator)
             self.assertEqual(env_name, selected_env)
 
@@ -763,10 +811,10 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = gen_string("alpha", 8)
-        env1_name = gen_string("alpha", 8)
-        env2_name = gen_string("alpha", 8)
-        cv1_name = gen_string("alpha", 8)
+        name = gen_string('alpha', 8)
+        env1_name = gen_string('alpha', 8)
+        env2_name = gen_string('alpha', 8)
+        cv1_name = gen_string('alpha', 8)
         # Helper function to create and promote CV to next environment
         repo1_id = self.create_sync_custom_repo()
         self.cv_publish_promote(cv1_name, env1_name, repo1_id)
@@ -774,18 +822,24 @@ class ActivationKey(UITestCase):
         self.cv_publish_promote(cv2_name, env2_name, repo2_id)
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=env1_name,
-                description=gen_string("alpha", 16),
+                session,
+                org=self.org_name,
+                name=name,
+                env=env1_name,
+                description=gen_string('alpha', 16),
                 content_view=cv1_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
-            cv_locator = locators["ak.selected_cv"]
+            cv_locator = locators['ak.selected_cv']
             selected_cv = self.activationkey.get_attribute(name, cv_locator)
             self.assertEqual(cv1_name, selected_cv)
-            self.activationkey.update(name, content_view=cv2_name,
-                                      env=env2_name)
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.activationkey.update(
+                name, content_view=cv2_name, env=env2_name)
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['alert.success']
+                )
+            )
             selected_cv = self.activationkey.get_attribute(name, cv_locator)
             self.assertEqual(cv2_name, selected_cv)
 
@@ -837,7 +891,10 @@ class ActivationKey(UITestCase):
 
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=org.name, name=name, env=env1_name,
+                session,
+                org=org.name,
+                name=name,
+                env=env1_name,
                 description=gen_string('alpha', 16),
                 content_view=cv1_name,
             )
@@ -866,16 +923,22 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-
-        name = gen_string("alpha", 10)
-        limit = "8"
+        name = gen_string('alpha', 10)
+        limit = '8'
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT
+            )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.update(name, limit=limit)
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['alert.success']
+                )
+            )
 
     @skip_if_bug_open('bugzilla', 1127090)
     def test_positive_update_activation_key_6(self):
@@ -892,18 +955,24 @@ class ActivationKey(UITestCase):
         @BZ: 1127090
 
         """
-
-        name = gen_string("alpha", 10)
-        limit = "6"
-        new_limit = "Unlimited"
+        name = gen_string('alpha', 10)
+        limit = '6'
+        new_limit = 'Unlimited'
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT,
-                               limit=limit)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT,
+                limit=limit
+            )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.update(name, limit=new_limit)
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['alert.success']
+                )
+            )
 
     @data(*invalid_names_list())
     def test_negative_update_activation_key_1(self, new_name):
@@ -920,15 +989,18 @@ class ActivationKey(UITestCase):
         @BZ: 1083875
 
         """
-
-        name = gen_string("alpha", 10)
+        name = gen_string('alpha', 10)
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT
+            )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.update(name, new_name)
-            invalid = self.products.wait_until_element(common_locators
-                                                       ["alert.error"])
+            invalid = self.products.wait_until_element(
+                common_locators['alert.error'])
             self.assertIsNotNone(invalid)
             self.assertIsNone(self.activationkey.search_key(new_name))
 
@@ -948,22 +1020,31 @@ class ActivationKey(UITestCase):
 
         """
 
-        name = gen_string("alpha", 10)
-        description = gen_string("alpha", 10)
-        new_description = gen_string("alpha", 1001)
+        name = gen_string('alpha', 10)
+        description = gen_string('alpha', 10)
+        new_description = gen_string('alpha', 1001)
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT,
-                               description=description)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT,
+                description=description
+            )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.update(name, description=new_description)
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["alert.error"]))
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['alert.error']
+                )
+            )
 
-    @data({u'limit': " "},
-          {u'limit': "-1"},
-          {u'limit': "text"},
-          {u'limit': "0"})
+    @data(
+        {u'limit': ' '},
+        {u'limit': '-1'},
+        {u'limit': 'text'},
+        {u'limit': '0'}
+    )
     def test_negative_update_activation_key_3(self, test_data):
         """@Test: Update invalid Usage Limit in an activation key
 
@@ -978,17 +1059,21 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-
-        name = gen_string("alpha", 10)
+        name = gen_string('alpha', 10)
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT
+            )
             self.assertIsNotNone(self.activationkey.search_key(name))
             with self.assertRaises(ValueError) as context:
                 self.activationkey.update(name, limit=test_data['limit'])
-            self.assertEqual(context.exception.message,
-                             "Please update content host limit "
-                             "with valid integer value")
+            self.assertEqual(
+                context.exception.message,
+                'Please update content host limit with valid integer value'
+            )
 
     @run_only_on('sat')
     def test_usage_limit(self):
@@ -1005,76 +1090,36 @@ class ActivationKey(UITestCase):
         @Assert: System Registration fails. Appropriate error shown
 
         """
-        name = gen_string("alpha", 10)
-        host_limit = "1"
+        name = gen_string('alpha', 10)
+        host_limit = '1'
         with Session(self.browser) as session:
-            make_activationkey(session, org=self.org_name,
-                               name=name, env=ENVIRONMENT)
+            make_activationkey(
+                session,
+                org=self.org_name,
+                name=name,
+                env=ENVIRONMENT
+            )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.update(name, limit=host_limit)
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["alert.success"]))
-            # Create VM1
-            vm1 = VirtualMachine(distro='rhel65')
-            vm1.create()
-            # Download and Install rpm
-            result = vm1.run(
-                "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
-                .format(self.server_name)
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['alert.success']
+                )
             )
-            self.assertEqual(result.return_code, 0)
-            result = vm1.run(
-                'rpm -i katello-ca-consumer*.noarch.rpm'
-            )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to install katello-ca rpm: {0}, return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
-            # Register client1 with foreman server using activation-key
-            result = vm1.run(
-                'subscription-manager register --activationkey {0} '
-                '--org {1} --force'
-                .format(name, self.org_label)
-            )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to register client:: {0} and return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
-            # Create VM2
-            vm2 = VirtualMachine(distro='rhel65')
-            vm2.create()
-            # Download and Install rpm
-            result = vm2.run(
-                "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
-                .format(self.server_name)
-            )
-            self.assertEqual(result.return_code, 0)
-            result = vm2.run(
-                'rpm -i katello-ca-consumer*.noarch.rpm'
-            )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to install katello-ca rpm: {0}, return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
-            # Register client2 with foreman server using activation-key
-            result = vm2.run(
-                'subscription-manager register --activationkey {0} '
-                '--org {1} --force'
-                .format(name, self.org_label)
-            )
-            # Assert system registration fails for client2 and
-            # appropriate error raised
-            self.assertNotEqual(result.return_code, 0)
-            self.assertGreater(len(result.stderr), 0,
-                               "There should be an exception here.")
-            self.assertIn('Max Content Hosts ({0}) reached for activation key'
-                          .format(host_limit), result.stderr)
-            # Destroy both VM's
-            vm1.destroy()
-            vm2.destroy()
+            with VirtualMachine(distro=self.vm_distro) as vm1:
+                with VirtualMachine(distro=self.vm_distro) as vm2:
+                    vm1.install_katello_cert()
+                    result = vm1.register_contenthost(name, self.org_label)
+                    self.assertEqual(result.return_code, 0)
+                    vm2.install_katello_cert()
+                    result = vm2.register_contenthost(name, self.org_label)
+                    self.assertNotEqual(result.return_code, 0)
+                    self.assertGreater(len(result.stderr), 0)
+                    self.assertIn(
+                        'Max Content Hosts ({0}) reached for activation key'
+                        .format(host_limit),
+                        result.stderr
+                    )
 
     def test_associate_host(self):
         """@Test: Test that hosts can be associated to Activation Keys
@@ -1091,31 +1136,22 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-        key_name = gen_string("utf8")
+        key_name = gen_string('utf8')
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=key_name, env=ENVIRONMENT)
+                session,
+                org=self.org_name,
+                name=key_name,
+                env=ENVIRONMENT
+            )
             self.assertIsNotNone(self.activationkey.search_key(key_name))
             # Creating VM
-            with VirtualMachine(distro='rhel66') as vm:
-                # Downloading and Installing rpm
-                result = vm.run(
-                    "wget -nd -r -l1 --no-parent -A "
-                    "'*.noarch.rpm' http://{0}/pub/"
-                    .format(self.server_name)
-                )
-                self.assertEqual(result.return_code, 0)
-                result = vm.run('rpm -i katello-ca-consumer*.noarch.rpm')
-                self.assertEqual(result.return_code, 0)
-                # Registering client with Satellite server using activation-key
-                result = vm.run(
-                    u'subscription-manager register --activationkey {0} '
-                    '--org {1} --force'.format(key_name, self.org_label)
-                )
-                vm_host_name = vm.run('hostname').stdout
-            host_name = self.activationkey.fetch_associated_content_host(
-                key_name)
-            self.assertEqual(vm_host_name[0], host_name)
+            with VirtualMachine(distro=self.vm_distro) as vm:
+                vm.install_katello_cert()
+                vm.register_contenthost(key_name, self.org_label)
+                name = self.activationkey.fetch_associated_content_host(
+                    key_name)
+                self.assertEqual(vm.hostname, name)
 
     @run_only_on('sat')
     def test_associate_product_1(self):
@@ -1130,17 +1166,17 @@ class ActivationKey(UITestCase):
         @Assert: RH products are successfully associated to Activation key
 
         """
-        name = gen_string("alpha", 8)
-        cv_name = gen_string("alpha", 8)
-        env_name = gen_string("alpha", 8)
+        name = gen_string('alpha', 8)
+        cv_name = gen_string('alpha', 8)
+        env_name = gen_string('alpha', 8)
         rh_repo = {
-            'name': ("Red Hat Enterprise Virtualization Agents for RHEL 6 "
-                     "Server RPMs x86_64 6Server"),
-            'product': "Red Hat Enterprise Linux Server",
-            'reposet': ("Red Hat Enterprise Virtualization Agents "
-                        "for RHEL 6 Server (RPMs)"),
-            'basearch': "x86_64",
-            'releasever': "6Server",
+            'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 '
+                     'Server RPMs x86_64 6Server'),
+            'product': 'Red Hat Enterprise Linux Server',
+            'reposet': ('Red Hat Enterprise Virtualization Agents '
+                        'for RHEL 6 Server (RPMs)'),
+            'basearch': 'x86_64',
+            'releasever': '6Server',
         }
         product_subscription = DEFAULT_SUBSCRIPTION_NAME
         # Create new org to import manifest
@@ -1154,13 +1190,19 @@ class ActivationKey(UITestCase):
         self.cv_publish_promote(cv_name, env_name, repo_id, org_id)
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=org_attrs['name'], name=name, env=env_name,
+                session,
+                org=org_attrs['name'],
+                name=name,
+                env=env_name,
                 content_view=cv_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.associate_product(name, [product_subscription])
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['alert.success']
+                )
+            )
 
     @run_only_on('sat')
     def test_associate_product_2(self):
@@ -1177,24 +1219,29 @@ class ActivationKey(UITestCase):
         @BZ: 1078676
 
         """
-
-        name = gen_string("alpha", 8)
-        cv_name = gen_string("alpha", 8)
-        env_name = gen_string("alpha", 8)
-        product_name = gen_string("alpha", 8)
+        name = gen_string('alpha', 8)
+        cv_name = gen_string('alpha', 8)
+        env_name = gen_string('alpha', 8)
+        product_name = gen_string('alpha', 8)
         # Helper function to create and promote CV to next environment
         repo_id = self.create_sync_custom_repo(product_name=product_name)
         self.cv_publish_promote(cv_name, env_name, repo_id)
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=self.org_name, name=name, env=env_name,
-                description=gen_string("alpha", 16),
+                session,
+                org=self.org_name,
+                name=name,
+                env=env_name,
+                description=gen_string('alpha', 16),
                 content_view=cv_name
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.associate_product(name, [product_name])
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['alert.success']
+                )
+            )
 
     @run_only_on('sat')
     def test_associate_product_3(self):
@@ -1211,19 +1258,19 @@ class ActivationKey(UITestCase):
         @Assert: RH/Custom product is successfully associated to Activation key
 
         """
-        name = gen_string("alpha", 8)
+        name = gen_string('alpha', 8)
         rh_repo = {
-            'name': ("Red Hat Enterprise Virtualization Agents for RHEL 6 "
-                     "Server RPMs x86_64 6Server"),
-            'product': "Red Hat Enterprise Linux Server",
-            'reposet': ("Red Hat Enterprise Virtualization Agents "
-                        "for RHEL 6 Server (RPMs)"),
-            'basearch': "x86_64",
-            'releasever': "6Server",
+            'name': ('Red Hat Enterprise Virtualization Agents for RHEL 6 '
+                     'Server RPMs x86_64 6Server'),
+            'product': 'Red Hat Enterprise Linux Server',
+            'reposet': ('Red Hat Enterprise Virtualization Agents '
+                        'for RHEL 6 Server (RPMs)'),
+            'basearch': 'x86_64',
+            'releasever': '6Server',
         }
         product_subscription = DEFAULT_SUBSCRIPTION_NAME
-        custom_product_name = gen_string("alpha", 8)
-        repo_name = gen_string("alpha", 8)
+        custom_product_name = gen_string('alpha', 8)
+        repo_name = gen_string('alpha', 8)
         # Create new org to import manifest
         org_attrs = entities.Organization().create_json()
         org_id = org_attrs['id']
@@ -1256,14 +1303,20 @@ class ActivationKey(UITestCase):
             entities.Repository(id=repo_id).sync()
         with Session(self.browser) as session:
             make_activationkey(
-                session, org=org_attrs['name'], name=name, env=ENVIRONMENT,
+                session,
+                org=org_attrs['name'],
+                name=name,
+                env=ENVIRONMENT,
                 content_view=DEFAULT_CV
             )
             self.assertIsNotNone(self.activationkey.search_key(name))
             self.activationkey.associate_product(
                 name, [product_subscription, custom_product_name])
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['alert.success']
+                )
+            )
 
     def test_delete_manifest(self):
         """@Test: Check if deleting a manifest removes it from Activation key
@@ -1300,18 +1353,23 @@ class ActivationKey(UITestCase):
             self.navigator.go_to_activation_keys()
             self.assertIsNotNone(
                 self.activationkey.search_key_subscriptions(
-                    activation_key.name, DEFAULT_SUBSCRIPTION_NAME)
+                    activation_key.name, DEFAULT_SUBSCRIPTION_NAME
+                )
             )
             # Delete the manifest
             self.navigator.go_to_red_hat_subscriptions()
             self.subscriptions.delete()
-            self.assertIsNotNone(self.subscriptions.wait_until_element(
-                common_locators['alert.success']))
+            self.assertIsNotNone(
+                self.subscriptions.wait_until_element(
+                    common_locators['alert.success']
+                )
+            )
             # Verify the subscription was removed from the activation key
             self.navigator.go_to_activation_keys()
             self.assertIsNone(
                 self.activationkey.search_key_subscriptions(
-                    activation_key.name, DEFAULT_SUBSCRIPTION_NAME)
+                    activation_key.name, DEFAULT_SUBSCRIPTION_NAME
+                )
             )
 
     @run_only_on('sat')
@@ -1327,77 +1385,66 @@ class ActivationKey(UITestCase):
         @Assert: Multiple Activation keys are attached to a system
 
         """
-        key_1_name = gen_string("alpha", 8)
-        key_2_name = gen_string("alpha", 8)
-        cv_1_name = gen_string("alpha", 8)
-        cv_2_name = gen_string("alpha", 8)
-        env_1_name = gen_string("alpha", 8)
-        env_2_name = gen_string("alpha", 8)
-        product_1_name = gen_string("alpha", 8)
-        product_2_name = gen_string("alpha", 8)
+        key_1_name = gen_string('alpha', 8)
+        key_2_name = gen_string('alpha', 8)
+        cv_1_name = gen_string('alpha', 8)
+        cv_2_name = gen_string('alpha', 8)
+        env_1_name = gen_string('alpha', 8)
+        env_2_name = gen_string('alpha', 8)
+        product_1_name = gen_string('alpha', 8)
+        product_2_name = gen_string('alpha', 8)
         # Helper function to create and promote CV to next environment
         repo_1_id = self.create_sync_custom_repo(product_name=product_1_name)
         self.cv_publish_promote(cv_1_name, env_1_name, repo_1_id)
-        repo_2_id = self.create_sync_custom_repo(product_name=product_2_name,
-                                                 repo_url=FAKE_2_YUM_REPO)
+        repo_2_id = self.create_sync_custom_repo(
+            product_name=product_2_name, repo_url=FAKE_2_YUM_REPO)
         self.cv_publish_promote(cv_2_name, env_2_name, repo_2_id)
         with Session(self.browser) as session:
             # Create activation_key_1
             make_activationkey(
-                session, org=self.org_name, name=key_1_name, env=env_1_name,
-                description=gen_string("alpha", 16),
+                session,
+                org=self.org_name,
+                name=key_1_name,
+                env=env_1_name,
+                description=gen_string('alpha', 16),
                 content_view=cv_1_name
             )
             self.assertIsNotNone(self.activationkey.search_key(key_1_name))
             self.activationkey.associate_product(key_1_name, [product_1_name])
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['alert.success']
+                )
+            )
             # Create activation_key_2
             make_activationkey(
-                session, org=self.org_name, name=key_2_name, env=env_2_name,
-                description=gen_string("alpha", 16),
+                session,
+                org=self.org_name,
+                name=key_2_name,
+                env=env_2_name,
+                description=gen_string('alpha', 16),
                 content_view=cv_2_name
             )
             self.assertIsNotNone(self.activationkey.search_key(key_2_name))
             self.activationkey.associate_product(key_2_name, [product_2_name])
-            self.assertIsNotNone(self.activationkey.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(
+                self.activationkey.wait_until_element(
+                    common_locators['alert.success']
+                )
+            )
             # Create VM
-            vm = VirtualMachine(distro='rhel65')
-            vm.create()
-            vm_name = vm.run('hostname')
-            # Download and Install rpm
-            result = vm.run(
-                "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
-                .format(self.server_name)
-            )
-            self.assertEqual(result.return_code, 0)
-            result = vm.run(
-                'rpm -i katello-ca-consumer*.noarch.rpm'
-            )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to install katello-ca rpm: {0}, return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
-            # Register client with foreman server using activation-key
-            result = vm.run(
-                'subscription-manager register --activationkey {0},{1} '
-                '--org {2} --force'
-                .format(key_1_name, key_2_name, self.org_label)
-            )
-            self.assertEqual(
-                result.return_code, 0,
-                "failed to register client:: {0} and return code: {1}"
-                .format(result.stderr, result.return_code)
-            )
-            # Assert the content-host association with activation-key
-            for key_name in [key_1_name, key_2_name]:
-                host_name = self.activationkey.fetch_associated_content_host(
-                    key_name)
-                self.assertEqual(vm_name.stdout[0], host_name)
-            # Delete the virtual machine
-            vm.destroy()
+            with VirtualMachine(distro=self.vm_distro) as vm:
+                vm.install_katello_cert()
+                result = vm.register_contenthost(
+                    '{0},{1}'.format(key_1_name, key_2_name),
+                    self.org_label
+                )
+                self.assertEqual(result.return_code, 0)
+                # Assert the content-host association with activation-key
+                for key_name in [key_1_name, key_2_name]:
+                    name = self.activationkey.fetch_associated_content_host(
+                        key_name)
+                    self.assertEqual(vm.hostname, name)
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1078676)
