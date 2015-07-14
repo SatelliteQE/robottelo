@@ -14,9 +14,15 @@ import os
 import time
 
 from robottelo.common import conf, ssh
+from robottelo.common.helpers import get_server_cert_rpm_url
 
 
-BASE_IMAGES = ('rhel71', 'rhel70', 'rhel66', 'rhel65')
+BASE_IMAGES = (
+    'rhel65',
+    'rhel66',
+    'rhel70',
+    'rhel71',
+)
 
 logger = logging.getLogger(__name__)
 
@@ -52,25 +58,34 @@ class VirtualMachine(object):
             image_dir=None):
         self.cpu = cpu
         self.ram = ram
-        if distro is None or distro not in BASE_IMAGES:
-            self.distro = BASE_IMAGES[0]
-        else:
-            self.distro = distro
+        self.distro = BASE_IMAGES[-1] if distro is None else distro
+        if self.distro not in BASE_IMAGES:
+            raise VirtualMachineError(
+                u'{0} is not a supported distro. Choose one of {1}'
+                .format(self.distro, ', '.join(BASE_IMAGES))
+            )
         if provisioning_server is None:
             self.provisioning_server = conf.properties.get(
                 'clients.provisioning_server')
         else:
             self.provisioning_server = provisioning_server
+        if self.provisioning_server is None:
+            raise VirtualMachineError(
+                'A provisioning server must be provided. Make sure to fill '
+                '"provisioning_server" on clients section of your robottelo '
+                'configuration. Or provide a not None provisioning_server '
+                'argument.'
+            )
         if image_dir is None:
             self.image_dir = conf.properties.get(
                 'clients.image_dir', '/var/lib/libvirt/images/')
         else:
             self.image_dir = image_dir
 
-        self.target_image = str(id(self))
-        self.ip_addr = None
         self.hostname = None
+        self.ip_addr = None
         self._created = False
+        self._target_image = str(id(self))
 
     def create(self):
         """Creates a virtual machine on the provisioning server using
@@ -82,9 +97,6 @@ class VirtualMachine(object):
         """
         if self._created:
             return
-
-        if self.provisioning_server is None:
-            raise VirtualMachineError('Provisioning server is not configured')
 
         command_args = [
             'snap-guest',
@@ -98,9 +110,9 @@ class VirtualMachine(object):
         if self.image_dir is not None:
             command_args.append('-p {image_dir}')
 
-        command = ' '.join(command_args).format(
-            source_image='{0}-base'.format(self.distro),
-            target_image=self.target_image,
+        command = u' '.join(command_args).format(
+            source_image=u'{0}-base'.format(self.distro),
+            target_image=self._target_image,
             vm_ram=self.ram,
             vm_cpu=self.cpu,
             image_dir=self.image_dir,
@@ -116,7 +128,7 @@ class VirtualMachine(object):
         time.sleep(60)
 
         result = ssh.command(
-            'ping -c 1 {}.local'.format(self.target_image),
+            u'ping -c 1 {}.local'.format(self._target_image),
             self.provisioning_server
         )
         if result.return_code != 0:
@@ -124,6 +136,7 @@ class VirtualMachine(object):
                 'Failed to fetch virtual machine IP address information')
         output = ''.join(result.stdout)
         self.ip_addr = output.split('(')[1].split(')')[0]
+        self.hostname = self._target_image
         self._created = True
 
     def destroy(self):
@@ -132,16 +145,16 @@ class VirtualMachine(object):
             return
 
         ssh.command(
-            'virsh destroy {0}'.format(self.target_image),
+            u'virsh destroy {0}'.format(self.hostname),
             hostname=self.provisioning_server
         )
         ssh.command(
-            'virsh undefine {0}'.format(self.target_image),
+            u'virsh undefine {0}'.format(self.hostname),
             hostname=self.provisioning_server
         )
-        image_name = '{0}.img'.format(self.target_image)
+        image_name = u'{0}.img'.format(self.hostname)
         ssh.command(
-            'rm {0}'.format(os.path.join(self.image_dir, image_name)),
+            u'rm {0}'.format(os.path.join(self.image_dir, image_name)),
             hostname=self.provisioning_server
         )
 
@@ -155,14 +168,14 @@ class VirtualMachine(object):
 
         """
         self.run(
-            'wget -nd -r -l1 --no-parent -A \'{0}.rpm\' {1}'
+            u'wget -nd -r -l1 --no-parent -A \'{0}.rpm\' {1}'
             .format(package_name, repo_url)
         )
-        self.run('rpm -i {0}.rpm'.format(package_name))
-        result = self.run('rpm -q {0}'.format(package_name))
+        self.run(u'rpm -i {0}.rpm'.format(package_name))
+        result = self.run(u'rpm -q {0}'.format(package_name))
         if result.return_code != 0:
             raise VirtualMachineError(
-                'Failed to install {0} rpm.'.format(package_name)
+                u'Failed to install {0} rpm.'.format(package_name)
             )
 
     def enable_repo(self, repo):
@@ -172,7 +185,7 @@ class VirtualMachine(object):
         :return: None.
 
         """
-        self.run('subscription-manager repos --enable {0}'.format(repo))
+        self.run(u'subscription-manager repos --enable {0}'.format(repo))
 
     def install_katello_agent(self):
         """Installs katello agent on the virtual machine.
@@ -195,17 +208,18 @@ class VirtualMachine(object):
             installed.
 
         """
-        self.run(
-            'wget -nd -r -l1 --no-parent -A \'*.noarch.rpm\' http://{0}/pub/'
-            .format(conf.properties['main.server.hostname'])
-        )
-        self.run('rpm -i katello-ca-consumer*.noarch.rpm')
         result = self.run(
-            'rpm -q katello-ca-consumer-{0}'
+            u'rpm -Uvh {}'.format(get_server_cert_rpm_url())
+        )
+        if result.return_code != 0:
+            raise VirtualMachineError(
+                'Failed to download and install the katello-ca rpm')
+        result = self.run(
+            u'rpm -q katello-ca-consumer-{0}'
             .format(conf.properties['main.server.hostname'])
         )
         if result.return_code != 0:
-            raise VirtualMachineError('Failed to install katello-ca rpm')
+            raise VirtualMachineError('Failed to find the katello-ca rpm')
 
     def register_contenthost(self, activation_key, org):
         """Registers content host on foreman server using activation-key.
@@ -213,11 +227,12 @@ class VirtualMachine(object):
         :param activation_key: Activation key name to register content host
             with.
         :param org: Organization name to register content host for.
-        :return: None.
+        :return: SSHCommandResult instance filled with the result of the
+            registration.
 
         """
-        self.run(
-            'subscription-manager register --activationkey {0} '
+        return self.run(
+            u'subscription-manager register --activationkey {0} '
             '--org {1} --force'
             .format(activation_key, org)
         )

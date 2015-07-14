@@ -13,7 +13,7 @@ from random import randint
 from robottelo.common import conf, ssh
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.decorators import bz_bug_is_open
-from urlparse import urlunsplit
+from urlparse import urljoin, urlunsplit
 
 
 LOGGER = logging.getLogger(__name__)
@@ -86,6 +86,37 @@ def get_server_url():
         return urlunsplit((
             scheme, '{0}:{1}'.format(hostname, port), '', '', ''
         ))
+
+
+def get_server_pub_url():
+    """Return the pub URL of the server being tested.
+
+    The following values from the config file are used to build the URL:
+
+    * ``main.server.hostname`` (required)
+
+    :return: The pub directory URL.
+    :rtype: str
+
+    """
+    return urlunsplit(
+        ('http', conf.properties['main.server.hostname'], 'pub/', '', '')
+    )
+
+
+def get_server_cert_rpm_url():
+    """Return the Katello cert RPM URL of the server being tested.
+
+    The following values from the config file are used to build the URL:
+
+    * ``main.server.hostname`` (required)
+
+    :return: The Katello cert RPM URL.
+    :rtype: str
+
+    """
+    return urljoin(
+        get_server_pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
 
 
 def get_nailgun_config():
