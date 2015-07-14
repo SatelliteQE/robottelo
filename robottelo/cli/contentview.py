@@ -142,30 +142,62 @@ class ContentView(Base):
 
         """
         cls.command_sub = 'filter create'
-
         if options is None:
             options = {}
+        return cls.execute(cls._construct_command(options))
 
+    @classmethod
+    def filter_update(cls, options):
+        """Update existing content view filter entity.
+
+        Usage::
+
+            hammer content-view filter update [OPTIONS]
+
+        Options::
+
+            --content-view CONTENT_VIEW_NAME    Content view name
+            --content-view-id CONTENT_VIEW_ID   Content view numeric identifier
+            --id ID                             filter identifier
+            --inclusion INCLUSION               Specifies if content should be
+                                                included or excluded, default:
+                                                inclusion=false (One of yes/no,
+                                                1/0, true/false)
+            --name NAME                         Name to search by
+            --new-name NEW_NAME                 new name for the filter
+            --organization ORGANIZATION_NAME    Organization name to search by
+            --organization-id ORGANIZATION_ID   Organization ID
+            --organization-label ORGANIZATION_LABEL   Organization label to
+                                                      search by
+            --original-packages ORIGINAL_PACKAGES     Add all packages without
+                                                      Errata to the included/
+                                                      excluded list. (Package
+                                                      Filter only)
+            --repositories REPOSITORY_NAMES      Repository Name
+                                                 Comma separated list of values
+            --repository-ids REPOSITORY_IDS      Repository ID
+                                                 Comma separated list of values
+
+        """
+        cls.command_sub = 'filter update'
+        if options is None:
+            options = {}
         return cls.execute(cls._construct_command(options))
 
     @classmethod
     def filter_rule_create(cls, options):
         """Add new rule to content view filter."""
         cls.command_sub = 'filter rule create'
-
         if options is None:
             options = {}
-
         return cls.execute(cls._construct_command(options))
 
     @classmethod
     def version_list(cls, options):
         """Lists content-view's versions."""
         cls.command_sub = 'version list'
-
         if options is None:
             options = {}
-
         return cls.execute(
             cls._construct_command(options), output_format='csv')
 

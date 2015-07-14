@@ -9,6 +9,7 @@ from fabric.api import execute, settings
 from fauxfactory import gen_string, gen_integer
 from nailgun import entities, entity_mixins
 from nailgun.config import ServerConfig
+from random import randint
 from robottelo.common import conf, ssh
 from robottelo.common.constants import VALID_GPG_KEY_FILE
 from robottelo.common.decorators import bz_bug_is_open
@@ -163,12 +164,13 @@ def valid_data_list():
     List of valid data for input testing.
     """
     return [
-        gen_string("alpha", 8),
-        gen_string("numeric", 8),
-        gen_string("alphanumeric", 8),
-        gen_string("utf8", 8),
-        gen_string("latin1", 8),
-        gen_string("html", 8)
+        gen_string('alphanumeric', randint(1, 255)),
+        gen_string('alpha', randint(1, 255)),
+        gen_string('cjk', randint(1, 85)),
+        gen_string('latin1', randint(1, 255)),
+        gen_string('numeric', randint(1, 255)),
+        gen_string('utf8', randint(1, 85)),
+        gen_string('html', randint(1, 85)),
     ]
 
 
@@ -177,14 +179,26 @@ def invalid_names_list():
     List of invalid names for input testing.
     """
     return [
-        gen_string("alpha", 300),
-        gen_string("numeric", 300),
-        gen_string("alphanumeric", 300),
-        gen_string("utf8", 300),
-        gen_string("latin1", 300),
-        gen_string("html", 300),
-        gen_string("alpha", 256)
+        gen_string('alphanumeric', 300),
+        gen_string('alpha', 300),
+        gen_string('cjk', 300),
+        gen_string('latin1', 300),
+        gen_string('numeric', 300),
+        gen_string('utf8', 300),
+        gen_string('html', 300),
     ]
+
+
+def invalid_values_list():
+    """List of invalid values for input testing which consists from invalid names
+    and few empty string examples. That method should be useful for CLI and API
+    tests primarily as we can pass such parameters to a server, but not in UI.
+    As we do not verify error messages, it is recommended to use current method
+    instead 'invalid_names_list' to have better coverage and prevent redundant
+    code.
+
+    """
+    return ['', ' ', '   '] + invalid_names_list()
 
 
 def generate_strings_list(len1=None, remove_str=None, bug_id=None):

@@ -3,7 +3,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_choice, gen_string
-from random import randint
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -15,6 +14,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.repository import Repository
 from robottelo.common.constants import DOCKER_REGISTRY_HUB
 from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.helpers import invalid_values_list, valid_data_list
 from robottelo.test import CLITestCase
 
 
@@ -48,15 +48,7 @@ class TestContentViewFilter(CLITestCase):
         })
         self.assertEqual(result.return_code, 0)
 
-    @data(
-        gen_string('alphanumeric', randint(1, 255)),
-        gen_string('alpha', randint(1, 255)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 255)),
-        gen_string('numeric', randint(1, 255)),
-        gen_string('utf8', randint(1, 85)),
-        gen_string('html', randint(1, 85)),
-    )
+    @data(*valid_data_list())
     def test_create_cvf_with_different_names(self, name):
         """Test: Create new content view filter and assign it to existing
         content view by id. Use different value types as a name and random
@@ -379,17 +371,7 @@ class TestContentViewFilter(CLITestCase):
         for i in range(2):
             self.assertIn(result.stdout['repositories'][i]['id'], repos)
 
-    @data(
-        '',
-        ' ',
-        gen_string('alphanumeric', 300),
-        gen_string('alpha', 300),
-        gen_string('cjk', 300),
-        gen_string('latin1', 300),
-        gen_string('numeric', 300),
-        gen_string('utf8', 300),
-        gen_string('html', 300),
-    )
+    @data(*invalid_values_list())
     def test_create_cvf_with_different_names_negative(self, name):
         """@Test: Try to create content view filter using invalid names only
 
@@ -475,6 +457,352 @@ class TestContentViewFilter(CLITestCase):
             'type': 'rpm',
             'name': self.cvf_name,
             'repository-ids': gen_string('numeric', 6),
+        })
+        self.assertNotEqual(result.return_code, 0)
+        self.assertNotEqual(len(result.stderr), 0)
+
+    @data(*valid_data_list())
+    def test_update_cvf_with_different_names(self, new_name):
+        """Test: Create new content view filter and assign it to existing
+        content view by id. Try to update that filter using different value
+        types as a name
+
+        @Feature: Content View Filter
+
+        @Assert: Content view filter updated successfully and has proper and
+        expected name
+
+        """
+        result = ContentView.filter_create({
+            'content-view-id': self.content_view['id'],
+            'type': 'rpm',
+            'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertNotEqual(result.stdout['name'], new_name)
+
+        result = ContentView.filter_update({
+            'content-view-id': self.content_view['id'],
+            'name': self.cvf_name,
+            'new-name': new_name,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': new_name,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['name'], new_name)
+
+    def test_update_cvf_with_repo(self):
+        """Test: Create new content view filter and apply it to existing
+        content view that has repository assigned to it. Try to update that
+        filter and change affected repository on another one.
+
+        @Feature: Content View Filter
+
+        @Assert: Content view filter updated successfully and has new
+        repository affected
+
+        """
+        result = ContentView.filter_create({
+            'content-view-id': self.content_view['id'],
+            'type': 'rpm',
+            'name': self.cvf_name,
+            'repository-ids': self.repo['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout['repositories']), 1)
+        self.assertEqual(
+            result.stdout['repositories'][0]['name'], self.repo['name'])
+
+        new_repo = make_repository({u'product-id': self.product['id']})
+        result = ContentView.add_repository({
+            u'id': self.content_view['id'],
+            u'repository-id': new_repo['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_update({
+            'content-view-id': self.content_view['id'],
+            'name': self.cvf_name,
+            'repository-ids': new_repo['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout['repositories']), 1)
+        self.assertNotEqual(
+            result.stdout['repositories'][0]['name'], self.repo['name'])
+        self.assertEqual(
+            result.stdout['repositories'][0]['name'], new_repo['name'])
+
+    def test_update_cvf_with_repo_type(self):
+        """Test: Create new content view filter and apply it to existing
+        content view that has repository assigned to it. Try to update that
+        filter and change affected repository on another one. That new
+        repository should have another type from initial one (e.g. yum->docker)
+
+        @Feature: Content View Filter
+
+        @Assert: Content view filter updated successfully and has new
+        repository affected
+
+        """
+        result = ContentView.filter_create({
+            'content-view-id': self.content_view['id'],
+            'type': 'rpm',
+            'name': self.cvf_name,
+            'repository-ids': self.repo['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout['repositories']), 1)
+        self.assertEqual(
+            result.stdout['repositories'][0]['name'], self.repo['name'])
+
+        try:
+            docker_repo = make_repository({
+                u'content-type': u'docker',
+                u'docker-upstream-name': u'busybox',
+                u'product-id': self.product['id'],
+                u'url': DOCKER_REGISTRY_HUB,
+            })
+        except CLIFactoryError as err:
+            self.fail(err)
+
+        result = ContentView.add_repository({
+            u'id': self.content_view['id'],
+            u'repository-id': docker_repo['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_update({
+            'content-view-id': self.content_view['id'],
+            'name': self.cvf_name,
+            'repository-ids': docker_repo['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout['repositories']), 1)
+        self.assertNotEqual(
+            result.stdout['repositories'][0]['name'], self.repo['name'])
+        self.assertEqual(
+            result.stdout['repositories'][0]['name'], docker_repo['name'])
+
+    def test_update_cvf_with_inclusion(self):
+        """Test: Create new content view filter and assign it to existing
+        content view by id. Try to update that filter and assign opposite
+        inclusion value for it
+
+        @Feature: Content View Filter
+
+        @Assert: Content view filter updated successfully and has correct and
+        expected value for inclusion parameter
+
+        """
+        result = ContentView.filter_create({
+            'content-view-id': self.content_view['id'],
+            'inclusion': 'true',
+            'type': 'rpm',
+            'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['inclusion'], 'true')
+
+        result = ContentView.filter_update({
+            'content-view-id': self.content_view['id'],
+            'name': self.cvf_name,
+            'inclusion': 'false',
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['inclusion'], 'false')
+
+    @data(*invalid_values_list())
+    def test_update_cvf_with_different_names_negative(self, new_name):
+        """@Test: Try to update content view filter using invalid names only
+
+        @Feature: Content View Filter
+
+        @Assert: Content view filter is not updated
+
+        """
+        result = ContentView.filter_create({
+            'content-view-id': self.content_view['id'],
+            'type': 'rpm',
+            'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_update({
+            'content-view-id': self.content_view['id'],
+            'name': self.cvf_name,
+            'new-name': new_name,
+        })
+        self.assertNotEqual(result.return_code, 0)
+        self.assertNotEqual(len(result.stderr), 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': new_name,
+        })
+        self.assertNotEqual(result.return_code, 0)
+
+    def test_update_cvf_with_same_name_negative(self):
+        """@Test: Try to update content view filter using name of already
+        existing entity
+
+        @Feature: Content View Filter
+
+        @Assert: Content view filter is not updated
+
+        """
+        result = ContentView.filter_create({
+            'content-view-id': self.content_view['id'],
+            'type': 'rpm',
+            'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        new_name = gen_string('alpha', 100)
+        result = ContentView.filter_create({
+            'content-view-id': self.content_view['id'],
+            'type': 'rpm',
+            'name': new_name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_update({
+            'content-view-id': self.content_view['id'],
+            'name': new_name,
+            'new-name': self.cvf_name,
+        })
+        self.assertNotEqual(result.return_code, 0)
+        self.assertNotEqual(len(result.stderr), 0)
+
+    def test_update_cvf_with_inclusion_negative(self):
+        """Test: Try to update content view filter and assign incorrect
+        inclusion value for it
+
+        @Feature: Content View Filter
+
+        @Assert: Content view filter is not updated
+
+        """
+        result = ContentView.filter_create({
+            'content-view-id': self.content_view['id'],
+            'inclusion': 'true',
+            'type': 'rpm',
+            'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_update({
+            'content-view-id': self.content_view['id'],
+            'name': self.cvf_name,
+            'inclusion': 'wrong_value',
+        })
+        self.assertNotEqual(result.return_code, 0)
+        self.assertNotEqual(len(result.stderr), 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(result.stdout['inclusion'], 'true')
+
+    def test_update_cvf_with_non_exist_repo_negative(self):
+        """Test: Try to update content view filter using non-existing
+        repository ID
+
+        @Feature: Content View Filter
+
+        @Assert: Content view filter is not updated
+
+        """
+        result = ContentView.filter_create({
+            'content-view-id': self.content_view['id'],
+            'type': 'rpm',
+            'name': self.cvf_name,
+            'repository-ids': self.repo['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_update({
+            'content-view-id': self.content_view['id'],
+            'name': self.cvf_name,
+            'repository-ids': gen_string('numeric', 6),
+        })
+        self.assertNotEqual(result.return_code, 0)
+        self.assertNotEqual(len(result.stderr), 0)
+
+    def test_update_cvf_with_new_repo_negative(self):
+        """Test: Try to update filter and assign repository which does not
+        belong to filter content view
+
+        @Feature: Content View Filter
+
+        @Assert: Content view filter is not updated
+
+        """
+        result = ContentView.filter_create({
+            'content-view-id': self.content_view['id'],
+            'type': 'rpm',
+            'name': self.cvf_name,
+            'repository-ids': self.repo['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+
+        new_repo = make_repository({u'product-id': self.product['id']})
+
+        result = ContentView.filter_update({
+            'content-view-id': self.content_view['id'],
+            'name': self.cvf_name,
+            'repository-ids': new_repo['id'],
         })
         self.assertNotEqual(result.return_code, 0)
         self.assertNotEqual(len(result.stderr), 0)
