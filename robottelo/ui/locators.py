@@ -237,6 +237,29 @@ menu_locators = LocatorDict({
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
          "//a[@id='menu_item_domains']")),
 
+    # Access Insights menu
+    "menu.insights": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='redhat_access_top_menu']")),
+    "insights.overview": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@href='/redhat_access/insights']")),
+    "insights.rules": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@href='/redhat_access/insights/rules/']")),
+    "insights.systems": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@href='/redhat_access/insights/systems/']")),
+    "insights.manage": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@href='/redhat_access/insights/manage']")),
+
+
     # Administer Menu
     "menu.administer": (
         By.XPATH,
@@ -1885,4 +1908,10 @@ locators = LocatorDict({
         By.XPATH, "//a[@data-confirm='Delete %s?']"),
     "ldapserver.ldap_servername": (
         By.XPATH, "//a[contains(@href, 'edit') and contains(@href, '%s')]"),
+
+    # Red Hat Access Insights locators
+    "insights.registered_systems": (
+        By.XPATH,
+        ("//div[@class='system-summary']/p")),
+
 })
