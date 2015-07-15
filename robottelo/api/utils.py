@@ -64,42 +64,6 @@ def get_packages(repository_id):
     return response['results']
 
 
-def status_code_error(path, desired, response):
-    """Compose an error message using ``path``, ``desired`` and ``response``.
-
-    ``desired`` and ``path`` are used as-is. The following must be present on
-    ``response``:
-
-    * ``response.status_code``
-    * ``response.json()``
-
-    :param str path: The path to which a request was sent.
-    :param int desired: The desired return status code.
-    :param response: The ``Response`` object returned.
-    :return: An error message.
-    :rtype: str
-
-    """
-    # Decode response into JSON format, if possible.
-    try:
-        json_response = response.json()
-    except ValueError:
-        json_response = None
-
-    # Generate error message.
-    if json_response is None:
-        err_msg = 'Could not decode response; not in JSON format.'
-    else:
-        if 'error' in json_response.keys():
-            err_msg = json_response['error']
-        elif 'errors' in json_response.keys():
-            err_msg = json_response['errors']
-        else:
-            err_msg = 'Response in JSON format, but contains no error message.'
-    return u'Desired HTTP {0} but received HTTP {1} after sending request ' \
-        'to {2}. {3}'.format(desired, response.status_code, path, err_msg)
-
-
 def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
                               reposet, releasever):
     """Enable a RedHat Repository and fetches it's Id.
