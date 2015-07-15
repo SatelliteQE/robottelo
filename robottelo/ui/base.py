@@ -172,7 +172,7 @@ class Base(object):
             strategy, value = drop_locator
             self.click((strategy, value % name))
         strategy, value = del_locator
-        self.click((strategy, value % name))
+        self.click((strategy, value % name), wait_for_ajax=False)
         self.handle_alert(really)
 
     def wait_until_element_exists(
