@@ -5,7 +5,7 @@ from setuptools import find_packages, setup
 REQUIRES = [
     'ddt',
     'fauxfactory',
-    'nailgun==0.18.1',
+    'nailgun==0.18.2',
     'paramiko',
     'python-bugzilla',
     'requests',
