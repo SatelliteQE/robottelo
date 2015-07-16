@@ -634,7 +634,7 @@ class TestCHKatelloAgent(CLITestCase):
         # Get errata info
         result = ContentHost.errata_info({
             u'organization-id': TestCHKatelloAgent.org['id'],
-            u'content-host': self.vm.target_image,
+            u'content-host': self.vm.hostname,
             u'id': FAKE_0_ERRATA_ID,
         })
         self.assertEqual(result.return_code, 0)
@@ -661,7 +661,7 @@ class TestCHKatelloAgent(CLITestCase):
         # Apply errata to content host
         result = ContentHost.errata_apply({
             u'organization-id': TestCHKatelloAgent.org['id'],
-            u'content-host': self.vm.target_image,
+            u'content-host': self.vm.hostname,
             u'errata-ids': FAKE_0_ERRATA_ID,
         })
         self.assertEqual(result.return_code, 0)
