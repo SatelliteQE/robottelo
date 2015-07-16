@@ -528,7 +528,7 @@ class TestProduct(CLITestCase):
             'organization-id': org['id'],
         })
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(u'finished', result.stdout['sync-state'])
+        self.assertEqual(u'Syncing Complete.', result.stdout['sync-state'])
 
     def test_product_synchronize_by_name(self):
         """@Test: Check if product can be synchronized.
@@ -557,7 +557,7 @@ class TestProduct(CLITestCase):
             'organization-id': org['id'],
         })
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(u'finished', result.stdout['sync-state'])
+        self.assertEqual(u'Syncing Complete.', result.stdout['sync-state'])
 
     def test_product_synchronize_by_label(self):
         """@Test: Check if product can be synchronized.
@@ -586,4 +586,4 @@ class TestProduct(CLITestCase):
             'organization-id': org['id'],
         })
         self.assertEqual(result.return_code, 0)
-        self.assertEqual(u'finished', result.stdout['sync-state'])
+        self.assertEqual(u'Syncing Complete.', result.stdout['sync-state'])
