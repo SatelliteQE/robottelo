@@ -137,25 +137,35 @@ CHECKSUM_TYPE = {
 # Product -> RepositorySet -> Repository
 # We need to first select the Product, then the reposet and then the repos
 # Example: 'rhel' is the name of Product that contains following REPOSETs
-
-PRDS = {'rhcf': "Red Hat CloudForms",
-        'rhel': "Red Hat Enterprise Linux Server"}
+PRDS = {
+    'rhcf': 'Red Hat CloudForms',
+    'rhel': 'Red Hat Enterprise Linux Server',
+}
 
 REPOSET = {
-    'rhct6': "Red Hat CloudForms Tools for RHEL 6 (RPMs)",
-    'rhel6': "Red Hat Enterprise Linux 6 Server (RPMs)",
-    'rhva6': "Red Hat Enterprise Virtualization Agents "
-    "for RHEL 6 Server (RPMs)",
+    'rhct6': 'Red Hat CloudForms Tools for RHEL 6 (RPMs)',
+    'rhel6': 'Red Hat Enterprise Linux 6 Server (RPMs)',
+    'rhva6': (
+        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'
+    ),
     # TODO: Remove 'Beta' after release
-    'rhst7': "Red Hat Satellite Tools 6 Beta (for RHEL 7 Server) (RPMs)",
+    'rhst7': 'Red Hat Satellite Tools 6 Beta (for RHEL 7 Server) (RPMs)',
 }
 
 REPOS = {
     'rhst7': {  # TODO: Remove 'beta' after release
-        'id': "rhel-7-server-satellite-tools-6-beta-rpms",
-        'name': "Red Hat Satellite Tools 6 Beta for RHEL 7 Server "
-                "RPMs x86_64 7Server",
-        }
+        'id': 'rhel-7-server-satellite-tools-6-beta-rpms',
+        'name': (
+            'Red Hat Satellite Tools 6 Beta for RHEL 7 Server RPMs x86_64 '
+            '7Server'
+        ),
+    },
+    'rhva6': {
+        'name': (
+            'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
+            'x86_64 6Server'
+        ),
+    },
 }
 
 # The 'create_repos_tree' function under 'sync' module uses the following

@@ -799,7 +799,7 @@ class TestSmoke(TestCase):
         services = response.json()['services']
         self.assertTrue(
             all([service['status'] == u'ok' for service in services.values()]),
-            u"Not all services seem to be up and running!"
+            u'Not all services seem to be up and running!'
         )
 
     def test_smoke(self):
@@ -911,31 +911,34 @@ class TestSmoke(TestCase):
         content_view.publish()
 
         # step 2.10: Promote content view to both lifecycles
-        versions = content_view.read_json()['versions']
-        self.assertEqual(len(versions), 1)
-        self.assertEqual(len(versions[0]['environment_ids']), 1)
-        entities.ContentViewVersion(id=versions[0]['id']).promote(le1.id)
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 1)
+        cv_version = content_view.version[0].read()
+        self.assertEqual(len(cv_version.environment), 1)
+        cv_version.promote(le1.id)
         # Check that content view exists in 2 lifecycles
-        versions = content_view.read_json()['versions']
-        self.assertEqual(len(versions), 1)
-        self.assertEqual(len(versions[0]['environment_ids']), 2)
-        entities.ContentViewVersion(id=versions[0]['id']).promote(le2.id)
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 1)
+        cv_version = cv_version.read()
+        self.assertEqual(len(cv_version.environment), 2)
+        cv_version.promote(le2.id)
         # Check that content view exists in 2 lifecycles
-        versions = content_view.read_json()['versions']
-        self.assertEqual(len(versions), 1)
-        self.assertEqual(len(versions[0]['environment_ids']), 3)
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 1)
+        cv_version = cv_version.read()
+        self.assertEqual(len(cv_version.environment), 3)
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
         content_host = entities.System(
             server_config,
             content_view=content_view,
-            environment=le2.id  # FIXME: pass the environment instance
-        ).create_json()
+            environment=le2
+        ).create()
         # Check that content view matches what we passed
-        self.assertEqual(content_host['content_view']['id'], content_view.id)
+        self.assertEqual(content_host.content_view.id, content_view.id)
         # Check that lifecycle environment matches
-        self.assertEqual(content_host['environment']['id'], le2.id)
+        self.assertEqual(content_host.environment.id, le2.id)
 
         # step 2.11: Create a new libvirt compute resource
         entities.LibvirtComputeResource(
@@ -1009,11 +1012,6 @@ class TestSmoke(TestCase):
         fetched by client
 
         """
-        product = "Red Hat Enterprise Linux Server"
-        reposet = ("Red Hat Enterprise Virtualization Agents "
-                   "for RHEL 6 Server (RPMs)")
-        repo = ("Red Hat Enterprise Virtualization Agents for RHEL 6 Server "
-                "RPMs x86_64 6Server")
         activation_key_name = gen_string('alpha')
 
         # step 1.1: Create a new organization
@@ -1021,7 +1019,7 @@ class TestSmoke(TestCase):
 
         # step 1.2: Create new lifecycle environments
         lifecycle_env = entities.LifecycleEnvironment(
-            organization=org.id
+            organization=org
         ).create()
 
         # step 2: Upload manifest
@@ -1029,12 +1027,12 @@ class TestSmoke(TestCase):
         org.upload_manifest(path=manifest_path)
         # step 3.1: Enable RH repo and fetch repository_id
         repository = entities.Repository(id=utils.enable_rhrepo_and_fetchid(
-            basearch="x86_64",
+            basearch='x86_64',
             org_id=org.id,
-            product=product,
-            repo=repo,
-            reposet=reposet,
-            releasever="6Server",
+            product=PRDS['rhel'],
+            repo=REPOS['rhva6']['name'],
+            reposet=REPOSET['rhva6'],
+            releasever='6Server',
         ))
         # step 3.2: sync repository
         repository.sync()
@@ -1050,18 +1048,16 @@ class TestSmoke(TestCase):
         content_view.publish()
 
         # step 6.2: Promote content view to lifecycle_env
-        versions = content_view.read_json()['versions']
-        self.assertEqual(len(versions), 1)
-        entities.ContentViewVersion(
-            id=versions[0]['id']
-        ).promote(lifecycle_env.id)
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 1)
+        content_view.version[0].promote(lifecycle_env.id)
 
         # step 7: Create activation key
         activation_key = entities.ActivationKey(
             name=activation_key_name,
-            environment=lifecycle_env.id,
-            organization=org.id,
-            content_view=content_view.id,
+            environment=lifecycle_env,
+            organization=org,
+            content_view=content_view,
         ).create()
         # step 7.1: Walk through the list of subscriptions.
         # Find the "Red Hat Employee Subscription" and attach it to the
@@ -1084,20 +1080,10 @@ class TestSmoke(TestCase):
         )
 
         # Create VM
-        package_name = "python-kitchen"
+        package_name = 'python-kitchen'
         with VirtualMachine(distro='rhel66') as vm:
-            # Download and Install rpm
-            result = vm.run(
-                'rpm -Uvh http://{0}/pub/katello-ca-consumer-latest.noarch.rpm'
-                .format(conf.properties['main.server.hostname'])
-            )
-            self.assertEqual(result.return_code, 0)
-            # Register client with foreman server using activation-key
-            result = vm.run(
-                u'subscription-manager register --activationkey {0} '
-                '--org {1} --force'
-                .format(activation_key_name, org.label)
-            )
+            vm.install_katello_cert()
+            result = vm.register_contenthost(activation_key_name, org.label)
             self.assertEqual(result.return_code, 0)
             # Install contents from sat6 server
             result = vm.run('yum install -y {0}'.format(package_name))
