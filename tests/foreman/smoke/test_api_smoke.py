@@ -272,8 +272,11 @@ API_PATHS = {
         u'/api/filters/:id',
     ),
     u'foreman_tasks': (
-        u'/foreman_tasks/api/tasks/bulk_search',
+        u'/foreman_tasks/api/tasks',
         u'/foreman_tasks/api/tasks/:id',
+        u'/foreman_tasks/api/tasks/bulk_resume',
+        u'/foreman_tasks/api/tasks/bulk_search',
+        u'/foreman_tasks/api/tasks/summary',
     ),
     u'gpg_keys': (
         u'/katello/api/gpg_keys',
