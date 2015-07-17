@@ -9,6 +9,9 @@ from robottelo.common.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
     FAKE_0_PUPPET_REPO,
     GOOGLE_CHROME_REPO,
+    PRDS,
+    REPOS,
+    REPOSET,
 )
 from robottelo.common.decorators import bz_bug_is_open, skip_if_bug_open
 from robottelo.common.helpers import (
