@@ -22,6 +22,7 @@ from robottelo.common.helpers import get_server_url
 from robottelo.common import conf, ssh
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
+from robottelo.ui.computeprofile import ComputeProfile
 from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.contentenv import ContentEnvironment
@@ -198,6 +199,7 @@ class UITestCase(TestCase):
         # Library methods
         self.activationkey = ActivationKey(self.browser)
         self.architecture = Architecture(self.browser)
+        self.compute_profile = ComputeProfile(self.browser)
         self.compute_resource = ComputeResource(self.browser)
         self.configgroups = ConfigGroups(self.browser)
         self.contentenv = ContentEnvironment(self.browser)

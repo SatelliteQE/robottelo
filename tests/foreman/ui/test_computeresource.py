@@ -3,10 +3,13 @@ from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.common import conf
-from robottelo.common.constants import FOREMAN_PROVIDERS
-from robottelo.common.decorators import run_only_on
-from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_strings_list
+from robottelo.common.constants import (
+    DOCKER_RESOURCE_URL,
+    FOREMAN_PROVIDERS,
+    LIBVIRT_RESOURCE_URL,
+)
+from robottelo.common.decorators import data, run_only_on
+from robottelo.common.helpers import invalid_names_list, valid_data_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
 from robottelo.ui.locators import common_locators
@@ -18,173 +21,197 @@ from robottelo.ui.session import Session
 class ComputeResource(UITestCase):
     """Implements Compute Resource tests in UI"""
 
-    @data(*generate_strings_list(len1=8))
-    def test_create_resource_1(self, name):
-        """@Test: Create a new libvirt Compute Resource
+    current_libvirt_url = (LIBVIRT_RESOURCE_URL
+                           % conf.properties['main.server.hostname'])
+    current_docker_url = (DOCKER_RESOURCE_URL
+                          % conf.properties['main.server.hostname'])
+
+    @data(*valid_data_list())
+    def test_create_libvirt_resource_different_names(self, name):
+        """@Test: Create a new libvirt Compute Resource using different value
+        types as a name
 
         @Feature: Compute Resource - Create
 
-        @Assert: A libvirt Compute Resource is created
+        @Assert: A libvirt Compute Resource is created successfully
 
         """
-        libvirt_url = "qemu+tcp://%s:16509/system"
-        provider_type = FOREMAN_PROVIDERS['libvirt']
-        url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=name,
-                          provider_type=provider_type, url=url)
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['libvirt'],
+                parameter_list=[['URL', self.current_libvirt_url, 'field']],
+            )
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
-    @data(
-        gen_string('alphanumeric', 255),
-        gen_string('alpha', 255),
-        gen_string('numeric', 255),
-        gen_string('latin1', 255),
-        gen_string('utf8', 255)
-    )
-    def test_create_resource_2(self, name):
-        """@Test: Create a new libvirt Compute Resource with 255 char name
+    @data(*valid_data_list())
+    def test_create_libvirt_resource_description(self, description):
+        """@Test: Create libvirt Compute Resource with description.
 
         @Feature: Compute Resource - Create
 
-        @Assert: A libvirt Compute Resource is created
+        @Assert: A libvirt Compute Resource is created successfully
 
         """
-        libvirt_url = "qemu+tcp://%s:16509/system"
-        provider_type = FOREMAN_PROVIDERS['libvirt']
-        url = (libvirt_url % conf.properties['main.server.hostname'])
+        name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_resource(session, name=name,
-                          provider_type=provider_type, url=url)
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['libvirt'],
+                parameter_list=[
+                    ['URL', self.current_libvirt_url, 'field'],
+                    ['Description', description, 'field']
+                ],
+            )
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
-    @data(
-        gen_string('alphanumeric', 255),
-        gen_string('alpha', 255),
-        gen_string('numeric', 255),
-        gen_string('latin1', 255),
-        gen_string('utf8', 255)
-    )
-    def test_create_resource_3(self, description):
-        """@Test: Create libvirt Compute Resource with 255 char description.
+    @data('VNC', 'SPICE')
+    def test_create_libvirt_resource_display_type(self, display_type):
+        """@Test: Create libvirt Compute Resource with different display types.
 
-        @Feature: Compute Resource - Create with long description.
+        @Feature: Compute Resource - Create
 
-        @Assert: A libvirt Compute Resource is not created with 255 char
-        description.
+        @Assert: A libvirt Compute Resource is created successfully
 
         """
-        name = gen_string("alpha", 8)
-        libvirt_url = "qemu+tcp://%s:16509/system"
-        provider_type = FOREMAN_PROVIDERS['libvirt']
-        url = (libvirt_url % conf.properties['main.server.hostname'])
+        name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_resource(session, name=name,
-                          description=description,
-                          provider_type=provider_type, url=url)
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['libvirt'],
+                parameter_list=[
+                    ['URL', self.current_libvirt_url, 'field'],
+                    ['Display Type', display_type, 'select']
+                ],
+            )
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
 
-    @data(*generate_strings_list(len1=256))
-    def test_create_resource_negative_1(self, name):
-        """@Test: Create a new libvirt Compute Resource with 256 char name
+    @data(True, False)
+    def test_create_libvirt_resource_console_pass(self, console_password):
+        """@Test: Create libvirt Compute Resource with checked/unchecked
+        console password checkbox
+
+        @Feature: Compute Resource - Create
+
+        @Assert: A libvirt Compute Resource is created successfully
+
+        """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['libvirt'],
+                parameter_list=[
+                    ['URL', self.current_libvirt_url, 'field'],
+                    ['Console Passwords', console_password, 'checkbox']
+                ],
+            )
+            search = self.compute_resource.search(name)
+            self.assertIsNotNone(search)
+
+    @data(' ', *invalid_names_list())
+    def test_create_libvirt_resource_different_names_negative(self, name):
+        """@Test: Create a new libvirt Compute Resource with incorrect values
+        only
 
         @Feature: Compute Resource - Create
 
         @Assert: A libvirt Compute Resource is not created
 
         """
-        libvirt_url = "qemu+tcp://%s:16509/system"
-        provider_type = FOREMAN_PROVIDERS['libvirt']
-        url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=name,
-                          provider_type=provider_type, url=url)
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['libvirt'],
+                parameter_list=[['URL', self.current_libvirt_url, 'field']],
+            )
             self.assertIsNotNone(self.compute_resource.wait_until_element(
                 common_locators["name_haserror"]
             ))
 
-    @data(*generate_strings_list(len1=256))
-    def test_create_resource_negative_2(self, description):
-        """@Test: Create libvirt Compute Resource with 256 char description.
+    @data(*invalid_names_list())
+    def test_create_libvirt_resource_description_negative(self, description):
+        """@Test: Create libvirt Compute Resource with incorrect description.
 
         @Feature: Compute Resource - Create with long description.
-
-        @Assert: A libvirt Compute Resource is not created with 256 char
-        description.
-
-        """
-        name = gen_string("alpha", 8)
-        libvirt_url = "qemu+tcp://%s:16509/system"
-        provider_type = FOREMAN_PROVIDERS['libvirt']
-        url = (libvirt_url % conf.properties['main.server.hostname'])
-        with Session(self.browser) as session:
-            make_resource(session, name=name,
-                          description=description,
-                          provider_type=provider_type, url=url)
-            error_element = session.nav.wait_until_element(
-                common_locators["haserror"])
-            self.assertIsNotNone(error_element)
-
-    @data("", "  ")
-    def test_create_resource_negative_3(self, name):
-        """@Test: Create a new libvirt Compute Resource with whitespace
-
-        @Feature: Compute Resource - Create
 
         @Assert: A libvirt Compute Resource is not created
 
         """
-        libvirt_url = "qemu+tcp://%s:16509/system"
-        provider_type = FOREMAN_PROVIDERS['libvirt']
-        url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=name,
-                          provider_type=provider_type, url=url)
+            make_resource(
+                session,
+                name=gen_string('alpha'),
+                provider_type=FOREMAN_PROVIDERS['libvirt'],
+                parameter_list=[
+                    ['URL', self.current_libvirt_url, 'field'],
+                    ['Description', description, 'field']
+                ],
+            )
             error_element = session.nav.wait_until_element(
-                common_locators["name_haserror"])
+                common_locators["haserror"])
             self.assertIsNotNone(error_element)
 
-    @data({'name': gen_string('alpha'),
-           'newname': gen_string('alpha')},
-          {'name': gen_string('numeric'),
-           'newname': gen_string('numeric')},
-          {'name': gen_string('alphanumeric'),
-           'newname': gen_string('alphanumeric')})
-    def test_update_resource(self, testdata):
-        """@Test: Update a libvirt Compute Resource's Organization
+    @data(*valid_data_list())
+    def test_update_libvirt_resource_different_name(self, newname):
+        """@Test: Update a libvirt Compute Resource name
 
         @Feature: Compute Resource - Update
 
         @Assert: The libvirt Compute Resource is updated
 
         """
-        name = testdata['name']
-        newname = testdata['newname']
-        org_name1 = entities.Organization(
-            name=gen_string("alpha", 8)
-        ).create_json()['name']
-        org_name2 = entities.Organization(
-            name=gen_string("alpha", 8)
-        ).create_json()['name']
-        libvirt_url = "qemu+tcp://%s:16509/system"
-        provider_type = FOREMAN_PROVIDERS['libvirt']
-        url = (libvirt_url % conf.properties['main.server.hostname'])
+        name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_resource(session, name=name, orgs=[org_name1],
-                          provider_type=provider_type, url=url,
-                          org_select=True)
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['libvirt'],
+                parameter_list=[
+                    ['URL', self.current_libvirt_url, 'field']],
+            )
             search = self.compute_resource.search(name)
             self.assertIsNotNone(search)
-            self.compute_resource.update(name, newname,
-                                         [org_name1], [org_name2],
-                                         libvirt_set_passwd=False)
+            self.compute_resource.update(name=name, newname=newname)
             search = self.compute_resource.search(newname)
             self.assertIsNotNone(search)
 
-    @data(*generate_strings_list(len1=8))
+    def test_update_libvirt_resource_organization(self):
+        """@Test: Update a libvirt Compute Resource organization
+
+        @Feature: Compute Resource - Update
+
+        @Assert: The libvirt Compute Resource is updated
+
+        """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['libvirt'],
+                parameter_list=[
+                    ['URL', self.current_libvirt_url, 'field']],
+                orgs=[entities.Organization().create().name],
+                org_select=True
+            )
+            search = self.compute_resource.search(name)
+            self.assertIsNotNone(search)
+            self.compute_resource.update(
+                name=name,
+                orgs=[entities.Organization().create().name],
+                org_select=True
+            )
+
+    @data(*valid_data_list())
     def test_remove_resource(self, name):
         """@Test: Delete a Compute Resource
 
@@ -193,13 +220,33 @@ class ComputeResource(UITestCase):
         @Assert: The Compute Resource is deleted
 
         """
-        libvirt_url = "qemu+tcp://%s:16509/system"
-        provider_type = FOREMAN_PROVIDERS['libvirt']
-        url = (libvirt_url % conf.properties['main.server.hostname'])
         with Session(self.browser) as session:
-            make_resource(session, name=name,
-                          provider_type=provider_type, url=url)
-            search = self.compute_resource.search(name)
-            self.assertIsNotNone(search)
-            self.compute_resource.delete(name, really=True)
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['libvirt'],
+                parameter_list=[['URL', self.current_libvirt_url, 'field']],
+            )
+            self.assertIsNotNone(self.compute_resource.search(name))
+            self.compute_resource.delete(name)
             self.assertIsNone(self.compute_resource.search(name))
+
+    def test_access_docker_resource_via_compute_profile(self):
+        """@Test: Try to access docker compute resource via compute profile
+        (1-Small) screen
+
+        @Feature: Compute Resource
+
+        @Assert: The Compute Resource created and opened successfully
+
+        """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['docker'],
+                parameter_list=[['URL', self.current_docker_url, 'field']],
+            )
+            self.assertIsNotNone(self.compute_profile.select_resource(
+                '1-Small', name, 'Docker'))

@@ -228,6 +228,10 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
          "//a[@id='menu_item_compute_resources']")),
+    "menu.compute_profiles": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_compute_profiles']")),
     "menu.subnets": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
@@ -354,6 +358,7 @@ tab_locators = LocatorDict({
     # common
     "tab_primary": (By.XPATH, "//a[@href='#primary']"),
     # Third level UI
+    "tab_loc": (By.XPATH, "//a[@href='#locations']"),
     "tab_org": (By.XPATH, "//a[@href='#organizations']"),
 
     # Operating System
@@ -755,22 +760,65 @@ locators = LocatorDict({
         "operatingsystem_os_default_templates_attributes_0_config_template_id"
     ),
 
-    # Compute Resource
+    # Compute Profile
+    "profile.select_name": (
+        By.XPATH,
+        ("//a[contains(@href,'compute_profiles')"
+            "and normalize-space(.)='%s']")),
+    "profile.resource_name": (
+        By.XPATH,
+        ("//a[contains(@href,'compute_resources')"
+            "and normalize-space(.)='%s']")),
+    "profile.resource_form": (By.XPATH, "//form[@id='new_compute_attribute']"),
 
+    # Compute Resource
+    # Some locator values can be duplicated. That was performed more because of
+    # bad application design rather than wrong test automation implementation.
+    # Also, that will prevent unnecessary confusion in all these provider type
+    # fields and much easier maintenance in case of any changes to DOM
     "resource.new": (
         By.XPATH, "//a[contains(@href, '/compute_resources/new')]"),
     "resource.name": (By.ID, "compute_resource_name"),
     "resource.provider_type": (
-        By.XPATH,
-        "//select[@id='compute_resource_provider']"),
+        By.XPATH, "//select[@id='compute_resource_provider']"),
     "resource.description": (By.ID, "compute_resource_description"),
+    "resource.url": (By.XPATH, "//input[@id='compute_resource_url']"),
+    "resource.display_type": (By.ID, "compute_resource_display_type"),
+    "resource.console_passwords": (
+        By.ID, "compute_resource_set_console_password"),
     "resource.test_connection": (
         By.XPATH,
         "//a[contains(@data-url, '/compute_resources/test_connection')]"),
-    "resource.url": (By.XPATH, "//input[@id='compute_resource_url']"),
-    "resource.user": (By.ID, "compute_resource_user"),
+    "resource.username": (By.ID, "compute_resource_user"),
     "resource.password": (By.ID, "compute_resource_password"),
+    "resource.datacenter": (By.XPATH, "//select[@id='compute_resource_uuid']"),
+    "resource.datacenter.button": (
+        By.XPATH,
+        "//a[contains(@data-url, '/compute_resources/test_connection')]"),
+    "resource.quota_id": (
+        By.XPATH, "//select[@id='compute_resource_ovirt_quota']"),
+    "resource.x509_certification_authorities": (
+        By.ID, "compute_resource_public_key"),
+    "resource.access_key": (By.ID, "compute_resource_user"),
+    "resource.secret_key": (By.ID, "compute_resource_password"),
     "resource.region": (By.ID, "compute_resource_region"),
+    "resource.region.button": (
+        By.XPATH,
+        "//a[contains(@data-url, '/compute_resources/test_connection')]"),
+    "resource.vcenterserver": (By.ID, "compute_resource_server"),
+    "resource.tenant": (By.ID, "compute_resource_tenant"),
+    "resource.tenant.button": (
+        By.XPATH,
+        "//a[contains(@data-url, '/compute_resources/test_connection')]"),
+    "resource.api_key": (By.ID, "compute_resource_password"),
+    "resource.google_project_id": (By.ID, "compute_resource_project"),
+    "resource.client_email": (By.ID, "compute_resource_email"),
+    "resource.certificate_path": (By.ID, "compute_resource_key_path"),
+    "resource.zone": (By.XPATH, "//select[@id='compute_resource_zone']"),
+    "resource.zone.button": (
+        By.XPATH,
+        "//a[contains(@data-url, '/compute_resources/test_connection')]"),
+    "resource.email": (By.ID, "compute_resource_email"),
     "resource.select_name": (
         By.XPATH,
         ("//a[contains(@href,'compute_resources')"
@@ -785,14 +833,6 @@ locators = LocatorDict({
          "/following::td/div/ul/li/a[@class='delete']")),
     "resource.edit": (
         By.XPATH, "//a[contains(@data-id,'edit') and contains(@href,'%s')]"),
-
-    # resource - libvirt
-    "resource.libvirt_display": (By.ID, "compute_resource_display_type"),
-    "resource.libvirt_console_passwd": (
-        By.ID, "compute_resource_set_console_password"),
-
-    # resource - openstack
-    "resource.rhos_tenant": (By.ID, "compute_resource_tenant"),
 
     # Hosts
 

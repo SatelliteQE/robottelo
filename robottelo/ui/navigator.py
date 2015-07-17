@@ -265,6 +265,12 @@ class Navigator(Base):
             menu_locators['menu.compute_resources'],
         )
 
+    def go_to_compute_profiles(self):
+        self.menu_click(
+            menu_locators['menu.infrastructure'],
+            menu_locators['menu.compute_profiles'],
+        )
+
     def go_to_subnets(self):
         self.menu_click(
             menu_locators['menu.infrastructure'],

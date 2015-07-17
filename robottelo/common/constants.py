@@ -7,12 +7,18 @@ ROBOTTELO_PROPERTIES = "robottelo.properties"
 
 FOREMAN_PROVIDERS = {
     'libvirt': 'Libvirt',
-    'ovirt': 'Ovirt',
+    'rhev': 'RHEV',
     'ec2': 'EC2',
-    'vmware': 'Vmware',
-    'openstack': 'Openstack',
+    'vmware': 'VMWare',
+    'openstack': 'RHEL OpenStack Platform',
     'rackspace': 'Rackspace',
-    'gce': 'GCE'}
+    'google': 'Google',
+    'docker': 'Docker',
+}
+
+DOCKER_RESOURCE_URL = 'http://%s:2375'
+LIBVIRT_RESOURCE_URL = 'qemu+tcp://%s:16509/system'
+
 
 HTML_TAGS = [
     'A', 'ABBR', 'ACRONYM', 'ADDRESS', 'APPLET', 'AREA', 'B',
@@ -54,42 +60,45 @@ TEMPLATE_TYPES = [
 
 #       NOTE:- Below unique filter key's are used for select-item box
 #       filter's common_locator['filter']
-FILTER = {'arch_os': "architecture_operatingsystem",
-          'cr_org': "compute_resource_organization",
-          'env_org': "environment_organization",
-          'os_arch': "operatingsystem_architecture",
-          'os_ptable': "operatingsystem_ptable",
-          'os_medium': "operatingsystem_medium",
-          'subnet_org': "subnet_organization",
-          'template_os': "config_template_operatingsystem",
-          'user_role': "user_role",
-          'user_location': "user_location",
-          'user_org': "user_organization",
-          'role_permission': "filter_permission",
-          'role_org': "filter_organization",
-          'usergroup_user': "usergroup_user",
-          'location_user': "location_user",
-          'org_user': "organization_user",
-          'org_proxy': "organization_smart_proxy",
-          'org_subnet': "organization_subnet",
-          'org_resource': "organization_compute_resource",
-          'org_media': "organization_medium",
-          'org_template': "organization_config_template",
-          'org_domain': "organization_domain",
-          'org_envs': "organization_environment",
-          'org_hostgroup': "organization_hostgroup",
-          'org_location': "organization_location",
-          'loc_user': "location_user",
-          'loc_proxy': "location_smart_proxy",
-          'loc_subnet': "location_subnet",
-          'loc_resource': "location_compute_resource",
-          'loc_media': "location_medium",
-          'loc_template': "location_config_template",
-          'loc_domain': "location_domain",
-          'loc_envs': "location_environment",
-          'loc_hostgroup': "location_hostgroup",
-          'loc_org': "location_organization",
-          'sub_domain': "subnet_domain"}
+FILTER = {
+    'arch_os': 'architecture_operatingsystem',
+    'cr_loc': 'compute_resource_location',
+    'cr_org': 'compute_resource_organization',
+    'env_org': 'environment_organization',
+    'loc_domain': 'location_domain',
+    'loc_envs': 'location_environment',
+    'loc_hostgroup': 'location_hostgroup',
+    'loc_media': 'location_medium',
+    'loc_org': 'location_organization',
+    'loc_proxy': 'location_smart_proxy',
+    'loc_resource': 'location_compute_resource',
+    'loc_subnet': 'location_subnet',
+    'loc_template': 'location_config_template',
+    'loc_user': 'location_user',
+    'location_user': 'location_user',
+    'org_domain': 'organization_domain',
+    'org_envs': 'organization_environment',
+    'org_hostgroup': 'organization_hostgroup',
+    'org_location': 'organization_location',
+    'org_media': 'organization_medium',
+    'org_proxy': 'organization_smart_proxy',
+    'org_resource': 'organization_compute_resource',
+    'org_subnet': 'organization_subnet',
+    'org_template': 'organization_config_template',
+    'org_user': 'organization_user',
+    'os_arch': 'operatingsystem_architecture',
+    'os_medium': 'operatingsystem_medium',
+    'os_ptable': 'operatingsystem_ptable',
+    'role_org': 'filter_organization',
+    'role_permission': 'filter_permission',
+    'sub_domain': 'subnet_domain',
+    'subnet_org': 'subnet_organization',
+    'template_os': 'config_template_operatingsystem',
+    'user_location': 'user_location',
+    'user_org': 'user_organization',
+    'user_role': 'user_role',
+    'usergroup_user': 'usergroup_user',
+}
 
 RESOURCE_DEFAULT = 'Bare Metal'
 
