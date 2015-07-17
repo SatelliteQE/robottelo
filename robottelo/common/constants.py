@@ -174,6 +174,12 @@ REPOS = {
             'x86_64 6Server'
         ),
     },
+    'rhva65': {
+        'name': (
+            'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
+            'x86_64 6.5'
+        ),
+    },
 }
 
 # The 'create_repos_tree' function under 'sync' module uses the following
