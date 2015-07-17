@@ -17,12 +17,14 @@ QUANTITY = 1
 ATTACH_ENV = 'Library'
 
 # parameters for csv data files
-RAW_AK_FILE_NAME = 'raw-ak-concurrent.csv'
-RAW_ATT_FILE_NAME = 'raw-att-concurrent.csv'
-RAW_DEL_FILE_NAME = 'raw-del-concurrent.csv'
-STAT_AK_FILE_NAME = 'stat-ak-concurrent.csv'
-STAT_ATT_FILE_NAME = 'stat-att-concurrent.csv'
-STAT_DEL_FILE_NAME = 'stat-del-concurrent.csv'
+RAW_AK_FILE_NAME = 'perf-raw-activationKey.csv'
+RAW_ATT_FILE_NAME = 'perf-raw-attach.csv'
+RAW_DEL_FILE_NAME = 'perf-raw-delete.csv'
+RAW_REG_FILE_NAME = 'perf-raw-register.csv'
+STAT_AK_FILE_NAME = 'perf-statistics-activationKey.csv'
+STAT_ATT_FILE_NAME = 'perf-statistics-attach.csv'
+STAT_DEL_FILE_NAME = 'perf-statistics-delete.csv'
+STAT_REG_FILE_NAME = 'perf-statistics-register.csv'
 
 # parameters for number of threads/clients
 NUM_THREADS = '1,2,4,6,8,10'

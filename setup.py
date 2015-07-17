@@ -23,6 +23,7 @@ setup(
         'nailgun',
         'numpy',
         'paramiko',
+        'pygal',
         'python-bugzilla',
         'requests',
         'selenium',

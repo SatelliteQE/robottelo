@@ -2,7 +2,9 @@
 from robottelo.performance.constants import (
     ATTACH_ENV,
     RAW_ATT_FILE_NAME,
+    RAW_REG_FILE_NAME,
     STAT_ATT_FILE_NAME,
+    STAT_REG_FILE_NAME,
 )
 from robottelo.test import ConcurrentTestCase
 
@@ -19,7 +21,9 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
         cls._set_testcase_parameters(
             'performance.test.savepoint2_enabled_repos',
             RAW_ATT_FILE_NAME,
-            STAT_ATT_FILE_NAME
+            STAT_ATT_FILE_NAME,
+            raw_reg=RAW_REG_FILE_NAME,
+            stat_reg=STAT_REG_FILE_NAME,
         )
 
         # parameters for attach step
