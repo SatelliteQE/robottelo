@@ -262,7 +262,7 @@ class Domain(UITestCase):
 
     @data(*generate_strings_list(len1=4))
     def test_remove_domain_parameter(self, name):
-        """@Test: Remove a selected domain paramter
+        """@Test: Remove a selected domain parameter
 
         @Feature: Domain - Misc
 
