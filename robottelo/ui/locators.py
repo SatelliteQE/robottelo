@@ -615,7 +615,7 @@ common_locators = LocatorDict({
     "parameter_name": (By.XPATH, "//input[@placeholder='Name']"),
     "parameter_value": (By.XPATH, "//textarea[@placeholder='Value']"),
     "parameter_remove": (
-        By.XPATH, "//div/input[@value='%s']/following-sibling::span/a/i"),
+        By.XPATH, "//tr/td/input[@value='%s']/following::td/span/a/i"),
 
     # Katello Common Locators
     "confirm_remove": (By.XPATH, "//button[contains(@ng-click,'ok')]"),
