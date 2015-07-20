@@ -5,3 +5,6 @@ git+https://github.com/SatelliteQE/automation-tools.git
 
 # For UI tests.
 git+https://github.com/smartkiwi/SeleniumFactory-for-Python.git#egg=SeleniumFactory
+
+# For working with the API.
+git+https://github.com/SatelliteQE/nailgun.git
