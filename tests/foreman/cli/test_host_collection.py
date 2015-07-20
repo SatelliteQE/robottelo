@@ -136,7 +136,7 @@ class TestHostCollection(CLITestCase):
             'max-content-hosts': test_data,
         })
         # Assert that limit matches data passed
-        self.assertEqual(new_host_col['max-content-hosts'], str(test_data))
+        self.assertEqual(new_host_col['limit'], str(test_data))
 
     @skip_if_bug_open('bugzilla', 1214675)
     @data(u'True', u'Yes', 1, u'False', u'No', 0)
