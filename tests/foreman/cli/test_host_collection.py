@@ -279,7 +279,7 @@ class TestHostCollection(CLITestCase):
         self.assertNotEqual(
             new_host_col['description'], result.stdout['description'])
 
-    @skip_if_bug_open('bugzilla', 1171669)
+    @skip_if_bug_open('bugzilla', 1245334)
     @data('3', '6', '9', '12', '15', '17', '19')
     def test_positive_update_3(self, test_data):
         """@Test: Check if host collection limits be updated
@@ -288,7 +288,7 @@ class TestHostCollection(CLITestCase):
 
         @Assert: Host collection limits is updated
 
-        @BZ: 1171669
+        @BZ: 1245334
 
         """
 
@@ -310,10 +310,10 @@ class TestHostCollection(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
         # Assert that limit was updated
-        self.assertEqual(result.stdout['max-content-hosts'], test_data)
+        self.assertEqual(result.stdout['limit'], test_data)
         self.assertNotEqual(
-            new_host_col['max-content-hosts'],
-            result.stdout['max-content-hosts']
+            new_host_col['limit'],
+            result.stdout['limit']
         )
 
     @data(
