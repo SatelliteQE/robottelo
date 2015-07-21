@@ -1700,7 +1700,7 @@ class TestActivationKey(CLITestCase):
 
         self.assertIn(u"'--auto-attach': value must be one of", result.stderr)
 
-    @skip_if_bug_open('bugzilla', 1221778)
+    @stubbed()
     @data(
         u'1',
         u'0',
