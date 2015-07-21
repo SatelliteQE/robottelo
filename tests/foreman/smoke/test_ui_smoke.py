@@ -319,35 +319,21 @@ class TestSmoke(UITestCase):
                         common_locators["alert.success"]))
             # Create VM
             with VirtualMachine(distro='rhel66') as vm:
-                # Download and Install rpm
-                result = vm.run(
-                    "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' "
-                    "http://{0}/pub/".format(self.server_name)
-                )
+                # Install katello cert
+                vm.install_katello_cert()
+
+                # Register client with satellite server using activation-key
+                result = vm.register_contenthost(
+                    activation_key=activation_key_name,
+                    org=org_name)
+
                 self.assertEqual(
                     result.return_code, 0,
-                    "failed to fetch katello-ca rpm: {0}, return code: {1}"
+                    "Failed to register using the activation key: {0} "
+                    "and return code: {1}"
                     .format(result.stderr, result.return_code)
                 )
-                result = vm.run(
-                    'rpm -i katello-ca-consumer*.noarch.rpm'
-                )
-                self.assertEqual(
-                    result.return_code, 0,
-                    "failed to install katello-ca rpm: {0}, return code: {1}"
-                    .format(result.stderr, result.return_code)
-                )
-                # Register client with foreman server using activation-key
-                result = vm.run(
-                    'subscription-manager register --activationkey {0} '
-                    '--org {1} --force'
-                    .format(activation_key_name, org_name)
-                )
-                self.assertEqual(
-                    result.return_code, 0,
-                    "failed to register client:: {0} and return code: {1}"
-                    .format(result.stderr, result.return_code)
-                )
+
                 # Install contents from sat6 server
                 result = vm.run('yum install -y {0}'.format(package_name))
                 self.assertEqual(
