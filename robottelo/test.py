@@ -18,8 +18,14 @@ from automation_tools import product_install
 from datetime import datetime
 from fabric.api import execute, settings
 from robottelo.cli.metatest import MetaCLITest
+from robottelo.cli.org import Org as OrgCli
+from robottelo.cli.subscription import Subscription
 from robottelo.common.helpers import get_server_url
 from robottelo.common import conf, ssh
+from robottelo.performance.constants import(
+    DEFAULT_ORG,
+    NUM_THREADS,
+)
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeresource import ComputeResource
@@ -353,33 +359,19 @@ class ConcurrentTestCase(TestCase):
         super(ConcurrentTestCase, cls).setUpClass()
 
         # general running parameters
-        cls.num_threads = conf.properties['performance.csv.num_threads']
+        cls.num_threads = NUM_THREADS
         cls.num_buckets = conf.properties['performance.csv.num_buckets']
         cls.vm_list = []
+        cls.org_id = cls._get_organization_id()  # get organization-id
+        cls.sub_id = ''
         cls.num_iterations = 0     # depend on # of threads or clients
         cls.bucket_size = 0        # depend on # of iterations on each thread
+
         cls._convert_to_numbers()  # read in string type, convert to numbers
         cls._get_vm_list()         # read in list of virtual machines
 
-        # parameters for creating activation key
-        cls.ak_name = conf.properties[
-            'performance.test.activation_key.name']
-        cls.org_id = conf.properties[
-            'performance.test.organization.id']
-        cls.default_org = conf.properties[
-            'performance.test.default.organization']
-        cls.content_view = conf.properties[
-            'performance.test.content.view']
-        cls.life_cycle_env = conf.properties[
-            'performance.test.life.cycle.env']
-
-        # parameters for adding ak to subscription
-        cls.add_ak_subscription_qty = conf.properties[
-            'performance.test.add_ak_subscription_qty']
-        cls.sub_id = ''
-
-        # parameters for attach step
-        cls.environment = conf.properties['performance.test.attach.env']
+        # read default organization from constant module
+        cls.default_org = DEFAULT_ORG
 
     @classmethod
     def _convert_to_numbers(cls):
@@ -393,15 +385,23 @@ class ConcurrentTestCase(TestCase):
         vm_list_string = conf.properties[
             'performance.test.virtual_machines_list']
         cls.vm_list = vm_list_string.split(',')
-        cls.logger.debug('VM list: {}'.format(cls.vm_list))
 
     @classmethod
     def _set_testcase_parameters(cls, savepoint_name,
-                                 raw_file_path, stat_file_path):
+                                 raw_file_name, stat_file_name):
         # note: set savepoint empty to continue test without restore
         cls.savepoint = conf.properties.get(savepoint_name, '')
-        cls.raw_file_name = conf.properties[raw_file_path]
-        cls.stat_file_name = conf.properties[stat_file_path]
+        cls.raw_file_name = raw_file_name
+        cls.stat_file_name = stat_file_name
+
+    @classmethod
+    def _get_organization_id(cls):
+        """Get organization id"""
+        result = OrgCli.list(per_page=False)
+        if result.return_code != 0:
+            cls.logger.error('Fail to get organization id.')
+            raise RuntimeError('Invalid organization id. Stop!')
+        return result.stdout[0]['id']
 
     def setUp(self):
         self.logger.debug(
@@ -417,6 +417,24 @@ class ConcurrentTestCase(TestCase):
             return
         self.logger.info('Reset db from /home/backup/{}'.format(savepoint))
         ssh.command('./reset-db.sh /home/backup/{}'.format(savepoint))
+
+    def _get_subscription_id(self):
+        """Get subscription id"""
+        result = Subscription.list(
+            {'organization-id': self.org_id},
+            per_page=False
+        )
+
+        if result.return_code != 0:
+            self.logger.error('Fail to get subscription id!')
+            raise RuntimeError('Invalid subscription id. Stop!')
+        subscription_id = result.stdout[0]['id']
+        subscription_name = result.stdout[0]['name']
+        self.logger.info(
+            'Subscribed to {0} with subscription id {1}'
+            .format(subscription_name, subscription_id)
+        )
+        return subscription_id, subscription_name
 
     def _set_num_iterations(self, total_iterations, current_num_threads):
         """Set # of iterations each thread will conduct.
@@ -436,7 +454,13 @@ class ConcurrentTestCase(TestCase):
 
     def _set_bucket_size(self):
         """Set size for each bucket"""
-        self.bucket_size = self.num_iterations / self.num_buckets
+        bucket = self.num_iterations / self.num_buckets
+
+        # check if num_iterations for each client is smaller than 10
+        if bucket > 0:
+            self.bucket_size = bucket
+        else:
+            self.bucket_size = 1
 
     def _join_all_threads(self, thread_list):
         """Wait for all threads to complete"""
@@ -745,8 +769,10 @@ class ConcurrentTestCase(TestCase):
             time_result_dict['thread-{}'.format(i)] = []
             thread = DeleteThread(
                 i, 'thread-{}'.format(i),
-                uuid_list[self.num_iterations * i:
-                          self.num_iterations * (i + 1)],
+                uuid_list[
+                    self.num_iterations * i:
+                    self.num_iterations * (i + 1)
+                ],
                 time_result_dict
             )
             thread.start()

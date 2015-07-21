@@ -86,3 +86,42 @@ rhel7_repo=http://example.org/released/RHEL-7/7.x/Server/x86_64/os/
 # Default set to be 0, i.e. no timing of performance is measured and thus no
 # interference to original robottelo tests.
 test.foreman.perf=0
+
+# Folowing entries are used for preparation of performance tests after a fresh
+# install. They will be used by
+# `test/foreman/performance/test_standard_prep.py`, which supports:
+#
+# 1. downloading manifest,
+# 2. uploading manifest to subscription,
+# 3. updating Red Hat CDN URL,
+# 4. enabling key repositories: rhel6-rpms, rhel7-rpms, rhel6-kickstart-rpms,
+#    rhel7-kickstart-rpms, rhel6-optional-rpms, rhel7-optional-rpms,
+#    rhel6-optional-source-rpms, rhel7-optional-source-rpms,
+#    rhel6-optional-debug-rpms, r7-optional-debug-rpms
+#
+# Note that this preparation step is not required as long as satellite server
+# is already configured.
+#test.cdn.address=http://cdn.example.com/pub
+
+# A list of VM IP addresses or hostnames. Each system should already be
+# provisioned. They will be used in concurrent system subscription tests.
+test.virtual_machines_list=127.0.0.1,127.0.0.1,127.0.0.1,127.0.0.1,127.0.0.1
+
+# Savepoint utility to restore the database. For example, after conducting
+# 5,000 concurrent subscription by activation-key using 10 clients, in order to
+# start next 5k test case of subscription by register and attach, the
+# performance test would restore the database back to the state where there's
+# no client registered. All performance test cases would use this setting
+#
+# User should create savepoint-1 immediately after a fresh installation of
+# Satellite.
+#test.savepoint1_fresh_install=
+
+# User should create savepoint-2 after enabling repositories, but before
+# any system subscription or repository synchronization.
+#test.savepoint2_enabled_repos=
+
+# Parameter for number of buckets to be sliced by csv generating function
+# Class `ConcurrentTestCase` and its subclasses use this setting when
+# computing statistics of each performance test case, grouped in buckets.
+csv.num_buckets=10

@@ -1,7 +1,9 @@
 """Test class for concurrent subscription deletion"""
-from datetime import date
 from robottelo.common import ssh
-
+from robottelo.performance.constants import (
+    RAW_DEL_FILE_NAME,
+    STAT_DEL_FILE_NAME,
+)
 from robottelo.test import ConcurrentTestCase
 
 
@@ -14,31 +16,25 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
         # parameters for concurrent activation key test
         # note: may need to change savepoint name
         cls._set_testcase_parameters(
-            'performance.test.savepoint2_enabled_repos',
-            'performance.csv.raw_del_file_name',
-            'performance.csv.stat_del_file_name'
+            'performance.test.savepoint3_after_registered',
+            RAW_DEL_FILE_NAME,
+            STAT_DEL_FILE_NAME
         )
 
-        # add date to csv files names
-        today = date.today()
-        today_str = today.strftime('%Y%m%d')
-        cls.raw_file_name = '{0}-{1}'.format(today_str, cls.raw_file_name)
-        cls.stat_file_name = '{0}-{1}'.format(today_str, cls.stat_file_name)
-
     def setUp(self):
-        super(ConcurrentTestCase, self).setUp()
+        super(ConcurrentDeleteTestCase, self).setUp()
 
     def _get_registered_uuids(self):
         """Get all registered systems' uuids from Postgres"""
         self.logger.info('Get UUID from database:')
 
         result = ssh.command(
-            """su postgres -c 'psql -A -t -d candlepin -c """
-            """"SELECT uuid FROM cp_consumer;"'""")
+            """su postgres -c 'psql -A -t -d foreman -c """
+            """"SELECT uuid FROM katello_systems;"'""")
 
         if result.return_code != 0:
             self.logger.error('Fail to fetch uuids.')
-            return None
+            raise RuntimeError('Invalid uuids. Stop!')
         return result.stdout
 
     def test_delete_sequential(self):

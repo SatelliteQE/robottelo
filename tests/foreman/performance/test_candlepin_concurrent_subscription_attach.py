@@ -1,7 +1,9 @@
 """Test class for concurrent subscription by register and attach"""
-from datetime import date
-from robottelo.cli.subscription import Subscription
-
+from robottelo.performance.constants import (
+    ATTACH_ENV,
+    RAW_ATT_FILE_NAME,
+    STAT_ATT_FILE_NAME,
+)
 from robottelo.test import ConcurrentTestCase
 
 
@@ -16,15 +18,12 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
         # note: may need to change savepoint name
         cls._set_testcase_parameters(
             'performance.test.savepoint2_enabled_repos',
-            'performance.csv.raw_att_file_name',
-            'performance.csv.stat_att_file_name'
+            RAW_ATT_FILE_NAME,
+            STAT_ATT_FILE_NAME
         )
 
-        # add date to csv files names
-        today = date.today()
-        today_str = today.strftime('%Y%m%d')
-        cls.raw_file_name = '{0}-{1}'.format(today_str, cls.raw_file_name)
-        cls.stat_file_name = '{0}-{1}'.format(today_str, cls.stat_file_name)
+        # parameters for attach step
+        cls.environment = ATTACH_ENV
 
     def setUp(self):
         super(ConcurrentSubAttachTestCase, self).setUp()
@@ -33,22 +32,6 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
         (self.sub_id, sub_name) = self._get_subscription_id()
         self.logger.debug(
             'subscription {0} id is: {1}'.format(sub_name, self.sub_id))
-
-    def _get_subscription_id(self):
-        """Get subscription pool id"""
-        result = Subscription.list(
-            {'organization-id': self.org_id},
-            per_page=False
-        )
-
-        if result.return_code != 0:
-            self.logger.error('Fail to retrieve subscription id!')
-            return
-        subscription_id = result.stdout[0]['id']
-        subscription_name = result.stdout[0]['name']
-        self.logger.info('Subscribed to {0} with subscription id {1}'
-                         .format(subscription_name, subscription_id))
-        return subscription_id, subscription_name
 
     def test_subscribe_ak_sequential(self):
         """@Test: Subscribe system sequentially using 1 virtual machine

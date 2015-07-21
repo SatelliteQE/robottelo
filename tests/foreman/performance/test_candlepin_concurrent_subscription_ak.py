@@ -1,9 +1,14 @@
 """Test class for concurrent subscription by Activation Key"""
-from datetime import date
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.factory import (make_activation_key)
-from robottelo.cli.subscription import Subscription
-
+from robottelo.performance.constants import (
+    ACTIVATION_KEY,
+    CONTENT_VIEW,
+    LIFE_CYCLE_ENV,
+    QUANTITY,
+    RAW_AK_FILE_NAME,
+    STAT_AK_FILE_NAME,
+)
 from robottelo.test import ConcurrentTestCase
 
 
@@ -18,15 +23,17 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
         # note: may need to change savepoint name
         cls._set_testcase_parameters(
             'performance.test.savepoint2_enabled_repos',
-            'performance.csv.raw_ak_file_name',
-            'performance.csv.stat_ak_file_name'
+            RAW_AK_FILE_NAME,
+            STAT_AK_FILE_NAME
         )
 
-        # add date to csv files names
-        today = date.today()
-        today_str = today.strftime('%Y%m%d')
-        cls.raw_file_name = '{0}-{1}'.format(today_str, cls.raw_file_name)
-        cls.stat_file_name = '{0}-{1}'.format(today_str, cls.stat_file_name)
+        # parameters for creating activation key
+        cls.ak_name = ACTIVATION_KEY
+        cls.content_view = CONTENT_VIEW
+        cls.life_cycle_env = LIFE_CYCLE_ENV
+
+        # parameters for adding ak to subscription
+        cls.add_ak_subscription_qty = QUANTITY
 
     def setUp(self):
         super(ConcurrentSubActivationKeyTestCase, self).setUp()
@@ -36,9 +43,9 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
         (ak_id, ak_name) = self._create_activation_key()
 
         # Get subscription id
-        self.logger.info('Get subscription id: ')
         (sub_id, sub_name) = self._get_subscription_id()
-        self.sub_id = sub_id
+        self.logger.debug(
+            'subscription {0} id is: {1}'.format(sub_name, self.sub_id))
 
         # Add activation key to subscription
         self._add_ak_to_subscription(ak_id, sub_id)
@@ -65,22 +72,6 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
         self.logger.info(
             'New activation key is: {}.'.format(result.stdout[0]['name']))
         return result.stdout[0]['id'], result.stdout[0]['name']
-
-    def _get_subscription_id(self):
-        """Get subscription id"""
-        result = Subscription.list(
-            {'organization-id': self.org_id},
-            per_page=False
-        )
-
-        if result.return_code != 0:
-            self.logger.error('Fail to get subscription id!')
-            return
-        subscription_id = result.stdout[0]['id']
-        subscription_name = result.stdout[0]['name']
-        self.logger.info('Subscribed to {0} with subscription id {1}'
-                         .format(subscription_name, subscription_id))
-        return subscription_id, subscription_name
 
     def _add_ak_to_subscription(self, ak_id, sub_id):
         """Add activation key to subscription"""

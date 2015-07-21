@@ -85,8 +85,11 @@ class Candlepin(object):
             )
             return
         LOGGER.info('Register client {} successfully'.format(vm))
-        real_time = [real for real in result.stderr.split('\n')
-                     if real.startswith('real')]
+        real_time = [
+            real
+            for real in result.stderr.split('\n')
+            if real.startswith('real')
+        ]
         real_time = real_time[0].split(' ')[1]
         return float(real_time)
 
@@ -102,8 +105,11 @@ class Candlepin(object):
             LOGGER.error('Fail to attach client {}'.format(vm))
             return
         LOGGER.info('Attach client {} successfully'.format(vm))
-        real_time = [real for real in result.stderr.split('\n')
-                     if real.startswith('real')]
+        real_time = [
+            real
+            for real in result.stderr.split('\n')
+            if real.startswith('real')
+        ]
         real_time = real_time[0].split(' ')[1]
         return float(real_time)
 
@@ -121,7 +127,7 @@ class Candlepin(object):
             LOGGER.error(
                 'Fail to delete {0} on thread-{1}!'.format(uuid, thread_id))
             LOGGER.error(response.content)
-            return
+            return 0
         LOGGER.info(
             "Delete {0} on thread-{1} successful!".format(uuid, thread_id))
         end = time.time()

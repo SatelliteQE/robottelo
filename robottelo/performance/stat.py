@@ -6,7 +6,11 @@ import numpy
 def generate_stat_for_concurrent_thread(thread_name, time_list,
                                         stat_file_name, bucket_size,
                                         num_buckets):
-    num_buckets = len(time_list)/bucket_size
+    # check empty case: empty bucket has no need to compute stat
+    if bucket_size == 0:
+        return
+    else:
+        num_buckets = len(time_list)/bucket_size
 
     # create list of bucket series
     buckets = ['{0}-{1}'.format(bucket_size * i + 1, bucket_size * (i + 1))
