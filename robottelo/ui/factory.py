@@ -390,20 +390,14 @@ def make_env(session, org=None, loc=None, force_context=True, **kwargs):
 
 def make_resource(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a compute resource"""
-
     create_args = {
+        u'locations': None,
+        u'loc_select': False,
         u'name': None,
         u'orgs': None,
-        u'description': None,
         u'org_select': False,
         u'provider_type': None,
-        u'url': None,
-        u'user': None,
-        u'password': None,
-        u'region': None,
-        u'libvirt_display': None,
-        u'libvirt_set_passwd': True,
-        u'tenant': None,
+        u'parameter_list': None,
     }
     page = session.nav.go_to_compute_resources
     core_factory(create_args, kwargs, session, page,

@@ -12,6 +12,7 @@ from robottelo.common.constants import (
     FAKE_0_PUPPET_REPO,
     FOREMAN_PROVIDERS,
     GOOGLE_CHROME_REPO,
+    LIBVIRT_RESOURCE_URL,
     REPOSET,
     REPO_TYPE,
     RHVA_REPO_TREE,
@@ -112,9 +113,8 @@ class TestSmoke(UITestCase):
         puppet_module = "httpd"
         module_ver = 'Latest'
         compute_resource_name = gen_string("alpha", 6)
-        libvirt_url = "qemu+tcp://%s:16509/system"
         provider_type = FOREMAN_PROVIDERS['libvirt']
-        url = (libvirt_url % conf.properties['main.server.hostname'])
+        url = (LIBVIRT_RESOURCE_URL % conf.properties['main.server.hostname'])
         subnet_name = gen_string("alpha", 6)
         domain_name = gen_string("alpha", 6)
         domain = description = DOMAIN % domain_name
@@ -205,10 +205,15 @@ class TestSmoke(UITestCase):
                     self.content_views.wait_until_element(
                         common_locators["alert.success"]))
             # Create a new libvirt compute resource
-            make_resource(session, org=org_name, name=compute_resource_name,
-                          provider_type=provider_type, url=url)
-            self.assertIsNotNone(self.compute_resource.search
-                                 (compute_resource_name))
+            make_resource(
+                session,
+                org=org_name,
+                name=compute_resource_name,
+                provider_type=provider_type,
+                parameter_list=[['URL', url, 'field']],
+            )
+            self.assertIsNotNone(
+                self.compute_resource.search(compute_resource_name))
 
             # Create a subnet
             make_subnet(session, org=org_name, subnet_name=subnet_name,
