@@ -1,9 +1,21 @@
-"""Unit tests for sync plans."""
+"""Unit tests for the ``sync_plans`` paths.
+
+A full API reference for sync plans can be found here:
+http://www.katello.org/docs/api/apidoc/sync_plans.html
+
+"""
 from datetime import datetime, timedelta
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import client, entities
-from robottelo.common.helpers import get_server_credentials, get_server_url
+from random import sample
+from requests.exceptions import HTTPError
+from robottelo.common.helpers import (
+    get_server_credentials,
+    get_server_url,
+    invalid_values_list,
+    valid_data_list,
+)
 from robottelo.common.decorators import (
     data,
     run_only_on,
@@ -50,7 +62,7 @@ class SyncPlanTestCase(APITestCase):
         )
 
 
-@stubbed()
+@run_only_on('sat')
 @ddt
 class SyncPlanCreateTestCase(APITestCase):
     """Tests specific to creating new sync plans."""
@@ -61,27 +73,22 @@ class SyncPlanCreateTestCase(APITestCase):
         cls.org = entities.Organization().create()
         super(SyncPlanCreateTestCase, cls).setUpClass()
 
-    @stubbed()
-    @run_only_on('sat')
-    def test_create_disabled_sync_plan(self):
-        """@Test: Create a disabled sync plan.
+    @data(False, True)
+    def test_create_enabled_disabled_sync_plan(self, enabled):
+        """@Test: Create sync plan with different 'enabled' field values.
 
-        @Assert: A disabled sync plan is created.
+        @Assert: A sync plan is created, 'enabled' field has correct value.
 
         @Feature: SyncPlan
 
         """
+        sync_plan = entities.SyncPlan(
+            enabled=enabled,
+            organization=self.org,
+        ).create()
+        self.assertEqual(sync_plan.enabled, enabled)
 
-    @stubbed()
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
+    @data(*valid_data_list())
     def test_create_sync_plan_with_random_name(self, name):
         """@Test: Create a sync plan with a random name.
 
@@ -90,17 +97,10 @@ class SyncPlanCreateTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
+        syncplan = entities.SyncPlan(name=name, organization=self.org).create()
+        self.assertEqual(syncplan.name, name)
 
-    @stubbed()
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
+    @data(*valid_data_list())
     def test_create_sync_plan_with_random_description(self, description):
         """@Test: Create a sync plan with a random description.
 
@@ -109,9 +109,12 @@ class SyncPlanCreateTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
+        sync_plan = entities.SyncPlan(
+            description=description,
+            organization=self.org,
+        ).create()
+        self.assertEqual(sync_plan.description, description)
 
-    @stubbed()
-    @run_only_on('sat')
     @data(
         u'hourly',
         u'daily',
@@ -125,9 +128,12 @@ class SyncPlanCreateTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
+        sync_plan = entities.SyncPlan(
+            interval=interval,
+            organization=self.org,
+        ).create()
+        self.assertEqual(sync_plan.interval, interval)
 
-    @stubbed()
-    @run_only_on('sat')
     @data(
         # Today
         datetime.now(),
@@ -148,18 +154,17 @@ class SyncPlanCreateTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
+        sync_plan = entities.SyncPlan(
+            organization=self.org,
+            sync_date=syncdate,
+        ).create()
+        self.assertEqual(
+            syncdate.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            sync_plan.sync_date
+        )
 
-    @stubbed()
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 300),
-        gen_string('alphanumeric', 300),
-        gen_string('numeric', 300),
-        gen_string('latin1', 300),
-        gen_string('utf8', 300),
-        gen_string('html', 300),
-    )
-    def test_create_sync_plan_with_invalid_random_name(self, name):
+    @data(*invalid_values_list())
+    def test_create_sync_plan_with_invalid_name_negative(self, name):
         """@Test: Create a sync plan with an invalid name.
 
         @Assert: A sync plan can not be created with the specified name.
@@ -167,9 +172,40 @@ class SyncPlanCreateTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
+        with self.assertRaises(HTTPError):
+            entities.SyncPlan(name=name, organization=self.org).create()
+
+    @data(*invalid_values_list())
+    def test_create_sync_plan_with_invalid_interval_negative(self, interval):
+        """@Test: Create a sync plan with invalid interval specified.
+
+        @Assert: A sync plan can not be created with invalid interval specified
+
+        @Feature: SyncPlan
+
+        """
+        with self.assertRaises(HTTPError):
+            entities.SyncPlan(
+                interval=interval,
+                organization=self.org,
+            ).create()
+
+    def test_create_sync_plan_with_empty_interval_negative(self):
+        """@Test: Create a sync plan with no interval specified.
+
+        @Assert: A sync plan can not be created with no interval specified.
+
+        @Feature: SyncPlan
+
+        """
+        sync_plan = entities.SyncPlan(organization=self.org)
+        sync_plan.create_missing()
+        del sync_plan.interval
+        with self.assertRaises(HTTPError):
+            sync_plan.create(False)
 
 
-@stubbed()
+@run_only_on('sat')
 @ddt
 class SyncPlanUpdateTestCase(APITestCase):
     """Tests specific to updating a sync plan."""
@@ -180,38 +216,23 @@ class SyncPlanUpdateTestCase(APITestCase):
         cls.org = entities.Organization().create()
         super(SyncPlanUpdateTestCase, cls).setUpClass()
 
-    @stubbed()
-    @run_only_on('sat')
-    def test_update_enabled_sync_plan(self):
-        """@Test: Create a enabled sync plan then disable it.
+    @data(False, True)
+    def test_update_enabled_disabled_sync_plan(self, enabled):
+        """@Test: Create sync plan and update it with opposite 'enabled' value.
 
-        @Assert: An enabled sync plan is created and updated to be disabled.
-
-        @Feature: SyncPlan
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_update_disabled_sync_plan(self):
-        """@Test: Create a disabled sync plan then enable it.
-
-        @Assert: A disabled sync plan is created and updated to be enabled.
+        @Assert: Sync plan is updated with different 'enabled' value.
 
         @Feature: SyncPlan
 
         """
+        sync_plan = entities.SyncPlan(
+            enabled=not enabled,
+            organization=self.org,
+        ).create()
+        sync_plan.enabled = enabled
+        self.assertEqual(sync_plan.update(['enabled']).enabled, enabled)
 
-    @stubbed()
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
+    @data(*valid_data_list())
     def test_update_sync_plan_with_random_name(self, name):
         """@Test: Create a sync plan and update its name.
 
@@ -221,17 +242,11 @@ class SyncPlanUpdateTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
+        sync_plan = entities.SyncPlan(organization=self.org).create()
+        sync_plan.name = name
+        self.assertEqual(sync_plan.update(['name']).name, name)
 
-    @stubbed()
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
+    @data(*valid_data_list())
     def test_update_sync_plan_with_random_description(self, description):
         """@Test: Create a sync plan and update its description.
 
@@ -241,9 +256,14 @@ class SyncPlanUpdateTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
+        sync_plan = entities.SyncPlan(
+            description=gen_string('alpha'),
+            organization=self.org,
+        ).create()
+        sync_plan.description = description
+        self.assertEqual(
+            sync_plan.update(['description']).description, description)
 
-    @stubbed()
-    @run_only_on('sat')
     @data(
         u'hourly',
         u'daily',
@@ -258,9 +278,15 @@ class SyncPlanUpdateTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
+        sync_plan = entities.SyncPlan(organization=self.org)
+        sync_plan.interval = sample(
+            set(sync_plan.get_fields()['interval'].choices) - set([interval]),
+            1
+        )[0]
+        sync_plan = sync_plan.create()
+        sync_plan.interval = interval
+        self.assertEqual(sync_plan.update(['interval']).interval, interval)
 
-    @stubbed()
-    @run_only_on('sat')
     @data(
         # Today
         datetime.now(),
@@ -274,14 +300,50 @@ class SyncPlanUpdateTestCase(APITestCase):
         datetime.now() - timedelta(seconds=300),
     )
     def test_update_sync_plan_with_random_sync_date(self, syncdate):
-        """@Test: Create a sync plan and update its sync date.
+        """@Test: Updated sync plan's sync date.
 
-        @Assert: A sync plan can be created and its sync date can be updated
-        with the specified sync date.
+        @Assert: Sync date is updated with the specified sync date.
 
         @Feature: SyncPlan
 
         """
+        sync_plan = entities.SyncPlan(
+            organization=self.org,
+            sync_date=datetime.now() + timedelta(days=10),
+        ).create()
+        sync_plan.sync_date = syncdate
+        self.assertEqual(
+            syncdate.strftime('%Y-%m-%dT%H:%M:%SZ'),
+            sync_plan.update(['sync_date']).sync_date
+        )
+
+    @data(*invalid_values_list())
+    def test_update_sync_plan_with_invalid_name_negative(self, name):
+        """@Test: Try to update a sync plan with an invalid name.
+
+        @Assert: A sync plan can not be updated with the specified name.
+
+        @Feature: SyncPlan
+
+        """
+        sync_plan = entities.SyncPlan(organization=self.org).create()
+        sync_plan.name = name
+        with self.assertRaises(HTTPError):
+            sync_plan.update(['name'])
+
+    @data(*invalid_values_list())
+    def test_update_sync_plan_with_invalid_interval_negative(self, interval):
+        """@Test: Try to update a sync plan with invalid interval.
+
+        @Assert: A sync plan can not be updated with empty interval specified.
+
+        @Feature: SyncPlan
+
+        """
+        sync_plan = entities.SyncPlan(organization=self.org).create()
+        sync_plan.interval = interval
+        with self.assertRaises(HTTPError):
+            sync_plan.update(['interval'])
 
 
 class SyncPlanProductTestCase(APITestCase):
@@ -436,7 +498,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         """
 
 
-@stubbed()
+@run_only_on('sat')
 class SyncPlanDeleteTestCase(APITestCase):
     """Tests specific to deleting sync plans."""
 
@@ -446,8 +508,6 @@ class SyncPlanDeleteTestCase(APITestCase):
         cls.org = entities.Organization().create()
         super(SyncPlanDeleteTestCase, cls).setUpClass()
 
-    @stubbed()
-    @run_only_on('sat')
     def test_delete_sync_plan_with_one_product(self):
         """@Test: Create a sync plan with one product and delete it.
 
@@ -457,9 +517,13 @@ class SyncPlanDeleteTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
+        sync_plan = entities.SyncPlan(organization=self.org).create()
+        product = entities.Product(organization=self.org).create()
+        sync_plan.add_products([product.id])
+        sync_plan.delete()
+        with self.assertRaises(HTTPError):
+            sync_plan.read()
 
-    @stubbed()
-    @run_only_on('sat')
     def test_delete_sync_plan_with_two_products(self):
         """@Test: Create a sync plan with two products and delete them.
 
@@ -469,9 +533,15 @@ class SyncPlanDeleteTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
+        sync_plan = entities.SyncPlan(organization=self.org).create()
+        products = [
+            entities.Product(organization=self.org).create() for _ in range(2)
+        ]
+        sync_plan.add_products([product.id for product in products])
+        sync_plan.delete()
+        with self.assertRaises(HTTPError):
+            sync_plan.read()
 
-    @stubbed()
-    @run_only_on('sat')
     def test_delete_sync_plan_with_one_synced_product(self):
         """@Test: Create a sync plan with one synced product and delete it.
 
@@ -481,3 +551,11 @@ class SyncPlanDeleteTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
+        sync_plan = entities.SyncPlan(organization=self.org).create()
+        product = entities.Product(organization=self.org).create()
+        entities.Repository(product=product).create()
+        sync_plan.add_products([product.id])
+        product.sync()
+        sync_plan.delete()
+        with self.assertRaises(HTTPError):
+            sync_plan.read()
