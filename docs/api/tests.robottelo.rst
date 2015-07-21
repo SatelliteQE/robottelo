@@ -20,16 +20,6 @@ Submodules:
 
 .. automodule:: tests.robottelo.test_helpers
 
-:mod:`tests.robottelo.test_robottelo_api_inspect`
--------------------------------------------------
-
-.. automodule:: tests.robottelo.test_robottelo_api_inspect
-
-:mod:`tests.robottelo.test_robottelo_api_utils`
------------------------------------------------
-
-.. automodule:: tests.robottelo.test_robottelo_api_utils
-
 :mod:`tests.robottelo.test_ssh`
 -------------------------------
 

@@ -2,6 +2,7 @@
 
 FOREMAN_API_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), api)
 FOREMAN_CLI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), cli)
+FOREMAN_RHCI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhci)
 FOREMAN_SMOKE_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), smoke)
 FOREMAN_TESTS_PATH=tests/foreman/
 FOREMAN_UI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), ui)
@@ -22,6 +23,7 @@ help:
 	@echo "  test-foreman-api-threaded  to do the above with threading"
 	@echo "  test-foreman-cli      to test a Foreman deployment CLI"
 	@echo "  test-foreman-cli-threaded  to do the above with threading"
+	@echo "  test-foreman-rhci     to test a Foreman deployment w/RHCI plugin"
 	@echo "  test-foreman-ui       to test a Foreman deployment UI"
 	@echo "  test-foreman-ui-xvfb  to test a Foreman deployment UI using xvfb-run"
 	@echo "  test-foreman-smoke    to perform a generic smoke test"
@@ -37,6 +39,7 @@ docs-clean:
 test-docstrings:
 	testimony validate_docstring tests/foreman/api
 	testimony validate_docstring tests/foreman/cli
+	testimony validate_docstring tests/foreman/rhci
 	testimony validate_docstring tests/foreman/ui
 
 test-robottelo:
@@ -56,6 +59,9 @@ test-foreman-cli-threaded:
 	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_CLI_TESTS_PATH)\
 	    --processes=-1 --process-timeout=300
 
+test-foreman-rhci:
+	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_RHCI_TESTS_PATH)
+
 test-foreman-ui:
 	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_UI_TESTS_PATH)
 
@@ -74,5 +80,5 @@ lint:
 # Special Targets -------------------------------------------------------------
 
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
-        test-foreman-api test-foreman-cli test-foreman-ui \
+        test-foreman-api test-foreman-cli test-foreman-rhci test-foreman-ui \
         test-foreman-ui-xvfb test-foreman-smoke graph-entities lint
