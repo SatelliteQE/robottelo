@@ -69,7 +69,7 @@ class VirtualMachine(object):
                 'clients.provisioning_server')
         else:
             self.provisioning_server = provisioning_server
-        if self.provisioning_server is None:
+        if self.provisioning_server is None or self.provisioning_server == '':
             raise VirtualMachineError(
                 'A provisioning server must be provided. Make sure to fill '
                 '"provisioning_server" on clients section of your robottelo '

@@ -14,9 +14,10 @@ class VirtualMachineTestCase(unittest.TestCase):
     def setUp(self):
         super(VirtualMachineTestCase, self).setUp()
         self.properties_backup = conf.properties.copy()
+        conf.properties['clients.provisioning_server'] = None
 
     def tearDown(self):
-        super(VirtualMachineTestCase, self).setUp()
+        super(VirtualMachineTestCase, self).tearDown()
         conf.properties = self.properties_backup
 
     def configure_provisoning_server(self):
