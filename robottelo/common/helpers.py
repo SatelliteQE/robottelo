@@ -229,7 +229,7 @@ def invalid_values_list():
     code.
 
     """
-    return ['', ' ', '   '] + invalid_names_list()
+    return ['', ' ', '\t'] + invalid_names_list()
 
 
 def generate_strings_list(len1=None, remove_str=None, bug_id=None):
