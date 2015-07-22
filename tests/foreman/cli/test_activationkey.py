@@ -119,14 +119,15 @@ class TestActivationKey(CLITestCase):
                     u'organization-id': TestActivationKey.pub_key['org_id']
                 })['id']
 
-                subscription_result = Subscription.list(
-                    {'organization-id': TestActivationKey.pub_key['org_id']},
+                subscription_result = Subscription.list({
+                    'organization-id': TestActivationKey.pub_key['org_id'],
+                    'order': 'id desc'},
                     per_page=False
                 )
 
                 ActivationKey.add_subscription({
                     u'id': TestActivationKey.pub_key['key_id'],
-                    u'subscription-id': subscription_result.stdout[0]['id'],
+                    u'subscription-id': subscription_result.stdout[-1]['id'],
                 })
             except CLIFactoryError as err:
                 TestActivationKey.pub_key = None
