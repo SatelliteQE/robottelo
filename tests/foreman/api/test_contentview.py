@@ -4,25 +4,24 @@ import random
 
 from ddt import ddt
 from fauxfactory import gen_integer, gen_string, gen_utf8
-from nailgun import client, entities
+from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.api import utils
 from robottelo.common import manifests
 from robottelo.common.constants import (
     FAKE_0_PUPPET_REPO,
+    PRDS,
     PUPPET_MODULE_NTP_PUPPETLABS,
     REPOS,
     REPOSET,
-    PRDS,
 )
 from robottelo.common.decorators import (
     bz_bug_is_open,
     data,
     run_only_on,
-    skip_if_bug_open,
     stubbed,
 )
-from robottelo.common.helpers import get_data_file, get_server_credentials
+from robottelo.common.helpers import get_data_file
 from robottelo.test import APITestCase
 
 
@@ -36,7 +35,6 @@ REPEAT = 3
 class ContentViewTestCase(APITestCase):
     """Tests for content views."""
 
-    @skip_if_bug_open('bugzilla', 1223494)
     def test_subscribe_system_to_cv(self):
         """@Test: Subscribe a system to a content view.
 
@@ -55,37 +53,28 @@ class ContentViewTestCase(APITestCase):
 
         # Publish the content view.
         content_view.publish()
-
-        # Get the content view version's ID.
-        response = client.get(
-            entities.ContentViewVersion().path(),
-            auth=get_server_credentials(),
-            data={u'content_view_id': content_view.id},
-            verify=False,
-        )
-        response.raise_for_status()
-        results = response.json()['results']
-        self.assertEqual(len(results), 1)
-        cv_version = entities.ContentViewVersion(id=results[0]['id'])
+        content_view = content_view.read()
 
         # Promote the content view version.
-        cv_version.promote(environment_id=lc_env.id)
+        self.assertEqual(len(content_view.version), 1)
+        content_view.version[0].promote(lc_env.id)
 
         # Create a system that is subscribed to the published and promoted
         # content view. Associating this system with the organization and
         # environment created above is not particularly important, but doing so
         # means a shorter test where fewer entities are created, as
         # System.organization and System.environment are required attributes.
-        system_attrs = entities.System(
+        system = entities.System(
             content_view=content_view,
             environment=lc_env,
             organization=org,
-        ).create_json()
+        ).create()
 
         # See BZ #1151240
-        self.assertEqual(system_attrs['content_view_id'], content_view.id)
-        self.assertEqual(system_attrs['environment']['id'], lc_env.id)
-        self.assertEqual(system_attrs['organization_id'], org.id)
+        self.assertEqual(system.content_view.id, content_view.id)
+        self.assertEqual(system.environment.id, lc_env.id)
+        if not bz_bug_is_open(1223494):
+            self.assertEqual(system.organization.id, org.id)
 
     def test_cv_clone_within_same_env(self):
         """@Test: attempt to create, publish and promote new content view
