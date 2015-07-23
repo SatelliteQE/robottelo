@@ -2,6 +2,7 @@
 """Test class for Host Collection CLI"""
 import csv
 import os
+import random
 import tempfile
 from ddt import ddt
 from fauxfactory import gen_string
@@ -15,6 +16,7 @@ from robottelo.common.decorators import (
 from robottelo.test import CLITestCase
 from robottelo.cli.import_ import Import
 from robottelo.cli.factory import make_org
+from robottelo.cli.subscription import Subscription
 from robottelo.cli.org import Org
 from robottelo.cli.user import User
 
@@ -78,76 +80,70 @@ def update_csv_values(csv_file, new_data=None, dirname=None):
     :param csv_file: A string. The path to a CSV file that resides
         on a remote server.
     :param new_data: A list of dictionary objects. Each object has to
-        contain an org_id key corresponding to organization_id of the record
-        being updated and the key-value pairs of attributes to be changed for
-        the particular records. For example::
+        contain an key_id key corresponding to org[anization]_id of the
+        record being updated and the key-value pairs of attributes to be
+        replaced by the particular records. For example::
 
             [
                 {
-                    u'org_id': u'1',
+                    u'key_id': u'1',
                     u'organization': u'updated_organization_name_1',
                     u'username': u'updated_user_name_1',
                 },
                 {
-                    u'org_id': u'2',
+                    u'key_id': u'2',
                     u'organization': u'updated_organization_name_2',
                     u'username': u'updated_user_name_2',
                 }
             ]
 
-    :returns: A string. The path to a locally created CSV file
+    :returns: A string. The path to a remotely created CSV file
 
     """
+    updated = False
     # if new_data is not specified, no change happens
     if new_data is None:
         return csv_file
-
     result = csv_to_dataset([csv_file])
     for change in new_data:
         for record in result:
-            if record['organization_id'] == change['organization_id']:
+            if (record.get('organization_id') == change['key_id'] or
+                    record.get('org_id') == change['key_id']):
                 record.update(change)
-    return build_csv_file(result, dirname)
+                del record['key_id']
+                updated = True
+    if updated:
+        return build_csv_file(result, dirname)
+    else:
+        return csv_file
 
 
 def import_org_data():
     """Random data for Organization Import tests"""
 
+    random_ids = random.sample(range(1, 1000), 3)
     return ([
         {
-            u'organization_id': u'1',
+            u'key_id': u'{}'.format(str(i+1)),
+            u'organization_id': u'{}'.format(str(random_ids[i])),
             u'organization': gen_string('alphanumeric')
-        },
-        {
-            u'organization_id': u'2',
-            u'organization': gen_string('alphanumeric')
-        },
-        {
-            u'organization_id': u'3',
-            u'organization': gen_string('alphanumeric')
-        },
+        }
+        for i in range(3)
     ],)
 
 
 def import_user_data():
     """Random data for User Import tests"""
 
+    random_ids = random.sample(range(1, 1000), 3)
     return ([
         {
-            u'organization_id': u'1',
+            u'key_id': u'{}'.format(str(i+1)),
+            u'organization_id': u'{}'.format(str(random_ids[i])),
             u'organization': gen_string('alphanumeric'),
             u'username': gen_string('alphanumeric')
-        },
-        {
-            u'organization_id': u'2',
-            u'organization': gen_string('alphanumeric'),
-            u'username': gen_string('alphanumeric')
-        },
-        {
-            u'organization_id': u'3',
-            u'organization': gen_string('alphanumeric'),
-            u'username': gen_string('alphanumeric')
-        },
+        }
+        for i in range(3)
     ],)
 
 
@@ -200,15 +196,8 @@ class TestImport(CLITestCase):
             org['organization'] for
             org in csv_to_dataset([files['users']])
         )
-        self.assertEqual(
-            ssh_import.stdout,
-            [
-                u'Summary',
-                u'  Created {0} organizations.'.format(len(imp_orgs)),
-                u''
-            ]
-        )
-        self.assertTrue(all((org in orgs for org in imp_orgs)))
+        self.assertEqual(ssh_import.return_code, 0)
+        self.assertTrue(imp_orgs.issubset(orgs))
 
     @data(*import_org_data())
     def test_import_orgs_manifests(self, test_data):
@@ -243,8 +232,19 @@ class TestImport(CLITestCase):
             'csv-file': files['users'],
             'upload-manifests-from': man_dir,
         })
-        self.assertIn('Created 3 organizations.', ''.join(ssh_import.stdout))
-        self.assertIn('Uploaded 3 manifests.', ''.join(ssh_import.stdout))
+        # now to check whether the orgs from csv appeared in satellite
+        orgs = set(org['name'] for org in Org.list().stdout)
+        imp_orgs = set(
+            org['organization'] for
+            org in csv_to_dataset([files['users']])
+        )
+        self.assertEqual(ssh_import.return_code, 0)
+        self.assertTrue(imp_orgs.issubset(orgs))
+        for org in imp_orgs:
+            manifest_history = Subscription.manifest_history(
+                {'organization': org}
+            ).stdout[3]
+            self.assertIn('SUCCESS', manifest_history)
 
     @data(*import_org_data())
     def test_reimport_orgs_default_negative(self, test_data):
@@ -264,10 +264,10 @@ class TestImport(CLITestCase):
         )
         self.assertEqual(
             Import.organization({'csv-file': files['users']}).return_code, 0)
+        orgs_before = Org.list().stdout
         self.assertEqual(
-            Import.organization({'csv-file': files['users']}).stdout,
-            [u'Summary', u'  No action taken.', u'']
-        )
+            Import.organization({'csv-file': files['users']}).return_code, 0)
+        self.assertEqual(orgs_before, Org.list().stdout)
 
     @data(*import_org_data())
     def test_import_orgs_recovery(self, test_data):
@@ -277,7 +277,7 @@ class TestImport(CLITestCase):
         @feature: Import Organizations Recover
 
         @assert: 2nd Import will rename the new organizations, 2nd import will
-        map them and the 3rd one will resul in No Action Taken
+        map them and the 3rd one will result in No Action Taken
 
         """
         # prepare the data
@@ -292,25 +292,23 @@ class TestImport(CLITestCase):
             Import.organization({'csv-file': files['users']}).return_code, 0)
         # clear the .transition_data to clear the transition mapping
         ssh.command('rm -rf ${HOME}/.transition_data')
+
         # use the default (rename) strategy
-        self.assertIn(
-            u'Created 3 organizations',
-            u''.join(
-                Import.organization({'csv-file': files['users']}).stdout
-            )
+        Import.organization({'csv-file': files['users']})
+        transition_data = csv_to_dataset(
+            ssh.command(u'ls ${HOME}/.transition_data/org*').stdout[:-1]
         )
+        self.assertEqual(len(transition_data), len(test_data))
+        for record in transition_data:
+            self.assertNotEqual(User.info({'id': record['sat6']}).stdout, '')
         Import.organization({'csv-file': files['users'], 'delete': True})
+
         # use the 'none' strategy
-        self.assertIn(
-            u'No action taken',
-            u''.join(
-                Import.organization({
-                    'csv-file': files['users'],
-                    'recover': 'none',
-                }).stdout
-            )
-        )
+        orgs_before = Org.list().stdout
+        Import.organization({'csv-file': files['users'], 'recover': 'none'})
+        self.assertEqual(orgs_before, Org.list().stdout)
         Import.organization({'csv-file': files['users'], 'delete': True})
+
         # use the 'map' strategy
         self.assertIn(
             u'Mapped 3 organizations',
@@ -344,16 +342,18 @@ class TestImport(CLITestCase):
             test_data,
             self.default_dataset[0]
         )
-        ssh_map = Import.organization({
-            'csv-file': files['users'],
-            'into-org-id': new_org['id'],
-            'verbose': True,
-        })
-        self.assertIn(u'Mapped 3 organizations.', ''.join(ssh_map.stdout))
+        self.assertEqual(
+            Import.organization({
+                'csv-file': files['users'],
+                'into-org-id': new_org['id'],
+                'verbose': True,
+            }).return_code,
+            0
+        )
         Import.user({'csv-file': files['users'], 'new-passwords': pwdfile})
 
         # list users by org-id and check whether users from csv are in listing
-        users = User().list({u'organization-id': new_org['id']})
+        users = User.list({u'organization-id': new_org['id']})
         logins = set(user['login'] for user in users.stdout)
         imp_users = set(
             user['username']
@@ -361,12 +361,9 @@ class TestImport(CLITestCase):
         )
         self.assertTrue(all((user in logins for user in imp_users)))
 
-        # do the cleanup
-        ssh.command(u'rm -rf {}'.format(pwdfile))
-
     @data(*import_user_data())
     def test_import_users_default(self, test_data):
-        """@test: Import all 3 users from the our default data set (predefined
+        """@test: Import all 3 users from the default data set (predefined
         source).
 
         @feature: Import Users
@@ -388,21 +385,21 @@ class TestImport(CLITestCase):
             'csv-file': files['users'],
             'new-passwords': pwdfile
         })
-        ssh.command(
-            u'rm -rf {}'
-            .format(pwdfile)
+        self.assertEqual(ssh_import.return_code, 0)
+        # list the users and check whether users from csv are in the listing
+        logins = set(user['login'] for user in User.list().stdout)
+        imp_users = set(
+            user['username']
+            for user in csv_to_dataset([files['users']])
         )
-        self.assertEqual(
-            ssh_import.stdout,
-            [u'Summary', u'  Created 3 users.', u'']
-        )
+        self.assertTrue(imp_users.issubset(logins))
 
     @data(*import_user_data())
     def test_reimport_users_default_negative(self, test_data):
         """@test: Try to Import all users from the
         predefined source and try to import them again
 
-        @feature: Import Users twice
+        @feature: Repetitive User Import
 
         @assert: 2nd Import will result in No Action Taken
 
@@ -424,18 +421,16 @@ class TestImport(CLITestCase):
             Import.user({
                 'csv-file': files['users'],
                 'new-passwords': pwdfile,
-            }).stderr, '')
+            }).return_code, 0)
         ssh.command(u'rm -rf {}'.format(pwdfile))
+        users_before = set(user['login'] for user in User.list().stdout)
         self.assertEqual(
             Import.user({
                 'csv-file': files['users'],
                 'new-passwords': pwdfile,
-            }).stdout,
-            [u'Summary', u'  No action taken.', u'']
-        )
-        ssh.command(
-            u'rm -rf {}'.format(files['users'])
-        )
+            }).return_code, 0)
+        users_after = set(user['login'] for user in User.list().stdout)
+        self.assertTrue(users_after.issubset(users_before))
 
     @data(*import_user_data())
     def test_import_users_merge(self, test_data):
@@ -464,24 +459,21 @@ class TestImport(CLITestCase):
             Import.organization({'csv-file': files['users']}).return_code, 0)
         self.assertEqual(
             Import.user({
-                'csv-file': files['users'],
-                'new-passwords': pwdfiles[0],
+                'csv-file': files['users'], 'new-passwords': pwdfiles[0],
             }).return_code, 0)
         # clear the .transition_data to clear the transition mapping
         ssh.command('rm -rf ${HOME}/.transition_data/users*')
         # import users using map-users option
-        self.assertIn(
-            u'Mapped 3 users',
-            u''.join(
-                Import.user({
-                    'csv-file': files['users'],
-                    'new-passwords': pwdfiles[1],
-                    'merge-users': True,
-                }).stdout
-            )
+        Import.user({
+            'csv-file': files['users'],
+            'new-passwords': pwdfiles[1],
+            'merge-users': True,
+        })
+        transition_data = csv_to_dataset(
+            ssh.command(u'ls ${HOME}/.transition_data/users*').stdout[:-1]
         )
-        # do the cleanup
-        ssh.command(u'rm -rf {}'.format(' '.join(pwdfiles)))
+        for record in transition_data:
+            self.assertNotEqual(User.info({'id': record['sat6']}).stdout, '')
 
     @data(*import_user_data())
     def test_import_users_recovery(self, test_data):
@@ -516,39 +508,38 @@ class TestImport(CLITestCase):
         # clear the .transition_data to clear the transition mapping
         ssh.command('rm -rf ${HOME}/.transition_data/users*')
         # use the default (rename) strategy
-        self.assertIn(
-            u'Created 3 users',
-            u''.join(
-                Import.user({
-                    'csv-file': files['users'],
-                    'new-passwords': pwdfiles[1],
-                }).stdout
-            )
+        Import.user({
+            'csv-file': files['users'],
+            'new-passwords': pwdfiles[1],
+        })
+        transition_data = csv_to_dataset(
+            ssh.command(u'ls ${HOME}/.transition_data/users*').stdout[:-1]
         )
+        for record in transition_data:
+            self.assertNotEqual(User.info({'id': record['sat6']}).stdout, '')
+
         Import.user({'csv-file': files['users'], 'delete': True})
         # use the 'none' strategy
-        self.assertIn(
-            u'No action taken',
-            u''.join(
-                Import.user({
-                    'csv-file': files['users'],
-                    'new-passwords': pwdfiles[2],
-                    'recover': 'none',
-                }).stdout
-            )
-        )
+        users_before = set(user['login'] for user in User.list().stdout)
+        Import.user({
+            'csv-file': files['users'],
+            'new-passwords': pwdfiles[2],
+            'recover': 'none',
+        })
+        users_after = set(user['login'] for user in User.list().stdout)
+        self.assertTrue(users_before.issubset(users_after))
         Import.user({'csv-file': files['users'], 'delete': True})
         # use the 'map' strategy
-        self.assertIn(
-            u'Mapped 3 users',
-            u''.join(
-                Import.user({
-                    'csv-file': files['users'],
-                    'recover': 'map',
-                    'new-passwords': pwdfiles[3],
-                }).stdout
-            )
+        Import.user({
+            'csv-file': files['users'],
+            'recover': 'map',
+            'new-passwords': pwdfiles[3],
+        })
+        transition_data = csv_to_dataset(
+            ssh.command(u'ls ${HOME}/.transition_data/users*').stdout[:-1]
         )
+        for record in transition_data:
+            self.assertNotEqual(User.info({'id': record['sat6']}).stdout, '')
         Import.user({'csv-file': files['users'], 'delete': True})
         # do the cleanup
         ssh.command(u'rm -rf {}'.format(' '.join(pwdfiles)))

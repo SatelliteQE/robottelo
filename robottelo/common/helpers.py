@@ -378,10 +378,10 @@ def prepare_import_data(tar_path=None):
         for key in (
             'activation-keys',
             'channels',
-            'config-files-latest.csv',
+            'config-files-latest',
             'kickstart-scripts',
             'repositories',
-            'system-groups.csv'
+            'system-groups',
             'system-profiles',
             'users'
         ):
