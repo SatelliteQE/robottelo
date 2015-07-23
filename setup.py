@@ -2,17 +2,6 @@
 # -*- coding: utf-8 -*-
 from setuptools import find_packages, setup
 
-REQUIRES = [
-    'ddt',
-    'fauxfactory',
-    'nailgun',
-    'paramiko',
-    'python-bugzilla',
-    'requests',
-    'selenium',
-    'numpy',
-]
-
 with open('README.rst', 'r') as f:
     README = f.read()
 
@@ -26,7 +15,18 @@ setup(
     packages=find_packages(exclude=['tests*']),
     package_data={'': ['LICENSE']},
     include_package_data=True,
-    install_requires=REQUIRES,
+    install_requires=[
+        'SeleniumFactory',
+        'automation-tools',
+        'ddt',
+        'fauxfactory',
+        'nailgun',
+        'numpy',
+        'paramiko',
+        'python-bugzilla',
+        'requests',
+        'selenium',
+    ],
     license='GNU GPL v3.0',
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=(
