@@ -185,6 +185,31 @@ class ContentView(Base):
         return cls.execute(cls._construct_command(options))
 
     @classmethod
+    def filter_delete(cls, options):
+        """Delete existing content view filter entity.
+
+        Usage::
+
+            hammer content-view filter delete [OPTIONS]
+
+        Options::
+
+            --content-view CONTENT_VIEW_NAME    Content view name
+            --content-view-id CONTENT_VIEW_ID   Content view numeric identifier
+            --id ID                             filter identifier
+            --name NAME                         Name to search by
+            --organization ORGANIZATION_NAME    Organization name to search by
+            --organization-id ORGANIZATION_ID   Organization ID
+            --organization-label ORGANIZATION_LABEL   Organization label to
+                                                      search by
+
+        """
+        cls.command_sub = 'filter delete'
+        if options is None:
+            options = {}
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
     def filter_rule_create(cls, options):
         """Add new rule to content view filter."""
         cls.command_sub = 'filter rule create'

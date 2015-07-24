@@ -806,3 +806,127 @@ class TestContentViewFilter(CLITestCase):
         })
         self.assertNotEqual(result.return_code, 0)
         self.assertNotEqual(len(result.stderr), 0)
+
+    @data(*valid_data_list())
+    def test_delete_cvf_with_different_names(self, name):
+        """Test: Create new content view filter and assign it to existing
+        content view by id. Try to delete that filter using different value
+        types as a name
+
+        @Feature: Content View Filter
+
+        @Assert: Content view filter deleted successfully
+
+        """
+        result = ContentView.filter_create({
+            'content-view-id': self.content_view['id'],
+            'type': 'rpm',
+            'name': name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_delete({
+            u'content-view-id': self.content_view['id'],
+            u'name': name,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': name,
+        })
+        self.assertNotEqual(result.return_code, 0)
+
+    def test_delete_cvf_by_id(self):
+        """Test: Create new content view filter and assign it to existing
+        content view by id. Try to delete that filter using its id as a
+        parameter
+
+        @Feature: Content View Filter
+
+        @Assert: Content view filter deleted successfully
+
+        """
+        result = ContentView.filter_create({
+            'content-view-id': self.content_view['id'],
+            'type': 'rpm',
+            'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_delete({
+            u'id': result.stdout['filter-id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': self.cvf_name,
+        })
+        self.assertNotEqual(result.return_code, 0)
+
+    def test_delete_cvf_with_org(self):
+        """Test: Create new content view filter and assign it to existing
+        content view by id. Try to delete that filter using organization and
+        content view names where that filter was applied
+
+        @Feature: Content View Filter
+
+        @Assert: Content view filter deleted successfully
+
+        """
+        result = ContentView.filter_create({
+            'content-view-id': self.content_view['id'],
+            'type': 'rpm',
+            'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+
+        result = ContentView.filter_delete({
+            u'content-view': self.content_view['name'],
+            u'organization': self.org['name'],
+            u'name': self.cvf_name,
+        })
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+
+        result = ContentView.filter_info({
+            u'content-view-id': self.content_view['id'],
+            u'name': self.cvf_name,
+        })
+        self.assertNotEqual(result.return_code, 0)
+
+    def test_delete_cvf_with_name_negative(self):
+        """Test: Try to delete non-existent filter using generated name
+
+        @Feature: Content View Filter
+
+        @Assert: System returned error
+
+        """
+        result = ContentView.filter_delete({
+            u'content-view-id': self.content_view['id'],
+            u'name': u'invalid_cv_filter',
+        })
+        self.assertNotEqual(result.return_code, 0)
+        self.assertGreater(len(result.stderr), 0)
