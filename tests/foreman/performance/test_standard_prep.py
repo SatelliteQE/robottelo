@@ -44,6 +44,8 @@ class StandardPrepTestCase(TestCase):
         )
 
         # parameters for enabling repositories
+        cls.sub_id = ''
+        cls.sub_name = ''
         cls.pid = ''
 
         # [repo-id,$basearch,$releasever]
@@ -78,6 +80,7 @@ class StandardPrepTestCase(TestCase):
         ssh.command('./reset-db.sh /home/backup/{}'.format(savepoint))
 
     def _download_manifest(self):
+        """Utility function to download manifest from given URL"""
         self.logger.info(
             'Start downloading manifest: {}'.format(MANIFEST_FILE_NAME))
 
@@ -91,6 +94,7 @@ class StandardPrepTestCase(TestCase):
         self.logger.info('Downloading manifest complete.')
 
     def _upload_manifest(self):
+        """Utility function to upload manifest"""
         self.logger.debug('org-id is {}'.format(self.org_id))
 
         result = Subscription.upload({
@@ -118,7 +122,7 @@ class StandardPrepTestCase(TestCase):
         return result.stdout[0]['id']
 
     def _get_production_id(self):
-        """Get organization id"""
+        """Get available product id after uploading manifest"""
         result = Product.list({'organization-id': self.org_id}, per_page=False)
 
         if result.return_code != 0:
@@ -129,6 +133,7 @@ class StandardPrepTestCase(TestCase):
                 return item['id']
 
     def _get_subscription_id(self):
+        """Utility function to get subscription id after uploading manifest"""
         result = Subscription.list(
             {'organization-id': self.org_id},
             per_page=False
@@ -149,6 +154,7 @@ class StandardPrepTestCase(TestCase):
         return (subscription_id, subscription_name)
 
     def _update_cdn_address(self):
+        """Utility function to update CDN address from given URL"""
         if self.target_url == '':
             raise RuntimeError('Invalid CDN address. Stop!')
 
@@ -166,6 +172,7 @@ class StandardPrepTestCase(TestCase):
             .format(result.stdout['red-hat-repository-url']))
 
     def _enable_repositories(self):
+        """Utility function to retrieve enabled repositories"""
         for i, repo in enumerate(self.repository_list):
             repo_id = repo[0]
             basearch = repo[1]

@@ -28,7 +28,7 @@ class Candlepin(object):
     password = conf.properties['foreman.admin.password']
     serverhost = conf.properties['main.server.hostname']
 
-    @classmethod
+    @staticmethod
     def get_real_time(result):
         """Parse stderr and extract out real time value
 
@@ -45,36 +45,36 @@ class Candlepin(object):
         return float(real_time[0].split(' ')[1])
 
     @classmethod
-    def single_register_activation_key(cls, ak_name, default_org, vm):
+    def single_register_activation_key(cls, ak_name, default_org, vm_ip):
         """Subscribe VM to Satellite by Register + ActivationKey"""
 
         # note: must create ssh keys for vm if running on local
-        result = ssh.command('subscription-manager clean', hostname=vm)
+        result = ssh.command('subscription-manager clean', hostname=vm_ip)
         result = ssh.command(
             'time -p subscription-manager register --activationkey={0} '
             '--org={1}'.format(ak_name, default_org),
-            hostname=vm
+            hostname=vm_ip
         )
 
         if result.return_code != 0:
-            LOGGER.error('Fail to subscribe {} by ak!'.format(vm))
+            LOGGER.error('Fail to subscribe {} by ak!'.format(vm_ip))
         else:
-            LOGGER.info('Subscribe client {} successfully'.format(vm))
+            LOGGER.info('Subscribe client {} successfully'.format(vm_ip))
         return cls.get_real_time(result.stderr)
 
     @classmethod
-    def single_register_attach(cls, sub_id, default_org, environment, vm):
+    def single_register_attach(cls, sub_id, default_org, environment, vm_ip):
         """Subscribe VM to Satellite by Register + Attach"""
-        ssh.command('subscription-manager clean', hostname=vm)
+        ssh.command('subscription-manager clean', hostname=vm_ip)
 
         time_reg = cls.sub_mgr_register_authentication(
-            default_org, environment, vm)
+            default_org, environment, vm_ip)
 
-        time_att = cls.sub_mgr_attach(sub_id, vm)
+        time_att = cls.sub_mgr_attach(sub_id, vm_ip)
         return (time_reg, time_att)
 
     @classmethod
-    def sub_mgr_register_authentication(cls, default_org, environment, vm):
+    def sub_mgr_register_authentication(cls, default_org, environment, vm_ip):
         """subscription-manager register -u -p --org --environment"""
         result = ssh.command(
             'time -p subscription-manager register --username={0} '
@@ -82,27 +82,29 @@ class Candlepin(object):
             '--org={2} '
             '--environment={3}'
             .format(cls.username, cls.password, default_org, environment),
-            hostname=vm
+            hostname=vm_ip
         )
 
         if result.return_code != 0:
-            LOGGER.error('Fail to register client {} by sub-mgr!'.format(vm))
+            LOGGER.error(
+                'Fail to register client {} by sub-mgr!'.format(vm_ip)
+            )
         else:
-            LOGGER.info('Register client {} successfully'.format(vm))
+            LOGGER.info('Register client {} successfully'.format(vm_ip))
         return cls.get_real_time(result.stderr)
 
     @classmethod
-    def sub_mgr_attach(cls, pool_id, vm):
+    def sub_mgr_attach(cls, pool_id, vm_ip):
         """subscription-manager attach --pool=pool_id"""
         result = ssh.command(
             'time -p subscription-manager attach --pool={}'.format(pool_id),
-            hostname=vm
+            hostname=vm_ip
         )
 
         if result.return_code != 0:
-            LOGGER.error('Fail to attach client {}'.format(vm))
+            LOGGER.error('Fail to attach client {}'.format(vm_ip))
         else:
-            LOGGER.info('Attach client {} successfully'.format(vm))
+            LOGGER.info('Attach client {} successfully'.format(vm_ip))
         return cls.get_real_time(result.stderr)
 
     @classmethod
