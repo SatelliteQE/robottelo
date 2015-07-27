@@ -54,13 +54,12 @@ class PermissionsTestCase(APITestCase):
         """
         failures = {}
         for permission_name in self.permission_names:
-            result = entities.Permission(name=permission_name).search()
-            length = len(result)
-            name = result[0]['name'] if length > 0 else None
-            if length != 1 or permission_name != name:
+            results = entities.Permission(name=permission_name).search()
+            if (len(results) != 1 or
+                    len(results) == 1 and results[0].name != permission_name):
                 failures[permission_name] = {
-                    'length': len(result),
-                    'returned_name': name,
+                    'length': len(results),
+                    'returned_names': [result.name for result in results]
                 }
 
         if failures:
@@ -82,7 +81,7 @@ class PermissionsTestCase(APITestCase):
                 continue
             perm_group = entities.Permission(
                 resource_type=resource_type).search()
-            permissions = set([perm['name'] for perm in perm_group])
+            permissions = {perm.name for perm in perm_group}
             expected_permissions = set(self.permissions[resource_type])
             added = tuple(permissions - expected_permissions)
             removed = tuple(expected_permissions - permissions)
@@ -106,9 +105,9 @@ class PermissionsTestCase(APITestCase):
         @assert: Search returns a list of all expected permissions
 
         """
-        permissions = entities.Permission().search()
-        names = set([perm['name'] for perm in permissions])
-        resource_types = set([perm['resource_type'] for perm in permissions])
+        permissions = entities.Permission().search(query={'per_page': 1000})
+        names = {perm.name for perm in permissions}
+        resource_types = {perm.resource_type for perm in permissions}
         expected_names = set(self.permission_names)
         expected_resource_types = set(self.permission_resource_types)
 
@@ -200,11 +199,7 @@ class UserRoleTestCase(APITestCase):
 
         """
         role = entities.Role().create()
-        permissions = [
-            entities.Permission(id=permission['id'])
-            for permission
-            in entities.Permission(name=perm_name).search()
-        ]
+        permissions = entities.Permission(name=perm_name).search()
         self.assertEqual(len(permissions), 1)
         entities.Filter(permission=permissions, role=role).create()
         self.user.role = [role]

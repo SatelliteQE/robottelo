@@ -782,11 +782,9 @@ class EntityReadTestCase(APITestCase):
         name and resource_type fields are populated
 
         """
-        attrs = entities.Permission().search(per_page=1)[0]
-        read_entity = entities.Permission(id=attrs['id']).read()
-        self.assertIsInstance(read_entity, entities.Permission)
-        self.assertGreater(len(read_entity.name), 0)
-        self.assertGreater(len(read_entity.resource_type), 0)
+        perm = entities.Permission().search(query={'per_page': 1})[0]
+        self.assertGreater(len(perm.name), 0)
+        self.assertGreater(len(perm.resource_type), 0)
 
     def test_media_read(self):
         """@Test: Create a media pointing at an OS and read the media.

@@ -28,12 +28,10 @@ class FilterTestCase(APITestCase):
 
         """
         # Create a filter and assign all ConfigTemplate permissions to it.
-        filter_ = entities.Filter(
-            permission=[permission['id'] for permission in self.ct_perms]
-        ).create()
+        filter_ = entities.Filter(permission=self.ct_perms).create()
         self.assertListEqual(
             [perm.id for perm in filter_.permission],
-            [perm['id'] for perm in self.ct_perms],
+            [perm.id for perm in self.ct_perms],
         )
 
     def test_directly_delete_filter(self):
@@ -44,9 +42,7 @@ class FilterTestCase(APITestCase):
         @Feature: Filter
 
         """
-        filter_ = entities.Filter(
-            permission=[permission['id'] for permission in self.ct_perms],
-        ).create()
+        filter_ = entities.Filter(permission=self.ct_perms).create()
         filter_.delete()
         with self.assertRaises(HTTPError):
             filter_.read()
@@ -60,10 +56,7 @@ class FilterTestCase(APITestCase):
 
         """
         role = entities.Role().create()
-        filter_ = entities.Filter(
-            permission=[permission['id'] for permission in self.ct_perms],
-            role=role,
-        ).create()
+        filter_ = entities.Filter(permission=self.ct_perms, role=role).create()
 
         # A filter depends on a role. Deleting a role implicitly deletes the
         # filter pointing at it.

@@ -70,21 +70,16 @@ class HostGroupTestCase(APITestCase):
         # Get all environments for current organization.
         # We have two environments (one created after publishing and one more
         # was created after promotion), so we need to select promoted one
-        response = client.get(
-            entities.Environment().path(),
-            auth=get_server_credentials(),
-            data={u'organization_id': org.id},
-            verify=False,
+        environments = entities.Environment().search(
+            query={'organization_id': org.id}
         )
-        response.raise_for_status()
-        results = response.json()['results']
-        self.assertEqual(len(results), 2)
-        env_id = None
-        for result in results:
-            if result['name'] == env_name:
-                env_id = result['id']
-                break
-        environment = entities.Environment(id=env_id).read()
+        self.assertEqual(len(environments), 2)
+        environments = [
+            environment for environment in environments
+            if environment.name == env_name
+        ]
+        self.assertEqual(len(environments), 1)
+        environment = environments[0].read()
 
         # Create a host group and it dependencies.
         mac = entity_fields.MACAddressField().gen_value()

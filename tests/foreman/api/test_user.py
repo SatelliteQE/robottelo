@@ -6,10 +6,9 @@ tested can be found here: http://theforeman.org/api/apidoc/v2/users.html
 """
 import ddt
 from fauxfactory import gen_string
-from nailgun import client, entities
+from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
-from robottelo.common.helpers import get_server_credentials
 from robottelo.common import decorators
 from robottelo.test import APITestCase
 
@@ -92,14 +91,8 @@ class UserRoleTestCase(APITestCase):
     def setUpClass(cls):
         """Create two roles and fetch the 'Anonymous' role."""
         cls.roles = [entities.Role().create() for _ in range(2)]
-        response = client.get(
-            entities.Role().path(),
-            auth=get_server_credentials(),
-            data={'search': 'name=Anonymous'},
-            verify=False,
-        )
-        response.raise_for_status()
-        cls.anon_role = entities.Role(id=response.json()['results'][0]['id'])
+        roles = entities.Role().search(query={'search': 'name="Anonymous"'})
+        cls.anon_role = roles[0]
 
     def test_create_with_role(self):
         """@Test: Create a user with the ``role`` attribute.

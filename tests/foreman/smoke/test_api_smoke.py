@@ -14,11 +14,7 @@ from robottelo.common.constants import (
     REPOSET,
 )
 from robottelo.common.decorators import bz_bug_is_open, skip_if_bug_open
-from robottelo.common.helpers import (
-    get_distro_info,
-    get_nailgun_config,
-    get_server_credentials,
-)
+from robottelo.common.helpers import get_distro_info, get_nailgun_config
 from robottelo.common import conf
 from robottelo.common import helpers
 from robottelo.common import manifests
@@ -746,10 +742,11 @@ class TestSmoke(TestCase):
         @Assert: 'Default Organization' is found
 
         """
-        query = 'name="{0}"'.format(DEFAULT_ORG)
-        results = self._search(entities.Organization, query)
+        results = entities.Organization().search(
+            query={'search': 'name="{0}"'.format(DEFAULT_ORG)}
+        )
         self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]['name'], DEFAULT_ORG)
+        self.assertEqual(results[0].name, DEFAULT_ORG)
 
     def test_find_default_location(self):
         """@Test: Check if 'Default Location' is present
@@ -759,10 +756,11 @@ class TestSmoke(TestCase):
         @Assert: 'Default Location' is found
 
         """
-        query = 'name="{0}"'.format(DEFAULT_LOC)
-        results = self._search(entities.Location, query)
+        results = entities.Location().search(
+            query={'search': 'name="{0}"'.format(DEFAULT_LOC)}
+        )
         self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]['name'], DEFAULT_LOC)
+        self.assertEqual(results[0].name, DEFAULT_LOC)
 
     def test_find_admin_user(self):
         """@Test: Check if Admin User is present
@@ -772,9 +770,9 @@ class TestSmoke(TestCase):
         @Assert: Admin User is found and has Admin role
 
         """
-        results = self._search(entities.User, 'login=admin')
+        results = entities.User().search(query={'search': 'login=admin'})
         self.assertEqual(len(results), 1)
-        self.assertEqual(results[0]['login'], 'admin')
+        self.assertEqual(results[0].login, 'admin')
 
     def test_ping(self):
         """@Test: Check if all services are running
@@ -784,13 +782,8 @@ class TestSmoke(TestCase):
         @Assert: Overall and individual services status should be 'ok'.
 
         """
-        response = client.get(
-            entities.Ping().path(),
-            auth=get_server_credentials(),
-            verify=False,
-        )
-        response.raise_for_status()
-        self.assertEqual(response.json()['status'], u'ok')  # overall status
+        response = entities.Ping().search_json()
+        self.assertEqual(response['status'], u'ok')  # overall status
 
         # Check that all services are OK. ['services'] is in this format:
         #
@@ -799,7 +792,7 @@ class TestSmoke(TestCase):
         #    u'candlepin_auth': {u'duration_ms': u'41', u'status': u'ok'},
         #    …
         # }, u'status': u'ok'}
-        services = response.json()['services']
+        services = response['services']
         self.assertTrue(
             all([service['status'] == u'ok' for service in services.values()]),
             u'Not all services seem to be up and running!'
@@ -963,35 +956,6 @@ class TestSmoke(TestCase):
             domain=domain,
             subnet=subnet
         ).create()
-
-    def _search(self, entity, query, auth=None):
-        """Performs a GET ``api/v2/<entity>`` and specify the ``search``
-        parameter.
-
-        :param entity: A ``nailgun.entity_mixins.Entity`` object.
-        :param string query: A ``search`` parameter.
-        :param tuple auth: A ``tuple`` containing the credentials to be used
-            for authentication when accessing the API. If ``None``,
-            credentials are automatically read from
-            :func:`robottelo.common.helpers.get_server_credentials`.
-        :return: A ``list`` of found entity dicts or an empty list if nothing
-            found
-        :rtype: list
-
-        """
-        # Use the server credentials if None are provided
-        if auth is None:
-            auth = get_server_credentials()
-
-        path = entity().path()
-        response = client.get(
-            path,
-            auth=auth,
-            data={u'search': query},
-            verify=False,
-        )
-        response.raise_for_status()
-        return response.json()['results']
 
     def test_end_to_end(self):
         """@Test: Perform end to end smoke tests using RH repos.

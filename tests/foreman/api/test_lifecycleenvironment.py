@@ -1,13 +1,11 @@
 """Unit tests for the ``environments`` paths.
 
-Each ``TestCase`` subclass tests a single URL. A full list of URLs to be tested
-can be found here: http://theforeman.org/api/apidoc/v2/environments.html
+Documentation for these paths is available here:
+http://www.katello.org/docs/api/apidoc/lifecycle_environments.html
 
 """
-import httplib
-from nailgun import client, entities
+from nailgun import entities
 from robottelo.common.decorators import run_only_on
-from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
 
 
@@ -16,20 +14,25 @@ class LifecycleEnvironmentTestCase(APITestCase):
     """Tests for ``katello/api/v2/environments``."""
 
     def test_get_all(self):
-        """@Test: Get ``katello/api/v2/environments`` and specify just an
-        organization ID.
+        """@Test: Search for a lifecycle environment and specify an org ID.
 
         @Feature: LifecycleEnvironment
 
-        @Assert: HTTP 200 is returned with an ``application/json`` content-type
+        @Steps:
+
+        1. Create an organization.
+        1. Create a lifecycle environment belonging to the organization.
+        2. Search for lifecycle environments in the organization.
+
+        @Assert: Only "Library" and the lifecycle environment just created are
+        in the search results.
 
         """
         org = entities.Organization().create()
-        response = client.get(
-            entities.LifecycleEnvironment().path(),
-            auth=get_server_credentials(),
-            data={u'organization_id': org.id},
-            verify=False,
+        lc_env = entities.LifecycleEnvironment(organization=org).create()
+        lc_envs = lc_env.search({'organization'})
+        self.assertEqual(len(lc_envs), 2)
+        self.assertEqual(
+            {lc_env_.name for lc_env_ in lc_envs},
+            {u'Library', lc_env.name},
         )
-        self.assertEqual(response.status_code, httplib.OK)
-        self.assertIn('application/json', response.headers['content-type'])

@@ -1,8 +1,6 @@
 """Unit tests for the ``gpgkeys`` paths."""
-import httplib
-from nailgun import client, entities
+from nailgun import entities
 from robottelo.common.decorators import run_only_on
-from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
 
 
@@ -11,20 +9,22 @@ class GPGKeyTestCase(APITestCase):
     """Tests for ``katello/api/v2/gpg_keys``."""
 
     def test_get_all(self):
-        """@Test: Get ``katello/api/v2/gpg_keys`` and specify just an
-        organization ID.
+        """@Test: Search for a GPG key and specify just ``organization_id``.
 
         @Feature: GPGKey
 
-        @Assert: HTTP 200 is returned with an ``application/json`` content-type
+        @Steps:
+
+        1. Create an organization.
+        1. Create a GPG key belonging to the organization.
+        2. Search for GPG keys in the organization.
+
+        @Assert: Only one GPG key is in the search results: the created GPG
+        key.
 
         """
         org = entities.Organization().create()
-        response = client.get(
-            entities.GPGKey().path(),
-            auth=get_server_credentials(),
-            data={u'organization_id': org.id},
-            verify=False,
-        )
-        self.assertEqual(response.status_code, httplib.OK)
-        self.assertIn('application/json', response.headers['content-type'])
+        gpg_key = entities.GPGKey(organization=org).create()
+        gpg_keys = gpg_key.search({'organization'})
+        self.assertEqual(len(gpg_keys), 1)
+        self.assertEqual(gpg_key.id, gpg_keys[0].id)

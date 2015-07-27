@@ -173,16 +173,13 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organization
 
         """
-        name = entities.Organization().create().name
-        response = client.get(
-            entities.Organization().path(),
-            auth=get_server_credentials(),
-            data={u'name': name},
-            verify=False,
+        org = entities.Organization().create()
+        orgs = entities.Organization().search(
+            query={u'search': u'name="{0}"'.format(org.name)}
         )
-        response.raise_for_status()
-        results = response.json()['results']
-        self.assertGreaterEqual(len(results), 1)
+        self.assertEqual(len(orgs), 1)
+        self.assertEqual(orgs[0].id, org.id)
+        self.assertEqual(orgs[0].name, org.name)
 
 
 @ddt.ddt
