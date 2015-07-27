@@ -659,6 +659,7 @@ class TestContentViewsUI(UITestCase):
                     'selected view is composite'
                 )
 
+    @skip_if_bug_open('bugzilla', 1232270)
     def test_cv_associate_composite_dupe_repos_negative(self):
         """@test: attempt to associate the same repo multiple times within a
         content view
