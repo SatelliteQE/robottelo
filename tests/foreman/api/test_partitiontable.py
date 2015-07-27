@@ -5,12 +5,17 @@ http://theforeman.org/api/apidoc/v2/ptables.html
 
 """
 from ddt import ddt
-from fauxfactory import gen_string
+from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
 from robottelo.common.constants import OPERATING_SYSTEMS
 from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.common.helpers import (
+    generate_strings_list,
+    invalid_values_list,
+    valid_data_list,
+)
 from robottelo.test import APITestCase
 
 
@@ -40,14 +45,7 @@ class PartitionTableTestCase(APITestCase):
         ptable = entities.PartitionTable(name=name).create()
         self.assertEqual(ptable.name, name)
 
-    @data(
-        gen_string('alphanumeric', randint(1, 255)),
-        gen_string('alpha', randint(1, 255)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 255)),
-        gen_string('numeric', randint(1, 255)),
-        gen_string('utf8', randint(1, 85)),
-    )
+    @data(*generate_strings_list(len1=gen_integer(4, 30)))
     def test_create_ptable_with_different_names(self, name):
         """@Test: Create new partition tables using different inputs as a name
 
@@ -59,14 +57,7 @@ class PartitionTableTestCase(APITestCase):
         ptable = entities.PartitionTable(name=name).create()
         self.assertEqual(ptable.name, name)
 
-    @data(
-        gen_string('alphanumeric', randint(1, 255)),
-        gen_string('alpha', randint(1, 255)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 255)),
-        gen_string('numeric', randint(1, 255)),
-        gen_string('utf8', randint(1, 85)),
-    )
+    @data(*valid_data_list())
     def test_create_ptable_with_different_layouts(self, layout):
         """@Test: Create new partition tables using different inputs as a
         layout
@@ -92,17 +83,7 @@ class PartitionTableTestCase(APITestCase):
         ptable = entities.PartitionTable(os_family=os_family).create()
         self.assertEqual(ptable.os_family, os_family)
 
-    @data(
-        '',
-        ' ',
-        gen_string('alphanumeric', 300),
-        gen_string('alpha', 300),
-        gen_string('cjk', 300),
-        gen_string('latin1', 300),
-        gen_string('numeric', 300),
-        gen_string('utf8', 300),
-        gen_string('html', 300),
-    )
+    @data(*invalid_values_list())
     def test_create_ptable_with_different_names_negative(self, name):
         """@Test: Try to create partition table using invalid names only
 
@@ -143,14 +124,7 @@ class PartitionTableTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             ptable.read()
 
-    @data(
-        gen_string('alphanumeric', randint(1, 255)),
-        gen_string('alpha', randint(1, 255)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 255)),
-        gen_string('numeric', randint(1, 255)),
-        gen_string('utf8', randint(1, 85)),
-    )
+    @data(*generate_strings_list(len1=gen_integer(4, 30)))
     def test_update_ptable_with_new_name(self, new_name):
         """@Test: Update partition tables with new name
 
@@ -163,14 +137,7 @@ class PartitionTableTestCase(APITestCase):
         ptable.name = new_name
         self.assertEqual(ptable.update(['name']).name, new_name)
 
-    @data(
-        gen_string('alphanumeric', randint(1, 255)),
-        gen_string('alpha', randint(1, 255)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 255)),
-        gen_string('numeric', randint(1, 255)),
-        gen_string('utf8', randint(1, 85)),
-    )
+    @data(*valid_data_list())
     def test_update_ptable_with_new_layout(self, new_layout):
         """@Test: Update partition table with new layout
 
@@ -199,17 +166,7 @@ class PartitionTableTestCase(APITestCase):
         ptable.os_family = new_os_family
         self.assertEqual(ptable.update(['os_family']).os_family, new_os_family)
 
-    @data(
-        '',
-        ' ',
-        gen_string('alphanumeric', 300),
-        gen_string('alpha', 300),
-        gen_string('cjk', 300),
-        gen_string('latin1', 300),
-        gen_string('numeric', 300),
-        gen_string('utf8', 300),
-        gen_string('html', 300),
-    )
+    @data(*invalid_values_list())
     def test_update_ptable_with_new_name_negative(self, new_name):
         """@Test: Try to update partition table using invalid names only
 
