@@ -4,6 +4,7 @@
 from nailgun import entities
 from fauxfactory import gen_string
 from robottelo.common import conf
+from robottelo.common.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.common import manifests
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.session import Session
@@ -26,61 +27,27 @@ class RHAITestCase(UITestCase):
             name='insights_{0}'.format(gen_string('alpha', 6))
         ).create()
 
-        # Create new lifecycle environment
-        lifecycle_env = entities.LifecycleEnvironment(
-            name='rhai_env_{0}'.format(gen_string('alpha', 6)),
-            organization=org,
-        ).create()
-
         # Upload manifest
         org.upload_manifest(path=manifests.clone())
 
-        # Create a custom product for RHAI
-        custom_product = entities.Product(
-            name='rhai_product_{0}'.format(gen_string('alpha', 6)),
-            organization=org,
-        ).create()
-
-        # Add insights repo to the custom product
-        custom_repo = entities.Repository(
-            content_type=u'yum',
-            name=u'insights_repo_{0}'.format(gen_string('alpha', 6)),
-            product=custom_product,
-            url=u'http://access.redhat.com/insights/repo/6/',
-        ).create()
-
-        # Sync custom repository
-        custom_repo.sync()
-
-        # Create content view
-        content_view = entities.ContentView(
-            name='rhai_cv_{0}'.format(gen_string('alpha', 6)),
-            organization=org,
-        ).create()
-
-        # Associate custom repository to new content view
-        content_view.set_repository_ids([custom_repo.id])
-
-        # Publish content view
-        content_view.publish()
-
-        # Promote content view to lifecycle_env
-        content_view = content_view.read()
-        self.assertEqual(len(content_view.version), 1)
-        content_view.version[0].promote(lifecycle_env.id)
-
-        # Create activation key
+        # Create activation key using default CV and library environment
         activation_key = entities.ActivationKey(
             auto_attach=True,
-            content_view=content_view,
-            environment=lifecycle_env,
+            content_view=org.default_content_view.id,
+            environment=org.library.id,
             name=gen_string('alpha'),
             organization=org,
         ).create()
 
+        # step 7.1: Walk through the list of subscriptions.
+        # Find the "Red Hat Employee Subscription" and attach it to the
+        # recently-created activation key.
         for subscription in org.subscriptions():
-            # Attach custom product subscription to the activation key
-            if subscription['product_name'] == custom_product.name:
+            if subscription['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
+                # 'quantity' must be 1, not subscription['quantity']. Greater
+                # values produce this error: "RuntimeError: Error: Only pools
+                # with multi-entitlement product subscriptions can be added to
+                # the activation key with a quantity greater than one."
                 activation_key.add_subscriptions({
                     'quantity': 1,
                     'subscription_id': subscription['id'],
