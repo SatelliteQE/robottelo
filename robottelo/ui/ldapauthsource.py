@@ -6,7 +6,7 @@ from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
-class LdapAuth(Base):
+class LdapAuthSource(Base):
     """Implements CRUD functions from UI."""
 
     def create(self, name=None, server=None, ldaps=False, port=None,

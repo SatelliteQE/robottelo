@@ -118,6 +118,11 @@
 
 .. automodule:: tests.foreman.ui.test_ldap_auth
 
+:mod:`tests.foreman.ui.test_ldapauthsource`
+-------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_ldapauthsource
+
 :mod:`tests.foreman.ui.test_location`
 -------------------------------------
 

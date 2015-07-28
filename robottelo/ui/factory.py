@@ -33,7 +33,7 @@ from robottelo.ui.template import Template
 from robottelo.ui.trend import Trend
 from robottelo.ui.user import User
 from robottelo.ui.usergroup import UserGroup
-from robottelo.ui.ldapusergroups import LdapAuth
+from robottelo.ui.ldapauthsource import LdapAuthSource
 
 
 def core_factory(create_args, kwargs, session, page, org=None, loc=None,
@@ -333,7 +333,10 @@ def make_usergroup(session, org=None, loc=None, force_context=True, **kwargs):
 
     create_args = {
         u'name': None,
-        u'users': None
+        u'users': None,
+        u'roles': None,
+        u'ext_usergrp': None,
+        u'ext_authsourceid': None,
     }
     page = session.nav.go_to_user_groups
     core_factory(create_args, kwargs, session, page,
@@ -603,4 +606,4 @@ def make_ldapauth(session, **kwargs):
     }
     page = session.nav.go_to_ldap_auth
     core_factory(create_args, kwargs, session, page)
-    LdapAuth(session.browser).create(**create_args)
+    LdapAuthSource(session.browser).create(**create_args)
