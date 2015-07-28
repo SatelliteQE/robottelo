@@ -5,10 +5,7 @@ import bugzilla
 import logging
 import random
 import requests
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
+import unittest
 
 from ddt import data as ddt_data
 from functools import wraps

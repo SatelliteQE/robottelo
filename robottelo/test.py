@@ -9,10 +9,7 @@ import logging
 import os
 import signal
 import sys
-try:
-    import unittest
-except ImportError:
-    import unittest2 as unittest
+import unittest
 
 from automation_tools import product_install
 from datetime import datetime
