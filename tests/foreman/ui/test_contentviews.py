@@ -1235,6 +1235,7 @@ class TestContentViewsUI(UITestCase):
             session.nav.go_to_select_org(org.name)
             session.nav.go_to_content_views()
             self.content_views.delete_version(cv.name, version)
+            self.content_views.check_progress_bar_status(version)
             self.content_views.validate_version_deleted(cv.name, version)
 
     def test_delete_version_non_default(self):
@@ -1267,6 +1268,7 @@ class TestContentViewsUI(UITestCase):
             session.nav.go_to_select_org(org.name)
             session.nav.go_to_content_views()
             self.content_views.delete_version(cv.name, version)
+            self.content_views.check_progress_bar_status(version)
             self.content_views.validate_version_deleted(cv.name, version)
 
     def test_delete_version_with_ak(self):
