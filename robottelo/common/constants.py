@@ -98,6 +98,7 @@ FILTER = {
     'user_org': 'user_organization',
     'user_role': 'user_role',
     'usergroup_user': 'usergroup_user',
+    'usergroup_role': "usergroup_role",
 }
 
 RESOURCE_DEFAULT = 'Bare Metal'
@@ -603,9 +604,9 @@ TREND_TYPES = {
 }
 
 LDAP_SERVER_TYPE = {
-    'ipa': 'FreeIPA',
-    'ad': 'Active Directory',
-    'posix': 'POSIX',
+    'ipa': 'free_ipa',
+    'ad': 'active_directory',
+    'posix': 'posix',
 }
 
 LDAP_ATTR = {

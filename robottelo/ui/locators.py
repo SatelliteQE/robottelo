@@ -572,6 +572,12 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'account')]"),
     "ldapserver.tab_attributes": (
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'attributes')]"),
+
+    # UserGroups
+    "usergroups.tab_roles": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'roles')]"),
+    "usergroups.tab_external": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'external')]"),
 })
 
 common_locators = LocatorDict({
@@ -697,6 +703,9 @@ locators = LocatorDict({
     "login.username": (By.ID, "login_login"),
     "login.password": (By.ID, "login_password"),
     "login.gravatar": (By.XPATH, "//img[contains(@class, 'avatar')]"),
+    "login.loggedin": (
+        By.XPATH,
+        "//a[@id='account_menu' and contains(., '%s')]"),
 
     # Organizations
     "org.new": (
@@ -978,6 +987,20 @@ locators = LocatorDict({
     "usergroups.usergroup": (By.XPATH, "//a[contains(., '%s')]"),
     "usergroups.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "usergroups.admin": (
+        By.ID, "usergroup_admin"),
+    "usergroups.addexternal_usergrp": (
+        By.XPATH, "//a[@data-association='external_usergroups']"),
+    "usergroups.ext_usergroup_name": (
+        By.XPATH,
+        ("//input[not(contains(@id, 'new_external_usergroups')) and "
+         "contains(@name, 'name') and contains(@id, "
+         "'external_usergroups_attributes_new')]")),
+    "usergroups.ext_authsource_id": (
+        By.XPATH,
+        ("//select[not(contains(@id, 'new_external_usergroups')) and "
+         "contains(@name, 'auth_source_id') and contains(@id, "
+         "'external_usergroups_attributes_new')]")),
 
     # Roles
     "roles.new": (By.XPATH, "//a[contains(@href, '/roles/new')]"),
@@ -1948,10 +1971,13 @@ locators = LocatorDict({
         By.XPATH, "//a[@data-confirm='Delete %s?']"),
     "ldapserver.ldap_servername": (
         By.XPATH, "//a[contains(@href, 'edit') and contains(@href, '%s')]"),
+    "ldapserver.refresh": (
+        By.XPATH,
+        ("//td[contains(.,'foobargroup')]/../td/"
+         "a[contains(@data-id, 'refresh')]")),
 
     # Red Hat Access Insights locators
     "insights.registered_systems": (
         By.XPATH,
         ("//div[@class='system-summary']/p")),
-
 })
