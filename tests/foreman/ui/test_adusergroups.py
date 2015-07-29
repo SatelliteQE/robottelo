@@ -22,8 +22,8 @@ class ADUserGroups(UITestCase):
     ldap_user_passwd = conf.properties['main.ldap.passwd']
     base_dn = conf.properties['main.ldap.basedn']
     group_base_dn = conf.properties['main.ldap.grpbasedn']
-    usergroup_name = gen_string("alpha")
-    usergroup_name2 = gen_string("alpha")
+    usergroup_name = gen_string('alpha')
+    usergroup_name2 = gen_string('alpha')
 
     @classmethod
     def setUpClass(cls):  # noqa
@@ -38,10 +38,10 @@ class ADUserGroups(UITestCase):
             attr_login=LDAP_ATTR['login_ad'],
             server_type=LDAP_SERVER_TYPE['ad'],
             attr_mail=LDAP_ATTR['mail'],
-            name=gen_string("alpha", 8),
+            name=gen_string('alpha'),
             host=conf.properties['main.ldap.hostname'],
             tls=False,
-            port="389",
+            port='389',
         ).create()
         cls.ldap_server_name = authsource_attrs.name
         super(ADUserGroups, cls).setUpClass()
@@ -55,8 +55,8 @@ class ADUserGroups(UITestCase):
                 self.usergroup.delete(self.usergroup_name2, True)
             set_context(session, org=ANY_CONTEXT['org'])
             session.nav.go_to_users()
-            if self.user.search(self.ldap_user_name, "login"):
-                self.user.delete(self.ldap_user_name, "login", True)
+            if self.user.search(self.ldap_user_name, 'login'):
+                self.user.delete(self.ldap_user_name, 'login', True)
         super(ADUserGroups, self).tearDown()
 
     def test_adusergroup_admin_role(self):
@@ -80,9 +80,9 @@ class ADUserGroups(UITestCase):
             make_usergroup(
                 session,
                 name=self.usergroup_name,
-                roles=["admin"],
-                ext_usergrp="foobargroup",
-                ext_authsourceid="LDAP-" + self.ldap_server_name,
+                roles=['admin'],
+                ext_usergrp='foobargroup',
+                ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
         with Session(
@@ -111,8 +111,8 @@ class ADUserGroups(UITestCase):
         access foreman entities as per roles.
         """
         strategy, value = locators['login.loggedin']
-        foreman_role = gen_string("alpha")
-        location_name = gen_string("alpha")
+        foreman_role = gen_string('alpha')
+        location_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_role(session, name=foreman_role)
             self.role.update(
@@ -125,7 +125,7 @@ class ADUserGroups(UITestCase):
                 session,
                 name=self.usergroup_name,
                 roles=[foreman_role],
-                ext_usergrp="foobargroup",
+                ext_usergrp='foobargroup',
                 ext_authsourceid="LDAP-" + self.ldap_server_name,
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
@@ -158,8 +158,8 @@ class ADUserGroups(UITestCase):
 
         """
         strategy, value = locators['login.loggedin']
-        katello_role = gen_string("alpha")
-        org_name = gen_string("alpha")
+        katello_role = gen_string('alpha')
+        org_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_role(session, name=katello_role)
             self.role.update(
@@ -172,8 +172,8 @@ class ADUserGroups(UITestCase):
                 session,
                 name=self.usergroup_name,
                 roles=[katello_role],
-                ext_usergrp="foobargroup",
-                ext_authsourceid="LDAP-" + self.ldap_server_name,
+                ext_usergrp='foobargroup',
+                ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
         with Session(
@@ -204,9 +204,9 @@ class ADUserGroups(UITestCase):
             make_usergroup(
                 session,
                 name=self.usergroup_name,
-                roles=["admin"],
-                ext_usergrp="foobargroup",
-                ext_authsourceid="LDAP-" + self.ldap_server_name,
+                roles=['admin'],
+                ext_usergrp='foobargroup',
+                ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
 
@@ -231,16 +231,16 @@ class ADUserGroups(UITestCase):
                 session,
                 name=self.usergroup_name,
                 roles=['admin'],
-                ext_usergrp="foobargroup",
-                ext_authsourceid="LDAP-" + self.ldap_server_name,
+                ext_usergrp='foobargroup',
+                ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
             make_usergroup(
                 session,
                 name=self.usergroup_name2,
                 roles=['admin'],
-                ext_usergrp="foobargroup",
-                ext_authsourceid="LDAP-" + self.ldap_server_name,
+                ext_usergrp='foobargroup',
+                ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
             self.assertIsNone(self.usergroup.search(self.usergroup_name2))
 
@@ -263,8 +263,8 @@ class ADUserGroups(UITestCase):
                 session,
                 name=self.usergroup_name,
                 roles=['admin'],
-                ext_usergrp=gen_string("alpha"),
-                ext_authsourceid="LDAP-" + self.ldap_server_name,
+                ext_usergrp=gen_string('alpha'),
+                ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
             self.assertIsNone(self.usergroup.search(self.usergroup_name))
 
@@ -312,10 +312,10 @@ class ADUserGroups(UITestCase):
 
         """
         strategy, value = locators['login.loggedin']
-        foreman_role = gen_string("alpha")
-        katello_role = gen_string("alpha")
-        org_name = gen_string("alpha")
-        loc_name = gen_string("alpha")
+        foreman_role = gen_string('alpha')
+        katello_role = gen_string('alpha')
+        org_name = gen_string('alpha')
+        loc_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_role(session, name=foreman_role)
             self.role.update(
@@ -328,8 +328,8 @@ class ADUserGroups(UITestCase):
                 session,
                 name=self.usergroup_name,
                 roles=[foreman_role],
-                ext_usergrp="foobargroup",
-                ext_authsourceid="LDAP-" + self.ldap_server_name,
+                ext_usergrp='foobargroup',
+                ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
         with Session(
@@ -368,7 +368,7 @@ class ADUserGroups(UITestCase):
             self.assertIsNotNone(self.login.wait_until_element(
                 (strategy, value % self.ldap_user_name)
             ))
-            make_org(session, name=org_name)
+            make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
 
     def test_external_adusergroup_roles_delete(self):
@@ -392,7 +392,7 @@ class ADUserGroups(UITestCase):
 
         """
         strategy, value = locators['login.loggedin']
-        foreman_role = gen_string("alpha")
+        foreman_role = gen_string('alpha')
         with Session(self.browser) as session:
             make_role(session, name=foreman_role)
             self.role.update(
@@ -405,8 +405,8 @@ class ADUserGroups(UITestCase):
                 session,
                 name=self.usergroup_name,
                 roles=[foreman_role],
-                ext_usergrp="foobargroup",
-                ext_authsourceid="LDAP-" + self.ldap_server_name,
+                ext_usergrp='foobargroup',
+                ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
         with Session(
@@ -440,7 +440,6 @@ class ADUserGroups(UITestCase):
                 menu_locators['loc.manage_loc']
             ))
 
-    @stubbed()
     def test_external_adUserGroup_additional_user_roles(self):
         """@test: Assure that user has roles/can access feature areas for
         additional roles assigned outside any roles assigned by his group
@@ -464,9 +463,64 @@ class ADUserGroups(UITestCase):
         UserGroup but those additional feature areas / roles assigned
         specifically to user
 
-        @status: Manual
-
         """
+        strategy, value = locators['login.loggedin']
+        foreman_role = gen_string('alpha')
+        katello_role = gen_string('alpha')
+        org_name = gen_string('alpha')
+        loc_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_role(session, name=foreman_role)
+            self.role.update(
+                foreman_role,
+                add_permission=True,
+                permission_list=PERMISSIONS['Location'],
+                resource_type='Location',
+            )
+            make_usergroup(
+                session,
+                name=self.usergroup_name,
+                roles=[foreman_role],
+                ext_usergrp='foobargroup',
+                ext_authsourceid='LDAP-' + self.ldap_server_name,
+            )
+            self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+        with Session(
+            self.browser,
+            self.ldap_user_name,
+            self.ldap_user_passwd,
+        ) as session:
+            self.assertIsNotNone(self.login.wait_until_element(
+                (strategy, value % self.ldap_user_name)
+            ))
+            make_loc(session, name=loc_name)
+            self.assertIsNotNone(self.location.search(loc_name))
+        with Session(self.browser) as session:
+            make_role(session, name=katello_role)
+            self.role.update(
+                katello_role,
+                add_permission=True,
+                permission_list=PERMISSIONS['Organization'],
+                resource_type='Organization',
+            )
+            session.nav.go_to_users()
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.user.update(
+                'login',
+                self.ldap_user_name,
+                new_roles=[katello_role],
+                select=True,
+            )
+        with Session(
+            self.browser,
+            self.ldap_user_name,
+            self.ldap_user_passwd,
+        ) as session:
+            self.assertIsNotNone(self.login.wait_until_element(
+                (strategy, value % self.ldap_user_name)
+            ))
+            make_org(session, org_name=org_name)
+            self.assertIsNotNone(self.org.search(org_name))
 
     @stubbed()
     def test_external_adUserGroup_user_add(self):
