@@ -5,7 +5,6 @@ import unittest
 
 from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_string
-from nailgun.entities import Organization
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -22,6 +21,7 @@ from robottelo.common import manifests
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.puppetmodule import PuppetModule
+from robottelo.cli.subscription import Subscription
 from robottelo.common.constants import FAKE_0_PUPPET_REPO, NOT_IMPLEMENTED
 from robottelo.common.decorators import (
     data,
@@ -29,6 +29,7 @@ from robottelo.common.decorators import (
     skip_if_bug_open,
     stubbed,
 )
+from robottelo.common.ssh import upload_file
 from robottelo.test import CLITestCase
 
 
@@ -89,11 +90,13 @@ class TestContentView(CLITestCase):
 
         TestContentView.rhel_content_org = make_org()
         manifest = manifests.clone()
-        Organization(
-            id=TestContentView.rhel_content_org['id']
-        ).upload_manifest(manifest)
+        upload_file(manifest)
+        Subscription.upload({
+            'file': manifest,
+            'organization-id': TestContentView.rhel_content_org['id'],
+        })
 
-        result = RepositorySet.enable({
+        RepositorySet.enable({
             'name': (
                 'Red Hat Enterprise Virtualization Agents '
                 'for RHEL 6 Workstation (RPMs)'

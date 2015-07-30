@@ -138,7 +138,9 @@ class RepositorySetsTestCase(APITestCase):
 
         """
         org = entities.Organization().create()
-        org.upload_manifest(path=manifests.clone())
+        sub = entities.Subscription()
+        with open(manifests.clone(), 'rb') as manifest:
+            sub.upload({'organization_id': org.id}, manifest)
         prd_id = entities.Product().fetch_rhproduct_id(
             name=PRDS['rhel'],
             org_id=org.id,
@@ -170,7 +172,9 @@ class RepositorySetsTestCase(APITestCase):
 
         """
         org = entities.Organization().create()
-        org.upload_manifest(path=manifests.clone())
+        sub = entities.Subscription()
+        with open(manifests.clone(), 'rb') as manifest:
+            sub.upload({'organization_id': org.id}, manifest)
         prd_id = entities.Product().fetch_rhproduct_id(
             name=PRDS['rhel'],
             org_id=org.id,

@@ -95,7 +95,7 @@ class ActivationKey(UITestCase):
         env_attrs = entities.LifecycleEnvironment(
             name=env_name,
             organization=org_id or self.org_id
-        ).create_json()
+        ).create()
         # Create content view(CV)
         content_view = entities.ContentView(
             name=name,
@@ -127,7 +127,7 @@ class ActivationKey(UITestCase):
         cv_version = entities.ContentViewVersion(id=results[0]['id'])
 
         # Promote the content view version.
-        cv_version.promote(environment_id=env_attrs['id'])
+        cv_version.promote({u'environment_id': env_attrs.id})
 
     @data(*valid_data_list())
     def test_positive_create_activation_key_1(self, name):
@@ -882,8 +882,9 @@ class ActivationKey(UITestCase):
             'releasever': '6Server',
         }
         org = entities.Organization().create()
-        manifest_path = manifests.clone()
-        org.upload_manifest(path=manifest_path)
+        sub = entities.Subscription()
+        with open(manifests.clone(), 'rb') as manifest:
+            sub.upload({'organization_id': org.id}, manifest)
         repo1_id = self.enable_sync_redhat_repo(rh_repo1, org.id)
         self.cv_publish_promote(cv1_name, env1_name, repo1_id, org.id)
         repo2_id = self.enable_sync_redhat_repo(rh_repo2, org.id)
@@ -1183,8 +1184,9 @@ class ActivationKey(UITestCase):
         org_attrs = entities.Organization().create_json()
         org_id = org_attrs['id']
         # Upload manifest
-        manifest_path = manifests.clone()
-        entities.Organization(id=org_id).upload_manifest(path=manifest_path)
+        sub = entities.Subscription()
+        with open(manifests.clone(), 'rb') as manifest:
+            sub.upload({'organization_id': org_id}, manifest)
         # Helper function to create and promote CV to next environment
         repo_id = self.enable_sync_redhat_repo(rh_repo, org_id=org_id)
         self.cv_publish_promote(cv_name, env_name, repo_id, org_id)
@@ -1287,8 +1289,9 @@ class ActivationKey(UITestCase):
         ).create_json()
         custom_repo_id = repo_attrs['id']
         # Upload manifest
-        manifest_path = manifests.clone()
-        entities.Organization(id=org_id).upload_manifest(path=manifest_path)
+        sub = entities.Subscription()
+        with open(manifests.clone(), 'rb') as manifest:
+            sub.upload({'organization_id': org_id}, manifest)
         # Enable RH repo and fetch repository_id
         rhel_repo_id = utils.enable_rhrepo_and_fetchid(
             rh_repo['basearch'],
@@ -1332,19 +1335,20 @@ class ActivationKey(UITestCase):
 
         """
         # Upload manifest
-        manifest_path = manifests.clone()
         org = entities.Organization().create()
-        org.upload_manifest(path=manifest_path)
+        sub = entities.Subscription(organization=org)
+        with open(manifests.clone(), 'rb') as manifest:
+            sub.upload({'organization_id': org.id}, manifest)
         # Create activation key
         activation_key = entities.ActivationKey(
             organization=org.id,
         ).create()
         # Associate a manifest to the activation key
-        for subscription in org.subscriptions():
-            if subscription['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
+        for subs in sub.search():
+            if subs.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
                 activation_key.add_subscriptions({
                     'quantity': 1,
-                    'subscription_id': subscription['id'],
+                    'subscription_id': subs.id,
                 })
                 break
         with Session(self.browser) as session:

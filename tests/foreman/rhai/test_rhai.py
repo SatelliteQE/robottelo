@@ -21,7 +21,9 @@ class RHAITestCase(UITestCase):
         ).create()
 
         # Upload manifest
-        org.upload_manifest(path=manifests.clone())
+        sub = entities.Subscription(organization=org)
+        with open(manifests.clone(), 'rb') as manifest:
+            sub.upload({'organization_id': org.id}, manifest)
 
         # Create activation key using default CV and library environment
         activation_key = entities.ActivationKey(
@@ -35,15 +37,15 @@ class RHAITestCase(UITestCase):
         # Walk through the list of subscriptions.
         # Find the "Red Hat Employee Subscription" and attach it to the
         # recently-created activation key.
-        for subscription in org.subscriptions():
-            if subscription['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
+        for subs in sub.search():
+            if subs.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
                 # 'quantity' must be 1, not subscription['quantity']. Greater
                 # values produce this error: "RuntimeError: Error: Only pools
                 # with multi-entitlement product subscriptions can be added to
                 # the activation key with a quantity greater than one."
                 activation_key.add_subscriptions({
                     'quantity': 1,
-                    'subscription_id': subscription['id'],
+                    'subscription_id': subs.id,
                 })
                 break
         cls.org_label = org.label
