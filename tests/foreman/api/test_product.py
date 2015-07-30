@@ -141,20 +141,16 @@ class RepositorySetsTestCase(APITestCase):
         sub = entities.Subscription()
         with open(manifests.clone(), 'rb') as manifest:
             sub.upload({'organization_id': org.id}, manifest)
-        prd_id = entities.Product().fetch_rhproduct_id(
+        product = entities.Product(
             name=PRDS['rhel'],
-            org_id=org.id,
-        )
-        product = entities.Product(id=prd_id)
-        reposet_id = product.fetch_reposet_id(name=REPOSET['rhva6'])
-        product.enable_rhrepo(
-            base_arch='x86_64',
-            release_ver='6Server',
-            reposet_id=reposet_id,
-        )
-        repositories = product.repository_sets_available_repositories(
-            reposet_id=reposet_id,
-        )
+            organization=org,
+        ).search()[0]
+        reposet = entities.RepositorySet(
+            name=REPOSET['rhva6'],
+            product=product,
+        ).search()[0]
+        reposet.enable({'basearch': 'x86_64', 'releasever': '6Server'})
+        repositories = reposet.available_repositories()
         self.assertTrue([
             repo['enabled']
             for repo
@@ -175,25 +171,17 @@ class RepositorySetsTestCase(APITestCase):
         sub = entities.Subscription()
         with open(manifests.clone(), 'rb') as manifest:
             sub.upload({'organization_id': org.id}, manifest)
-        prd_id = entities.Product().fetch_rhproduct_id(
+        product = entities.Product(
             name=PRDS['rhel'],
-            org_id=org.id,
-        )
-        product = entities.Product(id=prd_id)
-        reposet_id = product.fetch_reposet_id(name=REPOSET['rhva6'])
-        product.enable_rhrepo(
-            base_arch='x86_64',
-            release_ver='6Server',
-            reposet_id=reposet_id,
-        )
-        product.disable_rhrepo(
-            base_arch='x86_64',
-            release_ver='6Server',
-            reposet_id=reposet_id,
-        )
-        repositories = product.repository_sets_available_repositories(
-            reposet_id=reposet_id,
-        )
+            organization=org,
+        ).search()[0]
+        reposet = entities.RepositorySet(
+            name=REPOSET['rhva6'],
+            product=product,
+        ).search()[0]
+        reposet.enable({'basearch': 'x86_64', 'releasever': '6Server'})
+        reposet.disable({'basearch': 'x86_64', 'releasever': '6Server'})
+        repositories = reposet.available_repositories()
         self.assertFalse([
             repo['enabled']
             for repo

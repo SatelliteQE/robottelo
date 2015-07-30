@@ -79,12 +79,13 @@ class ActivationKey(UITestCase):
         """Enable the RedHat repo, sync it and returns repo_id"""
         # Enable RH repo and fetch repository_id
         repo_id = utils.enable_rhrepo_and_fetchid(
-            rh_repo['basearch'],
-            org_id or self.org_id,
-            rh_repo['product'],
-            rh_repo['name'],
-            rh_repo['reposet'],
-            rh_repo['releasever'])
+            basearch=rh_repo['basearch'],
+            org_id=org_id or self.org_id,
+            product=rh_repo['product'],
+            repo=rh_repo['name'],
+            reposet=rh_repo['reposet'],
+            releasever=rh_repo['releasever'],
+        )
         # Sync repository
         entities.Repository(id=repo_id).sync()
         return repo_id
@@ -1294,12 +1295,12 @@ class ActivationKey(UITestCase):
             sub.upload({'organization_id': org_id}, manifest)
         # Enable RH repo and fetch repository_id
         rhel_repo_id = utils.enable_rhrepo_and_fetchid(
-            rh_repo['basearch'],
-            org_id,
-            rh_repo['product'],
-            rh_repo['name'],
-            rh_repo['reposet'],
-            rh_repo['releasever']
+            basearch=rh_repo['basearch'],
+            org_id=org_id,
+            product=rh_repo['product'],
+            repo=rh_repo['name'],
+            reposet=rh_repo['reposet'],
+            releasever=rh_repo['releasever'],
         )
         # Sync repository
         for repo_id in [rhel_repo_id, custom_repo_id]:

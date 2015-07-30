@@ -75,13 +75,13 @@ class TestContentViewsUI(UITestCase):
                 sub.upload({'organization_id': org_id}, manifest)
             # Enables the RedHat repo and fetches it's Id.
             repo_id = utils.enable_rhrepo_and_fetchid(
-                rh_repo['basearch'],
-                str(org_id),  # Org Id is passed as data in API hence str
-                rh_repo['product'],
-                rh_repo['name'],
-                rh_repo['reposet'],
-                rh_repo['releasever'])
-            repo_name = rh_repo['name']
+                basearch=rh_repo['basearch'],
+                org_id=str(org_id),  # OrgId is passed as data in API hence str
+                product=rh_repo['product'],
+                repo=rh_repo['name'],
+                reposet=rh_repo['reposet'],
+                releasever=rh_repo['releasever'],
+            )
 
         # Sync repository
         entities.Repository(id=repo_id).sync()

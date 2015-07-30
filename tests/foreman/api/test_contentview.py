@@ -314,7 +314,7 @@ class CVPublishPromoteTestCase(APITestCase):
         ).create()
         cls.puppet_repo.sync()
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
-            cls.puppet_repo.upload_content(handle)
+            cls.puppet_repo.upload_content({'content': handle})
 
     def add_content_views_to_composite(self, composite_cv, cv_amount=1):
         """Add necessary number of content views to the composite one
