@@ -74,7 +74,7 @@ def create_object(cli_object, options, values):
     Creates <object> with dictionary of arguments.
 
     :param cli_object: A valid CLI object.
-    :param dict options: The defaults options accepted by the cli_object
+    :param dict options: The default options accepted by the cli_object
         create
     :param dict values: Custom values to override default ones.
     :raise robottelo.cli.factory.CLIFactoryError: Raise an exception if object
