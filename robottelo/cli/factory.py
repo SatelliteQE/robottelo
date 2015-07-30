@@ -1823,7 +1823,6 @@ def setup_org_for_a_rh_repo(options=None):
         u'name': options.get('repository-set', None),
         u'organization-id': org_id,
         u'product': options.get('product', None),
-        u'releasever': '7Server',
         u'basearch': 'x86_64',
     })
     if result.return_code != 0:

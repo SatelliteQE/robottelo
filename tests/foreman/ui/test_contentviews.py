@@ -482,7 +482,7 @@ class TestContentViewsUI(UITestCase):
             'product': PRDS['rhel'],
             'reposet': REPOSET['rhst7'],
             'basearch': 'x86_64',
-            'releasever': '7Server',
+            'releasever': None,
         }
         # Create new org to import manifest
         org_attrs = entities.Organization().create_json()
@@ -544,7 +544,7 @@ class TestContentViewsUI(UITestCase):
             'product': PRDS['rhel'],
             'reposet': REPOSET['rhst7'],
             'basearch': 'x86_64',
-            'releasever': '7Server',
+            'releasever': None
         }
         # Create new org to import manifest
         org_attrs = entities.Organization().create_json()
@@ -714,7 +714,7 @@ class TestContentViewsUI(UITestCase):
             'product': PRDS['rhel'],
             'reposet': REPOSET['rhst7'],
             'basearch': 'x86_64',
-            'releasever': '7Server',
+            'releasever': None,
         }
         env_name = gen_string("alpha", 8)
         publish_version = "Version 1"
@@ -839,7 +839,7 @@ class TestContentViewsUI(UITestCase):
             'product': PRDS['rhel'],
             'reposet': REPOSET['rhst7'],
             'basearch': 'x86_64',
-            'releasever': '7Server',
+            'releasever': None,
         }
         # Create new org to import manifest
         org_attrs = entities.Organization().create_json()
