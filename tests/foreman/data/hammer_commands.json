@@ -1315,10 +1315,22 @@
                   "value": "BASE_DN"
                 },
                 {
+                  "help": "groups base DN",
+                  "name": "groups-base",
+                  "shortname": null,
+                  "value": "GROUPS_BASE"
+                },
+                {
                   "help": "",
                   "name": "host",
                   "shortname": null,
                   "value": "HOST"
+                },
+                {
+                  "help": "LDAP filter",
+                  "name": "ldap-filter",
+                  "shortname": null,
+                  "value": "LDAP_FILTER"
                 },
                 {
                   "help": "",
@@ -1337,6 +1349,12 @@
                   "name": "port",
                   "shortname": null,
                   "value": "PORT"
+                },
+                {
+                  "help": "type of the LDAP server",
+                  "name": "server-type",
+                  "shortname": null,
+                  "value": "SERVER_TYPE"
                 },
                 {
                   "help": "One of true/false, yes/no, 1/0.",
@@ -1481,6 +1499,12 @@
                   "value": "BASE_DN"
                 },
                 {
+                  "help": "groups base DN",
+                  "name": "groups-base",
+                  "shortname": null,
+                  "value": "GROUPS_BASE"
+                },
+                {
                   "help": "",
                   "name": "host",
                   "shortname": null,
@@ -1491,6 +1515,12 @@
                   "name": "id",
                   "shortname": null,
                   "value": "ID"
+                },
+                {
+                  "help": "LDAP filter",
+                  "name": "ldap-filter",
+                  "shortname": null,
+                  "value": "LDAP_FILTER"
                 },
                 {
                   "help": "Name to search by",
@@ -1515,6 +1545,12 @@
                   "name": "port",
                   "shortname": null,
                   "value": "PORT"
+                },
+                {
+                  "help": "type of the LDAP server",
+                  "name": "server-type",
+                  "shortname": null,
+                  "value": "SERVER_TYPE"
                 },
                 {
                   "help": "One of true/false, yes/no, 1/0.",
@@ -5427,6 +5463,12 @@
                   "value": "AUTHOR"
                 },
                 {
+                  "help": "Field to sort the results on",
+                  "name": "by",
+                  "shortname": null,
+                  "value": "BY"
+                },
+                {
                   "help": "Content view name",
                   "name": "content-view",
                   "shortname": null,
@@ -5439,10 +5481,22 @@
                   "value": "CONTENT_VIEW_ID"
                 },
                 {
+                  "help": "Whether or not to show all results One of true/false, yes/no, 1/0.",
+                  "name": "full-results",
+                  "shortname": null,
+                  "value": "FULL_RESULTS"
+                },
+                {
                   "help": "name of the puppet module",
                   "name": "name",
                   "shortname": null,
                   "value": "NAME"
+                },
+                {
+                  "help": "Sort field and order, eg. 'name DESC'",
+                  "name": "order",
+                  "shortname": null,
+                  "value": "ORDER"
                 },
                 {
                   "help": "Organization name to search by",
@@ -5461,6 +5515,24 @@
                   "name": "organization-label",
                   "shortname": null,
                   "value": "ORGANIZATION_LABEL"
+                },
+                {
+                  "help": "Page number, starting at 1",
+                  "name": "page",
+                  "shortname": null,
+                  "value": "PAGE"
+                },
+                {
+                  "help": "Number of results per page to return",
+                  "name": "per-page",
+                  "shortname": null,
+                  "value": "PER_PAGE"
+                },
+                {
+                  "help": "Search string",
+                  "name": "search",
+                  "shortname": null,
+                  "value": "SEARCH"
                 },
                 {
                   "help": "the uuid of the puppet module to associate",
@@ -5995,16 +6067,16 @@
                   "value": null
                 },
                 {
+                  "help": "IDs of content hosts to update Comma separated list of values.",
+                  "name": "content-host-ids",
+                  "shortname": null,
+                  "value": "CONTENT_HOST_IDS"
+                },
+                {
                   "help": "Content view version number",
                   "name": "content-view-version",
                   "shortname": null,
                   "value": "CONTENT_VIEW_VERSION_VERSION"
-                },
-                {
-                  "help": "Comma separated list of values.",
-                  "name": "content-view-version-environments",
-                  "shortname": null,
-                  "value": "CONTENT_VIEW_VERSION_ENVIRONMENTS"
                 },
                 {
                   "help": "Content view version identifier",
@@ -6035,18 +6107,6 @@
                   "name": "errata-ids",
                   "shortname": null,
                   "value": "ERRATA_IDS"
-                },
-                {
-                  "help": "ID of a content view version to incrementally update",
-                  "name": "id",
-                  "shortname": null,
-                  "value": "ID"
-                },
-                {
-                  "help": "List of system ids to perform an action on Comma separated list of values.",
-                  "name": "ids",
-                  "shortname": null,
-                  "value": "IDS"
                 },
                 {
                   "help": "a package identifier Comma separated list of values.",
@@ -7692,6 +7752,85 @@
                   "shortname": null,
                   "value": "SEARCH"
                 },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            }
+          ]
+        },
+        {
+          "description": "Manage docker registries",
+          "name": "registry",
+          "options": [
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": [
+            {
+              "description": "",
+              "name": "create",
+              "options": [
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "",
+              "name": "delete",
+              "options": [
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "",
+              "name": "info",
+              "options": [
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "",
+              "name": "list",
+              "options": [
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "",
+              "name": "update",
+              "options": [
                 {
                   "help": "print help",
                   "name": "help",
@@ -21619,6 +21758,49 @@
       ],
       "subcommands": [
         {
+          "description": "List tasks",
+          "name": "list",
+          "options": [
+            {
+              "help": "Field to sort the results on",
+              "name": "by",
+              "shortname": null,
+              "value": "BY"
+            },
+            {
+              "help": "Sort field and order, eg. 'name DESC'",
+              "name": "order",
+              "shortname": null,
+              "value": "ORDER"
+            },
+            {
+              "help": "Page number, starting at 1",
+              "name": "page",
+              "shortname": null,
+              "value": "PAGE"
+            },
+            {
+              "help": "Number of results per page to return",
+              "name": "per-page",
+              "shortname": null,
+              "value": "PER_PAGE"
+            },
+            {
+              "help": "Search string",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
           "description": "Show the progress of the task",
           "name": "progress",
           "options": [
@@ -21633,6 +21815,37 @@
               "name": "name",
               "shortname": null,
               "value": "NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Resume all tasks paused in error state",
+          "name": "resume",
+          "options": [
+            {
+              "help": "Resume tasks matching search string",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "Comma separated list of values.",
+              "name": "task-ids",
+              "shortname": null,
+              "value": "TASK_IDS"
+            },
+            {
+              "help": "Comma separated list of values.",
+              "name": "tasks",
+              "shortname": null,
+              "value": "TASK_NAMES"
             },
             {
               "help": "print help",
