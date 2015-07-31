@@ -53,12 +53,14 @@ provisioning_server=
 image_dir=/opt/robottelo/images
 
 [docker]
-# Internal docker URL in the format http[s]://<server>:<port>. The
+# External docker URL in the format http[s]://<server>:<port>. The
 # {server_hostname} variable can be used and will be replaced by
 # main.server.hostname value.
-internal_url=http://localhost:2375
-# External docker URL in the format http[s]://<server>:<port>.
-external_url=
+# An external docker is a docker daemon accessed using http, for testing
+# purposes accessing localhost via http will be the same as accessing an
+# external instance. Make sure that the target daemon can be accessed via http,
+# in other words, the daemon is initialized with `--host tcp://0.0.0.0:<port>`.
+external_url=http://localhost:2375
 
 [foreman]
 admin.username=admin
