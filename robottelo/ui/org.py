@@ -25,52 +25,52 @@ class Org(Base):
 
         if users or new_users:
             self.configure_entity(users, FILTER['org_user'],
-                                  tab_locator=loc["context.tab_users"],
+                                  tab_locator=loc['context.tab_users'],
                                   new_entity_list=new_users,
                                   entity_select=select)
         if proxies or new_proxies:
             self.configure_entity(proxies, FILTER['org_proxy'],
-                                  tab_locator=loc["context.tab_sm_prx"],
+                                  tab_locator=loc['context.tab_sm_prx'],
                                   new_entity_list=new_proxies,
                                   entity_select=select)
         if subnets or new_subnets:
             self.configure_entity(subnets, FILTER['org_subnet'],
-                                  tab_locator=loc["context.tab_subnets"],
+                                  tab_locator=loc['context.tab_subnets'],
                                   new_entity_list=new_subnets,
                                   entity_select=select)
         if resources or new_resources:
             self.configure_entity(resources, FILTER['org_resource'],
-                                  tab_locator=loc["context.tab_resources"],
+                                  tab_locator=loc['context.tab_resources'],
                                   new_entity_list=new_resources,
                                   entity_select=select)
         if medias or new_medias:
             self.configure_entity(medias, FILTER['org_media'],
-                                  tab_locator=loc["context.tab_media"],
+                                  tab_locator=loc['context.tab_media'],
                                   new_entity_list=new_medias,
                                   entity_select=select)
         if templates or new_templates:
             self.configure_entity(templates, FILTER['org_template'],
-                                  tab_locator=loc["context.tab_template"],
+                                  tab_locator=loc['context.tab_template'],
                                   new_entity_list=new_templates,
                                   entity_select=select)
         if domains or new_domains:
             self.configure_entity(domains, FILTER['org_domain'],
-                                  tab_locator=loc["context.tab_domains"],
+                                  tab_locator=loc['context.tab_domains'],
                                   new_entity_list=new_domains,
                                   entity_select=select)
         if envs or new_envs:
             self.configure_entity(envs, FILTER['org_envs'],
-                                  tab_locator=loc["context.tab_env"],
+                                  tab_locator=loc['context.tab_env'],
                                   new_entity_list=new_envs,
                                   entity_select=select)
         if hostgroups or new_hostgroups:
             self.configure_entity(hostgroups, FILTER['org_hostgroup'],
-                                  tab_locator=loc["context.tab_hostgrps"],
+                                  tab_locator=loc['context.tab_hostgrps'],
                                   new_entity_list=new_hostgroups,
                                   entity_select=select)
         if locations or new_locations:
             self.configure_entity(hostgroups, FILTER['org_location'],
-                                  tab_locator=loc["context.tab_locations"],
+                                  tab_locator=loc['context.tab_locations'],
                                   new_entity_list=new_locations,
                                   entity_select=select)
 
@@ -79,23 +79,18 @@ class Org(Base):
                medias=None, templates=None, domains=None, envs=None,
                hostgroups=None, locations=None, select=True):
         """Create Organization in UI."""
-        new_org_locator = self.wait_until_element(locators["org.new"])
-        if new_org_locator is None:
-            raise UINoSuchElementError(
-                'Unable to create the Organization {0}'.format(org_name))
-        new_org_locator.click()
+        self.click(locators['org.new'])
         if parent_org:
-            type_ele = self.wait_until_element(locators["org.parent"])
-            Select(type_ele).select_by_visible_text(parent_org)
-        if self.wait_until_element(locators["org.name"]):
-            self.field_update("org.name", org_name)
+            type_element = self.wait_until_element(locators['org.parent'])
+            Select(type_element).select_by_visible_text(parent_org)
+        if self.wait_until_element(locators['org.name']):
+            self.field_update('org.name', org_name)
         if label:
-            self.field_update("org.label", label)
+            self.field_update('org.label', label)
         if desc:
-            self.field_update("org.desc", desc)
-        self.wait_until_element(common_locators["submit"]).click()
-        self.wait_for_ajax()
-        edit_locator = self.wait_until_element(locators["org.proceed_to_edit"])
+            self.field_update('org.desc', desc)
+        self.click(common_locators['submit'])
+        edit_locator = self.wait_until_element(locators['org.proceed_to_edit'])
         if edit_locator:
             edit_locator.click()
             self._configure_org(users=users, proxies=proxies,
@@ -104,14 +99,13 @@ class Org(Base):
                                 domains=domains, envs=envs,
                                 hostgroups=hostgroups, locations=locations,
                                 select=select)
-            self.wait_until_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
+            self.click(common_locators['submit'])
 
     def search(self, name):
         """Searches existing Organization from UI."""
         Navigator(self.browser).go_to_org()
         self.wait_for_ajax()
-        element = self.search_entity(name, locators["org.org_name"])
+        element = self.search_entity(name, locators['org.org_name'])
         return element
 
     def update(self, org_name, new_parent_org=None, new_name=None, users=None,
@@ -131,13 +125,13 @@ class Org(Base):
         org_object.click()
         self.wait_for_ajax()
         if new_name:
-            if self.wait_until_element(locators["org.name"]):
-                self.field_update("org.name", new_name)
+            if self.wait_until_element(locators['org.name']):
+                self.field_update('org.name', new_name)
         if new_parent_org:
-            type_ele = self.find_element(locators["org.parent"])
-            Select(type_ele).select_by_visible_text(new_parent_org)
+            type_element = self.find_element(locators['org.parent'])
+            Select(type_element).select_by_visible_text(new_parent_org)
         if new_desc:
-            self.field_update("org.desc", new_desc)
+            self.field_update('org.desc', new_desc)
         self._configure_org(
             users=users, proxies=proxies,
             subnets=subnets, resources=resources,
@@ -157,21 +151,16 @@ class Org(Base):
             new_hostgroups=new_hostgroups,
             select=select,
         )
-        self.wait_until_element(common_locators["submit"]).click()
-        self.wait_for_ajax()
+        self.click(common_locators['submit'])
 
-    def remove(self, org_name, really):
+    def remove(self, org_name, really=True):
         """Remove Organization in UI."""
         searched = self.search(org_name)
         if searched is None:
             raise UINoSuchElementError(
                 u'Could not search the entity {0}'.format(org_name))
-        strategy, value = locators["org.dropdown"]
-        self.wait_until_element((strategy, value % org_name)).click()
+        strategy, value = locators['org.dropdown']
+        self.click((strategy, value % org_name))
         strategy1, value1 = locators['org.delete']
-        element = self.wait_until_element((strategy1, value1 % org_name))
-        if element is None:
-            raise UINoSuchElementError(
-                u'Could not select entity {0} for deletion.'.format(org_name))
-        element.click()
+        self.click((strategy1, value1 % org_name), wait_for_ajax=False)
         self.handle_alert(really)
