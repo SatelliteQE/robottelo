@@ -16,7 +16,6 @@ FOREMAN_PROVIDERS = {
     'docker': 'Docker',
 }
 
-DOCKER_RESOURCE_URL = 'http://%s:2375'
 LIBVIRT_RESOURCE_URL = 'qemu+tcp://%s:16509/system'
 
 

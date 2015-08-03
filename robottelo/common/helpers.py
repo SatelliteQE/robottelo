@@ -134,22 +134,27 @@ def get_nailgun_config():
 
 
 def get_internal_docker_url():
-    """Returns the docker internal server url config
+    """Use the unix socket connection to the local docker daemon. Make sure
+    that your Satellite server's docker is configured to allow foreman user
+    accessing it. This can be done by::
 
-    If the variable ``{server_hostname}`` is found in the string, it will be
-    replaced by ``main.server.hostname`` from the config file.
+        $ groupadd docker
+        $ usermod -aG docker foreman
+        # Add -G docker to the options for the docker daemon
+        $ systemctl restart docker
+        $ katello-service restart
 
     """
-    internal_url = conf.properties.get('docker.internal_url')
-    if internal_url is not None:
-        internal_url = internal_url.format(
-            server_hostname=conf.properties['main.server.hostname'])
-    return internal_url
+    return 'unix:///var/run/docker.sock'
 
 
 def get_external_docker_url():
     """Returns the docker external server url config"""
-    return conf.properties.get('docker.external_url')
+    external_url = conf.properties.get('docker.external_url')
+    if external_url is not None:
+        external_url = external_url.format(
+            server_hostname=conf.properties['main.server.hostname'])
+    return external_url
 
 
 def get_distro_info():
