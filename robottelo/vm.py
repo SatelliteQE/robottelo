@@ -20,6 +20,7 @@ from robottelo.common.helpers import get_server_cert_rpm_url
 BASE_IMAGES = (
     'rhel65',
     'rhel66',
+    'rhel67',
     'rhel70',
     'rhel71',
 )
