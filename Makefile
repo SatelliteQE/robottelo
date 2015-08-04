@@ -41,6 +41,7 @@ test-docstrings:
 	testimony validate_docstring tests/foreman/cli
 	testimony validate_docstring tests/foreman/rhci
 	testimony validate_docstring tests/foreman/ui
+	testimony validate_docstring tests/foreman/rhai
 
 test-robottelo:
 	$$(which nosetests) $(ROBOTTELO_TESTS_PATH)

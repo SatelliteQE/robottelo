@@ -6,9 +6,10 @@ from fauxfactory import gen_string
 from robottelo.common import conf
 from robottelo.common.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.common import manifests
+from robottelo.test import UITestCase
+from robottelo.ui.locators import locators
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.session import Session
-from robottelo.test import UITestCase
 from robottelo.vm import VirtualMachine
 
 
@@ -98,3 +99,26 @@ class RHAITestCase(UITestCase):
             Navigator(self.browser).go_to_insights_systems()
             result = self.rhai.view_registered_systems()
             self.assertIn("1", result, 'Registered clients are not listed')
+
+    def test_org_selection_for_rhai(self):
+        """@Test:- Verify that user attempting to access RHAI is directed to
+        select an Organization if there is no organization selected
+
+        @Feature: In order to use Access Insights, user must select an
+        organization
+
+        @Assert: 'Organization Selection Required' message must be displayed if
+        the user tries to view Access Insights overview without selecting an
+        org
+
+        """
+
+        with Session(self.browser) as session:
+            # Given that the user does not specify any Organization
+            session.nav.go_to_select_org("Any Organization")
+            session.nav.go_to_insights_overview()
+
+            # 'Organization Selection Required' message must be present
+            result = session.nav.wait_until_element(
+                locators['insights.org_selection_msg']).text
+            self.assertIn("Organization Selection Required", result)

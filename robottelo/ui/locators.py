@@ -1980,4 +1980,7 @@ locators = LocatorDict({
     "insights.registered_systems": (
         By.XPATH,
         ("//div[@class='system-summary']/p")),
+    "insights.org_selection_msg": (
+        By.ID, "content"),
+
 })
