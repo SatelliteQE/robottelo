@@ -3,26 +3,18 @@
 
 from nailgun import entities
 from fauxfactory import gen_string
-from robottelo.common import conf
 from robottelo.common.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.common import manifests
 from robottelo.test import UITestCase
 from robottelo.ui.locators import locators
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.session import Session
-from robottelo.vm import VirtualMachine
 
 
 class RHAITestCase(UITestCase):
-    def test_rhai_client_setup(self):
-        """@Test: Check for client registration to redhat-access-insights
-        service.
 
-        @Feature: RHEL client registration to rhai
-
-        @Assert: Registered client should appear in the Systems sub-menu of Red
-        Hat Access Insights
-        """
+    @classmethod
+    def setUpClass(cls):  # noqa
         # Create a new organization with prefix 'insights'
         org = entities.Organization(
             name='insights_{0}'.format(gen_string('alpha', 6))
@@ -40,7 +32,7 @@ class RHAITestCase(UITestCase):
             organization=org,
         ).create()
 
-        # step 7.1: Walk through the list of subscriptions.
+        # Walk through the list of subscriptions.
         # Find the "Red Hat Employee Subscription" and attach it to the
         # recently-created activation key.
         for subscription in org.subscriptions():
@@ -54,54 +46,37 @@ class RHAITestCase(UITestCase):
                     'subscription_id': subscription['id'],
                 })
                 break
+        cls.org_label = org.label
+        cls.ak_name = activation_key.name
+        cls.org_name = org.name
 
-        # Create VM
-        with VirtualMachine(distro='rhel66') as vm:
-            # Download and Install ketello-ca rpm
-            vm.install_katello_cert()
-            vm.register_contenthost(activation_key.name, org.label)
+        super(RHAITestCase, cls).setUpClass()
 
-            # Red Hat Access Insights requires RHEL 6/7 repo and it not
-            # possible to sync the repo during the tests,
-            # adding a file in /etc/yum.repos.d/rhel6/7.repo
+    def test_client_registration_to_rhai(self):
+        """@Test: Check for client registration to redhat-access-insights
+        service.
 
-            rhel6_repo = conf.properties.get('insights.rhel6_repo')
+        @Feature: RHEL client registration to rhai
 
-            repo_file = (
-                '[rhel6-rpms]\n'
-                'name=RHEL6\n'
-                'baseurl={0}\n'
-                'enabled=1\n'
-                .format(rhel6_repo)
-            )
+        @Assert: Registered client should appear in the Systems sub-menu of Red
+        Hat Access Insights
 
-            vm.run(
-                'echo "{0}" >> /etc/yum.repos.d/rhel6.repo'
-                .format(repo_file)
-            )
-
-            # Install redhat-access-insights package
-            package_name = 'redhat-access-insights'
-            result = vm.run('yum install -y {0}'.format(package_name))
-            self.assertEqual(result.return_code, 0)
-
-            # Verify if package is installed by query it
-            result = vm.run('rpm -q {0}'.format(package_name))
-            self.assertEqual(result.return_code, 0)
-
-            # Register client with Red Hat Access Insights
-            result = vm.run('redhat-access-insights --register')
-            self.assertEqual(result.return_code, 0)
+        """
+        # Register a VM to Access Insights Service
+        self.rhai.register_client_to_rhai(
+            self.ak_name,
+            self.org_label,
+        )
 
         with Session(self.browser) as session:
             # view clients registered to Red Hat Access Insights
-            session.nav.go_to_select_org(org.name)
+            session.nav.go_to_select_org(self.org_name)
             Navigator(self.browser).go_to_insights_systems()
             result = self.rhai.view_registered_systems()
             self.assertIn("1", result, 'Registered clients are not listed')
 
     def test_org_selection_for_rhai(self):
-        """@Test:- Verify that user attempting to access RHAI is directed to
+        """@Test: Verify that user attempting to access RHAI is directed to
         select an Organization if there is no organization selected
 
         @Feature: In order to use Access Insights, user must select an
@@ -112,7 +87,6 @@ class RHAITestCase(UITestCase):
         org
 
         """
-
         with Session(self.browser) as session:
             # Given that the user does not specify any Organization
             session.nav.go_to_select_org("Any Organization")
