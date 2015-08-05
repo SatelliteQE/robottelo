@@ -23,6 +23,18 @@ from robottelo.performance.constants import(
     DEFAULT_ORG,
     NUM_THREADS,
 )
+from robottelo.performance.graph import(
+    generate_bar_chart_stat,
+    generate_line_chart_bucketized_stat,
+    generate_line_chart_raw,
+    generate_stacked_line_chart_raw
+)
+from robottelo.performance.stat import generate_stat_for_concurrent_thread
+from robottelo.performance.thread import (
+    DeleteThread,
+    SubscribeAKThread,
+    SubscribeAttachThread
+)
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeprofile import ComputeProfile
@@ -64,13 +76,6 @@ from robottelo.ui.user import User
 from robottelo.vm import VirtualMachine
 from selenium_factory.SeleniumFactory import SeleniumFactory
 from selenium import webdriver
-
-from robottelo.performance.stat import generate_stat_for_concurrent_thread
-from robottelo.performance.thread import (
-    DeleteThread,
-    SubscribeAKThread,
-    SubscribeAttachThread
-)
 
 SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
 
@@ -381,12 +386,40 @@ class ConcurrentTestCase(TestCase):
         cls.vm_list = vm_list_string.split(',')
 
     @classmethod
-    def _set_testcase_parameters(cls, savepoint_name,
-                                 raw_file_name, stat_file_name):
+    def _set_testcase_parameters(
+            cls,
+            savepoint_name,
+            raw_file_name,
+            stat_file_name,
+            raw_reg=None,
+            stat_reg=None):
+        """Set file names of raw and statistics .csv output
+
+        Each file name is read from ``robottelo.constants``
+
+        For subscription by activationKey or deletion case, would output:
+
+        1. raw data file for ak/del:  raw_file_name.csv
+        2. stat data file for ak/del: stat_file_name.csv
+
+        For subscription by register and attach case, would output:
+        1. raw data file for register:  reg_raw_file_name.csv
+        2. raw data file for attach:    raw_file_name.csv
+        3. stat data file for register: reg_stat_file_name.csv
+        4. stat data file for attach:   stat_file_name.csv
+
+        That is, set extra filenames for register step;
+        while attach step would still output raw/stat_file_name.csv
+
+        """
         # note: set savepoint empty to continue test without restore
         cls.savepoint = conf.properties.get(savepoint_name, '')
         cls.raw_file_name = raw_file_name
         cls.stat_file_name = stat_file_name
+
+        if raw_reg is not None and stat_reg is not None:
+            cls.reg_raw_file_name = raw_reg
+            cls.reg_stat_file_name = stat_reg
 
     @classmethod
     def _get_organization_id(cls):
@@ -461,9 +494,48 @@ class ConcurrentTestCase(TestCase):
         for thread in thread_list:
             thread.join()
 
-    def _write_raw_csv_file(self, raw_file_name, time_result_dict,
-                            current_num_threads, test_case_name):
-        """Write raw timing ak/del results to csv file"""
+    def _get_output_filename(self, file_name):
+        """Get type of test: ak/att/del/reg as output file name
+
+        Extract type of test cases, thus differentiate output
+        charts and csv files.
+
+        :param str file_name: File name is value of ``self.raw_file_name``
+            or ``self.stat_file_name``. For example:
+            file_name = 'perf-raw-activationKey.csv'
+        :return: file name before dot. For example: 'perf-raw-activationKey'
+        :rtype str
+
+        """
+        split_file_name = file_name.split('.')
+        return split_file_name[0]
+
+    def _write_raw_csv_file(
+            self,
+            raw_file_name,
+            time_result_dict,
+            current_num_threads,
+            test_case_name):
+        """Write raw timing ak/att/del/reg results to csv file
+
+        Common method shared by three test cases:
+
+        1. concurrent subscription by activation key
+        2. concurrent subscription by attatch and register
+        3. concurrent deletion
+
+        Each step (activationKey, attach, delete & register) would output
+        both csv and charts for raw data.
+
+        :param str raw_file_name: The name of output raw csv file. The value
+            is read from ``robottelo.constants`` but set by each test case
+            using function ``_set_testcase_parameters`` defined in this module
+        :param dict time_result_dict: The storage of all 5k timing values
+        :param int current_num_threads: The number of threads/clients
+        :param str test_case_name: The type of test case, set by function
+            ``_get_output_filename`` defined in this module
+
+        """
         self.logger.debug(
             'Timing result is: {}'.format(time_result_dict))
 
@@ -473,97 +545,135 @@ class ConcurrentTestCase(TestCase):
 
             # for each thread, write its head and data
             for i in range(current_num_threads):
-                writer.writerow([
-                    'client-{}'.format(i)
-                ])
+                writer.writerow(['client-{}'.format(i)])
                 writer.writerow(time_result_dict.get('thread-{}'.format(i)))
             writer.writerow([])
 
-    def _write_raw_att_csv_file(self, raw_file_name, time_result_dict,
-                                current_num_threads, test_case_name):
-        """Write raw timing att results to csv file"""
-        self.logger.debug("Timing result is: {}".format(time_result_dict))
-        with open(raw_file_name, 'a') as handler:
-            writer = csv.writer(handler)
-            writer.writerow([test_case_name])
+        # generate line chart of raw data
+        test_category = self._get_output_filename(raw_file_name)
+        generate_line_chart_raw(
+            time_result_dict,
+            'Candlepin Subscription Raw Timings Line Chart - '
+            '({0}-{1}-clients)'
+            .format(test_category, current_num_threads),
+            '{0}-{1}-clients-raw-data-line-chart.svg'
+            .format(test_category, current_num_threads)
+        )
 
-            # for each thread, write its head and data
-            for i in range(current_num_threads):
-                writer.writerow(['client-{}'.format(i)])
-                for index in range(3):
-                    writer.writerow(
-                        time_result_dict.get('thread-{}'.format(i))[index])
-                    writer.writerow([])
+        # generate stacked chart of raw data
+        generate_stacked_line_chart_raw(
+            time_result_dict,
+            'Candlepin Subscription Raw Timings Stacked Line Chart - '
+            '({0}-{1}-clients)'
+            .format(test_category, current_num_threads),
+            '{0}-{1}-clients-raw-data-stacked_line-chart.svg'
+            .format(test_category, current_num_threads)
+        )
 
-    def _write_stat_csv_file(self, stat_file_name, time_result_dict,
-                             current_num_threads, test_case_name, is_attach):
-        """Generate statistical result of concurrent ak/del/att"""
+    def _write_stat_csv_chart(
+            self,
+            stat_file_name,
+            time_result_dict,
+            current_num_threads,
+            test_case_name):
+        """Compute stat of ak/att/del/reg and generate charts
+
+        Common method shared by three test cases:
+
+        1. concurrent subscription by activation key
+        2. concurrent subscription by attatch and register
+        3. concurrent deletion
+
+        Each step (activationKey, attach, delete & register) would compute
+        statistics, generate output as csv files and visualization of
+        charts
+
+        :param str stat_file_name: The name of output csv file. The value
+            is read from ``robottelo.constants`` but set by each test case
+            using function ``_set_testcase_parameters`` defined in this module
+        :param dict time_result_dict: The storage of all 5k timing values
+        :param int current_num_threads: The number of threads/clients
+        :param str test_case_name: The type of test case, set by function
+            ``_get_output_filename`` defined in this module
+
+        """
         with open(stat_file_name, 'a') as handler:
             writer = csv.writer(handler)
             writer.writerow([test_case_name])
 
-            # 1) write stat-per-client-bucketized result of ak/del/att
+            # 1. write stat-per-client-bucketized result of ak/del/att/reg
             writer.writerow(['stat-per-client-bucketized'])
             self._write_stat_per_client_bucketized(
                 stat_file_name,
                 time_result_dict,
                 current_num_threads,
-                is_attach
             )
             writer.writerow([])
 
-            # 2) write stat-per-test-bucketized result of ak/del/att
+            # 2. write stat-per-test-bucketized result of ak/del/att/reg
             writer.writerow(['stat-per-test-bucketized'])
             self._write_stat_per_test_bucketized(
                 stat_file_name,
                 time_result_dict,
-                is_attach)
+            )
             writer.writerow([])
 
-            # 3) write stat-per-client result of ak/del/att
+            # 3. write stat-per-client result of ak/del/att
             writer.writerow(['stat-per-client'])
             self._write_stat_per_client(
                 stat_file_name,
                 time_result_dict,
                 current_num_threads,
-                is_attach)
+            )
             writer.writerow([])
 
-            # 4) write stat-per-test result of ak/del/att
+            # 4. write stat-per-test result of ak/del/att
             writer.writerow(['stat-per-test'])
             self._write_stat_per_test(
                 stat_file_name,
                 time_result_dict,
-                is_attach)
+            )
             writer.writerow([])
 
     def _write_stat_per_client_bucketized(
-            self, stat_file_name,
+            self,
+            stat_file_name,
             time_result_dict,
-            current_num_threads,
-            is_attach):
+            current_num_threads):
         """Write bucketized stat of per-client results to csv file
 
         note: each bucket is a split of a client i
 
         """
+        test_category = self._get_output_filename(stat_file_name)
+
         for i in range(current_num_threads):
-            if is_attach:
-                time_list = time_result_dict.get('thread-{}'.format(i))[2]
-            else:
-                time_list = time_result_dict.get('thread-{}'.format(i))
+            time_list = time_result_dict.get('thread-{}'.format(i))
             thread_name = 'client-{}'.format(i)
-            generate_stat_for_concurrent_thread(
+            stat_dict = generate_stat_for_concurrent_thread(
                 thread_name,
                 time_list,
                 stat_file_name,
                 self.bucket_size,
-                self.num_buckets)
+                self.num_buckets
+            )
+
+            # create line chart with each client being grouped by buckets
+            generate_line_chart_bucketized_stat(
+                stat_dict,
+                'Concurrent Subscription Statistics - per client bucketized: '
+                'Client-{0} by {1}-{2}-clients'
+                .format(i, test_category, current_num_threads),
+                '{0}-client-{1}-bucketized-{2}-clients.svg'
+                .format(test_category, i, current_num_threads),
+                self.bucket_size,
+                self.num_buckets
+            )
 
     def _write_stat_per_test_bucketized(
-            self, stat_file_name,
-            time_result_dict,
-            is_attach):
+            self,
+            stat_file_name,
+            time_result_dict):
         """Write bucketized stat of per-test to csv file
 
         note: each bucket of all clients would merge into a chunk;
@@ -579,63 +689,119 @@ class ConcurrentTestCase(TestCase):
                     [500]...[500]
 
         """
+        # parameters for generating bucketized line chart
+        stat_dict = {}
+        return_stat = {}
+        current_num_threads = len(time_result_dict)
+        test_category = self._get_output_filename(stat_file_name)
+
         for i in range(self.num_buckets):
             chunks_bucket_i = []
             for j in range(len(time_result_dict)):
-                if is_attach:
-                    time_list = time_result_dict.get('thread-{}'.format(j))[2]
-                else:
-                    time_list = time_result_dict.get('thread-{}'.format(j))
+                time_list = time_result_dict.get('thread-{}'.format(j))
                 # slice out bucket-size from each client's result and merge
                 chunks_bucket_i += time_list[
                     i * self.bucket_size: (i + 1) * self.bucket_size
                 ]
 
-            generate_stat_for_concurrent_thread(
+            # for each chunk i, compute and output its stat
+            return_stat = generate_stat_for_concurrent_thread(
                 'bucket-{}'.format(i),
                 chunks_bucket_i,
                 stat_file_name,
-                len(chunks_bucket_i), 1)
+                len(chunks_bucket_i),
+                1
+            )
 
-    def _write_stat_per_client(self, stat_file_name, time_result_dict,
-                               current_num_threads, is_attach):
+            # for each chunk i, add stat into final return_dict
+            stat_dict.update({i: return_stat.get(0, (0, 0, 0, 0))})
+
+        # create line chart with all clients grouped by a chunk of buckets
+        generate_line_chart_bucketized_stat(
+            stat_dict,
+            'Concurrent Subscription Statistics - per test bucketized: '
+            '({0}-{1}-clients)'
+            .format(test_category, current_num_threads),
+            '{0}-test-bucketized-{1}-clients.svg'
+            .format(test_category, current_num_threads),
+            self.bucket_size,
+            self.num_buckets
+        )
+
+    def _write_stat_per_client(
+            self,
+            stat_file_name,
+            time_result_dict,
+            current_num_threads):
         """Write stat of per-client results to csv file
 
         note: take the full list of a client i; calculate stat on the list
 
         """
+        # parameters for generating bucketized line chart
+        stat_dict = {}
+        return_stat = {}
+        current_num_threads = len(time_result_dict)
+        test_category = self._get_output_filename(stat_file_name)
+
         for i in range(current_num_threads):
-            if is_attach:
-                time_list = time_result_dict.get('thread-{}'.format(i))[2]
-            else:
-                time_list = time_result_dict.get('thread-{}'.format(i))
+            time_list = time_result_dict.get('thread-{}'.format(i))
             thread_name = 'client-{}'.format(i)
-            generate_stat_for_concurrent_thread(
+
+            # for each client i, compute and output its stat
+            return_stat = generate_stat_for_concurrent_thread(
                 thread_name,
                 time_list,
                 stat_file_name,
-                len(time_list), 1)
+                len(time_list),
+                1
+            )
 
-    def _write_stat_per_test(self, stat_file_name,
-                             time_result_dict, is_attach):
+            # for each chunk i, add stat into final return_dict
+            stat_dict.update({i: return_stat.get(0, (0, 0, 0, 0))})
+
+        # create graph based on stats of all clients
+        generate_bar_chart_stat(
+            stat_dict,
+            'Concurrent Subscription Statistics - per client: '
+            '({0}-{1}-clients)'
+            .format(test_category, current_num_threads),
+            '{0}-per-client-{1}-clients.svg'
+            .format(test_category, current_num_threads),
+            'client'
+        )
+
+    def _write_stat_per_test(self, stat_file_name, time_result_dict):
         """Write stat of per-test results to csv file
 
         note: take the full dictionary of test and calculate overall stat
 
         """
-        full_list = []
+        full_list = []  # list containing 1st to 5kth data point
+        current_num_threads = len(time_result_dict)
+        test_category = self._get_output_filename(stat_file_name)
+
         for i in range(len(time_result_dict)):
-            if is_attach:
-                time_list = time_result_dict.get('thread-{}'.format(i))[2]
-            else:
-                time_list = time_result_dict.get('thread-{}'.format(i))
+            time_list = time_result_dict.get('thread-{}'.format(i))
             full_list += time_list
 
-        generate_stat_for_concurrent_thread(
+        stat_dict = generate_stat_for_concurrent_thread(
             'test-{}'.format(len(time_result_dict)),
             full_list,
             stat_file_name,
-            len(full_list), 1)
+            len(full_list),
+            1
+        )
+
+        generate_bar_chart_stat(
+            stat_dict,
+            'Concurrent Subscription Statistics - per test: '
+            '({0}-{1}-clients)'
+            .format(test_category, current_num_threads),
+            '{0}-per-test-{1}-clients.svg'
+            .format(test_category, current_num_threads),
+            'test'
+        )
 
     def kick_off_ak_test(self, current_num_threads, total_iterations):
         """Refactor out concurrent register by ak test case
@@ -655,35 +821,42 @@ class ConcurrentTestCase(TestCase):
         # Create a list to store all threads
         thread_list = []
         # Create a dictionary to store all timing results from each client
-        time_result_dict = {}
+        time_result_dict_ak = {}
 
         # Create new threads and start each thread mapped with a vm
         for i in range(current_num_threads):
             thread_name = 'thread-{}'.format(i)
-            time_result_dict[thread_name] = []
+            time_result_dict_ak[thread_name] = []
             thread = SubscribeAKThread(
-                i, thread_name, time_result_dict,
-                self.num_iterations, self.ak_name,
-                self.default_org, current_vm_list[i])
+                i,
+                thread_name,
+                time_result_dict_ak,
+                self.num_iterations,
+                self.ak_name,
+                self.default_org,
+                current_vm_list[i]
+            )
             thread.start()
             thread_list.append(thread)
 
         # wait all threads in thread list
         self._join_all_threads(thread_list)
 
-        # write raw result of ak
+        # write raw result of activation-key
         self._write_raw_csv_file(
             self.raw_file_name,
-            time_result_dict,
+            time_result_dict_ak,
             current_num_threads,
-            'raw-ak-{}-clients'.format(current_num_threads))
+            'raw-ak-{}-clients'.format(current_num_threads)
+        )
 
-        # write stat result of ak
-        self._write_stat_csv_file(
+        # write stat result of ak and generate charts
+        self._write_stat_csv_chart(
             self.stat_file_name,
-            time_result_dict,
+            time_result_dict_ak,
             current_num_threads,
-            'stat-ak-{}-clients'.format(current_num_threads), False)
+            'stat-ak-{}-clients'.format(current_num_threads)
+        )
 
     def kick_off_att_test(self, current_num_threads, total_iterations):
         """Refactor out concurrent register and attach test case
@@ -702,38 +875,66 @@ class ConcurrentTestCase(TestCase):
 
         # Create a list to store all threads
         thread_list = []
-        # Create a dictionary to store all timing results from each client
-        time_result_dict = {}
+        # Create a dictionary to store register timings from each client
+        time_result_dict_register = {}
+        # Create a dictionary to store attach timings from each client
+        time_result_dict_attach = {}
 
         # Create new threads and start each thread mapped with a vm
         for i in range(current_num_threads):
             thread_name = 'thread-{}'.format(i)
-            time_result_dict[thread_name] = [[], [], []]
+            time_result_dict_register[thread_name] = []
+            time_result_dict_attach[thread_name] = []
 
             thread = SubscribeAttachThread(
-                i, thread_name, time_result_dict,
-                self.num_iterations, self.sub_id,
-                self.default_org, self.environment,
-                current_vm_list[i])
+                i,
+                thread_name,
+                {},
+                time_result_dict_register,
+                time_result_dict_attach,
+                self.num_iterations,
+                self.sub_id,
+                self.default_org,
+                self.environment,
+                current_vm_list[i]
+            )
             thread.start()
             thread_list.append(thread)
 
         # wait all threads in thread list
         self._join_all_threads(thread_list)
 
-        # write raw result of att
-        self._write_raw_att_csv_file(
-            self.raw_file_name,
-            time_result_dict,
+        # write raw result of register
+        self._write_raw_csv_file(
+            self.reg_raw_file_name,
+            time_result_dict_register,
             current_num_threads,
-            'raw-att-{}-clients'.format(current_num_threads))
+            'raw-reg-{}-clients'.format(current_num_threads)
+        )
 
-        # write stat result of att
-        self._write_stat_csv_file(
-            self.stat_file_name,
-            time_result_dict,
+        # write raw result of attach
+        self._write_raw_csv_file(
+            self.raw_file_name,
+            time_result_dict_attach,
             current_num_threads,
-            'stat-att-{}-clients'.format(current_num_threads), True)
+            'raw-att-{}-clients'.format(current_num_threads)
+        )
+
+        # write stat result of register and generate charts
+        self._write_stat_csv_chart(
+            self.reg_stat_file_name,
+            time_result_dict_register,
+            current_num_threads,
+            'stat-reg-{}-clients'.format(current_num_threads)
+        )
+
+        # write stat result of attach and generate charts
+        self._write_stat_csv_chart(
+            self.stat_file_name,
+            time_result_dict_attach,
+            current_num_threads,
+            'stat-att-{}-clients'.format(current_num_threads)
+        )
 
     def kick_off_del_test(self, current_num_threads):
         """Refactor out concurrent system deletion test case
@@ -756,18 +957,18 @@ class ConcurrentTestCase(TestCase):
         # Create a list to store all threads
         thread_list = []
         # Create a dictionary to store all timing results from each thread
-        time_result_dict = {}
+        time_result_dict_del = {}
 
         # Create new threads and start the thread which has sublist of uuids
         for i in range(current_num_threads):
-            time_result_dict['thread-{}'.format(i)] = []
+            time_result_dict_del['thread-{}'.format(i)] = []
             thread = DeleteThread(
-                i, 'thread-{}'.format(i),
+                i,
+                'thread-{}'.format(i),
                 uuid_list[
-                    self.num_iterations * i:
-                    self.num_iterations * (i + 1)
+                    self.num_iterations * i: self.num_iterations * (i + 1)
                 ],
-                time_result_dict
+                time_result_dict_del
             )
             thread.start()
             thread_list.append(thread)
@@ -778,13 +979,15 @@ class ConcurrentTestCase(TestCase):
         # write raw result of del
         self._write_raw_csv_file(
             self.raw_file_name,
-            time_result_dict,
+            time_result_dict_del,
             current_num_threads,
-            'raw-del-{}-clients'.format(current_num_threads))
+            'raw-del-{}-clients'.format(current_num_threads)
+        )
 
         # write stat result of del
-        self._write_stat_csv_file(
+        self._write_stat_csv_chart(
             self.stat_file_name,
-            time_result_dict,
+            time_result_dict_del,
             current_num_threads,
-            'stat-del-{}-clients'.format(current_num_threads), False)
+            'stat-del-{}-clients'.format(current_num_threads)
+        )

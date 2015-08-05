@@ -29,6 +29,22 @@ class Candlepin(object):
     serverhost = conf.properties['main.server.hostname']
 
     @classmethod
+    def get_real_time(result):
+        """Parse stderr and extract out real time value
+
+        :param str result: Standard Error
+        :return: The real timing value
+        :rtype: float
+
+        """
+        real_time = [
+            real
+            for real in result.split('\n')
+            if real.startswith('real')
+        ]
+        return float(real_time[0].split(' ')[1])
+
+    @classmethod
     def single_register_activation_key(cls, ak_name, default_org, vm):
         """Subscribe VM to Satellite by Register + ActivationKey"""
 
@@ -42,14 +58,9 @@ class Candlepin(object):
 
         if result.return_code != 0:
             LOGGER.error('Fail to subscribe {} by ak!'.format(vm))
-            return
-        LOGGER.info('Subscribe client {} successfully'.format(vm))
-        real_time = [
-            real
-            for real in result.stderr.split('\n')
-            if real.startswith('real')
-        ]
-        return float(real_time[0].split(' ')[1])
+        else:
+            LOGGER.info('Subscribe client {} successfully'.format(vm))
+        return cls.get_real_time(result.stderr)
 
     @classmethod
     def single_register_attach(cls, sub_id, default_org, environment, vm):
@@ -60,12 +71,7 @@ class Candlepin(object):
             default_org, environment, vm)
 
         time_att = cls.sub_mgr_attach(sub_id, vm)
-
-        if time_reg is None or time_att is None:
-            total_time = 0
-        else:
-            total_time = time_reg + time_att
-        return time_reg, time_att, total_time
+        return (time_reg, time_att)
 
     @classmethod
     def sub_mgr_register_authentication(cls, default_org, environment, vm):
@@ -80,18 +86,10 @@ class Candlepin(object):
         )
 
         if result.return_code != 0:
-            LOGGER.error(
-                'Fail to register client {} by sub-mgr!'.format(vm)
-            )
-            return
-        LOGGER.info('Register client {} successfully'.format(vm))
-        real_time = [
-            real
-            for real in result.stderr.split('\n')
-            if real.startswith('real')
-        ]
-        real_time = real_time[0].split(' ')[1]
-        return float(real_time)
+            LOGGER.error('Fail to register client {} by sub-mgr!'.format(vm))
+        else:
+            LOGGER.info('Register client {} successfully'.format(vm))
+        return cls.get_real_time(result.stderr)
 
     @classmethod
     def sub_mgr_attach(cls, pool_id, vm):
@@ -103,15 +101,9 @@ class Candlepin(object):
 
         if result.return_code != 0:
             LOGGER.error('Fail to attach client {}'.format(vm))
-            return
-        LOGGER.info('Attach client {} successfully'.format(vm))
-        real_time = [
-            real
-            for real in result.stderr.split('\n')
-            if real.startswith('real')
-        ]
-        real_time = real_time[0].split(' ')[1]
-        return float(real_time)
+        else:
+            LOGGER.info('Attach client {} successfully'.format(vm))
+        return cls.get_real_time(result.stderr)
 
     @classmethod
     def single_delete(cls, uuid, thread_id):
@@ -125,11 +117,13 @@ class Candlepin(object):
 
         if response.status_code != 204:
             LOGGER.error(
-                'Fail to delete {0} on thread-{1}!'.format(uuid, thread_id))
+                'Fail to delete {0} on thread-{1}!'.format(uuid, thread_id)
+            )
             LOGGER.error(response.content)
-            return 0
-        LOGGER.info(
-            "Delete {0} on thread-{1} successful!".format(uuid, thread_id))
+        else:
+            LOGGER.info(
+                "Delete {0} on thread-{1} successful!".format(uuid, thread_id)
+            )
         end = time.time()
         LOGGER.info('real  {}s'.format(end-start))
         return end - start

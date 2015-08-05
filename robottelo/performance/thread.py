@@ -37,8 +37,15 @@ class DeleteThread(PerformanceThread):
 
 
 class SubscribeAKThread(PerformanceThread):
-    def __init__(self, thread_id, thread_name, time_result_dict,
-                 num_iterations, ak_name, default_org, vm_ip):
+    def __init__(
+            self,
+            thread_id,
+            thread_name,
+            time_result_dict,
+            num_iterations,
+            ak_name,
+            default_org,
+            vm_ip):
         super(SubscribeAKThread, self).__init__(
             thread_id, thread_name, time_result_dict)
         self.num_iterations = num_iterations
@@ -60,11 +67,37 @@ class SubscribeAKThread(PerformanceThread):
 
 
 class SubscribeAttachThread(PerformanceThread):
-    def __init__(self, thread_id, thread_name, time_result_dict,
-                 num_iterations, sub_id, default_org, environment, vm_ip):
-        super(SubscribeAttachThread, self).__init__(
-            thread_id, thread_name, time_result_dict)
+    """Thread for Subscription by register and attach
 
+    separate `time_result_dictionary` into two new dictionaries:
+    time_result_dict_register, containing timing results of register step
+    time_result_dict_attach, containing timing results of attach step
+
+    The data structure of dictionaries now is::
+
+        dict-register: {client-0: [...], ..., client-9:[...]}
+        dict-attach: {client-0: [...], ..., client-9:[...]}
+
+    """
+    def __init__(
+            self,
+            thread_id,
+            thread_name,
+            time_result_dict,
+            time_result_dict_register,
+            time_result_dict_attach,
+            num_iterations,
+            sub_id,
+            default_org, environment,
+            vm_ip):
+        super(SubscribeAttachThread, self).__init__(
+            thread_id,
+            thread_name,
+            time_result_dict
+        )
+
+        self.time_result_dict_register = time_result_dict_register
+        self.time_result_dict_attach = time_result_dict_attach
         self.num_iterations = num_iterations
         self.sub_id = sub_id
         self.default_org = default_org
@@ -83,6 +116,13 @@ class SubscribeAttachThread(PerformanceThread):
                 self.environment,
                 self.vm_ip)
 
-            for index in range(3):
-                self.time_result_dict[self.thread_name][index].append(
-                    time_points[index])
+            # split original time_result_dict into two new dictionaries
+            # append each client's register timing data
+            self.time_result_dict_register.get(
+                self.thread_name, 'thread-0'
+            ).append(time_points[0])
+
+            # append each client's attach timing data
+            self.time_result_dict_attach.get(
+                self.thread_name, 'thread-0'
+            ).append(time_points[1])
