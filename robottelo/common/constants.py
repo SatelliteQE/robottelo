@@ -165,8 +165,7 @@ REPOS = {
     'rhst7': {  # TODO: Remove 'beta' after release
         'id': 'rhel-7-server-satellite-tools-6-beta-rpms',
         'name': (
-            'Red Hat Satellite Tools 6 Beta for RHEL 7 Server RPMs x86_64 '
-            '7Server'
+            'Red Hat Satellite Tools 6 Beta for RHEL 7 Server RPMs x86_64'
         ),
     },
     'rhva6': {
@@ -233,6 +232,11 @@ FAKE_4_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet04"
 FAKE_5_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet05"
 REPO_DISCOVERY_URL = "http://omaciel.fedorapeople.org/"
 FAKE_0_CUSTOM_PACKAGE = 'bear-4.1-1.noarch'
+FAKE_0_CUSTOM_PACKAGE_NAME = 'bear'
+FAKE_1_CUSTOM_PACKAGE = 'walrus-0.71-1.noarch'
+FAKE_1_CUSTOM_PACKAGE_NAME = 'walrus'
+FAKE_2_CUSTOM_PACKAGE = 'walrus-5.21-1.noarch'
+FAKE_2_CUSTOM_PACKAGE_NAME = 'walrus'
 FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
 
 PUPPET_MODULE_NTP_PUPPETLABS = "puppetlabs-ntp-3.2.1.tar.gz"

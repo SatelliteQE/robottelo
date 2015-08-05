@@ -19,6 +19,10 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.common.constants import (
     FAKE_0_CUSTOM_PACKAGE,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_2_CUSTOM_PACKAGE,
     FAKE_0_ERRATA_ID,
     FAKE_0_YUM_REPO,
     PRDS,
@@ -553,6 +557,7 @@ class TestContentHost(CLITestCase):
             })
 
 
+@run_only_on('sat')
 class TestCHKatelloAgent(CLITestCase):
     """Content-host tests, which require VM with installed katello-agent."""
 
@@ -602,11 +607,19 @@ class TestCHKatelloAgent(CLITestCase):
         self.vm = VirtualMachine(distro='rhel71')
         self.vm.create()
         self.vm.install_katello_cert()
+        # Create custom repo, add subscription to activation key
+        setup_org_for_a_custom_repo({
+            u'url': FAKE_0_YUM_REPO,
+            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'content-view-id': TestCHKatelloAgent.cv['id'],
+            u'lifecycle-environment-id': TestCHKatelloAgent.env['id'],
+            u'activationkey-id': TestCHKatelloAgent.activation_key['id'],
+        })
+        # Register content host, install katello-agent
         self.vm.register_contenthost(
             TestCHKatelloAgent.activation_key['name'],
             TestCHKatelloAgent.org['label']
         )
-        # Install katello-agent
         self.vm.enable_repo(REPOS['rhst7']['id'])
         self.vm.install_katello_agent()
 
@@ -614,7 +627,6 @@ class TestCHKatelloAgent(CLITestCase):
         self.vm.destroy()
         super(TestCHKatelloAgent, self).tearDown()
 
-    @run_only_on('sat')
     def test_contenthost_get_errata_info(self):
         """@Test: Get errata info
 
@@ -623,15 +635,7 @@ class TestCHKatelloAgent(CLITestCase):
         @Assert: Errata info was displayed
 
         """
-        setup_org_for_a_custom_repo({
-            u'url': FAKE_0_YUM_REPO,
-            u'organization-id': TestCHKatelloAgent.org['id'],
-            u'content-view-id': TestCHKatelloAgent.cv['id'],
-            u'lifecycle-environment-id': TestCHKatelloAgent.env['id'],
-            u'activationkey-id': TestCHKatelloAgent.activation_key['id'],
-        })
         self.vm.download_install_rpm(FAKE_0_YUM_REPO, FAKE_0_CUSTOM_PACKAGE)
-        # Get errata info
         result = ContentHost.errata_info({
             u'organization-id': TestCHKatelloAgent.org['id'],
             u'content-host': self.vm.hostname,
@@ -641,7 +645,6 @@ class TestCHKatelloAgent(CLITestCase):
         self.assertEqual(result.stdout[0]['errata-id'], FAKE_0_ERRATA_ID)
         self.assertEqual(result.stdout[0]['packages'], FAKE_0_CUSTOM_PACKAGE)
 
-    @run_only_on('sat')
     def test_contenthost_apply_errata(self):
         """@Test: Apply errata to content host
 
@@ -650,18 +653,81 @@ class TestCHKatelloAgent(CLITestCase):
         @Assert: Errata is scheduled for installation
 
         """
-        setup_org_for_a_custom_repo({
-            u'url': FAKE_0_YUM_REPO,
-            u'organization-id': TestCHKatelloAgent.org['id'],
-            u'content-view-id': TestCHKatelloAgent.cv['id'],
-            u'lifecycle-environment-id': TestCHKatelloAgent.env['id'],
-            u'activationkey-id': TestCHKatelloAgent.activation_key['id'],
-        })
         self.vm.download_install_rpm(FAKE_0_YUM_REPO, FAKE_0_CUSTOM_PACKAGE)
-        # Apply errata to content host
         result = ContentHost.errata_apply({
             u'organization-id': TestCHKatelloAgent.org['id'],
             u'content-host': self.vm.hostname,
             u'errata-ids': FAKE_0_ERRATA_ID,
         })
+        self.assertEqual(result.return_code, 0)
+
+    def test_contenthost_package_install(self):
+        """@Test: Install package to content host remotely
+
+        @Feature: Content Host - Package
+
+        @Assert: Package was successfully installed
+
+        """
+        result = ContentHost.package_install({
+            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'content-host': self.vm.hostname,
+            u'packages': FAKE_0_CUSTOM_PACKAGE_NAME,
+        })
+        self.assertEqual(result.return_code, 0)
+        result = self.vm.run('rpm -q {}'.format(FAKE_0_CUSTOM_PACKAGE_NAME))
+        self.assertEqual(result.return_code, 0)
+
+    def test_contenthost_package_remove(self):
+        """@Test: Remove package from content host remotely
+
+        @Feature: Content Host - Package
+
+        @Assert: Package was successfully removed
+
+        """
+        self.vm.download_install_rpm(FAKE_0_YUM_REPO, FAKE_0_CUSTOM_PACKAGE)
+        result = ContentHost.package_remove({
+            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'content-host': self.vm.hostname,
+            u'packages': FAKE_0_CUSTOM_PACKAGE_NAME,
+        })
+        self.assertEqual(result.return_code, 0)
+        result = self.vm.run('rpm -q {}'.format(FAKE_0_CUSTOM_PACKAGE_NAME))
+        self.assertNotEqual(result.return_code, 0)
+
+    def test_contenthost_package_upgrade(self):
+        """@Test: Upgrade content host package remotely
+
+        @Feature: Content Host - Package
+
+        @Assert: Package was successfully upgraded
+
+        """
+        self.vm.run('yum install -y {}'.format(FAKE_1_CUSTOM_PACKAGE))
+        result = ContentHost.package_upgrade({
+            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'content-host': self.vm.hostname,
+            u'packages': FAKE_1_CUSTOM_PACKAGE_NAME,
+        })
+        self.assertEqual(result.return_code, 0)
+        result = self.vm.run('rpm -q {}'.format(FAKE_2_CUSTOM_PACKAGE))
+        self.assertEqual(result.return_code, 0)
+
+    def test_contenthost_package_upgrade_all(self):
+        """@Test: Upgrade all the content host packages remotely
+
+        @Feature: Content Host - Package
+
+        @Assert: Packages (at least 1 with newer version available) were
+        successfully upgraded
+
+        """
+        self.vm.run('yum install -y {}'.format(FAKE_1_CUSTOM_PACKAGE))
+        result = ContentHost.package_upgrade_all({
+            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'content-host': self.vm.hostname,
+        })
+        self.assertEqual(result.return_code, 0)
+        result = self.vm.run('rpm -q {}'.format(FAKE_2_CUSTOM_PACKAGE))
         self.assertEqual(result.return_code, 0)
