@@ -232,6 +232,11 @@ FAKE_4_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet04"
 FAKE_5_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet05"
 REPO_DISCOVERY_URL = "http://omaciel.fedorapeople.org/"
 FAKE_0_CUSTOM_PACKAGE = 'bear-4.1-1.noarch'
+FAKE_0_CUSTOM_PACKAGE_NAME = 'bear'
+FAKE_1_CUSTOM_PACKAGE = 'walrus-0.71-1.noarch'
+FAKE_1_CUSTOM_PACKAGE_NAME = 'walrus'
+FAKE_2_CUSTOM_PACKAGE = 'walrus-5.21-1.noarch'
+FAKE_2_CUSTOM_PACKAGE_NAME = 'walrus'
 FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
 
 PUPPET_MODULE_NTP_PUPPETLABS = "puppetlabs-ntp-3.2.1.tar.gz"
