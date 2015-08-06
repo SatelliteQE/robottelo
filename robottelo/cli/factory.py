@@ -130,9 +130,9 @@ def make_activation_key(options=None):
     # Organization Name, Label or ID is a required field.
     if (
             not options or
-            not options.get('organization', None) and
-            not options.get('organization-label', None) and
-            not options.get('organization-id', None)):
+            not options.get('organization') and
+            not options.get('organization-label') and
+            not options.get('organization-id')):
         raise CLIFactoryError('Please provide a valid Organization.')
 
     args = {
@@ -280,7 +280,7 @@ def make_content_view(options=None):
 
     """
     # Organization ID is a required field.
-    if not options or not options.get('organization-id', None):
+    if not options or not options.get('organization-id'):
         raise CLIFactoryError('Please provide a valid ORG ID.')
 
     args = {
@@ -315,11 +315,11 @@ def make_gpg_key(options=None):
         -h, --help                    print help
     """
     # Organization ID is a required field.
-    if not options or not options.get('organization-id', None):
+    if not options or not options.get('organization-id'):
         raise CLIFactoryError('Please provide a valid ORG ID.')
 
     # Create a fake gpg key file if none was provided
-    if not options.get('key', None):
+    if not options.get('key'):
         (_, key_filename) = mkstemp(text=True)
         os.chmod(key_filename, 0700)
         with open(key_filename, 'w') as gpg_key_file:
@@ -530,7 +530,7 @@ def make_product(options=None):
         -h, --help                              print help
     """
     # Organization ID is a required field.
-    if not options or not options.get('organization-id', None):
+    if not options or not options.get('organization-id'):
         raise CLIFactoryError('Please provide a valid ORG ID.')
 
     args = {
@@ -617,7 +617,7 @@ def make_repository(options=None):
 
     """
     # Product ID is a required field.
-    if not options or not options.get('product-id', None):
+    if not options or not options.get('product-id'):
         raise CLIFactoryError('Please provide a valid Product ID.')
 
     args = {
@@ -749,7 +749,7 @@ def make_sync_plan(options=None):
 
     """
     # Organization ID is a required field.
-    if not options or not options.get('organization-id', None):
+    if not options or not options.get('organization-id'):
         raise CLIFactoryError('Please provide a valid ORG ID.')
 
     args = {
@@ -1036,7 +1036,7 @@ def make_host_collection(options=None):
 
     """
     # Organization ID is required
-    if not options or not options.get('organization-id', None):
+    if not options or not options.get('organization-id'):
         raise CLIFactoryError('Please provide a valid ORGANIZATION_ID.')
 
     # Assigning default values for attributes
@@ -1544,7 +1544,7 @@ def make_lifecycle_environment(options=None):
             'organization-id' not in options):
         raise CLIFactoryError('Please provide a valid Organization.')
 
-    if not options.get('prior', None):
+    if not options.get('prior'):
         options['prior'] = 'Library'
 
     # Assigning default values for attributes
@@ -1689,7 +1689,7 @@ def setup_org_for_a_custom_repo(options=None):
     """
     if(
             not options or
-            not options.get('url', None)):
+            not options.get('url')):
         raise CLIFactoryError('Please provide valid custom repo URL.')
     # Create new organization and lifecycle environment if needed
     if options.get('organization-id') is None:
@@ -1703,7 +1703,7 @@ def setup_org_for_a_custom_repo(options=None):
     # Create custom product and repository
     custom_product = make_product({u'organization-id': org_id})
     custom_repo = make_repository({
-        u'url': options.get('url', None),
+        u'url': options.get('url'),
         u'content-type': 'yum',
         u'product-id': custom_product['id'],
     })
@@ -1786,6 +1786,8 @@ def setup_org_for_a_rh_repo(options=None):
         product - RH product name
         repository-set - RH repository set name
         repository - RH repository name
+        releasever (optional) - Repository set release version, don't specify
+                                it if enabling the Satellite 6 Tools repo.
         organization-id (optional) - ID of organization to use (or create a new
                                     one if empty)
         lifecycle-environment-id (optional) - ID of lifecycle environment to
@@ -1826,7 +1828,7 @@ def setup_org_for_a_rh_repo(options=None):
         u'name': options['repository-set'],
         u'organization-id': org_id,
         u'product': options['product'],
-        # u'releasever': '7Server',
+        u'releasever': options.get('releasever'),
         u'basearch': 'x86_64',
     })
     if result.return_code != 0:
@@ -1837,6 +1839,8 @@ def setup_org_for_a_rh_repo(options=None):
         u'product': options['product'],
         u'organization-id': org_id,
     })
+    if result.return_code != 0:
+        raise CLIFactoryError('Failed to fetch repository info')
     rhel_repo = result.stdout
     # Synchronize the RH repository
     result = Repository.synchronize({
@@ -1864,6 +1868,8 @@ def setup_org_for_a_rh_repo(options=None):
         raise CLIFactoryError('Failed to publish new version of content view')
     # Get the version id
     result = ContentView.info({u'id': cv_id})
+    if result.return_code != 0:
+        raise CLIFactoryError('Failed to fetch content view info')
     cvv = result.stdout['versions'][-1]
     # Promote version1 to next env
     result = ContentView.version_promote({
@@ -1890,8 +1896,7 @@ def setup_org_for_a_rh_repo(options=None):
             u'content-view-id': cv_id,
         })
         if result.return_code != 0:
-            raise CLIFactoryError(
-                'Failed to associate activation-key with CV')
+            raise CLIFactoryError('Failed to associate activation-key with CV')
     # Add subscription to activation-key
     activationkey_add_subscription_to_repo({
         u'organization-id': org_id,
