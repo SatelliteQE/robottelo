@@ -165,8 +165,7 @@ REPOS = {
     'rhst7': {  # TODO: Remove 'beta' after release
         'id': 'rhel-7-server-satellite-tools-6-beta-rpms',
         'name': (
-            'Red Hat Satellite Tools 6 Beta for RHEL 7 Server RPMs x86_64 '
-            '7Server'
+            'Red Hat Satellite Tools 6 Beta for RHEL 7 Server RPMs x86_64'
         ),
     },
     'rhva6': {

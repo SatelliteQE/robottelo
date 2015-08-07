@@ -865,7 +865,7 @@ class CVRedHatContent(APITestCase):
             product=PRDS['rhel'],
             repo=REPOS['rhst7']['name'],
             reposet=REPOSET['rhst7'],
-            releasever='7Server',
+            releasever=None,
         )
         cls.repo = entities.Repository(id=repo_id)
         cls.repo.sync()
