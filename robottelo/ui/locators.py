@@ -1970,7 +1970,9 @@ locators = LocatorDict({
     "ldapserver.ldap_delete": (
         By.XPATH, "//a[@data-confirm='Delete %s?']"),
     "ldapserver.ldap_servername": (
-        By.XPATH, "//a[contains(@href, 'edit') and contains(@href, '%s')]"),
+        By.XPATH,
+        ("//span[contains(.,'%s') or "
+         "contains(@data-original-title, '%s')]/../../a")),
     "ldapserver.refresh": (
         By.XPATH,
         ("//td[contains(.,'foobargroup')]/../td/"

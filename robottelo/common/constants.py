@@ -604,9 +604,16 @@ TREND_TYPES = {
 }
 
 LDAP_SERVER_TYPE = {
-    'ipa': 'free_ipa',
-    'ad': 'active_directory',
-    'posix': 'posix',
+    'API': {
+        'ipa': 'free_ipa',
+        'ad': 'active_directory',
+        'posix': 'posix',
+    },
+    'UI': {
+        'ipa': 'FreeIPA',
+        'ad': 'Active Directory',
+        'posix': 'POSIX',
+    },
 }
 
 LDAP_ATTR = {

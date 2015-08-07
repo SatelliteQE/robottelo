@@ -22,6 +22,7 @@ class ADUserGroups(UITestCase):
     ldap_user_passwd = conf.properties['main.ldap.passwd']
     base_dn = conf.properties['main.ldap.basedn']
     group_base_dn = conf.properties['main.ldap.grpbasedn']
+    ldap_hostname = conf.properties['main.ldap.hostname']
     usergroup_name = gen_string('alpha')
     usergroup_name2 = gen_string('alpha')
 
@@ -36,7 +37,7 @@ class ADUserGroups(UITestCase):
             attr_firstname=LDAP_ATTR['firstname'],
             attr_lastname=LDAP_ATTR['surname'],
             attr_login=LDAP_ATTR['login_ad'],
-            server_type=LDAP_SERVER_TYPE['ad'],
+            server_type=LDAP_SERVER_TYPE['API']['ad'],
             attr_mail=LDAP_ATTR['mail'],
             name=gen_string('alpha'),
             host=conf.properties['main.ldap.hostname'],

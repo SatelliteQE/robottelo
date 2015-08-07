@@ -21,7 +21,8 @@ class LdapAuthSource(Base):
         if self.wait_until_element(locators['ldapserver.name']):
             self.field_update('ldapserver.name', name)
             self.field_update('ldapserver.server', server)
-            self.wait_until_element(locators['ldapserver.ldaps']).click()
+            if ldaps:
+                self.wait_until_element(locators['ldapserver.ldaps']).click()
             if port:
                 self.field_update('ldapserver.port', port)
             Select(
@@ -30,10 +31,10 @@ class LdapAuthSource(Base):
         self.wait_until_element(tab_locators['ldapserver.tab_account']).click()
         if self.wait_until_element(locators['ldapserver.acc_user']) is None:
             raise UINoSuchElementError(u'Could not select the attributes Tab.')
-        self.field_update("ldapserver.acc_user", account_user)
-        self.field_update("ldapserver.acc_passwd", account_passwd)
-        self.field_update("ldapserver.basedn", account_basedn)
-        self.field_update("ldapserver.group_basedn", account_grpbasedn)
+        self.field_update('ldapserver.acc_user', account_user)
+        self.field_update('ldapserver.acc_passwd', account_passwd)
+        self.field_update('ldapserver.basedn', account_basedn)
+        self.field_update('ldapserver.group_basedn', account_grpbasedn)
         if ldap_filter:
             self.wait_until_element(locators['ldapserver.ldap_filter']).click()
         self.wait_until_element(
@@ -45,12 +46,12 @@ class LdapAuthSource(Base):
         ).click()
         if self.wait_until_element(locators['ldapserver.loginname']) is None:
             raise UINoSuchElementError(u'Could not select the account Tab.')
-        self.field_update("ldapserver.loginname", login_name)
-        self.field_update("ldapserver.firstname", first_name)
-        self.field_update("ldapserver.surname", surname)
-        self.field_update("ldapserver.mail", mail)
+        self.field_update('ldapserver.loginname', login_name)
+        self.field_update('ldapserver.firstname', first_name)
+        self.field_update('ldapserver.surname', surname)
+        self.field_update('ldapserver.mail', mail)
         if photo:
-            self.field_update("ldapserver.photo", photo)
+            self.field_update('ldapserver.photo', photo)
         self.wait_until_element(common_locators['submit']).click()
         self.wait_for_ajax()
 
@@ -59,7 +60,7 @@ class LdapAuthSource(Base):
         Navigator(self.browser).go_to_ldap_auth()
         self.wait_for_ajax()
         strategy1, value1 = locators['ldapserver.ldap_servername']
-        element = self.wait_until_element((strategy1, value1 % name))
+        element = self.wait_until_element((strategy1, value1 % (name, name)))
         if element is None:
             raise UINoSuchElementError(
                 u'Could not search the entity "{0}".'
