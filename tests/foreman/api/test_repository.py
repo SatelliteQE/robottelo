@@ -171,14 +171,8 @@ class RepositoryTestCase(APITestCase):
         """
         # Create a repository and upload RPM content.
         repo = entities.Repository(product=self.product).create()
-        client.post(
-            repo.path(which='upload_content'),
-            {},
-            auth=get_server_credentials(),
-            files={u'content': open(get_data_file(RPM_TO_UPLOAD), 'rb')},
-            verify=False,
-        ).raise_for_status()
-
+        with open(get_data_file(RPM_TO_UPLOAD), 'rb') as handle:
+            repo.upload_content(handle)
         # Verify the repository's contents.
         self.assertEqual(repo.read_json()[u'content_counts'][u'rpm'], 1)
 
@@ -250,12 +244,12 @@ class RepositorySyncTestCase(APITestCase):
         with open(manifests.clone(), 'rb') as manifest:
             sub.upload({'organization_id': org.id}, manifest)
         repo_id = utils.enable_rhrepo_and_fetchid(
-            'x86_64',
-            org.id,
-            PRDS['rhel'],
-            REPOS['rhst7']['name'],
-            REPOSET['rhst7'],
-            '7Server',
+            basearch='x86_64',
+            org_id=org.id,
+            product=PRDS['rhel'],
+            repo=REPOS['rhst7']['name'],
+            reposet=REPOSET['rhst7'],
+            releasever='7Server',
         )
         entities.Repository(id=repo_id).sync()
 
