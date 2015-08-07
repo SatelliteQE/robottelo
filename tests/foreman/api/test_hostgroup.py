@@ -46,15 +46,18 @@ class HostGroupTestCase(APITestCase):
 
         result = content_view.available_puppet_modules()['results']
         self.assertEqual(len(result), 1)
-        content_view.add_puppet_module(result[0]['author'], result[0]['name'])
-
+        entities.ContentViewPuppetModule(
+            author=result[0]['author'],
+            name=result[0]['name'],
+            content_view=content_view,
+        ).create()
         content_view.publish()
         content_view = content_view.read()
         lc_env = entities.LifecycleEnvironment(
             name=gen_string('alpha'),
             organization=org,
         ).create()
-        content_view.version[0].promote(lc_env.id)
+        content_view.version[0].promote({u'environment_id': lc_env.id})
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
         self.assertEqual(len(content_view.puppet_module), 1)

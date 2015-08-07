@@ -6,7 +6,6 @@ from robottelo.common.constants import FAKE_1_YUM_REPO
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
 from robottelo.common import manifests
-from robottelo.common.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
@@ -72,12 +71,9 @@ class Sync(UITestCase):
         """
 
         repos = self.sync.create_repos_tree(RHCT)
-        manifest_path = manifests.clone()
-        # upload_file function should take care of uploading to sauce labs.
-        upload_file(manifest_path, remote_file=manifest_path)
-        entities.Organization(
-            id=self.org_id
-        ).upload_manifest(path=manifest_path)
+        sub = entities.Subscription()
+        with open(manifests.clone(), 'rb') as manifest:
+            sub.upload({'organization_id': self.org_id}, manifest)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_red_hat_repositories()

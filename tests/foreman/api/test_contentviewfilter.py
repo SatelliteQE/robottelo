@@ -49,7 +49,8 @@ class ContentViewFilterTestCase(APITestCase):
         self.content_view = entities.ContentView(
             organization=self.org,
         ).create()
-        self.content_view.set_repository_ids(repo_ids=[self.repo.id])
+        self.content_view.repository = [self.repo]
+        self.content_view.update(['repository'])
 
     def test_get_with_no_args(self):
         """@Test: Issue an HTTP GET to the base content view filters path.
@@ -233,9 +234,8 @@ class ContentViewFilterTestCase(APITestCase):
             product=self.product.id,
             url=DOCKER_REGISTRY_HUB,
         ).create()
-        self.content_view.set_repository_ids(
-            repo_ids=[self.repo.id, docker_repository.id]
-        )
+        self.content_view.repository = [self.repo, docker_repository]
+        self.content_view.update(['repository'])
         cvf = entities.RPMContentViewFilter(
             content_view=self.content_view,
             inclusion=True,
@@ -401,7 +401,8 @@ class ContentViewFilterTestCase(APITestCase):
         ).create()
         new_repo = entities.Repository(product=self.product).create()
         new_repo.sync()
-        self.content_view.set_repository_ids(repo_ids=[new_repo.id])
+        self.content_view.repository = [new_repo]
+        self.content_view.update(['repository'])
         cvf.repository = [new_repo]
         cvf = cvf.update(['repository'])
         self.assertEqual(len(cvf.repository), 1)
@@ -428,9 +429,8 @@ class ContentViewFilterTestCase(APITestCase):
         ]
         for repo in repos:
             repo.sync()
-        self.content_view.set_repository_ids(
-            repo_ids=[repo.id for repo in repos],
-        )
+        self.content_view.repository = repos
+        self.content_view.update(['repository'])
         cvf.repository = repos
         cvf = cvf.update(['repository'])
         self.assertEqual(
@@ -482,9 +482,8 @@ class ContentViewFilterTestCase(APITestCase):
             product=self.product.id,
             url=DOCKER_REGISTRY_HUB,
         ).create()
-        self.content_view.set_repository_ids(
-            repo_ids=[self.repo.id, docker_repository.id]
-        )
+        self.content_view.repository = [self.repo, docker_repository]
+        self.content_view = self.content_view.update(['repository'])
         cvf.repository = [self.repo, docker_repository]
         cvf = cvf.update(['repository'])
         self.assertEqual(len(cvf.repository), 2)

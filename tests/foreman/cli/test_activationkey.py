@@ -3,7 +3,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nailgun.entities import Organization
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
@@ -84,9 +83,12 @@ class TestActivationKey(CLITestCase):
                     'organization-id': organization_id,
                 })['id']
                 TestActivationKey.pub_key['manifest'] = manifests.clone()
-                Organization(
-                    id=TestActivationKey.pub_key['org_id']
-                ).upload_manifest(TestActivationKey.pub_key['manifest'])
+
+                upload_file(TestActivationKey.pub_key['manifest'])
+                Subscription.upload({
+                    'file': TestActivationKey.pub_key['manifest'],
+                    'organization-id': TestActivationKey.pub_key['org_id'],
+                })
 
                 # create content view
                 TestActivationKey.pub_key['content_view_id'] = (

@@ -69,12 +69,10 @@ class TestContentViewsUI(UITestCase):
             ).create_json()
             repo_id = repo_attrs['id']
         elif rh_repo:
-            # Clone the manifest and fetch it's path.
-            manifest_path = manifests.clone()
             # Uploads the manifest and returns the result.
-            entities.Organization(id=org_id).upload_manifest(
-                path=manifest_path
-            )
+            sub = entities.Subscription()
+            with open(manifests.clone(), 'rb') as manifest:
+                sub.upload({'organization_id': org_id}, manifest)
             # Enables the RedHat repo and fetches it's Id.
             repo_id = utils.enable_rhrepo_and_fetchid(
                 rh_repo['basearch'],
@@ -1255,14 +1253,15 @@ class TestContentViewsUI(UITestCase):
             name=gen_string('alpha'),
             organization=org,
         ).create()
-        cv.set_repository_ids([repo.id])
+        cv.repository = [repo]
+        cv.update(['repository'])
         cv.publish()
 
         cv_info = cv.read_json()['versions'][0]
         version = 'Version {0}'.format(cv_info['version'])
         cvv = entities.ContentViewVersion(id=cv_info['id'])
         lc_env = entities.LifecycleEnvironment(organization=org).create()
-        cvv.promote(lc_env.id)
+        cvv.promote({u'environment_id': lc_env.id})
 
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
@@ -1292,7 +1291,7 @@ class TestContentViewsUI(UITestCase):
         version = 'Version {0}'.format(cv_info['version'])
         cvv = entities.ContentViewVersion(id=cv_info['id'])
         lc_env = entities.LifecycleEnvironment(organization=org).create()
-        cvv.promote(lc_env.id)
+        cvv.promote({u'environment_id': lc_env.id})
 
         ak = entities.ActivationKey(
             name=gen_string('alphanumeric'),

@@ -879,22 +879,24 @@ class TestSmoke(TestCase):
         ).create()
 
         # step 2.8: Associate YUM repository to new content view
-        content_view.set_repository_ids([repo1.id])
+        content_view.repository = [repo1]
+        content_view = content_view.update(['repository'])
 
         # Fetch all available puppet modules
         puppet_mods = content_view.available_puppet_modules()
         self.assertGreater(puppet_mods['results'], 0)
 
         # Select a random puppet module from the results
-        puppet_mod = random.choice(puppet_mods['results'])
+        puppet_module = random.choice(puppet_mods['results'])
         # ... and associate it to the content view
-        response = content_view.add_puppet_module(
-            puppet_mod['author'],
-            puppet_mod['name']
-        )
+        puppet = entities.ContentViewPuppetModule(
+            author=puppet_module['author'],
+            name=puppet_module['name'],
+            content_view=content_view,
+        ).create()
         self.assertEqual(
-            response['name'],
-            puppet_mod['name'],
+            puppet.name,
+            puppet_module['name'],
         )
 
         # step 2.9: Publish content view
@@ -905,13 +907,13 @@ class TestSmoke(TestCase):
         self.assertEqual(len(content_view.version), 1)
         cv_version = content_view.version[0].read()
         self.assertEqual(len(cv_version.environment), 1)
-        cv_version.promote(le1.id)
+        cv_version.promote({u'environment_id': le1.id})
         # Check that content view exists in 2 lifecycles
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
         cv_version = cv_version.read()
         self.assertEqual(len(cv_version.environment), 2)
-        cv_version.promote(le2.id)
+        cv_version.promote({u'environment_id': le2.id})
         # Check that content view exists in 2 lifecycles
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
@@ -984,8 +986,9 @@ class TestSmoke(TestCase):
         ).create()
 
         # step 2: Upload manifest
-        manifest_path = manifests.clone()
-        org.upload_manifest(path=manifest_path)
+        sub = entities.Subscription(organization=org)
+        with open(manifests.clone(), 'rb') as manifest:
+            sub.upload({'organization_id': org.id}, manifest)
         # step 3.1: Enable RH repo and fetch repository_id
         repository = entities.Repository(id=utils.enable_rhrepo_and_fetchid(
             basearch='x86_64',
@@ -1011,7 +1014,7 @@ class TestSmoke(TestCase):
         # step 6.2: Promote content view to lifecycle_env
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
-        content_view.version[0].promote(lifecycle_env.id)
+        content_view.version[0].promote({u'environment_id': lifecycle_env.id})
 
         # step 7: Create activation key
         activation_key = entities.ActivationKey(
@@ -1023,22 +1026,22 @@ class TestSmoke(TestCase):
         # step 7.1: Walk through the list of subscriptions.
         # Find the "Red Hat Employee Subscription" and attach it to the
         # recently-created activation key.
-        for subscription in org.subscriptions():
-            if subscription['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
+        for subs in sub.search():
+            if subs.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
                 # 'quantity' must be 1, not subscription['quantity']. Greater
                 # values produce this error: "RuntimeError: Error: Only pools
                 # with multi-entitlement product subscriptions can be added to
                 # the activation key with a quantity greater than one."
                 activation_key.add_subscriptions({
                     'quantity': 1,
-                    'subscription_id': subscription['id'],
+                    'subscription_id': subs.id,
                 })
                 break
         # step 7.2: Enable product content
-        activation_key.content_override(
-            content_label=u'rhel-6-server-rhev-agent-rpms',
-            value=u'1',
-        )
+        activation_key.content_override({'content_override': {
+            u'content_label': u'rhel-6-server-rhev-agent-rpms',
+            u'value': u'1',
+        }})
 
         # Create VM
         package_name = 'python-kitchen'

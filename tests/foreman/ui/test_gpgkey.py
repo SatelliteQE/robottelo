@@ -426,20 +426,20 @@ class GPGKey(UITestCase):
         self.assertEqual(len(cv['versions']), 1)
         entities.ContentViewVersion(
             id=cv['versions'][0]['id']
-        ).promote(lc_env_id)
+        ).promote({u'environment_id': lc_env_id})
         # step 7: Create activation key
         ak_id = entities.ActivationKey(
             name=activation_key_name,
             environment=lc_env_id,
             organization=self.org_id,
             content_view=content_view.id,
-        ).create_json()['id']
-        for subscription in entities.Organization(
-                id=self.org_id).subscriptions():
-            if subscription['product_name'] == product_name:
+        ).create().id
+        for subscription in entities.Subscription(
+                organization=self.org_id).search():
+            if subscription.read_json()['product_name'] == product_name:
                 entities.ActivationKey(id=ak_id).add_subscriptions({
                     'quantity': 1,
-                    'subscription_id': subscription['id'],
+                    'subscription_id': subscription.id,
                 })
                 break
         # Create VM

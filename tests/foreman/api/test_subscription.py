@@ -21,9 +21,10 @@ class SubscriptionsTestCase(APITestCase):
         @Feature: Subscriptions
 
         """
-        cloned_manifest_path = manifests.clone()
         org = entities.Organization().create()
-        org.upload_manifest(path=cloned_manifest_path)
+        sub = entities.Subscription()
+        with open(manifests.clone(), 'rb') as manifest:
+            sub.upload({'organization_id': org.id}, manifest)
 
     def test_positive_delete_1(self):
         """@Test: Delete an Uploaded manifest.
@@ -33,12 +34,14 @@ class SubscriptionsTestCase(APITestCase):
         @Feature: Subscriptions
 
         """
-        cloned_manifest_path = manifests.clone()
         org = entities.Organization().create()
-        org.upload_manifest(path=cloned_manifest_path)
-        self.assertGreater(len(org.subscriptions()), 0)
-        org.delete_manifest()
-        self.assertEqual(len(org.subscriptions()), 0)
+        sub = entities.Subscription(organization=org)
+        payload = {'organization_id': org.id}
+        with open(manifests.clone(), 'rb') as manifest:
+            sub.upload(payload, manifest)
+        self.assertGreater(len(sub.search()), 0)
+        sub.delete_manifest(payload)
+        self.assertEqual(len(sub.search()), 0)
 
     def test_negative_create_1(self):
         """@Test: Upload the same manifest to two organizations.
@@ -48,9 +51,11 @@ class SubscriptionsTestCase(APITestCase):
         @Feature: Subscriptions
 
         """
-        manifest_path = manifests.clone()
         orgs = [entities.Organization().create() for _ in range(2)]
-        orgs[0].upload_manifest(manifest_path)
-        with self.assertRaises(TaskFailedError):
-            orgs[1].upload_manifest(manifest_path)
-        self.assertEqual(len(orgs[1].subscriptions()), 0)
+        sub = entities.Subscription()
+        with open(manifests.clone(), 'rb') as manifest:
+            sub.upload({'organization_id': orgs[0].id}, manifest)
+            with self.assertRaises(TaskFailedError):
+                sub.upload({'organization_id': orgs[1].id}, manifest)
+        self.assertEqual(
+            len(entities.Subscription(organization=orgs[1]).search()), 0)

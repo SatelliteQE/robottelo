@@ -38,8 +38,9 @@ class TestContentSearchUI(UITestCase):
             name=gen_string('alpha'),
             organization=org,
         ).create()
-        content_view.set_repository_ids([yum_repo.id])
-        self.assertEqual(len(content_view.read_json()['repositories']), 1)
+        content_view.repository = [yum_repo]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(len(content_view.repository), 1)
         content_view.publish()
 
         with Session(self.browser) as session:

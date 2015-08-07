@@ -211,10 +211,11 @@ class Syncplan(UITestCase):
 
         """
         new_plan_name = gen_string("alpha", 8)
-        entities.Organization(id=self.org_id).sync_plan(
+        entities.SyncPlan(
             name=plan_name,
-            interval=SYNC_INTERVAL['day']
-        )
+            interval=SYNC_INTERVAL['day'],
+            organization=self.org_id,
+        ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_sync_plans()
@@ -260,10 +261,11 @@ class Syncplan(UITestCase):
 
         """
         locator = locators["sp.fetch_interval"]
-        entities.Organization(id=self.org_id).sync_plan(
+        entities.SyncPlan(
             name=test_data['name'],
-            interval=SYNC_INTERVAL['day']
-        )
+            interval=SYNC_INTERVAL['day'],
+            organization=self.org_id,
+        ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_sync_plans()
@@ -289,10 +291,11 @@ class Syncplan(UITestCase):
         product_name = entities.Product(
             organization=self.org_id
         ).create_json()['name']
-        entities.Organization(id=self.org_id).sync_plan(
+        entities.SyncPlan(
             name=plan_name,
-            interval=SYNC_INTERVAL['week']
-        )
+            interval=SYNC_INTERVAL['week'],
+            organization=self.org_id,
+        ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_sync_plans()
@@ -320,10 +323,11 @@ class Syncplan(UITestCase):
         product_name = entities.Product(
             organization=self.org_id
         ).create_json()['name']
-        entities.Organization(id=self.org_id).sync_plan(
+        entities.SyncPlan(
             name=plan_name,
-            interval=SYNC_INTERVAL['week']
-        )
+            interval=SYNC_INTERVAL['week'],
+            organization=self.org_id,
+        ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_sync_plans()
@@ -360,10 +364,11 @@ class Syncplan(UITestCase):
         @Assert: Sync Plan is deleted
 
         """
-        entities.Organization(id=self.org_id).sync_plan(
+        entities.SyncPlan(
             name=plan_name,
-            interval=SYNC_INTERVAL['day']
-        )
+            interval=SYNC_INTERVAL['day'],
+            organization=self.org_id,
+        ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_sync_plans()
