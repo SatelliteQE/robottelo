@@ -16,13 +16,13 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
     :rtype: str
 
     """
-    prd_id = entities.Product(name=product, organization=org_id).search()[0].id
-    reposet = entities.RepositorySet(name=reposet, product=prd_id).search()[0]
+    product = entities.Product(name=product, organization=org_id).search()[0]
+    r_set = entities.RepositorySet(name=reposet, product=product).search()[0]
     payload = {}
     if basearch is not None:
         payload['basearch'] = basearch
     if releasever is not None:
         payload['releasever'] = releasever
-    reposet.enable(payload)
+    r_set.enable(payload)
     return entities.Repository(name=repo).search(
         query={'organization_id': org_id})[0].id

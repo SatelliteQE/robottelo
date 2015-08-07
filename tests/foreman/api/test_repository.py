@@ -171,8 +171,8 @@ class RepositoryTestCase(APITestCase):
         """
         # Create a repository and upload RPM content.
         repo = entities.Repository(product=self.product).create()
-        repo.upload_content(
-            {'content': open(get_data_file(RPM_TO_UPLOAD), 'rb')})
+        with open(get_data_file(RPM_TO_UPLOAD), 'rb') as handle:
+            repo.upload_content(handle)
         # Verify the repository's contents.
         self.assertEqual(repo.read_json()[u'content_counts'][u'rpm'], 1)
 
