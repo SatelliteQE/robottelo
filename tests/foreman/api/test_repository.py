@@ -249,7 +249,7 @@ class RepositorySyncTestCase(APITestCase):
             product=PRDS['rhel'],
             repo=REPOS['rhst7']['name'],
             reposet=REPOSET['rhst7'],
-            releasever='None',
+            releasever=None,
         )
         entities.Repository(id=repo_id).sync()
 
