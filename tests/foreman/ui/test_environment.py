@@ -4,6 +4,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.common.helpers import invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_env
 from robottelo.ui.locators import common_locators
@@ -20,9 +21,9 @@ class Environment(UITestCase):
     """
 
     @data(
-        gen_string('alpha', 8),
-        gen_string('numeric', 8),
-        gen_string('alphanumeric', 8)
+        gen_string('alpha'),
+        gen_string('numeric'),
+        gen_string('alphanumeric')
     )
     def test_create_env_positive_1(self, name):
         """@Test: Create new environment
@@ -55,27 +56,10 @@ class Environment(UITestCase):
             search = self.environment.search(name)
             self.assertIsNotNone(search)
 
-    @data(
-        gen_string('alpha', 256),
-        gen_string('numeric', 256),
-        gen_string('alphanumeric', 256)
-    )
-    def test_create_env_negative_1(self, name):
-        """@Test: Create new environment with 256 chars
-
-        @Feature: Environment - Negative Create
-
-        @Assert: Environment is not created
-
-        """
-        with Session(self.browser) as session:
-            make_env(session, name=name)
-            search = self.environment.search(name)
-            self.assertIsNone(search)
-
-    @data("", "  ")
-    def test_create_env_negative_2(self, name):
-        """@Test: Create new environment with blank and whitespace in name
+    @data(*invalid_values_list())
+    def test_create_env_negative(self, name):
+        """@Test: Try to create environment and use whitespace, blank, tab
+        symbol or too long string of different types as its name value
 
         @Feature: Environment - Negative Create
 
@@ -85,17 +69,16 @@ class Environment(UITestCase):
         with Session(self.browser) as session:
             make_env(session, name=name)
             error = session.nav.wait_until_element(
-                common_locators["name_haserror"])
+                common_locators['name_haserror'])
             self.assertIsNotNone(error)
 
     @skip_if_bug_open('bugzilla', 1126033)
-    @data({'name': gen_string('alpha', 8),
-           'new_name': gen_string('alpha', 8)},
-          {'name': gen_string('numeric', 8),
-           'new_name': gen_string('numeric', 8)},
-          {'name': gen_string('alphanumeric', 8),
-           'new_name': gen_string('alphanumeric', 8)})
-    def test_update_env(self, testdata):
+    @data(
+        gen_string('alpha'),
+        gen_string('numeric'),
+        gen_string('alphanumeric'),
+    )
+    def test_update_env(self, new_name):
         """@Test: Update an environment and associated OS
 
         @Feature: Environment - Positive Update
@@ -105,8 +88,7 @@ class Environment(UITestCase):
         @BZ: 1126033
 
         """
-        name = testdata['name']
-        new_name = testdata['new_name']
+        name = gen_string('alpha')
         with Session(self.browser) as session:
             make_env(session, name=name)
             self.environment.update(name, new_name=new_name)
@@ -115,9 +97,9 @@ class Environment(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1126033)
     @data(
-        gen_string('alpha', 8),
-        gen_string('numeric', 8),
-        gen_string('alphanumeric', 8)
+        gen_string('alpha'),
+        gen_string('numeric'),
+        gen_string('alphanumeric')
     )
     def test_remove_env(self, name):
         """@Test: Delete an environment
@@ -129,5 +111,5 @@ class Environment(UITestCase):
         """
         with Session(self.browser) as session:
             make_env(session, name=name)
-            self.environment.delete(name, really=True)
+            self.environment.delete(name)
             self.assertIsNone(self.environment.search(name))
