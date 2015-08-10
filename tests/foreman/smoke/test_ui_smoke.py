@@ -1,5 +1,4 @@
 """Smoke tests for the ``UI`` end-to-end scenario."""
-
 from ddt import ddt
 from fauxfactory import gen_string, gen_ipaddr
 from robottelo.common import conf
@@ -13,6 +12,7 @@ from robottelo.common.constants import (
     FOREMAN_PROVIDERS,
     GOOGLE_CHROME_REPO,
     LIBVIRT_RESOURCE_URL,
+    REPOS,
     REPOSET,
     REPO_TYPE,
     RHVA_REPO_TREE,
@@ -20,11 +20,19 @@ from robottelo.common.constants import (
 from robottelo.common.decorators import bz_bug_is_open
 from robottelo.common.ssh import upload_file
 from robottelo.test import UITestCase
-from robottelo.ui.factory import (make_user, make_org,
-                                  make_lifecycle_environment, make_product,
-                                  make_repository, make_contentview,
-                                  make_resource, make_subnet, make_domain,
-                                  make_hostgroup, make_activationkey)
+from robottelo.ui.factory import (
+    make_activationkey,
+    make_contentview,
+    make_domain,
+    make_hostgroup,
+    make_lifecycle_environment,
+    make_org,
+    make_product,
+    make_repository,
+    make_resource,
+    make_subnet,
+    make_user,
+)
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
@@ -44,8 +52,10 @@ class TestSmoke(UITestCase):
 
         """
         with Session(self.browser) as session:
-            selected_org = session.nav.go_to_select_org(DEFAULT_ORG)
-            self.assertEqual(selected_org, DEFAULT_ORG)
+            self.assertEqual(
+                session.nav.go_to_select_org(DEFAULT_ORG),
+                DEFAULT_ORG
+            )
 
     def test_find_default_location(self):
         """@Test: Check if :data:`robottelo.common.constants.DEFAULT_LOC`
@@ -57,8 +67,10 @@ class TestSmoke(UITestCase):
 
         """
         with Session(self.browser) as session:
-            selected_loc = session.nav.go_to_select_loc(DEFAULT_LOC)
-            self.assertEqual(selected_loc, DEFAULT_LOC)
+            self.assertEqual(
+                session.nav.go_to_select_loc(DEFAULT_LOC),
+                DEFAULT_LOC
+            )
 
     def test_find_admin_user(self):
         """@Test: Check if Admin User is present
@@ -70,10 +82,8 @@ class TestSmoke(UITestCase):
         """
         with Session(self.browser) as session:
             session.nav.go_to_users()
-            element = self.user.search("admin", search_key="login")
-            self.assertIsNotNone(element)
-            is_admin_role_selected = self.user.admin_role_to_user("admin")
-            self.assertTrue(is_admin_role_selected)
+            self.assertIsNotNone(self.user.search('admin', search_key='login'))
+            self.assertTrue(self.user.admin_role_to_user('admin'))
 
     def test_smoke(self):
         """@Test: Check that basic content can be created
@@ -101,30 +111,30 @@ class TestSmoke(UITestCase):
         @Assert: All entities are created and associated.
 
         """
-        user_name = gen_string("alpha", 6)
-        password = gen_string("alpha", 6)
-        org_name = gen_string("alpha", 6)
-        env_1_name = gen_string("alpha", 6)
-        env_2_name = gen_string("alpha", 6)
-        product_name = gen_string("alpha", 6)
-        yum_repository_name = gen_string("alpha", 6)
-        puppet_repository_name = gen_string("alpha", 6)
-        cv_name = gen_string("alpha", 6)
-        puppet_module = "httpd"
-        module_ver = 'Latest'
-        compute_resource_name = gen_string("alpha", 6)
-        provider_type = FOREMAN_PROVIDERS['libvirt']
-        url = (LIBVIRT_RESOURCE_URL % conf.properties['main.server.hostname'])
-        subnet_name = gen_string("alpha", 6)
-        domain_name = gen_string("alpha", 6)
-        domain = description = DOMAIN % domain_name
-        hostgroup_name = gen_string("alpha", 6)
+        user_name = gen_string('alpha')
+        password = gen_string('alpha')
+        org_name = gen_string('alpha')
+        env_1_name = gen_string('alpha')
+        env_2_name = gen_string('alpha')
+        product_name = gen_string('alpha')
+        yum_repository_name = gen_string('alpha')
+        puppet_repository_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        compute_resource_name = gen_string('alpha')
+        subnet_name = gen_string('alpha')
+        domain_name = gen_string('alpha')
+        domain = DOMAIN % domain_name
+        hostgroup_name = gen_string('alpha')
 
         # Create new user with admin permissions
         with Session(self.browser) as session:
-            make_user(session, username=user_name,
-                      password1=password, password2=password)
-            self.assertIsNotNone(self.user.search(user_name, "login"))
+            make_user(
+                session,
+                username=user_name,
+                password1=password,
+                password2=password
+            )
+            self.assertIsNotNone(self.user.search(user_name, 'login'))
             is_admin_role_selected = self.user.admin_role_to_user(user_name)
             self.assertTrue(is_admin_role_selected)
 
@@ -137,38 +147,54 @@ class TestSmoke(UITestCase):
 
             # Create New Lifecycle environment1
             make_lifecycle_environment(session, org=org_name, name=env_1_name)
-            strategy, value = locators["content_env.select_name"]
-            self.assertIsNotNone(self.contentenv.wait_until_element
-                                 ((strategy, value % env_1_name)))
+            strategy, value = locators['content_env.select_name']
+            self.assertIsNotNone(self.contentenv.wait_until_element(
+                (strategy, value % env_1_name)
+            ))
             # Create New  Lifecycle environment2
-            make_lifecycle_environment(session, org=org_name, name=env_2_name,
-                                       prior=env_1_name)
-            self.assertIsNotNone(self.contentenv.wait_until_element
-                                 ((strategy, value % env_2_name)))
+            make_lifecycle_environment(
+                session,
+                org=org_name,
+                name=env_2_name,
+                prior=env_1_name
+            )
+            self.assertIsNotNone(self.contentenv.wait_until_element(
+                (strategy, value % env_2_name)
+            ))
 
             # Create custom product
-            make_product(session, org=org_name,
-                         name=product_name)
+            make_product(session, org=org_name, name=product_name)
             self.assertIsNotNone(self.products.search(product_name))
 
             # Create a YUM repository
-            make_repository(session, org=org_name, name=yum_repository_name,
-                            product=product_name, url=GOOGLE_CHROME_REPO)
+            make_repository(
+                session,
+                org=org_name,
+                name=yum_repository_name,
+                product=product_name,
+                url=GOOGLE_CHROME_REPO
+            )
             self.assertIsNotNone(self.repository.search(yum_repository_name))
 
             # Create a puppet Repository
-            make_repository(session, org=org_name, name=puppet_repository_name,
-                            product=product_name, url=FAKE_0_PUPPET_REPO,
-                            repo_type=REPO_TYPE['puppet'])
-            self.assertIsNotNone(self.repository.search
-                                 (puppet_repository_name))
+            make_repository(
+                session,
+                org=org_name,
+                name=puppet_repository_name,
+                product=product_name,
+                url=FAKE_0_PUPPET_REPO,
+                repo_type=REPO_TYPE['puppet']
+            )
+            self.assertIsNotNone(self.repository.search(
+                puppet_repository_name
+            ))
 
             # Sync YUM and puppet repository
             self.navigator.go_to_sync_status()
-            sync = self.sync.sync_custom_repos(product_name,
-                                               [yum_repository_name,
-                                                puppet_repository_name])
-            self.assertIsNotNone(sync)
+            self.assertIsNotNone(self.sync.sync_custom_repos(
+                product_name,
+                [yum_repository_name, puppet_repository_name]
+            ))
 
             # Create new content-view
             make_contentview(session, org=org_name, name=cv_name)
@@ -177,54 +203,65 @@ class TestSmoke(UITestCase):
             # Add YUM repository to content-view
             self.content_views.add_remove_repos(cv_name, [yum_repository_name])
             if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(
-                    self.content_views.wait_until_element(
-                        common_locators["alert.success"]))
+                self.assertIsNotNone(self.content_views.wait_until_element(
+                    common_locators['alert.success']
+                ))
             # Add puppet-module to content-view
-            self.content_views.add_puppet_module(cv_name, puppet_module,
-                                                 filter_term=module_ver)
+            self.content_views.add_puppet_module(
+                cv_name, 'httpd', filter_term='Latest')
 
             # Publish content-view
             self.content_views.publish(cv_name)
             if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(
-                    self.content_views.wait_until_element(
-                        common_locators["alert.success"]))
+                self.assertIsNotNone(self.content_views.wait_until_element(
+                    common_locators['alert.success']
+                ))
             # Promote content-view to life-cycle environment 1
-            self.content_views.promote(cv_name, version="Version 1",
-                                       env=env_1_name)
+            self.content_views.promote(
+                cv_name, version='Version 1', env=env_1_name)
             if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(
-                    self.content_views.wait_until_element(
-                        common_locators["alert.success"]))
+                self.assertIsNotNone(self.content_views.wait_until_element(
+                    common_locators['alert.success']
+                ))
             # Promote content-view to life-cycle environment 2
-            self.content_views.promote(cv_name, version="Version 1",
-                                       env=env_2_name)
+            self.content_views.promote(
+                cv_name, version='Version 1', env=env_2_name)
             if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(
-                    self.content_views.wait_until_element(
-                        common_locators["alert.success"]))
+                self.assertIsNotNone(self.content_views.wait_until_element(
+                    common_locators['alert.success']
+                ))
             # Create a new libvirt compute resource
+            url = (
+                LIBVIRT_RESOURCE_URL % conf.properties['main.server.hostname']
+            )
             make_resource(
                 session,
                 org=org_name,
                 name=compute_resource_name,
-                provider_type=provider_type,
+                provider_type=FOREMAN_PROVIDERS['libvirt'],
                 parameter_list=[['URL', url, 'field']],
             )
             self.assertIsNotNone(
                 self.compute_resource.search(compute_resource_name))
 
             # Create a subnet
-            make_subnet(session, org=org_name, subnet_name=subnet_name,
-                        subnet_network=gen_ipaddr(ip3=True),
-                        subnet_mask="255.255.255.0")
+            make_subnet(
+                session,
+                org=org_name,
+                subnet_name=subnet_name,
+                subnet_network=gen_ipaddr(ip3=True),
+                subnet_mask='255.255.255.0'
+            )
             self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
 
             # Create a Domain
-            make_domain(session, org=org_name, name=domain,
-                        description=description)
-            self.assertIsNotNone(self.domain.search(description))
+            make_domain(
+                session,
+                org=org_name,
+                name=domain,
+                description=domain
+            )
+            self.assertIsNotNone(self.domain.search(domain))
 
             # Create a HostGroup
             make_hostgroup(session, name=hostgroup_name)
@@ -239,108 +276,92 @@ class TestSmoke(UITestCase):
         fetched by client
 
         """
-        org_name = gen_string("alpha", 6)
-        cv_name = gen_string("alpha", 6)
-        activation_key_name = gen_string("alpha", 6)
-        env_name = gen_string("alpha", 6)
-        product_name = DEFAULT_SUBSCRIPTION_NAME
-        repo_names = [
-            "Red Hat Enterprise Virtualization Agents for RHEL 6 Server "
-            "RPMs x86_64 6.5",
-            "Red Hat Enterprise Virtualization Agents for RHEL 6 Server "
-            "RPMs x86_64 6Server",
-        ]
+        org_name = gen_string('alpha', 6)
+        cv_name = gen_string('alpha', 6)
+        activation_key_name = gen_string('alpha', 6)
+        env_name = gen_string('alpha', 6)
         repos = self.sync.create_repos_tree(RHVA_REPO_TREE)
-        package_name = "python-kitchen"
         cloned_manifest_path = manifests.clone()
         # upload_file function should take care of uploading to sauce labs.
-        upload_file(cloned_manifest_path, remote_file=cloned_manifest_path)
+        upload_file(cloned_manifest_path)
         with Session(self.browser) as session:
             # Create New organization
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
             # Create New Lifecycle environment
             make_lifecycle_environment(session, org=org_name, name=env_name)
-            strategy, value = locators["content_env.select_name"]
-            self.assertIsNotNone(self.contentenv.wait_until_element
-                                 ((strategy, value % env_name)))
+            strategy, value = locators['content_env.select_name']
+            self.assertIsNotNone(self.contentenv.wait_until_element(
+                (strategy, value % env_name)
+            ))
             # Navigate UI to select org and redhat subscription page
             session.nav.go_to_select_org(org_name)
             session.nav.go_to_red_hat_subscriptions()
             # Upload manifest from webui
             self.subscriptions.upload(cloned_manifest_path)
-            self.assertTrue(
-                session.nav.wait_until_element(
-                    common_locators['alert.success']))
+            self.assertTrue(session.nav.wait_until_element(
+                common_locators['alert.success']
+            ))
             session.nav.go_to_red_hat_repositories()
             # List of dictionary passed to enable the redhat repos
             # It selects Product->Reposet-> Repo
             self.sync.enable_rh_repos(repos)
             session.nav.go_to_sync_status()
             # Sync the repos
-            sync = self.sync.sync_rh_repos(repos)
             # syn.sync_rh_repos returns boolean values and not objects
-            self.assertTrue(sync)
+            self.assertTrue(self.sync.sync_rh_repos(repos))
             # Create new content-view
             make_contentview(session, org=org_name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             # Add YUM repository to content-view
-            self.content_views.add_remove_repos(cv_name, repo_names)
+            self.content_views.add_remove_repos(
+                cv_name,
+                [REPOS['rhva65']['name'], REPOS['rhva6']['name']]
+            )
             if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(
-                    self.content_views.wait_until_element(
-                        common_locators["alert.success"]))
+                self.assertIsNotNone(self.content_views.wait_until_element(
+                    common_locators['alert.success']
+                ))
             # Publish content-view
             self.content_views.publish(cv_name)
             if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(
-                    self.content_views.wait_until_element(
-                        common_locators["alert.success"]))
+                self.assertIsNotNone(self.content_views.wait_until_element(
+                    common_locators['alert.success']
+                ))
 
             # Promote content-view to life-cycle environment 1
-            self.content_views.promote(cv_name, version="Version 1",
-                                       env=env_name)
+            self.content_views.promote(
+                cv_name, version='Version 1', env=env_name)
             if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(
-                    self.content_views.wait_until_element(
-                        common_locators["alert.success"]))
+                self.assertIsNotNone(self.content_views.wait_until_element(
+                    common_locators['alert.success']
+                ))
             # Create Activation-Key
             make_activationkey(
-                session, org=org_name, name=activation_key_name, env=env_name,
-                content_view=cv_name)
-            self.activationkey.associate_product(
-                activation_key_name, [product_name]
+                session,
+                org=org_name,
+                name=activation_key_name,
+                env=env_name,
+                content_view=cv_name
             )
-            self.activationkey.enable_repos(activation_key_name,
-                                            [REPOSET['rhva6']])
+            self.activationkey.associate_product(
+                activation_key_name, [DEFAULT_SUBSCRIPTION_NAME])
+            self.activationkey.enable_repos(
+                activation_key_name, [REPOSET['rhva6']])
             if not bz_bug_is_open(1191541):
-                self.assertIsNotNone(
-                    self.activationkey.wait_until_element(
-                        common_locators["alert.success"]))
+                self.assertIsNotNone(self.activationkey.wait_until_element(
+                    common_locators['alert.success']
+                ))
             # Create VM
             with VirtualMachine(distro='rhel66') as vm:
-                # Install katello cert
                 vm.install_katello_cert()
-
-                # Register client with satellite server using activation-key
-                result = vm.register_contenthost(
-                    activation_key=activation_key_name,
-                    org=org_name)
-
-                self.assertEqual(
-                    result.return_code, 0,
-                    "Failed to register using the activation key: {0} "
-                    "and return code: {1}"
-                    .format(result.stderr, result.return_code)
-                )
+                result = vm.register_contenthost(activation_key_name, org_name)
+                self.assertEqual(result.return_code, 0)
 
                 # Install contents from sat6 server
-                result = vm.run('yum install -y {0}'.format(package_name))
-                self.assertEqual(
-                    result.return_code, 0,
-                    "Package install failed: {0} and return code: {1}"
-                    .format(result.stderr, result.return_code)
-                )
+                package_name = 'python-kitchen'
+                result = vm.run(u'yum install -y {0}'.format(package_name))
+                self.assertEqual(result.return_code, 0)
                 # Verify if package is installed by query it
-                result = vm.run('rpm -q {0}'.format(package_name))
+                result = vm.run(u'rpm -q {0}'.format(package_name))
                 self.assertEqual(result.return_code, 0)
