@@ -1,5 +1,8 @@
 """Module containing convenience functions for working with the API."""
+import time
+
 from nailgun import entities
+from robottelo.common.helpers import bz_bug_is_open
 
 
 def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
@@ -24,5 +27,13 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
     if releasever is not None:
         payload['releasever'] = releasever
     r_set.enable(payload)
-    return entities.Repository(name=repo).search(
-        query={'organization_id': org_id})[0].id
+    result = entities.Repository(name=repo).search(
+        query={'organization_id': org_id})
+    if bz_bug_is_open(1252101):
+        for _ in range(5):
+            if len(result) > 0:
+                break
+            time.sleep(5)
+            result = entities.Repository(name=repo).search(
+                query={'organization_id': org_id})
+    return result[0].id
