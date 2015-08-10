@@ -68,17 +68,21 @@ class RHAITestCase(UITestCase):
 
         """
         # Register a VM to Access Insights Service
-        self.rhai.register_client_to_rhai(
-            self.ak_name,
-            self.org_label,
-        )
+        try:
+            self.rhai.register_client_to_rhai(
+                self.ak_name,
+                self.org_label,
+            )
 
-        with Session(self.browser) as session:
-            # view clients registered to Red Hat Access Insights
-            session.nav.go_to_select_org(self.org_name)
-            Navigator(self.browser).go_to_insights_systems()
-            result = self.rhai.view_registered_systems()
-            self.assertIn("1", result, 'Registered clients are not listed')
+            with Session(self.browser) as session:
+                # view clients registered to Red Hat Access Insights
+                session.nav.go_to_select_org(self.org_name)
+                Navigator(self.browser).go_to_insights_systems()
+                result = self.rhai.view_registered_systems()
+                self.assertIn("1", result, 'Registered clients are not listed')
+
+        finally:
+            self.rhai.vm.destroy()
 
     def test_org_selection_for_rhai(self):
         """@Test: Verify that user attempting to access RHAI is directed to
@@ -101,3 +105,41 @@ class RHAITestCase(UITestCase):
             result = session.nav.wait_until_element(
                 locators['insights.org_selection_msg']).text
             self.assertIn("Organization Selection Required", result)
+
+    def test_unregister_system_from_rhai(self):
+        """@Test: Verify that 'Unregister' a system from RHAI works correctly
+
+        @Feature: If a machine if unregistered from the RHAI web interface,
+        then the client should be able to use the service.
+
+        @Assert: Once the machine is unregistered from the RHAI web interface
+        then the unregistered client machine should return a 1 on running the
+        service 'redhat-access-insights'
+
+        """
+        # Register a VM to Access Insights Service
+        try:
+            self.rhai.register_client_to_rhai(
+                self.ak_name,
+                self.org_label,
+            )
+            with Session(self.browser) as session:
+                session.nav.go_to_select_org(self.org_name)
+                Navigator(self.browser).go_to_insights_systems()
+                # Click on the unregister icon 'X' in the table against the
+                # registered system listed.
+                session.nav.click(
+                    locators['insights.unregister_system']
+                )
+                # Confirm selection for clicking on 'Yes' to unregister the
+                # system
+                session.nav.click(
+                    locators['insights.unregister_button']
+                )
+            result = self.rhai.vm.run('redhat-access-insights')
+            self.assertEqual(result.return_code, 1,
+                             "System has not been unregistered")
+
+        finally:
+            # Destroy the VM
+            self.rhai.vm.destroy()
