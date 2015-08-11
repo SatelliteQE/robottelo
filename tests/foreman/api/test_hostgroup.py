@@ -37,7 +37,7 @@ class HostGroupTestCase(APITestCase):
         # Working with 'ntp' module as we know for sure that it contains at
         # least few puppet classes
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
-            puppet_repo.upload_content(handle)
+            puppet_repo.upload_content(files={'content': handle})
 
         content_view = entities.ContentView(
             name=gen_string('alpha'),
