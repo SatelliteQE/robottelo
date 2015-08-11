@@ -239,9 +239,11 @@ class Org(UITestCase):
 
         """
         org = entities.Organization(name=org_name).create()
-        sub = entities.Subscription()
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org.id}, manifest)
+            entities.Subscription().upload(
+                data={'organization_id': org.id},
+                files={'content': manifest},
+            )
         with Session(self.browser) as session:
             make_lifecycle_environment(session, org_name, name='DEV')
             make_lifecycle_environment(

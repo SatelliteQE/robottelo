@@ -240,9 +240,11 @@ class RepositorySyncTestCase(APITestCase):
 
         """
         org = entities.Organization().create()
-        sub = entities.Subscription()
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org.id}, manifest)
+            entities.Subscription().upload(
+                data={'organization_id': org.id},
+                files={'content': manifest},
+            )
         repo_id = utils.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=org.id,

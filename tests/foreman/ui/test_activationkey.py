@@ -883,9 +883,11 @@ class ActivationKey(UITestCase):
             'releasever': '6Server',
         }
         org = entities.Organization().create()
-        sub = entities.Subscription()
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org.id}, manifest)
+            entities.Subscription().upload(
+                data={'organization_id': org.id},
+                files={'content': manifest},
+            )
         repo1_id = self.enable_sync_redhat_repo(rh_repo1, org.id)
         self.cv_publish_promote(cv1_name, env1_name, repo1_id, org.id)
         repo2_id = self.enable_sync_redhat_repo(rh_repo2, org.id)
@@ -1185,9 +1187,11 @@ class ActivationKey(UITestCase):
         org_attrs = entities.Organization().create_json()
         org_id = org_attrs['id']
         # Upload manifest
-        sub = entities.Subscription()
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org_id}, manifest)
+            entities.Subscription().upload(
+                data={'organization_id': org_id},
+                files={'content': manifest},
+            )
         # Helper function to create and promote CV to next environment
         repo_id = self.enable_sync_redhat_repo(rh_repo, org_id=org_id)
         self.cv_publish_promote(cv_name, env_name, repo_id, org_id)
@@ -1290,9 +1294,11 @@ class ActivationKey(UITestCase):
         ).create_json()
         custom_repo_id = repo_attrs['id']
         # Upload manifest
-        sub = entities.Subscription()
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org_id}, manifest)
+            entities.Subscription().upload(
+                data={'organization_id': org_id},
+                files={'content': manifest},
+            )
         # Enable RH repo and fetch repository_id
         rhel_repo_id = utils.enable_rhrepo_and_fetchid(
             basearch=rh_repo['basearch'],
@@ -1339,7 +1345,10 @@ class ActivationKey(UITestCase):
         org = entities.Organization().create()
         sub = entities.Subscription(organization=org)
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org.id}, manifest)
+            sub.upload(
+                data={'organization_id': org.id},
+                files={'content': manifest},
+            )
         # Create activation key
         activation_key = entities.ActivationKey(
             organization=org.id,

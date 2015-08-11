@@ -70,9 +70,11 @@ class TestContentViewsUI(UITestCase):
             repo_id = repo_attrs['id']
         elif rh_repo:
             # Uploads the manifest and returns the result.
-            sub = entities.Subscription()
             with open(manifests.clone(), 'rb') as manifest:
-                sub.upload({'organization_id': org_id}, manifest)
+                entities.Subscription().upload(
+                    data={'organization_id': org_id},
+                    files={'content': manifest},
+                )
             # Enables the RedHat repo and fetches it's Id.
             repo_id = utils.enable_rhrepo_and_fetchid(
                 basearch=rh_repo['basearch'],

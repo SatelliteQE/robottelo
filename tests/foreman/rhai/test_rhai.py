@@ -23,7 +23,10 @@ class RHAITestCase(UITestCase):
         # Upload manifest
         sub = entities.Subscription(organization=org)
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org.id}, manifest)
+            sub.upload(
+                data={'organization_id': org.id},
+                files={'content': manifest},
+            )
 
         # Create activation key using default CV and library environment
         activation_key = entities.ActivationKey(

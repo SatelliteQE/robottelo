@@ -988,7 +988,10 @@ class TestSmoke(TestCase):
         # step 2: Upload manifest
         sub = entities.Subscription(organization=org)
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org.id}, manifest)
+            sub.upload(
+                data={'organization_id': org.id},
+                files={'content': manifest},
+            )
         # step 3.1: Enable RH repo and fetch repository_id
         repository = entities.Repository(id=utils.enable_rhrepo_and_fetchid(
             basearch='x86_64',
