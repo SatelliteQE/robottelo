@@ -27,25 +27,19 @@ from robottelo.cli.base import Base
 
 
 class HostCollection(Base):
-    """
-    Manipulates Katello engine's host-collection command.
-    """
+    """Manipulates Katello engine's host-collection command."""
 
     command_base = 'host-collection'
 
     @classmethod
     def add_content_host(cls, options=None):
-        """
-        Associate a content-host
-        """
+        """Associate a content-host"""
         cls.command_sub = 'add-content-host'
         return cls.execute(cls._construct_command(options))
 
     @classmethod
     def remove_content_host(cls, options=None):
-        """
-        Remove a content-host
-        """
+        """Remove a content-host"""
         cls.command_sub = 'remove-content-host'
         return cls.execute(cls._construct_command(options))
 
@@ -69,3 +63,15 @@ class HostCollection(Base):
         cls.command_sub = 'content-hosts'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def info(cls, options=None):
+        """Show a host collection"""
+        cls.command_sub = 'info'
+        return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def list(cls, options=None):
+        """List host collections"""
+        cls.command_sub = 'list'
+        return cls.execute(cls._construct_command(options))
