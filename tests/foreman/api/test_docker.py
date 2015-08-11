@@ -442,7 +442,6 @@ class DockerContentViewTestCase(APITestCase):
         content_view = content_view.update(['repository'])
         self.assertIn(repo.id, [repo_.id for repo_ in content_view.repository])
 
-    @stubbed()
     @run_only_on('sat')
     def test_add_multiple_docker_repos_to_content_view(self):
         """@Test: Add multiple Docker-type repositories to a
@@ -453,9 +452,36 @@ class DockerContentViewTestCase(APITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        product = entities.Product(organization=self.org).create()
+        repos = [
+            _create_repository(product, name=gen_string('alpha'))
+            for _
+            in range(randint(1, 5))
+        ]
+        self.assertEqual(len(product.read().repository), len(repos))
+
+        content_view = entities.ContentView(
+            composite=False,
+            organization=self.org,
+        ).create()
+        content_view.repository = repos
+        content_view = content_view.update(['repository'])
+
+        self.assertEqual(len(content_view.repository), len(repos))
+
+        content_view.repository = [
+            repo.read() for repo in content_view.repository
+        ]
+
+        self.assertEqual(
+            {repo.id for repo in repos},
+            {repo.id for repo in content_view.repository}
+        )
+
+        for repo in repos + content_view.repository:
+            self.assertEqual(repo.content_type, u'docker')
+            self.assertEqual(repo.docker_upstream_name, u'busybox')
 
     @skip_if_bug_open('bugzilla', 1217603)
     @run_only_on('sat')
@@ -662,13 +688,12 @@ class DockerContentViewTestCase(APITestCase):
             [component.id for component in comp_content_view.component]
         )
         # … publish it…
-        content_view.publish()
+        comp_content_view.publish()
         # … and check that it was indeed published
-        attrs = content_view.read_json()
+        attrs = comp_content_view.read_json()
         self.assertIsNotNone(attrs['last_published'])
         self.assertGreater(attrs['next_version'], 1)
 
-    @stubbed()
     @run_only_on('sat')
     def test_publish_multiple_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it
@@ -679,11 +704,25 @@ class DockerContentViewTestCase(APITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        product = entities.Product(organization=self.org).create()
+        repo = _create_repository(product)
+        content_view = entities.ContentView(
+            composite=False,
+            organization=self.org,
+        ).create()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(
+            [repo.id], [repo_.id for repo_ in content_view.repository])
+        self.assertIsNone(content_view.read_json()['last_published'])
 
-    @stubbed()
+        publish_amount = randint(1, 5)
+        for _ in range(publish_amount):
+            content_view.publish()
+        self.assertIsNotNone(content_view.read_json()['last_published'])
+        self.assertEqual(len(content_view.read().version), publish_amount)
+
     @run_only_on('sat')
     def test_publish_multiple_docker_repo_composite_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it
@@ -695,11 +734,39 @@ class DockerContentViewTestCase(APITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        product = entities.Product(organization=self.org).create()
+        repo = _create_repository(product)
+        content_view = entities.ContentView(
+            composite=False,
+            organization=self.org,
+        ).create()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(
+            [repo.id], [repo_.id for repo_ in content_view.repository])
+        self.assertIsNone(content_view.read_json()['last_published'])
 
-    @stubbed()
+        content_view.publish()
+        self.assertIsNotNone(content_view.read_json()['last_published'])
+        cvv = content_view.read().version[0].read()
+
+        comp_content_view = entities.ContentView(
+            composite=True,
+            organization=self.org,
+        ).create()
+        comp_content_view.component = [cvv]
+        comp_content_view = comp_content_view.update(['component'])
+        self.assertEqual(
+            [cvv.id], [comp.id for comp in comp_content_view.component])
+        self.assertIsNone(comp_content_view.read_json()['last_published'])
+
+        publish_amount = randint(1, 5)
+        for _ in range(publish_amount):
+            comp_content_view.publish()
+        self.assertIsNotNone(comp_content_view.read_json()['last_published'])
+        self.assertEqual(len(comp_content_view.read().version), publish_amount)
+
     @run_only_on('sat')
     def test_promote_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it.
@@ -710,11 +777,28 @@ class DockerContentViewTestCase(APITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        product = entities.Product(organization=self.org).create()
+        repo = _create_repository(product)
 
-    @stubbed()
+        content_view = entities.ContentView(
+            composite=False,
+            organization=self.org,
+        ).create()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(
+            [repo.id], [repo_.id for repo_ in content_view.repository])
+
+        content_view.publish()
+        content_view = content_view.read()
+        cvv = content_view.version[0].read()
+        self.assertEqual(len(cvv.environment), 1)
+
+        cvv.promote({u'environment_id': lce.id})
+        self.assertEqual(len(cvv.read().environment), 2)
+
     @run_only_on('sat')
     def test_promote_multiple_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it.
@@ -725,41 +809,113 @@ class DockerContentViewTestCase(APITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
 
-    @stubbed()
+        product = entities.Product(organization=self.org).create()
+        repo = _create_repository(product)
+
+        content_view = entities.ContentView(
+            composite=False,
+            organization=self.org,
+        ).create()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(
+            [repo.id], [repo_.id for repo_ in content_view.repository])
+
+        content_view.publish()
+        cvv = content_view.read().version[0]
+        self.assertEqual(len(cvv.read().environment), 1)
+
+        for i in range(1, randint(2, 5)):
+            lce = entities.LifecycleEnvironment(organization=self.org).create()
+            cvv.promote({u'environment_id': lce.id})
+            self.assertEqual(len(cvv.read().environment), i+1)
+
     @run_only_on('sat')
     def test_promote_docker_repo_composite_content_view(self):
-        """@Test: Add Docker-type repository to composite content view and
-        publish it. Then promote it to the next available
-        lifecycle-environment.
+        """@Test: Add Docker-type repository to content view and publish it.
+        Then add that content view to composite one. Publish and promote that
+        composite content view to the next available lifecycle-environment.
 
         @Assert: Docker-type repository is promoted to content view found in
         the specific lifecycle-environment.
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        product = entities.Product(organization=self.org).create()
+        repo = _create_repository(product)
+        content_view = entities.ContentView(
+            composite=False,
+            organization=self.org,
+        ).create()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(
+            [repo.id], [repo_.id for repo_ in content_view.repository])
 
-    @stubbed()
+        content_view.publish()
+        cvv = content_view.read().version[0].read()
+
+        comp_content_view = entities.ContentView(
+            composite=True,
+            organization=self.org,
+        ).create()
+        comp_content_view.component = [cvv]
+        comp_content_view = comp_content_view.update(['component'])
+        self.assertEqual(cvv.id, comp_content_view.component[0].id)
+
+        comp_content_view.publish()
+        comp_cvv = comp_content_view.read().version[0]
+        self.assertEqual(len(comp_cvv.read().environment), 1)
+
+        comp_cvv.promote({u'environment_id': lce.id})
+        self.assertEqual(len(comp_cvv.read().environment), 2)
+
     @run_only_on('sat')
     def test_promote_multiple_docker_repo_composite_content_view(self):
-        """@Test: Add Docker-type repository to composite content view and
-        publish it. Then promote it to the multiple available
-        lifecycle-environments.
+        """@Test: Add Docker-type repository to content view and publish it.
+        Then add that content view to composite one. Publish and promote that
+        composite content view to the multiple available lifecycle-environments
 
         @Assert: Docker-type repository is promoted to content view found in
         the specific lifecycle-environments.
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        product = entities.Product(organization=self.org).create()
+        repo = _create_repository(product)
+        content_view = entities.ContentView(
+            composite=False,
+            organization=self.org,
+        ).create()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(
+            [repo.id], [repo_.id for repo_ in content_view.repository])
+
+        content_view.publish()
+        cvv = content_view.read().version[0].read()
+
+        comp_content_view = entities.ContentView(
+            composite=True,
+            organization=self.org,
+        ).create()
+        comp_content_view.component = [cvv]
+        comp_content_view = comp_content_view.update(['component'])
+        self.assertEqual(cvv.id, comp_content_view.component[0].id)
+
+        comp_content_view.publish()
+        comp_cvv = comp_content_view.read().version[0]
+        self.assertEqual(len(comp_cvv.read().environment), 1)
+
+        for i in range(1, randint(2, 5)):
+            lce = entities.LifecycleEnvironment(organization=self.org).create()
+            comp_cvv.promote({u'environment_id': lce.id})
+            self.assertEqual(len(comp_cvv.read().environment), i+1)
 
 
 @ddt
@@ -768,75 +924,131 @@ class DockerActivationKeyTestCase(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Create an organization and product which can be re-used in tests."""
+        """Create necessary objects which can be re-used in tests."""
         super(DockerActivationKeyTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
+        cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
+        cls.product = entities.Product(organization=cls.org).create()
+        cls.repo = _create_repository(cls.product)
+        content_view = entities.ContentView(
+            composite=False,
+            organization=cls.org,
+        ).create()
+        content_view.repository = [cls.repo]
+        cls.content_view = content_view.update(['repository'])
+        cls.content_view.publish()
+        cls.cvv = content_view.read().version[0].read()
+        cls.cvv.promote({u'environment_id': cls.lce.id})
 
-    @stubbed()
     @run_only_on('sat')
     def test_add_docker_repo_to_activation_key(self):
-        """@Test:Add Docker-type repository to a non-composite
-        content view and publish it. Then create an activation key
-        and associate it with the Docker content view.
+        """@Test:Add Docker-type repository to a non-composite content view and
+        publish it. Then create an activation key and associate it with the
+        Docker content view.
 
         @Assert: Docker-based content view can be added to activation key
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        ak = entities.ActivationKey(
+            environment=self.lce,
+            content_view=self.content_view,
+            organization=self.org,
+            name=gen_string('utf8'),
+        ).create()
+        self.assertEqual(ak.content_view.id, self.content_view.id)
+        self.assertEqual(ak.content_view.read().repository[0].id, self.repo.id)
 
-    @stubbed()
     @run_only_on('sat')
     def test_remove_docker_repo_to_activation_key(self):
-        """@Test:Add Docker-type repository to a non-composite
-        content view and publish it. Create an activation key
-        and associate it with the Docker content view. Then remove
-        this content view from the activation key.
+        """@Test:Add Docker-type repository to a non-composite content view and
+        publish it. Create an activation key and associate it with the Docker
+        content view. Then remove this content view from the activation key.
 
-        @Assert: Docker-based content view can be added and then removed
-        from the activation key.
+        @Assert: Docker-based content view can be added and then removed from
+        the activation key.
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        ak = entities.ActivationKey(
+            environment=self.lce,
+            content_view=self.content_view,
+            organization=self.org,
+            name=gen_string('utf8'),
+        ).create()
+        self.assertEqual(ak.content_view.id, self.content_view.id)
+        ak.content_view = None
+        self.assertIsNone(ak.update(['content_view']).content_view)
 
-    @stubbed()
     @run_only_on('sat')
     def test_add_docker_repo_composite_view_to_activation_key(self):
-        """@Test:Add Docker-type repository to a non-composite
-        content view and publish it. Then add this content view to a composite
-        content view and publish it. Create an activation key and associate it
-        with the composite Docker content view.
+        """@Test:Add Docker-type repository to a non-composite content view and
+        publish it. Then add this content view to a composite content view and
+        publish it. Create an activation key and associate it with the
+        composite Docker content view.
 
         @Assert: Docker-based content view can be added to activation key
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        comp_content_view = entities.ContentView(
+            composite=True,
+            organization=self.org,
+        ).create()
+        comp_content_view.component = [self.cvv]
+        comp_content_view = comp_content_view.update(['component'])
+        self.assertEqual(self.cvv.id, comp_content_view.component[0].id)
 
-    @stubbed()
+        comp_content_view.publish()
+        comp_cvv = comp_content_view.read().version[0].read()
+        comp_cvv.promote({u'environment_id': self.lce.id})
+
+        ak = entities.ActivationKey(
+            environment=self.lce,
+            content_view=comp_content_view,
+            organization=self.org,
+            name=gen_string('utf8'),
+        ).create()
+        self.assertEqual(ak.content_view.id, comp_content_view.id)
+
     @run_only_on('sat')
     def test_remove_docker_repo_composite_view_to_activation_key(self):
-        """@Test:Add Docker-type repository to a non-composite
-        content view and publish it. Then add this content view to a composite
-        content view and publish it. Create an activation key and associate it
-        with the composite Docker content view. Then, remove the composite
-        content view from the activation key.
+        """@Test:Add Docker-type repository to a non-composite content view and
+        publish it. Then add this content view to a composite content view and
+        publish it. Create an activation key and associate it with the
+        composite Docker content view. Then, remove the composite content view
+        from the activation key.
 
         @Assert: Docker-based composite content view can be added and then
         removed from the activation key.
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        comp_content_view = entities.ContentView(
+            composite=True,
+            organization=self.org,
+        ).create()
+        comp_content_view.component = [self.cvv]
+        comp_content_view = comp_content_view.update(['component'])
+        self.assertEqual(self.cvv.id, comp_content_view.component[0].id)
+
+        comp_content_view.publish()
+        comp_cvv = comp_content_view.read().version[0].read()
+        comp_cvv.promote({u'environment_id': self.lce.id})
+
+        ak = entities.ActivationKey(
+            environment=self.lce,
+            content_view=comp_content_view,
+            organization=self.org,
+            name=gen_string('utf8'),
+        ).create()
+        self.assertEqual(ak.content_view.id, comp_content_view.id)
+        ak.content_view = None
+        self.assertIsNone(ak.update(['content_view']).content_view)
 
 
 @ddt
@@ -925,20 +1137,28 @@ class DockerComputeResourceTestCase(APITestCase):
         self.assertEqual(compute_resource.provider, DOCKER_PROVIDER)
         self.assertEqual(compute_resource.url, INTERNAL_DOCKER_URL)
 
-    @stubbed()
     @run_only_on('sat')
     def test_update_internal_docker_compute_resource(self):
-        """@Test: Create a Docker-based Compute Resource in the
-        Satellite 6 instance then edit its attributes.
+        """@Test: Create a Docker-based Compute Resource in the Satellite 6
+        instance then edit its attributes.
 
-        @Assert: Compute Resource can be created, listed and its
-        attributes can be updated.
+        @Assert: Compute Resource can be created, listed and its attributes can
+        be updated.
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        compute_resource = entities.DockerComputeResource(
+            name=gen_string('alpha'),
+            url=INTERNAL_DOCKER_URL,
+            organization=[self.org],
+        ).create()
+        self.assertEqual(compute_resource.url, INTERNAL_DOCKER_URL)
+        compute_resource.url = gen_url(scheme='http')
+        self.assertEqual(
+            compute_resource.url,
+            compute_resource.update(['url']).url,
+        )
 
     @stubbed()
     @run_only_on('sat')
@@ -981,20 +1201,28 @@ class DockerComputeResourceTestCase(APITestCase):
         self.assertEqual(compute_resource.provider, DOCKER_PROVIDER)
         self.assertEqual(compute_resource.url, EXTERNAL_DOCKER_URL)
 
-    @stubbed()
     @run_only_on('sat')
     def test_update_external_docker_compute_resource(self):
-        """@Test:@Test: Create a Docker-based Compute Resource using
-        an external Docker-enabled system then edit its attributes.
+        """@Test:@Test: Create a Docker-based Compute Resource using an
+        external Docker-enabled system then edit its attributes.
 
-        @Assert: Compute Resource can be created, listed and its
-        attributes can be updated.
+        @Assert: Compute Resource can be created, listed and its attributes can
+        be updated.
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        compute_resource = entities.DockerComputeResource(
+            name=gen_string('alpha'),
+            url=EXTERNAL_DOCKER_URL,
+            organization=[self.org],
+        ).create()
+        self.assertEqual(compute_resource.url, EXTERNAL_DOCKER_URL)
+        compute_resource.url = gen_url(scheme='http')
+        self.assertEqual(
+            compute_resource.url,
+            compute_resource.update(['url']).url,
+        )
 
     @stubbed()
     @run_only_on('sat')
