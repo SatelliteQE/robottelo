@@ -907,13 +907,13 @@ class TestSmoke(TestCase):
         self.assertEqual(len(content_view.version), 1)
         cv_version = content_view.version[0].read()
         self.assertEqual(len(cv_version.environment), 1)
-        cv_version.promote({u'environment_id': le1.id})
+        cv_version.promote(data={u'environment_id': le1.id})
         # Check that content view exists in 2 lifecycles
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
         cv_version = cv_version.read()
         self.assertEqual(len(cv_version.environment), 2)
-        cv_version.promote({u'environment_id': le2.id})
+        cv_version.promote(data={u'environment_id': le2.id})
         # Check that content view exists in 2 lifecycles
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
@@ -1014,7 +1014,9 @@ class TestSmoke(TestCase):
         # step 6.2: Promote content view to lifecycle_env
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
-        content_view.version[0].promote({u'environment_id': lifecycle_env.id})
+        content_view.version[0].promote(data={
+            u'environment_id': lifecycle_env.id
+        })
 
         # step 7: Create activation key
         activation_key = entities.ActivationKey(

@@ -128,7 +128,7 @@ class ActivationKey(UITestCase):
         cv_version = entities.ContentViewVersion(id=results[0]['id'])
 
         # Promote the content view version.
-        cv_version.promote({u'environment_id': env_attrs.id})
+        cv_version.promote(data={u'environment_id': env_attrs.id})
 
     @data(*valid_data_list())
     def test_positive_create_activation_key_1(self, name):

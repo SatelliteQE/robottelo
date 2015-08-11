@@ -1261,7 +1261,7 @@ class TestContentViewsUI(UITestCase):
         version = 'Version {0}'.format(cv_info['version'])
         cvv = entities.ContentViewVersion(id=cv_info['id'])
         lc_env = entities.LifecycleEnvironment(organization=org).create()
-        cvv.promote({u'environment_id': lc_env.id})
+        cvv.promote(data={u'environment_id': lc_env.id})
 
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
@@ -1291,7 +1291,7 @@ class TestContentViewsUI(UITestCase):
         version = 'Version {0}'.format(cv_info['version'])
         cvv = entities.ContentViewVersion(id=cv_info['id'])
         lc_env = entities.LifecycleEnvironment(organization=org).create()
-        cvv.promote({u'environment_id': lc_env.id})
+        cvv.promote(data={u'environment_id': lc_env.id})
 
         ak = entities.ActivationKey(
             name=gen_string('alphanumeric'),

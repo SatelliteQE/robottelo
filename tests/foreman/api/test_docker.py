@@ -796,7 +796,7 @@ class DockerContentViewTestCase(APITestCase):
         cvv = content_view.version[0].read()
         self.assertEqual(len(cvv.environment), 1)
 
-        cvv.promote({u'environment_id': lce.id})
+        cvv.promote(data={u'environment_id': lce.id})
         self.assertEqual(len(cvv.read().environment), 2)
 
     @run_only_on('sat')
@@ -829,7 +829,7 @@ class DockerContentViewTestCase(APITestCase):
 
         for i in range(1, randint(2, 5)):
             lce = entities.LifecycleEnvironment(organization=self.org).create()
-            cvv.promote({u'environment_id': lce.id})
+            cvv.promote(data={u'environment_id': lce.id})
             self.assertEqual(len(cvv.read().environment), i+1)
 
     @run_only_on('sat')
@@ -871,7 +871,7 @@ class DockerContentViewTestCase(APITestCase):
         comp_cvv = comp_content_view.read().version[0]
         self.assertEqual(len(comp_cvv.read().environment), 1)
 
-        comp_cvv.promote({u'environment_id': lce.id})
+        comp_cvv.promote(data={u'environment_id': lce.id})
         self.assertEqual(len(comp_cvv.read().environment), 2)
 
     @run_only_on('sat')
@@ -914,7 +914,7 @@ class DockerContentViewTestCase(APITestCase):
 
         for i in range(1, randint(2, 5)):
             lce = entities.LifecycleEnvironment(organization=self.org).create()
-            comp_cvv.promote({u'environment_id': lce.id})
+            comp_cvv.promote(data={u'environment_id': lce.id})
             self.assertEqual(len(comp_cvv.read().environment), i+1)
 
 
@@ -938,7 +938,7 @@ class DockerActivationKeyTestCase(APITestCase):
         cls.content_view = content_view.update(['repository'])
         cls.content_view.publish()
         cls.cvv = content_view.read().version[0].read()
-        cls.cvv.promote({u'environment_id': cls.lce.id})
+        cls.cvv.promote(data={u'environment_id': cls.lce.id})
 
     @run_only_on('sat')
     def test_add_docker_repo_to_activation_key(self):
@@ -1004,7 +1004,7 @@ class DockerActivationKeyTestCase(APITestCase):
 
         comp_content_view.publish()
         comp_cvv = comp_content_view.read().version[0].read()
-        comp_cvv.promote({u'environment_id': self.lce.id})
+        comp_cvv.promote(data={u'environment_id': self.lce.id})
 
         ak = entities.ActivationKey(
             environment=self.lce,
@@ -1038,7 +1038,7 @@ class DockerActivationKeyTestCase(APITestCase):
 
         comp_content_view.publish()
         comp_cvv = comp_content_view.read().version[0].read()
-        comp_cvv.promote({u'environment_id': self.lce.id})
+        comp_cvv.promote(data={u'environment_id': self.lce.id})
 
         ak = entities.ActivationKey(
             environment=self.lce,
