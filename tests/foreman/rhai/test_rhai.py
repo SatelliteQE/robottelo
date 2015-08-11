@@ -43,7 +43,7 @@ class RHAITestCase(UITestCase):
                 # values produce this error: "RuntimeError: Error: Only pools
                 # with multi-entitlement product subscriptions can be added to
                 # the activation key with a quantity greater than one."
-                activation_key.add_subscriptions({
+                activation_key.add_subscriptions(data={
                     'quantity': 1,
                     'subscription_id': subs.id,
                 })

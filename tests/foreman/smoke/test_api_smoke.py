@@ -1032,13 +1032,13 @@ class TestSmoke(TestCase):
                 # values produce this error: "RuntimeError: Error: Only pools
                 # with multi-entitlement product subscriptions can be added to
                 # the activation key with a quantity greater than one."
-                activation_key.add_subscriptions({
+                activation_key.add_subscriptions(data={
                     'quantity': 1,
                     'subscription_id': subs.id,
                 })
                 break
         # step 7.2: Enable product content
-        activation_key.content_override({'content_override': {
+        activation_key.content_override(data={'content_override': {
             u'content_label': u'rhel-6-server-rhev-agent-rpms',
             u'value': u'1',
         }})

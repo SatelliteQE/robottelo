@@ -1347,7 +1347,7 @@ class ActivationKey(UITestCase):
         # Associate a manifest to the activation key
         for subs in sub.search():
             if subs.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
-                activation_key.add_subscriptions({
+                activation_key.add_subscriptions(data={
                     'quantity': 1,
                     'subscription_id': subs.id,
                 })
