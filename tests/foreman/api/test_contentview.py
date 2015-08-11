@@ -96,7 +96,7 @@ class ContentViewTestCase(APITestCase):
         })
 
         cloned_cv = entities.ContentView(id=content_view.copy(
-            {u'name': gen_string('alpha', gen_integer(3, 30))}
+            data={u'name': gen_string('alpha', gen_integer(3, 30))}
         )['id'])
         cloned_cv.publish()
         cloned_cv.read().version[0].promote(data={
@@ -123,7 +123,7 @@ class ContentViewTestCase(APITestCase):
             u'environment_id': lc_env.id
         })
         cloned_cv = entities.ContentView(id=content_view.copy(
-            {u'name': gen_string('alpha', gen_integer(3, 30))}
+            data={u'name': gen_string('alpha', gen_integer(3, 30))}
         )['id'])
         cloned_cv.publish()
         cloned_cv.read().version[0].promote(data={
