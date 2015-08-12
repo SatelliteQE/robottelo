@@ -6,19 +6,21 @@ import random
 import tempfile
 from ddt import ddt
 from fauxfactory import gen_string
+from itertools import product
 from robottelo.common import manifests, ssh
-from robottelo.common.helpers import prepare_import_data
 from robottelo.common.decorators import (
     data,
     bz_bug_is_open,
     skip_if_bug_open,
 )
-from robottelo.test import CLITestCase
+from robottelo.common.helpers import prepare_import_data
 from robottelo.cli.import_ import Import
 from robottelo.cli.factory import make_org
-from robottelo.cli.subscription import Subscription
+from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.org import Org
+from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
+from robottelo.test import CLITestCase
 
 
 def csv_to_dataset(csv_files):
@@ -111,6 +113,8 @@ def update_csv_values(csv_file, new_data=None, dirname=None):
                     record.get('org_id') == change['key_id']):
                 record.update(change)
                 del record['key_id']
+                if record.get('org_id'):
+                    record['org_id'] = record.pop('organization_id')
                 updated = True
     if updated:
         return build_csv_file(result, dirname)
@@ -300,25 +304,29 @@ class TestImport(CLITestCase):
         )
         self.assertEqual(len(transition_data), len(test_data))
         for record in transition_data:
-            self.assertNotEqual(User.info({'id': record['sat6']}).stdout, '')
+            self.assertEqual(Org.info({'id': record['sat6']}).return_code, 0)
         Import.organization({'csv-file': files['users'], 'delete': True})
+        ssh.command('rm -rf ${HOME}/.transition_data/org*')
 
         # use the 'none' strategy
         orgs_before = Org.list().stdout
         Import.organization({'csv-file': files['users'], 'recover': 'none'})
         self.assertEqual(orgs_before, Org.list().stdout)
         Import.organization({'csv-file': files['users'], 'delete': True})
+        ssh.command('rm -rf ${HOME}/.transition_data/org*')
 
         # use the 'map' strategy
-        self.assertIn(
-            u'Mapped 3 organizations',
-            u''.join(
-                Import.organization({
-                    'csv-file': files['users'],
-                    'recover': 'map',
-                }).stdout
-            )
+        Import.organization({
+            'csv-file': files['users'],
+            'recover': 'map',
+        })
+        transition_data = csv_to_dataset(
+            ssh.command(u'ls ${HOME}/.transition_data/org*').stdout[:-1]
         )
+        for record in transition_data:
+            self.assertEqual(
+                Org.info({'id': record['sat6']}).return_code, 0
+            )
         Import.organization({'csv-file': files['users'], 'delete': True})
 
     @data(*import_user_data())
@@ -455,12 +463,13 @@ class TestImport(CLITestCase):
             self.default_dataset[0]
         )
         # initial import
-        self.assertEqual(
-            Import.organization({'csv-file': files['users']}).return_code, 0)
-        self.assertEqual(
+        for result in (
+            Import.organization({'csv-file': files['users']}),
             Import.user({
                 'csv-file': files['users'], 'new-passwords': pwdfiles[0],
-            }).return_code, 0)
+            }),
+        ):
+            self.assertEqual(result.return_code, 0)
         # clear the .transition_data to clear the transition mapping
         ssh.command('rm -rf ${HOME}/.transition_data/users*')
         # import users using map-users option
@@ -498,13 +507,14 @@ class TestImport(CLITestCase):
             self.default_dataset[0]
         )
         # initial import
-        self.assertEqual(
-            Import.organization({'csv-file': files['users']}).return_code, 0)
-        self.assertEqual(
+        for result in (
+            Import.organization({'csv-file': files['users']}),
             Import.user({
                 'csv-file': files['users'],
                 'new-passwords': pwdfiles[0],
-            }).return_code, 0)
+            }),
+        ):
+            self.assertEqual(result.return_code, 0)
         # clear the .transition_data to clear the transition mapping
         ssh.command('rm -rf ${HOME}/.transition_data/users*')
         # use the default (rename) strategy
@@ -516,9 +526,10 @@ class TestImport(CLITestCase):
             ssh.command(u'ls ${HOME}/.transition_data/users*').stdout[:-1]
         )
         for record in transition_data:
-            self.assertNotEqual(User.info({'id': record['sat6']}).stdout, '')
+            self.assertEqual(User.info({'id': record['sat6']}).return_code, 0)
 
         Import.user({'csv-file': files['users'], 'delete': True})
+        ssh.command('rm -rf ${HOME}/.transition_data/users*')
         # use the 'none' strategy
         users_before = set(user['login'] for user in User.list().stdout)
         Import.user({
@@ -528,7 +539,6 @@ class TestImport(CLITestCase):
         })
         users_after = set(user['login'] for user in User.list().stdout)
         self.assertTrue(users_before.issubset(users_after))
-        Import.user({'csv-file': files['users'], 'delete': True})
         # use the 'map' strategy
         Import.user({
             'csv-file': files['users'],
@@ -539,10 +549,189 @@ class TestImport(CLITestCase):
             ssh.command(u'ls ${HOME}/.transition_data/users*').stdout[:-1]
         )
         for record in transition_data:
-            self.assertNotEqual(User.info({'id': record['sat6']}).stdout, '')
+            self.assertEqual(
+                User.info({'id': record['sat6']}).return_code, 0
+            )
         Import.user({'csv-file': files['users'], 'delete': True})
         # do the cleanup
         ssh.command(u'rm -rf {}'.format(' '.join(pwdfiles)))
+
+    @data(*import_org_data())
+    def test_import_host_collections_default(self, test_data):
+        """@test: Import all System Groups from the default data set
+        (predefined source) as the Host Collections.
+
+        @feature: Import Host-Collections
+
+        @assert: 3 Host Collections created
+
+        """
+        files = dict(self.default_dataset[1])
+        for file_ in ('users', 'system-groups'):
+            files[file_] = update_csv_values(
+                files[file_],
+                test_data,
+                self.default_dataset[0]
+            )
+        # import the prerequisities
+        for result in (
+            Import.organization({'csv-file': files['users']}),
+            Import.host_collection({'csv-file': files['system-groups']}),
+        ):
+            self.assertEqual(result.return_code, 0)
+        transition_data = csv_to_dataset(
+            ssh.command(
+                u'ls ${HOME}/.transition_data/organizations*'
+            ).stdout[:-1]
+        )
+        # now to check whether the all HC from csv appeared in satellite
+        imp_orgs = csv_to_dataset([files['users']])
+        for imp_org, transition_record in product(imp_orgs, transition_data):
+            if transition_record['sat5'] == imp_org['organization_id']:
+                imp_org.update({'sat6': transition_record['sat6']})
+        for imp_org in imp_orgs:
+            self.assertEqual(
+                HostCollection.list(
+                    {'organization-id': imp_org['sat6']}
+                ).return_code, 0
+            )
+
+    @data(*import_org_data())
+    def test_reimport_host_collections_default_negative(self, test_data):
+        """@test: Import all System Groups from the default data set
+        (predefined source) as the Host Collections and try to import
+        them again.
+
+        @feature: Repetitive Import Host-Collections
+
+        @assert: 3 Host Collections created
+
+        """
+        files = dict(self.default_dataset[1])
+        for file_ in ('users', 'system-groups'):
+            update_csv_values(
+                files[file_],
+                test_data,
+                self.default_dataset[0]
+            )
+        # import the prerequisities
+        for result in (
+            Import.organization({'csv-file': files['users']}),
+            Import.host_collection({'csv-file': files['system-groups']}),
+        ):
+            self.assertEqual(result.return_code, 0)
+        transition_data = csv_to_dataset(
+            ssh.command(
+                u'ls ${HOME}/.transition_data/organization*'
+            ).stdout[:-1]
+        )
+        hcollections_before = [
+            HostCollection.list({'organization-id': tr['sat6']}).stdout
+            for tr in transition_data
+        ]
+        self.assertEqual(
+            Import.host_collection(
+                {'csv-file': files['system-groups']}
+            ).return_code, 0
+        )
+        hcollections_after = [
+            HostCollection.list({'organization-id': tr['sat6']}).stdout
+            for tr in transition_data
+        ]
+        self.assertEqual(hcollections_before, hcollections_after)
+
+    @data(*import_org_data())
+    def test_import_host_collections_recovery(self, test_data):
+        """@test: Try to Import Collections with the same name to invoke
+        usage of a recovery strategy (rename, map, none)
+
+        @feature: Import HostCollection Recover
+
+        @assert: 2nd Import will rename the new collections, 2nd import will
+        map them and the 3rd one will result in No Action Taken
+
+        """
+        # prepare the data
+        files = dict(self.default_dataset[1])
+        for file_ in ('users', 'system-groups'):
+            update_csv_values(
+                files[file_],
+                test_data,
+                self.default_dataset[0]
+            )
+        # initial import
+        for result in (
+            Import.organization({'csv-file': files['users']}),
+            Import.host_collection(
+                {'csv-file': files['system-groups']}
+            ),
+        ):
+            self.assertEqual(result.return_code, 0)
+        # clear the .transition_data to clear the transition mapping
+        ssh.command('rm -rf ${HOME}/.transition_data/host_collections*')
+
+        # use the default (rename) strategy
+        self.assertEqual(
+            Import.host_collection(
+                {'csv-file': files['system-groups'], 'verbose': True}
+            ).return_code, 0
+        )
+        transition_org_data = csv_to_dataset(
+            ssh.command(
+                u'ls ${HOME}/.transition_data/organizations*'
+            ).stdout[:-1]
+        )
+        transition_data = csv_to_dataset(
+            ssh.command(
+                u'ls ${HOME}/.transition_data/host_collections*'
+            ).stdout[:-1]
+        )
+        for record in transition_data:
+            self.assertEqual(
+                HostCollection.info({'id': record['sat6']}).return_code, 0
+            )
+        Import.host_collection(
+            {'csv-file': files['system-groups'], 'delete': True}
+        )
+        ssh.command('rm -rf ${HOME}/.transition_data/host_collections*')
+
+        # use the 'none' strategy
+        hc_before = [
+            HostCollection.list({'organization-id': tr['sat6']}).stdout
+            for tr in transition_org_data
+        ]
+        Import.host_collection(
+            {'csv-file': files['system-groups'], 'recover': 'none'}
+        )
+        hc_after = [
+            HostCollection.list({'organization-id': tr['sat6']}).stdout
+            for tr in transition_org_data
+        ]
+        self.assertEqual(hc_before, hc_after)
+
+        Import.host_collection(
+            {'csv-file': files['system-groups'], 'delete': True}
+        )
+        ssh.command('rm -rf ${HOME}/.transition_data/host_collections*')
+
+        # use the 'map' strategy
+        Import.host_collection({
+            'csv-file': files['system-groups'],
+            'recover': 'map',
+            'verbose': True,
+        })
+        transition_data = csv_to_dataset(
+            ssh.command(
+                u'ls ${HOME}/.transition_data/host_collections*'
+            ).stdout[:-1]
+        )
+        for record in transition_data:
+            self.assertEqual(
+                HostCollection.info({'id': record['sat6']}).return_code, 0
+            )
+        Import.host_collection(
+            {'csv-file': files['system-groups'], 'delete': True}
+        )
 
     @skip_if_bug_open('bugzilla', 1160847)
     def test_bz1160847_translate_macros(self):
