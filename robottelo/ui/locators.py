@@ -1511,6 +1511,7 @@ locators = LocatorDict({
         By.XPATH, "//button[@ng-click='openModal()']"),
     "gpgkey.edit_name": (
         By.XPATH, "//form[@bst-edit-text='gpgKey.name']//div/span/i"),
+    "gpgkey.new_form": (By.XPATH, "//form[contains(@name,'gpgKeyForm')]"),
     "gpgkey.edit_name_text": (
         By.XPATH,
         "//form[@bst-edit-text='gpgKey.name']/div/input"),

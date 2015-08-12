@@ -13,17 +13,17 @@ class GPGKey(Base):
 
     def create(self, name, upload_key=False, key_path=None, key_content=None):
         """Creates a gpg key from UI."""
-        self.wait_until_element(locators["gpgkey.new"]).click()
+        self.click(locators["gpgkey.new"])
 
         if self.wait_until_element(common_locators["name"]):
             self.find_element(
                 common_locators["name"]).send_keys(name)
             if upload_key:
-                self.wait_until_element(locators["gpgkey.upload"]).click()
+                self.click(locators["gpgkey.upload"])
                 self.find_element(
                     locators["gpgkey.file_path"]).send_keys(key_path)
             elif key_content:
-                self.find_element(locators["gpgkey.content"]).click()
+                self.click(locators["gpgkey.content"])
                 self.find_element(
                     locators["gpgkey.content"]).send_keys(key_content)
             else:
@@ -31,8 +31,8 @@ class GPGKey(Base):
                     u'Could not create new gpgkey "{0}" without contents'
                     .format(name)
                 )
-            self.wait_until_element(common_locators["create"]).click()
-            self.wait_for_ajax()
+            self.click(common_locators["create"])
+            self.wait_until_element_is_not_visible(locators["gpgkey.new_form"])
         else:
             raise UIError(
                 'Could not create new gpg key "{0}"'.format(name)
@@ -49,9 +49,7 @@ class GPGKey(Base):
             searchbox.clear()
             searchbox.send_keys(escape_search(element_name))
             self.wait_for_ajax()
-            self.wait_until_element(
-                common_locators["kt_search_button"]
-            ).click()
+            self.click(common_locators["kt_search_button"])
             element = self.wait_until_element((strategy, value % element_name))
             return element
 
@@ -62,11 +60,9 @@ class GPGKey(Base):
         if element:
             element.click()
             self.wait_for_ajax()
-            self.wait_until_element(locators["gpgkey.remove"]).click()
-            self.wait_for_ajax()
+            self.click(locators["gpgkey.remove"])
             if really:
-                self.wait_until_element(
-                    common_locators["confirm_remove"]).click()
+                self.click(common_locators["confirm_remove"])
             else:
                 raise UIError(
                     'Could not delete the selected key "{0}".'.format(name)
@@ -90,8 +86,7 @@ class GPGKey(Base):
             if new_key:
                 self.wait_until_element(
                     locators["gpgkey.file_path"]).send_keys(new_key)
-                self.wait_until_element(
-                    locators["gpgkey.upload_button"]).click()
+                self.click(locators["gpgkey.upload_button"])
         else:
             raise UIError('Could not update the gpg key "{0}"'.format(name))
 
@@ -108,10 +103,9 @@ class GPGKey(Base):
             element.click()
             self.wait_for_ajax()
             if product:
-                self.find_element(
-                    tab_locators["gpgkey.tab_products"]).click()
+                self.click(tab_locators["gpgkey.tab_products"])
             else:
-                self.find_element(tab_locators["gpgkey.tab_repos"]).click()
+                self.click(tab_locators["gpgkey.tab_repos"])
             if self.wait_until_element(locators["gpgkey.product_repo"]):
                 element = self.find_element(
                     locators["gpgkey.product_repo"]).get_attribute('innerHTML')
@@ -133,13 +127,11 @@ class GPGKey(Base):
             prd_element.click()
             self.wait_for_ajax()
             if repo is not None:
-                self.wait_until_element(tab_locators["prd.tab_repos"]).click()
+                self.click(tab_locators["prd.tab_repos"])
                 strategy = locators["repo.select"][0]
                 value = locators["repo.select"][1]
-                self.wait_until_element((strategy, value % repo)).click()
-                self.wait_for_ajax()
-                self.wait_until_element(locators["repo.gpg_key_edit"]).click()
-                self.wait_for_ajax()
+                self.click((strategy, value % repo))
+                self.click(locators["repo.gpg_key_edit"])
                 element = Select(
                     self.find_element(locators["repo.gpg_key_update"])
                 ).first_selected_option.text
@@ -151,11 +143,8 @@ class GPGKey(Base):
                         .format(name)
                     )
             else:
-                self.wait_until_element(
-                    tab_locators["prd.tab_details"]).click()
-                self.wait_for_ajax()
-                self.wait_until_element(locators["prd.gpg_key_edit"]).click()
-                self.wait_for_ajax()
+                self.click(tab_locators["prd.tab_details"])
+                self.click(locators["prd.gpg_key_edit"])
                 element = Select(
                     self.find_element(locators["prd.gpg_key_update"])
                 ).first_selected_option.text

@@ -237,6 +237,34 @@ class Base(object):
             )
             return None
 
+    def wait_until_element_is_not_visible(
+            self, locator, timeout=12, poll_frequency=0.5):
+        """Wrapper around Selenium's WebDriver that allows us to pause our test
+        until specified element will disappear. That means that it will not be
+        present and will not be visible anymore.
+
+        :param locator: Locator of element under test
+        :param timeout: How long this method should wait for the element to
+            disappear (in seconds)
+        :param poll_frequency: How frequently this method should check for the
+            presence of the element (in seconds)
+        :returns: If the page element still present after timeout expired,
+            return None. Otherwise, return True.
+
+        """
+        try:
+            WebDriverWait(self.browser, timeout, poll_frequency).until(
+                expected_conditions.invisibility_of_element_located(locator))
+            self.wait_for_ajax(poll_frequency=poll_frequency)
+            return True
+        except TimeoutException as err:
+            self.logger.debug(
+                "%s: Timed out waiting for element '%s' to disappear.",
+                type(err).__name__,
+                locator[1]
+            )
+            return None
+
     def ajax_complete(self, driver):
         """
         Checks whether an ajax call is completed.
