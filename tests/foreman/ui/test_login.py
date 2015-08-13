@@ -1,9 +1,13 @@
 # -*- encoding: utf-8 -*-
 """Test class for Login UI"""
 
+from ddt import ddt
+from robottelo.common.decorators import data
+from robottelo.common.helpers import gen_string
 from robottelo.test import UITestCase
 
 
+@ddt
 class Login(UITestCase):
     """Implements the login tests rom UI"""
 
@@ -18,24 +22,21 @@ class Login(UITestCase):
         self.login.login(self.katello_user, self.katello_passwd)
         self.assertTrue(self.login.is_logged())
 
-    def test_failed_login_1(self):
-        """@Test: Login as an admin user with an invalid credentials
+    @data(
+        {u'login': 'admin', u'pass': ''},
+        {u'login': '', u'pass': 'mypassword'},
+        {u'login': '', u'pass': ''},
+        {u'login': gen_string('alpha', 300), u'pass': ''},
+        {u'login': gen_string('alpha', 300),
+         u'pass': gen_string('alpha', 300)},
+    )
+    def test_failed_login(self, test_data):
+        """@Test: Login into application using invalid credentials
 
         @Feature: Login - Negative
 
         @Assert: Fails to login
 
         """
-        self.login.login("admin", "")
-        self.assertFalse(self.login.is_logged())
-
-    def test_failed_login_2(self):
-        """@Test: Login as an admin user without entering credentails
-
-        @Feature: Login - Negative
-
-        @Assert: Fails to login
-
-        """
-        self.login.login("", "")
+        self.login.login(test_data['login'], test_data['pass'])
         self.assertFalse(self.login.is_logged())

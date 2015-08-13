@@ -1,9 +1,10 @@
 # -*- encoding: utf-8 -*-
 """Implements Login UI"""
+
 import requests
-from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.common.helpers import get_server_url
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.base import Base, UINoSuchElementError
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -12,13 +13,13 @@ class Login(Base):
 
     def login(self, username, password, organization=None, location=None):
         """Logins user from UI"""
-        if self.wait_until_element(locators["login.username"]):
-            self.field_update("login.username", username)
-            self.field_update("login.password", password)
+        if self.wait_until_element(locators['login.username']):
+            self.field_update('login.username', username)
+            self.field_update('login.password', password)
 
-            self.find_element(common_locators["submit"]).click()
+            self.click(common_locators['submit'])
 
-            if self.find_element(common_locators["notif.error"]):
+            if self.find_element(common_locators['notif.error']):
                 return
             if location:
                 nav = Navigator(self.browser)
@@ -31,9 +32,9 @@ class Login(Base):
         """Logout user from UI"""
         # Scroll to top
         self.browser.execute_script('window.scroll(0, 0)')
-        if self.wait_until_element(locators["login.gravatar"]) is None:
+        if self.wait_until_element(locators['login.gravatar']) is None:
             raise UINoSuchElementError(
-                "could not find login.gravatar to sign out")
+                'could not find login.gravatar to sign out')
         nav = Navigator(self.browser)
         nav.go_to_sign_out()
         self.wait_for_ajax()

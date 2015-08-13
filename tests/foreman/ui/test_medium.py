@@ -5,7 +5,7 @@ from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.common.constants import INSTALL_MEDIUM_URL
 from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import generate_strings_list
+from robottelo.common.helpers import valid_data_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_media
 from robottelo.ui.locators import common_locators
@@ -17,8 +17,8 @@ from robottelo.ui.session import Session
 class Medium(UITestCase):
     """Implements all Installation Media tests"""
 
-    @data(*generate_strings_list(len1=4))
-    def test_positive_create_medium_1(self, name):
+    @data(*valid_data_list())
+    def test_positive_create_medium(self, name):
         """@Test: Create a new media
 
         @Feature:  Media - Positive Create
@@ -26,37 +26,12 @@ class Medium(UITestCase):
         @Assert: Media is created
 
         """
-
-        path = INSTALL_MEDIUM_URL % gen_string("alpha", 6)
-        os_family = "Red Hat"
+        path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
         with Session(self.browser) as session:
-            make_media(session, name=name, path=path, os_family=os_family)
+            make_media(session, name=name, path=path, os_family='Red Hat')
             self.assertIsNotNone(self.medium.search(name))
 
-    @data(
-        gen_string('alphanumeric', 255),
-        gen_string('alpha', 255),
-        gen_string('numeric', 255),
-        gen_string('latin1', 255),
-        gen_string('utf8', 255)
-    )
-    def test_positive_create_medium_2(self, name):
-        """@Test: Create a new media with 255 characters in name
-
-        @Feature:  Media - Positive Create
-
-        @Assert: Media is created
-
-        """
-
-        path = INSTALL_MEDIUM_URL % gen_string("alpha", 6)
-        os_family = "Red Hat"
-        with Session(self.browser) as session:
-            make_media(session, name=name,
-                       path=path, os_family=os_family)
-            self.assertIsNotNone(self.medium.search(name))
-
-    def test_negative_create_medium_1(self):
+    def test_negative_create_medium_with_long_names(self):
         """@Test: Create a new install media with 256 characters in name
 
         @Feature:  Media - Negative Create
@@ -64,18 +39,16 @@ class Medium(UITestCase):
         @Assert: Media is not created
 
         """
-
-        name = gen_string("alpha", 256)
+        name = gen_string('alpha', 256)
         path = INSTALL_MEDIUM_URL % name
-        os_family = "Red Hat"
         with Session(self.browser) as session:
-            make_media(session, name=name, path=path, os_family=os_family)
+            make_media(session, name=name, path=path, os_family='Red Hat')
             self.assertIsNotNone(self.medium.wait_until_element
-                                 (common_locators["name_haserror"]))
+                                 (common_locators['name_haserror']))
             self.assertIsNone(self.medium.search(name))
 
-    @data("", "  ")
-    def test_negative_create_medium_2(self, name):
+    @data('', '  ')
+    def test_negative_create_medium_with_empty_strings(self, name):
         """@Test: Create a new install media with blank and whitespace in name
 
         @Feature:  Media - Negative Create
@@ -84,14 +57,13 @@ class Medium(UITestCase):
 
         """
 
-        path = INSTALL_MEDIUM_URL % gen_string("alpha", 6)
-        os_family = "Red Hat"
+        path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
         with Session(self.browser) as session:
-            make_media(session, name=name, path=path, os_family=os_family)
+            make_media(session, name=name, path=path, os_family='Red Hat')
             self.assertIsNotNone(self.medium.wait_until_element
-                                 (common_locators["name_haserror"]))
+                                 (common_locators['name_haserror']))
 
-    def test_negative_create_medium_4(self):
+    def test_negative_create_medium_with_same_name(self):
         """@Test: Create a new install media with same name
 
         @Feature:  Media - Negative Create
@@ -99,18 +71,17 @@ class Medium(UITestCase):
         @Assert: Media is not created
 
         """
-
-        name = gen_string("alpha", 6)
+        name = gen_string('alpha', 6)
         path = INSTALL_MEDIUM_URL % name
-        os_family = "Red Hat"
+        os_family = 'Red Hat'
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.search(name))
             make_media(session, name=name, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.wait_until_element
-                                 (common_locators["name_haserror"]))
+                                 (common_locators['name_haserror']))
 
-    def test_negative_create_medium_5(self):
+    def test_negative_create_medium_without_path(self):
         """@Test: Create a new install media without media URL
 
         @Feature:  Media - Negative Create
@@ -118,17 +89,14 @@ class Medium(UITestCase):
         @Assert: Media is not created
 
         """
-
-        name = gen_string("alpha", 6)
-        path = ""
-        os_family = "Red Hat"
+        name = gen_string('alpha', 6)
         with Session(self.browser) as session:
-            make_media(session, name=name, path=path, os_family=os_family)
+            make_media(session, name=name, path='', os_family='Red Hat')
             self.assertIsNotNone(self.medium.wait_until_element
-                                 (common_locators["haserror"]))
+                                 (common_locators['haserror']))
             self.assertIsNone(self.medium.search(name))
 
-    def test_negative_create_medium_6(self):
+    def test_negative_create_medium_with_same_path(self):
         """@Test: Create an install media with an existing URL
 
         @Feature:  Media - Negative Create
@@ -136,17 +104,16 @@ class Medium(UITestCase):
         @Assert: Media is not created
 
         """
-
-        name = gen_string("alpha", 6)
-        new_name = gen_string("alpha", 6)
-        path = INSTALL_MEDIUM_URL % gen_string("alpha", 6)
-        os_family = "Red Hat"
+        name = gen_string('alpha', 6)
+        new_name = gen_string('alpha', 6)
+        path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
+        os_family = 'Red Hat'
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.search(name))
             make_media(session, name=new_name, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.wait_until_element
-                                 (common_locators["haserror"]))
+                                 (common_locators['haserror']))
             self.assertIsNone(self.medium.search(new_name))
 
     def test_remove_medium(self):
@@ -157,13 +124,12 @@ class Medium(UITestCase):
         @Assert: Media is deleted
 
         """
-        name = gen_string("alpha", 6)
+        name = gen_string('alpha', 6)
         path = INSTALL_MEDIUM_URL % name
-        os_family = "Red Hat"
         with Session(self.browser) as session:
-            make_media(session, name=name, path=path, os_family=os_family)
+            make_media(session, name=name, path=path, os_family='Red Hat')
             self.assertIsNotNone(self.medium.search(name))
-            self.medium.delete(name, True)
+            self.medium.delete(name)
             self.assertIsNone(self.medium.search(name))
 
     def test_update_medium(self):
@@ -174,14 +140,12 @@ class Medium(UITestCase):
         @Assert: Media is updated
 
         """
-        name = gen_string("alpha", 6)
-        newname = gen_string("alpha", 4)
+        name = gen_string('alpha', 6)
+        newname = gen_string('alpha', 4)
         path = INSTALL_MEDIUM_URL % name
         newpath = INSTALL_MEDIUM_URL % newname
-        os_family = "Red Hat"
-        new_os_family = "Debian"
         with Session(self.browser) as session:
-            make_media(session, name=name, path=path, os_family=os_family)
+            make_media(session, name=name, path=path, os_family='Red Hat')
             self.assertIsNotNone(self.medium.search(name))
-            self.medium.update(name, newname, newpath, new_os_family)
+            self.medium.update(name, newname, newpath, 'Debian')
             self.assertTrue(self, self.medium.search(newname))
