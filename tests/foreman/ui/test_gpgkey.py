@@ -424,9 +424,9 @@ class GPGKey(UITestCase):
         # step 6.2: Promote content view to lifecycle_env
         cv = entities.ContentView(id=content_view.id).read_json()
         self.assertEqual(len(cv['versions']), 1)
-        entities.ContentViewVersion(
-            id=cv['versions'][0]['id']
-        ).promote({u'environment_id': lc_env_id})
+        entities.ContentViewVersion(id=cv['versions'][0]['id']).promote(data={
+            u'environment_id': lc_env_id
+        })
         # step 7: Create activation key
         ak_id = entities.ActivationKey(
             name=activation_key_name,
@@ -437,7 +437,7 @@ class GPGKey(UITestCase):
         for subscription in entities.Subscription(
                 organization=self.org_id).search():
             if subscription.read_json()['product_name'] == product_name:
-                entities.ActivationKey(id=ak_id).add_subscriptions({
+                entities.ActivationKey(id=ak_id).add_subscriptions(data={
                     'quantity': 1,
                     'subscription_id': subscription.id,
                 })

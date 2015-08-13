@@ -138,9 +138,11 @@ class RepositorySetsTestCase(APITestCase):
 
         """
         org = entities.Organization().create()
-        sub = entities.Subscription()
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org.id}, manifest)
+            entities.Subscription().upload(
+                data={'organization_id': org.id},
+                files={'content': manifest},
+            )
         product = entities.Product(
             name=PRDS['rhel'],
             organization=org,
@@ -149,8 +151,8 @@ class RepositorySetsTestCase(APITestCase):
             name=REPOSET['rhva6'],
             product=product,
         ).search()[0]
-        reposet.enable({'basearch': 'x86_64', 'releasever': '6Server'})
-        repositories = reposet.available_repositories()
+        reposet.enable(data={'basearch': 'x86_64', 'releasever': '6Server'})
+        repositories = reposet.available_repositories()['results']
         self.assertTrue([
             repo['enabled']
             for repo
@@ -168,9 +170,11 @@ class RepositorySetsTestCase(APITestCase):
 
         """
         org = entities.Organization().create()
-        sub = entities.Subscription()
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org.id}, manifest)
+            entities.Subscription().upload(
+                data={'organization_id': org.id},
+                files={'content': manifest},
+            )
         product = entities.Product(
             name=PRDS['rhel'],
             organization=org,
@@ -179,9 +183,9 @@ class RepositorySetsTestCase(APITestCase):
             name=REPOSET['rhva6'],
             product=product,
         ).search()[0]
-        reposet.enable({'basearch': 'x86_64', 'releasever': '6Server'})
-        reposet.disable({'basearch': 'x86_64', 'releasever': '6Server'})
-        repositories = reposet.available_repositories()
+        reposet.enable(data={'basearch': 'x86_64', 'releasever': '6Server'})
+        reposet.disable(data={'basearch': 'x86_64', 'releasever': '6Server'})
+        repositories = reposet.available_repositories()['results']
         self.assertFalse([
             repo['enabled']
             for repo

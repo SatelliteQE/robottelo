@@ -23,7 +23,10 @@ class RHAITestCase(UITestCase):
         # Upload manifest
         sub = entities.Subscription(organization=org)
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org.id}, manifest)
+            sub.upload(
+                data={'organization_id': org.id},
+                files={'content': manifest},
+            )
 
         # Create activation key using default CV and library environment
         activation_key = entities.ActivationKey(
@@ -43,7 +46,7 @@ class RHAITestCase(UITestCase):
                 # values produce this error: "RuntimeError: Error: Only pools
                 # with multi-entitlement product subscriptions can be added to
                 # the activation key with a quantity greater than one."
-                activation_key.add_subscriptions({
+                activation_key.add_subscriptions(data={
                     'quantity': 1,
                     'subscription_id': subs.id,
                 })

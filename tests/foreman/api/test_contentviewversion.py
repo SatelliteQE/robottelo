@@ -19,7 +19,9 @@ class CVVersionTestCase(APITestCase):
         """
         env = entities.Environment().create().id
         with self.assertRaises(HTTPError):
-            entities.ContentViewVersion(id=1).promote({u'environment_id': env})
+            entities.ContentViewVersion(id=1).promote(data={
+                u'environment_id': env
+            })
 
     def test_negative_promote_2(self):
         """@Test: Promote a content view version using an invalid environment.
@@ -30,7 +32,9 @@ class CVVersionTestCase(APITestCase):
 
         """
         with self.assertRaises(HTTPError):
-            entities.ContentViewVersion(id=1).promote({u'environment_id': -1})
+            entities.ContentViewVersion(id=1).promote(data={
+                u'environment_id': -1
+            })
 
     def test_delete_version(self):
         """@Test: Create content view and publish it. After that try to
@@ -98,7 +102,7 @@ class CVVersionTestCase(APITestCase):
         self.assertEqual(len(content_view.version), 1)
         self.assertEqual(len(content_view.version[0].read().environment), 1)
         lce = entities.LifecycleEnvironment(organization=org).create()
-        content_view.version[0].promote({u'environment_id': lce.id})
+        content_view.version[0].promote(data={u'environment_id': lce.id})
         cvv = content_view.version[0].read()
         self.assertEqual(len(cvv.environment), 2)
         # Delete the content-view version from selected environments

@@ -369,7 +369,7 @@ class SyncPlanProductTestCase(APITestCase):
         """
         syncplan = entities.SyncPlan(organization=self.org).create()
         product = entities.Product(organization=self.org).create()
-        syncplan.add_products({'product_ids': [product.id]})
+        syncplan.add_products(data={'product_ids': [product.id]})
         syncplan = syncplan.read()
         self.assertEqual(len(syncplan.product), 1)
         self.assertEqual(syncplan.product[0].id, product.id)
@@ -388,7 +388,7 @@ class SyncPlanProductTestCase(APITestCase):
         products = [
             entities.Product(organization=self.org).create() for _ in range(2)
         ]
-        syncplan.add_products({
+        syncplan.add_products(data={
             'product_ids': [product.id for product in products],
         })
         syncplan = syncplan.read()
@@ -414,11 +414,11 @@ class SyncPlanProductTestCase(APITestCase):
         products = [
             entities.Product(organization=self.org).create() for _ in range(2)
         ]
-        syncplan.add_products({
+        syncplan.add_products(data={
             'product_ids': [product.id for product in products],
         })
         self.assertEqual(len(syncplan.read().product), 2)
-        syncplan.remove_products({'product_ids': [products[0].id]})
+        syncplan.remove_products(data={'product_ids': [products[0].id]})
         syncplan = syncplan.read()
         self.assertEqual(len(syncplan.product), 1)
         self.assertEqual(syncplan.product[0].id, products[1].id)
@@ -438,11 +438,11 @@ class SyncPlanProductTestCase(APITestCase):
         products = [
             entities.Product(organization=self.org).create() for _ in range(2)
         ]
-        syncplan.add_products({
+        syncplan.add_products(data={
             'product_ids': [product.id for product in products],
         })
         self.assertEqual(len(syncplan.read().product), 2)
-        syncplan.remove_products({
+        syncplan.remove_products(data={
             'product_ids': [product.id for product in products],
         })
         self.assertEqual(len(syncplan.read().product), 0)
@@ -461,9 +461,9 @@ class SyncPlanProductTestCase(APITestCase):
         syncplan = entities.SyncPlan(organization=self.org).create()
         product = entities.Product(organization=self.org).create()
         for _ in range(5):
-            syncplan.add_products({'product_ids': [product.id]})
+            syncplan.add_products(data={'product_ids': [product.id]})
             self.assertEqual(len(syncplan.read().product), 1)
-            syncplan.remove_products({'product_ids': [product.id]})
+            syncplan.remove_products(data={'product_ids': [product.id]})
             self.assertEqual(len(syncplan.read().product), 0)
 
 
@@ -527,7 +527,7 @@ class SyncPlanDeleteTestCase(APITestCase):
         """
         sync_plan = entities.SyncPlan(organization=self.org).create()
         product = entities.Product(organization=self.org).create()
-        sync_plan.add_products({'product_ids': [product.id]})
+        sync_plan.add_products(data={'product_ids': [product.id]})
         sync_plan.delete()
         with self.assertRaises(HTTPError):
             sync_plan.read()
@@ -545,7 +545,7 @@ class SyncPlanDeleteTestCase(APITestCase):
         products = [
             entities.Product(organization=self.org).create() for _ in range(2)
         ]
-        sync_plan.add_products({
+        sync_plan.add_products(data={
             'product_ids': [product.id for product in products],
         })
         sync_plan.delete()
@@ -564,9 +564,7 @@ class SyncPlanDeleteTestCase(APITestCase):
         sync_plan = entities.SyncPlan(organization=self.org).create()
         product = entities.Product(organization=self.org).create()
         entities.Repository(product=product).create()
-        sync_plan.add_products({
-            'product_ids': [product.id],
-        })
+        sync_plan.add_products(data={'product_ids': [product.id]})
         product.sync()
         sync_plan.delete()
         with self.assertRaises(HTTPError):

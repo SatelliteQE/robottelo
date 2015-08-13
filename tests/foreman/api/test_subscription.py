@@ -22,9 +22,11 @@ class SubscriptionsTestCase(APITestCase):
 
         """
         org = entities.Organization().create()
-        sub = entities.Subscription()
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org.id}, manifest)
+            entities.Subscription().upload(
+                data={'organization_id': org.id},
+                files={'content': manifest},
+            )
 
     def test_positive_delete_1(self):
         """@Test: Delete an Uploaded manifest.
@@ -38,9 +40,9 @@ class SubscriptionsTestCase(APITestCase):
         sub = entities.Subscription(organization=org)
         payload = {'organization_id': org.id}
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload(payload, manifest)
+            sub.upload(data=payload, files={'content': manifest})
         self.assertGreater(len(sub.search()), 0)
-        sub.delete_manifest(payload)
+        sub.delete_manifest(data=payload)
         self.assertEqual(len(sub.search()), 0)
 
     def test_negative_create_1(self):
@@ -54,8 +56,9 @@ class SubscriptionsTestCase(APITestCase):
         orgs = [entities.Organization().create() for _ in range(2)]
         sub = entities.Subscription()
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': orgs[0].id}, manifest)
+            files = {'content': manifest}
+            sub.upload(data={'organization_id': orgs[0].id}, files=files)
             with self.assertRaises(TaskFailedError):
-                sub.upload({'organization_id': orgs[1].id}, manifest)
+                sub.upload(data={'organization_id': orgs[1].id}, files=files)
         self.assertEqual(
             len(entities.Subscription(organization=orgs[1]).search()), 0)

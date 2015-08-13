@@ -71,9 +71,11 @@ class Sync(UITestCase):
         """
 
         repos = self.sync.create_repos_tree(RHCT)
-        sub = entities.Subscription()
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': self.org_id}, manifest)
+            entities.Subscription().upload(
+                data={'organization_id': self.org_id},
+                files={'content': manifest},
+            )
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_red_hat_repositories()

@@ -907,13 +907,13 @@ class TestSmoke(TestCase):
         self.assertEqual(len(content_view.version), 1)
         cv_version = content_view.version[0].read()
         self.assertEqual(len(cv_version.environment), 1)
-        cv_version.promote({u'environment_id': le1.id})
+        cv_version.promote(data={u'environment_id': le1.id})
         # Check that content view exists in 2 lifecycles
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
         cv_version = cv_version.read()
         self.assertEqual(len(cv_version.environment), 2)
-        cv_version.promote({u'environment_id': le2.id})
+        cv_version.promote(data={u'environment_id': le2.id})
         # Check that content view exists in 2 lifecycles
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
@@ -988,7 +988,10 @@ class TestSmoke(TestCase):
         # step 2: Upload manifest
         sub = entities.Subscription(organization=org)
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org.id}, manifest)
+            sub.upload(
+                data={'organization_id': org.id},
+                files={'content': manifest},
+            )
         # step 3.1: Enable RH repo and fetch repository_id
         repository = entities.Repository(id=utils.enable_rhrepo_and_fetchid(
             basearch='x86_64',
@@ -1014,7 +1017,9 @@ class TestSmoke(TestCase):
         # step 6.2: Promote content view to lifecycle_env
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
-        content_view.version[0].promote({u'environment_id': lifecycle_env.id})
+        content_view.version[0].promote(data={
+            u'environment_id': lifecycle_env.id
+        })
 
         # step 7: Create activation key
         activation_key = entities.ActivationKey(
@@ -1032,13 +1037,13 @@ class TestSmoke(TestCase):
                 # values produce this error: "RuntimeError: Error: Only pools
                 # with multi-entitlement product subscriptions can be added to
                 # the activation key with a quantity greater than one."
-                activation_key.add_subscriptions({
+                activation_key.add_subscriptions(data={
                     'quantity': 1,
                     'subscription_id': subs.id,
                 })
                 break
         # step 7.2: Enable product content
-        activation_key.content_override({'content_override': {
+        activation_key.content_override(data={'content_override': {
             u'content_label': u'rhel-6-server-rhev-agent-rpms',
             u'value': u'1',
         }})

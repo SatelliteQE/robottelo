@@ -172,7 +172,7 @@ class RepositoryTestCase(APITestCase):
         # Create a repository and upload RPM content.
         repo = entities.Repository(product=self.product).create()
         with open(get_data_file(RPM_TO_UPLOAD), 'rb') as handle:
-            repo.upload_content(handle)
+            repo.upload_content(files={'content': handle})
         # Verify the repository's contents.
         self.assertEqual(repo.read_json()[u'content_counts'][u'rpm'], 1)
 
@@ -240,9 +240,11 @@ class RepositorySyncTestCase(APITestCase):
 
         """
         org = entities.Organization().create()
-        sub = entities.Subscription()
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload({'organization_id': org.id}, manifest)
+            entities.Subscription().upload(
+                data={'organization_id': org.id},
+                files={'content': manifest},
+            )
         repo_id = utils.enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=org.id,
