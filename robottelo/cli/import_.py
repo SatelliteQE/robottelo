@@ -37,11 +37,47 @@ Subcommands::
 
 """
 from robottelo.cli.base import Base
+from robottelo.common import ssh
 
 
 class Import(Base):
     """Imports configurations from another Satellite instances."""
     command_base = 'import'
+
+    @staticmethod
+    def read_transition_csv(csv_files):
+        """Process remote CSV files and transition them to Dictionary
+
+        The result depends on the order of the processed files. This script
+        should mimic the behavior of Katello's hammer-cli-import
+        `load_persistent_maps()`_ method.
+
+        :param csv_files: A list of Strings containing absolute paths of the
+            remote CSV files
+        :returns: A Dictionary object holding the key-value pairs of
+            the current state of entity mapping
+
+        .. _load_persistent_maps():
+            https://github.com/Katello/hammer-cli-import/blob/master/lib
+            /hammer_cli_import/persistentmap.rb#L113
+
+        """
+        result = []
+        for csv_file in csv_files:
+            ssh_cat = ssh.command(u'cat {0}'.format(csv_file))
+            if ssh_cat.return_code != 0:
+                raise AssertionError(ssh_cat.stderr)
+            csv = ssh_cat.stdout[:-1]
+            keys = csv[0].split(',')
+            for val in csv[1:]:
+                record = dict(zip(keys, val.split(',')))
+                for entity in result:
+                    if entity['sat5'] == record['sat5']:
+                        entity.update(record)
+                        break
+                else:
+                    result.append(record)
+        return result
 
     @classmethod
     def activation_key(cls, options=None):
@@ -159,3 +195,166 @@ class Import(Base):
             cls._construct_command(options),
             output_format=''
         )
+
+    @classmethod
+    def activation_key_with_tr_data(cls, options=None):
+        """Import Activation Keys (from spacewalk-report activation-keys).
+        Requires organization.
+
+        :returns: A tuple of SSHCommandResult and a Dictionary containing
+        the transition data of the Import
+
+        """
+        cls.command_sub = 'activation-key'
+        result = cls.execute(
+            cls._construct_command(options),
+            output_format='csv'
+        )
+        transition_data = []
+        if result.return_code == 0:
+            transition_data = cls.read_transition_csv(
+                ssh.command(
+                    u'ls -v ${HOME}/.transition_data/activation_keys*'
+                ).stdout[:-1]
+            )
+        return (result, transition_data)
+
+    @classmethod
+    def organization_with_tr_data(cls, options=None):
+        """Import Organizations (from spacewalk-report users).
+
+        :returns: A tuple of SSHCommandResult and a Dictionary containing
+        the transition data of the Import
+
+        """
+        cls.command_sub = 'organization'
+        result = cls.execute(
+            cls._construct_command(options),
+            output_format=''
+        )
+        transition_data = []
+        if result.return_code == 0:
+            transition_data = cls.read_transition_csv(
+                ssh.command(
+                    u'ls -v ${HOME}/.transition_data/organizations*'
+                ).stdout[:-1]
+            )
+        return (result, transition_data)
+
+    @classmethod
+    def user_with_tr_data(cls, options=None):
+        """Import Users (from spacewalk-report users).
+
+        :returns: A tuple of SSHCommandResult and a Dictionary containing
+        the transition data of the Import
+
+        """
+        cls.command_sub = 'user'
+        result = cls.execute(
+            cls._construct_command(options),
+            output_format=''
+        )
+        transition_data = []
+        if result.return_code == 0:
+            transition_data = cls.read_transition_csv(
+                ssh.command(
+                    u'ls -v ${HOME}/.transition_data/users*'
+                ).stdout[:-1]
+            )
+        return (result, transition_data)
+
+    @classmethod
+    def host_collection_with_tr_data(cls, options=None):
+        """Import Host Collections (from spacewalk-report system-groups).
+
+        :returns: A tuple of SSHCommandResult and a Dictionary containing
+        the transition data of the Import
+
+        """
+        cls.command_sub = 'host-collection'
+        result = cls.execute(
+            cls._construct_command(options),
+            output_format=''
+        )
+        transition_data = []
+        if result.return_code == 0:
+            transition_data = cls.read_transition_csv(
+                ssh.command(
+                    u'ls -v ${HOME}/.transition_data/host_collections*'
+                ).stdout[:-1]
+            )
+        return (result, transition_data)
+
+    @classmethod
+    def config_file_with_tr_data(cls, options=None):
+        """Create puppet-modules from Configuration Channel content (from
+        spacewalk-report config-files-latest).
+
+        :returns: A tuple of SSHCommandResult and a List containing
+        the transition data of the Import
+
+        """
+        cls.command_sub = 'config-file'
+        result = cls.execute(
+            cls._construct_command(options),
+            output_format=''
+        )
+        transition_data = []
+        if result.return_code == 0:
+            transition_data = [
+                cls.read_transition_csv(ssh.command(command).stdout[:-1])
+                for command
+                in (
+                    u'ls -v ${HOME}/.transition_data/products*'
+                    u'ls -v ${HOME}/.transition_data/puppet_repositories*'
+                )
+            ]
+        return (result, transition_data)
+
+    @classmethod
+    def content_view_with_tr_data(cls, options=None):
+        """Create Content Views based on local/cloned Channels (from
+        spacewalk-export-channels).
+
+        :returns: A tuple of SSHCommandResult and a Dictionary containing
+        the transition data of the Import
+
+        """
+        cls.command_sub = 'content-view'
+        result = cls.execute(
+            cls._construct_command(options),
+            output_format=''
+        )
+        transition_data = []
+        if result.return_code == 0:
+            transition_data = cls.read_transition_csv(
+                ssh.command(
+                    u'ls -v ${HOME}/.transition_data/content_views*'
+                ).stdout[:-1]
+            )
+        return (result, transition_data)
+
+    @classmethod
+    def repository_with_tr_data(cls, options=None):
+        """Import repositories (from spacewalk-report repositories).
+
+        :returns: A tuple of SSHCommandResult and a List containing
+        the transition data of the Import
+
+        """
+        cls.command_sub = 'repository'
+        result = cls.execute(
+            cls._construct_command(options),
+            output_format=''
+        )
+        transition_data = []
+        if result.return_code == 0:
+            transition_data = [
+                cls.read_transition_csv(ssh.command(command).stdout[:-1])
+                for command
+                in (
+                    u'ls -v ${HOME}/.transition_data/products*'
+                    u'ls -v ${HOME}/.transition_data/repositories*'
+                )
+            ]
+        return (result, transition_data)
