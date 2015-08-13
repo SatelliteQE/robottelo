@@ -1,11 +1,14 @@
 """Tests for module ``robottelo.common.helpers``."""
 # (Too many public methods) pylint: disable=R0904
+import mock
 import unittest
 
 from robottelo.common import conf
 from robottelo.common.helpers import (
+    HostInfoError,
     escape_search,
     generate_strings_list,
+    get_host_info,
     get_server_credentials,
     get_server_url,
     invalid_names_list,
@@ -115,9 +118,53 @@ class GetServerCredentialsTestCase(unittest.TestCase):
             get_server_credentials()
 
 
+class GetHostInfoTestCase(unittest.TestCase):
+    """Tests for method ``get_host_credentials``."""
+
+    @mock.patch('robottelo.common.helpers.ssh')
+    def test_fedora_info(self, ssh):
+        ssh.command = mock.MagicMock(return_value=FakeSSHResult(
+            ['Fedora release 20 (Heisenbug)'],
+            0
+        ))
+        self.assertTupleEqual(get_host_info(), ('Fedora', 20, None))
+
+    @mock.patch('robottelo.common.helpers.ssh')
+    def test_rhel_info(self, ssh):
+        ssh.command = mock.MagicMock(return_value=FakeSSHResult(
+            ['Red Hat Enterprise Linux Server release 7.1 (Maipo)'],
+            0
+        ))
+        self.assertTupleEqual(
+            get_host_info(),
+            ('Red Hat Enterprise Linux Server', 7, 1)
+        )
+
+    @mock.patch('robottelo.common.helpers.ssh')
+    def test_cat_fail(self, ssh):
+        ssh.command = mock.MagicMock(
+            return_value=FakeSSHResult([], 1, 'stderr'))
+        with self.assertRaises(HostInfoError) as context:
+            get_host_info()
+        self.assertEqual(
+            context.exception.message,
+            'Not able to cat /etc/redhat-release "stderr"'
+        )
+
+    @mock.patch('robottelo.common.helpers.ssh')
+    def test_release_parse_fail(self, ssh):
+        ssh.command = mock.MagicMock(return_value=FakeSSHResult([''], 0))
+        with self.assertRaises(HostInfoError) as context:
+            get_host_info()
+        self.assertEqual(
+            context.exception.message, 'Not able to parse release string ""')
+
+
 class FakeSSHResult(object):
-    def __init__(self, stdout=None):
+    def __init__(self, stdout=None, return_code=None, stderr=None):
         self.stdout = stdout
+        self.stderr = stderr
+        self.return_code = return_code
 
 
 class ValidNamesListTestCase(unittest.TestCase):

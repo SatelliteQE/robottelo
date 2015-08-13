@@ -2,6 +2,8 @@
 """Several helper methods and functions."""
 import logging
 import os
+import re
+
 from os.path import join
 
 from fauxfactory import gen_string, gen_integer
@@ -19,6 +21,10 @@ LOGGER = logging.getLogger(__name__)
 
 class DataFileError(Exception):
     """Indicates any issue when reading a data file."""
+
+
+class HostInfoError(Exception):
+    """Indicates any issue when getting host info."""
 
 
 def get_server_credentials():
@@ -115,6 +121,35 @@ def get_server_cert_rpm_url():
     """
     return urljoin(
         get_server_pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
+
+
+def get_host_info(hostname=None):
+    """Get remote host's distribution information
+
+    :param str hostname: Hostname or IP address of the remote host. If ``None``
+        the hostname will be get from ``main.server.hostname`` config.
+    :returns: A tuple in the form ``(distro, major, minor)``. ``major`` and
+        ``minor`` are integers. ``minor`` can be ``None`` if not available.
+
+    """
+    result = ssh.command('cat /etc/redhat-release', hostname)
+    if result.return_code != 0:
+        raise HostInfoError('Not able to cat /etc/redhat-release "{0}"'.format(
+            result.stderr
+        ))
+    match = re.match(
+        r'(?P<distro>.+) release (?P<major>\d+)(.(?P<minor>\d+))?',
+        result.stdout[0],
+    )
+    if match is None:
+        raise HostInfoError(
+            u'Not able to parse release string "{0}"'.format(result.stdout[0]))
+    groups = match.groupdict()
+    return (
+        groups['distro'],
+        int(groups['major']),
+        groups['minor'] if groups['minor'] is None else int(groups['minor'])
+    )
 
 
 def get_nailgun_config():
