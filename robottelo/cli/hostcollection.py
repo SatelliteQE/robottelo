@@ -63,15 +63,3 @@ class HostCollection(Base):
         cls.command_sub = 'content-hosts'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
-
-    @classmethod
-    def info(cls, options=None):
-        """Show a host collection"""
-        cls.command_sub = 'info'
-        return cls.execute(cls._construct_command(options))
-
-    @classmethod
-    def list(cls, options=None):
-        """List host collections"""
-        cls.command_sub = 'list'
-        return cls.execute(cls._construct_command(options))
