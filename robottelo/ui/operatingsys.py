@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 """Implements Operating System UI."""
 from robottelo.ui.base import Base, UIError
-from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.common.constants import FILTER
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
-from robottelo.common.constants import FILTER
 
 
 class OperatingSys(Base):
@@ -15,21 +15,21 @@ class OperatingSys(Base):
                       template=None, arch_list=None, ptable_list=None,
                       medium_list=None):
         """Configures the operating system details."""
-        tab_primary_locator = tab_locators["tab_primary"]
-        tab_ptable_locator = tab_locators["operatingsys.tab_ptable"]
-        tab_medium_locator = tab_locators["operatingsys.tab_medium"]
+        tab_primary_locator = tab_locators['tab_primary']
+        tab_ptable_locator = tab_locators['operatingsys.tab_ptable']
+        tab_medium_locator = tab_locators['operatingsys.tab_medium']
 
         if minor_version:
             if self.wait_until_element(
-                    locators["operatingsys.minor_version"]):
-                self.field_update("operatingsys.minor_version", minor_version)
+                    locators['operatingsys.minor_version']):
+                self.field_update('operatingsys.minor_version', minor_version)
         if description:
             if self.wait_until_element(
-                    locators["operatingsys.description"]):
-                self.field_update("operatingsys.description", description)
+                    locators['operatingsys.description']):
+                self.field_update('operatingsys.description', description)
         if os_family:
             Select(
-                self.find_element(locators["operatingsys.family"])
+                self.find_element(locators['operatingsys.family'])
             ).select_by_visible_text(os_family)
         if archs or arch_list:
             self.configure_entity(
@@ -56,11 +56,9 @@ class OperatingSys(Base):
                 entity_select=select
             )
         if template:
-            self.wait_until_element(
-                tab_locators["operatingsys.tab_templates"]).click()
-            self.wait_for_ajax()
+            self.click(tab_locators['operatingsys.tab_templates'])
             Select(
-                self.find_element(locators["operatingsys.template"])
+                self.find_element(locators['operatingsys.template'])
             ).select_by_visible_text(template)
 
     def create(self, name, major_version=None,
@@ -68,11 +66,11 @@ class OperatingSys(Base):
                archs=None, ptables=None, mediums=None, select=True,
                template=None):
         """Create operating system from UI."""
-        new_os = self.wait_until_element(locators["operatingsys.new"])
+        new_os = self.wait_until_element(locators['operatingsys.new'])
         if new_os:
             new_os.click()
-            os_name_locator = locators["operatingsys.name"]
-            os_major_locator = locators["operatingsys.major_version"]
+            os_name_locator = locators['operatingsys.name']
+            os_major_locator = locators['operatingsys.major_version']
             if self.wait_until_element(os_name_locator):
                 self.find_element(os_name_locator).send_keys(name)
             if self.wait_until_element(os_major_locator):
@@ -90,8 +88,7 @@ class OperatingSys(Base):
                     ptable_list=None,
                     medium_list=None
                 )
-                self.find_element(common_locators["submit"]).click()
-                self.wait_for_ajax()
+                self.click(common_locators['submit'])
             else:
                 raise UIError('Could not create OS without major_version')
         else:
@@ -110,7 +107,7 @@ class OperatingSys(Base):
                 name, common_locators['select_filtered_entity'], search_key)
         return element
 
-    def delete(self, os_name, really):
+    def delete(self, os_name, really=True):
         """Delete operating system from UI."""
         self.delete_entity(
             os_name,
@@ -131,13 +128,13 @@ class OperatingSys(Base):
         if element:
             element.click()
             if new_name:
-                if self.wait_until_element(locators["operatingsys.name"]):
-                    self.field_update("operatingsys.name", new_name)
+                if self.wait_until_element(locators['operatingsys.name']):
+                    self.field_update('operatingsys.name', new_name)
             if major_version:
                 if self.wait_until_element(
-                        locators["operatingsys.major_version"]):
+                        locators['operatingsys.major_version']):
                     self.field_update(
-                        "operatingsys.major_version", major_version)
+                        'operatingsys.major_version', major_version)
             self._configure_os(
                 archs,
                 ptables,
@@ -151,8 +148,7 @@ class OperatingSys(Base):
                 ptable_list=new_ptables,
                 medium_list=new_mediums
             )
-            self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
+            self.click(common_locators['submit'])
         else:
             raise UIError(
                 'Could not update the operating system "{0}"'.format(os_name)
@@ -201,44 +197,38 @@ class OperatingSys(Base):
         """
 
         result = None
-        name_loc = locators["operatingsys.name"]
-        major_ver_loc = locators["operatingsys.major_version"]
-        minor_ver_loc = locators["operatingsys.minor_version"]
-        os_family_loc = locators["operatingsys.family"]
+        name_loc = locators['operatingsys.name']
+        major_ver_loc = locators['operatingsys.major_version']
+        minor_ver_loc = locators['operatingsys.minor_version']
+        os_family_loc = locators['operatingsys.family']
         os_object = self.search_entity(
-            os_name, locators["operatingsys.operatingsys_name"])
+            os_name, locators['operatingsys.operatingsys_name'])
         if os_object:
             os_object.click()
-            if self.wait_until_element(locators["operatingsys.name"]):
+            if self.wait_until_element(locators['operatingsys.name']):
                 result = dict([('name', None), ('major', None),
                                ('minor', None), ('os_family', None),
                                ('ptable', None), ('template', None),
                                ('medium', None)])
                 result['name'] = self.find_element(
-                    name_loc).get_attribute("value")
+                    name_loc).get_attribute('value')
                 result['major'] = self.find_element(
-                    major_ver_loc).get_attribute("value")
+                    major_ver_loc).get_attribute('value')
                 result['minor'] = self.find_element(
-                    minor_ver_loc).get_attribute("value")
+                    minor_ver_loc).get_attribute('value')
                 result['os_family'] = Select(
                     self.find_element(os_family_loc)
                 ).first_selected_option.text
-                if entity_name == "ptable":
-                    self.wait_until_element(
-                        tab_locators["operatingsys.tab_ptable"]).click()
-                    self.wait_for_ajax()
+                if entity_name == 'ptable':
+                    self.click(tab_locators['operatingsys.tab_ptable'])
                     result['ptable'] = self.get_selected_entities()
-                elif entity_name == "medium":
-                    self.wait_until_element(
-                        tab_locators["operatingsys.tab_medium"]).click()
-                    self.wait_for_ajax()
+                elif entity_name == 'medium':
+                    self.click(tab_locators['operatingsys.tab_medium'])
                     result['medium'] = self.get_selected_entities()
-                elif entity_name == "template":
-                    self.wait_until_element(
-                        tab_locators["operatingsys.tab_templates"]).click()
-                    self.wait_for_ajax()
+                elif entity_name == 'template':
+                    self.click(tab_locators['operatingsys.tab_templates'])
                     result['template'] = Select(
-                        self.find_element(locators["operatingsys.template"])
+                        self.find_element(locators['operatingsys.template'])
                     ).first_selected_option.text
                 return result
             else:

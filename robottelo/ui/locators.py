@@ -646,8 +646,10 @@ common_locators = LocatorDict({
     "parameter_tab": (By.XPATH, "//a[contains(., 'Parameters')]"),
     "add_parameter": (
         By.XPATH, "//a[contains(text(),'+ Add Parameter')]"),
-    "parameter_name": (By.XPATH, "//input[@placeholder='Name']"),
-    "parameter_value": (By.XPATH, "//textarea[@placeholder='Value']"),
+    "parameter_name": (
+        By.XPATH, "//input[@placeholder='Name' and not(@value)]"),
+    "parameter_value": (
+        By.XPATH, "//textarea[@placeholder='Value' and not(text())]"),
     "parameter_remove": (
         By.XPATH, "//tr/td/input[@value='%s']/following::td/span/a/i"),
 

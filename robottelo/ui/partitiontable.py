@@ -2,7 +2,7 @@
 """Implements Partition Table UI."""
 
 from robottelo.ui.base import Base, UIError
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
@@ -14,20 +14,19 @@ class PartitionTable(Base):
         """Configures the os family of partition table."""
         if os_family:
             Select(
-                self.find_element(locators["ptable.os_family"])
+                self.find_element(locators['ptable.os_family'])
             ).select_by_visible_text(os_family)
 
     def create(self, name, layout=None, os_family=None):
         """Creates new partition table from UI."""
-        self.wait_until_element(locators["ptable.new"]).click()
+        self.click(locators['ptable.new'])
 
-        if self.wait_until_element(locators["ptable.name"]):
-            self.find_element(locators["ptable.name"]).send_keys(name)
-            if self.wait_until_element(locators["ptable.layout"]):
-                self.find_element(locators["ptable.layout"]).send_keys(layout)
+        if self.wait_until_element(locators['ptable.name']):
+            self.find_element(locators['ptable.name']).send_keys(name)
+            if self.wait_until_element(locators['ptable.layout']):
+                self.find_element(locators['ptable.layout']).send_keys(layout)
                 self._configure_partition_table(os_family)
-                self.find_element(common_locators["submit"]).click()
-                self.wait_for_ajax()
+                self.click(common_locators['submit'])
             else:
                 raise UIError(
                     'Could not create partition table "{0}", missing layout'
@@ -41,15 +40,15 @@ class PartitionTable(Base):
     def search(self, name):
         """Searches existing partition table from UI."""
         Navigator(self.browser).go_to_partition_tables()
-        element = self.search_entity(name, locators["ptable.ptable_name"])
+        element = self.search_entity(name, locators['ptable.ptable_name'])
         return element
 
-    def delete(self, name, really):
+    def delete(self, name, really=True):
         """Removes existing partition table from UI."""
         self.delete_entity(
             name,
             really,
-            locators["ptable.ptable_name"],
+            locators['ptable.ptable_name'],
             locators['ptable.delete']
         )
 
@@ -60,14 +59,13 @@ class PartitionTable(Base):
 
         if element:
             element.click()
-            if self.wait_until_element(locators["ptable.name"]):
-                self.field_update("ptable.name", new_name)
+            if self.wait_until_element(locators['ptable.name']):
+                self.field_update('ptable.name', new_name)
             if new_layout:
-                if self.wait_until_element(locators["ptable.layout"]):
-                    self.field_update("ptable.layout", new_layout)
+                if self.wait_until_element(locators['ptable.layout']):
+                    self.field_update('ptable.layout', new_layout)
             self._configure_partition_table(os_family)
-            self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
+            self.click(common_locators['submit'])
         else:
             raise UIError(
                 'Could not update partition table "{0}"'.format(old_name)
