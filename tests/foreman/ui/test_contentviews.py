@@ -8,7 +8,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import client, entities
-from robottelo.api import utils
+from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
 from robottelo.common import manifests
 from robottelo.common.constants import (
     DEFAULT_CV,
@@ -71,12 +71,9 @@ class TestContentViewsUI(UITestCase):
         elif rh_repo:
             # Uploads the manifest and returns the result.
             with open(manifests.clone(), 'rb') as manifest:
-                entities.Subscription().upload(
-                    data={'organization_id': org_id},
-                    files={'content': manifest},
-                )
+                upload_manifest(org_id, manifest)
             # Enables the RedHat repo and fetches it's Id.
-            repo_id = utils.enable_rhrepo_and_fetchid(
+            repo_id = enable_rhrepo_and_fetchid(
                 basearch=rh_repo['basearch'],
                 org_id=str(org_id),  # OrgId is passed as data in API hence str
                 product=rh_repo['product'],

@@ -2,7 +2,11 @@
 """Smoke tests for the ``API`` end-to-end scenario."""
 from fauxfactory import gen_string
 from nailgun import client, entities
-from robottelo.api import utils
+from robottelo.api.utils import (
+    enable_rhrepo_and_fetchid,
+    promote,
+    upload_manifest,
+)
 from robottelo.common.constants import (
     DEFAULT_LOC,
     DEFAULT_ORG,
@@ -907,13 +911,13 @@ class TestSmoke(TestCase):
         self.assertEqual(len(content_view.version), 1)
         cv_version = content_view.version[0].read()
         self.assertEqual(len(cv_version.environment), 1)
-        cv_version.promote(data={u'environment_id': le1.id})
+        promote(cv_version, le1.id)
         # Check that content view exists in 2 lifecycles
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
         cv_version = cv_version.read()
         self.assertEqual(len(cv_version.environment), 2)
-        cv_version.promote(data={u'environment_id': le2.id})
+        promote(cv_version, le2.id)
         # Check that content view exists in 2 lifecycles
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
@@ -986,14 +990,10 @@ class TestSmoke(TestCase):
         ).create()
 
         # step 2: Upload manifest
-        sub = entities.Subscription(organization=org)
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload(
-                data={'organization_id': org.id},
-                files={'content': manifest},
-            )
+            upload_manifest(org.id, manifest)
         # step 3.1: Enable RH repo and fetch repository_id
-        repository = entities.Repository(id=utils.enable_rhrepo_and_fetchid(
+        repository = entities.Repository(id=enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=org.id,
             product=PRDS['rhel'],
@@ -1017,9 +1017,7 @@ class TestSmoke(TestCase):
         # step 6.2: Promote content view to lifecycle_env
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
-        content_view.version[0].promote(data={
-            u'environment_id': lifecycle_env.id
-        })
+        promote(content_view.version[0], lifecycle_env.id)
 
         # step 7: Create activation key
         activation_key = entities.ActivationKey(
@@ -1031,15 +1029,15 @@ class TestSmoke(TestCase):
         # step 7.1: Walk through the list of subscriptions.
         # Find the "Red Hat Employee Subscription" and attach it to the
         # recently-created activation key.
-        for subs in sub.search():
-            if subs.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
+        for sub in entities.Subscription(organization=org).search():
+            if sub.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
                 # 'quantity' must be 1, not subscription['quantity']. Greater
                 # values produce this error: "RuntimeError: Error: Only pools
                 # with multi-entitlement product subscriptions can be added to
                 # the activation key with a quantity greater than one."
                 activation_key.add_subscriptions(data={
                     'quantity': 1,
-                    'subscription_id': subs.id,
+                    'subscription_id': sub.id,
                 })
                 break
         # step 7.2: Enable product content

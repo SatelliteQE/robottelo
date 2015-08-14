@@ -5,6 +5,7 @@
 from ddt import ddt
 from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
+from robottelo.api.utils import upload_manifest
 from robottelo.common import conf, manifests
 from robottelo.common.constants import INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
 from robottelo.common.helpers import (
@@ -240,10 +241,7 @@ class Org(UITestCase):
         """
         org = entities.Organization(name=org_name).create()
         with open(manifests.clone(), 'rb') as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': org.id},
-                files={'content': manifest},
-            )
+            upload_manifest(org.id, manifest)
         with Session(self.browser) as session:
             make_lifecycle_environment(session, org_name, name='DEV')
             make_lifecycle_environment(

@@ -2,6 +2,7 @@
 
 from ddt import ddt
 from nailgun import entities
+from robottelo.api.utils import upload_manifest
 from robottelo.common.constants import FAKE_1_YUM_REPO
 from robottelo.common.decorators import data, run_only_on
 from robottelo.common.helpers import generate_strings_list
@@ -72,10 +73,7 @@ class Sync(UITestCase):
 
         repos = self.sync.create_repos_tree(RHCT)
         with open(manifests.clone(), 'rb') as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': self.org_id},
-                files={'content': manifest},
-            )
+            upload_manifest(self.org_id, manifest)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_red_hat_repositories()

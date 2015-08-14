@@ -9,6 +9,7 @@ from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
 from random import randint
+from robottelo.api.utils import upload_manifest
 from robottelo.common import manifests
 from robottelo.common.constants import PRDS, REPOSET, VALID_GPG_KEY_FILE
 from robottelo.common.decorators import data, run_only_on
@@ -139,10 +140,7 @@ class RepositorySetsTestCase(APITestCase):
         """
         org = entities.Organization().create()
         with open(manifests.clone(), 'rb') as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': org.id},
-                files={'content': manifest},
-            )
+            upload_manifest(org.id, manifest)
         product = entities.Product(
             name=PRDS['rhel'],
             organization=org,
@@ -171,10 +169,7 @@ class RepositorySetsTestCase(APITestCase):
         """
         org = entities.Organization().create()
         with open(manifests.clone(), 'rb') as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': org.id},
-                files={'content': manifest},
-            )
+            upload_manifest(org.id, manifest)
         product = entities.Product(
             name=PRDS['rhel'],
             organization=org,

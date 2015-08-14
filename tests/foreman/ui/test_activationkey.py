@@ -4,7 +4,11 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import client, entities
-from robottelo.api import utils
+from robottelo.api.utils import (
+    enable_rhrepo_and_fetchid,
+    promote,
+    upload_manifest,
+)
 from robottelo.common import manifests
 from robottelo.common.constants import (
     DEFAULT_CV,
@@ -78,7 +82,7 @@ class ActivationKey(UITestCase):
     def enable_sync_redhat_repo(self, rh_repo, org_id=None):
         """Enable the RedHat repo, sync it and returns repo_id"""
         # Enable RH repo and fetch repository_id
-        repo_id = utils.enable_rhrepo_and_fetchid(
+        repo_id = enable_rhrepo_and_fetchid(
             basearch=rh_repo['basearch'],
             org_id=org_id or self.org_id,
             product=rh_repo['product'],
@@ -128,7 +132,7 @@ class ActivationKey(UITestCase):
         cv_version = entities.ContentViewVersion(id=results[0]['id'])
 
         # Promote the content view version.
-        cv_version.promote(data={u'environment_id': env_attrs.id})
+        promote(cv_version, env_attrs.id)
 
     @data(*valid_data_list())
     def test_positive_create_activation_key_1(self, name):
@@ -884,10 +888,7 @@ class ActivationKey(UITestCase):
         }
         org = entities.Organization().create()
         with open(manifests.clone(), 'rb') as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': org.id},
-                files={'content': manifest},
-            )
+            upload_manifest(org.id, manifest)
         repo1_id = self.enable_sync_redhat_repo(rh_repo1, org.id)
         self.cv_publish_promote(cv1_name, env1_name, repo1_id, org.id)
         repo2_id = self.enable_sync_redhat_repo(rh_repo2, org.id)
@@ -1188,10 +1189,7 @@ class ActivationKey(UITestCase):
         org_id = org_attrs['id']
         # Upload manifest
         with open(manifests.clone(), 'rb') as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': org_id},
-                files={'content': manifest},
-            )
+            upload_manifest(org_id, manifest)
         # Helper function to create and promote CV to next environment
         repo_id = self.enable_sync_redhat_repo(rh_repo, org_id=org_id)
         self.cv_publish_promote(cv_name, env_name, repo_id, org_id)
@@ -1295,12 +1293,9 @@ class ActivationKey(UITestCase):
         custom_repo_id = repo_attrs['id']
         # Upload manifest
         with open(manifests.clone(), 'rb') as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': org_id},
-                files={'content': manifest},
-            )
+            upload_manifest(org_id, manifest)
         # Enable RH repo and fetch repository_id
-        rhel_repo_id = utils.enable_rhrepo_and_fetchid(
+        rhel_repo_id = enable_rhrepo_and_fetchid(
             basearch=rh_repo['basearch'],
             org_id=org_id,
             product=rh_repo['product'],
@@ -1345,10 +1340,7 @@ class ActivationKey(UITestCase):
         org = entities.Organization().create()
         sub = entities.Subscription(organization=org)
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload(
-                data={'organization_id': org.id},
-                files={'content': manifest},
-            )
+            upload_manifest(org.id, manifest)
         # Create activation key
         activation_key = entities.ActivationKey(
             organization=org.id,

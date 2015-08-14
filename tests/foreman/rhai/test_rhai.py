@@ -3,6 +3,7 @@
 
 from nailgun import entities
 from fauxfactory import gen_string
+from robottelo.api.utils import upload_manifest
 from robottelo.common.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.common import manifests
 from robottelo.test import UITestCase
@@ -21,12 +22,8 @@ class RHAITestCase(UITestCase):
         ).create()
 
         # Upload manifest
-        sub = entities.Subscription(organization=org)
         with open(manifests.clone(), 'rb') as manifest:
-            sub.upload(
-                data={'organization_id': org.id},
-                files={'content': manifest},
-            )
+            upload_manifest(org.id, manifest)
 
         # Create activation key using default CV and library environment
         activation_key = entities.ActivationKey(
@@ -40,7 +37,7 @@ class RHAITestCase(UITestCase):
         # Walk through the list of subscriptions.
         # Find the "Red Hat Employee Subscription" and attach it to the
         # recently-created activation key.
-        for subs in sub.search():
+        for subs in entities.Subscription(organization=org).search():
             if subs.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
                 # 'quantity' must be 1, not subscription['quantity']. Greater
                 # values produce this error: "RuntimeError: Error: Only pools
