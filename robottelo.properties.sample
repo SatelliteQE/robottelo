@@ -128,3 +128,16 @@ test.virtual_machines_list=127.0.0.1,127.0.0.1,127.0.0.1,127.0.0.1,127.0.0.1
 # Class `ConcurrentTestCase` and its subclasses use this setting when
 # computing statistics of each performance test case, grouped in buckets.
 csv.num_buckets=10
+
+# Target repository names to be synchronized by Pulp.
+# Target repositories are subset of all enabled repositories.
+# Real repository names should be referred by
+# `h repository list --organization-id=1`
+test.target_repos=RHEL 6 Kickstart rpms,RHEL 6 Optional Source rpms
+
+# Number of times to repeat synchronization on each repository
+test.num_syncs=3
+
+# Parameter for deciding whether conduct initial sync or resync
+# 'resync' denotes resync; 'sync' denotes initial sync
+test.sync_type='sync'

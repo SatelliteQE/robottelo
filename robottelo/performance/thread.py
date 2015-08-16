@@ -4,11 +4,19 @@ import threading
 import time
 
 from robottelo.performance.candlepin import Candlepin
+from robottelo.performance.pulp import Pulp
 
 LOGGER = logging.getLogger(__name__)
 
 
 class PerformanceThread(threading.Thread):
+    """Parent thread for all performance concurrent test
+
+    All tests of concurrent subscription by activation-key/attach,
+    concurrent deletion, concurrent synchronization would kick off
+    multiple threads to measure timing latency.
+
+    """
     def __init__(self, thread_id, thread_name, time_result_dict):
         threading.Thread.__init__(self)
         self.thread_id = thread_id
@@ -18,6 +26,7 @@ class PerformanceThread(threading.Thread):
 
 
 class DeleteThread(PerformanceThread):
+    """Thread utility to support concurrent content hosts deletion"""
     def __init__(self, thread_id, thread_name, sublist, time_result_dict):
         super(DeleteThread, self).__init__(
             thread_id, thread_name, time_result_dict)
@@ -37,6 +46,7 @@ class DeleteThread(PerformanceThread):
 
 
 class SubscribeAKThread(PerformanceThread):
+    """Thread utility to support concurrent subscription by activation key"""
     def __init__(
             self,
             thread_id,
@@ -126,3 +136,38 @@ class SubscribeAttachThread(PerformanceThread):
             self.time_result_dict_attach.get(
                 self.thread_name, 'thread-0'
             ).append(time_points[1])
+
+
+class SyncThread(PerformanceThread):
+    """Thread utility to support concurrent synchronization"""
+    def __init__(
+            self,
+            thread_id,
+            thread_name,
+            time_result_dict,
+            repository_id,
+            repository_name,
+            iteration):
+        super(SyncThread, self).__init__(
+            thread_id,
+            thread_name,
+            time_result_dict
+        )
+        self.repository_id = repository_id
+        self.repository_name = repository_name
+        self.iteration = iteration
+
+    def run(self):
+        LOGGER.debug(
+            "{0}: synchronize repository {1} attempt {2}"
+            .format(self.thread_name, self.repository_name, self.iteration)
+        )
+
+        time_point = Pulp.repository_single_sync(
+            self.repository_id,
+            self.repository_name,
+            self.thread_id,
+        )
+
+        # append sync timing to each thread
+        self.time_result_dict.get(self.thread_name).append(time_point)

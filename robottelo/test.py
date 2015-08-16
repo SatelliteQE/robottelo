@@ -23,13 +23,13 @@ from robottelo.performance.constants import(
 )
 from robottelo.performance.graph import(
     generate_bar_chart_stat,
-    generate_line_chart_bucketized_stat,
-    generate_line_chart_raw,
-    generate_stacked_line_chart_raw
+    generate_line_chart_raw_candlepin,
+    generate_line_chart_stat_bucketized_candlepin,
 )
 from robottelo.performance.stat import generate_stat_for_concurrent_thread
 from robottelo.performance.thread import (
     DeleteThread,
+    SyncThread,
     SubscribeAKThread,
     SubscribeAttachThread
 )
@@ -489,7 +489,7 @@ class ConcurrentTestCase(TestCase):
             time_result_dict,
             current_num_threads,
             test_case_name):
-        """Write raw timing ak/att/del/reg results to csv file
+        """Write csv and chart for raw data of Candlepin Tests ak/att/del/reg
 
         Common method shared by three test cases:
 
@@ -518,28 +518,17 @@ class ConcurrentTestCase(TestCase):
 
             # for each thread, write its head and data
             for i in range(current_num_threads):
-                writer.writerow(['client-{}'.format(i)])
                 writer.writerow(time_result_dict.get('thread-{}'.format(i)))
             writer.writerow([])
 
         # generate line chart of raw data
         test_category = self._get_output_filename(raw_file_name)
-        generate_line_chart_raw(
+        generate_line_chart_raw_candlepin(
             time_result_dict,
             'Candlepin Subscription Raw Timings Line Chart - '
             '({0}-{1}-clients)'
             .format(test_category, current_num_threads),
             '{0}-{1}-clients-raw-data-line-chart.svg'
-            .format(test_category, current_num_threads)
-        )
-
-        # generate stacked chart of raw data
-        generate_stacked_line_chart_raw(
-            time_result_dict,
-            'Candlepin Subscription Raw Timings Stacked Line Chart - '
-            '({0}-{1}-clients)'
-            .format(test_category, current_num_threads),
-            '{0}-{1}-clients-raw-data-stacked_line-chart.svg'
             .format(test_category, current_num_threads)
         )
 
@@ -615,7 +604,12 @@ class ConcurrentTestCase(TestCase):
             current_num_threads):
         """Write bucketized stat of per-client results to csv file
 
-        note: each bucket is a split of a client i
+        note: each bucket is just a split of a client i. For example::
+
+            Input: # of clients = 1
+            {thread-i: [(50 data) | (50 data)|...]}
+            Output:
+            line chart of statistics on these buckets.
 
         """
         test_category = self._get_output_filename(stat_file_name)
@@ -632,7 +626,7 @@ class ConcurrentTestCase(TestCase):
             )
 
             # create line chart with each client being grouped by buckets
-            generate_line_chart_bucketized_stat(
+            generate_line_chart_stat_bucketized_candlepin(
                 stat_dict,
                 'Concurrent Subscription Statistics - per client bucketized: '
                 'Client-{0} by {1}-{2}-clients'
@@ -658,8 +652,11 @@ class ConcurrentTestCase(TestCase):
             ...
             thread-9: [(50 data) | (50 data)|...]
             Output:
-            sublist [500 data in all first buckets of each thread]
-                    [500]...[500]
+            sublist [500 data grouped from all clients' first buckets],
+                    [500 data grouped from all clients' next buckets],
+                    ...
+                    [500 data grouped from all clients' last buckets];
+            line chart of statistics on these chunks.
 
         """
         # parameters for generating bucketized line chart
@@ -690,7 +687,7 @@ class ConcurrentTestCase(TestCase):
             stat_dict.update({i: return_stat.get(0, (0, 0, 0, 0))})
 
         # create line chart with all clients grouped by a chunk of buckets
-        generate_line_chart_bucketized_stat(
+        generate_line_chart_stat_bucketized_candlepin(
             stat_dict,
             'Concurrent Subscription Statistics - per test bucketized: '
             '({0}-{1}-clients)'
@@ -913,7 +910,6 @@ class ConcurrentTestCase(TestCase):
         """Refactor out concurrent system deletion test case
 
         :param int current_num_threads: number of threads
-        :param int total_iterations: FIXME
 
         """
         # Get list of all uuids of registered systems
@@ -964,3 +960,86 @@ class ConcurrentTestCase(TestCase):
             current_num_threads,
             'stat-del-{}-clients'.format(current_num_threads)
         )
+
+    def kick_off_concurrent_sync_test(
+            self,
+            current_num_threads,
+            is_initial_sync):
+        """Refactor out concurrent repository synchronization test case
+
+        :param int current_num_threads: The number of threads
+        :param boolean is_initial_sync: Decide whether resync or initial sync
+        :return dict time_result_dict: Contain a list of X # of timings
+
+        """
+        self.logger.debug(
+            'Concurrent Synchronize by {} threads'
+            .format(current_num_threads)
+        )
+        # determine the target repositories' names by configuration
+        # sync only a sublist of target repos for each test case
+        repo_names_list = self.repo_names_list[:current_num_threads]
+        self.logger.debug(
+            'Targeting repositories to sync: {}'
+            .format(repo_names_list)
+        )
+
+        # Create a list to store all threads
+        thread_list = []
+        # Create a dictionary to store all timing results from each thread
+        time_result_dict = {}
+        for thread_id in range(current_num_threads):
+            time_result_dict['thread-{}'.format(thread_id)] = []
+
+        # sync all specified repositories and repeate X times
+        for iteration in range(self.sync_iterations):
+            # for each thread, sync a single repository
+            for tid in range(current_num_threads):
+                repo_name = repo_names_list[tid]
+                repo_id = self.map_repo_name_id.get(repo_name, None)
+
+                if repo_id is None:
+                    self.logger.warning('Invalid repository name!')
+                    continue
+
+                self.logger.debug(
+                    '{0} repository {1} attempt {2} '
+                    'on {3}-repo test case starts:'
+                    .format(
+                        'Initially sync' if is_initial_sync else 'Resync',
+                        repo_name,
+                        iteration,
+                        current_num_threads
+                    )
+                )
+
+                thread = SyncThread(
+                    tid,
+                    "thread-{}".format(tid),
+                    time_result_dict,
+                    repo_id,
+                    repo_name,
+                    iteration,
+                )
+                thread.start()
+                thread_list.append(thread)
+
+            # wait all threads in thread list
+            self._join_all_threads(thread_list)
+
+            # Once all threads have completed syncs,
+            # reset database before next iteration, if initial sync test
+            if is_initial_sync:
+                self.logger.debug(
+                    'Reset database for Initial Sync test '
+                    'on {0}-repo test case attempt {1}'
+                    .format(current_num_threads, iteration)
+                )
+                self._restore_from_savepoint(self.savepoint)
+            else:
+                self.logger.debug(
+                    'Resync on {0}-repo test case attempt {1} completes'
+                    .format(current_num_threads, iteration)
+                )
+
+        return time_result_dict

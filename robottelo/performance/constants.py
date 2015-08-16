@@ -26,5 +26,8 @@ STAT_ATT_FILE_NAME = 'perf-statistics-attach.csv'
 STAT_DEL_FILE_NAME = 'perf-statistics-delete.csv'
 STAT_REG_FILE_NAME = 'perf-statistics-register.csv'
 
+RAW_SYNC_FILE_NAME = 'perf-raw-sync.csv'
+STAT_SYNC_FILE_NAME = 'perf-statistics-sync.csv'
+
 # parameters for number of threads/clients
 NUM_THREADS = '1,2,4,6,8,10'

@@ -41,6 +41,10 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
         # Create activation key
         self.logger.info('Create activation key: ')
         (ak_id, ak_name) = self._create_activation_key()
+        self.logger.info(
+            'New activation key is: {0}; its id is: {1}.'
+            .format(ak_name, ak_id)
+        )
 
         # Get subscription id
         (sub_id, sub_name) = self._get_subscription_id()
@@ -69,8 +73,6 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
         if result.return_code != 0:
             self.logger.error('Fail to make new activation key!')
             return
-        self.logger.info(
-            'New activation key is: {}.'.format(result.stdout[0]['name']))
         return result.stdout[0]['id'], result.stdout[0]['name']
 
     def _add_ak_to_subscription(self, ak_id, sub_id):
