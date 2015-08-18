@@ -12,82 +12,98 @@ class Hosts(Base):
                          domain=None, env=None, host_group=None, ip_addr=None,
                          lifecycle_env=None, mac=None, media=None, os=None,
                          ptable=None, puppet_ca=None, puppet_master=None,
+                         puppet_module=None, reset_puppetenv=True,
                          resource=None, root_pwd=None, subnet=None):
+        strategy1, value1 = locators['host.select_puppetmodule']
+        strategy2, value2 = locators['host.select_puppetclass']
         # Host tab
-        if lifecycle_env is not None:
+        if lifecycle_env:
             Select(
                 self.wait_until_element(locators['host.lifecycle_env'])
             ).select_by_visible_text(lifecycle_env)
-        if cv is not None:
+        if cv:
             Select(
                 self.wait_until_element(locators['host.cv'])
             ).select_by_visible_text(cv)
-        if host_group is not None:
+        if reset_puppetenv:
+            self.click(locators['host.reset_puppetenv'])
+        if host_group:
             Select(
                 self.wait_until_element(locators['host.group'])
             ).select_by_visible_text(host_group)
-        elif env is not None and host_group is None:
+        elif env and not host_group:
             # As selecting hostgroup changes env
             Select(
                 self.wait_until_element(locators['host.environment'])
             ).select_by_visible_text(env)
-        if puppet_ca is not None:
+        if puppet_ca:
             Select(
                 self.wait_until_element(locators['host.puppet_ca'])
             ).select_by_visible_text(puppet_ca)
-        if puppet_master is not None:
+        if puppet_master:
             Select(
                 self.wait_until_element(locators['host.puppet_master'])
             ).select_by_visible_text(puppet_master)
         # Network tab
-        self.wait_until_element(tab_locators['host.tab_network']).click()
-        if domain is not None:
+        if domain or mac or subnet or ip_addr:
+            self.click(tab_locators['host.tab_network'])
+        if domain:
             Select(
                 self.wait_until_element(locators['host.domain'])
             ).select_by_visible_text(domain)
-        if mac is not None:
+        if mac:
             self.wait_until_element(locators['host.mac']).send_keys(mac)
-        if subnet is not None:
+        if subnet:
             Select(
                 self.wait_until_element(locators['host.subnet'])
             ).select_by_visible_text(subnet)
-        if ip_addr is not None:
+        if ip_addr:
             self.wait_until_element(locators['host.ip']).send_keys(ip_addr)
         # Operating system tab
-        self.wait_until_element(tab_locators['host.tab_os']).click()
-        if arch is not None:
+        if arch or os or media or ptable or custom_ptable or root_pwd:
+            self.click(tab_locators['host.tab_os'])
+        if arch:
             Select(
                 self.wait_until_element(locators['host.arch'])
             ).select_by_visible_text(arch)
             self.wait_for_ajax()
-        if os is not None:
+        if os:
             Select(
                 self.wait_until_element(locators['host.os'])
             ).select_by_visible_text(os)
             self.wait_for_ajax()
-        if media is not None:
+        if media:
             Select(
                 self.wait_until_element(locators['host.media'])
             ).select_by_visible_text(media)
-        if ptable is not None:
+        if ptable:
             Select(
                 self.wait_until_element(locators['host.ptable'])
             ).select_by_visible_text(ptable)
-        if custom_ptable is not None:
+        if custom_ptable:
             self.wait_until_element(
                 locators['host.custom_ptables']).send_keys(custom_ptable)
-        if root_pwd is not None:
+        if root_pwd:
             self.wait_until_element(
                 locators['host.root_pass']).send_keys(root_pwd)
+        # Puppet tab
+        if puppet_module:
+            self.click(tab_locators['host.tab_puppet'])
+            self.wait_until_element(
+                (strategy1, value1 % puppet_module)
+            ).click()
+            self.wait_until_element(
+                (strategy2, value2 % puppet_module)
+            ).click()
 
     def create(self, arch=None, cpus='1', cv=None, custom_ptable=None,
                domain=None, env=None, host_group=None, ip_addr=None,
                lifecycle_env=None, loc=None, mac=None, media=None,
                memory='768 MB', name=None, org=None, os=None, ptable=None,
-               puppet_ca=None, puppet_master=None, resource=None,
-               root_pwd=None, subnet=None):
+               puppet_ca=None, puppet_master=None, reset_puppetenv=True,
+               resource=None, root_pwd=None, subnet=None):
         """Creates a host."""
-        self.wait_until_element(locators['host.new']).click()
+        self.click(locators['host.new'])
         self.wait_until_element(locators['host.name']).send_keys(name)
         if org is not None:
             Select(
@@ -124,53 +140,52 @@ class Hosts(Base):
             subnet=subnet,
         )
         if resource != RESOURCE_DEFAULT:
-            self.wait_until_element(tab_locators['host.tab_vm']).click()
+            self.click(tab_locators['host.tab_vm'])
             Select(
                 self.wait_until_element(locators['host.vm_cpus'])
             ).select_by_visible_text(cpus)
             Select(
                 self.wait_until_element(locators['host.vm_memory'])
             ).select_by_visible_text(memory)
-        self.wait_until_element(common_locators['submit']).click()
-        self.wait_for_ajax()
+        self.click(common_locators['submit'])
 
     def update(self, arch=None, cv=None, custom_ptable=None, domain=None,
                env=None, host_group=None, ip_addr=None, mac=None,
                lifecycle_env=None, media=None, name=None, new_name=None,
                os=None, ptable=None, puppet_ca=None, puppet_master=None,
-               resource=None, root_pwd=None, subnet=None):
+               puppet_module=None, reset_puppetenv=False, resource=None,
+               root_pwd=None, subnet=None):
         """Updates a Host."""
         element = self.search(name)
-        if element is not None:
-            element.click()
-            self.wait_until_element(locators['host.edit']).click()
-            self.wait_for_ajax()
-            if new_name is not None:
-                self.wait_until_element(locators['host.name'])
-                self.field_update('host.name', new_name)
-            self._configure_hosts(
-                arch=arch,
-                cv=cv,
-                custom_ptable=custom_ptable,
-                domain=domain,
-                env=env,
-                host_group=host_group,
-                ip_addr=ip_addr,
-                lifecycle_env=lifecycle_env,
-                mac=mac,
-                media=media,
-                os=os,
-                ptable=ptable,
-                puppet_ca=puppet_ca,
-                puppet_master=puppet_master,
-                resource=resource,
-                root_pwd=root_pwd,
-                subnet=subnet,
-            )
-            self.find_element(common_locators['submit']).click()
-            self.wait_for_ajax()
-        else:
-            raise UIError('Could not update the host "{0}"'.format(name))
+        if element is None:
+            raise UIError(u'Could not update the host {0}'.format(name))
+        element.click()
+        self.click(locators['host.edit'])
+        if new_name:
+            self.wait_until_element(locators['host.name'])
+            self.field_update('host.name', new_name)
+        self._configure_hosts(
+            arch=arch,
+            cv=cv,
+            custom_ptable=custom_ptable,
+            domain=domain,
+            env=env,
+            host_group=host_group,
+            ip_addr=ip_addr,
+            lifecycle_env=lifecycle_env,
+            mac=mac,
+            media=media,
+            os=os,
+            ptable=ptable,
+            puppet_ca=puppet_ca,
+            puppet_master=puppet_master,
+            puppet_module=puppet_module,
+            reset_puppetenv=reset_puppetenv,
+            resource=resource,
+            root_pwd=root_pwd,
+            subnet=subnet,
+        )
+        self.click(common_locators['submit'])
 
     def search(self, name):
         """Searches existing host from UI."""
@@ -185,3 +200,16 @@ class Hosts(Base):
             locators['host.delete'],
             drop_locator=locators['host.dropdown']
         )
+
+    def update_host_bulkactions(self, host=None, org=None):
+        """Updates host via bulkactions"""
+        strategy1, value1 = locators['host.checkbox']
+        self.wait_until_element((strategy1, value1 % host)).click()
+        self.click(locators['host.select_action'])
+        if org:
+            self.click(locators['host.assign_org'])
+            self.click(locators['host.fix_mismatch'])
+            Select(
+                self.wait_until_element(locators['host.select_org'])
+            ).select_by_visible_text(org)
+        self.click(locators['host.bulk_submit'])

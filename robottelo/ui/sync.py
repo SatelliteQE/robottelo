@@ -216,6 +216,19 @@ class Sync(Base):
                             poll_frequency=2,
                         )
 
+    def sync_noversion_rh_repos(self, prd, repos):
+        """Syncs RedHat repositories which do not have version.
+
+        Selects Red Hat non version Repos to Synchronize from UI.
+
+        :param prd: The product which repositories belongs to.
+        :param repos: List of repositories to sync.
+        :return: Returns True if the sync was successful.
+        :rtype: bool
+
+        """
+        return self.sync_custom_repos(prd, repos)
+
     def sync_rh_repos(self, repos_tree):
         """Syncs RedHat repositories.
 

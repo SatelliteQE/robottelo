@@ -159,6 +159,7 @@ REPOSET = {
     ),
     # TODO: Remove 'Beta' after release
     'rhst7': 'Red Hat Satellite Tools 6 Beta (for RHEL 7 Server) (RPMs)',
+    'rhst6': 'Red Hat Satellite Tools 6.1 (for RHEL 6 Server) (RPMs)',
 }
 
 REPOS = {
@@ -166,6 +167,12 @@ REPOS = {
         'id': 'rhel-7-server-satellite-tools-6-beta-rpms',
         'name': (
             'Red Hat Satellite Tools 6 Beta for RHEL 7 Server RPMs x86_64'
+        ),
+    },
+    'rhst6': {
+        'id': 'rhel-6-server-satellite-tools-6-rpms',
+        'name': (
+            'Red Hat Satellite Tools 6.1 for RHEL 6 Server RPMs x86_64'
         ),
     },
     'rhva6': {
@@ -203,6 +210,13 @@ RHVA_REPO_TREE = [
     ('rhel', 'rhva6', 'rhva6S', 'repo_ver', '6Server')
 ]
 
+SAT6_TOOLS_TREE = [
+    ('rhel', 'rhst6', 'rhst6', 'repo_name',
+     'Red Hat Satellite Tools 6.1 for RHEL 6 Server RPMs x86_64'),
+    ('rhel', 'rhst6', 'rhst6', 'repo_arch', 'x86_64'),
+    ('rhel', 'rhst6', 'rhst6', 'repo_ver', '6.1'),
+]
+
 #: Name (not label!) of the default organization.
 DEFAULT_ORG = "Default Organization"
 #: Name (not label!) of the default location.
@@ -236,6 +250,7 @@ FAKE_2_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet02"
 FAKE_3_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet03"
 FAKE_4_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet04"
 FAKE_5_PUPPET_REPO = "http://omaciel.fedorapeople.org/fakepuppet05"
+FAKE_6_PUPPET_REPO = "http://kbidarka.fedorapeople.org/repos/puppet-modules/"
 REPO_DISCOVERY_URL = "http://omaciel.fedorapeople.org/"
 FAKE_0_CUSTOM_PACKAGE = 'bear-4.1-1.noarch'
 FAKE_0_CUSTOM_PACKAGE_NAME = 'bear'
