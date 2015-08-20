@@ -31,7 +31,7 @@ def csv_to_dataset(csv_files):
     :param csv_files: A list of strings, where each string is a path to a CSV
         file on the remote server.
 
-    :returns: A list of dicta, where each dict holds the contents of one CSV
+    :returns: A list of dict, where each dict holds the contents of one CSV
         file.
 
     """
@@ -297,33 +297,27 @@ class TestImport(CLITestCase):
         # clear the .transition_data to clear the transition mapping
         ssh.command('rm -rf ${HOME}/.transition_data')
 
-        # use the default (rename) strategy
-        Import.organization({'csv-file': files['users']})
-        transition_data = csv_to_dataset(
-            ssh.command(u'ls ${HOME}/.transition_data/org*').stdout[:-1]
-        )
-        self.assertEqual(len(transition_data), len(test_data))
-        for record in transition_data:
-            self.assertEqual(Org.info({'id': record['sat6']}).return_code, 0)
-        Import.organization({'csv-file': files['users'], 'delete': True})
-        ssh.command('rm -rf ${HOME}/.transition_data/org*')
-
         # use the 'none' strategy
         orgs_before = Org.list().stdout
         Import.organization({'csv-file': files['users'], 'recover': 'none'})
         self.assertEqual(orgs_before, Org.list().stdout)
+        # Import.organization({'csv-file': files['users'], 'delete': True})
+
+        # use the default (rename) strategy
+        ssh_imp_rename = Import.organization_with_tr_data(
+            {'csv-file': files['users']}
+        )
+        self.assertEqual(len(ssh_imp_rename[1]), len(test_data))
+        for record in ssh_imp_rename[1]:
+            self.assertEqual(Org.info({'id': record['sat6']}).return_code, 0)
         Import.organization({'csv-file': files['users'], 'delete': True})
-        ssh.command('rm -rf ${HOME}/.transition_data/org*')
 
         # use the 'map' strategy
-        Import.organization({
+        ssh_imp_map = Import.organization_with_tr_data({
             'csv-file': files['users'],
             'recover': 'map',
         })
-        transition_data = csv_to_dataset(
-            ssh.command(u'ls ${HOME}/.transition_data/org*').stdout[:-1]
-        )
-        for record in transition_data:
+        for record in ssh_imp_map[1]:
             self.assertEqual(
                 Org.info({'id': record['sat6']}).return_code, 0
             )
@@ -472,16 +466,13 @@ class TestImport(CLITestCase):
             self.assertEqual(result.return_code, 0)
         # clear the .transition_data to clear the transition mapping
         ssh.command('rm -rf ${HOME}/.transition_data/users*')
-        # import users using map-users option
-        Import.user({
+        # import users using merge-users option
+        import_merge = Import.user_with_tr_data({
             'csv-file': files['users'],
             'new-passwords': pwdfiles[1],
             'merge-users': True,
         })
-        transition_data = csv_to_dataset(
-            ssh.command(u'ls ${HOME}/.transition_data/users*').stdout[:-1]
-        )
-        for record in transition_data:
+        for record in import_merge[1]:
             self.assertNotEqual(User.info({'id': record['sat6']}).stdout, '')
 
     @data(*import_user_data())
@@ -517,19 +508,16 @@ class TestImport(CLITestCase):
             self.assertEqual(result.return_code, 0)
         # clear the .transition_data to clear the transition mapping
         ssh.command('rm -rf ${HOME}/.transition_data/users*')
+
         # use the default (rename) strategy
-        Import.user({
+        import_rename = Import.user_with_tr_data({
             'csv-file': files['users'],
             'new-passwords': pwdfiles[1],
         })
-        transition_data = csv_to_dataset(
-            ssh.command(u'ls ${HOME}/.transition_data/users*').stdout[:-1]
-        )
-        for record in transition_data:
+        for record in import_rename[1]:
             self.assertEqual(User.info({'id': record['sat6']}).return_code, 0)
-
         Import.user({'csv-file': files['users'], 'delete': True})
-        ssh.command('rm -rf ${HOME}/.transition_data/users*')
+
         # use the 'none' strategy
         users_before = set(user['login'] for user in User.list().stdout)
         Import.user({
@@ -538,21 +526,19 @@ class TestImport(CLITestCase):
             'recover': 'none',
         })
         users_after = set(user['login'] for user in User.list().stdout)
-        self.assertTrue(users_before.issubset(users_after))
+        self.assertEqual(users_before, users_after)
+
         # use the 'map' strategy
-        Import.user({
+        import_map = Import.user_with_tr_data({
             'csv-file': files['users'],
             'recover': 'map',
             'new-passwords': pwdfiles[3],
         })
-        transition_data = csv_to_dataset(
-            ssh.command(u'ls ${HOME}/.transition_data/users*').stdout[:-1]
-        )
-        for record in transition_data:
+        for record in import_map[1]:
             self.assertEqual(
                 User.info({'id': record['sat6']}).return_code, 0
             )
-        Import.user({'csv-file': files['users'], 'delete': True})
+
         # do the cleanup
         ssh.command(u'rm -rf {}'.format(' '.join(pwdfiles)))
 
@@ -574,19 +560,17 @@ class TestImport(CLITestCase):
                 self.default_dataset[0]
             )
         # import the prerequisities
-        for result in (
-            Import.organization({'csv-file': files['users']}),
-            Import.host_collection({'csv-file': files['system-groups']}),
-        ):
-            self.assertEqual(result.return_code, 0)
-        transition_data = csv_to_dataset(
-            ssh.command(
-                u'ls ${HOME}/.transition_data/organizations*'
-            ).stdout[:-1]
+        import_org = Import.organization_with_tr_data(
+            {'csv-file': files['users']}
         )
+        import_hc = Import.host_collection_with_tr_data(
+            {'csv-file': files['system-groups']}
+        )
+        for result in (import_org, import_hc):
+            self.assertEqual(result[0].return_code, 0)
         # now to check whether the all HC from csv appeared in satellite
         imp_orgs = csv_to_dataset([files['users']])
-        for imp_org, transition_record in product(imp_orgs, transition_data):
+        for imp_org, transition_record in product(imp_orgs, import_org[1]):
             if transition_record['sat5'] == imp_org['organization_id']:
                 imp_org.update({'sat6': transition_record['sat6']})
         for imp_org in imp_orgs:
@@ -615,19 +599,17 @@ class TestImport(CLITestCase):
                 self.default_dataset[0]
             )
         # import the prerequisities
-        for result in (
-            Import.organization({'csv-file': files['users']}),
-            Import.host_collection({'csv-file': files['system-groups']}),
-        ):
-            self.assertEqual(result.return_code, 0)
-        transition_data = csv_to_dataset(
-            ssh.command(
-                u'ls ${HOME}/.transition_data/organization*'
-            ).stdout[:-1]
+        import_org = Import.organization_with_tr_data(
+            {'csv-file': files['users']}
         )
+        import_hc = Import.host_collection(
+            {'csv-file': files['system-groups']}
+        )
+        self.assertEqual(import_org[0].return_code, 0)
+        self.assertEqual(import_hc.return_code, 0)
         hcollections_before = [
             HostCollection.list({'organization-id': tr['sat6']}).stdout
-            for tr in transition_data
+            for tr in import_org[1]
         ]
         self.assertEqual(
             Import.host_collection(
@@ -636,7 +618,7 @@ class TestImport(CLITestCase):
         )
         hcollections_after = [
             HostCollection.list({'organization-id': tr['sat6']}).stdout
-            for tr in transition_data
+            for tr in import_org[1]
         ]
         self.assertEqual(hcollections_before, hcollections_after)
 
@@ -660,78 +642,57 @@ class TestImport(CLITestCase):
                 self.default_dataset[0]
             )
         # initial import
+        import_org = Import.organization_with_tr_data(
+            {'csv-file': files['users']}
+        )
         for result in (
-            Import.organization({'csv-file': files['users']}),
-            Import.host_collection(
+            import_org,
+            Import.host_collection_with_tr_data(
                 {'csv-file': files['system-groups']}
             ),
         ):
-            self.assertEqual(result.return_code, 0)
+            self.assertEqual(result[0].return_code, 0)
         # clear the .transition_data to clear the transition mapping
         ssh.command('rm -rf ${HOME}/.transition_data/host_collections*')
 
         # use the default (rename) strategy
-        self.assertEqual(
-            Import.host_collection(
-                {'csv-file': files['system-groups'], 'verbose': True}
-            ).return_code, 0
+        import_hc_rename = Import.host_collection_with_tr_data(
+            {'csv-file': files['system-groups'], 'verbose': True}
         )
-        transition_org_data = csv_to_dataset(
-            ssh.command(
-                u'ls ${HOME}/.transition_data/organizations*'
-            ).stdout[:-1]
-        )
-        transition_data = csv_to_dataset(
-            ssh.command(
-                u'ls ${HOME}/.transition_data/host_collections*'
-            ).stdout[:-1]
-        )
-        for record in transition_data:
+        self.assertEqual(import_hc_rename[0].return_code, 0)
+        for record in import_hc_rename[1]:
             self.assertEqual(
                 HostCollection.info({'id': record['sat6']}).return_code, 0
             )
         Import.host_collection(
             {'csv-file': files['system-groups'], 'delete': True}
         )
-        ssh.command('rm -rf ${HOME}/.transition_data/host_collections*')
 
         # use the 'none' strategy
         hc_before = [
             HostCollection.list({'organization-id': tr['sat6']}).stdout
-            for tr in transition_org_data
+            for tr in import_org[1]
         ]
         Import.host_collection(
             {'csv-file': files['system-groups'], 'recover': 'none'}
         )
         hc_after = [
             HostCollection.list({'organization-id': tr['sat6']}).stdout
-            for tr in transition_org_data
+            for tr in import_org[1]
         ]
         self.assertEqual(hc_before, hc_after)
 
-        Import.host_collection(
-            {'csv-file': files['system-groups'], 'delete': True}
-        )
-        ssh.command('rm -rf ${HOME}/.transition_data/host_collections*')
-
         # use the 'map' strategy
-        Import.host_collection({
+        import_hc_map = Import.host_collection_with_tr_data({
             'csv-file': files['system-groups'],
             'recover': 'map',
             'verbose': True,
         })
-        transition_data = csv_to_dataset(
-            ssh.command(
-                u'ls ${HOME}/.transition_data/host_collections*'
-            ).stdout[:-1]
-        )
-        for record in transition_data:
+        self.assertEqual(import_hc_map[0].return_code, 0)
+        for record in import_hc_map[1]:
             self.assertEqual(
                 HostCollection.info({'id': record['sat6']}).return_code, 0
             )
-        Import.host_collection(
-            {'csv-file': files['system-groups'], 'delete': True}
-        )
 
     @skip_if_bug_open('bugzilla', 1160847)
     def test_bz1160847_translate_macros(self):
