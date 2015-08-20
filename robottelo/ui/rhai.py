@@ -20,48 +20,49 @@ class RHAI(Base):
         return result
 
     def register_client_to_rhai(self, activation_key, org):
-        with VirtualMachine(distro='rhel67') as vm:
-            # Download and Install ketello-ca rpm
-            vm.install_katello_cert()
-            vm.register_contenthost(activation_key, org)
+        self.vm = VirtualMachine(distro='rhel67')
+        self.vm.create()
+        # Download and Install ketello-ca rpm
+        self.vm.install_katello_cert()
+        self.vm.register_contenthost(activation_key, org)
 
-            # Red Hat Access Insights requires RHEL 6/7 repo and it not
-            # possible to sync the repo during the tests,
-            # adding a file in /etc/yum.repos.d/rhel6/7.repo
+        # Red Hat Access Insights requires RHEL 6/7 repo and it not
+        # possible to sync the repo during the tests,
+        # adding a file in /etc/yum.repos.d/rhel6/7.repo
 
-            rhel6_repo = conf.properties['insights.rhel6_repo']
+        rhel6_repo = conf.properties['insights.rhel6_repo']
 
-            repo_file = (
-                '[rhel6-rpms]\n'
-                'name=RHEL6\n'
-                'baseurl={0}\n'
-                'enabled=1\n'
-                .format(rhel6_repo)
+        repo_file = (
+            '[rhel6-rpms]\n'
+            'name=RHEL6\n'
+            'baseurl={0}\n'
+            'enabled=1\n'
+            .format(rhel6_repo)
+        )
+
+        self.vm.run(
+            'echo "{0}" >> /etc/yum.repos.d/rhel6.repo'
+            .format(repo_file)
+        )
+
+        # Install redhat-access-insights package
+        package_name = 'redhat-access-insights'
+        result = self.vm.run('yum install -y {0}'.format(package_name))
+        if result.return_code != 0:
+            raise AccessInsightsError(
+                'Unable to install redhat-access-insights rpm'
             )
 
-            vm.run(
-                'echo "{0}" >> /etc/yum.repos.d/rhel6.repo'
-                .format(repo_file)
+        # Verify if package is installed by query it
+        result = self.vm.run('rpm -q {0}'.format(package_name))
+        if result.return_code != 0:
+            raise AccessInsightsError(
+                'Unable to install redhat-access-insights rpm'
             )
 
-            # Install redhat-access-insights package
-            package_name = 'redhat-access-insights'
-            result = vm.run('yum install -y {0}'.format(package_name))
-            if result.return_code != 0:
-                raise AccessInsightsError(
-                    'Unable to install redhat-access-insights rpm'
-                )
-
-            # Verify if package is installed by query it
-            result = vm.run('rpm -q {0}'.format(package_name))
-            if result.return_code != 0:
-                raise AccessInsightsError(
-                    'Unable to install redhat-access-insights rpm'
-                )
-
-            # Register client with Red Hat Access Insights
-            result = vm.run('redhat-access-insights --register')
-            if result.return_code != 0:
-                raise AccessInsightsError(
-                    'Unable to register client to Access Insights through '
-                    'Satellite')
+        # Register client with Red Hat Access Insights
+        result = self.vm.run('redhat-access-insights --register')
+        if result.return_code != 0:
+            raise AccessInsightsError(
+                'Unable to register client to Access Insights through '
+                'Satellite')
