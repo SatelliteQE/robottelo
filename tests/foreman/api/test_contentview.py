@@ -6,7 +6,7 @@ from ddt import ddt
 from fauxfactory import gen_integer, gen_string, gen_utf8
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.api import utils
+from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
 from robottelo.common import manifests
 from robottelo.common.constants import (
     FAKE_0_PUPPET_REPO,
@@ -57,7 +57,7 @@ class ContentViewTestCase(APITestCase):
 
         # Promote the content view version.
         self.assertEqual(len(content_view.version), 1)
-        content_view.version[0].promote(data={u'environment_id': lc_env.id})
+        promote(content_view.version[0], lc_env.id)
 
         # Create a system that is subscribed to the published and promoted
         # content view. Associating this system with the organization and
@@ -91,17 +91,13 @@ class ContentViewTestCase(APITestCase):
         lc_env = entities.LifecycleEnvironment(organization=org).create()
         content_view = entities.ContentView(organization=org).create()
         content_view.publish()
-        content_view.read().version[0].promote(data={
-            u'environment_id': lc_env.id
-        })
+        promote(content_view.read().version[0], lc_env.id)
 
         cloned_cv = entities.ContentView(id=content_view.copy(
             data={u'name': gen_string('alpha', gen_integer(3, 30))}
         )['id'])
         cloned_cv.publish()
-        cloned_cv.read().version[0].promote(data={
-            u'environment_id': lc_env.id
-        })
+        promote(cloned_cv.read().version[0], lc_env.id)
 
     def test_cv_clone_within_diff_env(self):
         """@Test: attempt to create, publish and promote new content
@@ -119,16 +115,12 @@ class ContentViewTestCase(APITestCase):
         le_clone = entities.LifecycleEnvironment(organization=org).create()
         content_view = entities.ContentView(organization=org).create()
         content_view.publish()
-        content_view.read().version[0].promote(data={
-            u'environment_id': lc_env.id
-        })
+        promote(content_view.read().version[0], lc_env.id)
         cloned_cv = entities.ContentView(id=content_view.copy(
             data={u'name': gen_string('alpha', gen_integer(3, 30))}
         )['id'])
         cloned_cv.publish()
-        cloned_cv.read().version[0].promote(data={
-            u'environment_id': le_clone.id
-        })
+        promote(cloned_cv.read().version[0], le_clone.id)
 
     def test_cv_associate_custom_content(self):
         """@Test: Associate custom content in a view
@@ -529,7 +521,7 @@ class CVPublishPromoteTestCase(APITestCase):
         # Promote the content view version several times.
         for _ in range(REPEAT):
             lce = entities.LifecycleEnvironment(organization=self.org).create()
-            content_view.version[0].promote(data={u'environment_id': lce.id})
+            promote(content_view.version[0], lce.id)
 
         # Does it show up in the correct number of lifecycle environments?
         self.assertEqual(
@@ -557,7 +549,7 @@ class CVPublishPromoteTestCase(APITestCase):
         # Promote the content view version.
         for _ in range(REPEAT):
             lce = entities.LifecycleEnvironment(organization=self.org).create()
-            content_view.version[0].promote(data={u'environment_id': lce.id})
+            promote(content_view.version[0], lce.id)
 
         # Everything's done - check some content view attributes...
         content_view = content_view.read()
@@ -592,7 +584,7 @@ class CVPublishPromoteTestCase(APITestCase):
         content_view.publish()
         content_view = content_view.read()
         lce = entities.LifecycleEnvironment(organization=self.org).create()
-        content_view.version[0].promote(data={u'environment_id': lce.id})
+        promote(content_view.version[0], lce.id)
 
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
@@ -629,7 +621,7 @@ class CVPublishPromoteTestCase(APITestCase):
         envs_amount = random.randint(3, 5)
         for _ in range(envs_amount):
             lce = entities.LifecycleEnvironment(organization=self.org).create()
-            content_view.version[0].promote(data={u'environment_id': lce.id})
+            promote(content_view.version[0], lce.id)
 
         # Everything's done. Check some content view attributes...
         content_view = content_view.read()
@@ -716,9 +708,7 @@ class CVPublishPromoteTestCase(APITestCase):
         self.add_content_views_to_composite(composite_cv)
         composite_cv.publish()
         lce = entities.LifecycleEnvironment(organization=self.org).create()
-        composite_cv.read().version[0].promote(data={
-            u'environment_id': lce.id
-        })
+        promote(composite_cv.read().version[0], lce.id)
         composite_cv = composite_cv.read()
         self.assertEqual(len(composite_cv.version), 1)
         self.assertEqual(len(composite_cv.version[0].read().environment), 2)
@@ -741,9 +731,7 @@ class CVPublishPromoteTestCase(APITestCase):
         self.add_content_views_to_composite(composite_cv, random.randint(3, 5))
         composite_cv.publish()
         lce = entities.LifecycleEnvironment(organization=self.org).create()
-        composite_cv.read().version[0].promote(data={
-            u'environment_id': lce.id
-        })
+        promote(composite_cv.read().version[0], lce.id)
         composite_cv = composite_cv.read()
         self.assertEqual(len(composite_cv.version), 1)
         self.assertEqual(len(composite_cv.version[0].read().environment), 2)
@@ -770,7 +758,7 @@ class CVPublishPromoteTestCase(APITestCase):
         envs_amount = random.randint(3, 5)
         for _ in range(envs_amount):
             lce = entities.LifecycleEnvironment(organization=self.org).create()
-            composite_cv.version[0].promote(data={u'environment_id': lce.id})
+            promote(composite_cv.version[0], lce.id)
         composite_cv = composite_cv.read()
         self.assertEqual(len(composite_cv.version), 1)
         self.assertEqual(
@@ -800,7 +788,7 @@ class CVPublishPromoteTestCase(APITestCase):
         envs_amount = random.randint(3, 5)
         for _ in range(envs_amount):
             lce = entities.LifecycleEnvironment(organization=self.org).create()
-            composite_cv.version[0].promote(data={u'environment_id': lce.id})
+            promote(composite_cv.version[0], lce.id)
         composite_cv = composite_cv.read()
         self.assertEqual(len(composite_cv.version), 1)
         self.assertEqual(
@@ -873,7 +861,7 @@ class CVRedHatContent(APITestCase):
                 data={'organization_id': cls.org.id},
                 files={'content': manifest},
             )
-        repo_id = utils.enable_rhrepo_and_fetchid(
+        repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=cls.org.id,
             product=PRDS['rhel'],

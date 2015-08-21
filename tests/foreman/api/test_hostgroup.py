@@ -2,6 +2,7 @@
 """Tests for the ``hostgroups`` paths."""
 from fauxfactory import gen_string
 from nailgun import client, entities, entity_fields
+from robottelo.api.utils import promote
 from robottelo.common.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.common.decorators import skip_if_bug_open, stubbed
 from robottelo.common.helpers import get_data_file, get_server_credentials
@@ -57,7 +58,7 @@ class HostGroupTestCase(APITestCase):
             name=gen_string('alpha'),
             organization=org,
         ).create()
-        content_view.version[0].promote(data={u'environment_id': lc_env.id})
+        promote(content_view.version[0], lc_env.id)
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
         self.assertEqual(len(content_view.puppet_module), 1)

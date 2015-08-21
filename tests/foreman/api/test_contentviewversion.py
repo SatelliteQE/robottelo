@@ -1,5 +1,6 @@
 """Unit tests for the ``content_view_versions`` paths."""
 from nailgun import entities
+from robottelo.api.utils import promote
 from robottelo.common.constants import FAKE_1_YUM_REPO, ZOO_CUSTOM_GPG_KEY
 from robottelo.common.helpers import read_data_file
 from requests.exceptions import HTTPError
@@ -17,11 +18,9 @@ class CVVersionTestCase(APITestCase):
         @Feature: ContentViewVersion
 
         """
-        env = entities.Environment().create().id
+        env = entities.Environment().create()
         with self.assertRaises(HTTPError):
-            entities.ContentViewVersion(id=1).promote(data={
-                u'environment_id': env
-            })
+            promote(entities.ContentViewVersion(id=1), env.id)
 
     def test_negative_promote_2(self):
         """@Test: Promote a content view version using an invalid environment.
@@ -32,9 +31,7 @@ class CVVersionTestCase(APITestCase):
 
         """
         with self.assertRaises(HTTPError):
-            entities.ContentViewVersion(id=1).promote(data={
-                u'environment_id': -1
-            })
+            promote(entities.ContentViewVersion(id=1), -1)
 
     def test_delete_version(self):
         """@Test: Create content view and publish it. After that try to
@@ -102,7 +99,7 @@ class CVVersionTestCase(APITestCase):
         self.assertEqual(len(content_view.version), 1)
         self.assertEqual(len(content_view.version[0].read().environment), 1)
         lce = entities.LifecycleEnvironment(organization=org).create()
-        content_view.version[0].promote(data={u'environment_id': lce.id})
+        promote(content_view.version[0], lce.id)
         cvv = content_view.version[0].read()
         self.assertEqual(len(cvv.environment), 2)
         # Delete the content-view version from selected environments

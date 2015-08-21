@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 """Module containing convenience functions for working with the API."""
 import time
 
@@ -37,3 +38,31 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
             result = entities.Repository(name=repo).search(
                 query={'organization_id': org_id})
     return result[0].id
+
+
+def promote(content_view_version, environment_id):
+    """Call ``content_view_version.promote(…)``.
+
+    :param content_view_version: A ``nailgun.entities.ContentViewVersion``
+        object.
+    :param environment_id: An environment ID.
+    :returns: Whatever ``nailgun.entities.ContentViewVersion.promote`` returns.
+
+    """
+    return content_view_version.promote(data={
+        u'environment_id': environment_id
+    })
+
+
+def upload_manifest(organization_id, manifest):
+    """Call ``nailgun.entities.Subscription.upload``.
+
+    :param organization_id: An organization ID.
+    :param manifest: A file object referencing a Red Hat Satellite 6 manifest.
+    :returns: Whatever ``nailgun.entities.Subscription.upload`` returns.
+
+    """
+    return entities.Subscription().upload(
+        data={'organization_id': organization_id},
+        files={'content': manifest},
+    )

@@ -4,7 +4,7 @@ from fauxfactory import gen_string
 from nailgun import client, entities
 from random import randint
 from requests.exceptions import HTTPError
-from robottelo.api import utils
+from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
 from robottelo.common import manifests
 from robottelo.common.constants import (
     DOCKER_REGISTRY_HUB,
@@ -241,11 +241,8 @@ class RepositorySyncTestCase(APITestCase):
         """
         org = entities.Organization().create()
         with open(manifests.clone(), 'rb') as manifest:
-            entities.Subscription().upload(
-                data={'organization_id': org.id},
-                files={'content': manifest},
-            )
-        repo_id = utils.enable_rhrepo_and_fetchid(
+            upload_manifest(org.id, manifest)
+        repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=org.id,
             product=PRDS['rhel'],
