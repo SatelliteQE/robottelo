@@ -300,61 +300,6 @@ class Discovery(APITestCase):
         """
 
     @stubbed()
-    def test_rule_with_invalid_host_limit(self):
-        """@Test: Create a discovery rule with invalid(-ve/text value) host
-        limit
-
-        @Feature: Foreman Discovery
-
-        @Setup: Host with two CPUs should already be discovered
-
-        @Assert: Validation error should be raised
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    def test_rule_with_invalid_priority(self):
-        """@Test: Create a discovery rule with invalid(text value) priority
-
-        @Feature: Foreman Discovery
-
-        @Setup: Host with two CPUs should already be discovered
-
-        @Assert: Validation error should be raised
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    def test_create_rule_with_long_name(self):
-        """@Test: Create a discovery rule with more than 255 char
-
-        @Feature: Foreman Discovery
-
-        @Setup: Host with two CPUs should already be discovered
-
-        @Assert: Validation error should be raised
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    def test_delete_discovery_rule(self):
-        """@Test: Delete a discovery rule
-
-        @Feature: Foreman Discovery
-
-        @Assert: Rule should be deleted successfully
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
     def test_update_discovery_rule_1(self):
         """@Test: Update an existing rule and execute it
 
