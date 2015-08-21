@@ -45,7 +45,7 @@ class Import(Base):
     command_base = 'import'
 
     @staticmethod
-    def read_transition_csv(csv_files):
+    def read_transition_csv(csv_files, key='sat5'):
         """Process remote CSV files and transition them to Dictionary
 
         The result depends on the order of the processed files. This script
@@ -54,6 +54,8 @@ class Import(Base):
 
         :param csv_files: A list of Strings containing absolute paths of the
             remote CSV files
+        :param key: (Optional) key to be used to uniquely identify an entity
+            ('sat5' by default)
         :returns: A Dictionary object holding the key-value pairs of
             the current state of entity mapping
 
@@ -72,7 +74,7 @@ class Import(Base):
             for val in csv[1:]:
                 record = dict(zip(keys, val.split(',')))
                 for entity in result:
-                    if entity['sat5'] == record['sat5']:
+                    if entity[key] == record[key]:
                         entity.update(record)
                         break
                 else:
@@ -215,7 +217,8 @@ class Import(Base):
             transition_data = cls.read_transition_csv(
                 ssh.command(
                     u'ls -v ${HOME}/.transition_data/activation_keys*'
-                ).stdout[:-1]
+                ).stdout[:-1],
+                'org_id'
             )
         return (result, transition_data)
 
@@ -302,11 +305,14 @@ class Import(Base):
         transition_data = []
         if result.return_code == 0:
             transition_data = [
-                cls.read_transition_csv(ssh.command(command).stdout[:-1])
-                for command
+                cls.read_transition_csv(ssh.command(cmd).stdout[:-1], key)
+                for cmd, key
                 in (
-                    u'ls -v ${HOME}/.transition_data/products*'
-                    u'ls -v ${HOME}/.transition_data/puppet_repositories*'
+                    (u'ls -v ${HOME}/.transition_data/products*', u'org_id'),
+                    (
+                        u'ls -v ${HOME}/.transition_data/puppet_repositories*',
+                        u'sat5'
+                    ),
                 )
             ]
         return (result, transition_data)
@@ -350,11 +356,13 @@ class Import(Base):
         transition_data = []
         if result.return_code == 0:
             transition_data = [
-                cls.read_transition_csv(ssh.command(command).stdout[:-1])
-                for command
+                cls.read_transition_csv(
+                    ssh.command(cmd).stdout[:-1], key
+                )
+                for cmd, key
                 in (
-                    u'ls -v ${HOME}/.transition_data/products*'
-                    u'ls -v ${HOME}/.transition_data/repositories*'
+                    (u'ls -v ${HOME}/.transition_data/products*', u'org_id'),
+                    (u'ls -v ${HOME}/.transition_data/repositories*', u'sat5'),
                 )
             ]
         return (result, transition_data)

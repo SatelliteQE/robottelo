@@ -2,11 +2,11 @@
 """Test class for Host Collection CLI"""
 import csv
 import os
-import random
 import tempfile
 from ddt import ddt
 from fauxfactory import gen_string
 from itertools import product
+from random import sample
 from robottelo.common import manifests, ssh
 from robottelo.common.decorators import (
     data,
@@ -18,6 +18,7 @@ from robottelo.cli.import_ import Import
 from robottelo.cli.factory import make_org
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.org import Org
+from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
 from robottelo.test import CLITestCase
@@ -74,7 +75,7 @@ def build_csv_file(rows=None, dirname=None):
     return remote_file
 
 
-def update_csv_values(csv_file, new_data=None, dirname=None):
+def update_csv_values(csv_file, key, new_data=None, dirname=None):
     """Build CSV with updated key values provided as an argument
     in order to randomize the dataset with keeping the organization_id
     mappings
@@ -109,12 +110,9 @@ def update_csv_values(csv_file, new_data=None, dirname=None):
     result = csv_to_dataset([csv_file])
     for change in new_data:
         for record in result:
-            if (record.get('organization_id') == change['key_id'] or
-                    record.get('org_id') == change['key_id']):
+            if record.get(key) == change['key_id']:
                 record.update(change)
                 del record['key_id']
-                if record.get('org_id'):
-                    record['org_id'] = record.pop('organization_id')
                 updated = True
     if updated:
         return build_csv_file(result, dirname)
@@ -122,33 +120,101 @@ def update_csv_values(csv_file, new_data=None, dirname=None):
         return csv_file
 
 
-def import_org_data():
-    """Random data for Organization Import tests"""
+def get_sat6_id(entity_dict, transition_dict, key='sat5'):
+    """Updates the dictionary of the import entity with 'sat6' key/value pairs
+    for keeping the Satellite 6 referrence to the imported entity
 
-    random_ids = random.sample(range(1, 1000), 3)
+    :param entity_dict: A dictionary holding the info for an entity to be
+        imported (typically a product of csv_to_dataset())
+    :param transition_dict: A dictionary holding the transition data for the
+        imported entity (typically a product of Import.*_with_tr_data())
+    :param key: A string identifying a key field to identify an entity id
+    :returns: entity_dict updated by 'sat6' key/value pair
+
+    """
+    for entity, tr_record in product(entity_dict, transition_dict):
+        if tr_record[key] == entity['organization_id']:
+            entity.update({'sat6': tr_record['sat6']})
+    return entity_dict
+
+
+def gen_import_org_data():
+    """Random data for Organization Import tests"""
+    org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
     return ([
         {
-            u'key_id': u'{}'.format(str(i+1)),
-            u'organization_id': u'{}'.format(str(random_ids[i])),
+            u'key_id': type(u'')(i + 1),
+            u'organization_id': org_ids[i],
             u'organization': gen_string('alphanumeric')
         }
         for i in range(3)
     ],)
 
 
-def import_user_data():
+def gen_import_user_data():
     """Random data for User Import tests"""
-
-    random_ids = random.sample(range(1, 1000), 3)
+    org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
     return ([
         {
-            u'key_id': u'{}'.format(str(i+1)),
-            u'organization_id': u'{}'.format(str(random_ids[i])),
+            u'key_id': type(u'')(i + 1),
+            u'organization_id': org_ids[i],
             u'organization': gen_string('alphanumeric'),
             u'username': gen_string('alphanumeric')
         }
         for i in range(3)
     ],)
+
+
+def gen_import_hostcol_data():
+    """Random data for Organization Import tests"""
+    org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
+    random_data = {'orgs': [], 'hcs': []}
+    for i in range(3):
+        random_data['orgs'].append({
+            u'key_id': type(u'')(i + 1),
+            u'organization_id': org_ids[i],
+            u'organization': gen_string('alphanumeric'),
+        })
+        random_data['hcs'].append({
+            u'key_id': type(u'')(i + 1),
+            u'org_id': org_ids[i],
+            u'name': gen_string('alphanumeric'),
+        })
+    return (random_data,)
+
+
+def gen_import_repo_data():
+    """Random data for Repository Import tests"""
+    org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
+    random_data = {'users': [], 'repositories': []}
+    for i in range(3):
+        random_data['users'].append({
+            u'key_id': type(u'')(i + 1),
+            u'organization_id': org_ids[i],
+            u'organization': gen_string('alphanumeric'),
+        })
+        random_data['repositories'].append({
+            u'key_id': type(u'')(i + 1),
+            u'org_id': org_ids[i],
+        })
+    return (random_data,)
+
+
+def gen_import_cv_data():
+    """Random data for Content View Import tests"""
+
+    return (
+        {
+            u'orgs': [{
+                u'key_id': type(u'')(i + 1),
+                u'organization': gen_string('alphanumeric')
+            } for i in range(3)],
+            u'cvs': [{
+                u'key_id': type(u'')(i + 1),
+
+            } for i in range(3)]
+        },
+    )
 
 
 @ddt
@@ -174,10 +240,10 @@ class TestImport(CLITestCase):
     def tearDown(self):
         # remove the dataset
         ssh.command(
-            u'rm -rf ${HOME}/.transition_data ${HOME}/puppet_work_dir'
+            u'rm -rf "${HOME}"/.transition_data "${HOME}"/puppet_work_dir'
         )
 
-    @data(*import_org_data())
+    @data(*gen_import_org_data())
     def test_import_orgs_default(self, test_data):
         """@test: Import all organizations from the default data set
         (predefined source).
@@ -190,20 +256,19 @@ class TestImport(CLITestCase):
         files = dict(self.default_dataset[1])
         files['users'] = update_csv_values(
             files['users'],
+            u'organization_id',
             test_data,
             self.default_dataset[0]
         )
         ssh_import = Import.organization({'csv-file': files['users']})
         # now to check whether the orgs from csv appeared in satellite
-        orgs = set(org['name'] for org in Org.list().stdout)
-        imp_orgs = set(
-            org['organization'] for
-            org in csv_to_dataset([files['users']])
-        )
         self.assertEqual(ssh_import.return_code, 0)
-        self.assertTrue(imp_orgs.issubset(orgs))
+        for org in csv_to_dataset([files['users']]):
+            self.assertEqual(
+                Org.info({'name': org['organization']}).return_code, 0
+            )
 
-    @data(*import_org_data())
+    @data(*gen_import_org_data())
     def test_import_orgs_manifests(self, test_data):
         """@test: Import all organizations from the default data set
         (predefined source) and upload manifests for each of them
@@ -216,6 +281,7 @@ class TestImport(CLITestCase):
         files = dict(self.default_dataset[1])
         files['users'] = update_csv_values(
             files['users'],
+            u'organization_id',
             test_data,
             self.default_dataset[0]
         )
@@ -250,7 +316,7 @@ class TestImport(CLITestCase):
             ).stdout[3]
             self.assertIn('SUCCESS', manifest_history)
 
-    @data(*import_org_data())
+    @data(*gen_import_org_data())
     def test_reimport_orgs_default_negative(self, test_data):
         """@test: Try to Import all organizations from the
         predefined source and try to import them again
@@ -263,6 +329,7 @@ class TestImport(CLITestCase):
         files = dict(self.default_dataset[1])
         files['users'] = update_csv_values(
             files['users'],
+            u'organization_id',
             test_data,
             self.default_dataset[0]
         )
@@ -273,21 +340,22 @@ class TestImport(CLITestCase):
             Import.organization({'csv-file': files['users']}).return_code, 0)
         self.assertEqual(orgs_before, Org.list().stdout)
 
-    @data(*import_org_data())
+    @data(*gen_import_org_data())
     def test_import_orgs_recovery(self, test_data):
         """@test: Try to Import organizations with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
         @feature: Import Organizations Recover
 
-        @assert: 2nd Import will rename the new organizations, 2nd import will
-        map them and the 3rd one will result in No Action Taken
+        @assert: 2nd Import will result in No Action Taken, 3rd one will rename
+        the new organizations, and the 4th one will map them
 
         """
         # prepare the data
         files = dict(self.default_dataset[1])
         files['users'] = update_csv_values(
             files['users'],
+            'organization_id',
             test_data,
             self.default_dataset[0]
         )
@@ -295,13 +363,12 @@ class TestImport(CLITestCase):
         self.assertEqual(
             Import.organization({'csv-file': files['users']}).return_code, 0)
         # clear the .transition_data to clear the transition mapping
-        ssh.command('rm -rf ${HOME}/.transition_data')
+        ssh.command('rm -rf "${HOME}"/.transition_data')
 
         # use the 'none' strategy
         orgs_before = Org.list().stdout
         Import.organization({'csv-file': files['users'], 'recover': 'none'})
         self.assertEqual(orgs_before, Org.list().stdout)
-        # Import.organization({'csv-file': files['users'], 'delete': True})
 
         # use the default (rename) strategy
         ssh_imp_rename = Import.organization_with_tr_data(
@@ -323,7 +390,7 @@ class TestImport(CLITestCase):
             )
         Import.organization({'csv-file': files['users'], 'delete': True})
 
-    @data(*import_user_data())
+    @data(*gen_import_user_data())
     def test_merge_orgs(self, test_data):
         """@test: Try to Import all organizations and their users from CSV
         to a mapped organizaition.
@@ -341,6 +408,7 @@ class TestImport(CLITestCase):
         pwdfile = os.path.join(tmp_dir, gen_string('alpha', 6))
         files['users'] = update_csv_values(
             files['users'],
+            u'organization_id',
             test_data,
             self.default_dataset[0]
         )
@@ -363,7 +431,7 @@ class TestImport(CLITestCase):
         )
         self.assertTrue(all((user in logins for user in imp_users)))
 
-    @data(*import_user_data())
+    @data(*gen_import_user_data())
     def test_import_users_default(self, test_data):
         """@test: Import all 3 users from the default data set (predefined
         source).
@@ -379,6 +447,7 @@ class TestImport(CLITestCase):
 
         files['users'] = update_csv_values(
             files['users'],
+            u'organization_id',
             test_data,
             self.default_dataset[0]
         )
@@ -396,7 +465,7 @@ class TestImport(CLITestCase):
         )
         self.assertTrue(imp_users.issubset(logins))
 
-    @data(*import_user_data())
+    @data(*gen_import_user_data())
     def test_reimport_users_default_negative(self, test_data):
         """@test: Try to Import all users from the
         predefined source and try to import them again
@@ -411,6 +480,7 @@ class TestImport(CLITestCase):
         pwdfile = os.path.join(tmp_dir, gen_string('alpha', 6))
         files['users'] = update_csv_values(
             files['users'],
+            u'organization_id',
             test_data,
             self.default_dataset[0]
         )
@@ -434,7 +504,7 @@ class TestImport(CLITestCase):
         users_after = set(user['login'] for user in User.list().stdout)
         self.assertTrue(users_after.issubset(users_before))
 
-    @data(*import_user_data())
+    @data(*gen_import_user_data())
     def test_import_users_merge(self, test_data):
         """@test: Try to Merge users with the same name using 'merge-users'
         option.
@@ -453,6 +523,7 @@ class TestImport(CLITestCase):
         ]
         files['users'] = update_csv_values(
             files['users'],
+            u'organization_id',
             test_data,
             self.default_dataset[0]
         )
@@ -465,7 +536,7 @@ class TestImport(CLITestCase):
         ):
             self.assertEqual(result.return_code, 0)
         # clear the .transition_data to clear the transition mapping
-        ssh.command('rm -rf ${HOME}/.transition_data/users*')
+        ssh.command('rm -rf "${HOME}"/.transition_data/users*')
         # import users using merge-users option
         import_merge = Import.user_with_tr_data({
             'csv-file': files['users'],
@@ -475,15 +546,15 @@ class TestImport(CLITestCase):
         for record in import_merge[1]:
             self.assertNotEqual(User.info({'id': record['sat6']}).stdout, '')
 
-    @data(*import_user_data())
+    @data(*gen_import_user_data())
     def test_import_users_recovery(self, test_data):
         """@test: Try to Import users with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
         @feature: Import Users Recover
 
-        @assert: 2nd Import will rename new users, 2nd import will
-        map them and the 3rd one will resulit in No Action Taken
+        @assert: 2nd Import will rename new users, 3rd one will result
+        in No Action Taken and 4th import will map them
 
         """
         # prepare the data
@@ -494,6 +565,7 @@ class TestImport(CLITestCase):
         ]
         files['users'] = update_csv_values(
             files['users'],
+            u'organization_id',
             test_data,
             self.default_dataset[0]
         )
@@ -507,7 +579,7 @@ class TestImport(CLITestCase):
         ):
             self.assertEqual(result.return_code, 0)
         # clear the .transition_data to clear the transition mapping
-        ssh.command('rm -rf ${HOME}/.transition_data/users*')
+        ssh.command('rm -rf "${HOME}"/.transition_data/users*')
 
         # use the default (rename) strategy
         import_rename = Import.user_with_tr_data({
@@ -542,7 +614,7 @@ class TestImport(CLITestCase):
         # do the cleanup
         ssh.command(u'rm -rf {}'.format(' '.join(pwdfiles)))
 
-    @data(*import_org_data())
+    @data(*gen_import_hostcol_data())
     def test_import_host_collections_default(self, test_data):
         """@test: Import all System Groups from the default data set
         (predefined source) as the Host Collections.
@@ -553,10 +625,15 @@ class TestImport(CLITestCase):
 
         """
         files = dict(self.default_dataset[1])
-        for file_ in ('users', 'system-groups'):
-            files[file_] = update_csv_values(
-                files[file_],
-                test_data,
+        for file_ in zip(
+            ['users', 'system-groups'],
+            [u'organization_id', u'org_id'],
+            [u'orgs', u'hcs']
+        ):
+            files[file_[0]] = update_csv_values(
+                files[file_[0]],
+                file_[1],
+                test_data[file_[2]],
                 self.default_dataset[0]
             )
         # import the prerequisities
@@ -569,33 +646,34 @@ class TestImport(CLITestCase):
         for result in (import_org, import_hc):
             self.assertEqual(result[0].return_code, 0)
         # now to check whether the all HC from csv appeared in satellite
-        imp_orgs = csv_to_dataset([files['users']])
-        for imp_org, transition_record in product(imp_orgs, import_org[1]):
-            if transition_record['sat5'] == imp_org['organization_id']:
-                imp_org.update({'sat6': transition_record['sat6']})
+        imp_orgs = get_sat6_id(csv_to_dataset([files['users']]), import_org[1])
         for imp_org in imp_orgs:
-            self.assertEqual(
+            self.assertNotEqual(
                 HostCollection.list(
                     {'organization-id': imp_org['sat6']}
-                ).return_code, 0
+                ).stdout, []
             )
 
-    @data(*import_org_data())
+    @data(*gen_import_hostcol_data())
     def test_reimport_host_collections_default_negative(self, test_data):
-        """@test: Import all System Groups from the default data set
-        (predefined source) as the Host Collections and try to import
-        them again.
+        """@test: Try to re-import all System Groups from the default data set
+        (predefined source) as the Host Collections.
 
         @feature: Repetitive Import Host-Collections
 
-        @assert: 3 Host Collections created
+        @assert: 3 Host Collections created, no action taken on 2nd Import
 
         """
         files = dict(self.default_dataset[1])
-        for file_ in ('users', 'system-groups'):
-            update_csv_values(
-                files[file_],
-                test_data,
+        for file_ in zip(
+            ['users', 'system-groups'],
+            [u'organization_id', u'org_id'],
+            [u'orgs', u'hcs']
+        ):
+            files[file_[0]] = update_csv_values(
+                files[file_[0]],
+                file_[1],
+                test_data[file_[2]],
                 self.default_dataset[0]
             )
         # import the prerequisities
@@ -611,6 +689,7 @@ class TestImport(CLITestCase):
             HostCollection.list({'organization-id': tr['sat6']}).stdout
             for tr in import_org[1]
         ]
+        self.assertNotEqual(hcollections_before, [])
         self.assertEqual(
             Import.host_collection(
                 {'csv-file': files['system-groups']}
@@ -622,23 +701,28 @@ class TestImport(CLITestCase):
         ]
         self.assertEqual(hcollections_before, hcollections_after)
 
-    @data(*import_org_data())
+    @data(*gen_import_hostcol_data())
     def test_import_host_collections_recovery(self, test_data):
         """@test: Try to Import Collections with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
         @feature: Import HostCollection Recover
 
-        @assert: 2nd Import will rename the new collections, 2nd import will
-        map them and the 3rd one will result in No Action Taken
+        @assert: 2nd Import will rename the new collections, 3nd import will
+        result in No Action Taken and the 4th one will map them
 
         """
         # prepare the data
         files = dict(self.default_dataset[1])
-        for file_ in ('users', 'system-groups'):
-            update_csv_values(
-                files[file_],
-                test_data,
+        for file_ in zip(
+            ['users', 'system-groups'],
+            [u'organization_id', u'org_id'],
+            [u'orgs', u'hcs']
+        ):
+            files[file_[0]] = update_csv_values(
+                files[file_[0]],
+                file_[1],
+                test_data[file_[2]],
                 self.default_dataset[0]
             )
         # initial import
@@ -653,7 +737,7 @@ class TestImport(CLITestCase):
         ):
             self.assertEqual(result[0].return_code, 0)
         # clear the .transition_data to clear the transition mapping
-        ssh.command('rm -rf ${HOME}/.transition_data/host_collections*')
+        ssh.command('rm -rf "${HOME}"/.transition_data/host_collections*')
 
         # use the default (rename) strategy
         import_hc_rename = Import.host_collection_with_tr_data(
@@ -692,6 +776,188 @@ class TestImport(CLITestCase):
         for record in import_hc_map[1]:
             self.assertEqual(
                 HostCollection.info({'id': record['sat6']}).return_code, 0
+            )
+
+    @data(*gen_import_repo_data())
+    def test_import_repo_default(self, test_data):
+        """@test: Import and enable all Repositories from the default data set
+        (predefined source)
+
+        @feature: Import Enable Repositories
+        @assert: 3 Repositories imported and enabled
+
+        """
+        # randomize the values for orgs and repos
+        files = dict(self.default_dataset[1])
+        for file_ in zip(
+            ['users', 'repositories'],
+            [u'organization_id', u'org_id'],
+        ):
+            files[file_[0]] = update_csv_values(
+                files[file_[0]],
+                file_[1],
+                test_data[file_[0]],
+                self.default_dataset[0]
+            )
+        # import the prerequisities
+        import_org = Import.organization_with_tr_data(
+            {'csv-file': files['users']}
+        )
+        # now proceed with importing the repositories
+        import_repo = Import.repository_with_tr_data({
+            'csv-file': files['repositories'],
+            'synchronize': True,
+            'wait': True,
+        })
+        for result in (import_org, import_repo):
+            self.assertEqual(result[0].return_code, 0)
+
+        # get the sat6 mapping of the imported organizations
+        imp_orgs = get_sat6_id(csv_to_dataset([files['users']]), import_org[1])
+        # now to check whether all repos from csv appeared in satellite
+        for imp_org in imp_orgs:
+            self.assertNotEqual(
+                Repository.list(
+                    {'organization-id': imp_org['sat6']}
+                ).stdout, []
+            )
+
+    @data(*gen_import_repo_data())
+    def test_reimport_repo_negative(self, test_data):
+        """@test: Import and enable all Repositories from the default data set
+        (predefined source), then try to Import Repositories from the same CSV
+        again.
+
+        @feature: Repetitive Import Enable Repositories
+        @assert: 3 Repositories imported and enabled, second run should trigger
+        no action.
+
+        """
+        # randomize the values for orgs and repos
+        files = dict(self.default_dataset[1])
+        for file_ in zip(
+            ['users', 'repositories'],
+            [u'organization_id', u'org_id'],
+        ):
+            files[file_[0]] = update_csv_values(
+                files[file_[0]],
+                file_[1],
+                test_data[file_[0]],
+                self.default_dataset[0]
+            )
+        # import the prerequisities
+        import_org = Import.organization_with_tr_data(
+            {'csv-file': files['users']}
+        )
+        # now proceed with importing the repositories
+        import_repo = Import.repository_with_tr_data({
+            'csv-file': files['repositories'],
+            'synchronize': True,
+            'wait': True,
+        })
+        for result in (import_org, import_repo):
+            self.assertEqual(result[0].return_code, 0)
+
+        # get the sat6 mapping of the imported organizations
+        imp_orgs = get_sat6_id(csv_to_dataset([files['users']]), import_org[1])
+        repos_before = []
+        for imp_org in imp_orgs:
+            repos_before.append(
+                Repository.list({'organization-id': imp_org['sat6']}).stdout
+            )
+        # Reimport the same repos and check for changes in sat6
+        self.assertEqual(
+            Import.repository({
+                'csv-file': files['repositories'],
+                'synchronize': True,
+                'wait': True,
+                }).return_code, 0
+        )
+        self.assertEqual(
+            repos_before,
+            [
+                Repository.list({'organization-id': imp_org['sat6']}).stdout
+                for imp_org in imp_orgs
+            ]
+        )
+
+    @data(*gen_import_repo_data())
+    def test_import_repo_recovery(self, test_data):
+        """@test: Try to Import Repos with the same name to invoke
+        usage of a recovery strategy (rename, map, none)
+
+        @feature: Import Repository Recover
+
+        @assert: 2nd Import will rename the new repos, 3rd import will
+        map them and the 4th one will result in No Action Taken
+
+        """
+        # prepare the data
+        files = dict(self.default_dataset[1])
+        # randomize the values for orgs and repos
+        files = dict(self.default_dataset[1])
+        for file_ in zip(
+            ['users', 'repositories'],
+            [u'organization_id', u'org_id'],
+        ):
+            files[file_[0]] = update_csv_values(
+                files[file_[0]],
+                file_[1],
+                test_data[file_[0]],
+                self.default_dataset[0]
+            )
+        # import the prerequisities
+        import_org = Import.organization_with_tr_data(
+            {'csv-file': files['users']}
+        )
+        for result in (
+            import_org,
+            Import.repository_with_tr_data(
+                {'csv-file': files['repositories']}
+            ),
+        ):
+            self.assertEqual(result[0].return_code, 0)
+        # clear the .transition_data to clear the transition mapping
+        ssh.command('rm -rf "${HOME}"/.transition_data/repositories*')
+        ssh.command('rm -rf "${HOME}"/.transition_data/products*')
+
+        # use the default (rename) strategy
+        import_repo_rename = Import.repository_with_tr_data(
+            {'csv-file': files['repositories'], 'verbose': True}
+        )
+        self.assertEqual(import_repo_rename[0].return_code, 0)
+        for record in import_repo_rename[1][1]:
+            self.assertEqual(
+                Repository.info({'id': record['sat6']}).return_code, 0
+            )
+        Import.repository(
+            {'csv-file': files['repositories'], 'delete': True}
+        )
+
+        # use the 'none' strategy
+        repos_before = [
+            Repository.list({'organization-id': tr['sat6']}).stdout
+            for tr in import_org[1]
+        ]
+        Import.repository(
+            {'csv-file': files['repositories'], 'recover': 'none'}
+        )
+        repos_after = [
+            Repository.list({'organization-id': tr['sat6']}).stdout
+            for tr in import_org[1]
+        ]
+        self.assertEqual(repos_before, repos_after)
+
+        # use the 'map' strategy
+        import_repo_map = Import.repository_with_tr_data({
+            'csv-file': files['repositories'],
+            'recover': 'map',
+            'verbose': True,
+        })
+        self.assertEqual(import_repo_map[0].return_code, 0)
+        for record in import_repo_map[1][1]:
+            self.assertEqual(
+                Repository.info({'id': record['sat6']}).return_code, 0
             )
 
     @skip_if_bug_open('bugzilla', 1160847)
@@ -797,7 +1063,7 @@ class TestImport(CLITestCase):
         )
         # collect the contains of the generated file
         cat_cmd = ssh.command(
-            u'cat ${{HOME}}/puppet_work_dir/{0}-config_1/templates/'
+            u'cat "${{HOME}}"/puppet_work_dir/{0}-config_1/templates/'
             u'_etc_sysconfig_rhn_systemid.erb'.format(org['name'].lower())
         )
         # compare the contains with the expected format
