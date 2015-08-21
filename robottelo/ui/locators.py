@@ -372,6 +372,7 @@ tab_locators = LocatorDict({
     # Host
     # Third level UI
 
+    "host.tab_puppet": (By.XPATH, "//a[@href='#puppet_klasses']"),
     "host.tab_network": (By.XPATH, "//a[@href='#network']"),
     "host.tab_os": (By.XPATH, "//a[@href='#os']"),
     "host.tab_vm": (By.XPATH, "//a[@href='#compute_resource']"),
@@ -861,13 +862,14 @@ locators = LocatorDict({
     "host.dropdown": (
         By.XPATH,
         ("//a[contains(@href,'%s')]"
-            "/../../a[contains(@data-toggle,'dropdown')]")),
+         "/../../a[contains(@data-toggle,'dropdown')]")),
     "host.select_name": (
         By.XPATH,
         ("//input[contains(@id,'host_ids')]"
-            "/../../td[@class='ellipsis']/a[contains(@href,'%s')]")),
+         "/../../td[@class='ellipsis']/a[contains(@href,'%s')]")),
     "host.lifecycle_env": (By.ID, "host_lifecycle_environment_id"),
     "host.cv": (By.ID, "host_content_view_id"),
+    "host.reset_puppetenv": (By.ID, "reset_puppet_environment"),
 
     # host.network
     "host.mac": (By.ID, "host_mac"),
@@ -902,6 +904,27 @@ locators = LocatorDict({
     "host.vm_addnic": (
         By.XPATH, "//fieldset[@id='network_interfaces']/a"),
 
+    # Host 'Select Action'/'Bulk Action.'
+    "host.checkbox": (
+        By.XPATH,
+        "//span[contains(@data-original-title, '%s')]/../../../td/input"),
+    "host.select_action": (
+        By.XPATH,
+        "//div[@id='submit_multiple']/a[contains(@class, 'dropdown-toggle')]"),
+    "host.assign_org": (
+        By.XPATH, "//a[contains(@href, 'select_multiple_organization')]"),
+    "host.fix_mismatch": (By.ID, "organization_optimistic_import_yes"),
+    "host.select_org": (By.ID, "organization_id"),
+    "host.bulk_submit": (
+        By.XPATH,
+        ("//form[contains(@action, 'multiple')]/../../../"
+         "div/button[contains(@class,'primary')]")),
+    "host.select_puppetmodule":
+        (By.XPATH, "//a[contains(.,'%s')]/i[contains(@class, 'glyphicon')]"),
+    "host.select_puppetclass": (
+        By.XPATH,
+        ("//span[contains(.,'%s')]"
+         "/a[not(contains(@data-original-title, '::'))]")),
 
     # Provisions
 

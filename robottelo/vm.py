@@ -257,6 +257,82 @@ class VirtualMachine(object):
 
         return ssh.command(cmd, hostname=self.ip_addr)
 
+    def fetch_hostname(self):
+        """Fetches short hostname from client and the domain from provisioning
+        server.
+
+        :return: Returns the FQDN of the vm/host.
+
+        """
+        # NOTE: We will be using 'hostname -s' as currently the hostname being
+        # returned from virtual machine is short hostname. It is being done to
+        # handle the scenario where in the vm/client might return FQDN for
+        # a different provisioning server.
+        host = self.run('hostname -s')
+        domain = ssh.command(
+            u'hostname -d',
+            hostname=self.provisioning_server
+        )
+        return '{0}.{1}'.format(host.stdout[0], domain.stdout[0])
+
+    def configure_rhel_repo(self, rhel_repo):
+        """Configures specified Red Hat repository on the virtual machine.
+
+        :param rhel_repo: Red Hat repository link from properties file.
+        :return: None.
+
+        """
+        # 'Access Insights', 'puppet' requires RHEL 6/7 repo and it is not
+        # possible to sync the repo during the tests as they are huge(in GB's)
+        # hence this adds a file in /etc/yum.repos.d/rhel6/7.repo
+        repo_file = (
+            '[rhel-rpms]\n'
+            'name=RHEL\n'
+            'baseurl={0}\n'
+            'enabled=1\n'
+            .format(rhel_repo)
+        )
+        self.run(
+            'echo "{0}" >> /etc/yum.repos.d/rhel.repo'
+            .format(repo_file)
+        )
+
+    def configure_puppet(self, rhel_repo=None):
+        """Configures puppet on the virtual machine/Host.
+
+        :param rhel_repo: Red Hat repository link from properties file.
+        :return: None.
+
+        """
+        sat6_hostname = conf.properties['main.server.hostname']
+        self.configure_rhel_repo(rhel_repo)
+        puppet_conf = (
+            'pluginsync      = true\n'
+            'report          = true\n'
+            'ignoreschedules = true\n'
+            'daemon          = false\n'
+            'ca_server       = {0}\n'
+            'server          = {1}\n'
+            .format(sat6_hostname, sat6_hostname)
+        )
+        result = self.run(u'yum install puppet -y')
+        if result.return_code != 0:
+            raise VirtualMachineError(
+                'Failed to install the puppet rpm')
+        self.run(
+            'echo "{0}" >> /etc/puppet/puppet.conf'
+            .format(puppet_conf)
+        )
+        # This particular puppet run on client would populate a cert on sat6
+        # under the capsule --> certifcates or via cli "puppet cert list", so
+        # that we sign it.
+        self.run(u'puppet agent -t')
+        ssh.command(u'puppet cert sign --all')
+        # This particular puppet run would create the host entity under
+        # 'All Hosts' and let's redirect stderr to /dev/null as errors at this
+        # stage can be ignored.
+        self.run(u'puppet agent -t 2> /dev/null')
+
     def __enter__(self):
         self.create()
         return self
