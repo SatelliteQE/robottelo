@@ -55,9 +55,9 @@ image_dir=/opt/robottelo/images
 # Provide link to rhel6/7 repo here, as puppet rpm
 # would require packages from RHEL 6/7 repo and syncing the entire repo
 # on the fly would take longer for tests to run
-# Specify the link to an internal repo for tests to execute properly
-rhel6_repo=http://example.org/RHEL-6/6.7/Server/x86_64/os/
-rhel7_repo=http://example.org/RHEL-7/7.1/Server/x86_64/os/
+# Specify the *.repo link to an internal repo for tests to execute properly
+rhel6_repo=http://example.com/yum/repo_files/rhel6-updates.repo
+rhel7_repo=http://example.com/yum/repo_files/rhel7-updates.repo
 
 [docker]
 # External docker URL in the format http[s]://<server>:<port>. The
