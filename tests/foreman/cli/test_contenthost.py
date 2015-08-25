@@ -19,6 +19,8 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.common.constants import (
     FAKE_0_CUSTOM_PACKAGE,
+    FAKE_0_CUSTOM_PACKAGE_GROUP,
+    FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
     FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
@@ -731,3 +733,42 @@ class TestCHKatelloAgent(CLITestCase):
         self.assertEqual(result.return_code, 0)
         result = self.vm.run('rpm -q {}'.format(FAKE_2_CUSTOM_PACKAGE))
         self.assertEqual(result.return_code, 0)
+
+    def test_contenthost_package_group_install(self):
+        """@Test: Install package group to content host remotely
+
+        @Feature: Content Host - Package group
+
+        @Assert: Package group was successfully installed
+
+        """
+        result = ContentHost.package_group_install({
+            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'content-host': self.vm.hostname,
+            u'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+        })
+        self.assertEqual(result.return_code, 0)
+        for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
+            result = self.vm.run('rpm -q {}'.format(package))
+            self.assertEqual(result.return_code, 0)
+
+    def test_contenthost_package_group_remove(self):
+        """@Test: Remove package group from content host remotely
+
+        @Feature: Content Host - Package group
+
+        @Assert: Package group was successfully removed
+
+        """
+        hammer_args = {
+            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'content-host': self.vm.hostname,
+            u'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+        }
+        result = ContentHost.package_group_install(hammer_args)
+        self.assertEqual(result.return_code, 0)
+        result = ContentHost.package_group_remove(hammer_args)
+        self.assertEqual(result.return_code, 0)
+        for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
+            result = self.vm.run('rpm -q {}'.format(package))
+            self.assertNotEqual(result.return_code, 0)
