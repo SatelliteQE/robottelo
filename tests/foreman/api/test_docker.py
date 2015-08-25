@@ -1272,9 +1272,31 @@ class DockerContainersTestCase(APITestCase):
         """Create an organization and product which can be re-used in tests."""
         super(DockerContainersTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
-        # TODO: create Docker-based compute resources (internal/external)
+        cls.cr_internal = entities.DockerComputeResource(
+            name=gen_string('alpha'),
+            url=INTERNAL_DOCKER_URL,
+            organization=[cls.org],
+        ).create()
+        cls.cr_external = entities.DockerComputeResource(
+            name=gen_string('alpha'),
+            url=EXTERNAL_DOCKER_URL,
+            organization=[cls.org],
+        ).create()
 
-    @stubbed()
+    def setUp(self):
+        """Generate default ``DockerHubContainer`` keyword arguments.
+
+        Generate a dict of arguments that can be used when instantiating a
+        ``DockerHubContainer`` and save it as ``self.dhc_kwargs``.
+
+        """
+        self.container_name = gen_string('alphanumeric')
+        self.dhc_kwargs = {
+            'command': 'top',
+            'name': self.container_name,
+            'organization': [self.org],
+        }
+
     @run_only_on('sat')
     def test_create_container_local_compute_resource(self):
         """@Test: Create a container in a local compute resource
@@ -1283,11 +1305,16 @@ class DockerContainersTestCase(APITestCase):
 
         @Assert: The docker container is created in the local compute resource
 
-        @Status: Manual
-
         """
+        container = entities.DockerHubContainer(
+            compute_resource=self.cr_internal,
+            **self.dhc_kwargs
+        ).create()
+        self.assertEqual(
+            container.compute_resource.read().name,
+            self.cr_internal.name,
+        )
 
-    @stubbed()
     @run_only_on('sat')
     def test_create_container_external_compute_resource(self):
         """@Test: Create a container in an external compute resource
@@ -1297,11 +1324,16 @@ class DockerContainersTestCase(APITestCase):
         @Assert: The docker container is created in the external compute
         resource
 
-        @Status: Manual
-
         """
+        container = entities.DockerHubContainer(
+            compute_resource=self.cr_external,
+            **self.dhc_kwargs
+        ).create()
+        self.assertEqual(
+            container.compute_resource.read().name,
+            self.cr_external.name,
+        )
 
-    @stubbed()
     @run_only_on('sat')
     def test_create_container_local_compute_resource_power(self):
         """@Test: Create a container in a local compute resource, then power it
@@ -1312,11 +1344,25 @@ class DockerContainersTestCase(APITestCase):
         @Assert: The docker container is created in the local compute resource
         and the power status is showing properly
 
-        @Status: Manual
-
         """
+        container = entities.DockerHubContainer(
+            compute_resource=self.cr_internal,
+            **self.dhc_kwargs
+        ).create()
+        self.assertEqual(
+            container.compute_resource.read().url,
+            INTERNAL_DOCKER_URL,
+        )
+        self.assertEqual(
+            container.power(data={u'power_action': 'status'})['running'],
+            True,
+        )
+        container.power(data={u'power_action': 'stop'})
+        self.assertEqual(
+            container.power(data={u'power_action': 'status'})['running'],
+            False,
+        )
 
-    @stubbed()
     @run_only_on('sat')
     def test_create_container_external_compute_resource_power(self):
         """@Test: Create a container in an external compute resource, then
@@ -1327,11 +1373,25 @@ class DockerContainersTestCase(APITestCase):
         @Assert: The docker container is created in the external compute
         resource and the power status is showing properly
 
-        @Status: Manual
-
         """
+        container = entities.DockerHubContainer(
+            compute_resource=self.cr_external,
+            **self.dhc_kwargs
+        ).create()
+        self.assertEqual(
+            container.compute_resource.read().url,
+            EXTERNAL_DOCKER_URL,
+        )
+        self.assertEqual(
+            container.power(data={u'power_action': 'status'})['running'],
+            True,
+        )
+        container.power(data={u'power_action': 'stop'})
+        self.assertEqual(
+            container.power(data={u'power_action': 'status'})['running'],
+            False,
+        )
 
-    @stubbed()
     @run_only_on('sat')
     def test_create_container_local_compute_resource_read_log(self):
         """@Test: Create a container in a local compute resource and read its
@@ -1342,11 +1402,15 @@ class DockerContainersTestCase(APITestCase):
         @Assert: The docker container is created in the local compute resource
         and its log can be read
 
-        @Status: Manual
-
         """
+        self.dhc_kwargs['command'] = 'ls'
+        container = entities.DockerHubContainer(
+            compute_resource=self.cr_internal,
+            **self.dhc_kwargs
+        ).create()
+        self.assertIsNotNone(container.logs()['logs'])
+        self.assertNotEqual(container.logs()['logs'], u'')
 
-    @stubbed()
     @run_only_on('sat')
     def test_create_container_external_compute_resource_read_log(self):
         """@Test: Create a container in an external compute resource and read
@@ -1357,9 +1421,14 @@ class DockerContainersTestCase(APITestCase):
         @Assert: The docker container is created in the external compute
         resource and its log can be read
 
-        @Status: Manual
-
         """
+        self.dhc_kwargs['command'] = 'date'
+        container = entities.DockerHubContainer(
+            compute_resource=self.cr_external,
+            **self.dhc_kwargs
+        ).create()
+        self.assertIsNotNone(container.logs()['logs'])
+        self.assertNotEqual(container.logs()['logs'], u'')
 
     @stubbed()
     @run_only_on('sat')
@@ -1376,7 +1445,6 @@ class DockerContainersTestCase(APITestCase):
 
         """
 
-    @stubbed()
     @run_only_on('sat')
     def test_delete_container_local_compute_resource(self):
         """@Test: Delete a container in a local compute resource
@@ -1385,11 +1453,16 @@ class DockerContainersTestCase(APITestCase):
 
         @Assert: The docker container is deleted in the local compute resource
 
-        @Status: Manual
-
         """
+        container = entities.DockerHubContainer(
+            compute_resource=self.cr_internal,
+            **self.dhc_kwargs
+        ).create()
+        self.assertEqual(container.name, self.container_name)
+        container.delete()
+        with self.assertRaises(HTTPError):
+            container.read()
 
-    @stubbed()
     @run_only_on('sat')
     def test_delete_container_external_compute_resource(self):
         """@Test: Delete a container in an external compute resource
@@ -1398,9 +1471,15 @@ class DockerContainersTestCase(APITestCase):
 
         @Assert: The docker container is deleted in the local compute resource
 
-        @Status: Manual
-
         """
+        container = entities.DockerHubContainer(
+            compute_resource=self.cr_external,
+            **self.dhc_kwargs
+        ).create()
+        self.assertEqual(container.name, self.container_name)
+        container.delete()
+        with self.assertRaises(HTTPError):
+            container.read()
 
 
 @ddt
