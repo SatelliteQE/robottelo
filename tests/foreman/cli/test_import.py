@@ -14,6 +14,7 @@ from robottelo.common.decorators import (
     skip_if_bug_open,
 )
 from robottelo.common.helpers import prepare_import_data
+from robottelo.cli.contentview import ContentView
 from robottelo.cli.import_ import Import
 from robottelo.cli.factory import make_org
 from robottelo.cli.hostcollection import HostCollection
@@ -205,13 +206,14 @@ def gen_import_cv_data():
 
     return (
         {
-            u'orgs': [{
+            u'users': [{
                 u'key_id': type(u'')(i + 1),
                 u'organization': gen_string('alphanumeric')
             } for i in range(3)],
-            u'cvs': [{
+            u'content-views': [{
                 u'key_id': type(u'')(i + 1),
-
+                u'channel_name': gen_string('alphanumeric'),
+                u'channel_label': gen_string('alphanumeric'),
             } for i in range(3)]
         },
     )
@@ -784,6 +786,7 @@ class TestImport(CLITestCase):
         (predefined source)
 
         @feature: Import Enable Repositories
+
         @assert: 3 Repositories imported and enabled
 
         """
@@ -817,9 +820,8 @@ class TestImport(CLITestCase):
         # now to check whether all repos from csv appeared in satellite
         for imp_org in imp_orgs:
             self.assertNotEqual(
-                Repository.list(
-                    {'organization-id': imp_org['sat6']}
-                ).stdout, []
+                Repository.list({'organization-id': imp_org['sat6']}).stdout,
+                [],
             )
 
     @data(*gen_import_repo_data())
@@ -860,11 +862,10 @@ class TestImport(CLITestCase):
 
         # get the sat6 mapping of the imported organizations
         imp_orgs = get_sat6_id(csv_to_dataset([files['users']]), import_org[1])
-        repos_before = []
-        for imp_org in imp_orgs:
-            repos_before.append(
-                Repository.list({'organization-id': imp_org['sat6']}).stdout
-            )
+        repos_before = [
+            Repository.list({'organization-id': imp_org['sat6']}).stdout
+            for imp_org in imp_orgs
+        ]
         # Reimport the same repos and check for changes in sat6
         self.assertEqual(
             Import.repository({
@@ -942,11 +943,11 @@ class TestImport(CLITestCase):
         Import.repository(
             {'csv-file': files['repositories'], 'recover': 'none'}
         )
-        repos_after = [
-            Repository.list({'organization-id': tr['sat6']}).stdout
-            for tr in import_org[1]
-        ]
-        self.assertEqual(repos_before, repos_after)
+        self.assertEqual(
+            repos_before,
+            [Repository.list({'organization-id': tr['sat6']}).stdout
+                for tr in import_org[1]],
+        )
 
         # use the 'map' strategy
         import_repo_map = Import.repository_with_tr_data({
@@ -958,6 +959,218 @@ class TestImport(CLITestCase):
         for record in import_repo_map[1][1]:
             self.assertEqual(
                 Repository.info({'id': record['sat6']}).return_code, 0
+            )
+
+    @data(*gen_import_cv_data())
+    def test_import_cv_default(self, test_data):
+        """@test: Import and enable all Content Views from the default data set
+        (predefined source)
+
+        @feature: Import Enable Content View
+
+        @assert: 3 Content Views imported and enabled
+
+        """
+        # randomize the values for orgs and repos
+        tmp_dir = self.default_dataset[0]
+        files = dict(self.default_dataset[1])
+        files['content-views'] = os.path.join(
+            tmp_dir,
+            'exports/CHANNELS/export.csv',
+        )
+        for file_ in zip(
+            ['users', 'content-views'],
+            [u'organization_id', u'org_id'],
+        ):
+            files[file_[0]] = update_csv_values(
+                files[file_[0]],
+                file_[1],
+                test_data[file_[0]],
+                self.default_dataset[0]
+            )
+        # import the prerequisities
+        import_org = Import.organization_with_tr_data(
+            {'csv-file': files['users']}
+        )
+        import_repo = Import.repository_with_tr_data({
+            'csv-file': files['repositories'],
+            'synchronize': True,
+            'wait': True,
+        })
+        # now proceed with Content View import
+        import_cv = Import.content_view_with_tr_data({
+            'csv-file': files['content-views'],
+            'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
+        })
+        for result in (import_org, import_repo, import_cv):
+            self.assertEqual(result[0].return_code, 0)
+
+        # get the sat6 mapping of the imported organizations
+        imp_orgs = get_sat6_id(csv_to_dataset([files['users']]), import_org[1])
+        # now to check whether all content views from csv appeared in satellite
+        for imp_org in imp_orgs:
+            self.assertNotEqual(
+                ContentView.list(
+                    {'organization-id': imp_org['sat6']}
+                ).stdout, []
+            )
+
+    @data(*gen_import_cv_data())
+    def test_reimport_cv_negative(self, test_data):
+        """@test: Import and enable all Content Views from the default data set
+        (predefined source), then try to Impor them from the same CSV
+        again.
+
+        @feature: Repetitive Import Content Views
+
+        @assert: 3 Content Views imported and enabled, 2nd run should trigger
+        no action.
+
+        """
+        # randomize the values for orgs and repos
+        tmp_dir = self.default_dataset[0]
+        files = dict(self.default_dataset[1])
+        files['content-views'] = os.path.join(
+            tmp_dir, 'exports/CHANNELS/export.csv'
+        )
+        for file_ in zip(
+            ['users', 'content-views'],
+            [u'organization_id', u'org_id'],
+        ):
+            files[file_[0]] = update_csv_values(
+                files[file_[0]],
+                file_[1],
+                test_data[file_[0]],
+                self.default_dataset[0]
+            )
+        # import the prerequisities
+        import_org = Import.organization_with_tr_data(
+            {'csv-file': files['users']}
+        )
+        import_repo = Import.repository_with_tr_data({
+            'csv-file': files['repositories'],
+            'synchronize': True,
+            'wait': True,
+        })
+        import_cv = Import.content_view_with_tr_data({
+            'csv-file': files['content-views'],
+            'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
+        })
+        for result in (import_org, import_repo, import_cv):
+            self.assertEqual(result[0].return_code, 0)
+
+        # get the sat6 mapping of the imported organizations
+        imp_orgs = get_sat6_id(csv_to_dataset([files['users']]), import_org[1])
+        cvs_before = [
+            ContentView.list({'organization-id': imp_org['sat6']}).stdout
+            for imp_org in imp_orgs
+        ]
+        # Reimport the same content views and check for changes in sat6
+        self.assertEqual(
+            Import.content_view({
+                'csv-file': files['content-views'],
+                'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
+            }).return_code, 0
+        )
+        self.assertEqual(
+            cvs_before,
+            [
+                ContentView.list({'organization-id': imp_org['sat6']}).stdout
+                for imp_org in imp_orgs
+            ]
+        )
+
+    @data(*gen_import_cv_data())
+    def test_import_cv_recovery(self, test_data):
+        """@test: Try to Import Content Views with the same name to invoke
+        usage of a recovery strategy (rename, map, none)
+
+        @feature: Import Content View Recover
+
+        @assert: 2nd Import will rename the new Content Views, 3rd import will
+        map them and the 4th one will result in No Action Taken
+
+        """
+        # prepare the data
+        tmp_dir = self.default_dataset[0]
+        files = dict(self.default_dataset[1])
+        files['content-views'] = os.path.join(
+            tmp_dir,
+            'exports/CHANNELS/export.csv',
+        )
+        # randomize the values for orgs and repos
+        for file_ in zip(
+            ['users', 'content-views'],
+            [u'organization_id', u'org_id'],
+        ):
+            files[file_[0]] = update_csv_values(
+                files[file_[0]],
+                file_[1],
+                test_data[file_[0]],
+                self.default_dataset[0]
+            )
+        # import the prerequisities
+        import_org = Import.organization_with_tr_data(
+            {'csv-file': files['users']}
+        )
+        for result in (
+            import_org,
+            Import.repository_with_tr_data(
+                {'csv-file': files['repositories']}
+            ),
+            Import.content_view_with_tr_data({
+                'csv-file': files['content-views'],
+                'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
+            }),
+        ):
+            self.assertEqual(result[0].return_code, 0)
+        # clear the .transition_data to clear the transition mapping
+        ssh.command('rm -rf "${HOME}"/.transition_data/repositories*')
+        ssh.command('rm -rf "${HOME}"/.transition_data/products*')
+        ssh.command('rm -rf "${HOME}"/.transition_data/content_views*')
+
+        # use the default (rename) strategy
+        import_cv_rename = Import.content_view_with_tr_data({
+            'csv-file': files['content-views'],
+            'verbose': True,
+            'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
+        })
+        self.assertEqual(import_cv_rename[0].return_code, 0)
+        for record in import_cv_rename[1]:
+            self.assertEqual(
+                ContentView.info({'id': record['sat6']}).return_code, 0
+            )
+        Import.content_view(
+            {'csv-file': files['content-views'], 'delete': True}
+        )
+
+        # use the 'none' strategy
+        cvs_before = [
+            ContentView.list({'organization-id': tr['sat6']}).stdout
+            for tr in import_org[1]
+        ]
+        Import.content_view({
+            'csv-file': files['repositories'],
+            'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
+            'recover': 'none',
+        })
+        cvs_after = [
+            ContentView.list({'organization-id': tr['sat6']}).stdout
+            for tr in import_org[1]
+        ]
+        self.assertEqual(cvs_before, cvs_after)
+
+        # use the 'map' strategy
+        import_cvs_map = Import.content_view_with_tr_data({
+            'csv-file': files['content-views'],
+            'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
+            'recover': 'map',
+            'verbose': True,
+        })
+        self.assertEqual(import_cvs_map[0].return_code, 0)
+        for record in import_cvs_map[1]:
+            self.assertEqual(
+                ContentView.info({'id': record['sat6']}).return_code, 0
             )
 
     @skip_if_bug_open('bugzilla', 1160847)
