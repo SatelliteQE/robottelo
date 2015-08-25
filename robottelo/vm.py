@@ -285,16 +285,9 @@ class VirtualMachine(object):
         # 'Access Insights', 'puppet' requires RHEL 6/7 repo and it is not
         # possible to sync the repo during the tests as they are huge(in GB's)
         # hence this adds a file in /etc/yum.repos.d/rhel6/7.repo
-        repo_file = (
-            '[rhel-rpms]\n'
-            'name=RHEL\n'
-            'baseurl={0}\n'
-            'enabled=1\n'
-            .format(rhel_repo)
-        )
         self.run(
-            'echo "{0}" >> /etc/yum.repos.d/rhel.repo'
-            .format(repo_file)
+            'wget -O /etc/yum.repos.d/rhel.repo {0}'
+            .format(rhel_repo)
         )
 
     def configure_puppet(self, rhel_repo=None):
