@@ -326,6 +326,25 @@ class VirtualMachine(object):
         # stage can be ignored.
         self.run(u'puppet agent -t 2> /dev/null')
 
+    def execute_foreman_scap_client(self, policy_id=None):
+        """Executes foreman_scap_client on the vm/clients to create security
+        audit report.
+
+        :param policy_id: The Id of the OSCAP policy.
+        :return: None.
+
+        """
+        if policy_id is None:
+            result = self.run(
+                u'awk -F "/" \'/download_path/ {print $4}\' '
+                '/etc/foreman_scap_client/config.yaml'
+            )
+            policy_id = result.stdout[0]
+        self.run(u'foreman_scap_client {0}'.format(policy_id))
+        if result.return_code != 0:
+            raise VirtualMachineError(
+                'Failed to execute foreman_scap_client run.')
+
     def __enter__(self):
         self.create()
         return self
