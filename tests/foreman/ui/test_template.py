@@ -5,7 +5,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
-from robottelo.common.helpers import get_data_file, generate_strings_list
+from robottelo.common.helpers import generate_strings_list, get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_templates
@@ -20,9 +20,7 @@ class Template(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        org_attrs = entities.Organization().create_json()
-        cls.org_name = org_attrs['name']
-        cls.org_id = org_attrs['id']
+        cls.organization = entities.Organization().create()
         super(Template, cls).setUpClass()
 
     @data(*generate_strings_list(len1=8))
@@ -35,14 +33,17 @@ class Template(UITestCase):
         should be created successfully
 
         """
-        temp_type = 'provision'
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
-            make_templates(session, name=name, template_path=template_path,
-                           custom_really=True, template_type=temp_type)
+            make_templates(
+                session,
+                name=name,
+                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
+                custom_really=True,
+                template_type='provision',
+            )
             self.assertIsNotNone(self.template.search(name))
 
-    def test_negative_create_template_1(self):
+    def test_negative_create_template_with_too_long_name(self):
         """@Test: Template - Create a new template with 256 characters in name
 
         @Feature: Template - Negative Create
@@ -50,17 +51,19 @@ class Template(UITestCase):
         @Assert: Template is not created
 
         """
-        name = gen_string("alpha", 256)
-        temp_type = 'provision'
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
-            make_templates(session, name=name, template_path=template_path,
-                           custom_really=True, template_type=temp_type)
+            make_templates(
+                session,
+                name=gen_string('alpha', 256),
+                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
+                custom_really=True,
+                template_type='provision',
+            )
             self.assertIsNotNone(self.template.wait_until_element
-                                 (common_locators["name_haserror"]))
+                                 (common_locators['name_haserror']))
 
-    @data(" ", "")
-    def test_negative_create_template_2(self, name):
+    @data(' ', '')
+    def test_negative_create_template_with_blank_name(self, name):
         """@Test: Create a new template with blank and whitespace in name
 
         @Feature: Template - Negative Create
@@ -68,15 +71,18 @@ class Template(UITestCase):
         @Assert: Template is not created
 
         """
-        temp_type = 'provision'
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
-            make_templates(session, name=name, template_path=template_path,
-                           custom_really=True, template_type=temp_type)
+            make_templates(
+                session,
+                name=name,
+                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
+                custom_really=True,
+                template_type='provision',
+            )
             self.assertIsNotNone(self.template.wait_until_element
-                                 (common_locators["name_haserror"]))
+                                 (common_locators['name_haserror']))
 
-    def test_negative_create_template_4(self):
+    def test_negative_create_template_with_same_name(self):
         """@Test: Template - Create a new template with same name
 
         @Feature: Template - Negative Create
@@ -84,7 +90,7 @@ class Template(UITestCase):
         @Assert: Template is not created
 
         """
-        name = gen_string("alpha", 16)
+        name = gen_string('alpha')
         temp_type = 'provision'
         template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
@@ -94,9 +100,9 @@ class Template(UITestCase):
             make_templates(session, name=name, template_path=template_path,
                            custom_really=True, template_type=temp_type)
             self.assertIsNotNone(self.template.wait_until_element
-                                 (common_locators["name_haserror"]))
+                                 (common_locators['name_haserror']))
 
-    def test_negative_create_template_5(self):
+    def test_negative_create_template_without_type(self):
         """@Test: Template - Create a new template without selecting its type
 
         @Feature: Template - Negative Create
@@ -104,24 +110,22 @@ class Template(UITestCase):
         @Assert: Template is not created
 
         """
-        name = gen_string("alpha", 16)
-        temp_type = ""
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        name = gen_string('alpha')
         with Session(self.browser) as session:
             with self.assertRaises(UIError) as context:
                 make_templates(
                     session,
                     name=name,
-                    template_path=template_path,
+                    template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
                     custom_really=True,
-                    template_type=temp_type
+                    template_type='',
                 )
                 self.assertEqual(
                     context.exception.message,
                     'Could not create template "{0}" without type'.format(name)
                 )
 
-    def test_negative_create_template_6(self):
+    def test_negative_create_template_without_upload(self):
         """@Test: Template - Create a new template without uploading a template
 
         @Feature: Template - Negative Create
@@ -129,24 +133,22 @@ class Template(UITestCase):
         @Assert: Template is not created
 
         """
-        name = gen_string("alpha", 16)
-        temp_type = 'PXELinux'
-        template_path = ""
+        name = gen_string('alpha')
         with Session(self.browser) as session:
             with self.assertRaises(UIError) as context:
                 make_templates(
                     session,
                     name=name,
-                    template_path=template_path,
+                    template_path='',
                     custom_really=True,
-                    template_type=temp_type
+                    template_type='PXELinux',
                 )
                 self.assertEqual(
                     context.exception.message,
                     'Could not create blank template "{0}"'.format(name)
                 )
 
-    def test_negative_create_template_7(self):
+    def test_negative_create_template_with_too_long_audit(self):
         """@Test: Create a new template with 256 characters in audit comments
 
         @Feature: Template - Negative Create
@@ -154,16 +156,17 @@ class Template(UITestCase):
         @Assert: Template is not created
 
         """
-        name = gen_string("alpha", 16)
-        audit_comment = gen_string("alpha", 256)
-        temp_type = 'PXELinux'
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
-            make_templates(session, name=name, template_path=template_path,
-                           custom_really=True, audit_comment=audit_comment,
-                           template_type=temp_type)
+            make_templates(
+                session,
+                name=gen_string('alpha', 16),
+                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
+                custom_really=True,
+                audit_comment=gen_string('alpha', 256),
+                template_type='PXELinux'
+            )
             self.assertIsNotNone(self.template.wait_until_element
-                                 (common_locators["haserror"]))
+                                 (common_locators['haserror']))
 
     @data(*generate_strings_list(len1=8))
     def test_positive_create_snippet_template(self, name):
@@ -175,10 +178,14 @@ class Template(UITestCase):
         should be created successfully
 
         """
-        template_path = get_data_file(SNIPPET_DATA_FILE)
         with Session(self.browser) as session:
-            make_templates(session, name=name, template_path=template_path,
-                           custom_really=True, snippet=True)
+            make_templates(
+                session,
+                name=name,
+                template_path=get_data_file(SNIPPET_DATA_FILE),
+                custom_really=True,
+                snippet=True,
+            )
             self.assertIsNotNone(self.template.search(name))
 
     @skip_if_bug_open('bugzilla', 1177756)
@@ -194,11 +201,10 @@ class Template(UITestCase):
 
         """
         entities.ConfigTemplate(
-            name=template_name, organization=[self.org_id]
-        ).create_json()
+            name=template_name, organization=[self.organization]).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.org_name)
-            self.template.delete(template_name, True)
+            session.nav.go_to_select_org(self.organization.name)
+            self.template.delete(template_name)
             self.assertIsNone(self.template.search(template_name))
 
     def test_update_template(self):
@@ -209,16 +215,18 @@ class Template(UITestCase):
         @Assert: The template name and type should be updated successfully
 
         """
-        name = gen_string("alpha", 6)
-        new_name = gen_string("alpha", 6)
-        temp_type = 'provision'
-        new_temp_type = 'PXELinux'
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
+        name = gen_string('alpha')
+        new_name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_templates(session, name=name, template_path=template_path,
-                           custom_really=True, template_type=temp_type)
+            make_templates(
+                session,
+                name=name,
+                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
+                custom_really=True,
+                template_type='provision',
+            )
             self.assertIsNotNone(self.template.search(name))
-            self.template.update(name, False, new_name, None, new_temp_type)
+            self.template.update(name, False, new_name, None, 'PXELinux')
             self.assertIsNotNone(self.template.search(new_name))
 
     def test_update_template_os(self):
@@ -231,16 +239,19 @@ class Template(UITestCase):
         successfully
 
         """
-        name = gen_string("alpha", 6)
-        new_name = gen_string("alpha", 6)
-        temp_type = 'provision'
+        name = gen_string('alpha')
+        new_name = gen_string('alpha')
         os_list = [
-            entities.OperatingSystem().create_json()['name'] for _ in range(2)
+            entities.OperatingSystem().create().name for _ in range(2)
         ]
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
-            make_templates(session, name=name, template_path=template_path,
-                           custom_really=True, template_type=temp_type)
+            make_templates(
+                session,
+                name=name,
+                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
+                custom_really=True,
+                template_type='provision',
+            )
             self.assertIsNotNone(self.template.search(name))
             self.template.update(name, False, new_name, new_os_list=os_list)
             self.assertIsNotNone(self.template.search(new_name))
@@ -257,17 +268,24 @@ class Template(UITestCase):
         @Assert: template is cloned
 
         """
-        name = gen_string("alpha", 6)
-        clone_name = gen_string("alpha", 6)
-        temp_type = 'provision'
+        name = gen_string('alpha')
+        clone_name = gen_string('alpha')
         os_list = [
-            entities.OperatingSystem().create_json()['name'] for _ in range(2)
+            entities.OperatingSystem().create().name for _ in range(2)
         ]
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
-            make_templates(session, name=name, template_path=template_path,
-                           custom_really=True, template_type=temp_type)
+            make_templates(
+                session,
+                name=name,
+                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
+                custom_really=True,
+                template_type='provision',
+            )
             self.assertIsNotNone(self.template.search(name))
-            self.template.clone(name, custom_really=False,
-                                clone_name=clone_name, os_list=os_list)
+            self.template.clone(
+                name,
+                custom_really=False,
+                clone_name=clone_name,
+                os_list=os_list,
+            )
             self.assertIsNotNone(self.template.search(clone_name))
