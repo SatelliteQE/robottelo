@@ -27,23 +27,15 @@ class RHAI(Base):
         self.vm.register_contenthost(activation_key, org)
 
         # Red Hat Access Insights requires RHEL 6/7 repo and it not
-        # possible to sync the repo during the tests,
-        # adding a file in /etc/yum.repos.d/rhel6/7.repo
+        # possible to sync the repo during the tests, Adding repo file.
+        self.vm.configure_rhel_repo(conf.properties['clients.rhel6_repo'])
 
-        rhel6_repo = conf.properties['insights.rhel6_repo']
-
-        repo_file = (
-            '[rhel6-rpms]\n'
-            'name=RHEL6\n'
-            'baseurl={0}\n'
-            'enabled=1\n'
-            .format(rhel6_repo)
-        )
-
-        self.vm.run(
-            'echo "{0}" >> /etc/yum.repos.d/rhel6.repo'
-            .format(repo_file)
-        )
+        try:
+            insights_repo = conf.properties['insights.insights_el6repo']
+            self.vm.run('wget -O /etc/yum.repos.d/insights.repo {0}'.format(
+                insights_repo))
+        except KeyError:
+            pass
 
         # Install redhat-access-insights package
         package_name = 'redhat-access-insights'
@@ -63,6 +55,12 @@ class RHAI(Base):
         # Register client with Red Hat Access Insights
         result = self.vm.run('redhat-access-insights --register')
         if result.return_code != 0:
+            test_connection = self.vm.run(
+                'redhat-access-insights --test-connection')
+            if test_connection.return_code != 0:
+                raise AccessInsightsError(
+                    'Unable to register client, --test-connection not '
+                    'successful')
             raise AccessInsightsError(
                 'Unable to register client to Access Insights through '
                 'Satellite')
