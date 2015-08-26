@@ -157,16 +157,15 @@ REPOSET = {
     'rhva6': (
         'Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'
     ),
-    # TODO: Remove 'Beta' after release
-    'rhst7': 'Red Hat Satellite Tools 6 Beta (for RHEL 7 Server) (RPMs)',
+    'rhst7': 'Red Hat Satellite Tools 6.1 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.1 (for RHEL 6 Server) (RPMs)',
 }
 
 REPOS = {
-    'rhst7': {  # TODO: Remove 'beta' after release
-        'id': 'rhel-7-server-satellite-tools-6-beta-rpms',
+    'rhst7': {
+        'id': 'rhel-7-server-satellite-tools-6-rpms',
         'name': (
-            'Red Hat Satellite Tools 6 Beta for RHEL 7 Server RPMs x86_64'
+            'Red Hat Satellite Tools 6.1 for RHEL 7 Server RPMs x86_64'
         ),
     },
     'rhst6': {
