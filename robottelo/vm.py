@@ -56,7 +56,7 @@ class VirtualMachine(object):
 
     def __init__(
             self, cpu=1, ram=512, distro=None, provisioning_server=None,
-            image_dir=None):
+            image_dir=None, tag=None):
         self.cpu = cpu
         self.ram = ram
         self.distro = BASE_IMAGES[-1] if distro is None else distro
@@ -88,6 +88,8 @@ class VirtualMachine(object):
         self._created = False
         self._subscribed = False
         self._target_image = str(id(self))
+        if tag is not None:
+            self._target_image = tag + self._target_image
 
     def create(self):
         """Creates a virtual machine on the provisioning server using
@@ -225,7 +227,7 @@ class VirtualMachine(object):
         if result.return_code != 0:
             raise VirtualMachineError('Failed to find the katello-ca rpm')
 
-    def register_contenthost(self, activation_key, org):
+    def register_contenthost(self, activation_key, org, releasever=None):
         """Registers content host on foreman server using activation-key.
 
         :param activation_key: Activation key name to register content host
@@ -235,11 +237,14 @@ class VirtualMachine(object):
             registration.
 
         """
-        result = self.run(
-            u'subscription-manager register --activationkey {0} '
-            '--org {1} --force'
+        cmd = (
+            u'subscription-manager register --activationkey {0} --org {1}'
             .format(activation_key, org)
         )
+        if releasever is not None:
+            cmd += u' --release {}'.format(releasever)
+        cmd = cmd + u' --force'
+        result = self.run(cmd)
         if result.return_code == 0:
             self._subscribed = True
         return result

@@ -78,6 +78,17 @@ class ContentView(Base):
         return result
 
     @classmethod
+    def version_incremental_update(cls, options):
+        """Performs incremental update of the content-view's version"""
+        cls.command_sub = 'version incremental-update'
+        if options is None:
+            options = {}
+            return cls.execute(
+                cls._construct_command(options),
+                output_format='info'
+            )
+
+    @classmethod
     def puppet_module_add(cls, options):
         """Associate puppet_module to selected CV"""
         cls.command_sub = 'puppet-module add'
