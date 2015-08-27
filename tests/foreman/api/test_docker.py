@@ -16,6 +16,7 @@ from robottelo.common.decorators import (
 from robottelo.common.helpers import (
     get_external_docker_url,
     get_internal_docker_url,
+    valid_data_list,
 )
 from robottelo.test import APITestCase
 
@@ -1489,33 +1490,44 @@ class DockerRegistriesTestCase(APITestCase):
 
     """
 
-    @stubbed()
     @run_only_on('sat')
-    def test_create_registry(self):
+    @data(*valid_data_list())
+    def test_create_registry(self, name):
         """@Test: Create an external docker registry
 
         @Feature: Docker
 
-        @Assert: the external registry is created
-
-        @Status: Manual
+        @Assert: External registry is created successfully
 
         """
+        url = gen_url(subdomain=gen_string('alpha'))
+        description = gen_string('alphanumeric')
+        registry = entities.Registry(
+            name=name,
+            url=url,
+            description=description,
+        ).create()
+        self.assertEqual(registry.name, name)
+        self.assertEqual(registry.url, url)
+        self.assertEqual(registry.description, description)
 
-    @stubbed()
     @run_only_on('sat')
-    def test_update_registry_name(self):
+    @data(*valid_data_list())
+    def test_update_registry_name(self, new_name):
         """@Test: Create an external docker registry and update its name
 
         @Feature: Docker
 
         @Assert: the external registry is updated with the new name
 
-        @Status: Manual
-
         """
+        name = gen_string('alpha')
+        registry = entities.Registry(name=name).create()
+        self.assertEqual(registry.name, name)
+        registry.name = new_name
+        registry = registry.update()
+        self.assertEqual(registry.name, new_name)
 
-    @stubbed()
     @run_only_on('sat')
     def test_update_registry_url(self):
         """@Test: Create an external docker registry and update its URL
@@ -1524,24 +1536,32 @@ class DockerRegistriesTestCase(APITestCase):
 
         @Assert: the external registry is updated with the new URL
 
-        @Status: Manual
-
         """
+        url = gen_url(subdomain=gen_string('alpha'))
+        new_url = gen_url(subdomain=gen_string('alpha'))
+        registry = entities.Registry(url=url).create()
+        self.assertEqual(registry.url, url)
+        registry.url = new_url
+        registry = registry.update()
+        self.assertEqual(registry.url, new_url)
 
-    @stubbed()
     @run_only_on('sat')
-    def test_update_registry_description(self):
+    @data(*valid_data_list())
+    def test_update_registry_description(self, new_desc):
         """@Test: Create an external docker registry and update its description
 
         @Feature: Docker
 
         @Assert: the external registry is updated with the new description
 
-        @Status: Manual
-
         """
+        desc = gen_string('utf8')
+        registry = entities.Registry(description=desc).create()
+        self.assertEqual(registry.description, desc)
+        registry.description = new_desc
+        registry = registry.update()
+        self.assertEqual(registry.description, new_desc)
 
-    @stubbed()
     @run_only_on('sat')
     def test_update_registry_username(self):
         """@Test: Create an external docker registry and update its username
@@ -1550,19 +1570,29 @@ class DockerRegistriesTestCase(APITestCase):
 
         @Assert: the external registry is updated with the new username
 
-        @Status: Manual
-
         """
+        username = gen_string('alpha')
+        new_username = gen_string('alpha')
+        registry = entities.Registry(
+            username=username,
+            password=gen_string('alpha'),
+        ).create()
+        self.assertEqual(registry.username, username)
+        registry.username = new_username
+        registry = registry.update()
+        self.assertEqual(registry.username, new_username)
 
-    @stubbed()
     @run_only_on('sat')
-    def test_delete_registry(self):
-        """@Test: Create an external docker registry
+    @data(*valid_data_list())
+    def test_delete_registry(self, name):
+        """@Test: Create an external docker registry and then delete it
 
         @Feature: Docker
 
-        @Assert: the external registry is created
-
-        @Status: Manual
+        @Assert: The external registry is deleted successfully
 
         """
+        registry = entities.Registry(name=name).create()
+        registry.delete()
+        with self.assertRaises(HTTPError):
+            registry.read()
