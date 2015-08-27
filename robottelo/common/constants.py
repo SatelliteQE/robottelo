@@ -257,9 +257,17 @@ FAKE_1_CUSTOM_PACKAGE = 'walrus-0.71-1.noarch'
 FAKE_1_CUSTOM_PACKAGE_NAME = 'walrus'
 FAKE_2_CUSTOM_PACKAGE = 'walrus-5.21-1.noarch'
 FAKE_2_CUSTOM_PACKAGE_NAME = 'walrus'
+FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
 
 PUPPET_MODULE_NTP_PUPPETLABS = "puppetlabs-ntp-3.2.1.tar.gz"
+
+FAKE_0_CUSTOM_PACKAGE_GROUP = [
+    'cockateel-3.1-1.noarch',
+    'duck-0.6-1.noarch',
+    'penguin-0.9.1-1.noarch',
+    'stork-0.12-2.noarch',
+]
 
 #: All permissions exposed by the server.
 #: :mod:`tests.foreman.api.test_permission` makes use of this.
