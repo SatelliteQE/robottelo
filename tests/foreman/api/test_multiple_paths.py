@@ -65,9 +65,11 @@ def _get_readable_attributes(entity):
             del attributes[field_name]
 
     # The server deals with a field named "path", but we name the same field
-    # "path_" due to a naming conflict with a method by that name.
+    # path_ due to a naming conflict with a method by that name. Same w/search.
     if isinstance(entity, entities.Media):
         attributes['path'] = attributes.pop('path_')
+    if isinstance(entity, entities.DiscoveryRule):
+        attributes['search'] = attributes.pop('search_')
 
     return attributes
 
