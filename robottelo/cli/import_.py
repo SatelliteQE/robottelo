@@ -207,11 +207,7 @@ class Import(Base):
         the transition data of the Import
 
         """
-        cls.command_sub = 'activation-key'
-        result = cls.execute(
-            cls._construct_command(options),
-            output_format='csv'
-        )
+        result = cls.activation_key(options)
         transition_data = []
         if result.return_code == 0:
             transition_data = cls.read_transition_csv(
@@ -230,11 +226,7 @@ class Import(Base):
         the transition data of the Import
 
         """
-        cls.command_sub = 'organization'
-        result = cls.execute(
-            cls._construct_command(options),
-            output_format=''
-        )
+        result = cls.organization(options)
         transition_data = []
         if result.return_code == 0:
             transition_data = cls.read_transition_csv(
@@ -252,11 +244,7 @@ class Import(Base):
         the transition data of the Import
 
         """
-        cls.command_sub = 'user'
-        result = cls.execute(
-            cls._construct_command(options),
-            output_format=''
-        )
+        result = cls.user(options)
         transition_data = []
         if result.return_code == 0:
             transition_data = cls.read_transition_csv(
@@ -274,11 +262,7 @@ class Import(Base):
         the transition data of the Import
 
         """
-        cls.command_sub = 'host-collection'
-        result = cls.execute(
-            cls._construct_command(options),
-            output_format=''
-        )
+        result = cls.host_collection(options)
         transition_data = []
         if result.return_code == 0:
             transition_data = cls.read_transition_csv(
@@ -297,11 +281,7 @@ class Import(Base):
         the transition data of the Import
 
         """
-        cls.command_sub = 'config-file'
-        result = cls.execute(
-            cls._construct_command(options),
-            output_format=''
-        )
+        result = cls.config_file(options)
         transition_data = []
         if result.return_code == 0:
             transition_data = [
@@ -326,11 +306,7 @@ class Import(Base):
         the transition data of the Import
 
         """
-        cls.command_sub = 'content-view'
-        result = cls.execute(
-            cls._construct_command(options),
-            output_format=''
-        )
+        result = cls.content_view(options)
         transition_data = []
         if result.return_code == 0:
             transition_data = cls.read_transition_csv(
@@ -348,11 +324,7 @@ class Import(Base):
         the transition data of the Import
 
         """
-        cls.command_sub = 'repository'
-        result = cls.execute(
-            cls._construct_command(options),
-            output_format=''
-        )
+        result = cls.repository(options)
         transition_data = []
         if result.return_code == 0:
             transition_data = [
