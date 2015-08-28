@@ -533,10 +533,8 @@ class DockerContentViewTestCase(CLITestCase):
             'composite': True,
             'organization-id': self.org_id,
         })
-        cv_versions_ids = ','.join(
-            cv_version['id'] for cv_version in cv_versions)
         result = ContentView.update({
-            'component-ids': cv_versions_ids,
+            'component-ids': [cv_version['id'] for cv_version in cv_versions],
             'id': comp_content_view['id'],
         })
         self.assertEqual(result.return_code, 0)

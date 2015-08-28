@@ -294,8 +294,7 @@ class TestLocation(CLITestCase):
         """
         envs_amount = randint(3, 5)
         envs = [make_environment() for _ in range(envs_amount)]
-        env_ids = ','.join(env['id'] for env in envs)
-        loc = make_location({'environment-ids': env_ids})
+        loc = make_location({'environment-ids': [env['id'] for env in envs]})
         self.assertEqual(len(loc['environments']), envs_amount)
         for env in envs:
             self.assertIn(env['name'], loc['environments'])
@@ -313,8 +312,9 @@ class TestLocation(CLITestCase):
         """
         domains_amount = randint(3, 5)
         domains = [make_domain() for _ in range(domains_amount)]
-        domain_names = ','.join(domain['name'] for domain in domains)
-        loc = make_location({'domains': domain_names})
+        loc = make_location({
+            'domains': [domain['name'] for domain in domains],
+        })
         self.assertEqual(len(loc['domains']), domains_amount)
         for domain in domains:
             self.assertIn(domain['name'], loc['domains'])
@@ -476,8 +476,9 @@ class TestLocation(CLITestCase):
         """
         resources_amount = randint(3, 5)
         resources = [make_compute_resource() for _ in range(resources_amount)]
-        resource_ids = ','.join(resource['id'] for resource in resources)
-        loc = make_location({'compute-resource-ids': resource_ids})
+        loc = make_location({
+            'compute-resource-ids': [resource['id'] for resource in resources],
+        })
         self.assertEqual(len(loc['compute-resources']), resources_amount)
         for resource in resources:
             self.assertIn(resource['name'], loc['compute-resources'])
@@ -508,17 +509,17 @@ class TestLocation(CLITestCase):
         """
 
         host_groups = [make_hostgroup() for _ in range(3)]
-        host_group_names = ','.join(hg['name'] for hg in host_groups)
-        loc = make_location({'hostgroups': host_group_names})
+        loc = make_location({
+            'hostgroups': [hg['name'] for hg in host_groups],
+            })
         self.assertEqual(len(loc['hostgroups']), 3)
         for host_group in host_groups:
             self.assertIn(host_group['name'], loc['hostgroups'])
 
         new_host_groups = [make_hostgroup() for _ in range(2)]
-        new_host_group_names = ','.join(hg['name'] for hg in new_host_groups)
         result = Location.update({
             'id': loc['id'],
-            'hostgroups': new_host_group_names,
+            'hostgroups': [hg['name'] for hg in new_host_groups],
         })
         self.assertEqual(result.return_code, 0)
 

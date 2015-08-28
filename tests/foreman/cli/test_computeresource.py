@@ -195,9 +195,8 @@ class TestComputeResource(CLITestCase):
         try:
             locations_amount = random.randint(3, 5)
             locations = [make_location() for _ in range(locations_amount)]
-            location_ids = ','.join(location['id'] for location in locations)
             comp_resource = make_compute_resource({
-                'location-ids': location_ids,
+                'location-ids': [location['id'] for location in locations],
             })
         except CLIFactoryError as err:
             self.fail(err)

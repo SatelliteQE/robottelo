@@ -102,8 +102,9 @@ class TestSubnet(CLITestCase):
         try:
             domains_amount = random.randint(3, 5)
             domains = [make_domain() for _ in range(domains_amount)]
-            domain_ids = ','.join(domain['id'] for domain in domains)
-            subnet = make_subnet({'domain-ids': str(domain_ids)})
+            subnet = make_subnet({
+                'domain-ids': [domain['id'] for domain in domains],
+            })
         except CLIFactoryError as err:
             self.fail(err)
         self.assertEqual(len(subnet['domains']), domains_amount)
