@@ -2,6 +2,7 @@
 """Test class for Host Collection CLI"""
 import csv
 import os
+import re
 import tempfile
 from ddt import ddt
 from fauxfactory import gen_string
@@ -66,7 +67,9 @@ def build_csv_file(rows=None, dirname=None):
         )
         csv_writer.writeheader()
         for row in rows:
-            csv_writer.writerow(row)
+            csv_writer.writerow({
+                key: val.encode('utf8') for key, val in row.items()
+            })
     if dirname is None:
         remote_file = file_name
     else:
@@ -149,6 +152,13 @@ def gen_import_org_data():
             u'organization': gen_string('alphanumeric')
         }
         for i in range(3)
+    ], [
+        {
+            u'key_id': type(u'')(i + 1),
+            u'organization_id': org_ids[i],
+            u'organization': gen_string('utf8')
+        }
+        for i in range(3)
     ],)
 
 
@@ -161,6 +171,14 @@ def gen_import_user_data():
             u'organization_id': org_ids[i],
             u'organization': gen_string('alphanumeric'),
             u'username': gen_string('alphanumeric')
+        }
+        for i in range(3)
+    ], [
+        {
+            u'key_id': type(u'')(i + 1),
+            u'organization_id': org_ids[i],
+            u'organization': gen_string('utf8'),
+            u'username': gen_string('utf8')
         }
         for i in range(3)
     ],)
@@ -1226,7 +1244,7 @@ class TestImport(CLITestCase):
             u'channel_id': u'3',
             u'channel': u'config-1',
             u'channel_type': u'normal',
-            u'path': u'/etc/sysconfig/rhn/systemid',
+            u'path': gen_string('utf8') + gen_string('alphanumeric'),
             u'file_type': u'file',
             u'file_id': u'8',
             u'revision': u'1',
@@ -1241,7 +1259,8 @@ class TestImport(CLITestCase):
             u'selinux_ctx': u'',
         }
         file_name = build_csv_file([csv_row], self.default_dataset[0])
-
+        print(file_name)
+        invalid_chars = '[^\da-zA-Z\-\.\_]'
         # create a random org that will be mapped to sat5 org with id = 1
         if bz_bug_is_open(1226981):
             org_data = {'name': gen_string('alphanumeric')}
@@ -1274,10 +1293,16 @@ class TestImport(CLITestCase):
                 u'generate-only': True,
             }).return_code, 0
         )
+        prefix = re.sub(invalid_chars, '', org['name'])
+        erb_file = re.sub(invalid_chars, '', csv_row['path'])
+        if len(prefix) == 0:
+            prefix = u'orgid' + org['id']
+        if len(erb_file) == 0:
+            prefix = u'fileid8'
         # collect the contains of the generated file
         cat_cmd = ssh.command(
             u'cat "${{HOME}}"/puppet_work_dir/{0}-config_1/templates/'
-            u'_etc_sysconfig_rhn_systemid.erb'.format(org['name'].lower())
+            u'{1}.erb'.format(prefix.lower(), erb_file)
         )
         # compare the contains with the expected format
         self.assertEqual(
