@@ -1,14 +1,18 @@
 """Unit tests for the Docker feature."""
 from ddt import ddt
-from fauxfactory import gen_string
+from fauxfactory import gen_choice, gen_string, gen_url
 from nailgun import entities
+from random import choice, randint
 from robottelo.cli.docker import Docker
 from robottelo.cli.factory import (
     CLIFactoryError,
+    make_content_view,
     make_org,
     make_product,
     make_repository,
 )
+from robottelo.cli.contentview import ContentView
+from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.common.constants import DOCKER_REGISTRY_HUB
 from robottelo.common.decorators import (
@@ -26,6 +30,30 @@ from robottelo.test import CLITestCase
 
 EXTERNAL_DOCKER_URL = get_external_docker_url()
 INTERNAL_DOCKER_URL = get_internal_docker_url()
+STRING_TYPES = ['alpha', 'alphanumeric', 'cjk', 'utf8', 'latin1']
+
+REPO_CONTENT_TYPE = 'docker'
+REPO_UPSTREAM_NAME = 'busybox'
+
+
+def _make_docker_repo(product_id, name=None, upstream_name=None):
+    """Creates a Docker-based repository.
+
+    :param product_id: ID of the ``Product``.
+    :param str name: Name for the repository. If ``None`` then a random
+        value will be generated.
+    :param str upstream_name: A valid name for an existing Docker image.
+        If ``None`` then defaults to ``busybox``.
+    :return: A ``Repository`` object.
+
+    """
+    return make_repository({
+        'content-type': REPO_CONTENT_TYPE,
+        'docker-upstream-name': upstream_name or REPO_UPSTREAM_NAME,
+        'name': name or gen_string(gen_choice(STRING_TYPES), 15),
+        'product-id': product_id,
+        'url': DOCKER_REGISTRY_HUB,
+    })
 
 
 @ddt
@@ -49,8 +77,8 @@ class DockerImageTestCase(CLITestCase):
                 u'organization-id': organization['id'],
             })
             repository = make_repository({
-                u'content-type': u'docker',
-                u'docker-upstream-name': u'busybox',
+                u'content-type': REPO_CONTENT_TYPE,
+                u'docker-upstream-name': REPO_UPSTREAM_NAME,
                 u'product-id': product['id'],
                 u'url': DOCKER_REGISTRY_HUB,
             })
@@ -86,6 +114,7 @@ class DockerImageTestCase(CLITestCase):
             self.assertIn(repository['id'], tag_repository_ids)
 
 
+@run_only_on('sat')
 @ddt
 class DockerRepositoryTestCase(CLITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
@@ -99,8 +128,6 @@ class DockerRepositoryTestCase(CLITestCase):
         super(DockerRepositoryTestCase, cls).setUpClass()
         cls.org_id = entities.Organization().create_json()['id']
 
-    @stubbed()
-    @run_only_on('sat')
     @data(
         gen_string('alpha', 15),
         gen_string('alphanumeric', 15),
@@ -116,12 +143,15 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        repo = _make_docker_repo(
+            make_product({'organization-id': self.org_id})['id'],
+            name,
+        )
+        self.assertEqual(repo['name'], name)
+        self.assertEqual(repo['upstream-repository-name'], REPO_UPSTREAM_NAME)
+        self.assertEqual(repo['content-type'], REPO_CONTENT_TYPE)
 
-    @stubbed()
-    @run_only_on('sat')
     def test_create_multiple_docker_repo(self):
         """@Test: Create multiple Docker-type repositories
 
@@ -130,12 +160,21 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        product = make_product({'organization-id': self.org_id})
+        repo_names = set()
+        for _ in range(randint(2, 5)):
+            repo = _make_docker_repo(product['id'])
+            repo_names.add(repo['name'])
+        product = Product.info({
+            'id': product['id'],
+            'organization-id': self.org_id,
+        }).stdout
+        self.assertEqual(
+            repo_names,
+            set([repo_['repo-name'] for repo_ in product['content']]),
+        )
 
-    @stubbed()
-    @run_only_on('sat')
     def test_create_multiple_docker_repo_multiple_products(self):
         """@Test: Create multiple Docker-type repositories on multiple products.
 
@@ -144,12 +183,22 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        for _ in range(randint(2, 5)):
+            product = make_product({'organization-id': self.org_id})
+            repo_names = set()
+            for _ in range(randint(2, 3)):
+                repo = _make_docker_repo(product['id'])
+                repo_names.add(repo['name'])
+            product = Product.info({
+                'id': product['id'],
+                'organization-id': self.org_id,
+            }).stdout
+            self.assertEqual(
+                repo_names,
+                set([repo_['repo-name'] for repo_ in product['content']]),
+            )
 
-    @stubbed()
-    @run_only_on('sat')
     def test_sync_docker_repo(self):
         """@Test: Create and sync a Docker-type repository
 
@@ -158,12 +207,16 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        repo = _make_docker_repo(
+            make_product({'organization-id': self.org_id})['id'])
+        self.assertEqual(int(repo['content-counts']['docker-images']), 0)
+        result = Repository.synchronize({'id': repo['id']})
+        self.assertEqual(result.return_code, 0)
+        repo = Repository.info({'id': repo['id']}).stdout
+        self.assertGreaterEqual(
+            int(repo['content-counts']['docker-images']), 1)
 
-    @stubbed()
-    @run_only_on('sat')
     @data(
         gen_string('alpha', 15),
         gen_string('alphanumeric', 15),
@@ -180,21 +233,20 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        repo = _make_docker_repo(
+            make_product({'organization-id': self.org_id})['id'])
+        self.assertNotEqual(repo['name'], new_name)
+        result = Repository.update({
+            'id': repo['id'],
+            'new-name': new_name,
+            'url': repo['url'],
+        })
+        self.assertEqual(result.return_code, 0)
+        repo = Repository.info({'id': repo['id']}).stdout
+        self.assertEqual(repo['name'], new_name)
 
-    @stubbed()
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_update_docker_repo_upstream_name(self, name):
+    def test_update_docker_repo_upstream_name(self):
         """@Test: Create a Docker-type repository and update its upstream name.
 
         @Assert: A repository is created with a Docker image and that its
@@ -202,21 +254,20 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        new_upstream_name = 'fedora/ssh'
+        repo = _make_docker_repo(
+            make_product({'organization-id': self.org_id})['id'])
+        result = Repository.update({
+            'docker-upstream-name': new_upstream_name,
+            'id': repo['id'],
+            'url': repo['url'],
+        })
+        self.assertEqual(result.return_code, 0)
+        repo = Repository.info({'id': repo['id']}).stdout
+        self.assertEqual(repo['upstream-repository-name'], new_upstream_name)
 
-    @stubbed()
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_update_docker_repo_url(self, name):
+    def test_update_docker_repo_url(self):
         """@Test: Create a Docker-type repository and update its URL.
 
         @Assert: A repository is created with a Docker image and that its
@@ -224,33 +275,33 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        new_url = gen_url()
+        repo = _make_docker_repo(
+            make_product({'organization-id': self.org_id})['id'])
+        result = Repository.update({
+            'id': repo['id'],
+            'url': new_url,
+        })
+        self.assertEqual(result.return_code, 0)
+        repo = Repository.info({'id': repo['id']}).stdout
+        self.assertEqual(repo['url'], new_url)
 
-    @stubbed()
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_delete_docker_repo(self, name):
+    def test_delete_docker_repo(self):
         """@Test: Create and delete a Docker-type repository
 
         @Assert: A repository is created with a Docker image and then deleted.
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        repo = _make_docker_repo(
+            make_product({'organization-id': self.org_id})['id'])
+        result = Repository.delete({'id': repo['id']})
+        self.assertEqual(result.return_code, 0)
+        result = Repository.info({'id': repo['id']})
+        self.assertNotEqual(result.return_code, 0)
 
-    @stubbed()
-    @run_only_on('sat')
     def test_delete_random_docker_repo(self):
         """@Test: Create Docker-type repositories on multiple products and
         delete a random repository from a random product.
@@ -260,11 +311,34 @@ class DockerRepositoryTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        products = [
+            make_product({'organization-id': self.org_id})
+            for _
+            in range(randint(2, 5))
+        ]
+        repos = []
+        for product in products:
+            for _ in range(randint(2, 3)):
+                repos.append(_make_docker_repo(product['id']))
+        # Select random repository and delete it
+        repo = choice(repos)
+        repos.remove(repo)
+        result = Repository.delete({'id': repo['id']})
+        self.assertEqual(result.return_code, 0)
+        result = Repository.info({'id': repo['id']})
+        self.assertNotEqual(result.return_code, 0)
+        # Verify other repositories were not touched
+        for repo in repos:
+            result = Repository.info({'id': repo['id']})
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(
+                result.stdout['product']['id'],
+                [product['id'] for product in products],
+            )
 
 
+@run_only_on('sat')
 @ddt
 class DockerContentViewTestCase(CLITestCase):
     """Tests specific to using ``Docker`` repositories with Content Views."""
@@ -275,17 +349,7 @@ class DockerContentViewTestCase(CLITestCase):
         super(DockerContentViewTestCase, cls).setUpClass()
         cls.org_id = entities.Organization().create_json()['id']
 
-    @stubbed()
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_add_docker_repo_to_content_view(self, name):
+    def test_add_docker_repo_to_content_view(self):
         """@Test: Add one Docker-type repository to a non-composite content view
 
         @Assert: A repository is created with a Docker repository and the
@@ -293,12 +357,24 @@ class DockerContentViewTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        repo = _make_docker_repo(
+            make_product({'organization-id': self.org_id})['id'])
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        result = ContentView.add_repository({
+            'id': content_view['id'],
+            'repository-id': repo['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        content_view = ContentView.info({'id': content_view['id']}).stdout
+        self.assertIn(
+            repo['id'],
+            [repo_['id'] for repo_ in content_view['docker-repositories']],
+        )
 
-    @stubbed()
-    @run_only_on('sat')
     def test_add_multiple_docker_repos_to_content_view(self):
         """@Test: Add multiple Docker-type repositories to a
         non-composite content view.
@@ -308,12 +384,29 @@ class DockerContentViewTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        product = make_product({'organization-id': self.org_id})
+        repos = [
+            _make_docker_repo(product['id'])
+            for _
+            in range(randint(2, 5))
+        ]
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        for repo in repos:
+            result = ContentView.add_repository({
+                'id': content_view['id'],
+                'repository-id': repo['id'],
+            })
+            self.assertEqual(result.return_code, 0)
+        content_view = ContentView.info({'id': content_view['id']}).stdout
+        self.assertEqual(
+            set([repo['id'] for repo in repos]),
+            set([repo['id'] for repo in content_view['docker-repositories']]),
+        )
 
-    @stubbed()
-    @run_only_on('sat')
     def test_add_synced_docker_repo_to_content_view(self):
         """@Test: Create and sync a Docker-type repository
 
@@ -322,21 +415,30 @@ class DockerContentViewTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        repo = _make_docker_repo(
+            make_product({'organization-id': self.org_id})['id'])
+        result = Repository.synchronize({'id': repo['id']})
+        self.assertEqual(result.return_code, 0)
+        repo = Repository.info({'id': repo['id']}).stdout
+        self.assertGreaterEqual(
+            int(repo['content-counts']['docker-images']), 1)
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        result = ContentView.add_repository({
+            'id': content_view['id'],
+            'repository-id': repo['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        content_view = ContentView.info({'id': content_view['id']}).stdout
+        self.assertIn(
+            repo['id'],
+            [repo_['id'] for repo_ in content_view['docker-repositories']],
+        )
 
-    @stubbed()
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_add_docker_repo_to_composite_content_view(self, name):
+    def test_add_docker_repo_to_composite_content_view(self):
         """@Test: Add one Docker-type repository to a composite content view
 
         @Assert: A repository is created with a Docker repository and the
@@ -345,12 +447,44 @@ class DockerContentViewTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        repo = _make_docker_repo(
+            make_product({'organization-id': self.org_id})['id'])
+        content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        result = ContentView.add_repository({
+            'id': content_view['id'],
+            'repository-id': repo['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        content_view = ContentView.info({'id': content_view['id']}).stdout
+        self.assertIn(
+            repo['id'],
+            [repo_['id'] for repo_ in content_view['docker-repositories']],
+        )
+        result = ContentView.publish({'id': content_view['id']})
+        self.assertEqual(result.return_code, 0)
+        content_view = ContentView.info({'id': content_view['id']}).stdout
+        self.assertEqual(len(content_view['versions']), 1)
+        comp_content_view = make_content_view({
+            'composite': True,
+            'organization-id': self.org_id,
+        })
+        result = ContentView.update({
+            'id': comp_content_view['id'],
+            'component-ids': content_view['versions'][0]['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        self.assertIn(
+            content_view['versions'][0]['id'],
+            [component['id'] for component in comp_content_view['components']],
+        )
 
-    @stubbed()
-    @run_only_on('sat')
     def test_add_multiple_docker_repos_to_composite_content_view(self):
         """@Test: Add multiple Docker-type repositories to a composite
         content view.
@@ -361,9 +495,48 @@ class DockerContentViewTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        cv_versions = []
+        product = make_product({'organization-id': self.org_id})
+        for _ in range(randint(2, 5)):
+            content_view = make_content_view({
+                'composite': False,
+                'organization-id': self.org_id,
+            })
+            repo = _make_docker_repo(product['id'])
+            result = ContentView.add_repository({
+                'id': content_view['id'],
+                'repository-id': repo['id'],
+            })
+            self.assertEqual(result.return_code, 0)
+            result = ContentView.publish({'id': content_view['id']})
+            self.assertEqual(result.return_code, 0)
+            content_view = ContentView.info({'id': content_view['id']}).stdout
+            self.assertEqual(len(content_view['versions']), 1)
+            cv_versions.append(content_view['versions'][0])
+        comp_content_view = make_content_view({
+            'composite': True,
+            'organization-id': self.org_id,
+        })
+        cv_versions_ids = ','.join(
+            cv_version['id'] for cv_version in cv_versions)
+        result = ContentView.update({
+            'component-ids': cv_versions_ids,
+            'id': comp_content_view['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        for cv_version in cv_versions:
+            self.assertIn(
+                cv_version['id'],
+                [
+                    component['id']
+                    for component
+                    in comp_content_view['components']
+                ],
+            )
 
     @stubbed()
     @run_only_on('sat')

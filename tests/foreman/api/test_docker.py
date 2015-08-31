@@ -106,6 +106,7 @@ def _create_repository(product, name=None, upstream_name=None):
     ).create()
 
 
+@run_only_on('sat')
 @ddt
 class DockerRepositoryTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
@@ -119,7 +120,6 @@ class DockerRepositoryTestCase(APITestCase):
         super(DockerRepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
-    @run_only_on('sat')
     @data(
         gen_string('alpha', 15),
         gen_string('alphanumeric', 15),
@@ -136,13 +136,14 @@ class DockerRepositoryTestCase(APITestCase):
         @Feature: Docker
 
         """
-        product = entities.Product(organization=self.org).create()
-        repo = _create_repository(product, name)
+        repo = _create_repository(
+            entities.Product(organization=self.org).create(),
+            name,
+        )
         self.assertEqual(repo.name, name)
         self.assertEqual(repo.docker_upstream_name, 'busybox')
         self.assertEqual(repo.content_type, 'docker')
 
-    @run_only_on('sat')
     @data(*VALID_DOCKER_UPSTREAM_NAMES)
     def test_create_docker_repo_valid_upstream_name(self, upstream_name):
         """@Test: Create a Docker-type repository with a valid docker upstream
@@ -153,15 +154,13 @@ class DockerRepositoryTestCase(APITestCase):
         @Feature: Docker
 
         """
-        product = entities.Product(organization=self.org).create()
         repo = _create_repository(
-            product,
+            entities.Product(organization=self.org).create(),
             upstream_name=upstream_name,
         )
         self.assertEqual(repo.docker_upstream_name, upstream_name)
         self.assertEqual(repo.content_type, u'docker')
 
-    @run_only_on('sat')
     @data(*INVALID_DOCKER_UPSTREAM_NAMES)
     def test_create_docker_repo_invalid_upstream_name(self, upstream_name):
         """@Test: Create a Docker-type repository with a invalid docker
@@ -176,7 +175,6 @@ class DockerRepositoryTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             _create_repository(product, upstream_name=upstream_name)
 
-    @run_only_on('sat')
     def test_create_multiple_docker_repo(self):
         """@Test: Create multiple Docker-type repositories
 
@@ -187,12 +185,11 @@ class DockerRepositoryTestCase(APITestCase):
 
         """
         product = entities.Product(organization=self.org).create()
-        for _ in range(randint(1, 5)):
+        for _ in range(randint(2, 5)):
             repo = _create_repository(product)
             product = product.read()
             self.assertIn(repo.id, [repo_.id for repo_ in product.repository])
 
-    @run_only_on('sat')
     def test_create_multiple_docker_repo_multiple_products(self):
         """@Test: Create multiple Docker-type repositories on multiple products.
 
@@ -202,9 +199,9 @@ class DockerRepositoryTestCase(APITestCase):
         @Feature: Docker
 
         """
-        for _ in range(randint(1, 5)):
+        for _ in range(randint(2, 5)):
             product = entities.Product(organization=self.org).create()
-            for _ in range(randint(1, 3)):
+            for _ in range(randint(2, 3)):
                 repo = _create_repository(product)
                 product = product.read()
                 self.assertIn(
@@ -212,8 +209,6 @@ class DockerRepositoryTestCase(APITestCase):
                     [repo_.id for repo_ in product.repository],
                 )
 
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1217603)
     def test_sync_docker_repo(self):
         """@Test: Create and sync a Docker-type repository
 
@@ -230,7 +225,6 @@ class DockerRepositoryTestCase(APITestCase):
         attrs = repo.read_json()
         self.assertGreaterEqual(attrs[u'content_counts'][u'docker_image'], 1)
 
-    @run_only_on('sat')
     @data(
         gen_string('alpha', 15),
         gen_string('alphanumeric', 15),
@@ -248,35 +242,15 @@ class DockerRepositoryTestCase(APITestCase):
         @Feature: Docker
 
         """
-        repo_name = u'Busybox'
-        repo_docker_upstream_name = u'busybox'
-        repo_content_type = u'docker'
-        product = entities.Product(organization=self.org).create()
         repo = _create_repository(
-            product,
-            repo_name,
-            repo_docker_upstream_name,
-        )
-        self.assertEqual(repo.name, repo_name)
-        self.assertEqual(repo.docker_upstream_name, repo_docker_upstream_name)
-        self.assertEqual(repo.content_type, repo_content_type)
-
+            entities.Product(organization=self.org).create())
+        self.assertNotEqual(repo.name, new_name)
         # Update the repository name to random value
         repo.name = new_name
         repo = repo.update()
         self.assertEqual(repo.name, new_name)
 
-    @skip_if_bug_open('bugzilla', 1193669)
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_update_docker_repo_upstream_name(self, name):
+    def test_update_docker_repo_upstream_name(self):
         """@Test: Create a Docker-type repository and update its upstream name.
 
         @Assert: A repository is created with a Docker image and that its
@@ -284,33 +258,18 @@ class DockerRepositoryTestCase(APITestCase):
 
         @Feature: Docker
 
-        @BZ: 1193669
-
         """
-        upstream_name = u'busybox'
         new_upstream_name = u'fedora/ssh'
-        content_type = u'docker'
-        product = entities.Product(organization=self.org).create()
-        repo = _create_repository(product, name, upstream_name)
-        self.assertEqual(repo.name, name)
-        self.assertEqual(repo.docker_upstream_name, upstream_name)
-        self.assertEqual(repo.content_type, content_type)
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
+        self.assertNotEqual(repo.docker_upstream_name, new_upstream_name)
 
         # Update the repository upstream name
         repo.docker_upstream_name = new_upstream_name
         repo = repo.update()
         self.assertEqual(repo.docker_upstream_name, new_upstream_name)
 
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_update_docker_repo_url(self, name):
+    def test_update_docker_repo_url(self):
         """@Test: Create a Docker-type repository and update its URL.
 
         @Assert: A repository is created with a Docker image and that its
@@ -319,9 +278,9 @@ class DockerRepositoryTestCase(APITestCase):
         @Feature: Docker
 
         """
-        new_url = gen_url(scheme='https')
-        product = entities.Product(organization=self.org).create()
-        repo = _create_repository(product, name)
+        new_url = gen_url()
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
         self.assertEqual(repo.url, DOCKER_REGISTRY_HUB)
 
         # Update the repository URL
@@ -330,16 +289,7 @@ class DockerRepositoryTestCase(APITestCase):
         self.assertEqual(repo.url, new_url)
         self.assertNotEqual(repo.url, DOCKER_REGISTRY_HUB)
 
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_delete_docker_repo(self, name):
+    def test_delete_docker_repo(self):
         """@Test: Create and delete a Docker-type repository
 
         @Assert: A repository is created with a Docker image and then deleted.
@@ -347,20 +297,13 @@ class DockerRepositoryTestCase(APITestCase):
         @Feature: Docker
 
         """
-        upstream_name = u'busybox'
-        product = entities.Product(organization=self.org).create()
-
-        repo = _create_repository(product, name, upstream_name)
-        self.assertEqual(repo.name, name)
-        self.assertEqual(repo.docker_upstream_name, upstream_name)
-        self.assertEqual(repo.content_type, u'docker')
-
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
         # Delete it
         repo.delete()
         with self.assertRaises(HTTPError):
             repo.read()
 
-    @run_only_on('sat')
     def test_delete_random_docker_repo(self):
         """@Test: Create Docker-type repositories on multiple products and
         delete a random repository from a random product.
@@ -371,22 +314,18 @@ class DockerRepositoryTestCase(APITestCase):
         @Feature: Docker
 
         """
-        upstream_name = u'busybox'
         repos = []
         products = [
             entities.Product(organization=self.org).create()
             for _
-            in range(randint(1, 5))
+            in range(randint(2, 5))
         ]
         for product in products:
-            name = gen_string('utf8', 15)
-            repo = _create_repository(product, name, upstream_name)
-            self.assertEqual(repo.name, name)
-            self.assertEqual(repo.docker_upstream_name, upstream_name)
+            repo = _create_repository(product)
             self.assertEqual(repo.content_type, u'docker')
             repos.append(repo)
 
-        # Delete a ramdom repository
+        # Delete a random repository
         shuffle(repos)
         repo = repos.pop()
         repo.delete()
@@ -399,6 +338,7 @@ class DockerRepositoryTestCase(APITestCase):
             self.assertIn(repo.product.id, [prod.id for prod in products])
 
 
+@run_only_on('sat')
 @ddt
 class DockerContentViewTestCase(APITestCase):
     """Tests specific to using ``Docker`` repositories with Content Views."""
@@ -409,16 +349,7 @@ class DockerContentViewTestCase(APITestCase):
         super(DockerContentViewTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_add_docker_repo_to_content_view(self, name):
+    def test_add_docker_repo_to_content_view(self):
         """@Test: Add one Docker-type repository to a non-composite content view
 
         @Assert: A repository is created with a Docker repository and the
@@ -427,14 +358,8 @@ class DockerContentViewTestCase(APITestCase):
         @Feature: Docker
 
         """
-        upstream_name = u'busybox'
-        product = entities.Product(organization=self.org).create()
-
-        repo = _create_repository(product, name, upstream_name)
-        self.assertEqual(repo.name, name)
-        self.assertEqual(repo.docker_upstream_name, upstream_name)
-        self.assertEqual(repo.content_type, u'docker')
-
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
         # Create content view and associate docker repo
         content_view = entities.ContentView(
             composite=False,
@@ -444,7 +369,6 @@ class DockerContentViewTestCase(APITestCase):
         content_view = content_view.update(['repository'])
         self.assertIn(repo.id, [repo_.id for repo_ in content_view.repository])
 
-    @run_only_on('sat')
     def test_add_multiple_docker_repos_to_content_view(self):
         """@Test: Add multiple Docker-type repositories to a
         non-composite content view.
@@ -459,7 +383,7 @@ class DockerContentViewTestCase(APITestCase):
         repos = [
             _create_repository(product, name=gen_string('alpha'))
             for _
-            in range(randint(1, 5))
+            in range(randint(2, 5))
         ]
         self.assertEqual(len(product.read().repository), len(repos))
 
@@ -485,8 +409,6 @@ class DockerContentViewTestCase(APITestCase):
             self.assertEqual(repo.content_type, u'docker')
             self.assertEqual(repo.docker_upstream_name, u'busybox')
 
-    @skip_if_bug_open('bugzilla', 1217603)
-    @run_only_on('sat')
     def test_add_synced_docker_repo_to_content_view(self):
         """@Test: Create and sync a Docker-type repository
 
@@ -496,8 +418,8 @@ class DockerContentViewTestCase(APITestCase):
         @Feature: Docker
 
         """
-        product = entities.Product(organization=self.org).create()
-        repo = _create_repository(product)
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
         repo.sync()
         attrs = repo.read_json()
         self.assertGreaterEqual(attrs[u'content_counts'][u'docker_image'], 1)
@@ -511,16 +433,7 @@ class DockerContentViewTestCase(APITestCase):
         content_view = content_view.update(['repository'])
         self.assertIn(repo.id, [repo_.id for repo_ in content_view.repository])
 
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_add_docker_repo_to_composite_content_view(self, name):
+    def test_add_docker_repo_to_composite_content_view(self):
         """@Test: Add one Docker-type repository to a composite content view
 
         @Assert: A repository is created with a Docker repository and the
@@ -530,8 +443,8 @@ class DockerContentViewTestCase(APITestCase):
         @Feature: Docker
 
         """
-        product = entities.Product(organization=self.org).create()
-        repo = _create_repository(product, name)
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
 
         # Create content view and associate docker repo
         content_view = entities.ContentView(
@@ -559,7 +472,6 @@ class DockerContentViewTestCase(APITestCase):
             [component.id for component in comp_content_view.component]
         )
 
-    @run_only_on('sat')
     def test_add_multiple_docker_repos_to_composite_content_view(self):
         """@Test: Add multiple Docker-type repositories to a composite
         content view.
@@ -572,19 +484,14 @@ class DockerContentViewTestCase(APITestCase):
 
         """
         cv_versions = []
-        products = [
-            entities.Product(organization=self.org).create()
-            for _
-            in range(randint(1, 5))
-        ]
-        for product in products:
-            repo = _create_repository(product)
-
+        product = entities.Product(organization=self.org).create()
+        for _ in range(randint(2, 5)):
             # Create content view and associate docker repo
             content_view = entities.ContentView(
                 composite=False,
                 organization=self.org,
             ).create()
+            repo = _create_repository(product)
             content_view.repository = [repo]
             content_view = content_view.update(['repository'])
             self.assertIn(
@@ -610,7 +517,6 @@ class DockerContentViewTestCase(APITestCase):
                 [component.id for component in comp_content_view.component]
             )
 
-    @run_only_on('sat')
     def test_publish_once_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish
         it once.
@@ -644,7 +550,6 @@ class DockerContentViewTestCase(APITestCase):
         self.assertGreater(attrs['next_version'], 1)
 
     @skip_if_bug_open('bugzilla', 1217635)
-    @run_only_on('sat')
     def test_publish_once_docker_repo_composite_content_view(self):
         """@Test: Add Docker-type repository to composite
         content view and publish it once.
@@ -696,7 +601,6 @@ class DockerContentViewTestCase(APITestCase):
         self.assertIsNotNone(attrs['last_published'])
         self.assertGreater(attrs['next_version'], 1)
 
-    @run_only_on('sat')
     def test_publish_multiple_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it
         multiple times.
@@ -719,13 +623,12 @@ class DockerContentViewTestCase(APITestCase):
             [repo.id], [repo_.id for repo_ in content_view.repository])
         self.assertIsNone(content_view.read_json()['last_published'])
 
-        publish_amount = randint(1, 5)
+        publish_amount = randint(2, 5)
         for _ in range(publish_amount):
             content_view.publish()
         self.assertIsNotNone(content_view.read_json()['last_published'])
         self.assertEqual(len(content_view.read().version), publish_amount)
 
-    @run_only_on('sat')
     def test_publish_multiple_docker_repo_composite_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it
         multiple times.
@@ -763,13 +666,12 @@ class DockerContentViewTestCase(APITestCase):
             [cvv.id], [comp.id for comp in comp_content_view.component])
         self.assertIsNone(comp_content_view.read_json()['last_published'])
 
-        publish_amount = randint(1, 5)
+        publish_amount = randint(2, 5)
         for _ in range(publish_amount):
             comp_content_view.publish()
         self.assertIsNotNone(comp_content_view.read_json()['last_published'])
         self.assertEqual(len(comp_content_view.read().version), publish_amount)
 
-    @run_only_on('sat')
     def test_promote_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it.
         Then promote it to the next available lifecycle-environment.
@@ -801,7 +703,6 @@ class DockerContentViewTestCase(APITestCase):
         promote(cvv, lce.id)
         self.assertEqual(len(cvv.read().environment), 2)
 
-    @run_only_on('sat')
     def test_promote_multiple_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it.
         Then promote it to multiple available lifecycle-environments.
@@ -829,12 +730,11 @@ class DockerContentViewTestCase(APITestCase):
         cvv = content_view.read().version[0]
         self.assertEqual(len(cvv.read().environment), 1)
 
-        for i in range(1, randint(2, 5)):
+        for i in range(1, randint(3, 6)):
             lce = entities.LifecycleEnvironment(organization=self.org).create()
             promote(cvv, lce.id)
             self.assertEqual(len(cvv.read().environment), i+1)
 
-    @run_only_on('sat')
     def test_promote_docker_repo_composite_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it.
         Then add that content view to composite one. Publish and promote that
@@ -876,7 +776,6 @@ class DockerContentViewTestCase(APITestCase):
         promote(comp_cvv, lce.id)
         self.assertEqual(len(comp_cvv.read().environment), 2)
 
-    @run_only_on('sat')
     def test_promote_multiple_docker_repo_composite_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it.
         Then add that content view to composite one. Publish and promote that
@@ -914,12 +813,13 @@ class DockerContentViewTestCase(APITestCase):
         comp_cvv = comp_content_view.read().version[0]
         self.assertEqual(len(comp_cvv.read().environment), 1)
 
-        for i in range(1, randint(2, 5)):
+        for i in range(1, randint(3, 6)):
             lce = entities.LifecycleEnvironment(organization=self.org).create()
             promote(comp_cvv, lce.id)
             self.assertEqual(len(comp_cvv.read().environment), i+1)
 
 
+@run_only_on('sat')
 @ddt
 class DockerActivationKeyTestCase(APITestCase):
     """Tests specific to adding ``Docker`` repositories to Activation Keys."""
@@ -942,10 +842,9 @@ class DockerActivationKeyTestCase(APITestCase):
         cls.cvv = content_view.read().version[0].read()
         promote(cls.cvv, cls.lce.id)
 
-    @run_only_on('sat')
     def test_add_docker_repo_to_activation_key(self):
-        """@Test:Add Docker-type repository to a non-composite content view and
-        publish it. Then create an activation key and associate it with the
+        """@Test: Add Docker-type repository to a non-composite content view
+        and publish it. Then create an activation key and associate it with the
         Docker content view.
 
         @Assert: Docker-based content view can be added to activation key
@@ -954,19 +853,19 @@ class DockerActivationKeyTestCase(APITestCase):
 
         """
         ak = entities.ActivationKey(
-            environment=self.lce,
             content_view=self.content_view,
-            organization=self.org,
+            environment=self.lce,
             name=gen_string('utf8'),
+            organization=self.org,
         ).create()
         self.assertEqual(ak.content_view.id, self.content_view.id)
         self.assertEqual(ak.content_view.read().repository[0].id, self.repo.id)
 
-    @run_only_on('sat')
     def test_remove_docker_repo_to_activation_key(self):
-        """@Test:Add Docker-type repository to a non-composite content view and
-        publish it. Create an activation key and associate it with the Docker
-        content view. Then remove this content view from the activation key.
+        """@Test: Add Docker-type repository to a non-composite content view
+        and publish it. Create an activation key and associate it with the
+        Docker content view. Then remove this content view from the activation
+        key.
 
         @Assert: Docker-based content view can be added and then removed from
         the activation key.
@@ -975,16 +874,15 @@ class DockerActivationKeyTestCase(APITestCase):
 
         """
         ak = entities.ActivationKey(
-            environment=self.lce,
             content_view=self.content_view,
-            organization=self.org,
+            environment=self.lce,
             name=gen_string('utf8'),
+            organization=self.org,
         ).create()
         self.assertEqual(ak.content_view.id, self.content_view.id)
         ak.content_view = None
         self.assertIsNone(ak.update(['content_view']).content_view)
 
-    @run_only_on('sat')
     def test_add_docker_repo_composite_view_to_activation_key(self):
         """@Test:Add Docker-type repository to a non-composite content view and
         publish it. Then add this content view to a composite content view and
@@ -1009,18 +907,17 @@ class DockerActivationKeyTestCase(APITestCase):
         promote(comp_cvv, self.lce.id)
 
         ak = entities.ActivationKey(
-            environment=self.lce,
             content_view=comp_content_view,
-            organization=self.org,
+            environment=self.lce,
             name=gen_string('utf8'),
+            organization=self.org,
         ).create()
         self.assertEqual(ak.content_view.id, comp_content_view.id)
 
-    @run_only_on('sat')
     def test_remove_docker_repo_composite_view_to_activation_key(self):
-        """@Test:Add Docker-type repository to a non-composite content view and
-        publish it. Then add this content view to a composite content view and
-        publish it. Create an activation key and associate it with the
+        """@Test: Add Docker-type repository to a non-composite content view
+        and publish it. Then add this content view to a composite content view
+        and publish it. Create an activation key and associate it with the
         composite Docker content view. Then, remove the composite content view
         from the activation key.
 
@@ -1043,10 +940,10 @@ class DockerActivationKeyTestCase(APITestCase):
         promote(comp_cvv, self.lce.id)
 
         ak = entities.ActivationKey(
-            environment=self.lce,
             content_view=comp_content_view,
-            organization=self.org,
+            environment=self.lce,
             name=gen_string('utf8'),
+            organization=self.org,
         ).create()
         self.assertEqual(ak.content_view.id, comp_content_view.id)
         ak.content_view = None
@@ -1055,8 +952,8 @@ class DockerActivationKeyTestCase(APITestCase):
 
 @ddt
 class DockerClientTestCase(APITestCase):
-    """Tests specific to using ``Docker`` as a client to pull Docker images from
-    a Satellite 6 instance."""
+    """Tests specific to using ``Docker`` as a client to pull Docker images
+    from a Satellite 6 instance."""
 
     @classmethod
     def setUpClass(cls):
@@ -1103,6 +1000,7 @@ class DockerClientTestCase(APITestCase):
         """
 
 
+@run_only_on('sat')
 @ddt
 class DockerComputeResourceTestCase(APITestCase):
     """Tests specific to managing Docker-based Compute Resources."""
@@ -1113,7 +1011,6 @@ class DockerComputeResourceTestCase(APITestCase):
         super(DockerComputeResourceTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
-    @run_only_on('sat')
     @data(
         gen_string('alpha'),
         gen_string('alphanumeric'),
@@ -1139,7 +1036,6 @@ class DockerComputeResourceTestCase(APITestCase):
         self.assertEqual(compute_resource.provider, DOCKER_PROVIDER)
         self.assertEqual(compute_resource.url, INTERNAL_DOCKER_URL)
 
-    @run_only_on('sat')
     def test_update_internal_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance then edit its attributes.
@@ -1152,18 +1048,17 @@ class DockerComputeResourceTestCase(APITestCase):
         """
         compute_resource = entities.DockerComputeResource(
             name=gen_string('alpha'),
-            url=INTERNAL_DOCKER_URL,
             organization=[self.org],
+            url=INTERNAL_DOCKER_URL,
         ).create()
         self.assertEqual(compute_resource.url, INTERNAL_DOCKER_URL)
-        compute_resource.url = gen_url(scheme='http')
+        compute_resource.url = gen_url()
         self.assertEqual(
             compute_resource.url,
             compute_resource.update(['url']).url,
         )
 
     @stubbed()
-    @run_only_on('sat')
     def test_list_containers_internal_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource in the
         Satellite 6 instance then list its running containers.
@@ -1177,7 +1072,6 @@ class DockerComputeResourceTestCase(APITestCase):
 
         """
 
-    @run_only_on('sat')
     @data(
         gen_string('alpha'),
         gen_string('alphanumeric'),
@@ -1203,7 +1097,6 @@ class DockerComputeResourceTestCase(APITestCase):
         self.assertEqual(compute_resource.provider, DOCKER_PROVIDER)
         self.assertEqual(compute_resource.url, EXTERNAL_DOCKER_URL)
 
-    @run_only_on('sat')
     def test_update_external_docker_compute_resource(self):
         """@Test:@Test: Create a Docker-based Compute Resource using an
         external Docker-enabled system then edit its attributes.
@@ -1216,18 +1109,17 @@ class DockerComputeResourceTestCase(APITestCase):
         """
         compute_resource = entities.DockerComputeResource(
             name=gen_string('alpha'),
-            url=EXTERNAL_DOCKER_URL,
             organization=[self.org],
+            url=EXTERNAL_DOCKER_URL,
         ).create()
         self.assertEqual(compute_resource.url, EXTERNAL_DOCKER_URL)
-        compute_resource.url = gen_url(scheme='http')
+        compute_resource.url = gen_url()
         self.assertEqual(
             compute_resource.url,
             compute_resource.update(['url']).url,
         )
 
     @stubbed()
-    @run_only_on('sat')
     def test_list_containers_external_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource using
         an external Docker-enabled system then list its running containers.
@@ -1241,7 +1133,6 @@ class DockerComputeResourceTestCase(APITestCase):
 
         """
 
-    @run_only_on('sat')
     @data(
         EXTERNAL_DOCKER_URL,
         INTERNAL_DOCKER_URL,
@@ -1262,6 +1153,7 @@ class DockerComputeResourceTestCase(APITestCase):
             compute_resource.read()
 
 
+@run_only_on('sat')
 class DockerContainersTestCase(APITestCase):
     """Tests specific to using ``Containers`` in local and external Docker
     Compute Resources
@@ -1275,13 +1167,13 @@ class DockerContainersTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.cr_internal = entities.DockerComputeResource(
             name=gen_string('alpha'),
-            url=INTERNAL_DOCKER_URL,
             organization=[cls.org],
+            url=INTERNAL_DOCKER_URL,
         ).create()
         cls.cr_external = entities.DockerComputeResource(
             name=gen_string('alpha'),
-            url=EXTERNAL_DOCKER_URL,
             organization=[cls.org],
+            url=EXTERNAL_DOCKER_URL,
         ).create()
 
     def setUp(self):
@@ -1298,7 +1190,6 @@ class DockerContainersTestCase(APITestCase):
             'organization': [self.org],
         }
 
-    @run_only_on('sat')
     def test_create_container_local_compute_resource(self):
         """@Test: Create a container in a local compute resource
 
@@ -1316,7 +1207,6 @@ class DockerContainersTestCase(APITestCase):
             self.cr_internal.name,
         )
 
-    @run_only_on('sat')
     def test_create_container_external_compute_resource(self):
         """@Test: Create a container in an external compute resource
 
@@ -1335,7 +1225,6 @@ class DockerContainersTestCase(APITestCase):
             self.cr_external.name,
         )
 
-    @run_only_on('sat')
     def test_create_container_local_compute_resource_power(self):
         """@Test: Create a container in a local compute resource, then power it
         on and finally power it off
@@ -1364,7 +1253,6 @@ class DockerContainersTestCase(APITestCase):
             False,
         )
 
-    @run_only_on('sat')
     def test_create_container_external_compute_resource_power(self):
         """@Test: Create a container in an external compute resource, then
         power it on and finally power it off
@@ -1393,7 +1281,6 @@ class DockerContainersTestCase(APITestCase):
             False,
         )
 
-    @run_only_on('sat')
     def test_create_container_local_compute_resource_read_log(self):
         """@Test: Create a container in a local compute resource and read its
         log
@@ -1412,7 +1299,6 @@ class DockerContainersTestCase(APITestCase):
         self.assertIsNotNone(container.logs()['logs'])
         self.assertNotEqual(container.logs()['logs'], u'')
 
-    @run_only_on('sat')
     def test_create_container_external_compute_resource_read_log(self):
         """@Test: Create a container in an external compute resource and read
         its log
@@ -1432,7 +1318,6 @@ class DockerContainersTestCase(APITestCase):
         self.assertNotEqual(container.logs()['logs'], u'')
 
     @stubbed()
-    @run_only_on('sat')
     def test_create_container_external_registry(self):
         """@Test: Create a container pulling an image from a custom external
         registry
@@ -1446,7 +1331,6 @@ class DockerContainersTestCase(APITestCase):
 
         """
 
-    @run_only_on('sat')
     def test_delete_container_local_compute_resource(self):
         """@Test: Delete a container in a local compute resource
 
@@ -1464,7 +1348,6 @@ class DockerContainersTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             container.read()
 
-    @run_only_on('sat')
     def test_delete_container_external_compute_resource(self):
         """@Test: Delete a container in an external compute resource
 
