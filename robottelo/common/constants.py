@@ -163,13 +163,13 @@ REPOSET = {
 
 REPOS = {
     'rhst7': {
-        'id': 'rhel-7-server-satellite-tools-6-rpms',
+        'id': 'rhel-7-server-satellite-tools-6.1-rpms',
         'name': (
             'Red Hat Satellite Tools 6.1 for RHEL 7 Server RPMs x86_64'
         ),
     },
     'rhst6': {
-        'id': 'rhel-6-server-satellite-tools-6-rpms',
+        'id': 'rhel-6-server-satellite-tools-6.1-rpms',
         'name': (
             'Red Hat Satellite Tools 6.1 for RHEL 6 Server RPMs x86_64'
         ),
