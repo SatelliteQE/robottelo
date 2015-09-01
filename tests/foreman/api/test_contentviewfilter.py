@@ -11,7 +11,7 @@ from nailgun import client, entities
 from random import randint
 from requests.exceptions import HTTPError
 from robottelo.common.constants import DOCKER_REGISTRY_HUB
-from robottelo.common.decorators import data, run_only_on
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.common.helpers import get_server_credentials
 from robottelo.test import APITestCase
 
@@ -588,3 +588,52 @@ class ContentViewFilterTestCase(APITestCase):
         cvf.repository = [new_repo]
         with self.assertRaises(HTTPError):
             cvf.update(['repository'])
+
+
+class SearchTestCase(APITestCase):
+    """Tests that search through content view filters."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create a content view as ``cls.content_view``."""
+        cls.content_view = entities.ContentView().create()
+
+    @skip_if_bug_open('bugzilla', 1242534)
+    def test_search_erratum(self):
+        """@Test: Search for an erratum content view filter's rules.
+
+        @Assert: The search completes with no errors.
+
+        @Feature: Content View Filter
+
+        """
+        cv_filter = entities.ErratumContentViewFilter(
+            content_view=self.content_view
+        ).create()
+        entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
+
+    def test_search_package_group(self):
+        """@Test: Search for an package group content view filter's rules.
+
+        @Assert: The search completes with no errors.
+
+        @Feature: Content View Filter
+
+        """
+        cv_filter = entities.PackageGroupContentViewFilter(
+            content_view=self.content_view
+        ).create()
+        entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
+
+    def test_search_rpm(self):
+        """@Test: Search for an rpm content view filter's rules.
+
+        @Assert: The search completes with no errors.
+
+        @Feature: Content View Filter
+
+        """
+        cv_filter = entities.RPMContentViewFilter(
+            content_view=self.content_view
+        ).create()
+        entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
