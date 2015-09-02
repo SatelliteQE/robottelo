@@ -25,13 +25,9 @@ RHCT = [('rhel', 'rhct6', 'rhct65', 'repo_name',
 class Sync(UITestCase):
     """Implements Custom Sync tests in UI"""
 
-    @classmethod
-    def setUpClass(cls):  # noqa
-        org_attrs = entities.Organization().create_json()
-        cls.org_name = org_attrs['name']
-        cls.org_id = org_attrs['id']
-
-        super(Sync, cls).setUpClass()
+    def setUp(self):  # noqa
+        super(Sync, self).setUp()
+        self.organization = entities.Organization().create()
 
     @run_only_on('sat')
     @data(*generate_strings_list())
@@ -43,22 +39,19 @@ class Sync(UITestCase):
         @Assert: Whether Sync is successful
 
         """
-
         # Creates new product
-        product_attrs = entities.Product(
-            organization=self.org_id
-        ).create_json()
+        product = entities.Product(organization=self.organization).create()
         # Creates new repository
         entities.Repository(
             name=repository_name,
             url=FAKE_1_YUM_REPO,
-            product=product_attrs['id']
-        ).create_json()
+            product=product,
+        ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(Sync.org_name)
+            session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_sync_status()
-            sync = self.sync.sync_custom_repos(product_attrs['name'],
-                                               [repository_name])
+            sync = self.sync.sync_custom_repos(
+                product.name, [repository_name])
             # syn.sync_custom_repos returns boolean values and not objects
             self.assertTrue(sync)
 
@@ -70,12 +63,11 @@ class Sync(UITestCase):
         @Assert: Whether Syncing RedHat Repos is successful
 
         """
-
         repos = self.sync.create_repos_tree(RHCT)
         with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(self.org_id, manifest)
+            upload_manifest(self.organization.id, manifest)
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_red_hat_repositories()
             self.sync.enable_rh_repos(repos)
             session.nav.go_to_sync_status()

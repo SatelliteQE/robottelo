@@ -6,7 +6,7 @@ import time
 from collections import defaultdict
 from functools import partial
 from robottelo.common.constants import PRDS, REPOSET
-from robottelo.ui.base import Base, UINoSuchElementError
+from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
 
 
@@ -27,16 +27,11 @@ class Sync(Base):
 
         """
         repos_result = []
-        strategy1, value1 = locators["sync.fetch_result"]
-        strategy2, value2 = locators["sync.cancel"]
-        strategy3, value3 = locators["sync.prd_expander"]
+        strategy1, value1 = locators['sync.fetch_result']
+        strategy2, value2 = locators['sync.cancel']
+        strategy3, value3 = locators['sync.prd_expander']
         if product:
-            prd_exp = self.wait_until_element((strategy3, value3 % product))
-            if not prd_exp:
-                raise UINoSuchElementError(
-                    "Could not find the product expander: '{0}'"
-                    .format(product))
-            prd_exp.click()
+            self.click((strategy3, value3 % product))
         for repo in repos:
             timeout = time.time() + 60 * 10
             sync_cancel = self.wait_until_element(
@@ -44,7 +39,7 @@ class Sync(Base):
                 timeout=6,
                 poll_frequency=2,
             )
-            # Waits until sync "cancel" is visible on the UI or times out
+            # Waits until sync 'cancel' is visible on the UI or times out
             # after 10 mins
             while sync_cancel:
                 if time.time() > timeout:
@@ -54,15 +49,15 @@ class Sync(Base):
                     timeout=6,
                     poll_frequency=2,
                 )
-            result = self.wait_until_element((strategy1,
-                                              value1 % repo), 5).text
+            result = self.wait_until_element(
+                (strategy1, value1 % repo), 5).text
             # Updates the result of every sync repo to the repos_result list.
             repos_result.append(result)
         # Checks whether every item(sync result) in the list is
-        # "Syncing Complete."
+        # 'Syncing Complete.'
         # This function returns False if it encounters any of the below:
-        # "Error Syncing", "Queued", "None", "Never Synced" or "Cancel".
-        if all([str(r) == "Syncing Complete." for r in repos_result]):
+        # 'Error Syncing', 'Queued', 'None', 'Never Synced' or 'Cancel'.
+        if all([str(r) == 'Syncing Complete.' for r in repos_result]):
             return True
         else:
             return False
@@ -77,23 +72,12 @@ class Sync(Base):
         :param repos: The list of repositories to sync.
 
         """
-        strategy, value = locators["sync.prd_expander"]
-        strategy1, value1 = locators["sync.repo_checkbox"]
-        prd_exp = self.wait_until_element((strategy, value % product))
-        if prd_exp:
-            prd_exp.click()
-        else:
-            raise UINoSuchElementError(
-                "Could not find the product expander: '%s'" % product)
+        strategy, value = locators['sync.prd_expander']
+        strategy1, value1 = locators['sync.repo_checkbox']
+        self.click((strategy, value % product))
         for repo in repos:
-            repo_select = self.wait_until_element((strategy1, value1 % repo))
-            if repo_select:
-                repo_select.click()
-            else:
-                raise UINoSuchElementError(
-                    "Could not find the repo: '%s'" % repo)
-        self.wait_until_element(locators["sync.sync_now"]).click()
-        self.wait_for_ajax()
+            self.click((strategy1, value1 % repo))
+        self.click(locators['sync.sync_now'])
         return self.assert_sync(repos)
 
     def create_repos_tree(self, repos):
@@ -123,9 +107,8 @@ class Sync(Base):
         :returns: A list of dicts.
 
         """
-        repos_tree = defaultdict(partial(defaultdict,
-                                         partial(defaultdict,
-                                                 partial(defaultdict, str))))
+        repos_tree = defaultdict(partial(
+            defaultdict, partial(defaultdict, partial(defaultdict, str))))
         # p=prd, rs=reposet, r=repo, ra=repo_attr, value=attr_values
         # Looping over repos_tree gives product, repos_tree[p] gives reposet,
         # repos_tree[p][rs] gives repos and repos_tree[p][rs][r] gives
@@ -145,21 +128,15 @@ class Sync(Base):
         :return: None.
 
         """
-        strategy, value = locators["rh.prd_expander"]
-        strategy1, value1 = locators["rh.reposet_expander"]
-        strategy2, value2 = locators["rh.reposet_checkbox"]
-        strategy3, value3 = locators["rh.repo_checkbox"]
-        strategy4, value4 = locators["rh.reposet_spinner"]
-        strategy5, value5 = locators["rh.repo_spinner"]
+        strategy, value = locators['rh.prd_expander']
+        strategy1, value1 = locators['rh.reposet_expander']
+        strategy2, value2 = locators['rh.reposet_checkbox']
+        strategy3, value3 = locators['rh.repo_checkbox']
+        strategy4, value4 = locators['rh.reposet_spinner']
+        strategy5, value5 = locators['rh.repo_spinner']
         for prd in repos_tree:
             # UI is slow here. Hence timeout is 120 seconds.
-            prd_element = self.wait_until_element(
-                (strategy, value % PRDS[prd]), 120)
-            if prd_element:
-                prd_element.click()
-            else:
-                raise UINoSuchElementError(
-                    "Could not select the product: '{0}'".format(PRDS[prd]))
+            self.click((strategy, value % PRDS[prd]), waiter_timeout=120)
             for reposet in repos_tree[prd]:
                 rs_exp = self.wait_until_element(
                     (strategy1, value1 % REPOSET[reposet]), 5)
@@ -192,14 +169,8 @@ class Sync(Base):
                     repo_values = repos_tree[prd][reposet][repo]
                     repo_name = repo_values['repo_name']
                     # UI is very slow here. Hence timeout is 120 seconds.
-                    repo_element = self.wait_until_element(
-                        (strategy3, value3 % repo_name), 120)
-                    if repo_element:
-                        repo_element.click()
-                    else:
-                        raise UINoSuchElementError(
-                            "Could not select the repo: '{0}'"
-                            "".format(repo_name))
+                    self.click(
+                        (strategy3, value3 % repo_name), waiter_timeout=120)
                     # Similar to above reposet checkbox spinner
                     repo_spinner = self.wait_until_element(
                         (strategy5, value5 % repo_name),
@@ -239,16 +210,13 @@ class Sync(Base):
         :rtype: bool
 
         """
-        strategy, value = locators["sync.prd_expander"]
-        strategy1, value1 = locators["sync.verarch_expander"]
-        strategy2, value2 = locators["sync.repo_checkbox"]
+        strategy, value = locators['sync.prd_expander']
+        strategy1, value1 = locators['sync.verarch_expander']
+        strategy2, value2 = locators['sync.repo_checkbox']
         repos = []
         # create_repos_tree returns data needed to be passed to this function.
         for prd in repos_tree:
-            prd_exp = self.wait_until_element(
-                (strategy, value % PRDS[prd]))
-            if prd_exp:
-                prd_exp.click()
+            self.click((strategy, value % PRDS[prd]))
             for reposet in repos_tree[prd]:
                 for repo in repos_tree[prd][reposet]:
                     repo_values = repos_tree[prd][reposet][repo]
@@ -256,35 +224,10 @@ class Sync(Base):
                     repo_arch = repo_values['repo_arch']
                     repo_ver = repo_values['repo_ver']
                     repos.append(repo_name)
-                    ver_exp = self.wait_until_element(
-                        (strategy1, value1 % repo_ver))
-                    if ver_exp:
-                        ver_exp.click()
-                        self.wait_for_ajax()
-                    else:
-                        raise UINoSuchElementError(
-                            "Could not find the version expander: '%s'" %
-                            repo_ver)
-                    arch_exp = self.wait_until_element(
-                        (strategy1, value1 % repo_arch))
-                    if arch_exp:
-                        arch_exp.click()
-                        self.wait_for_ajax()
-                    else:
-                        raise UINoSuchElementError(
-                            "Could not find the arch expander: '%s'" %
-                            repo_arch)
-                    repo_select = self.wait_until_element(
-                        (strategy2, value2 % repo_name))
-                    if repo_select:
-                        repo_select.click()
-                        self.wait_for_ajax()
-                    else:
-                        raise UINoSuchElementError(
-                            "Could not find the repository name: '%s'" %
-                            repo_name)
-                self.wait_until_element(locators["sync.sync_now"]).click()
-                self.wait_for_ajax()
+                    self.click((strategy1, value1 % repo_ver))
+                    self.click((strategy1, value1 % repo_arch))
+                    self.click((strategy2, value2 % repo_name))
+                self.click(locators['sync.sync_now'])
         # Let's assert without navigating away from sync status page to avoid
         # complexities
         return self.assert_sync(repos)

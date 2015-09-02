@@ -3,7 +3,6 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from selenium.webdriver.support.select import Select
 from nailgun import entities
 from robottelo.common.constants import LANGUAGES
 from robottelo.common.decorators import (
@@ -11,27 +10,28 @@ from robottelo.common.decorators import (
 from robottelo.common.helpers import invalid_names_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_user
-from robottelo.ui.locators import common_locators, tab_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
+from selenium.webdriver.support.select import Select
 
 
 def valid_strings(len1=10):
     """Generates a list of all the input strings, (excluding html)"""
     return [
-        gen_string("alpha", 5),
-        gen_string("alpha", len1),
-        u'{0}-{1}'.format(gen_string("alpha", 4),
-                          gen_string("alpha", 4)),
-        u'{0}-{1}'.format(gen_string("alpha", 4),
-                          gen_string("alpha", 4)),
-        u'նորօգտվող-{0}'.format(gen_string("alpha", 2)),
-        u'新用戶-{0}'.format(gen_string("alpha", 2)),
-        u'новогопользоват-{0}'.format(gen_string("alpha", 2)),
-        u'uusikäyttäjä-{0}'.format(gen_string("alpha", 2)),
-        u'νέοςχρήστης-{0}'.format(gen_string("alpha", 2)),
+        gen_string('alpha', 5),
+        gen_string('alpha', len1),
+        u'{0}-{1}'.format(gen_string('alpha', 4),
+                          gen_string('alpha', 4)),
+        u'{0}-{1}'.format(gen_string('alpha', 4),
+                          gen_string('alpha', 4)),
+        u'նորօգտվող-{0}'.format(gen_string('alpha', 2)),
+        u'新用戶-{0}'.format(gen_string('alpha', 2)),
+        u'новогопользоват-{0}'.format(gen_string('alpha', 2)),
+        u'uusikäyttäjä-{0}'.format(gen_string('alpha', 2)),
+        u'νέοςχρήστης-{0}'.format(gen_string('alpha', 2)),
     ]
 
-search_key = "login"
+search_key = 'login'
 
 
 @ddt
@@ -62,7 +62,7 @@ class User(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=user_name)
             self.assertIsNotNone(self.user.search(user_name, search_key))
-            self.user.delete(user_name, search_key, really=True)
+            self.user.delete(user_name, search_key)
             self.assertIsNone(self.user.search(user_name, search_key))
 
     @skip_if_bug_open('bugzilla', 1139616)
@@ -76,9 +76,8 @@ class User(UITestCase):
         @BZ: 1139616
 
         """
-
-        user_name = gen_string("alpha", 6)
-        new_password = gen_string("alpha", 8)
+        user_name = gen_string('alpha')
+        new_password = gen_string('alpha')
         with Session(self.browser) as session:
             # Role 'Site' meaning 'Site Manager' here
             make_user(session, username=user_name, edit=True, roles=['Site'])
@@ -95,28 +94,25 @@ class User(UITestCase):
         @Assert: User role is updated
 
         """
-
-        strategy, value = common_locators["entity_deselect"]
-        name = gen_string("alpha", 6)
+        strategy, value = common_locators['entity_deselect']
+        name = gen_string('alpha')
         role_name = entities.Role().create_json()['name']
         with Session(self.browser) as session:
             make_user(session, username=name)
             self.user.search(name, search_key).click()
-            self.user.wait_until_element(
-                tab_locators["users.tab_roles"]).click()
+            self.user.click(tab_locators['users.tab_roles'])
             element1 = self.user.wait_until_element((strategy,
                                                      value % role_name))
             self.assertIsNone(element1)
             self.user.update(search_key, name, new_roles=[role_name])
             self.user.search(name, search_key).click()
-            self.user.wait_until_element(
-                tab_locators["users.tab_roles"]).click()
+            self.user.click(tab_locators['users.tab_roles'])
             element2 = self.user.wait_until_element((strategy,
                                                      value % role_name))
             self.assertIsNotNone(element2)
 
     @data(*valid_strings())
-    def test_positive_create_user_1(self, user_name):
+    def test_positive_create_user_different_usernames(self, user_name):
         """@Test: Create User for all variations of Username
 
         @Feature: User - Positive Create
@@ -133,7 +129,7 @@ class User(UITestCase):
             self.assertIsNotNone(self.user.search(user_name, search_key))
 
     @data(*valid_strings())
-    def test_positive_create_user_2(self, first_name):
+    def test_positive_create_user_different_first_names(self, first_name):
         """@Test: Create User for all variations of First Name
 
         @Feature: User - Positive Create
@@ -145,7 +141,7 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        name = gen_string("alpha", 8)
+        name = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=name, first_name=first_name)
             element = self.user.search(name, search_key)
@@ -159,7 +155,7 @@ class User(UITestCase):
             )
 
     @data(*valid_strings(50))
-    def test_positive_create_user_3(self, last_name):
+    def test_positive_create_user_different_surnames(self, last_name):
         """@Test: Create User for all variations of Surname
 
         @Feature: User - Positive Create
@@ -171,8 +167,7 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-
-        name = gen_string("alpha", 8)
+        name = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=name, last_name=last_name)
             element = self.user.search(name, search_key)
@@ -186,7 +181,7 @@ class User(UITestCase):
             )
 
     @stubbed()
-    def test_positive_create_user_4(self):
+    def test_positive_create_user_different_emails(self):
         """@Test: Create User for all variations of Email Address
 
         @Feature: User - Positive Create
@@ -202,7 +197,7 @@ class User(UITestCase):
         """
 
     @data(*LANGUAGES)
-    def test_positive_create_user_5(self, language):
+    def test_positive_create_user_different_languages(self, language):
         """@Test: Create User for all variations of Language
 
         @Feature: User - Positive Create
@@ -214,7 +209,7 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        name = gen_string("alpha", 8)
+        name = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=name, locale=language)
             element = self.user.search(name, search_key)
@@ -228,7 +223,7 @@ class User(UITestCase):
             )
 
     @stubbed()
-    def test_positive_create_user_6(self):
+    def test_positive_create_user_internal(self):
         """@Test: Create User by choosing Authorized by - INTERNAL
 
         @Feature: User - Positive Create
@@ -244,11 +239,11 @@ class User(UITestCase):
         """
 
     @data(
-        u'foo@!#$^&*( ) {0}'.format(gen_string("alpha", 2)),
-        u'bar+{{}}|\"?hi {0}'.format(gen_string("alpha", 2)),
+        u'foo@!#$^&*( ) {0}'.format(gen_string('alpha', 2)),
+        u'bar+{{}}|\"?hi {0}'.format(gen_string('alpha', 2)),
         *valid_strings()
     )
-    def test_positive_create_user_7(self, password):
+    def test_positive_create_user_different_pass(self, password):
         """@Test: Create User for all variations of Password
 
         @Feature: User - Positive Create
@@ -260,14 +255,14 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        name = gen_string("alpha", 8)
+        name = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=name, password1=password,
                       password2=password)
             self.assertIsNotNone(self.user.search(name, search_key))
 
     @stubbed()
-    def test_positive_create_user_8(self):
+    def test_positive_create_user_admin(self):
         """@Test: Create an Admin user
 
         @Feature: User - Positive Create
@@ -278,7 +273,7 @@ class User(UITestCase):
 
         """
 
-    def test_positive_create_user_9(self):
+    def test_positive_create_user_with_one_role(self):
         """@Test: Create User with one role
 
         @Feature: User - Positive Create
@@ -289,19 +284,18 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        strategy, value = common_locators["entity_deselect"]
-        name = gen_string("alpha", 6)
-        role_name = entities.Role().create_json()['name']
+        strategy, value = common_locators['entity_deselect']
+        name = gen_string('alpha')
+        role = entities.Role().create()
         with Session(self.browser) as session:
-            make_user(session, username=name, roles=[role_name], edit=True)
+            make_user(session, username=name, roles=[role.name], edit=True)
             self.user.search(name, search_key).click()
-            self.user.wait_until_element(
-                tab_locators["users.tab_roles"]).click()
+            self.user.click(tab_locators['users.tab_roles'])
             element = self.user.wait_until_element((strategy,
-                                                    value % role_name))
+                                                    value % role.name))
             self.assertIsNotNone(element)
 
-    def test_positive_create_user_10(self):
+    def test_positive_create_user_with_multiple_roles(self):
         """@Test: Create User with multiple roles
 
         @Feature: User - Positive Create
@@ -312,19 +306,18 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        strategy, value = common_locators["entity_deselect"]
-        name = gen_string("alpha", 6)
-        role1 = gen_string("alpha", 6)
-        role2 = gen_string("alpha", 6)
+        strategy, value = common_locators['entity_deselect']
+        name = gen_string('alpha')
+        role1 = gen_string('alpha')
+        role2 = gen_string('alpha')
         for role in [role1, role2]:
-            entities.Role(name=role).create_json()
+            entities.Role(name=role).create()
         with Session(self.browser) as session:
             make_user(session, username=name, roles=[role1, role2],
                       edit=True)
             self.user.search(name, search_key).click()
             self.user.wait_for_ajax()
-            self.user.wait_until_element(
-                tab_locators["users.tab_roles"]).click()
+            self.user.click(tab_locators['users.tab_roles'])
             for role in [role1, role2]:
                 element = self.user.wait_until_element((strategy,
                                                         value % role))
@@ -534,7 +527,7 @@ class User(UITestCase):
 
         """
 
-    def test_positive_create_user_24(self):
+    def test_positive_create_user_with_one_org(self):
         """@Test: Create User associated to one Org
 
         @Feature: User - Positive Create
@@ -542,21 +535,20 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        strategy, value = common_locators["entity_deselect"]
-        name = gen_string("alpha", 6)
-        org_name = gen_string("alpha", 6)
-        entities.Organization(name=org_name).create_json()
+        strategy, value = common_locators['entity_deselect']
+        name = gen_string('alpha')
+        org_name = gen_string('alpha')
+        entities.Organization(name=org_name).create()
         with Session(self.browser) as session:
-            make_user(session, username=name, organizations=[org_name],
-                      edit=True)
+            make_user(
+                session, username=name, organizations=[org_name], edit=True)
             self.user.search(name, search_key).click()
-            self.user.wait_until_element(
-                tab_locators["users.tab_organizations"]).click()
+            self.user.click(tab_locators['users.tab_organizations'])
             element = self.user.wait_until_element((strategy,
                                                     value % org_name))
             self.assertIsNotNone(element)
 
-    def test_positive_create_user_25(self):
+    def test_positive_create_user_with_multiple_orgs(self):
         """@Test: Create User associated to multiple Orgs
 
         @Feature: User - Positive Create
@@ -564,19 +556,21 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        strategy, value = common_locators["entity_deselect"]
-        name = gen_string("alpha", 6)
-        org_name1 = gen_string("alpha", 6)
-        org_name2 = gen_string("alpha", 6)
+        strategy, value = common_locators['entity_deselect']
+        name = gen_string('alpha')
+        org_name1 = gen_string('alpha')
+        org_name2 = gen_string('alpha')
         for org_name in [org_name1, org_name2]:
-            entities.Organization(name=org_name).create_json()
+            entities.Organization(name=org_name).create()
         with Session(self.browser) as session:
-            make_user(session, username=name,
-                      organizations=[org_name1, org_name2],
-                      edit=True)
+            make_user(
+                session,
+                username=name,
+                organizations=[org_name1, org_name2],
+                edit=True,
+            )
             self.user.search(name, search_key).click()
-            self.user.wait_until_element(
-                tab_locators["users.tab_organizations"]).click()
+            self.user.click(tab_locators['users.tab_organizations'])
             for org_name in [org_name1, org_name2]:
                 element = self.user.wait_until_element((strategy,
                                                         value % org_name))
@@ -626,34 +620,33 @@ class User(UITestCase):
 
         """
 
-    def test_positive_create_user_29(self):
-        """@Test: Create User and associate a default Org
+    def test_positive_create_user_with_default_org(self):
+        """@Test: Create User and has default organization associated with it
 
         @Feature: User - Positive Create.
 
         @Assert: User is created with default Org selected.
 
         """
-        strategy, value = common_locators["entity_deselect"]
-        name = gen_string("alpha", 6)
-        org_name = gen_string("alpha", 6)
-        entities.Organization(name=org_name).create_json()
+        strategy, value = common_locators['entity_deselect']
+        name = gen_string('alpha')
+        org_name = gen_string('alpha')
+        entities.Organization(name=org_name).create()
         with Session(self.browser) as session:
             make_user(session, username=name, organizations=[org_name],
                       edit=True, default_org=org_name)
             self.user.search(name, search_key).click()
-            session.nav.wait_until_element(
-                tab_locators["users.tab_organizations"]).click()
+            session.nav.click(tab_locators['users.tab_organizations'])
             element = session.nav.wait_until_element((strategy,
                                                       value % org_name))
             self.assertIsNotNone(element)
             org_element = session.nav.find_element(
-                locators["users.default_org"])
+                locators['users.default_org'])
             # Fetches currently selected option in a normal select.
             option = Select(org_element).first_selected_option
             self.assertEqual(org_name, option.text)
 
-    def test_positive_create_user_30(self):
+    def test_positive_create_user_default_location(self):
         """@Test: Create User and associate a default Location.
 
         @Feature: User - Positive Create
@@ -661,21 +654,20 @@ class User(UITestCase):
         @Assert: User is created with default Location selected.
 
         """
-        strategy, value = common_locators["entity_deselect"]
-        name = gen_string("alpha", 6)
-        loc_name = gen_string("alpha", 6)
-        entities.Location(name=loc_name).create_json()
+        strategy, value = common_locators['entity_deselect']
+        name = gen_string('alpha')
+        loc_name = gen_string('alpha')
+        entities.Location(name=loc_name).create()
         with Session(self.browser) as session:
             make_user(session, username=name, locations=[loc_name],
                       edit=True, default_loc=loc_name)
             self.user.search(name, search_key).click()
-            session.nav.wait_until_element(
-                tab_locators["users.tab_locations"]).click()
+            session.nav.click(tab_locators['users.tab_locations'])
             element = session.nav.wait_until_element((strategy,
                                                       value % loc_name))
             self.assertIsNotNone(element)
             loc_element = session.nav.find_element(
-                locators["users.default_loc"])
+                locators['users.default_loc'])
             # Fetches currently selected option in a normal select.
             option = Select(loc_element).first_selected_option
             self.assertEqual(loc_name, option.text)
@@ -698,7 +690,7 @@ class User(UITestCase):
         """
 
     @data(*invalid_names_list())
-    def test_negative_create_user_2(self, user_name):
+    def test_negative_create_user_with_invalid_name(self, user_name):
         """@Test: Create User with invalid User Name
 
         @Feature: User - Negative Create
@@ -712,11 +704,11 @@ class User(UITestCase):
         """
         with Session(self.browser) as session:
             make_user(session, username=user_name)
-            error = self.user.wait_until_element(common_locators["haserror"])
+            error = self.user.wait_until_element(common_locators['haserror'])
             self.assertIsNotNone(error)
 
     @data(*invalid_names_list())
-    def test_negative_create_user_3(self, first_name):
+    def test_negative_create_user_with_invalid_firstname(self, first_name):
         """@Test: Create User with invalid FirstName
 
         @Feature: User - Negative Create
@@ -728,14 +720,14 @@ class User(UITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        user_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
-            make_user(session, username=user_name, first_name=first_name)
-            error = self.user.wait_until_element(common_locators["haserror"])
+            make_user(
+                session, username=gen_string('alpha'), first_name=first_name)
+            error = self.user.wait_until_element(common_locators['haserror'])
             self.assertIsNotNone(error)
 
     @data(*invalid_names_list())
-    def test_negative_create_user_4(self, last_name):
+    def test_negative_create_user_with_invalid_surname(self, last_name):
         """@Test: Create User with invalid Surname
 
         @Feature: User - Negative Create
@@ -747,10 +739,10 @@ class User(UITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        user_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
-            make_user(session, username=user_name, last_name=last_name)
-            error = self.user.wait_until_element(common_locators["haserror"])
+            make_user(
+                session, username=gen_string('alpha'), last_name=last_name)
+            error = self.user.wait_until_element(common_locators['haserror'])
             self.assertIsNotNone(error)
 
     @stubbed()
@@ -769,7 +761,7 @@ class User(UITestCase):
 
         """
 
-    def test_negative_create_user_6(self):
+    def test_negative_create_user_with_blank_auth(self):
         """@Test: Create User with blank Authorized by
 
         @Feature: User - Negative Create
@@ -781,13 +773,12 @@ class User(UITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        user_name = gen_string("alpha", 8)
         with Session(self.browser) as session:
-            make_user(session, username=user_name, authorized_by="")
-            error = self.user.wait_until_element(common_locators["haserror"])
+            make_user(session, username=gen_string('alpha'), authorized_by='')
+            error = self.user.wait_until_element(common_locators['haserror'])
             self.assertIsNotNone(error)
 
-    def test_negative_create_user_8(self):
+    def test_negative_create_user_with_wrong_pass_confirmation(self):
         """@Test: Create User with non-matching values in Password and verify
 
         @Feature: User - Negative Create
@@ -800,18 +791,19 @@ class User(UITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        password = gen_string("alpha", 8)
-        password2 = gen_string("alpha", 8)
-        name = gen_string("alpha", 6)
         with Session(self.browser) as session:
-            make_user(session, username=name, password1=password,
-                      password2=password2)
-            error = self.user.wait_until_element(common_locators["haserror"])
+            make_user(
+                session,
+                username=gen_string('alpha'),
+                password1=gen_string('alpha'),
+                password2=gen_string('alpha'),
+            )
+            error = self.user.wait_until_element(common_locators['haserror'])
             self.assertIsNotNone(error)
 
     @skip_if_bug_open('bugzilla', 1139616)
     @data(*valid_strings())
-    def test_positive_update_user_1(self, new_username):
+    def test_positive_update_user_username(self, new_username):
         """@Test: Update Username in User
 
         @Feature: User - Positive Update
@@ -825,8 +817,8 @@ class User(UITestCase):
         @BZ: 1139616
 
         """
-        name = gen_string("alpha", 6)
-        password = gen_string("alpha", 8)
+        name = gen_string('alpha')
+        password = gen_string('alpha')
         with Session(self.browser) as session:
             # Role Site meaning 'Site Manager' here
             make_user(session, username=name, password1=password,
@@ -839,7 +831,7 @@ class User(UITestCase):
             self.assertTrue(self.login.is_logged())
 
     @stubbed()
-    def test_positive_update_user_2(self):
+    def test_positive_update_user_firstname(self):
         """@Test: Update Firstname in User
 
         @Feature: User - Positive Update
@@ -855,7 +847,7 @@ class User(UITestCase):
         """
 
     @stubbed()
-    def test_positive_update_user_3(self):
+    def test_positive_update_user_surname(self):
         """@Test: Update Surname in User
 
         @Feature: User - Positive Update
@@ -871,7 +863,7 @@ class User(UITestCase):
         """
 
     @stubbed()
-    def test_positive_update_user_4(self):
+    def test_positive_update_user_email(self):
         """@Test: Update Email Address in User
 
         @Feature: User - Positive Update
@@ -887,7 +879,7 @@ class User(UITestCase):
         """
 
     @stubbed()
-    def test_positive_update_user_5(self):
+    def test_positive_update_user_language(self):
         """@Test: Update Language in User
 
         @Feature: User - Positive Update
@@ -903,7 +895,7 @@ class User(UITestCase):
         """
 
     @stubbed()
-    def test_positive_update_user_6(self):
+    def test_positive_update_user_password(self):
         """@Test: Update Password/Verify fields in User
 
         @Feature: User - Positive Update
