@@ -7,6 +7,7 @@ from robottelo.cli.docker import Docker
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_content_view,
+    make_lifecycle_environment,
     make_org,
     make_product,
     make_repository,
@@ -349,6 +350,34 @@ class DockerContentViewTestCase(CLITestCase):
         super(DockerContentViewTestCase, cls).setUpClass()
         cls.org_id = entities.Organization().create_json()['id']
 
+    def _create_and_associate_repo_with_cv(self):
+        """Create a Docker-based repository and content view and associate
+        them.
+
+        """
+        self.repo = _make_docker_repo(
+            make_product({'organization-id': self.org_id})['id'])
+        self.content_view = make_content_view({
+            'composite': False,
+            'organization-id': self.org_id,
+        })
+        result = ContentView.add_repository({
+            'id': self.content_view['id'],
+            'repository-id': self.repo['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        self.content_view = ContentView.info({
+            'id': self.content_view['id']
+        }).stdout
+        self.assertIn(
+            self.repo['id'],
+            [
+                repo_['id']
+                for repo_
+                in self.content_view['docker-repositories']
+            ],
+        )
+
     def test_add_docker_repo_to_content_view(self):
         """@Test: Add one Docker-type repository to a non-composite content view
 
@@ -448,40 +477,26 @@ class DockerContentViewTestCase(CLITestCase):
         @Feature: Docker
 
         """
-        repo = _make_docker_repo(
-            make_product({'organization-id': self.org_id})['id'])
-        content_view = make_content_view({
-            'composite': False,
-            'organization-id': self.org_id,
-        })
-        result = ContentView.add_repository({
-            'id': content_view['id'],
-            'repository-id': repo['id'],
-        })
+        self._create_and_associate_repo_with_cv()
+        result = ContentView.publish({'id': self.content_view['id']})
         self.assertEqual(result.return_code, 0)
-        content_view = ContentView.info({'id': content_view['id']}).stdout
-        self.assertIn(
-            repo['id'],
-            [repo_['id'] for repo_ in content_view['docker-repositories']],
-        )
-        result = ContentView.publish({'id': content_view['id']})
-        self.assertEqual(result.return_code, 0)
-        content_view = ContentView.info({'id': content_view['id']}).stdout
-        self.assertEqual(len(content_view['versions']), 1)
+        self.content_view = ContentView.info({
+            'id': self.content_view['id']}).stdout
+        self.assertEqual(len(self.content_view['versions']), 1)
         comp_content_view = make_content_view({
             'composite': True,
             'organization-id': self.org_id,
         })
         result = ContentView.update({
             'id': comp_content_view['id'],
-            'component-ids': content_view['versions'][0]['id'],
+            'component-ids': self.content_view['versions'][0]['id'],
         })
         self.assertEqual(result.return_code, 0)
         comp_content_view = ContentView.info({
             'id': comp_content_view['id'],
         }).stdout
         self.assertIn(
-            content_view['versions'][0]['id'],
+            self.content_view['versions'][0]['id'],
             [component['id'] for component in comp_content_view['components']],
         )
 
@@ -538,8 +553,6 @@ class DockerContentViewTestCase(CLITestCase):
                 ],
             )
 
-    @stubbed()
-    @run_only_on('sat')
     def test_publish_once_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish
         it once.
@@ -549,12 +562,16 @@ class DockerContentViewTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        self._create_and_associate_repo_with_cv()
+        self.assertEqual(len(self.content_view['versions']), 0)
+        result = ContentView.publish({'id': self.content_view['id']})
+        self.assertEqual(result.return_code, 0)
+        self.content_view = ContentView.info({
+            'id': self.content_view['id']
+        }).stdout
+        self.assertEqual(len(self.content_view['versions']), 1)
 
-    @stubbed()
-    @run_only_on('sat')
     def test_publish_once_docker_repo_composite_content_view(self):
         """@Test: Add Docker-type repository to composite
         content view and publish it once.
@@ -565,12 +582,42 @@ class DockerContentViewTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        self._create_and_associate_repo_with_cv()
+        self.assertEqual(len(self.content_view['versions']), 0)
+        result = ContentView.publish({'id': self.content_view['id']})
+        self.assertEqual(result.return_code, 0)
+        self.content_view = ContentView.info({
+            'id': self.content_view['id']
+        }).stdout
+        self.assertEqual(len(self.content_view['versions']), 1)
+        comp_content_view = make_content_view({
+            'composite': True,
+            'organization-id': self.org_id,
+        })
+        result = ContentView.update({
+            'component-ids': self.content_view['versions'][0]['id'],
+            'id': comp_content_view['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        self.assertIn(
+            self.content_view['versions'][0]['id'],
+            [
+                component['id']
+                for component
+                in comp_content_view['components']
+            ],
+        )
+        result = ContentView.publish({'id': comp_content_view['id']})
+        self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        self.assertEqual(len(comp_content_view['versions']), 1)
 
-    @stubbed()
-    @run_only_on('sat')
     def test_publish_multiple_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it
         multiple times.
@@ -580,12 +627,18 @@ class DockerContentViewTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        self._create_and_associate_repo_with_cv()
+        self.assertEqual(len(self.content_view['versions']), 0)
+        publish_amount = randint(2, 5)
+        for _ in range(publish_amount):
+            result = ContentView.publish({'id': self.content_view['id']})
+            self.assertEqual(result.return_code, 0)
+        self.content_view = ContentView.info({
+            'id': self.content_view['id'],
+        }).stdout
+        self.assertEqual(len(self.content_view['versions']), publish_amount)
 
-    @stubbed()
-    @run_only_on('sat')
     def test_publish_multiple_docker_repo_composite_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it
         multiple times.
@@ -596,12 +649,43 @@ class DockerContentViewTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        self._create_and_associate_repo_with_cv()
+        self.assertEqual(len(self.content_view['versions']), 0)
+        result = ContentView.publish({'id': self.content_view['id']})
+        self.assertEqual(result.return_code, 0)
+        self.content_view = ContentView.info({
+            'id': self.content_view['id']}).stdout
+        self.assertEqual(len(self.content_view['versions']), 1)
+        comp_content_view = make_content_view({
+            'composite': True,
+            'organization-id': self.org_id,
+        })
+        result = ContentView.update({
+            'component-ids': self.content_view['versions'][0]['id'],
+            'id': comp_content_view['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        self.assertIn(
+            self.content_view['versions'][0]['id'],
+            [
+                component['id']
+                for component
+                in comp_content_view['components']
+            ],
+        )
+        publish_amount = randint(2, 5)
+        for _ in range(publish_amount):
+            result = ContentView.publish({'id': comp_content_view['id']})
+            self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        self.assertEqual(len(comp_content_view['versions']), publish_amount)
 
-    @stubbed()
-    @run_only_on('sat')
     def test_promote_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it.
         Then promote it to the next available lifecycle-environment.
@@ -611,12 +695,28 @@ class DockerContentViewTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        lce = make_lifecycle_environment({'organization-id': self.org_id})
+        self._create_and_associate_repo_with_cv()
+        result = ContentView.publish({'id': self.content_view['id']})
+        self.assertEqual(result.return_code, 0)
+        self.content_view = ContentView.info({
+            'id': self.content_view['id']}).stdout
+        self.assertEqual(len(self.content_view['versions']), 1)
+        cvv = ContentView.version_info({
+            'id': self.content_view['versions'][0]['id'],
+        }).stdout
+        self.assertEqual(len(cvv['lifecycle-environments']), 1)
+        result = ContentView.version_promote({
+            'id': cvv['id'],
+            'lifecycle-environment-id': lce['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        cvv = ContentView.version_info({
+            'id': self.content_view['versions'][0]['id'],
+        }).stdout
+        self.assertEqual(len(cvv['lifecycle-environments']), 2)
 
-    @stubbed()
-    @run_only_on('sat')
     def test_promote_multiple_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it.
         Then promote it to multiple available lifecycle-environments.
@@ -626,12 +726,29 @@ class DockerContentViewTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        self._create_and_associate_repo_with_cv()
+        result = ContentView.publish({'id': self.content_view['id']})
+        self.assertEqual(result.return_code, 0)
+        self.content_view = ContentView.info({
+            'id': self.content_view['id']}).stdout
+        self.assertEqual(len(self.content_view['versions']), 1)
+        cvv = ContentView.version_info({
+            'id': self.content_view['versions'][0]['id'],
+        }).stdout
+        self.assertEqual(len(cvv['lifecycle-environments']), 1)
+        for i in range(1, randint(3, 6)):
+            lce = make_lifecycle_environment({'organization-id': self.org_id})
+            result = ContentView.version_promote({
+                'id': cvv['id'],
+                'lifecycle-environment-id': lce['id'],
+            })
+            self.assertEqual(result.return_code, 0)
+            cvv = ContentView.version_info({
+                'id': self.content_view['versions'][0]['id'],
+            }).stdout
+            self.assertEqual(len(cvv['lifecycle-environments']), i+1)
 
-    @stubbed()
-    @run_only_on('sat')
     def test_promote_docker_repo_composite_content_view(self):
         """@Test: Add Docker-type repository to composite content view and
         publish it. Then promote it to the next available
@@ -642,12 +759,53 @@ class DockerContentViewTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        self._create_and_associate_repo_with_cv()
+        result = ContentView.publish({'id': self.content_view['id']})
+        self.assertEqual(result.return_code, 0)
+        self.content_view = ContentView.info({
+            'id': self.content_view['id']}).stdout
+        self.assertEqual(len(self.content_view['versions']), 1)
+        comp_content_view = make_content_view({
+            'composite': True,
+            'organization-id': self.org_id,
+        })
+        result = ContentView.update({
+            'component-ids': self.content_view['versions'][0]['id'],
+            'id': comp_content_view['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        self.assertIn(
+            self.content_view['versions'][0]['id'],
+            [
+                component['id']
+                for component
+                in comp_content_view['components']
+            ],
+        )
+        result = ContentView.publish({'id': comp_content_view['id']})
+        self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        cvv = ContentView.version_info({
+            'id': comp_content_view['versions'][0]['id'],
+        }).stdout
+        self.assertEqual(len(cvv['lifecycle-environments']), 1)
+        lce = make_lifecycle_environment({'organization-id': self.org_id})
+        result = ContentView.version_promote({
+            'id': comp_content_view['versions'][0]['id'],
+            'lifecycle-environment-id': lce['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        cvv = ContentView.version_info({
+            'id': comp_content_view['versions'][0]['id'],
+        }).stdout
+        self.assertEqual(len(cvv['lifecycle-environments']), 2)
 
-    @stubbed()
-    @run_only_on('sat')
     def test_promote_multiple_docker_repo_composite_content_view(self):
         """@Test: Add Docker-type repository to composite content view and
         publish it. Then promote it to the multiple available
@@ -658,9 +816,53 @@ class DockerContentViewTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        self._create_and_associate_repo_with_cv()
+        result = ContentView.publish({'id': self.content_view['id']})
+        self.assertEqual(result.return_code, 0)
+        self.content_view = ContentView.info({
+            'id': self.content_view['id']}).stdout
+        self.assertEqual(len(self.content_view['versions']), 1)
+        comp_content_view = make_content_view({
+            'composite': True,
+            'organization-id': self.org_id,
+        })
+        result = ContentView.update({
+            'component-ids': self.content_view['versions'][0]['id'],
+            'id': comp_content_view['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        self.assertIn(
+            self.content_view['versions'][0]['id'],
+            [
+                component['id']
+                for component
+                in comp_content_view['components']
+            ],
+        )
+        result = ContentView.publish({'id': comp_content_view['id']})
+        self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        cvv = ContentView.version_info({
+            'id': comp_content_view['versions'][0]['id'],
+        }).stdout
+        self.assertEqual(len(cvv['lifecycle-environments']), 1)
+        for i in range(1, randint(3, 6)):
+            lce = make_lifecycle_environment({'organization-id': self.org_id})
+            result = ContentView.version_promote({
+                'id': comp_content_view['versions'][0]['id'],
+                'lifecycle-environment-id': lce['id'],
+            })
+            self.assertEqual(result.return_code, 0)
+            cvv = ContentView.version_info({
+                'id': comp_content_view['versions'][0]['id'],
+            }).stdout
+            self.assertEqual(len(cvv['lifecycle-environments']), i+1)
 
 
 @ddt

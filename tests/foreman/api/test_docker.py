@@ -222,8 +222,8 @@ class DockerRepositoryTestCase(APITestCase):
             entities.Product(organization=self.org).create()
         )
         repo.sync()
-        attrs = repo.read_json()
-        self.assertGreaterEqual(attrs[u'content_counts'][u'docker_image'], 1)
+        repo = repo.read()
+        self.assertGreaterEqual(repo.content_counts['docker_image'], 1)
 
     @data(
         gen_string('alpha', 15),
@@ -421,8 +421,8 @@ class DockerContentViewTestCase(APITestCase):
         repo = _create_repository(
             entities.Product(organization=self.org).create())
         repo.sync()
-        attrs = repo.read_json()
-        self.assertGreaterEqual(attrs[u'content_counts'][u'docker_image'], 1)
+        repo = repo.read()
+        self.assertGreaterEqual(repo.content_counts['docker_image'], 1)
 
         # Create content view and associate docker repo
         content_view = entities.ContentView(
@@ -527,8 +527,8 @@ class DockerContentViewTestCase(APITestCase):
         @Feature: Docker
 
         """
-        product = entities.Product(organization=self.org).create()
-        repo = _create_repository(product)
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
 
         content_view = entities.ContentView(
             composite=False,
@@ -539,15 +539,15 @@ class DockerContentViewTestCase(APITestCase):
         self.assertIn(repo.id, [repo_.id for repo_ in content_view.repository])
 
         # Not published yet?
-        attrs = content_view.read_json()
-        self.assertIsNone(attrs['last_published'])
-        self.assertEqual(attrs['next_version'], 1)
+        content_view = content_view.read()
+        self.assertIsNone(content_view.last_published)
+        self.assertEqual(content_view.next_version, 1)
 
         # Publish it and check that it was indeed published.
         content_view.publish()
-        attrs = content_view.read_json()
-        self.assertIsNotNone(attrs['last_published'])
-        self.assertGreater(attrs['next_version'], 1)
+        content_view = content_view.read()
+        self.assertIsNotNone(content_view.last_published)
+        self.assertGreater(content_view.next_version, 1)
 
     @skip_if_bug_open('bugzilla', 1217635)
     def test_publish_once_docker_repo_composite_content_view(self):
@@ -561,8 +561,8 @@ class DockerContentViewTestCase(APITestCase):
         @Feature: Docker
 
         """
-        product = entities.Product(organization=self.org).create()
-        repo = _create_repository(product)
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
         content_view = entities.ContentView(
             composite=False,
             organization=self.org,
@@ -572,34 +572,33 @@ class DockerContentViewTestCase(APITestCase):
         self.assertIn(repo.id, [repo_.id for repo_ in content_view.repository])
 
         # Not published yet?
-        attrs = content_view.read_json()
-        self.assertIsNone(attrs['last_published'])
-        self.assertEqual(attrs['next_version'], 1)
+        content_view = content_view.read()
+        self.assertIsNone(content_view.last_published)
+        self.assertEqual(content_view.next_version, 1)
 
         # Publish it and check that it was indeed published.
         content_view.publish()
-        attrs = content_view.read_json()
-        self.assertIsNotNone(attrs['last_published'])
-        self.assertGreater(attrs['next_version'], 1)
+        content_view = content_view.read()
+        self.assertIsNotNone(content_view.last_published)
+        self.assertGreater(content_view.next_version, 1)
 
         # Create composite content view…
         comp_content_view = entities.ContentView(
             composite=True,
             organization=self.org,
         ).create()
-        cv_version = entities.ContentViewVersion(id=attrs['versions'][0]['id'])
-        comp_content_view.component = [cv_version]
+        comp_content_view.component = [content_view.version[0]]
         comp_content_view = comp_content_view.update(['component'])
         self.assertIn(
-            cv_version.id,  # pylint:disable=no-member
+            content_view.version[0].id,  # pylint:disable=no-member
             [component.id for component in comp_content_view.component]
         )
         # … publish it…
         comp_content_view.publish()
         # … and check that it was indeed published
-        attrs = comp_content_view.read_json()
-        self.assertIsNotNone(attrs['last_published'])
-        self.assertGreater(attrs['next_version'], 1)
+        comp_content_view = comp_content_view.read()
+        self.assertIsNotNone(comp_content_view.last_published)
+        self.assertGreater(comp_content_view.next_version, 1)
 
     def test_publish_multiple_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it
@@ -611,8 +610,8 @@ class DockerContentViewTestCase(APITestCase):
         @Feature: Docker
 
         """
-        product = entities.Product(organization=self.org).create()
-        repo = _create_repository(product)
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
         content_view = entities.ContentView(
             composite=False,
             organization=self.org,
@@ -621,13 +620,14 @@ class DockerContentViewTestCase(APITestCase):
         content_view = content_view.update(['repository'])
         self.assertEqual(
             [repo.id], [repo_.id for repo_ in content_view.repository])
-        self.assertIsNone(content_view.read_json()['last_published'])
+        self.assertIsNone(content_view.read().last_published)
 
         publish_amount = randint(2, 5)
         for _ in range(publish_amount):
             content_view.publish()
-        self.assertIsNotNone(content_view.read_json()['last_published'])
-        self.assertEqual(len(content_view.read().version), publish_amount)
+        content_view = content_view.read()
+        self.assertIsNotNone(content_view.last_published)
+        self.assertEqual(len(content_view.version), publish_amount)
 
     def test_publish_multiple_docker_repo_composite_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it
@@ -640,8 +640,8 @@ class DockerContentViewTestCase(APITestCase):
         @Feature: Docker
 
         """
-        product = entities.Product(organization=self.org).create()
-        repo = _create_repository(product)
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
         content_view = entities.ContentView(
             composite=False,
             organization=self.org,
@@ -650,27 +650,30 @@ class DockerContentViewTestCase(APITestCase):
         content_view = content_view.update(['repository'])
         self.assertEqual(
             [repo.id], [repo_.id for repo_ in content_view.repository])
-        self.assertIsNone(content_view.read_json()['last_published'])
+        self.assertIsNone(content_view.read().last_published)
 
         content_view.publish()
-        self.assertIsNotNone(content_view.read_json()['last_published'])
-        cvv = content_view.read().version[0].read()
+        content_view = content_view.read()
+        self.assertIsNotNone(content_view.last_published)
 
         comp_content_view = entities.ContentView(
             composite=True,
             organization=self.org,
         ).create()
-        comp_content_view.component = [cvv]
+        comp_content_view.component = [content_view.version[0]]
         comp_content_view = comp_content_view.update(['component'])
         self.assertEqual(
-            [cvv.id], [comp.id for comp in comp_content_view.component])
-        self.assertIsNone(comp_content_view.read_json()['last_published'])
+            [content_view.version[0].id],
+            [comp.id for comp in comp_content_view.component],
+        )
+        self.assertIsNone(comp_content_view.last_published)
 
         publish_amount = randint(2, 5)
         for _ in range(publish_amount):
             comp_content_view.publish()
-        self.assertIsNotNone(comp_content_view.read_json()['last_published'])
-        self.assertEqual(len(comp_content_view.read().version), publish_amount)
+        comp_content_view = comp_content_view.read()
+        self.assertIsNotNone(comp_content_view.last_published)
+        self.assertEqual(len(comp_content_view.version), publish_amount)
 
     def test_promote_docker_repo_content_view(self):
         """@Test: Add Docker-type repository to content view and publish it.
@@ -683,8 +686,8 @@ class DockerContentViewTestCase(APITestCase):
 
         """
         lce = entities.LifecycleEnvironment(organization=self.org).create()
-        product = entities.Product(organization=self.org).create()
-        repo = _create_repository(product)
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
 
         content_view = entities.ContentView(
             composite=False,
@@ -714,8 +717,8 @@ class DockerContentViewTestCase(APITestCase):
 
         """
 
-        product = entities.Product(organization=self.org).create()
-        repo = _create_repository(product)
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
 
         content_view = entities.ContentView(
             composite=False,
@@ -747,8 +750,8 @@ class DockerContentViewTestCase(APITestCase):
 
         """
         lce = entities.LifecycleEnvironment(organization=self.org).create()
-        product = entities.Product(organization=self.org).create()
-        repo = _create_repository(product)
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
         content_view = entities.ContentView(
             composite=False,
             organization=self.org,
@@ -787,8 +790,8 @@ class DockerContentViewTestCase(APITestCase):
         @Feature: Docker
 
         """
-        product = entities.Product(organization=self.org).create()
-        repo = _create_repository(product)
+        repo = _create_repository(
+            entities.Product(organization=self.org).create())
         content_view = entities.ContentView(
             composite=False,
             organization=self.org,
