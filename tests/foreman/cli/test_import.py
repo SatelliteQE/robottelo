@@ -1259,7 +1259,6 @@ class TestImport(CLITestCase):
             u'selinux_ctx': u'',
         }
         file_name = build_csv_file([csv_row], self.default_dataset[0])
-        print(file_name)
         invalid_chars = '[^\da-zA-Z\-\.\_]'
         # create a random org that will be mapped to sat5 org with id = 1
         if bz_bug_is_open(1226981):
@@ -1298,7 +1297,7 @@ class TestImport(CLITestCase):
         if len(prefix) == 0:
             prefix = u'orgid' + org['id']
         if len(erb_file) == 0:
-            prefix = u'fileid8'
+            erb_file = u'file_id8'
         # collect the contains of the generated file
         cat_cmd = ssh.command(
             u'cat "${{HOME}}"/puppet_work_dir/{0}-config_1/templates/'
