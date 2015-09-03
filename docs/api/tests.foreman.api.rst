@@ -33,10 +33,15 @@
 
 .. automodule:: tests.foreman.api.test_contentviewversion
 
-:mod:`tests.foreman.api.test_discovery`
----------------------------------------
+:mod:`tests.foreman.api.test_discoveredhost`
+--------------------------------------------
 
-.. automodule:: tests.foreman.api.test_discovery
+.. automodule:: tests.foreman.api.test_discoveredhost
+
+:mod:`tests.foreman.api.test_discoveryrule`
+-------------------------------------------
+
+.. automodule:: tests.foreman.api.test_discoveryrule
 
 :mod:`tests.foreman.api.test_docker`
 ------------------------------------

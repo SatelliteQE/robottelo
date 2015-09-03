@@ -13,11 +13,12 @@ from robottelo.ui.session import Session
 class LDAPAuthSource(UITestCase):
     """Implements Active Directory feature tests in UI."""
 
-    ldap_user_name = conf.properties['main.ldap.username']
-    ldap_user_passwd = conf.properties['main.ldap.passwd']
-    base_dn = conf.properties['main.ldap.basedn']
-    group_base_dn = conf.properties['main.ldap.grpbasedn']
-    ldap_hostname = conf.properties['main.ldap.hostname']
+    # TODO: handle when the ldap config is not available
+    ldap_user_name = conf.properties.get('main.ldap.username')
+    ldap_user_passwd = conf.properties.get('main.ldap.passwd')
+    base_dn = conf.properties.get('main.ldap.basedn')
+    group_base_dn = conf.properties.get('main.ldap.grpbasedn')
+    ldap_hostname = conf.properties.get('main.ldap.hostname')
 
     @data(*generate_strings_list())
     def test_create_ldap_authsource_withad(self, server_name):

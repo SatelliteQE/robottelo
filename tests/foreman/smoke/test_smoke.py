@@ -102,7 +102,7 @@ class SELinuxTestCase(TestCase):
 
         @Feature: Installer
 
-        @Steps::
+        @Steps:
 
         1. search all relevant logfiles for ERROR/FATAL
 
