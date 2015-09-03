@@ -447,18 +447,22 @@ class Base(object):
         self.wait_for_ajax()
         return element.is_displayed()
 
-    def click(self, locator, wait_for_ajax=True, timeout=30):
+    def click(self, locator, wait_for_ajax=True,
+              ajax_timeout=30, waiter_timeout=12):
         """Locate the element described by the ``locator`` and click on it.
 
         :param locator: The locator that decribes the element.
         :param wait_for_ajax: Flag that indicates if should wait for AJAX after
             clicking on the element
-        :param timeout: The amount of time that wait_fox_ajax should wait. This
-            will have effect if ``wait_fox_ajax`` parameter is ``True``.
+        :param ajax_timeout: The amount of time that wait_fox_ajax should wait.
+            This will have effect if ``wait_fox_ajax`` parameter is ``True``.
+        :param waiter_timeout: The amount of time that wait_until_element
+            should wait. That value should be specified when non-default delay
+            is needed (e.g. long run procedures)
         :raise: UINoSuchElementError if the element could not be found.
 
         """
-        element = self.wait_until_element(locator)
+        element = self.wait_until_element(locator, timeout=waiter_timeout)
         if element is None:
             raise UINoSuchElementError(
                 '{}: element with locator {} not found while trying to click.'
@@ -466,4 +470,4 @@ class Base(object):
             )
         element.click()
         if wait_for_ajax:
-            self.wait_for_ajax(timeout)
+            self.wait_for_ajax(ajax_timeout)

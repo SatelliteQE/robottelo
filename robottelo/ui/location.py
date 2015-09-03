@@ -1,12 +1,10 @@
 # -*- encoding: utf-8 -*-
-"""
-Implements Locations UI
-"""
+"""Implements Locations UI"""
 
+from robottelo.common.constants import FILTER
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from robottelo.common.constants import FILTER
 from selenium.webdriver.support.select import Select
 
 
@@ -28,52 +26,52 @@ class Location(Base):
 
         if users or new_users:
             self.configure_entity(users, FILTER['loc_user'],
-                                  tab_locator=loc["context.tab_users"],
+                                  tab_locator=loc['context.tab_users'],
                                   new_entity_list=new_users,
                                   entity_select=select)
         if proxies or new_proxies:
             self.configure_entity(proxies, FILTER['loc_proxy'],
-                                  tab_locator=loc["context.tab_sm_prx"],
+                                  tab_locator=loc['context.tab_sm_prx'],
                                   new_entity_list=new_proxies,
                                   entity_select=select)
         if subnets or new_subnets:
             self.configure_entity(subnets, FILTER['loc_subnet'],
-                                  tab_locator=loc["context.tab_subnets"],
+                                  tab_locator=loc['context.tab_subnets'],
                                   new_entity_list=new_subnets,
                                   entity_select=select)
         if resources or new_resources:
             self.configure_entity(resources, FILTER['loc_resource'],
-                                  tab_locator=loc["context.tab_resources"],
+                                  tab_locator=loc['context.tab_resources'],
                                   new_entity_list=new_resources,
                                   entity_select=select)
         if medias or new_medias:
             self.configure_entity(medias, FILTER['loc_media'],
-                                  tab_locator=loc["context.tab_media"],
+                                  tab_locator=loc['context.tab_media'],
                                   new_entity_list=new_medias,
                                   entity_select=select)
         if templates or new_templates:
             self.configure_entity(templates, FILTER['loc_template'],
-                                  tab_locator=loc["context.tab_template"],
+                                  tab_locator=loc['context.tab_template'],
                                   new_entity_list=new_templates,
                                   entity_select=select)
         if domains or new_domains:
             self.configure_entity(domains, FILTER['loc_domain'],
-                                  tab_locator=loc["context.tab_domains"],
+                                  tab_locator=loc['context.tab_domains'],
                                   new_entity_list=new_domains,
                                   entity_select=select)
         if envs or new_envs:
             self.configure_entity(envs, FILTER['loc_envs'],
-                                  tab_locator=loc["context.tab_env"],
+                                  tab_locator=loc['context.tab_env'],
                                   new_entity_list=new_envs,
                                   entity_select=select)
         if hostgroups or new_hostgroups:
             self.configure_entity(hostgroups, FILTER['loc_hostgroup'],
-                                  tab_locator=loc["context.tab_hostgrps"],
+                                  tab_locator=loc['context.tab_hostgrps'],
                                   new_entity_list=new_hostgroups,
                                   entity_select=select)
         if organizations or new_organizations:
             self.configure_entity(hostgroups, FILTER['loc_org'],
-                                  tab_locator=loc["context.tab_organizations"],
+                                  tab_locator=loc['context.tab_organizations'],
                                   new_entity_list=new_organizations,
                                   entity_select=select)
 
@@ -82,16 +80,16 @@ class Location(Base):
                domains=None, envs=None, hostgroups=None, organizations=None,
                select=True):
         """Creates new Location from UI."""
-        self.wait_until_element(locators["location.new"]).click()
-        if self.wait_until_element(locators["location.name"]) is None:
+        self.click(locators['location.new'])
+        if self.wait_until_element(locators['location.name']) is None:
             raise UINoSuchElementError('Could not create new location.')
-        self.field_update("location.name", name)
+        self.field_update('location.name', name)
         if parent:
             Select(self.find_element(
-                locators["location.parent"])).select_by_visible_text(parent)
-        self.wait_until_element(common_locators["submit"]).click()
+                locators['location.parent'])).select_by_visible_text(parent)
+        self.click(common_locators['submit'])
         edit_locator = self.wait_until_element(
-            locators["location.proceed_to_edit"])
+            locators['location.proceed_to_edit'])
         if edit_locator:
             edit_locator.click()
             self._configure_location(
@@ -103,14 +101,13 @@ class Location(Base):
                 organizations=organizations,
                 select=select,
             )
-            self.wait_until_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
+            self.click(common_locators['submit'])
 
     def search(self, name):
         """Searches existing location from UI."""
         Navigator(self.browser).go_to_loc()
         self.wait_for_ajax()
-        element = self.search_entity(name, locators["location.select_name"])
+        element = self.search_entity(name, locators['location.select_name'])
         return element
 
     def update(self, loc_name, new_name=None, users=None,
@@ -121,7 +118,7 @@ class Location(Base):
                new_resources=None, new_medias=None, new_templates=None,
                new_domains=None, new_envs=None, new_hostgroups=None,
                select=False):
-        """Update Location in UI. """
+        """Update Location in UI."""
         org_object = self.search(loc_name)
         self.wait_for_ajax()
         if org_object is None:
@@ -129,8 +126,8 @@ class Location(Base):
                 'Unable to find the location {0} for update.'.format(loc_name))
         org_object.click()
         if new_name:
-            if self.wait_until_element(locators["location.name"]):
-                self.field_update("location.name", new_name)
+            if self.wait_until_element(locators['location.name']):
+                self.field_update('location.name', new_name)
         self._configure_location(users=users, proxies=proxies,
                                  subnets=subnets, resources=resources,
                                  medias=medias, templates=templates,
@@ -148,12 +145,14 @@ class Location(Base):
                                  new_envs=new_envs,
                                  new_hostgroups=new_hostgroups,
                                  select=select)
-        self.wait_until_element(common_locators["submit"]).click()
-        self.wait_for_ajax()
+        self.click(common_locators['submit'])
 
-    def delete(self, name, really):
+    def delete(self, name, really=True):
         """Deletes a location."""
-
-        self.delete_entity(name, really, locators["location.select_name"],
-                           locators['location.delete'],
-                           drop_locator=locators["location.dropdown"])
+        self.delete_entity(
+            name,
+            really,
+            locators['location.select_name'],
+            locators['location.delete'],
+            drop_locator=locators['location.dropdown'],
+        )

@@ -1,9 +1,7 @@
-"""
-Implements Hardware Models CRUD in UI
-"""
+"""Implements Hardware Models CRUD in UI"""
 
 from robottelo.ui.base import Base, UINoSuchElementError
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -19,20 +17,19 @@ class HardwareModel(Base):
         :param str info: some information related to Hardware-Models.
 
         """
-        self.wait_until_element(locators["hwmodels.new"]).click()
-        if self.wait_until_element(locators["hwmodels.name"]):
-            self.find_element(locators["hwmodels.name"]).send_keys(name)
+        self.click(locators['hwmodels.new'])
+        if self.wait_until_element(locators['hwmodels.name']):
+            self.find_element(locators['hwmodels.name']).send_keys(name)
         if hw_model:
             self.find_element(
                 locators['hwmodels.model']).send_keys(hw_model)
         if vendor_class:
             self.find_element(
-                locators["hwmodels.vclass"]).send_keys(vendor_class)
+                locators['hwmodels.vclass']).send_keys(vendor_class)
         if info:
             self.find_element(
-                locators["hwmodels.info"]).send_keys(info)
-        self.find_element(common_locators["submit"]).click()
-        self.wait_for_ajax()
+                locators['hwmodels.info']).send_keys(info)
+        self.click(common_locators['submit'])
 
     def update(self, old_name, new_name=None):
         """Updates the Hardware-Models.
@@ -44,11 +41,10 @@ class HardwareModel(Base):
         element = self.search(old_name)
         if element:
             element.click()
-            if (self.wait_until_element(locators["hwmodels.name"]) and
+            if (self.wait_until_element(locators['hwmodels.name']) and
                     new_name):
-                self.field_update("hwmodels.name", new_name)
-            self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
+                self.field_update('hwmodels.name', new_name)
+            self.click(common_locators['submit'])
         else:
             raise UINoSuchElementError(
                 "Could not find hardware-model '%s'" % old_name)
@@ -62,20 +58,25 @@ class HardwareModel(Base):
         Navigator(self.browser).go_to_hardware_models()
         if len(name) <= 30:
             element = self.search_entity(
-                name, locators["hwmodels.select_name"], timeout=timeout)
+                name, locators['hwmodels.select_name'], timeout=timeout)
         else:
             element = self.search_entity(
-                name, common_locators["select_filtered_entity"],
-                timeout=timeout)
+                name,
+                common_locators['select_filtered_entity'],
+                timeout=timeout,
+            )
         return element
 
-    def delete(self, name, really):
+    def delete(self, name, really=True):
         """Deletes the Hardware-Models.
 
         :param str name: Hardware-Model's name to search.
         :param bool really: Value required for negative tests.
 
         """
-
-        self.delete_entity(name, really, locators["hwmodels.select_name"],
-                           locators['hwmodels.delete'])
+        self.delete_entity(
+            name,
+            really,
+            locators['hwmodels.select_name'],
+            locators['hwmodels.delete'],
+        )

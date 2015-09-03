@@ -17,14 +17,14 @@ class Products(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        cls.org_name = entities.Organization().create_json()['name']
-        cls.loc_name = entities.Location().create_json()['name']
+        cls.organization = entities.Organization().create()
+        cls.loc = entities.Location().create()
 
         super(Products, cls).setUpClass()
 
     @run_only_on('sat')
     @data(*generate_strings_list())
-    def test_positive_create_1(self, prd_name):
+    def test_positive_create_basic(self, prd_name):
         """@Test: Create Content Product minimal input parameters
 
         @Feature: Content Product - Positive Create
@@ -32,15 +32,19 @@ class Products(UITestCase):
         @Assert: Product is created
 
         """
-        description = "test 123"
         with Session(self.browser) as session:
-            make_product(session, org=self.org_name, loc=self.loc_name,
-                         name=prd_name, description=description)
+            make_product(
+                session,
+                org=self.organization.name,
+                loc=self.loc.name,
+                name=prd_name,
+                description=gen_string('alphanumeric'),
+            )
             self.assertIsNotNone(self.products.search(prd_name))
 
     @run_only_on('sat')
     @data(*generate_strings_list())
-    def test_positive_create_2(self, prd_name):
+    def test_positive_create_in_different_orgs(self, prd_name):
         """@Test: Create Content Product with same name but in another org
 
         @Feature: Content Product - Positive Create
@@ -48,22 +52,29 @@ class Products(UITestCase):
         @Assert: Product is created successfully in both the orgs.
 
         """
-        description = "test 123"
-        org2_name = entities.Organization(
-            name=gen_string("alpha", 8)
-        ).create_json()['name']
+        org2 = entities.Organization().create()
         with Session(self.browser) as session:
-            make_product(session, org=self.org_name, loc=self.loc_name,
-                         name=prd_name, description=description)
+            make_product(
+                session,
+                org=self.organization.name,
+                loc=self.loc.name,
+                name=prd_name,
+                description=gen_string('alphanumeric'),
+            )
             self.assertIsNotNone(self.products.search(prd_name))
-            make_product(session, org=org2_name, loc=self.loc_name,
-                         name=prd_name, description=description,
-                         force_context=True)
+            make_product(
+                session,
+                org=org2.name,
+                loc=self.loc.name,
+                name=prd_name,
+                description=gen_string('alphanumeric'),
+                force_context=True,
+            )
             self.assertIsNotNone(self.products.search(prd_name))
 
     @run_only_on('sat')
     @data(*generate_strings_list(len1=256))
-    def test_negative_create_1(self, prd_name):
+    def test_negative_create_too_long_name(self, prd_name):
         """@Test: Create Content Product with too long input parameters
 
         @Feature: Content Product - Negative Create too long
@@ -71,16 +82,20 @@ class Products(UITestCase):
         @Assert: Product is not created
 
         """
-        locator = common_locators["common_haserror"]
-        description = "test_negative_create_1"
         with Session(self.browser) as session:
-            make_product(session, org=self.org_name, loc=self.loc_name,
-                         name=prd_name, description=description)
-            error = session.nav.wait_until_element(locator)
-            self.assertIsNotNone(error)
+            make_product(
+                session,
+                org=self.organization.name,
+                loc=self.loc.name,
+                name=prd_name,
+                description=gen_string('alphanumeric'),
+            )
+            self.assertIsNotNone(session.nav.wait_until_element(
+                common_locators['common_haserror']))
 
     @run_only_on('sat')
-    def test_negative_create_2(self):
+    @data('', '  ')
+    def test_negative_create_with_blank_name(self, name):
         """@Test: Create Content Product without input parameter
 
         @Feature: Content Product - Negative Create zero length
@@ -88,36 +103,20 @@ class Products(UITestCase):
         @Assert: Product is not created
 
         """
-        locator = common_locators["common_invalid"]
-        prd_name = ""
-        description = "test_negative_create_2"
         with Session(self.browser) as session:
-            make_product(session, org=self.org_name, loc=self.loc_name,
-                         name=prd_name, description=description)
-            invalid = self.products.wait_until_element(locator)
-            self.assertIsNotNone(invalid)
-
-    @run_only_on('sat')
-    def test_negative_create_3(self):
-        """@Test: Create Content Product with whitespace input parameter
-
-        @Feature: Content Product - Negative Create with whitespace
-
-        @Assert: Product is not created
-
-        """
-        locator = common_locators["common_invalid"]
-        prd_name = "   "
-        description = "test_negative_create_3"
-        with Session(self.browser) as session:
-            make_product(session, org=self.org_name, loc=self.loc_name,
-                         name=prd_name, description=description)
-            invalid = self.products.wait_until_element(locator)
-            self.assertIsNotNone(invalid)
+            make_product(
+                session,
+                org=self.organization.name,
+                loc=self.loc.name,
+                name=name,
+                description=gen_string('alphanumeric'),
+            )
+            self.assertIsNotNone(self.products.wait_until_element(
+                common_locators['common_invalid']))
 
     @run_only_on('sat')
     @data(*generate_strings_list())
-    def test_negative_create_4(self, prd_name):
+    def test_negative_create_with_same_name(self, prd_name):
         """@Test: Create Content Product with same name input parameter
 
         @Feature: Content Product - Negative Create with same name
@@ -125,19 +124,23 @@ class Products(UITestCase):
         @Assert: Product is not created
 
         """
-        locator = common_locators["common_haserror"]
-        description = "test_negative_create_4"
+        description = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            make_product(session, org=self.org_name, loc=self.loc_name,
-                         name=prd_name, description=description)
+            make_product(
+                session,
+                org=self.organization.name,
+                loc=self.loc.name,
+                name=prd_name,
+                description=description,
+            )
             self.assertIsNotNone(self.products.search(prd_name))
             self.products.create(prd_name, description)
-            error = self.products.wait_until_element(locator)
-            self.assertIsNotNone(error)
+            self.assertIsNotNone(self.products.wait_until_element(
+                common_locators['common_haserror']))
 
     @run_only_on('sat')
     @data(*generate_strings_list())
-    def test_positive_update_1(self, prd_name):
+    def test_positive_update_basic(self, new_prd_name):
         """@Test: Update Content Product with minimal input parameters
 
         @Feature: Content Product - Positive Update
@@ -145,18 +148,22 @@ class Products(UITestCase):
         @Assert: Product is updated
 
         """
-        new_prd_name = gen_string("alpha", 8)
-        description = "test 123"
+        prd_name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_product(session, org=self.org_name, loc=self.loc_name,
-                         name=prd_name, description=description)
+            make_product(
+                session,
+                org=self.organization.name,
+                loc=self.loc.name,
+                name=prd_name,
+                description=gen_string('alphanumeric'),
+            )
             self.assertIsNotNone(self.products.search(prd_name))
             self.products.update(prd_name, new_name=new_prd_name)
             self.assertIsNotNone(self.products.search(new_prd_name))
 
     @run_only_on('sat')
     @data(*generate_strings_list())
-    def test_positive_update_2(self, prd_name):
+    def test_positive_update_to_original_name(self, prd_name):
         """@Test: Rename Product back to original name.
 
         @Feature: Content Product - Positive Update
@@ -164,10 +171,14 @@ class Products(UITestCase):
         @Assert: Product Renamed to original.
 
         """
-        new_prd_name = gen_string("alpha", 8)
+        new_prd_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_product(
-                session, org=self.org_name, loc=self.loc_name, name=prd_name)
+                session,
+                org=self.organization.name,
+                loc=self.loc.name,
+                name=prd_name,
+            )
             self.assertIsNotNone(self.products.search(prd_name))
             self.products.update(prd_name, new_name=new_prd_name)
             self.assertIsNotNone(self.products.search(new_prd_name))
@@ -176,8 +187,7 @@ class Products(UITestCase):
             self.assertIsNotNone(self.products.search(prd_name))
 
     @run_only_on('sat')
-    @data(*generate_strings_list())
-    def test_negative_update_1(self, prd_name):
+    def test_negative_update_with_too_long_name(self):
         """@Test: Update Content Product with too long input parameters
 
         @Feature: Content Product - Negative Update
@@ -185,16 +195,19 @@ class Products(UITestCase):
         @Assert: Product is not updated
 
         """
-        locator = common_locators["alert.error"]
-        new_prd_name = gen_string("alpha", 256)
-        description = "test_negative_update_0"
+        prd_name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_product(session, org=self.org_name, loc=self.loc_name,
-                         name=prd_name, description=description)
+            make_product(
+                session,
+                org=self.organization.name,
+                loc=self.loc.name,
+                name=prd_name,
+                description=gen_string('alphanumeric'),
+            )
             self.assertIsNotNone(self.products.search(prd_name))
-            self.products.update(prd_name, new_name=new_prd_name)
-            error = self.products.wait_until_element(locator)
-            self.assertIsNotNone(error)
+            self.products.update(prd_name, new_name=gen_string('alpha', 256))
+            self.assertIsNotNone(self.products.wait_until_element(
+                common_locators['alert.error']))
 
     @skip_if_bug_open('redmine', 7845)
     @run_only_on('sat')
@@ -207,10 +220,14 @@ class Products(UITestCase):
         @Assert: Product is deleted
 
         """
-        description = "test 123"
         with Session(self.browser) as session:
-            make_product(session, org=self.org_name, loc=self.loc_name,
-                         name=prd_name, description=description)
+            make_product(
+                session,
+                org=self.organization.name,
+                loc=self.loc.name,
+                name=prd_name,
+                description=gen_string('alphanumeric'),
+            )
             self.assertIsNotNone(self.products.search(prd_name))
-            self.products.delete(prd_name, True)
+            self.products.delete(prd_name)
             self.assertIsNone(self.products.search(prd_name))
