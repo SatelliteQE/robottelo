@@ -1061,19 +1061,32 @@ class DockerComputeResourceTestCase(APITestCase):
             compute_resource.update(['url']).url,
         )
 
-    @stubbed()
     def test_list_containers_internal_docker_compute_resource(self):
-        """@Test: Create a Docker-based Compute Resource in the
-        Satellite 6 instance then list its running containers.
+        """@Test: Create a Docker-based Compute Resource in the Satellite 6
+        instance then list its running containers.
 
-        @Assert: Compute Resource can be created, listed and existing
-        running instances can be listed.
+        @Assert: Compute Resource can be created and existing instances can be
+        listed.
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        compute_resource = entities.DockerComputeResource(
+            organization=[self.org],
+            url=INTERNAL_DOCKER_URL,
+        ).create()
+        self.assertEqual(compute_resource.url, INTERNAL_DOCKER_URL)
+        self.assertEqual(len(entities.AbstractDockerContainer(
+            compute_resource=compute_resource).search()), 0)
+        container = entities.DockerHubContainer(
+            compute_resource=compute_resource,
+            command='top',
+            organization=[self.org],
+        ).create()
+        result = entities.AbstractDockerContainer(
+            compute_resource=compute_resource).search()
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].name, container.name)
 
     @data(
         gen_string('alpha'),
@@ -1122,19 +1135,32 @@ class DockerComputeResourceTestCase(APITestCase):
             compute_resource.update(['url']).url,
         )
 
-    @stubbed()
     def test_list_containers_external_docker_compute_resource(self):
-        """@Test: Create a Docker-based Compute Resource using
-        an external Docker-enabled system then list its running containers.
+        """@Test: Create a Docker-based Compute Resource using an external
+        Docker-enabled system then list its running containers.
 
-        @Assert: Compute Resource can be created, listed and existing
-        running instances can be listed.
+        @Assert: Compute Resource can be created and existing instances can be
+        listed.
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        compute_resource = entities.DockerComputeResource(
+            organization=[self.org],
+            url=EXTERNAL_DOCKER_URL,
+        ).create()
+        self.assertEqual(compute_resource.url, EXTERNAL_DOCKER_URL)
+        self.assertEqual(len(entities.AbstractDockerContainer(
+            compute_resource=compute_resource).search()), 0)
+        container = entities.DockerHubContainer(
+            compute_resource=compute_resource,
+            command='top',
+            organization=[self.org],
+        ).create()
+        result = entities.AbstractDockerContainer(
+            compute_resource=compute_resource).search()
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0].name, container.name)
 
     @data(
         EXTERNAL_DOCKER_URL,
