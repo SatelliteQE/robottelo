@@ -34,7 +34,6 @@ class Candlepin(object):
 
         :param str result: Standard Error
         :return: The real timing value
-        :rtype: float
 
         """
         real_time = [

@@ -18,11 +18,12 @@ from selenium.webdriver.common.action_chains import ActionChains
 class ADUserGroups(UITestCase):
     """Implements Active Directory feature tests in UI."""
 
-    ldap_user_name = conf.properties['main.ldap.username']
-    ldap_user_passwd = conf.properties['main.ldap.passwd']
-    base_dn = conf.properties['main.ldap.basedn']
-    group_base_dn = conf.properties['main.ldap.grpbasedn']
-    ldap_hostname = conf.properties['main.ldap.hostname']
+    # TODO: handle when the ldap config is not available
+    ldap_user_name = conf.properties.get('main.ldap.username')
+    ldap_user_passwd = conf.properties.get('main.ldap.passwd')
+    base_dn = conf.properties.get('main.ldap.basedn')
+    group_base_dn = conf.properties.get('main.ldap.grpbasedn')
+    ldap_hostname = conf.properties.get('main.ldap.hostname')
     usergroup_name = gen_string('alpha')
     usergroup_name2 = gen_string('alpha')
 

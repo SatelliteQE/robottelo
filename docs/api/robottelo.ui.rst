@@ -73,10 +73,10 @@
 
 .. automodule:: robottelo.ui.hosts
 
-:mod:`robottelo.ui.ldapusergroups`
+:mod:`robottelo.ui.ldapauthsource`
 ----------------------------------
 
-.. automodule:: robottelo.ui.ldapusergroups
+.. automodule:: robottelo.ui.ldapauthsource
 
 :mod:`robottelo.ui.location`
 ----------------------------

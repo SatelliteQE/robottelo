@@ -203,8 +203,8 @@ class Import(Base):
         """Import Activation Keys (from spacewalk-report activation-keys).
         Requires organization.
 
-        :returns: A tuple of SSHCommandResult and a Dictionary containing
-        the transition data of the Import
+        :returns: A tuple of SSHCommandResult and a Dictionary containing the
+            transition data of the Import
 
         """
         result = cls.activation_key(options)
@@ -222,8 +222,8 @@ class Import(Base):
     def organization_with_tr_data(cls, options=None):
         """Import Organizations (from spacewalk-report users).
 
-        :returns: A tuple of SSHCommandResult and a Dictionary containing
-        the transition data of the Import
+        :returns: A tuple of SSHCommandResult and a Dictionary containing the
+            transition data of the Import
 
         """
         result = cls.organization(options)
@@ -240,8 +240,8 @@ class Import(Base):
     def user_with_tr_data(cls, options=None):
         """Import Users (from spacewalk-report users).
 
-        :returns: A tuple of SSHCommandResult and a Dictionary containing
-        the transition data of the Import
+        :returns: A tuple of SSHCommandResult and a Dictionary containing the
+            transition data of the Import
 
         """
         result = cls.user(options)
@@ -258,8 +258,8 @@ class Import(Base):
     def host_collection_with_tr_data(cls, options=None):
         """Import Host Collections (from spacewalk-report system-groups).
 
-        :returns: A tuple of SSHCommandResult and a Dictionary containing
-        the transition data of the Import
+        :returns: A tuple of SSHCommandResult and a Dictionary containing the
+            transition data of the Import
 
         """
         result = cls.host_collection(options)
@@ -277,8 +277,8 @@ class Import(Base):
         """Create puppet-modules from Configuration Channel content (from
         spacewalk-report config-files-latest).
 
-        :returns: A tuple of SSHCommandResult and a List containing
-        the transition data of the Import
+        :returns: A tuple of SSHCommandResult and a List containing the
+            transition data of the Import
 
         """
         result = cls.config_file(options)
@@ -302,8 +302,8 @@ class Import(Base):
         """Create Content Views based on local/cloned Channels (from
         spacewalk-export-channels).
 
-        :returns: A tuple of SSHCommandResult and a Dictionary containing
-        the transition data of the Import
+        :returns: A tuple of SSHCommandResult and a Dictionary containing the
+            transition data of the Import
 
         """
         result = cls.content_view(options)
@@ -320,8 +320,8 @@ class Import(Base):
     def repository_with_tr_data(cls, options=None):
         """Import repositories (from spacewalk-report repositories).
 
-        :returns: A tuple of SSHCommandResult and a List containing
-        the transition data of the Import
+        :returns: A tuple of SSHCommandResult and a List containing the
+            transition data of the Import
 
         """
         result = cls.repository(options)

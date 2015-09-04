@@ -968,7 +968,7 @@ class ConcurrentTestCase(TestCase):
         """Refactor out concurrent repository synchronization test case
 
         :param int current_num_threads: The number of threads
-        :param boolean is_initial_sync: Decide whether resync or initial sync
+        :param bool is_initial_sync: Decide whether resync or initial sync
         :return dict time_result_dict: Contain a list of X # of timings
 
         """
