@@ -86,6 +86,7 @@ class VirtualMachine(object):
         self.hostname = None
         self.ip_addr = None
         self._created = False
+        self._subscribed = False
         self._target_image = str(id(self))
 
     def create(self):
@@ -144,6 +145,8 @@ class VirtualMachine(object):
         """Destroys the virtual machine on the provisioning server"""
         if not self._created:
             return
+        if self._subscribed:
+            self.unregister()
 
         ssh.command(
             u'virsh destroy {0}'.format(self.hostname),
@@ -232,11 +235,23 @@ class VirtualMachine(object):
             registration.
 
         """
-        return self.run(
+        result = self.run(
             u'subscription-manager register --activationkey {0} '
             '--org {1} --force'
             .format(activation_key, org)
         )
+        if result.return_code == 0:
+            self._subscribed = True
+        return result
+
+    def unregister(self):
+        """Run subscription-manager unregister.
+
+        :return: SSHCommandResult instance filled with the result of the
+            unregistration.
+
+        """
+        return self.run(u'subscription-manager unregister')
 
     def run(self, cmd):
         """Runs a ssh command on the virtual machine

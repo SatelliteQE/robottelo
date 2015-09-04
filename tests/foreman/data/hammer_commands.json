@@ -7203,7 +7203,7 @@
                 },
                 {
                   "help": "",
-                  "name": "cpu-sets",
+                  "name": "cpu-set",
                   "shortname": null,
                   "value": "CPU_SETS"
                 },
