@@ -55,8 +55,7 @@ class Domain(UITestCase):
             element = self.domain.search(description)
             self.assertIsNotNone(element)
 
-    @data(*generate_strings_list())
-    def test_remove_domain(self, name):
+    def test_remove_domain(self):
         """@Test: Delete a domain
 
         @Feature: Domain - Delete
@@ -64,6 +63,7 @@ class Domain(UITestCase):
         @Assert: Domain is deleted
 
         """
+        name = gen_string('alpha')
         domain_name = description = DOMAIN % name
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)

@@ -11,7 +11,7 @@ from robottelo.common.constants import INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
 from robottelo.common.helpers import (
     generate_strings_list, invalid_names_list, invalid_values_list)
 from robottelo.common.decorators import (
-    data, run_only_on, skip_if_bug_open, stubbed, bz_bug_is_open)
+    data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_lifecycle_environment, make_org
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -251,13 +251,13 @@ class Org(UITestCase):
             # So switching to Default Org and then deleting.
             session.nav.go_to_select_org('Default Organization')
             self.org.remove(org_name)
+            session.nav.go_to_dashboard()
             status = self.org.search(org_name)
-            if bz_bug_is_open(1251926):
-                # Check for at max Five times, the org is deleted
-                for _ in range(5):
-                    status = self.org.search(org_name)
-                    if status is None:
-                        break
+            # Check for at least ten times that org is deleted due #1225588
+            for _ in range(10):
+                status = self.org.search(org_name)
+                if status is None:
+                    break
             self.assertIsNone(status)
 
     # Negative Delete

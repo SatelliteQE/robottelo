@@ -41,7 +41,7 @@ class UserGroup(Base):
         """Searches existing usergroup from UI."""
         return self.search_entity(name, locators['usergroups.usergroup'])
 
-    def delete(self, name, really):
+    def delete(self, name, really=True):
         """Delete existing usergroup."""
         self.delete_entity(
             name,
