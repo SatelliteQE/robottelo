@@ -137,20 +137,33 @@ class Settings(UITestCase):
         tab_locator = tab_locators['settings.tab_general']
         param_name = 'entries_per_page'
         with Session(self.browser) as session:
-            edit_param(
-                session,
-                tab_locator=tab_locator,
-                param_name=param_name,
-                value_type='input',
-                param_value=param_value,
-            )
-            saved_element = self.settings.get_saved_value(
+            self.navigator.go_to_settings()
+            original_value = self.settings.get_saved_value(
                 tab_locator, param_name)
-            # UI automatically strips leading zeros on save,
-            # e.g. If param_value = '01400' then UI saves it as '1400'
-            # so using 'lstrip' to strip leading zeros from variable
-            # 'param_value' too
-            self.assertEqual(param_value.lstrip('0'), saved_element)
+            try:
+                edit_param(
+                    session,
+                    tab_locator=tab_locator,
+                    param_name=param_name,
+                    value_type='input',
+                    param_value=param_value,
+                )
+                saved_element = self.settings.get_saved_value(
+                    tab_locator, param_name)
+                # UI automatically strips leading zeros on save,
+                # e.g. If param_value = '01400' then UI saves it as '1400'
+                # so using 'lstrip' to strip leading zeros from variable
+                # 'param_value' too
+                self.assertEqual(param_value.lstrip('0'), saved_element)
+            finally:
+                # Restore previous value
+                edit_param(
+                    session,
+                    tab_locator=tab_locator,
+                    param_name=param_name,
+                    value_type='input',
+                    param_value=original_value,
+                )
 
     @skip_if_bug_open('bugzilla', 1125181)
     @data(
