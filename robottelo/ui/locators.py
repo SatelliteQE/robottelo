@@ -2012,7 +2012,8 @@ locators = LocatorDict({
         By.ID, "content"),
     "insights.unregister_system": (
         By.XPATH, (
-            "//table/tbody/tr/td[5]/a")),
+            "//td[contains(*,'%s')]/../td/a[@class='fa fa-close blacklist' "
+            "and contains(@title,'Unregister System')]")),
     "insights.unregister_button": (
         By.XPATH, (
             "//div[@class='sweet-alert showSweetAlert visible']//"

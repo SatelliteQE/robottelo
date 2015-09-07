@@ -70,7 +70,6 @@ class RHAITestCase(UITestCase):
                 self.ak_name,
                 self.org_label,
             )
-
             with Session(self.browser) as session:
                 # view clients registered to Red Hat Access Insights
                 session.nav.go_to_select_org(self.org_name)
@@ -125,9 +124,13 @@ class RHAITestCase(UITestCase):
                 Navigator(self.browser).go_to_insights_systems()
                 # Click on the unregister icon 'X' in the table against the
                 # registered system listed.
+                strategy, value = locators['insights.unregister_system']
                 session.nav.click(
-                    locators['insights.unregister_system']
+                    (strategy, value % self.rhai.vm.hostname),
+                    wait_for_ajax=True,
+                    ajax_timeout=40,
                 )
+
                 # Confirm selection for clicking on 'Yes' to unregister the
                 # system
                 session.nav.click(

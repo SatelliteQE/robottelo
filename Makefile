@@ -2,6 +2,7 @@
 
 FOREMAN_API_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), api)
 FOREMAN_CLI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), cli)
+FOREMAN_RHAI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhai)
 FOREMAN_RHCI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhci)
 FOREMAN_SMOKE_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), smoke)
 FOREMAN_TESTS_PATH=tests/foreman/
@@ -60,6 +61,9 @@ test-foreman-cli-threaded:
 	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_CLI_TESTS_PATH)\
 	    --processes=-1 --process-timeout=300
 
+test-foreman-rhai:
+	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_RHAI_TESTS_PATH)
+
 test-foreman-rhci:
 	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_RHCI_TESTS_PATH)
 
@@ -81,5 +85,6 @@ lint:
 # Special Targets -------------------------------------------------------------
 
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
-        test-foreman-api test-foreman-cli test-foreman-rhci test-foreman-ui \
-        test-foreman-ui-xvfb test-foreman-smoke graph-entities lint
+        test-foreman-api test-foreman-cli test-foreman-rhai test-foreman-rhci \
+        test-foreman-ui test-foreman-ui-xvfb test-foreman-smoke \
+        graph-entities lint
