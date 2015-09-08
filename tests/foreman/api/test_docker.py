@@ -953,56 +953,6 @@ class DockerActivationKeyTestCase(APITestCase):
         self.assertIsNone(ak.update(['content_view']).content_view)
 
 
-@ddt
-class DockerClientTestCase(APITestCase):
-    """Tests specific to using ``Docker`` as a client to pull Docker images
-    from a Satellite 6 instance."""
-
-    @classmethod
-    def setUpClass(cls):
-        """Create an organization and product which can be re-used in tests."""
-        super(DockerClientTestCase, cls).setUpClass()
-        cls.org = entities.Organization().create()
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_docker_client_pull_image(self):
-        """@Test: A Docker-enabled client can use ``docker pull`` to pull a
-        Docker image off a Satellite 6 instance.
-
-        @Steps:
-
-        1. Publish and promote content view with Docker content
-        2. Register Docker-enabled client against Satellite 6.
-
-        @Assert: Client can pull Docker images from server and run it.
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_docker_client_upload_image(self):
-        """@Test: A Docker-enabled client can create a new ``Dockerfile``
-        pointing to an existing Docker image from a Satellite 6 and modify it.
-        Then, using ``docker build`` generate a new image which can then be
-        uploaded back onto the Satellite 6 as a new repository.
-
-        @Steps:
-
-        1. Publish and promote content view with Docker content
-        2. Register Docker-enabled client against Satellite 6.
-
-        @Assert: Client can create a new image based off an existing Docker
-        image from a Satellite 6 instance, add a new package and upload the
-        modified image (plus layer) back to the Satellite 6.
-
-        @Status: Manual
-
-        """
-
-
 @run_only_on('sat')
 @ddt
 class DockerComputeResourceTestCase(APITestCase):
@@ -1347,6 +1297,8 @@ class DockerContainersTestCase(APITestCase):
         self.assertNotEqual(container.logs()['logs'], u'')
 
     @stubbed()
+    # Return to that case once BZ 1230710 is fixed (with adding
+    # DockerRegistryContainer class to Nailgun)
     def test_create_container_external_registry(self):
         """@Test: Create a container pulling an image from a custom external
         registry
