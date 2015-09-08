@@ -77,12 +77,10 @@ admin.password=changeme
 driver=firefox
 
 [insights]
-# Provide link to rhel6/7 repo here, as redhat-access-insights client rpm
-# would require packages from RHEL 6/7 repo and syncing the entire repo
-# on the fly would take longer for tests to run
-# Specify the link to an internal repo for the RHAI tests to execute properly
-# rhel6_repo=http://example.org/released/RHEL-6/6.x/Server/x86_64/os/
-# rhel7_repo=http://example.org/released/RHEL-7/7.x/Server/x86_64/os/
+# Provide link to el6/el7 repo to fetch the redhat-access-insights client rpm
+# (if required)
+# insights_el6repo=https://www.example.com/insights-client/repo/insights-client-6.repo
+# insights_el7repo=https://www.example.com/insights-client/repo/insights-client-7.repo
 
 # Section for declaring Sat5->Sat6 transition parameters
 [transitions]
