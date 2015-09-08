@@ -6,7 +6,7 @@ from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.factory import CLIFactoryError, make_org, make_sync_plan
 from robottelo.cli.syncplan import SyncPlan
-from robottelo.common.decorators import data
+from robottelo.common.decorators import data, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 
@@ -491,3 +491,16 @@ class TestSyncPlan(CLITestCase):
             0,
             "Expected an error here"
         )
+
+    @skip_if_bug_open('bugzilla', 1261122)
+    def test_bz1261122_enabled_state_visible(self):
+        """@Test: Check if Enabled field is displayed in sync-plan info output
+
+        @Feature: Sync Plan Info
+
+        @Assert: Sync plan Enabled state is displayed
+
+        """
+        new_sync_plan = self._make_sync_plan()
+        result = SyncPlan.info({'id': new_sync_plan['id']})
+        self.assertIsNotNone(result.stdout.get('enabled'))
