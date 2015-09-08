@@ -15,15 +15,27 @@ from robottelo.ui.session import Session
 @ddt
 class DiscoveryRules(UITestCase):
     """Implements Foreman discovery Rules in UI."""
+
     @classmethod
-    def setUpClass(cls):  # noqa
-        org_attrs = entities.Organization().create_json()
-        cls.hostgroup_name = entities.HostGroup().create_json()['name']
-        cls.org_name = org_attrs['name']
-        cls.org_id = org_attrs['id']
-        cls.org_label = org_attrs['label']
+    def setUpClass(cls):
+        """Display all the discovery rules on the same page"""
+        cls.per_page = entities.Setting().search(
+            query={'search': 'name="entries_per_page"'})[0]
+        cls.saved_per_page = str(cls.per_page.value)
+        cls.per_page.value = '100000'
+        cls.per_page.update({'value'})
+
+        cls.host_group = entities.HostGroup().create()
 
         super(DiscoveryRules, cls).setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        """Restore previous 'entries_per_page' value"""
+        cls.per_page.value = cls.saved_per_page
+        cls.per_page.update({'value'})
+
+        super(DiscoveryRules, cls).tearDownClass()
 
     @data(*generate_strings_list(len1=8))
     def test_positive_create_discovery_rule_1(self, name):
@@ -36,7 +48,7 @@ class DiscoveryRules(UITestCase):
         """
         with Session(self.browser) as session:
             make_discoveryrule(session, name=name,
-                               hostgroup=self.hostgroup_name)
+                               hostgroup=self.host_group.name)
             self.assertIsNotNone(self.discoveryrules.search(name))
 
     def test_positive_create_discovery_rule_2(self):
@@ -50,7 +62,7 @@ class DiscoveryRules(UITestCase):
         name = gen_string('alpha', 255)
         with Session(self.browser) as session:
             make_discoveryrule(session, name=name,
-                               hostgroup=self.hostgroup_name)
+                               hostgroup=self.host_group.name)
             self.assertIsNotNone(self.discoveryrules.search(name))
 
     def test_negative_create_discovery_rule_1(self):
@@ -64,7 +76,7 @@ class DiscoveryRules(UITestCase):
         name = gen_string('alpha', 256)
         with Session(self.browser) as session:
             make_discoveryrule(session, name=name,
-                               hostgroup=self.hostgroup_name)
+                               hostgroup=self.host_group.name)
             self.assertIsNotNone(self.discoveryrules.wait_until_element(
                 common_locators['name_haserror']
             ))
@@ -81,7 +93,7 @@ class DiscoveryRules(UITestCase):
         """
         with Session(self.browser) as session:
             make_discoveryrule(session, name=name,
-                               hostgroup=self.hostgroup_name)
+                               hostgroup=self.host_group.name)
             self.assertIsNotNone(self.discoveryrules.wait_until_element(
                 common_locators['name_haserror']
             ))
@@ -98,8 +110,8 @@ class DiscoveryRules(UITestCase):
         """
         name = gen_string("alpha", 6)
         with Session(self.browser) as session:
-            make_discoveryrule(session, name=name,
-                               hostgroup=self.hostgroup_name, host_limit=limit)
+            make_discoveryrule(session, name=name, host_limit=limit,
+                               hostgroup=self.host_group.name)
             self.assertIsNotNone(self.discoveryrules.wait_until_element(
                 common_locators['haserror']
             ))
@@ -116,10 +128,10 @@ class DiscoveryRules(UITestCase):
         name = gen_string("alpha", 6)
         with Session(self.browser) as session:
             make_discoveryrule(session, name=name,
-                               hostgroup=self.hostgroup_name)
+                               hostgroup=self.host_group.name)
             self.assertIsNotNone(self.discoveryrules.search(name))
             make_discoveryrule(session, name=name,
-                               hostgroup=self.hostgroup_name)
+                               hostgroup=self.host_group.name)
             self.assertIsNotNone(self.discoveryrules.wait_until_element(
                 common_locators['name_haserror']
             ))
@@ -135,7 +147,7 @@ class DiscoveryRules(UITestCase):
         name = gen_string("alpha", 6)
         with Session(self.browser) as session:
             make_discoveryrule(session, name=name,
-                               hostgroup=self.hostgroup_name,
+                               hostgroup=self.host_group.name,
                                priority=gen_string('alpha', 6))
             self.assertIsNotNone(self.discoveryrules.wait_until_element(
                 common_locators['haserror']
@@ -153,7 +165,7 @@ class DiscoveryRules(UITestCase):
         name = gen_string("alpha", 6)
         with Session(self.browser) as session:
             make_discoveryrule(session, name=name,
-                               hostgroup=self.hostgroup_name, enable=True)
+                               hostgroup=self.host_group.name, enable=True)
             self.assertIsNotNone(self.discoveryrules.search(name))
 
     @data(*generate_strings_list(len1=8))
@@ -167,7 +179,7 @@ class DiscoveryRules(UITestCase):
         """
         with Session(self.browser) as session:
             make_discoveryrule(session, name=name,
-                               hostgroup=self.hostgroup_name)
+                               hostgroup=self.host_group.name)
             self.assertIsNotNone(self.discoveryrules.search(name))
             self.discoveryrules.delete(name)
             self.assertIsNone(self.discoveryrules.search(name))
@@ -185,7 +197,7 @@ class DiscoveryRules(UITestCase):
         with Session(self.browser) as session:
             make_discoveryrule(
                 session, name=name,
-                hostgroup=self.hostgroup_name
+                hostgroup=self.host_group.name
             )
             self.assertIsNotNone(
                 self.discoveryrules.search(name)
