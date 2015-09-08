@@ -614,8 +614,10 @@ class TestOrg(CLITestCase):
         try:
             cr_amount = random.randint(3, 5)
             resources = [make_compute_resource() for _ in range(cr_amount)]
-            resource_ids = ','.join(resource['id'] for resource in resources)
-            org = make_org({'compute-resource-ids': resource_ids})
+            org = make_org({
+                'compute-resource-ids':
+                    [resource['id'] for resource in resources],
+            })
         except CLIFactoryError as err:
             self.fail(err)
         self.assertEqual(len(org['compute-resources']), cr_amount)
@@ -740,8 +742,10 @@ class TestOrg(CLITestCase):
         try:
             templates_amount = random.randint(3, 5)
             templates = [make_template() for _ in range(templates_amount)]
-            template_ids = ','.join(template['id'] for template in templates)
-            org = make_org({'config-template-ids': template_ids})
+            org = make_org({
+                'config-template-ids':
+                    [template['id'] for template in templates],
+            })
         except CLIFactoryError as err:
             self.fail(err)
         self.assertGreaterEqual(len(org['templates']), templates_amount)

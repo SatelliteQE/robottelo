@@ -370,11 +370,14 @@ class Base(object):
             options = {}
 
         for key, val in options.items():
-            if val is not None:
-                if val is True:
-                    tail += u' --{0}'.format(key)
-                elif val is not False:
-                    tail += u' --{0}="{1}"'.format(key, val)
+            if val is None:
+                continue
+            if val is True:
+                tail += u' --{0}'.format(key)
+            elif val is not False:
+                if isinstance(val, list):
+                    val = ','.join(str(el) for el in val)
+                tail += u' --{0}="{1}"'.format(key, val)
         cmd = u'{0} {1} {2}'.format(
             cls.command_base,
             cls.command_sub,
