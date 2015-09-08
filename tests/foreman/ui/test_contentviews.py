@@ -7,7 +7,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 from ddt import ddt
 from fauxfactory import gen_string
-from nailgun import client, entities
+from nailgun import entities
 from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
 from robottelo.common import manifests
 from robottelo.common.constants import (
@@ -26,8 +26,7 @@ from robottelo.common.constants import (
 from robottelo.common.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.common.helpers import (
-    invalid_names_list, valid_data_list, get_server_credentials,
-    read_data_file)
+    invalid_names_list, read_data_file, valid_data_list)
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
 from robottelo.ui.locators import common_locators, locators
@@ -42,9 +41,7 @@ class TestContentViewsUI(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        org_attrs = entities.Organization().create_json()
-        cls.org_name = org_attrs['name']
-        cls.org_id = org_attrs['id']
+        cls.organization = entities.Organization().create()
 
         super(TestContentViewsUI, cls).setUpClass()
 
@@ -53,21 +50,19 @@ class TestContentViewsUI(UITestCase):
         """Create product/repo and sync it"""
 
         if not rh_repo:
-            repo_name = repo_name or gen_string("alpha", 8)
+            repo_name = repo_name or gen_string('alpha')
 
             # Creates new custom product via API's
-            product_attrs = entities.Product(
-                organization=org_id or self.org_id
-            ).create_json()
-
+            product = entities.Product(
+                organization=org_id or self.organization
+            ).create()
             # Creates new custom repository via API's
-            repo_attrs = entities.Repository(
+            repo_id = entities.Repository(
                 name=repo_name,
                 url=(repo_url or FAKE_1_YUM_REPO),
                 content_type=(repo_type or REPO_TYPE['yum']),
-                product=product_attrs['id'],
-            ).create_json()
-            repo_id = repo_attrs['id']
+                product=product,
+            ).create().id
         elif rh_repo:
             # Uploads the manifest and returns the result.
             with open(manifests.clone(), 'rb') as manifest:
@@ -81,11 +76,9 @@ class TestContentViewsUI(UITestCase):
                 reposet=rh_repo['reposet'],
                 releasever=rh_repo['releasever'],
             )
-
         # Sync repository
         entities.Repository(id=repo_id).sync()
 
-    @skip_if_bug_open('bugzilla', 1083086)
     @data(*valid_data_list())
     def test_cv_create(self, name):
         """@test: create content views (positive)
@@ -94,19 +87,15 @@ class TestContentViewsUI(UITestCase):
 
         @assert: content views are created
 
-        @BZ: 1083086
-
         """
-
         with Session(self.browser) as session:
-            make_contentview(session, org=self.org_name,
-                             name=name)
+            make_contentview(
+                session, org=self.organization.name, name=name)
             self.assertIsNotNone(
                 self.content_views.search(name),
                 'Failed to find content view %s from %s org' % (
-                    name, self.org_name))
+                    name, self.organization.name))
 
-    @skip_if_bug_open('bugzilla', 1083086)
     @data(*invalid_names_list())
     def test_cv_create_negative(self, name):
         # variations (subject to change):
@@ -118,21 +107,18 @@ class TestContentViewsUI(UITestCase):
         @assert: content views are not created; proper error thrown and
         system handles it gracefully
 
-        @BZ: 1083086
-
         """
-
         with Session(self.browser) as session:
-            make_contentview(session, org=self.org_name,
-                             name=name)
+            make_contentview(
+                session, org=self.organization.name, name=name)
             self.assertTrue(
                 self.content_views.wait_until_element(
                     locators['contentviews.has_error']),
                 'No validation error found for "%s" from %s org' % (
-                    name, self.org_name))
+                    name, self.organization.name))
             self.assertIsNone(self.content_views.search(name))
 
-    def test_cv_end_2_end(self):
+    def test_cv_end_to_end(self):
         """@test: create content view with yum repo, publish it
         and promote it to Library +1 env
 
@@ -148,34 +134,33 @@ class TestContentViewsUI(UITestCase):
         promoted to next selected env
 
         """
-
-        repo_name = gen_string("alpha", 8)
-        env_name = gen_string("alpha", 8)
-        cv_name = gen_string("alpha", 8)
-        publish_version = "Version 1"
-        strategy, value = locators["content_env.select_name"]
+        repo_name = gen_string('alpha')
+        env_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        strategy, value = locators['content_env.select_name']
         with Session(self.browser) as session:
             # Create Life-cycle environment
-            make_lifecycle_environment(session, org=self.org_name,
-                                       name=env_name)
-            self.assertIsNotNone(session.nav.wait_until_element
-                                 ((strategy, value % env_name)))
+            make_lifecycle_environment(
+                session, org=self.organization.name, name=env_name)
+            self.assertIsNotNone(session.nav.wait_until_element(
+                (strategy, value % env_name))
+            )
             # Creates a CV along with product and sync'ed repository
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
-            make_contentview(session, org=self.org_name, name=cv_name)
+            make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
             # Publish and promote CV to next environment
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
-            self.content_views.promote(cv_name, publish_version, env_name)
+                                 (common_locators['alert.success']))
+            self.content_views.promote(cv_name, 'Version 1', env_name)
             self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+                                 (common_locators['alert.success']))
 
     def test_associate_puppet_module(self):
         """@test: create content view with puppet repository
@@ -189,30 +174,28 @@ class TestContentViewsUI(UITestCase):
         @assert: content view is created, updated with puppet module
 
         """
-
         repo_url = FAKE_0_PUPPET_REPO
-        cv_name = gen_string("alpha", 8)
-        puppet_module = "httpd"
-        module_ver = 'Latest'
+        cv_name = gen_string('alpha')
+        puppet_module = 'httpd'
         with Session(self.browser) as session:
-            self.setup_to_create_cv(repo_url=repo_url,
-                                    repo_type=REPO_TYPE['puppet'])
+            self.setup_to_create_cv(
+                repo_url=repo_url, repo_type=REPO_TYPE['puppet'])
             # Create content-view
-            make_contentview(session, org=self.org_name, name=cv_name)
+            make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_puppet_module(
                 cv_name,
                 puppet_module,
-                filter_term=module_ver
+                filter_term='Latest',
             )
         # Workaround to fetch added puppet module name:
         # UI doesn't refresh and populate the added module name
         # until we logout and navigate again to puppet-module tab
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_content_views()
-            module = self.content_views.fetch_puppet_module(cv_name,
-                                                            puppet_module)
+            module = self.content_views.fetch_puppet_module(
+                cv_name, puppet_module)
             self.assertIsNotNone(module)
 
     def test_remove_filter(self):
@@ -223,19 +206,21 @@ class TestContentViewsUI(UITestCase):
         @assert: content views filter removed successfully
 
         """
-        cv_name = gen_string("alpha", 8)
-        filter_name = gen_string("alpha", 8)
-        content_type = FILTER_CONTENT_TYPE['package']
-        filter_type = FILTER_TYPE['exclude']
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_contentview(session, org=self.org_name,
-                             name=cv_name)
+            make_contentview(
+                session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
-            self.content_views.add_filter(cv_name, filter_name,
-                                          content_type, filter_type)
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['package'],
+                FILTER_TYPE['exclude'],
+            )
             self.content_views.remove_filter(cv_name, [filter_name])
-            self.assertIsNone(self.content_views.search_filter
-                              (cv_name, filter_name))
+            self.assertIsNone(self.content_views.search_filter(
+                cv_name, filter_name))
 
     def test_create_package_filter(self):
         """@test: create content views package filter(positive)
@@ -246,28 +231,29 @@ class TestContentViewsUI(UITestCase):
         can be added for inclusion/exclusion
 
         """
-
-        cv_name = gen_string("alpha", 8)
-        filter_name = gen_string("alpha", 8)
-        repo_name = gen_string("alpha", 8)
-        content_type = FILTER_CONTENT_TYPE['package']
-        filter_type = FILTER_TYPE['include']
-        package_names = ['cow', 'bird', 'crow', 'bear']
-        version_types = ['Equal To', 'Greater Than', 'Less Than', 'Range']
-        values = ['0.3', '0.5', '0.5', '4.1']
-        max_values = [None, None, None, '4.6']
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
         with Session(self.browser) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
-            make_contentview(session, org=self.org_name, name=cv_name)
+            make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.content_views.add_filter(cv_name, filter_name,
-                                          content_type, filter_type)
-            self.content_views.add_packages_to_filter(cv_name, filter_name,
-                                                      package_names,
-                                                      version_types,
-                                                      values, max_values)
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['package'],
+                FILTER_TYPE['include'],
+            )
+            self.content_views.add_packages_to_filter(
+                cv_name,
+                filter_name,
+                ['cow', 'bird', 'crow', 'bear'],
+                ['Equal To', 'Greater Than', 'Less Than', 'Range'],
+                ['0.3', '0.5', '0.5', '4.1'],
+                [None, None, None, '4.6'],
+            )
 
     def test_create_package_group_filter(self):
         """@test: create content views package group filter(positive)
@@ -278,27 +264,28 @@ class TestContentViewsUI(UITestCase):
         can be added for inclusion/exclusion
 
         """
-        cv_name = gen_string("alpha", 8)
-        filter_name = gen_string("alpha", 8)
-        repo_name = gen_string("alpha", 8)
-        content_type = FILTER_CONTENT_TYPE['package group']
-        filter_type = FILTER_TYPE['include']
-        package_group = 'mammals'
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
         with Session(self.browser) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
-            make_contentview(session, org=self.org_name, name=cv_name)
+            make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.content_views.add_filter(cv_name, filter_name,
-                                          content_type, filter_type)
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['package group'],
+                FILTER_TYPE['include'],
+            )
             self.content_views.add_remove_package_groups_to_filter(
                 cv_name,
                 filter_name,
-                [package_group]
+                ['mammals']
             )
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
 
     def test_create_errata_filter(self):
         """@test: create content views errata filter(positive)
@@ -309,26 +296,25 @@ class TestContentViewsUI(UITestCase):
         can be added for inclusion/exclusion
 
         """
-
-        cv_name = gen_string("alpha", 8)
-        filter_name = gen_string("alpha", 8)
-        repo_name = gen_string("alpha", 8)
-        content_type = FILTER_CONTENT_TYPE['erratum by id']
-        filter_type = FILTER_TYPE['include']
-        errata_ids = ['RHEA-2012:0001', 'RHEA-2012:0004']
+        cv_name = gen_string('alpha')
+        filter_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
         with Session(self.browser) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
-            make_contentview(session, org=self.org_name, name=cv_name)
+            make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.content_views.add_filter(cv_name, filter_name,
-                                          content_type, filter_type)
-            self.content_views.add_remove_errata_to_filter(cv_name,
-                                                           filter_name,
-                                                           errata_ids)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.content_views.add_filter(
+                cv_name,
+                filter_name,
+                FILTER_CONTENT_TYPE['erratum by id'],
+                FILTER_TYPE['include'],
+            )
+            self.content_views.add_remove_errata_to_filter(
+                cv_name, filter_name, ['RHEA-2012:0001', 'RHEA-2012:0004'])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
 
     @data(*valid_data_list())
     def test_positive_cv_update_name(self, new_name):
@@ -340,11 +326,14 @@ class TestContentViewsUI(UITestCase):
         updated
 
         """
-        name = gen_string("alpha", 8)
-        desc = gen_string("alpha", 15)
+        name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_contentview(session, org=self.org_name,
-                             name=name, description=desc)
+            make_contentview(
+                session,
+                org=self.organization.name,
+                name=name,
+                description=gen_string('alpha', 15),
+            )
             self.assertIsNotNone(self.content_views.search(name))
             self.content_views.update(name, new_name)
             self.assertIsNotNone(self.content_views.search(new_name))
@@ -358,17 +347,14 @@ class TestContentViewsUI(UITestCase):
         @assert: Content View is not updated,  Appropriate error shown.
 
         """
-
-        name = gen_string("alpha", 8)
-        desc = gen_string("alpha", 15)
+        name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_contentview(session, org=self.org_name,
-                             name=name, description=desc)
+            make_contentview(
+                session, org=self.organization.name, name=name)
             self.assertIsNotNone(self.content_views.search(name))
             self.content_views.update(name, new_name)
-            invalid = self.content_views.wait_until_element(common_locators
-                                                            ["alert.error"])
-            self.assertIsNotNone(invalid)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.error']))
             self.assertIsNone(self.content_views.search(new_name))
 
     @data(*valid_data_list())
@@ -381,16 +367,19 @@ class TestContentViewsUI(UITestCase):
         updated
 
         """
-
-        name = gen_string("alpha", 8)
-        desc = gen_string("alpha", 15)
+        name = gen_string('alpha', 8)
+        desc = gen_string('alpha', 15)
         with Session(self.browser) as session:
-            make_contentview(session, org=self.org_name,
-                             name=name, description=desc)
+            make_contentview(
+                session,
+                org=self.organization.name,
+                name=name,
+                description=desc,
+            )
             self.assertIsNotNone(self.content_views.search(name))
             self.content_views.update(name, new_description=new_description)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
 
     def test_negative_cv_update_description(self):
         """@test: Negative update content views - description.
@@ -400,17 +389,16 @@ class TestContentViewsUI(UITestCase):
         @assert: Content View is not updated,  Appropriate error shown.
 
         """
-
-        name = gen_string("alpha", 8)
-        desc = gen_string("alpha", 15)
-        new_description = gen_string("alpha", 256)
+        name = gen_string('alpha', 8)
+        desc = gen_string('alpha', 15)
+        new_description = gen_string('alpha', 256)
         with Session(self.browser) as session:
-            make_contentview(session, org=self.org_name,
+            make_contentview(session, org=self.organization.name,
                              name=name, description=desc)
             self.assertIsNotNone(self.content_views.search(name))
             self.content_views.update(name, new_description=new_description)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.error"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.error']))
 
     @stubbed()
     def test_cv_edit_rh_custom_spin(self):
@@ -431,7 +419,8 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    def test_cv_delete(self):
+    @data(*valid_data_list())
+    def test_cv_delete(self, name):
         """@test: delete content views
 
         @feature: Content Views
@@ -440,21 +429,18 @@ class TestContentViewsUI(UITestCase):
         appears in any content view UI
 
         """
-
-        name = gen_string('latin1', 8)
-
         with Session(self.browser) as session:
-            make_contentview(session, org=self.org_name,
-                             name=name)
+            make_contentview(
+                session, org=self.organization.name, name=name)
             self.assertIsNotNone(
                 self.content_views.search(name),
                 'Failed to find content view %s from %s org' % (
-                    name, self.org_name))
-            self.content_views.delete(name, True)
+                    name, self.organization.name))
+            self.content_views.delete(name)
             self.assertIsNone(
                 self.content_views.search(name),
                 'Content view %s from %s org was not deleted' % (
-                    name, self.org_name))
+                    name, self.organization.name))
 
     def test_cv_composite_create(self):
         # Note: puppet repos cannot/should not be used in this test
@@ -470,12 +456,10 @@ class TestContentViewsUI(UITestCase):
         @assert: Composite content views are created
 
         """
-
-        puppet_module = "httpd"
-        module_ver = 'Latest'
-        cv_name1 = gen_string("alpha", 8)
-        cv_name2 = gen_string("alpha", 8)
-        composite_name = gen_string("alpha", 8)
+        puppet_module = 'httpd'
+        cv_name1 = gen_string('alpha')
+        cv_name2 = gen_string('alpha')
+        composite_name = gen_string('alpha')
         rh_repo = {
             'name': REPOS['rhst7']['name'],
             'product': PRDS['rhel'],
@@ -484,33 +468,33 @@ class TestContentViewsUI(UITestCase):
             'releasever': None,
         }
         # Create new org to import manifest
-        org_attrs = entities.Organization().create_json()
-        org_id = org_attrs['id']
-        org_name = org_attrs['name']
+        org = entities.Organization().create()
         with Session(self.browser) as session:
-            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org_id)
+            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
-            make_contentview(session, org=org_name, name=cv_name2)
+            make_contentview(session, org=org.name, name=cv_name2)
             self.assertIsNotNone(self.content_views.search(cv_name2))
-            self.setup_to_create_cv(repo_url=FAKE_0_PUPPET_REPO,
-                                    repo_type=REPO_TYPE['puppet'],
-                                    org_id=org_id)
+            self.setup_to_create_cv(
+                repo_url=FAKE_0_PUPPET_REPO,
+                repo_type=REPO_TYPE['puppet'],
+                org_id=org.id,
+            )
             # Create content-view
-            make_contentview(session, org=org_name, name=cv_name1)
+            make_contentview(session, org=org.name, name=cv_name1)
             self.assertIsNotNone(self.content_views.search(cv_name1))
             self.content_views.add_puppet_module(
                 cv_name1,
                 puppet_module,
-                filter_term=module_ver
+                filter_term='Latest',
             )
         # Workaround to fetch added puppet module name:
         # UI doesn't refresh and populate the added module name
         # until we logout and navigate again to puppet-module tab
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(org_name)
+            session.nav.go_to_select_org(org.name)
             session.nav.go_to_content_views()
-            module = self.content_views.fetch_puppet_module(cv_name1,
-                                                            puppet_module)
+            module = self.content_views.fetch_puppet_module(
+                cv_name1, puppet_module)
             self.assertIsNotNone(module)
             self.content_views.publish(cv_name1)
             self.content_views.add_remove_repos(cv_name2, [rh_repo['name']])
@@ -520,14 +504,14 @@ class TestContentViewsUI(UITestCase):
         # existing composite-view until we logout and navigate again to
         # puppet-module tab
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(org_name)
+            session.nav.go_to_select_org(org.name)
             session.nav.go_to_content_views()
-            self.content_views.add_remove_cv(composite_name,
-                                             [cv_name1, cv_name2])
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.content_views.add_remove_cv(
+                composite_name, [cv_name1, cv_name2])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
 
-    def test_associate_view_rh_1(self):
+    def test_associate_view_rh(self):
         """@test: associate Red Hat content in a view
 
         @feature: Content Views
@@ -537,7 +521,7 @@ class TestContentViewsUI(UITestCase):
         @assert: RH Content can be seen in a view
 
         """
-        cv_name = gen_string("alpha", 8)
+        cv_name = gen_string('alpha')
         rh_repo = {
             'name': REPOS['rhst7']['name'],
             'product': PRDS['rhel'],
@@ -546,16 +530,15 @@ class TestContentViewsUI(UITestCase):
             'releasever': None
         }
         # Create new org to import manifest
-        org_attrs = entities.Organization().create_json()
-        org_id = org_attrs['id']
+        org = entities.Organization().create()
         with Session(self.browser) as session:
-            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org_id)
+            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
-            make_contentview(session, org=org_attrs['name'], name=cv_name)
+            make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
 
     @stubbed()
     def test_associate_view_rh_custom_spin(self):
@@ -588,17 +571,16 @@ class TestContentViewsUI(UITestCase):
         @assert: Custom content can be seen in a view
 
         """
-
-        cv_name = gen_string("alpha", 8)
-        repo_name = gen_string("alpha", 8)
+        cv_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
         with Session(self.browser) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
-            make_contentview(session, org=self.org_name, name=cv_name)
+            make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
 
     def test_cv_associate_puppet_repo_negative(self):
         # Again, individual modules should be ok.
@@ -611,20 +593,18 @@ class TestContentViewsUI(UITestCase):
         that contains direct puppet repos.
 
         """
-        composite_name = gen_string("alpha", 8)
-        puppet_module = "httpd"
-        module_ver = 'Latest'
+        composite_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_contentview(
                 session,
-                org=self.org_name,
+                org=self.organization.name,
                 name=composite_name,
                 is_composite=True
             )
             self.assertIsNotNone(self.content_views.search(composite_name))
             with self.assertRaises(UIError) as context:
                 self.content_views.add_puppet_module(
-                    composite_name, puppet_module, filter_term=module_ver)
+                    composite_name, 'httpd', filter_term='Latest')
                 self.assertEqual(
                     context.exception.message,
                     'Could not find tab to add puppet_modules'
@@ -639,14 +619,14 @@ class TestContentViewsUI(UITestCase):
         @assert: User cannot add components to the view
 
         """
-        cv1_name = gen_string("alpha", 8)
-        cv2_name = gen_string("alpha", 8)
+        cv1_name = gen_string('alpha')
+        cv2_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_contentview(
-                session, org=self.org_name, name=cv1_name)
+                session, org=self.organization.name, name=cv1_name)
             self.assertIsNotNone(self.content_views.search(cv1_name))
             make_contentview(
-                session, org=self.org_name, name=cv2_name)
+                session, org=self.organization.name, name=cv2_name)
             self.assertIsNotNone(self.content_views.search(cv2_name))
             with self.assertRaises(UIError) as context:
                 self.content_views.add_remove_cv(cv1_name, [cv2_name])
@@ -666,16 +646,16 @@ class TestContentViewsUI(UITestCase):
         @assert: User cannot add repos multiple times to the view
 
         """
-        cv_name = gen_string("alpha", 8)
-        repo_name = gen_string("alpha", 8)
+        cv_name = gen_string('alpha')
+        repo_name = gen_string('alpha')
         with Session(self.browser) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
-            make_contentview(session, org=self.org_name, name=cv_name)
+            make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators["alert.success"]))
+                common_locators['alert.success']))
             with self.assertRaises(UIError) as context:
                 self.content_views.add_remove_repos(cv_name, [repo_name])
                 self.assertEqual(
@@ -697,7 +677,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    def test_cv_promote_rh_1(self):
+    def test_cv_promote_rh(self):
         """@test: attempt to promote a content view containing RH content
 
         @feature: Content Views
@@ -707,7 +687,7 @@ class TestContentViewsUI(UITestCase):
         @assert: Content view can be promoted
 
         """
-        cv_name = gen_string("alpha", 8)
+        cv_name = gen_string('alpha')
         rh_repo = {
             'name': REPOS['rhst7']['name'],
             'product': PRDS['rhel'],
@@ -715,31 +695,28 @@ class TestContentViewsUI(UITestCase):
             'basearch': 'x86_64',
             'releasever': None,
         }
-        env_name = gen_string("alpha", 8)
-        publish_version = "Version 1"
-        strategy, value = locators["content_env.select_name"]
+        env_name = gen_string('alpha')
+        strategy, value = locators['content_env.select_name']
         # Create new org to import manifest
-        org_attrs = entities.Organization().create_json()
-        org_id = org_attrs['id']
-        org_name = org_attrs['name']
+        org = entities.Organization().create()
         with Session(self.browser) as session:
-            make_lifecycle_environment(session, org=org_name,
-                                       name=env_name)
-            self.assertIsNotNone(session.nav.wait_until_element
-                                 ((strategy, value % env_name)))
-            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org_id)
+            make_lifecycle_environment(
+                session, org=org.name, name=env_name)
+            self.assertIsNotNone(session.nav.wait_until_element(
+                (strategy, value % env_name)))
+            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
-            make_contentview(session, org=org_name, name=cv_name)
+            make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
-            self.content_views.promote(cv_name, publish_version, env_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
+            self.content_views.promote(cv_name, 'Version 1', env_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
 
     @stubbed()
     def test_cv_promote_rh_custom_spin(self):
@@ -766,29 +743,28 @@ class TestContentViewsUI(UITestCase):
         @assert: Content view can be promoted
 
         """
-        repo_name = gen_string("alpha", 8)
-        env_name = gen_string("alpha", 8)
-        publish_version = "Version 1"
-        cv_name = gen_string("alpha", 8)
-        strategy, value = locators["content_env.select_name"]
+        repo_name = gen_string('alpha')
+        env_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        strategy, value = locators['content_env.select_name']
         with Session(self.browser) as session:
-            make_lifecycle_environment(session, org=self.org_name,
-                                       name=env_name)
+            make_lifecycle_environment(
+                session, org=self.organization.name, name=env_name)
             self.assertIsNotNone(session.nav.wait_until_element
                                  ((strategy, value % env_name)))
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
-            make_contentview(session, org=self.org_name, name=cv_name)
+            make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
-            self.content_views.promote(cv_name, publish_version, env_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
+            self.content_views.promote(cv_name, 'Version 1', env_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
 
     @stubbed()
     def test_cv_promote_composite(self):
@@ -822,7 +798,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    def test_cv_publish_rh_1(self):
+    def test_cv_publish_rh(self):
         """@test: attempt to publish a content view containing RH content
 
         @feature: Content Views
@@ -832,7 +808,7 @@ class TestContentViewsUI(UITestCase):
         @assert: Content view can be published
 
         """
-        cv_name = gen_string("alpha", 8)
+        cv_name = gen_string('alpha')
         rh_repo = {
             'name': REPOS['rhst7']['name'],
             'product': PRDS['rhel'],
@@ -841,19 +817,18 @@ class TestContentViewsUI(UITestCase):
             'releasever': None,
         }
         # Create new org to import manifest
-        org_attrs = entities.Organization().create_json()
-        org_id = org_attrs['id']
+        org = entities.Organization().create()
         with Session(self.browser) as session:
-            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org_id)
+            self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
             # Create content-view
-            make_contentview(session, org=org_attrs['name'], name=cv_name)
+            make_contentview(session, org=org.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
 
     @stubbed()
     def test_cv_publish_rh_custom_spin(self):
@@ -880,26 +855,25 @@ class TestContentViewsUI(UITestCase):
         @assert: Content view can be published
 
         """
-
-        repo_name = gen_string("alpha", 8)
-        env_name = gen_string("alpha", 8)
-        cv_name = gen_string("alpha", 8)
-        strategy, value = locators["content_env.select_name"]
+        repo_name = gen_string('alpha')
+        env_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        strategy, value = locators['content_env.select_name']
         with Session(self.browser) as session:
-            make_lifecycle_environment(session, org=self.org_name,
-                                       name=env_name)
-            self.assertIsNotNone(session.nav.wait_until_element
-                                 ((strategy, value % env_name)))
+            make_lifecycle_environment(
+                session, org=self.organization.name, name=env_name)
+            self.assertIsNotNone(session.nav.wait_until_element(
+                (strategy, value % env_name)))
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
-            make_contentview(session, org=self.org_name, name=cv_name)
+            make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
             self.content_views.publish(cv_name)
-            self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators["alert.success"]))
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']))
 
     @stubbed()
     def test_cv_publish_composite(self):
@@ -976,13 +950,13 @@ class TestContentViewsUI(UITestCase):
         @assert: Content view can be published
 
         """
-        repo_name = gen_string('alpha', 8)
-        cv_name = gen_string('alpha', 8)
-        copy_cv_name = gen_string('alpha', 8)
+        repo_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        copy_cv_name = gen_string('alpha')
         with Session(self.browser) as session:
             self.setup_to_create_cv(repo_name=repo_name)
             # Create content-view
-            make_contentview(session, org=self.org_name, name=cv_name)
+            make_contentview(session, org=self.organization.name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
             # Add repository to selected CV
             self.content_views.add_remove_repos(cv_name, [repo_name])
@@ -1192,33 +1166,25 @@ class TestContentViewsUI(UITestCase):
         """
         key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
         org = entities.Organization().create()
-        gpgkey_id = entities.GPGKey(
+        gpgkey = entities.GPGKey(
             content=key_content,
-            organization=org.id
-        ).create_json()['id']
+            organization=org,
+        ).create()
         # Creates new product without selecting GPGkey
-        product_id = entities.Product(
-            organization=org.id
-        ).create_json()['id']
+        product = entities.Product(organization=org).create()
         # Creates new repository with GPGKey
         repo = entities.Repository(
             url=FAKE_1_YUM_REPO,
-            product=product_id,
-            gpg_key=gpgkey_id,
+            gpg_key=gpgkey,
+            product=product,
         ).create()
         # sync repository
         repo.sync()
         # Create content view
-        cv = entities.ContentView(
-            organization=org.id
-        ).create()
-        # Associate repository to new content view
-        client.put(
-            cv.path(),
-            {u'repository_ids': [repo.id]},
-            auth=get_server_credentials(),
-            verify=False,
-        ).raise_for_status()
+        cv = entities.ContentView(organization=org).create()
+        cv.repository = [repo]
+        cv = cv.update(['repository'])
+        self.assertEqual(len(cv.repository), 1)
         # Publish content view
         cv.publish()
         # Get published content-view version info
@@ -1278,7 +1244,6 @@ class TestContentViewsUI(UITestCase):
         @Feature: ContentViewVersion
 
         """
-
         org = entities.Organization().create()
         cv = entities.ContentView(
             name=gen_string('alpha'),
@@ -1297,7 +1262,7 @@ class TestContentViewsUI(UITestCase):
             environment=lc_env.id,
             organization=org,
             content_view=cv,
-        ).create_json()
+        ).create()
 
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
@@ -1314,7 +1279,7 @@ class TestContentViewsUI(UITestCase):
             session.nav.go_to_dashboard()
             session.nav.go_to_activation_keys()
             self.activationkey.update(
-                ak['name'],
+                ak.name,
                 content_view=DEFAULT_CV,
                 env=ENVIRONMENT,
             )

@@ -18,8 +18,7 @@ class UserGroup(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        org_attrs = entities.Organization().create_json()
-        cls.org_name = org_attrs['name']
+        cls.organization = entities.Organization().create()
         super(UserGroup, cls).setUpClass()
 
     @skip_if_bug_open('bugzilla', 1142588)
@@ -32,14 +31,10 @@ class UserGroup(UITestCase):
         @Assert: Usergroup is created
 
         """
-
-        user_name = gen_string("alpha", 6)
-        password = gen_string("alpha", 6)
+        user_name = gen_string('alpha')
+        password = gen_string('alpha')
         # Create a new user
-        entities.User(
-            login=user_name,
-            password=password,
-        ).create_json()
+        entities.User(login=user_name, password=password).create()
 
         with Session(self.browser) as session:
             make_usergroup(session, name=group_name, users=[user_name])
@@ -47,7 +42,7 @@ class UserGroup(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1142588)
     @data(*generate_strings_list(len1=256))
-    def test_negative_create_usergroup_1(self, group_name):
+    def test_negative_create_usergroup_with_too_long_name(self, group_name):
         """@Test: Create a new UserGroup with 256 characters in name
 
         @Feature:  Usergroup - Negative Create
@@ -55,15 +50,15 @@ class UserGroup(UITestCase):
         @Assert:  Usergroup is not created
 
         """
-
         with Session(self.browser) as session:
-            make_usergroup(session, org=self.org_name, name=group_name)
-            self.assertIsNotNone(self.usergroup.wait_until_element
-                                 (common_locators["name_haserror"]))
+            make_usergroup(
+                session, org=self.organization.name, name=group_name)
+            self.assertIsNotNone(self.usergroup.wait_until_element(
+                common_locators['name_haserror']))
             self.assertIsNone(self.usergroup.search(group_name))
 
-    @data(" ", "")
-    def test_negative_create_usergroup_2(self, group_name):
+    @data('', ' ')
+    def test_negative_create_usergroup_with_blank_name(self, group_name):
         """@Test: Create a new UserGroup with blank and whitespace in name
 
         @Feature: Usergroup - Negative Create
@@ -71,14 +66,14 @@ class UserGroup(UITestCase):
         @Assert: Usergroup is not created
 
         """
-
         with Session(self.browser) as session:
-            make_usergroup(session, org=self.org_name, name=group_name)
-            self.assertIsNotNone(self.usergroup.wait_until_element
-                                 (common_locators["name_haserror"]))
+            make_usergroup(
+                session, org=self.organization.name, name=group_name)
+            self.assertIsNotNone(self.usergroup.wait_until_element(
+                common_locators['name_haserror']))
 
     @data(*generate_strings_list())
-    def test_negative_create_usergroup_3(self, group_name):
+    def test_negative_create_usergroup_with_same_name(self, group_name):
         """@Test: Create a new UserGroup with same name
 
         @Feature: Usergroup - Negative Create
@@ -86,13 +81,14 @@ class UserGroup(UITestCase):
         @Assert: Usergroup cannot be  created with existing name
 
         """
-
         with Session(self.browser) as session:
-            make_usergroup(session, org=self.org_name, name=group_name)
+            make_usergroup(
+                session, org=self.organization.name, name=group_name)
             self.assertIsNotNone(self.usergroup.search(group_name))
-            make_usergroup(session, org=self.org_name, name=group_name)
-            self.assertIsNotNone(self.usergroup.wait_until_element
-                                 (common_locators["name_haserror"]))
+            make_usergroup(
+                session, org=self.organization.name, name=group_name)
+            self.assertIsNotNone(self.usergroup.wait_until_element(
+                common_locators['name_haserror']))
 
     @skip_if_bug_open('bugzilla', 1142588)
     @data(*generate_strings_list())
@@ -104,18 +100,17 @@ class UserGroup(UITestCase):
         @Assert: Usergroup is deleted
 
         """
-
         with Session(self.browser) as session:
-            make_usergroup(session, org=self.org_name, name=group_name)
+            make_usergroup(
+                session, org=self.organization.name, name=group_name)
             self.assertIsNotNone(self.usergroup.search(group_name))
-            self.usergroup.delete(group_name, True)
-            self.assertIsNotNone(self.usergroup.wait_until_element
-                                 (common_locators["notif.success"]))
+            self.usergroup.delete(group_name)
+            self.assertIsNotNone(self.usergroup.wait_until_element(
+                common_locators['notif.success']))
             self.assertIsNone(self.usergroup.search(group_name))
 
     @skip_if_bug_open('bugzilla', 1142588)
-    @data(*generate_strings_list())
-    def test_remove_usergroup(self, group_name):
+    def test_remove_usergroup(self):
         """@Test: Delete an Usergroup that contains a user
 
         @Feature: Usergroup - Positive Delete
@@ -123,34 +118,25 @@ class UserGroup(UITestCase):
         @Assert: Usergroup is deleted but not the added user
 
         """
-
-        user_name = gen_string("alpha", 6)
-        password = gen_string("alpha", 6)
+        user_name = gen_string('alpha')
+        password = gen_string('alpha')
+        group_name = gen_string('utf8')
         # Create a new user
-        entities.User(login=user_name, password=password).create_json()
+        entities.User(login=user_name, password=password).create()
 
         with Session(self.browser) as session:
             make_usergroup(session, name=group_name, users=[user_name])
             self.assertIsNotNone(self.usergroup.search(group_name))
-            self.usergroup.delete(group_name, True)
-            self.assertIsNotNone(self.usergroup.wait_until_element
-                                 (common_locators["notif.success"]))
+            self.usergroup.delete(group_name)
+            self.assertIsNotNone(self.usergroup.wait_until_element(
+                common_locators['notif.success']))
             self.assertIsNone(self.usergroup.search(group_name))
-            self.assertIsNotNone(self.user.search
-                                 (name=user_name, search_key="login"))
+            self.assertIsNotNone(self.user.search(
+                name=user_name, search_key='login'))
 
     @skip_if_bug_open('bugzilla', 1142588)
-    @data({'name': gen_string("alpha", 6),
-           'new_name': gen_string("alpha", 6)},
-          {'name': gen_string("alphanumeric", 6),
-           'new_name': gen_string("alphanumeric", 6)},
-          {'name': gen_string("numeric", 6),
-           'new_name': gen_string("numeric", 6)},
-          {'name': gen_string("utf8", 6),
-           'new_name': gen_string("utf8", 6)},
-          {'name': gen_string("latin1", 6),
-           'new_name': gen_string("latin1", 6)})
-    def test_update_usergroup(self, test_data):
+    @data(*generate_strings_list())
+    def test_update_usergroup(self, new_name):
         """@Test: Update usergroup with name or users
 
         @Feature: Usergroup - Positive Update
@@ -158,12 +144,11 @@ class UserGroup(UITestCase):
         @Assert: Usergroup is updated
 
         """
-        name = test_data['name']
-        new_name = test_data['new_name']
-        user_name = gen_string("alpha", 6)
-        password = gen_string("alpha", 6)
+        name = gen_string('alpha')
+        user_name = gen_string('alpha')
+        password = gen_string('alpha')
         # Create a new user
-        entities.User(login=user_name, password=password).create_json()
+        entities.User(login=user_name, password=password).create()
         with Session(self.browser) as session:
             make_usergroup(session, name=name)
             self.assertIsNotNone(self.usergroup.search(name))

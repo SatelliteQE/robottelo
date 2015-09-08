@@ -17,12 +17,12 @@ class SubscriptionTestCase(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        cls.org_name = entities.Organization().create_json()['name']
+        cls.organization = entities.Organization().create()
 
         super(SubscriptionTestCase, cls).setUpClass()
 
     @skipRemote
-    def test_positive_upload_1(self):
+    def test_positive_upload_basic(self):
         """@Test: Upload a manifest with minimal input parameters
 
         @Feature: Manifest/Subscription - Positive Create
@@ -30,39 +30,35 @@ class SubscriptionTestCase(UITestCase):
         @Assert: Manifest is uploaded
 
         """
-
-        alert_loc = common_locators['alert.success']
         manifest_path = manifests.clone()
         # upload_file function should take care of uploading to sauce labs.
         upload_file(manifest_path, remote_file=manifest_path)
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_red_hat_subscriptions()
             self.subscriptions.upload(manifest_path)
-            success_ele = self.subscriptions.wait_until_element(alert_loc)
-            self.assertTrue(success_ele)
+            self.assertTrue(self.subscriptions.wait_until_element(
+                common_locators['alert.success']))
 
     @skipRemote
-    def test_positive_delete_1(self):
-        """@Test: Upload a manifest and delete the manifest.
+    def test_positive_delete(self):
+        """@Test: Upload a manifest and then delete it
 
         @Feature: Manifest/Subscription - Positive Delete
 
-        @Assert: Manifest is Deleted successfully
+        @Assert: Manifest is deleted successfully
 
         """
-
-        alert_loc = common_locators['alert.success']
         manifest_path = manifests.clone()
         # upload_file function should take care of uploading to sauce labs.
         upload_file(manifest_path, remote_file=manifest_path)
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_red_hat_subscriptions()
             self.subscriptions.upload(manifest_path)
             self.subscriptions.delete()
-            success_ele = self.subscriptions.wait_until_element(alert_loc)
-            self.assertTrue(success_ele)
+            self.assertTrue(self.subscriptions.wait_until_element(
+                common_locators['alert.success']))
 
     @skipRemote
     def test_assert_delete_button(self):
@@ -70,21 +66,21 @@ class SubscriptionTestCase(UITestCase):
 
         @Feature: Manifest/Subscription - Positive Delete
 
-        @Assert: Manifest is Deleted. Delete button is asserted . Subscriptions
+        @Assert: Manifest is Deleted. Delete button is asserted. Subscriptions
         is asserted
 
         """
-        alert_loc = common_locators['alert.success']
-        del_mf = locators['subs.delete_manifest']
         manifest_path = manifests.clone()
         # upload_file function should take care of uploading to sauce labs.
         upload_file(manifest_path, remote_file=manifest_path)
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_red_hat_subscriptions()
             self.subscriptions.upload(manifest_path)
             self.subscriptions.delete()
-            self.assertTrue(self.subscriptions.wait_until_element(alert_loc))
-            self.assertTrue(self.subscriptions.wait_until_element(del_mf))
+            self.assertTrue(self.subscriptions.wait_until_element(
+                common_locators['alert.success']))
+            self.assertTrue(self.subscriptions.wait_until_element(
+                locators['subs.delete_manifest']))
             self.assertIsNone(
                 self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))

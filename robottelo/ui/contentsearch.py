@@ -27,12 +27,9 @@ class ContentSearch(Base):
         more UI elements to be added to the panel.
 
         """
-        self.wait_until_element(
-            locators['contentsearch.open_filter_dropdown']
-        ).click()
-        strategy = locators['contentsearch.select_filter'][0]
-        value = locators['contentsearch.select_filter'][1]
-        self.wait_until_element((strategy, value % filter_type)).click()
+        self.click(locators['contentsearch.open_filter_dropdown'])
+        strategy, value = locators['contentsearch.select_filter']
+        self.click((strategy, value % filter_type))
         self.ft_locator = (filter_type.lower()).replace(' ', '_')
 
     def add_filter(self, filter_type, filter_value, auto_complete=None):
@@ -51,15 +48,12 @@ class ContentSearch(Base):
         """
         self.select_filter_type(filter_type)
         if filter_type == 'Repositories':
-            self.wait_until_element(
-                locators['contentsearch.repositories_auto_radio']
-            ).click()
+            self.click(locators['contentsearch.repositories_auto_radio'])
         self.field_update(
             'contentsearch.{}'.format(self.ft_locator),
             filter_value
         )
-        strategy = locators['contentsearch.autocomplete_field'][0]
-        value = locators['contentsearch.autocomplete_field'][1]
+        strategy, value = locators['contentsearch.autocomplete_field']
         self.wait_until_element((strategy, value % filter_value))
         if auto_complete is not None:
             self.wait_until_element((strategy, value % auto_complete)).click()
@@ -83,9 +77,7 @@ class ContentSearch(Base):
         """
         self.select_filter_type(filter_type)
         if filter_type == 'Repositories':
-            self.wait_until_element(
-                locators['contentsearch.repositories_search_radio']
-            ).click()
+            self.click(locators['contentsearch.repositories_search_radio'])
         self.field_update(
             'contentsearch.{}_search'.format(self.ft_locator),
             filter_value
@@ -116,19 +108,15 @@ class ContentSearch(Base):
         'Union', 'Intersection', 'Difference'
 
         """
-        self.wait_until_element(locators['contentsearch.search']).click()
+        self.click(locators['contentsearch.search'])
         self.scroll_page()
         if result_view is not None:
-            self.wait_until_element(
-                locators['contentsearch.open_view_dropdown']
-            ).click()
-            strategy = locators['contentsearch.select_view'][0]
-            value = locators['contentsearch.select_view'][1]
-            self.wait_until_element((strategy, value % result_view)).click()
+            self.click(locators['contentsearch.open_view_dropdown'])
+            strategy, value = locators['contentsearch.select_view']
+            self.click((strategy, value % result_view))
 
         for entity_name, entity_value, collapse in expected_result_list:
-            strategy = locators['contentsearch.result_entity'][0]
-            value = locators['contentsearch.result_entity'][1]
+            strategy, value = locators['contentsearch.result_entity']
             found = self.wait_until_element((strategy, value % entity_value))
             if found is None:
                 raise UIError(
@@ -136,13 +124,10 @@ class ContentSearch(Base):
                     .format(entity_name, entity_value)
                 )
             if collapse:
-                strategy = locators['contentsearch.result_entity_open_list'][0]
-                value = locators['contentsearch.result_entity_open_list'][1]
+                strategy, value = locators[
+                    'contentsearch.result_entity_open_list']
                 state = self.is_element_visible(
                     (strategy, value % entity_value)
                 )
                 if state:
-                    self.wait_until_element(
-                        (strategy, value % entity_value)
-                    ).click()
-                    self.wait_for_ajax()
+                    self.click((strategy, value % entity_value))

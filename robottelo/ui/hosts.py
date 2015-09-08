@@ -1,7 +1,7 @@
 """Utilities to manipulate hosts via UI."""
-from robottelo.ui.base import Base, UIError
 from robottelo.common.constants import RESOURCE_DEFAULT
-from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.ui.base import Base, UIError
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
@@ -89,12 +89,8 @@ class Hosts(Base):
         # Puppet tab
         if puppet_module:
             self.click(tab_locators['host.tab_puppet'])
-            self.wait_until_element(
-                (strategy1, value1 % puppet_module)
-            ).click()
-            self.wait_until_element(
-                (strategy2, value2 % puppet_module)
-            ).click()
+            self.click((strategy1, value1 % puppet_module))
+            self.click((strategy2, value2 % puppet_module))
 
     def create(self, arch=None, cpus='1', cv=None, custom_ptable=None,
                domain=None, env=None, host_group=None, ip_addr=None,
@@ -191,20 +187,20 @@ class Hosts(Base):
         """Searches existing host from UI."""
         return self.search_entity(name, locators['host.select_name'])
 
-    def delete(self, name, really):
+    def delete(self, name, really=True):
         """Deletes a host."""
         self.delete_entity(
             name,
             really,
             locators['host.select_name'],
             locators['host.delete'],
-            drop_locator=locators['host.dropdown']
+            drop_locator=locators['host.dropdown'],
         )
 
     def update_host_bulkactions(self, host=None, org=None):
         """Updates host via bulkactions"""
         strategy1, value1 = locators['host.checkbox']
-        self.wait_until_element((strategy1, value1 % host)).click()
+        self.click((strategy1, value1 % host))
         self.click(locators['host.select_action'])
         if org:
             self.click(locators['host.assign_org'])

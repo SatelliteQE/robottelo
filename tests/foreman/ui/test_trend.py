@@ -67,9 +67,6 @@ class TrendTest(UITestCase):
         """
         with Session(self.browser) as session:
             make_trend(session, trend_type=TREND_TYPES['environment'])
-            self.trend.delete(
-                trend_name=TREND_TYPES['environment'],
-                really=True,
-            )
+            self.trend.delete(trend_name=TREND_TYPES['environment'])
             search = self.trend.search(TREND_TYPES['environment'])
             self.assertIsNone(search)

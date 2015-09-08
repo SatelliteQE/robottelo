@@ -1,78 +1,65 @@
-"""
-Implements Puppet Classes UI
-"""
+"""Implements Puppet Classes UI"""
 
 from robottelo.ui.base import Base, UINoSuchElementError
-from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
 class PuppetClasses(Base):
-    """
-    Provides the CRUD functionality for Puppet-classes.
-    """
+    """Provides the CRUD functionality for Puppet-classes."""
 
     def create(self, name, environment=None):
-        """
-        Creates the Puppet-classes.
-        """
-        self.wait_until_element(locators["puppetclass.new"]).click()
-        if self.wait_until_element(locators["puppetclass.name"]):
-            self.find_element(locators["puppetclass.name"]).send_keys(name)
+        """Creates the Puppet-classes."""
+        self.click(locators['puppetclass.new'])
+        if self.wait_until_element(locators['puppetclass.name']):
+            self.find_element(locators['puppetclass.name']).send_keys(name)
         if environment:
             self.find_element(
                 locators['puppetclass.environments']).send_keys(environment)
-        self.find_element(common_locators["submit"]).click()
-        self.wait_for_ajax()
+        self.click(common_locators['submit'])
 
     def update(self, old_name, new_name=None, new_env=None):
-        """
-        Updates the Puppet-classes.
-        """
+        """Updates the Puppet-classes."""
         element = self.search(old_name)
         if element:
             element.click()
-            if (self.wait_until_element(locators["puppetclass.name"]) and
+            if (self.wait_until_element(locators['puppetclass.name']) and
                new_name):
-                self.field_update("puppetclass.name", new_name)
+                self.field_update('puppetclass.name', new_name)
             if new_env:
                 self.text_field_update(locators['puppetclass.environments'],
                                        new_env)
-            self.find_element(common_locators["submit"]).click()
-            self.wait_for_ajax()
+            self.click(common_locators['submit'])
 
     def search(self, name):
-        """
-        Searches existing puppet-classes from UI
-        """
+        """Searches existing puppet-classes from UI"""
         Navigator(self.browser).go_to_puppet_classes()
         self.wait_for_ajax()
-        element = self.search_entity(name,
-                                     locators["puppetclass.select_name"])
+        element = self.search_entity(
+            name, locators['puppetclass.select_name'])
         return element
 
-    def delete(self, name, really):
-        """
-        Deletes the puppet-classes.
-        """
-
-        self.delete_entity(name, really, locators["puppetclass.select_name"],
-                           locators['puppetclass.delete'])
+    def delete(self, name, really=True):
+        """Deletes the puppet-classes."""
+        self.delete_entity(
+            name,
+            really,
+            locators['puppetclass.select_name'],
+            locators['puppetclass.delete'],
+        )
 
     def import_scap_client_puppet_classes(self):
         """Imports puppet-foreman_scap_client puppet classes."""
         Navigator(self.browser).go_to_puppet_classes()
         self.wait_for_ajax()
-        self.find_element(locators['puppetclass.import']).click()
+        self.click(locators['puppetclass.import'])
         # Checking if the scap client puppet classes are already imported
         if self.wait_until_element(
                 locators['puppetclass.environment_default_check']):
-            self.find_element(
-                locators['puppetclass.environment_default_check']
-            ).click()
-            self.find_element(locators['puppetclass.update']).click()
+            self.click(locators['puppetclass.environment_default_check'])
+            self.click(locators['puppetclass.update'])
         else:
-            self.find_element(locators['puppetclass.cancel']).click()
+            self.click(locators['puppetclass.cancel'])
 
     def update_class_parameter_description(
             self, class_name=None, parameter_name=None, description=None):
@@ -84,17 +71,16 @@ class PuppetClasses(Base):
             )
         puppet_class.click()
         if self.wait_until_element(tab_locators['puppetclass.parameters']):
-            self.find_element(tab_locators['puppetclass.parameters']).click()
+            self.click(tab_locators['puppetclass.parameters'])
         if self.wait_until_element(
             locators['puppetclass.paramfilter']
         ) and parameter_name:
             self.field_update('puppetclass.paramfilter', parameter_name)
-        self.find_element(locators['puppetclass.parameter']).click()
         if self.wait_until_element(
             locators['puppetclass.param_description']
         ) and description:
             self.field_update('puppetclass.param_description', description)
-        self.find_element(common_locators['submit']).click()
+        self.click(common_locators['submit'])
 
     def fetch_class_parameter_description(
             self, class_name=None, parameter_name=None):
@@ -107,18 +93,16 @@ class PuppetClasses(Base):
             )
         puppet_class.click()
         self.wait_for_ajax()
-        self.find_element(tab_locators['puppetclass.parameters']).click()
-        self.wait_for_ajax()
+        self.click(tab_locators['puppetclass.parameters'])
         if self.wait_until_element(
             locators['puppetclass.paramfilter']
         ) and parameter_name:
             self.field_update('puppetclass.paramfilter', parameter_name)
-        self.find_element(locators['puppetclass.parameter']).click()
         if self.wait_until_element(
             locators['puppetclass.param_description']
         ):
             description = self.find_element(
                 locators['puppetclass.param_description']
             ).text
-        self.find_element(locators['puppetclass.cancel']).click()
+        self.click(locators['puppetclass.cancel'])
         return description

@@ -22,7 +22,7 @@ class Template(Base):
                 .format(name)
             )
         self.find_element(locators['provision.template_name']).send_keys(name)
-        if template_path is None:
+        if not template_path:
             raise UIError(
                 'Could not create blank template "{0}"'.format(name)
             )
