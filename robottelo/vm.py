@@ -272,6 +272,22 @@ class VirtualMachine(object):
 
         return ssh.command(cmd, hostname=self.ip_addr)
 
+    def get(self, remote_path, local_path=None):
+        """Get a remote file from the virtual machine."""
+        if not self._created:
+            raise VirtualMachineError(
+                'The virtual machine should be created before getting any file'
+            )
+        ssh.download_file(remote_path, local_path, hostname=self.ip_addr)
+
+    def put(self, local_path, remote_path=None):
+        """Put a local file to the virtual machine."""
+        if not self._created:
+            raise VirtualMachineError(
+                'The virtual machine should be created before putting any file'
+            )
+        ssh.upload_file(local_path, remote_path, hostname=self.ip_addr)
+
     def fetch_hostname(self):
         """Fetches short hostname from client and the domain from provisioning
         server.
