@@ -22,3 +22,16 @@ class ForemanTasksIdTestCase(APITestCase):
         """
         with self.assertRaises(HTTPError):
             entities.ForemanTask(id='abc123').read()
+
+    def test_summary(self):
+        """@Test: Get a summary of foreman tasks.
+
+        @Assert: A list of dicts is returned.
+
+        @Feature: ForemanTask
+
+        """
+        summary = entities.ForemanTask().summary()
+        self.assertIsInstance(summary, list)
+        for item in summary:
+            self.assertIsInstance(item, dict)
