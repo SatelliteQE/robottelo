@@ -386,8 +386,9 @@ tab_locators = LocatorDict({
 
     "host.tab_puppet": (By.XPATH, "//a[@href='#puppet_klasses']"),
     "host.tab_network": (By.XPATH, "//a[@href='#network']"),
-    "host.tab_os": (By.XPATH, "//a[@href='#os']"),
-    "host.tab_vm": (By.XPATH, "//a[@href='#compute_resource']"),
+    "host.tab_os": (By.XPATH, "//form[@id='new_host']//a[@href='#os']"),
+    "host.tab_vm": (
+        By.XPATH, "//form[@id='new_host']//a[@href='#compute_resource']"),
     "host.tab_params": (By.XPATH, "//a[@href='#params']"),
     "host.tab_info": (By.XPATH, "//a[@href='#info']"),
 
@@ -910,6 +911,9 @@ locators = LocatorDict({
     # host.vm (NOTE:- visible only when selecting a compute resource)
     "host.vm_cpus": (By.ID, "host_compute_attributes_cpus"),
     "host.vm_memory": (By.ID, "host_compute_attributes_memory"),
+    "host.network_type": (
+        By.ID, "host_compute_attributes_nics_attributes_0_type"),
+    "host.network": (By.ID, "host_compute_attributes_nics_attributes_0_type"),
     "host.vm_start": (By.ID, "host_compute_attributes_start"),
     "host.vm_addstorage": (
         By.XPATH, "//fieldset[@id='storage_volumes']/a"),

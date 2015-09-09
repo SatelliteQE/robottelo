@@ -60,7 +60,9 @@ class Hosts(Base):
         if ip_addr:
             self.wait_until_element(locators['host.ip']).send_keys(ip_addr)
         # Operating system tab
+        self.wait_for_ajax()
         if arch or os or media or ptable or custom_ptable or root_pwd:
+            self.scroll_page()
             self.click(tab_locators['host.tab_os'])
         if arch:
             Select(
@@ -97,7 +99,8 @@ class Hosts(Base):
                lifecycle_env=None, loc=None, mac=None, media=None,
                memory='768 MB', name=None, org=None, os=None, ptable=None,
                puppet_ca=None, puppet_master=None, reset_puppetenv=True,
-               resource=None, root_pwd=None, subnet=None):
+               resource=None, root_pwd=None, subnet=None, network_type=None,
+               network=None):
         """Creates a host."""
         self.click(locators['host.new'])
         self.wait_until_element(locators['host.name']).send_keys(name)
@@ -143,6 +146,14 @@ class Hosts(Base):
             Select(
                 self.wait_until_element(locators['host.vm_memory'])
             ).select_by_visible_text(memory)
+        if network_type is not None:
+            Select(
+                self.wait_until_element(locators['host.network_type'])
+            ).select_by_visible_text(network_type)
+        if network is not None:
+            Select(
+                self.wait_until_element(locators['host.network'])
+            ).select_by_visible_text(network)
         self.click(common_locators['submit'])
 
     def update(self, arch=None, cv=None, custom_ptable=None, domain=None,
