@@ -2,6 +2,7 @@
 """Tests for the ``hostgroups`` paths."""
 from fauxfactory import gen_string
 from nailgun import client, entities, entity_fields
+from nailgun.entity_mixins import _get_entity_id
 from robottelo.api.utils import promote
 from robottelo.common.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.common.decorators import skip_if_bug_open, stubbed
@@ -146,6 +147,59 @@ class HostGroupTestCase(APITestCase):
         host_attrs = host.read_json()
         self.assertEqual(len(host_attrs['all_puppetclasses']), 1)
         self.assertEqual(host_attrs['all_puppetclasses'][0]['name'], 'ntp')
+
+
+class MissingAttrTestCase(APITestCase):
+    """Tests to see if the server returns the attributes it should.
+
+    Satellite should return a full description of an entity each time an entity
+    is created, read or updated. These tests verify that certain attributes
+    really are returned. Satellite may name a given attribute in one of several
+    ways, and the ``_get_entity_id`` method knows about all the names that may
+    be assigned to an attribute. For example, this will return ``5``::
+
+        _get_entity_id('content_source', {'content_source_id': 5})
+
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        """Create a ``HostGroup``."""
+        host_group = entities.HostGroup().create()
+        cls.host_group_attrs = host_group.read_json()
+
+    def test_get_content_source(self):
+        """@Test: Read a host group. Inspect the server's response.
+
+        @Assert: The response contains some value for the ``content_source``
+        field.
+
+        @Feature: HostGroup
+
+        """
+        _get_entity_id('content_source', self.host_group_attrs)
+
+    def test_get_content_view(self):
+        """@Test: Read a host group. Inspect the server's response.
+
+        @Assert: The response contains some value for the ``content_view``
+        field.
+
+        @Feature: HostGroup
+
+        """
+        _get_entity_id('content_view', self.host_group_attrs)
+
+    def test_get_lifecycle_environment(self):
+        """@Test: Read a host group. Inspect the server's response.
+
+        @Assert: The response contains some value for the
+        ``lifecycle_environment`` field.
+
+        @Feature: HostGroup
+
+        """
+        _get_entity_id('lifecycle_environment', self.host_group_attrs)
 
 
 class HostGroupTestCaseStub(APITestCase):
