@@ -31,7 +31,7 @@ class VirtualMachineTestCase(unittest.TestCase):
     @patch('time.sleep')
     @patch('robottelo.ssh.command', side_effect=[
         ssh.SSHCommandResult(),
-        ssh.SSHCommandResult(stdout=['(192.168.0.1)'])
+        ssh.SSHCommandResult(stdout=['(192.168.0.1)']),
     ])
     def test_dont_create_if_already_created(
             self, ssh_command, sleep):
@@ -46,7 +46,6 @@ class VirtualMachineTestCase(unittest.TestCase):
         ):
             vm.create()
             vm.create()
-
         self.assertEqual(vm.ip_addr, '192.168.0.1')
         self.assertEqual(ssh_command.call_count, 2)
         self.assertEqual(sleep.call_count, 1)

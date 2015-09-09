@@ -85,6 +85,7 @@ class VirtualMachine(object):
 
         self.hostname = None
         self.ip_addr = None
+        self._domain = None
         self._created = False
         self._subscribed = False
         self._target_image = str(id(self))
@@ -114,9 +115,17 @@ class VirtualMachine(object):
         if self.image_dir is not None:
             command_args.append('-p {image_dir}')
 
+        if self._domain is None:
+            try:
+                self._domain = self.provisioning_server.split('.', 1)[1]
+            except IndexError:
+                raise VirtualMachineError(
+                    u"Failed to fetch domain from provisioning server: {0} "
+                    .format(self.provisioning_server))
+
         command = u' '.join(command_args).format(
             source_image=u'{0}-base'.format(self.distro),
-            target_image=self._target_image,
+            target_image=u'{0}.{1}'.format(self._target_image, self._domain),
             vm_ram=self.ram,
             vm_cpu=self.cpu,
             image_dir=self.image_dir,
@@ -140,7 +149,7 @@ class VirtualMachine(object):
                 'Failed to fetch virtual machine IP address information')
         output = ''.join(result.stdout)
         self.ip_addr = output.split('(')[1].split(')')[0]
-        self.hostname = self._target_image
+        self.hostname = u'{0}.{1}'.format(self._target_image, self._domain)
         self._created = True
 
     def destroy(self):
@@ -292,24 +301,6 @@ class VirtualMachine(object):
                 'The virtual machine should be created before putting any file'
             )
         ssh.upload_file(local_path, remote_path, hostname=self.ip_addr)
-
-    def fetch_hostname(self):
-        """Fetches short hostname from client and the domain from provisioning
-        server.
-
-        :return: Returns the FQDN of the vm/host.
-
-        """
-        # NOTE: We will be using 'hostname -s' as currently the hostname being
-        # returned from virtual machine is short hostname. It is being done to
-        # handle the scenario where in the vm/client might return FQDN for
-        # a different provisioning server.
-        host = self.run('hostname -s')
-        domain = ssh.command(
-            u'hostname -d',
-            hostname=self.provisioning_server
-        )
-        return '{0}.{1}'.format(host.stdout[0], domain.stdout[0])
 
     def configure_rhel_repo(self, rhel_repo):
         """Configures specified Red Hat repository on the virtual machine.

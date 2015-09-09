@@ -56,6 +56,9 @@ from robottelo.ui.medium import Medium
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.org import Org
+from robottelo.ui.oscapcontent import OpenScapContent
+from robottelo.ui.oscappolicy import OpenScapPolicy
+from robottelo.ui.oscapreports import OpenScapReports
 from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.products import Products
 from robottelo.ui.puppetclasses import PuppetClasses
@@ -221,6 +224,9 @@ class UITestCase(TestCase):
         self.user = User(self.browser)
         self.operatingsys = OperatingSys(self.browser)
         self.org = Org(self.browser)
+        self.oscapcontent = OpenScapContent(self.browser)
+        self.oscappolicy = OpenScapPolicy(self.browser)
+        self.oscapreports = OpenScapReports(self.browser)
         self.partitiontable = PartitionTable(self.browser)
         self.puppetclasses = PuppetClasses(self.browser)
         self.products = Products(self.browser)

@@ -88,6 +88,11 @@ FILTER = {
     'os_arch': 'operatingsystem_architecture',
     'os_medium': 'operatingsystem_medium',
     'os_ptable': 'operatingsystem_ptable',
+    'oscap_loc': 'scap_content_location',
+    'oscap_org': 'scap_content_organization',
+    'policy_loc': 'policy_location',
+    'policy_org': 'policy_organization',
+    'policy_hgrp': 'policy_hostgroup',
     'role_org': 'filter_organization',
     'role_permission': 'filter_permission',
     'sub_domain': 'subnet_domain',
@@ -676,4 +681,32 @@ LDAP_ATTR = {
     'firstname': 'givenName',
     'surname': 'sn',
     'mail': 'mail',
+}
+
+OSCAP_PERIOD = {
+    'weekly': 'Weekly',
+    'monthly': 'Monthly',
+    'custom': 'Custom',
+}
+
+OSCAP_WEEKDAY = {
+    'sunday': 'Sunday',
+    'monday': 'Monday',
+    'tuesday': 'Tuesday',
+    'wednesday': 'Wednesday',
+    'thursday': 'Thursday',
+    'friday': 'Friday',
+    'saturday': 'Saturday',
+}
+
+OSCAP_DEFAULT_CONTENT = {
+    'rhel6_content': 'Red Hat rhel6 default content',
+    'rhel7_content': 'Red Hat rhel7 default content',
+}
+
+OSCAP_PROFILE = {
+    'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
+    'rhccp': ('Red Hat Corporate Profile for '
+              'Certified Cloud Providers (RH CCP)'),
+    'usgcb': 'United States Government Configuration Baseline (USGCB)',
 }

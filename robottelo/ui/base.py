@@ -9,6 +9,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
 from selenium.webdriver.support import expected_conditions
+from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
 
@@ -323,6 +324,7 @@ class Base(object):
         txt_field = self.wait_until_element(locator)
         txt_field.clear()
         txt_field.send_keys(newtext)
+        self.wait_for_ajax()
 
     def set_parameter(self, param_name, param_value):
         """
@@ -451,7 +453,7 @@ class Base(object):
               ajax_timeout=30, waiter_timeout=12):
         """Locate the element described by the ``locator`` and click on it.
 
-        :param locator: The locator that decribes the element.
+        :param locator: The locator that describes the element.
         :param wait_for_ajax: Flag that indicates if should wait for AJAX after
             clicking on the element
         :param ajax_timeout: The amount of time that wait_fox_ajax should wait.
@@ -471,3 +473,25 @@ class Base(object):
         element.click()
         if wait_for_ajax:
             self.wait_for_ajax(ajax_timeout)
+
+    def select(self, locator, value, wait_for_ajax=True, timeout=30):
+        """Select the element described by the ``locator``.
+
+        :param locator: The locator that describes the element.
+        :oaram value: The value to select from the dropdown
+        :param wait_for_ajax: Flag that indicates if should wait for AJAX after
+            clicking on the element
+        :param timeout: The amount of time that wait_fox_ajax should wait. This
+            will have effect if ``wait_fox_ajax`` parameter is ``True``.
+        :raise: UINoSuchElementError if the element could not be found.
+
+        """
+        element = self.wait_until_element(locator)
+        if element is None:
+            raise UINoSuchElementError(
+                '{}: element with locator {} not found while trying to select.'
+                .format(type(self).__name__, locator)
+            )
+        Select(element).select_by_visible_text(value)
+        if wait_for_ajax:
+            self.wait_for_ajax(timeout)

@@ -20,6 +20,7 @@ from robottelo.ui.locators import menu_locators
 from robottelo.ui.medium import Medium
 from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.org import Org
+from robottelo.ui.oscappolicy import OpenScapPolicy
 from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.products import Products
 from robottelo.ui.puppetclasses import PuppetClasses
@@ -350,6 +351,9 @@ def make_hostgroup(session, org=None, loc=None, force_context=True, **kwargs):
         u'name': None,
         u'parent': None,
         u'environment': None,
+        u'content_source': None,
+        u'puppet_ca': None,
+        u'puppet_master': None,
     }
     page = session.nav.go_to_host_groups
     core_factory(create_args, kwargs, session, page,
@@ -584,7 +588,7 @@ def make_trend(session, **kwargs):
 
 
 def make_ldapauth(session, **kwargs):
-    """Cretes a Ldap Auth"""
+    """Creates a Ldap Auth"""
     create_args = {
         u'name': None,
         u'server': None,
@@ -601,8 +605,26 @@ def make_ldapauth(session, **kwargs):
         u'account_basedn': None,
         u'account_grpbasedn': None,
         u'ldap_filter': False,
-        u'otf_register': True
+        u'otf_register': True,
     }
     page = session.nav.go_to_ldap_auth
     core_factory(create_args, kwargs, session, page)
     LdapAuthSource(session.browser).create(**create_args)
+
+
+def make_oscappolicy(session, **kwargs):
+    """Creates a OSCAP Policy"""
+    create_args = {
+        u'name': None,
+        u'desc': None,
+        u'content': None,
+        u'profile': None,
+        u'period': None,
+        u'weekday': None,
+        u'org': None,
+        u'loc': None,
+        u'host_group': None,
+    }
+    page = session.nav.go_to_oscap_policy
+    core_factory(create_args, kwargs, session, page)
+    OpenScapPolicy(session.browser).create(**create_args)
