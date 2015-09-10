@@ -149,6 +149,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(host_attrs['all_puppetclasses'][0]['name'], 'ntp')
 
 
+@skip_if_bug_open('bugzilla', 1235377)
 class MissingAttrTestCase(APITestCase):
     """Tests to see if the server returns the attributes it should.
 
