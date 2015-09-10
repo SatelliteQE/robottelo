@@ -1,8 +1,12 @@
 """Unit tests for the ``content_view_versions`` paths."""
 from nailgun import entities
 from robottelo.api.utils import promote
-from robottelo.common.constants import FAKE_1_YUM_REPO, ZOO_CUSTOM_GPG_KEY
-from robottelo.common.helpers import read_data_file
+from robottelo.common.constants import (
+    FAKE_1_YUM_REPO,
+    PUPPET_MODULE_NTP_PUPPETLABS,
+    ZOO_CUSTOM_GPG_KEY,
+)
+from robottelo.common.helpers import get_data_file, read_data_file
 from requests.exceptions import HTTPError
 from robottelo.test import APITestCase
 
@@ -129,3 +133,66 @@ class CVVersionTestCase(APITestCase):
             content_view.version[0].delete()
         # Make sure that content view version is still present
         self.assertEqual(len(content_view.read().version), 1)
+
+    def test_incremental_update_puppet(self):
+        """@Test: Incrementally update a CVV with a puppet module.
+
+        @Assert: The the incremental update succeeds with no errors, and the
+        content view is given an additional version.
+
+        @Feature: ContentViewVersion
+
+        """
+        # Create a content view and add a yum repository to it. Publish the CV.
+        product = entities.Product().create()
+        yum_repo = entities.Repository(
+            content_type='yum',
+            product=product,
+        ).create()
+        content_view = entities.ContentView(
+            organization=product.organization,
+            repository=[yum_repo],
+        ).create()
+        content_view.publish()
+        content_view = content_view.read()
+
+        # Create a puppet repository and upload a puppet module into it.
+        puppet_repo = entities.Repository(
+            content_type='puppet',
+            product=product,
+        ).create()
+        with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
+            puppet_repo.upload_content(files={'content': handle})
+        puppet_module = entities.PuppetModule(
+            id=content_view.available_puppet_modules()['results'][0]['id']
+        )
+
+        # Incrementally update the CVV with the puppet module.
+        payload = {
+            'content_view_version_environments': [{
+                'content_view_version_id': content_view.version[0].id,
+                'environment_ids': [
+                    environment.id
+                    for environment
+                    in content_view.version[0].read().environment
+                ],
+            }],
+            'add_content': {'puppet_module_ids': [puppet_module.id]},
+        }
+        content_view.version[0].incremental_update(data=payload)
+        content_view = content_view.read()
+
+        # The CV now has two versions. The first version has no puppet modules,
+        # and the second version has one puppet module. Let's verify this.
+        # NOTE: The `read_json` lines should be refactored after the 'minor'
+        # attribute is added to the ContentViewVersion entity class.
+        self.assertEqual(len(content_view.version), 2)
+        for i in range(len(content_view.version)):
+            content_view.version[i] = content_view.version[i].read()
+        content_view.version.sort(key=lambda cvv: cvv.read_json()['minor'])
+        self.assertEqual(len(content_view.version[0].puppet_module), 0)
+        self.assertEqual(len(content_view.version[1].puppet_module), 1)
+        self.assertEqual(
+            content_view.version[1].puppet_module[0].id,
+            puppet_module.id,
+        )
