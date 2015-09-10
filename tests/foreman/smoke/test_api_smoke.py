@@ -1,13 +1,18 @@
 # -*- encoding: utf-8 -*-
 """Smoke tests for the ``API`` end-to-end scenario."""
+import httplib
+import random
+
 from fauxfactory import gen_string
 from nailgun import client, entities
+from robottelo import helpers, manifests
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
     promote,
     upload_manifest,
 )
-from robottelo.common.constants import (
+from robottelo.config import conf
+from robottelo.constants import (
     DEFAULT_LOC,
     DEFAULT_ORG,
     DEFAULT_SUBSCRIPTION_NAME,
@@ -17,15 +22,10 @@ from robottelo.common.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.common.decorators import bz_bug_is_open, skip_if_bug_open
-from robottelo.common.helpers import get_nailgun_config
-from robottelo.common import conf
-from robottelo.common import helpers
-from robottelo.common import manifests
+from robottelo.decorators import bz_bug_is_open, skip_if_bug_open
+from robottelo.helpers import get_nailgun_config
 from robottelo.vm import VirtualMachine
 from unittest import TestCase
-import httplib
-import random
 # (too many public methods) pylint: disable=R0904
 
 API_PATHS = {

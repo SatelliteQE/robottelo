@@ -3,7 +3,7 @@
 
 import csv
 
-from robottelo.common import conf
+from robottelo.config import conf
 from robottelo.performance.constants import (
     RAW_SYNC_FILE_NAME,
     STAT_SYNC_FILE_NAME

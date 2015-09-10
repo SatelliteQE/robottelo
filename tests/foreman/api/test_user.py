@@ -5,11 +5,12 @@ tested can be found here: http://theforeman.org/api/apidoc/v2/users.html
 
 """
 import ddt
+
 from fauxfactory import gen_string
 from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
-from robottelo.common import decorators
+from robottelo import decorators
 from robottelo.test import APITestCase
 
 

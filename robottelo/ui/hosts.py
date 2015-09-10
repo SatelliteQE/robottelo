@@ -1,5 +1,5 @@
 """Utilities to manipulate hosts via UI."""
-from robottelo.common.constants import RESOURCE_DEFAULT
+from robottelo.constants import RESOURCE_DEFAULT
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from selenium.webdriver.support.select import Select

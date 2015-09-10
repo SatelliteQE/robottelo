@@ -4,10 +4,10 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.common.constants import (
+from robottelo.constants import (
     INSTALL_MEDIUM_URL, PARTITION_SCRIPT_DATA_FILE)
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
-from robottelo.common.helpers import (
+from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.helpers import (
     get_data_file, invalid_names_list, valid_data_list)
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError

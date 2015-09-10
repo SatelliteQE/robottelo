@@ -9,7 +9,7 @@ References for the relevant paths can be found here:
 from fauxfactory import gen_integer, gen_utf8
 from httplib import NOT_FOUND
 from nailgun import entities
-from robottelo.common.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.test import APITestCase
 
 

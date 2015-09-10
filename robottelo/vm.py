@@ -13,9 +13,9 @@ import logging
 import os
 import time
 
-from robottelo.common import conf, ssh
-from robottelo.common.helpers import get_server_cert_rpm_url
-
+from robottelo import ssh
+from robottelo.config import conf
+from robottelo.helpers import get_server_cert_rpm_url
 
 BASE_IMAGES = (
     'rhel65',
@@ -262,9 +262,9 @@ class VirtualMachine(object):
         """Runs a ssh command on the virtual machine
 
         :param str cmd: Command to run on the virtual machine
-        :return: A :class:`robottelo.common.ssh.SSHCommandResult` instance with
+        :return: A :class:`robottelo.ssh.SSHCommandResult` instance with
             the commands results
-        :rtype: robottelo.common.ssh.SSHCommandResult
+        :rtype: robottelo.ssh.SSHCommandResult
         :raises robottelo.vm.VirtualMachineError: If the virtual machine is not
             created.
 

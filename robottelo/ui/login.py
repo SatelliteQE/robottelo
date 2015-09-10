@@ -2,7 +2,8 @@
 """Implements Login UI"""
 
 import requests
-from robottelo.common.helpers import get_server_url
+
+from robottelo.helpers import get_server_url
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator

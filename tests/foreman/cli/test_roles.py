@@ -3,10 +3,10 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.factory import CLIFactoryError, make_role
-from robottelo.common.constants import NOT_IMPLEMENTED
-from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.test import CLITestCase
 from robottelo.cli.role import Role
+from robottelo.constants import NOT_IMPLEMENTED
+from robottelo.decorators import data, skip_if_bug_open
+from robottelo.test import CLITestCase
 
 
 @ddt

@@ -9,7 +9,7 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
-from robottelo.common.decorators import data
+from robottelo.decorators import data
 from robottelo.test import APITestCase
 
 

@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """UI Tests for the email notification feature"""
 
-from robottelo.common.decorators import stubbed
+from robottelo.decorators import stubbed
 from robottelo.test import UITestCase
 
 

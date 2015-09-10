@@ -2,13 +2,13 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.common import conf
-from robottelo.common.constants import (
+from robottelo.config import conf
+from robottelo.constants import (
     FOREMAN_PROVIDERS,
     LIBVIRT_RESOURCE_URL,
 )
-from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import (
+from robottelo.decorators import data, run_only_on
+from robottelo.helpers import (
     get_external_docker_url,
     invalid_names_list,
     valid_data_list,

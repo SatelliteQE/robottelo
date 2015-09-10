@@ -1,6 +1,6 @@
 """Test class for OpenScap Feature"""
+from robottelo.decorators import stubbed
 from robottelo.test import UITestCase
-from robottelo.common.decorators import stubbed
 
 
 class OpenScap(UITestCase):

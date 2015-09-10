@@ -1,6 +1,6 @@
 """Test module for System Registration UI"""
+from robottelo.decorators import stubbed
 from robottelo.test import UITestCase
-from robottelo.common.decorators import stubbed
 
 
 class SystemRegistrationTestCase(UITestCase):

@@ -4,8 +4,8 @@
 from fauxfactory import gen_string
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.factory import make_architecture, CLIFactoryError
-from robottelo.common.decorators import data
-from robottelo.common.decorators import run_only_on
+from robottelo.decorators import data
+from robottelo.decorators import run_only_on
 from robottelo.test import MetaCLITestCase
 
 

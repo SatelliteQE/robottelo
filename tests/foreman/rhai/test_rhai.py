@@ -1,11 +1,10 @@
 """Tests for Red Hat Access Insights"""
 
-
-from nailgun import entities
 from fauxfactory import gen_string
+from nailgun import entities
+from robottelo import manifests
 from robottelo.api.utils import upload_manifest
-from robottelo.common.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.common import manifests
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.test import UITestCase
 from robottelo.ui.locators import locators
 from robottelo.ui.navigator import Navigator

@@ -1,6 +1,6 @@
 """Test module for System Registration CLI"""
+from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase
-from robottelo.common.decorators import stubbed
 
 
 class SystemRegistrationTestCase(CLITestCase):

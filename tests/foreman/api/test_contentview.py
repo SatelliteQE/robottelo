@@ -7,21 +7,21 @@ from fauxfactory import gen_integer, gen_string, gen_utf8
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
-from robottelo.common import manifests
-from robottelo.common.constants import (
+from robottelo import manifests
+from robottelo.constants import (
     FAKE_0_PUPPET_REPO,
     PRDS,
     PUPPET_MODULE_NTP_PUPPETLABS,
     REPOS,
     REPOSET,
 )
-from robottelo.common.decorators import (
+from robottelo.decorators import (
     bz_bug_is_open,
     data,
     run_only_on,
     stubbed,
 )
-from robottelo.common.helpers import get_data_file
+from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
 

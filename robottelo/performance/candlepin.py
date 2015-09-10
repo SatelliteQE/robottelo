@@ -9,8 +9,9 @@ import logging
 import requests
 import time
 
-from robottelo.common import conf, ssh
-from robottelo.common.helpers import get_server_credentials, get_server_url
+from robottelo import ssh
+from robottelo.config import conf
+from robottelo.helpers import get_server_credentials, get_server_url
 from urlparse import urljoin
 
 LOGGER = logging.getLogger(__name__)

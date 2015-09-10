@@ -1,5 +1,6 @@
 from itertools import izip
-from robottelo.common import conf, ssh
+from robottelo import ssh
+from robottelo.config import conf
 from robottelo.test import CLITestCase
 
 

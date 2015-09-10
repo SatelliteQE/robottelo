@@ -1,13 +1,14 @@
-"""Unit tests for :mod:`robottelo.common.decorators`."""
+"""Unit tests for :mod:`robottelo.decorators`."""
 from ddt import DATA_ATTR
 from fauxfactory import gen_integer
-from robottelo.common import conf, decorators
+from robottelo import decorators
+from robottelo.config import conf
 from unittest import TestCase
 # (Too many public methods) pylint: disable=R0904
 
 
 class DataTestCase(TestCase):
-    """Tests for :func:`robottelo.common.decorators.data`."""
+    """Tests for :func:`robottelo.decorators.data`."""
     def setUp(self):  # noqa pylint:disable=C0103
         self.test_data = ('one', 'two', 'three')
 
@@ -33,7 +34,7 @@ class DataTestCase(TestCase):
 
 
 class BzBugIsOpenTestCase(TestCase):
-    """Tests for :func:`robottelo.common.decorators.bz_bug_is_open`."""
+    """Tests for :func:`robottelo.decorators.bz_bug_is_open`."""
     # (protected-access) pylint:disable=W0212
     def setUp(self):  # noqa pylint:disable=C0103
         """Back up objects and generate common values."""
@@ -76,7 +77,7 @@ class BzBugIsOpenTestCase(TestCase):
 
 
 class RmBugIsOpenTestCase(TestCase):
-    """Tests for :func:`robottelo.common.decorators.rm_bug_is_open`."""
+    """Tests for :func:`robottelo.decorators.rm_bug_is_open`."""
     # (protected-access) pylint:disable=W0212
     def setUp(self):  # noqa pylint:disable=C0103
         """Back up objects and generate common values."""
@@ -114,7 +115,7 @@ class RmBugIsOpenTestCase(TestCase):
 
 
 class RunOnlyOnTestCase(TestCase):
-    """Tests for :func:`robottelo.common.decorators.run_only_on`."""
+    """Tests for :func:`robottelo.decorators.run_only_on`."""
     def setUp(self):  # noqa
         """Backup object."""
         self.project_backup = conf.properties.get('main.project')

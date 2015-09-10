@@ -2,10 +2,10 @@
 
 from ddt import ddt
 from nailgun import entities
-from robottelo.common import manifests
-from robottelo.common.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.common.decorators import skipRemote
-from robottelo.common.ssh import upload_file
+from robottelo import manifests
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.decorators import skipRemote
+from robottelo.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session

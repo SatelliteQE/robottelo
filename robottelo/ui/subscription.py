@@ -1,6 +1,6 @@
 """Implements Subscriptions/Manifest handling for the UI"""
 
-from robottelo.common.helpers import escape_search
+from robottelo.helpers import escape_search
 from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators
 

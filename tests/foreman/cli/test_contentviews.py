@@ -17,19 +17,19 @@ from robottelo.cli.factory import (
     make_repository,
     make_user,
 )
-from robottelo.common import manifests
+from robottelo import manifests
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.subscription import Subscription
-from robottelo.common.constants import FAKE_0_PUPPET_REPO, NOT_IMPLEMENTED
-from robottelo.common.decorators import (
+from robottelo.constants import FAKE_0_PUPPET_REPO, NOT_IMPLEMENTED
+from robottelo.decorators import (
     data,
     run_only_on,
     skip_if_bug_open,
     stubbed,
 )
-from robottelo.common.ssh import upload_file
+from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
 

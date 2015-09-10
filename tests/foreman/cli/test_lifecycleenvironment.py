@@ -6,7 +6,7 @@ from fauxfactory import gen_string
 from robottelo.cli.factory import (
     make_lifecycle_environment, make_org, CLIFactoryError)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.common.decorators import data, run_only_on
+from robottelo.decorators import data, run_only_on
 from robottelo.test import CLITestCase
 
 

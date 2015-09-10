@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Implements Roles UI."""
-from robottelo.common.constants import FILTER
+from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from selenium.webdriver.support.select import Select

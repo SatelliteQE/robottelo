@@ -5,7 +5,7 @@ from fauxfactory import gen_string
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.model import Model
 from robottelo.cli.factory import make_model
-from robottelo.common.decorators import run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.test import MetaCLITestCase
 
 

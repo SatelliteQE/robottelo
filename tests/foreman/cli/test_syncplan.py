@@ -6,7 +6,7 @@ from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.factory import CLIFactoryError, make_org, make_sync_plan
 from robottelo.cli.syncplan import SyncPlan
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.decorators import data, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 

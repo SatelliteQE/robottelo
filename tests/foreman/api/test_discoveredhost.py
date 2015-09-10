@@ -3,7 +3,7 @@
 from ddt import ddt
 from fauxfactory import gen_string, gen_ipaddr, gen_mac
 from nailgun import entities
-from robottelo.common.decorators import stubbed, data, run_only_on
+from robottelo.decorators import stubbed, data, run_only_on
 from robottelo.test import APITestCase
 
 

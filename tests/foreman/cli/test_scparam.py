@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 """Test class for Smart Class Parameter CLI."""
 
+from robottelo import ssh
 from robottelo.cli.smartclass import SmartClassParameter
-from robottelo.common.decorators import run_only_on
-from robottelo.common import ssh
+from robottelo.decorators import run_only_on
 from robottelo.test import CLITestCase
 
 

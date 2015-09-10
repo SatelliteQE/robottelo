@@ -1,8 +1,10 @@
-"""Tests for module ``robottelo.common.ssh``."""
+"""Tests for module ``robottelo.ssh``."""
 # (too-many-public-methods) pylint: disable=R0904
-from robottelo.common import conf, get_app_root, ssh
-from unittest import TestCase
 import os
+
+from robottelo import ssh
+from robottelo.config import conf, get_app_root
+from unittest import TestCase
 
 
 class MockSSHClient(object):
@@ -53,7 +55,7 @@ class MockSSHClient(object):
 
 
 class SSHTestCase(TestCase):
-    """Tests for module ``robottelo.common.ssh``."""
+    """Tests for module ``robottelo.ssh``."""
     def test__get_connection(self):
         """Test method ``_get_connection``.
 

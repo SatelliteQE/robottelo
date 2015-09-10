@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 """Test class for Global parameters CLI"""
 
-from robottelo.cli.globalparam import GlobalParameter
 from fauxfactory import gen_string
-from robottelo.common.decorators import run_only_on
+from robottelo.cli.globalparam import GlobalParameter
+from robottelo.decorators import run_only_on
 from robottelo.test import CLITestCase
 
 

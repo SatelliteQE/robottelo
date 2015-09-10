@@ -4,7 +4,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.common.decorators import bz_bug_is_open, data
+from robottelo.decorators import bz_bug_is_open, data
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_role
 from robottelo.ui.locators import common_locators

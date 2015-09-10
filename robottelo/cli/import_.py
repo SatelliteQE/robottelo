@@ -36,8 +36,8 @@ Subcommands::
     user                          Import Users (from spacewalk-report users).
 
 """
+from robottelo import ssh
 from robottelo.cli.base import Base
-from robottelo.common import ssh
 
 
 class Import(Base):

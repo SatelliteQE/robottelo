@@ -1,6 +1,6 @@
 """Test class for installer (UI)"""
 
-from robottelo.common.decorators import stubbed
+from robottelo.decorators import stubbed
 from robottelo.test import UITestCase
 
 

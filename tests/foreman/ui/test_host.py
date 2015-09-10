@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 from nailgun import entities
-from robottelo.common.constants import ENVIRONMENT
-from robottelo.common.decorators import run_only_on
+from robottelo.constants import ENVIRONMENT
+from robottelo.decorators import run_only_on
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session

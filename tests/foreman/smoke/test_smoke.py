@@ -2,8 +2,8 @@
 import re
 
 from itertools import izip
-from robottelo.common import ssh
-from robottelo.common.helpers import get_host_info, get_server_credentials
+from robottelo import ssh
+from robottelo.helpers import get_host_info, get_server_credentials
 from robottelo.log import LogFile
 from robottelo.test import TestCase
 

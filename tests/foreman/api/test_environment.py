@@ -5,12 +5,13 @@ http://theforeman.org/api/apidoc/v2/environments.html
 
 """
 import random
+
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.entity_mixins import _get_entity_ids
 from requests.exceptions import HTTPError
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import APITestCase
 
 

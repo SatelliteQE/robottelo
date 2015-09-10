@@ -1,5 +1,5 @@
 """Test class for concurrent subscription deletion"""
-from robottelo.common import ssh
+from robottelo import ssh
 from robottelo.performance.constants import (
     RAW_DEL_FILE_NAME,
     STAT_DEL_FILE_NAME,

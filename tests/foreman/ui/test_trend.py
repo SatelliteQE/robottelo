@@ -2,7 +2,7 @@
 """Test class for Trend UI"""
 
 from fauxfactory import gen_string
-from robottelo.common.constants import TREND_TYPES
+from robottelo.constants import TREND_TYPES
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_trend
 from robottelo.ui.session import Session

@@ -4,17 +4,16 @@
 
 from ddt import ddt
 from fauxfactory import gen_string, gen_alphanumeric, gen_integer
+from robottelo import ssh
 from robottelo.cli.factory import CLIFactoryError, make_gpg_key, make_org
 from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
-from robottelo.common import ssh
-from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.decorators import (
+from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
-from robottelo.common.helpers import get_data_file
-from tempfile import mkstemp
+from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
-
+from tempfile import mkstemp
 
 VALID_GPG_KEY_FILE_PATH = get_data_file(VALID_GPG_KEY_FILE)
 

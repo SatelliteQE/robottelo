@@ -2,8 +2,8 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import (
+from robottelo.decorators import data, run_only_on
+from robottelo.helpers import (
     generate_strings_list,
     invalid_values_list,
     valid_data_list,

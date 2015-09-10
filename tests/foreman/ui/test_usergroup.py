@@ -4,8 +4,8 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.common.helpers import generate_strings_list
+from robottelo.decorators import data, skip_if_bug_open
+from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_usergroup
 from robottelo.ui.locators import common_locators

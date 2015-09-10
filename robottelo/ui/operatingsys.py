@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements Operating System UI."""
+from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
-from robottelo.common.constants import FILTER
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select

@@ -1,6 +1,6 @@
 """Unit tests for the ``gpgkeys`` paths."""
 from nailgun import entities
-from robottelo.common.decorators import run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.test import APITestCase
 
 

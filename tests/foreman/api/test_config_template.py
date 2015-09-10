@@ -5,8 +5,8 @@ http://theforeman.org/api/apidoc/v2/config_templates.html
 
 """
 from nailgun import client, entities
-from robottelo.common.decorators import skip_if_bug_open
-from robottelo.common.helpers import get_server_credentials
+from robottelo.decorators import skip_if_bug_open
+from robottelo.helpers import get_server_credentials
 from robottelo.test import APITestCase
 
 

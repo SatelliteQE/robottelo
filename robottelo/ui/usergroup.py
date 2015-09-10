@@ -1,9 +1,8 @@
 # -*- encoding: utf-8 -*-
 """Implements User groups UI."""
-
+from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import locators, common_locators, tab_locators
-from robottelo.common.constants import FILTER
 from selenium.webdriver.support.select import Select
 
 

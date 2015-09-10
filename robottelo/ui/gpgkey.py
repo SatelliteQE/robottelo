@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements GPG keys UI."""
 
-from robottelo.common.helpers import escape_search
+from robottelo.helpers import escape_search
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator

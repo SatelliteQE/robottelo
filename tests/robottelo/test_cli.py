@@ -1,8 +1,8 @@
 import unittest
 
 from robottelo.cli.base import Base
-from robottelo.common import conf
-from robottelo.common.ssh import SSHCommandResult
+from robottelo.config import conf
+from robottelo.ssh import SSHCommandResult
 
 
 class CLIClass(Base):

@@ -5,6 +5,7 @@ http://theforeman.org/api/apidoc/v2/roles.html
 
 """
 import ddt
+
 from fauxfactory import (
     gen_alpha,
     gen_alphanumeric,
@@ -15,7 +16,7 @@ from fauxfactory import (
 )
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.common import decorators
+from robottelo import decorators
 from robottelo.test import APITestCase
 
 

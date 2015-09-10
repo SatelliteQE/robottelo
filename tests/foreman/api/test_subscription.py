@@ -7,7 +7,7 @@ https://<sat6.com>/apidoc/v2/subscriptions.html
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from robottelo.api.utils import upload_manifest
-from robottelo.common import manifests
+from robottelo import manifests
 from robottelo.test import APITestCase
 
 

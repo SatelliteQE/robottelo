@@ -3,9 +3,10 @@ Implements Synchronization for the Repos in the UI
 """
 
 import time
+
 from collections import defaultdict
 from functools import partial
-from robottelo.common.constants import PRDS, REPOSET
+from robottelo.constants import PRDS, REPOSET
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
 

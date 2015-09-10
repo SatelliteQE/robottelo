@@ -3,9 +3,9 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.common.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
-from robottelo.common.helpers import generate_strings_list, get_data_file
+from robottelo.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
+from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.helpers import generate_strings_list, get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_templates

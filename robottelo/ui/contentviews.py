@@ -2,7 +2,8 @@
 """Implements Content Views UI"""
 
 import time
-from robottelo.common.helpers import escape_search
+
+from robottelo.helpers import escape_search
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from selenium.webdriver.support.select import Select

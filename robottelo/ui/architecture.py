@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 """Implements Architecture UI"""
 
+from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
-from robottelo.common.constants import FILTER
 
 
 class Architecture(Base):

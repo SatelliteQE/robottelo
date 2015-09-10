@@ -2,8 +2,8 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.common.decorators import data, run_only_on, stubbed
-from robottelo.common.helpers import (
+from robottelo.decorators import data, run_only_on, stubbed
+from robottelo.helpers import (
     get_external_docker_url,
     get_internal_docker_url,
 )

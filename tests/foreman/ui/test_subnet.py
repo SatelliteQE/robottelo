@@ -4,9 +4,9 @@
 from ddt import ddt
 from fauxfactory import gen_ipaddr, gen_netmask, gen_string
 from nailgun import entities
-from robottelo.common.decorators import (
+from robottelo.decorators import (
     bz_bug_is_open, data, run_only_on)
-from robottelo.common.helpers import generate_strings_list
+from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_subnet
 from robottelo.ui.locators import common_locators, locators, tab_locators

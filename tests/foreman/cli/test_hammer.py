@@ -1,9 +1,9 @@
 """Tests related to hammer command and its options and subcommands."""
 import json
 
+from robottelo import ssh
 from robottelo.cli import hammer
-from robottelo.common import ssh
-from robottelo.common.helpers import bz_bug_is_open, read_data_file
+from robottelo.helpers import bz_bug_is_open, read_data_file
 from robottelo.test import CLITestCase
 
 HAMMER_COMMANDS = json.loads(read_data_file('hammer_commands.json'))

@@ -17,7 +17,7 @@ from robottelo.cli.factory import (
     make_user,
 )
 from robottelo.cli.location import Location
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.decorators import data, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 

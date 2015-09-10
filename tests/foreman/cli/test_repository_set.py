@@ -2,10 +2,10 @@ from robottelo.cli.factory import make_org
 from robottelo.cli.product import Product
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
-from robottelo.common import manifests
-from robottelo.common.constants import PRDS, REPOSET
-from robottelo.common.decorators import skip_if_bug_open
-from robottelo.common.ssh import upload_file
+from robottelo import manifests
+from robottelo.constants import PRDS, REPOSET
+from robottelo.decorators import skip_if_bug_open
+from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
 

@@ -3,7 +3,7 @@
 
 from ddt import ddt
 from fauxfactory import gen_email, gen_string, gen_url
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import edit_param

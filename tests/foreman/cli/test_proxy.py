@@ -1,13 +1,14 @@
 # -*- encoding: utf-8 -*-
 """proxy class for Smart proxy CLI"""
 
+import random
+
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.factory import CLIFactoryError, make_proxy
 from robottelo.cli.proxy import Proxy, default_url_on_new_port
-from robottelo.common.decorators import data, run_only_on
+from robottelo.decorators import data, run_only_on
 from robottelo.test import CLITestCase
-import random
 
 
 @run_only_on('sat')

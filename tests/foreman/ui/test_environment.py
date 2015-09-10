@@ -3,8 +3,8 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
-from robottelo.common.helpers import invalid_values_list
+from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.helpers import invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_env
 from robottelo.ui.locators import common_locators

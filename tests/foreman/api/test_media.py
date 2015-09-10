@@ -1,5 +1,5 @@
 """Tests for the ``media`` paths."""
-from robottelo.common.decorators import run_only_on, stubbed
+from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import APITestCase
 
 

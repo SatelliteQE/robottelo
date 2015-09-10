@@ -2,14 +2,13 @@
 
 from ddt import ddt
 from nailgun import entities
+from robottelo import manifests
 from robottelo.api.utils import upload_manifest
-from robottelo.common.constants import FAKE_1_YUM_REPO
-from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import generate_strings_list
-from robottelo.common import manifests
+from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.decorators import data, run_only_on
+from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
-
 
 RHCT = [('rhel', 'rhct6', 'rhct65', 'repo_name',
          'Red Hat CloudForms Tools for RHEL 6 RPMs x86_64 6.5'),

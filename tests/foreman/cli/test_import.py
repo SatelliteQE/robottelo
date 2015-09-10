@@ -4,25 +4,26 @@ import csv
 import os
 import re
 import tempfile
+
 from ddt import ddt
 from fauxfactory import gen_string
 from itertools import product
 from random import sample
-from robottelo.common import manifests, ssh
-from robottelo.common.decorators import (
-    data,
-    bz_bug_is_open,
-    skip_if_bug_open,
-)
-from robottelo.common.helpers import prepare_import_data
+from robottelo import manifests, ssh
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.import_ import Import
 from robottelo.cli.factory import make_org
 from robottelo.cli.hostcollection import HostCollection
+from robottelo.cli.import_ import Import
 from robottelo.cli.org import Org
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
+from robottelo.decorators import (
+    data,
+    bz_bug_is_open,
+    skip_if_bug_open,
+)
+from robottelo.helpers import prepare_import_data
 from robottelo.test import CLITestCase
 
 

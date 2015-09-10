@@ -1,12 +1,12 @@
 """Test class for Sync Plan UI"""
 
-from ddt import ddt
 from datetime import datetime, timedelta
+from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.common.constants import SYNC_INTERVAL
-from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.common.helpers import generate_strings_list
+from robottelo.constants import SYNC_INTERVAL
+from robottelo.decorators import data, skip_if_bug_open
+from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_syncplan
 from robottelo.ui.locators import common_locators, locators, tab_locators

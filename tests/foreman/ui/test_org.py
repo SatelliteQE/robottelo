@@ -5,12 +5,13 @@
 from ddt import ddt
 from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
+from robottelo import manifests
 from robottelo.api.utils import upload_manifest
-from robottelo.common import conf, manifests
-from robottelo.common.constants import INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
-from robottelo.common.helpers import (
+from robottelo.config import conf
+from robottelo.constants import INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
+from robottelo.helpers import (
     generate_strings_list, invalid_names_list, invalid_values_list)
-from robottelo.common.decorators import (
+from robottelo.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_lifecycle_environment, make_org

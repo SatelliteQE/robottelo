@@ -3,8 +3,8 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import generate_strings_list
+from robottelo.decorators import data, run_only_on
+from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hostgroup
 from robottelo.ui.locators import common_locators

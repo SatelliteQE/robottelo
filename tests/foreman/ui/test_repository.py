@@ -1,10 +1,11 @@
 """Test class for Repository UI"""
 
 import time
+
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.common.constants import (
+from robottelo.constants import (
     CHECKSUM_TYPE,
     DOCKER_REGISTRY_HUB,
     FAKE_0_PUPPET_REPO,
@@ -15,8 +16,8 @@ from robottelo.common.constants import (
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
 )
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
-from robottelo.common.helpers import generate_strings_list, read_data_file
+from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.helpers import generate_strings_list, read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_repository
 from robottelo.ui.locators import common_locators, locators, tab_locators

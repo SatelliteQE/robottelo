@@ -12,11 +12,12 @@ import sys
 import unittest
 
 from datetime import datetime
+from robottelo import ssh
 from robottelo.cli.metatest import MetaCLITest
 from robottelo.cli.org import Org as OrgCli
 from robottelo.cli.subscription import Subscription
-from robottelo.common.helpers import get_server_url
-from robottelo.common import conf, ssh
+from robottelo.config import conf
+from robottelo.helpers import get_server_url
 from robottelo.performance.constants import(
     DEFAULT_ORG,
     NUM_THREADS,
@@ -71,8 +72,8 @@ from robottelo.ui.template import Template
 from robottelo.ui.trend import Trend
 from robottelo.ui.usergroup import UserGroup
 from robottelo.ui.user import User
-from selenium_factory.SeleniumFactory import SeleniumFactory
 from selenium import webdriver
+from selenium_factory.SeleniumFactory import SeleniumFactory
 
 SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
 

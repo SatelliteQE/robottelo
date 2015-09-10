@@ -9,7 +9,7 @@ from robottelo.cli.factory import (
     CLIFactoryError, make_org, make_host_collection, make_content_view,
     make_lifecycle_environment, make_content_host)
 from robottelo.cli.hostcollection import HostCollection
-from robottelo.common.decorators import data, skip_if_bug_open
+from robottelo.decorators import data, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 

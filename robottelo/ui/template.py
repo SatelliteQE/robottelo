@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Implements Template UI."""
-from robottelo.common.constants import FILTER
+from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator

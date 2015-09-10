@@ -5,10 +5,9 @@ from ddt import ddt
 from fauxfactory import gen_string, gen_alphanumeric
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.test import CLITestCase
-from robottelo.common.decorators import data, run_only_on
+from robottelo.decorators import data, run_only_on
 from robottelo.cli.factory import make_location, make_medium, make_org, make_os
 from robottelo.cli.medium import Medium
-
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 OSES = [

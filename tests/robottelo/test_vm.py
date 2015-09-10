@@ -2,7 +2,8 @@
 import unittest
 
 from mock import call, patch
-from robottelo.common import conf, ssh
+from robottelo import ssh
+from robottelo.config import conf
 from robottelo.vm import VirtualMachine, VirtualMachineError
 
 
@@ -28,7 +29,7 @@ class VirtualMachineTestCase(unittest.TestCase):
         conf.properties[key] = self.provisioning_server
 
     @patch('time.sleep')
-    @patch('robottelo.common.ssh.command', side_effect=[
+    @patch('robottelo.ssh.command', side_effect=[
         ssh.SSHCommandResult(),
         ssh.SSHCommandResult(stdout=['(192.168.0.1)'])
     ])
@@ -60,7 +61,7 @@ class VirtualMachineTestCase(unittest.TestCase):
         with self.assertRaises(VirtualMachineError):
             vm = VirtualMachine()  # noqa
 
-    @patch('robottelo.common.ssh.command')
+    @patch('robottelo.ssh.command')
     def test_run(self, ssh_command):
         """Check if run calls ssh.command"""
         self.configure_provisoning_server()
@@ -84,7 +85,7 @@ class VirtualMachineTestCase(unittest.TestCase):
         with self.assertRaises(VirtualMachineError):
             vm.run('ls')
 
-    @patch('robottelo.common.ssh.command')
+    @patch('robottelo.ssh.command')
     def test_destroy(self, ssh_command):
         """Check if destroy runs the required ssh commands"""
         self.configure_provisoning_server()

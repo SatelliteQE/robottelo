@@ -1,6 +1,9 @@
 """Smoke tests for the ``CLI`` end-to-end scenario."""
+import random
+
 from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_ipaddr
+from robottelo import manifests, ssh
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contentview import ContentView
@@ -20,19 +23,17 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.subnet import Subnet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
-from robottelo.common.constants import (
+from robottelo.constants import (
     DEFAULT_LOC,
     DEFAULT_ORG,
     DEFAULT_SUBSCRIPTION_NAME,
     FAKE_0_PUPPET_REPO,
     GOOGLE_CHROME_REPO
 )
-from robottelo.common.helpers import generate_strings_list, get_server_software
-from robottelo.common import manifests, ssh
-from robottelo.common import conf
+from robottelo.config import conf
+from robottelo.helpers import generate_strings_list, get_server_software
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
-import random
 # (too many public methods) pylint: disable=R0904
 
 
@@ -403,7 +404,7 @@ class TestSmoke(CLITestCase):
             Foreman CLI entity.
         :param string query: A ``search`` parameter.
         :return: A ``SSHCommandResult`` instance.
-        :rtype: robottelo.common.ssh.SSHCommandResult
+        :rtype: robottelo.ssh.SSHCommandResult
 
         """
         result = entity.info(attrs)

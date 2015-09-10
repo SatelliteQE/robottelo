@@ -4,8 +4,8 @@ help.
 """
 import json
 
+from robottelo import ssh
 from robottelo.cli import hammer
-from robottelo.common import ssh
 
 
 def generate_command_tree(command):

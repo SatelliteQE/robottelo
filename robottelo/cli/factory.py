@@ -14,6 +14,7 @@ from fauxfactory import (
     gen_mac, gen_netmask, gen_string
 )
 from os import chmod
+from robottelo import manifests, ssh
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.computeresource import ComputeResource
@@ -28,7 +29,6 @@ from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.location import Location
-from robottelo.common import manifests
 from robottelo.cli.medium import Medium
 from robottelo.cli.model import Model
 from robottelo.cli.operatingsys import OperatingSys
@@ -44,8 +44,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
-from robottelo.common import ssh
-from robottelo.common.constants import (
+from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
     FAKE_1_YUM_REPO,
     FOREMAN_PROVIDERS,
@@ -53,9 +52,9 @@ from robottelo.common.constants import (
     SYNC_INTERVAL,
     TEMPLATE_TYPES,
 )
-from robottelo.common.decorators import cacheable
-from robottelo.common.helpers import update_dictionary
-from robottelo.common.ssh import upload_file
+from robottelo.decorators import cacheable
+from robottelo.helpers import update_dictionary
+from robottelo.ssh import upload_file
 from tempfile import mkstemp
 
 logger = logging.getLogger(__name__)
