@@ -188,6 +188,27 @@ REPOS = {
     },
 }
 
+PRD_SETS = {
+    'rhel_66': {
+        'product': u'Red Hat Enterprise Linux Server',
+        'reposet': u'Red Hat Enterprise Linux 6 Server (RPMs)',
+        'reponame': u'Red Hat Enterprise Linux 6 Server RPMs x86_64 6.7',
+        'arch': u'x86_64',
+        'releasever': u'6.7',
+        'label': u'rhel-6-server-rpms'
+    },
+    'rhel6_sat6tools': {
+        'product': u'Red Hat Enterprise Linux Server',
+        'reposet': u'Red Hat Satellite Tools 6.1 (for RHEL 6 Server) '
+                   '(RPMs)',
+        'reponame': u'Red Hat Satellite Tools 6.1 for RHEL 6 Server RPMs '
+                    'x86_64',
+        'arch': u'x86_64',
+        'releasever': None,
+        'label': u'rhel-6-server-satellite-tools-6.1-rpms'
+    }
+}
+
 # The 'create_repos_tree' function under 'sync' module uses the following
 # list of tuples. It actually includes following two repos under
 # Reposet: Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs
