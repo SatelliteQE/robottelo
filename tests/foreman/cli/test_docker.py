@@ -1,17 +1,22 @@
 """Unit tests for the Docker feature."""
 from ddt import ddt
-from fauxfactory import gen_choice, gen_string, gen_url
+from fauxfactory import gen_alpha, gen_choice, gen_string, gen_url
 from nailgun import entities
 from random import choice, randint
-from robottelo.cli.docker import Docker
+from robottelo.cli.docker import Docker, DockerContainer
 from robottelo.cli.factory import (
     CLIFactoryError,
+    make_activation_key,
+    make_compute_resource,
+    make_container,
     make_content_view,
     make_lifecycle_environment,
     make_org,
     make_product,
     make_repository,
 )
+from robottelo.cli.activationkey import ActivationKey
+from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
@@ -25,6 +30,7 @@ from robottelo.common.decorators import (
 from robottelo.common.helpers import (
     get_external_docker_url,
     get_internal_docker_url,
+    valid_data_list,
 )
 from robottelo.test import CLITestCase
 # (too-many-public-methods) pylint:disable=R0904
@@ -33,6 +39,7 @@ EXTERNAL_DOCKER_URL = get_external_docker_url()
 INTERNAL_DOCKER_URL = get_internal_docker_url()
 STRING_TYPES = ['alpha', 'alphanumeric', 'cjk', 'utf8', 'latin1']
 
+DOCKER_PROVIDER = 'Docker'
 REPO_CONTENT_TYPE = 'docker'
 REPO_UPSTREAM_NAME = 'busybox'
 
@@ -127,16 +134,9 @@ class DockerRepositoryTestCase(CLITestCase):
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerRepositoryTestCase, cls).setUpClass()
-        cls.org_id = entities.Organization().create_json()['id']
+        cls.org_id = make_org()['id']
 
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
+    @data(*valid_data_list())
     def test_create_one_docker_repo(self, name):
         """@Test: Create one Docker-type repository
 
@@ -348,7 +348,7 @@ class DockerContentViewTestCase(CLITestCase):
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
         super(DockerContentViewTestCase, cls).setUpClass()
-        cls.org_id = entities.Organization().create_json()['id']
+        cls.org_id = make_org()['id']
 
     def _create_and_associate_repo_with_cv(self):
         """Create a Docker-based repository and content view and associate
@@ -863,93 +863,251 @@ class DockerContentViewTestCase(CLITestCase):
             self.assertEqual(len(cvv['lifecycle-environments']), i+1)
 
 
+@run_only_on('sat')
 @ddt
 class DockerActivationKeyTestCase(CLITestCase):
     """Tests specific to adding ``Docker`` repositories to Activation Keys."""
 
     @classmethod
     def setUpClass(cls):
-        """Create an organization and product which can be re-used in tests."""
+        """Create necessary objects which can be re-used in tests."""
         super(DockerActivationKeyTestCase, cls).setUpClass()
-        cls.org_id = entities.Organization().create_json()['id']
+        cls.org = make_org()
+        cls.lce = make_lifecycle_environment({
+            'organization-id': cls.org['id'],
+        })
+        cls.product = make_product({
+            'organization-id': cls.org['id'],
+        })
+        cls.repo = _make_docker_repo(cls.product['id'])
+        cls.content_view = make_content_view({
+            'composite': False,
+            'organization-id': cls.org['id'],
+        })
+        ContentView.add_repository({
+            'id': cls.content_view['id'],
+            'repository-id': cls.repo['id'],
+        })
+        cls.content_view = ContentView.info({
+            'id': cls.content_view['id']
+        }).stdout
+        ContentView.publish({'id': cls.content_view['id']})
+        cls.content_view = ContentView.info({
+            'id': cls.content_view['id']}).stdout
+        cls.cvv = ContentView.version_info({
+            'id': cls.content_view['versions'][0]['id'],
+        }).stdout
+        ContentView.version_promote({
+            'id': cls.content_view['versions'][0]['id'],
+            'lifecycle-environment-id': cls.lce['id'],
+        })
+        cls.cvv = ContentView.version_info({
+            'id': cls.content_view['versions'][0]['id'],
+        }).stdout
 
-    @stubbed()
-    @run_only_on('sat')
     def test_add_docker_repo_to_activation_key(self):
-        """@Test:Add Docker-type repository to a non-composite
-        content view and publish it. Then create an activation key
-        and associate it with the Docker content view.
+        """@Test: Add Docker-type repository to a non-composite content view
+        and publish it. Then create an activation key and associate it with the
+        Docker content view.
 
         @Assert: Docker-based content view can be added to activation key
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        activation_key = make_activation_key({
+            'content-view-id': self.content_view['id'],
+            'lifecycle-environment-id': self.lce['id'],
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(
+            activation_key['content-view'], self.content_view['name'])
 
-    @stubbed()
-    @run_only_on('sat')
     def test_remove_docker_repo_to_activation_key(self):
-        """@Test:Add Docker-type repository to a non-composite
-        content view and publish it. Create an activation key
-        and associate it with the Docker content view. Then remove
-        this content view from the activation key.
+        """@Test: Add Docker-type repository to a non-composite content view
+        and publish it. Create an activation key and associate it with the
+        Docker content view. Then remove this content view from the activation
+        key.
 
         @Assert: Docker-based content view can be added and then removed
         from the activation key.
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        activation_key = make_activation_key({
+            'content-view-id': self.content_view['id'],
+            'lifecycle-environment-id': self.lce['id'],
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(
+            activation_key['content-view'], self.content_view['name'])
 
-    @stubbed()
-    @run_only_on('sat')
+        # Create another content view replace with
+        another_cv = make_content_view({
+            'composite': False,
+            'organization-id': self.org['id'],
+        })
+        ContentView.publish({'id': another_cv['id']})
+        another_cv = ContentView.info({
+            'id': another_cv['id']}).stdout
+        ContentView.version_promote({
+            'id': another_cv['versions'][0]['id'],
+            'lifecycle-environment-id': self.lce['id'],
+        })
+
+        result = ActivationKey.update({
+            'id': activation_key['id'],
+            'organization-id': self.org['id'],
+            'content-view-id': another_cv['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        activation_key = ActivationKey.info({
+            'id': activation_key['id'],
+        }).stdout
+        self.assertNotEqual(
+            activation_key['content-view'], self.content_view['name'])
+
     def test_add_docker_repo_composite_view_to_activation_key(self):
-        """@Test:Add Docker-type repository to a non-composite
-        content view and publish it. Then add this content view to a composite
-        content view and publish it. Create an activation key and associate it
-        with the composite Docker content view.
+        """@Test: Add Docker-type repository to a non-composite content view
+        and publish it. Then add this content view to a composite content view
+        and publish it. Create an activation key and associate it with the
+        composite Docker content view.
 
         @Assert: Docker-based content view can be added to activation key
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        comp_content_view = make_content_view({
+            'composite': True,
+            'organization-id': self.org['id'],
+        })
+        result = ContentView.update({
+            'component-ids': self.content_view['versions'][0]['id'],
+            'id': comp_content_view['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        self.assertIn(
+            self.content_view['versions'][0]['id'],
+            [
+                component['id']
+                for component
+                in comp_content_view['components']
+            ],
+        )
+        result = ContentView.publish({'id': comp_content_view['id']})
+        self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        comp_cvv = ContentView.version_info({
+            'id': comp_content_view['versions'][0]['id'],
+        }).stdout
+        ContentView.version_promote({
+            'id': comp_cvv['id'],
+            'lifecycle-environment-id': self.lce['id'],
+        })
+        activation_key = make_activation_key({
+            'content-view-id': comp_content_view['id'],
+            'lifecycle-environment-id': self.lce['id'],
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(
+            activation_key['content-view'], comp_content_view['name'])
 
-    @stubbed()
-    @run_only_on('sat')
     def test_remove_docker_repo_composite_view_to_activation_key(self):
-        """@Test:Add Docker-type repository to a non-composite
-        content view and publish it. Then add this content view to a composite
-        content view and publish it. Create an activation key and associate it
-        with the composite Docker content view. Then, remove the composite
-        content view from the activation key.
+        """@Test: Add Docker-type repository to a non-composite content view
+        and publish it. Then add this content view to a composite content view
+        and publish it. Create an activation key and associate it with the
+        composite Docker content view. Then, remove the composite content view
+        from the activation key.
 
         @Assert: Docker-based composite content view can be added and then
         removed from the activation key.
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        comp_content_view = make_content_view({
+            'composite': True,
+            'organization-id': self.org['id'],
+        })
+        result = ContentView.update({
+            'component-ids': self.content_view['versions'][0]['id'],
+            'id': comp_content_view['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        self.assertIn(
+            self.content_view['versions'][0]['id'],
+            [
+                component['id']
+                for component
+                in comp_content_view['components']
+            ],
+        )
+        result = ContentView.publish({'id': comp_content_view['id']})
+        self.assertEqual(result.return_code, 0)
+        comp_content_view = ContentView.info({
+            'id': comp_content_view['id'],
+        }).stdout
+        comp_cvv = ContentView.version_info({
+            'id': comp_content_view['versions'][0]['id'],
+        }).stdout
+        ContentView.version_promote({
+            'id': comp_cvv['id'],
+            'lifecycle-environment-id': self.lce['id'],
+        })
+        activation_key = make_activation_key({
+            'content-view-id': comp_content_view['id'],
+            'lifecycle-environment-id': self.lce['id'],
+            'organization-id': self.org['id'],
+        })
+        self.assertEqual(
+            activation_key['content-view'], comp_content_view['name'])
+
+        # Create another content view replace with
+        another_cv = make_content_view({
+            'composite': False,
+            'organization-id': self.org['id'],
+        })
+        ContentView.publish({'id': another_cv['id']})
+        another_cv = ContentView.info({
+            'id': another_cv['id']}).stdout
+        ContentView.version_promote({
+            'id': another_cv['versions'][0]['id'],
+            'lifecycle-environment-id': self.lce['id'],
+        })
+
+        result = ActivationKey.update({
+            'id': activation_key['id'],
+            'organization-id': self.org['id'],
+            'content-view-id': another_cv['id'],
+        })
+        self.assertEqual(result.return_code, 0)
+        activation_key = ActivationKey.info({
+            'id': activation_key['id'],
+        }).stdout
+        self.assertNotEqual(
+            activation_key['content-view'], comp_content_view['name'])
 
 
 @ddt
 class DockerClientTestCase(CLITestCase):
-    """Tests specific to using ``Docker`` as a client to pull Docker images from
-    a Satellite 6 instance."""
+    """Tests specific to using ``Docker`` as a client to pull Docker images
+    from a Satellite 6 instance."""
 
     @classmethod
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerClientTestCase, cls).setUpClass()
-        cls.org_id = entities.Organization().create_json()['id']
+        cls.org_id = make_org()['id']
 
     @stubbed()
     @run_only_on('sat')
@@ -990,6 +1148,7 @@ class DockerClientTestCase(CLITestCase):
         """
 
 
+@run_only_on('sat')
 @ddt
 class DockerComputeResourceTestCase(CLITestCase):
     """Tests specific to managing Docker-based Compute Resources."""
@@ -998,18 +1157,9 @@ class DockerComputeResourceTestCase(CLITestCase):
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerComputeResourceTestCase, cls).setUpClass()
-        cls.org_id = entities.Organization().create_json()['id']
+        cls.org = make_org()
 
-    @stubbed()
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
+    @data(*valid_data_list())
     def test_create_internal_docker_compute_resource(self, name):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance.
@@ -1018,50 +1168,81 @@ class DockerComputeResourceTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        compute_resource = make_compute_resource({
+            'name': name,
+            'provider': DOCKER_PROVIDER,
+            'url': INTERNAL_DOCKER_URL,
+        })
+        self.assertEqual(compute_resource['name'], name)
+        self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
+        self.assertEqual(compute_resource['url'], INTERNAL_DOCKER_URL)
 
-    @stubbed()
-    @run_only_on('sat')
-    def test_update_internal_docker_compute_resource(self):
-        """@Test: Create a Docker-based Compute Resource in the
-        Satellite 6 instance then edit its attributes.
-
-        @Assert: Compute Resource can be created, listed and its
-        attributes can be updated.
-
-        @Feature: Docker
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_list_containers_internal_docker_compute_resource(self):
-        """@Test: Create a Docker-based Compute Resource in the
-        Satellite 6 instance then list its running containers.
-
-        @Assert: Compute Resource can be created, listed and existing
-        running instances can be listed.
-
-        @Feature: Docker
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
     @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
+        EXTERNAL_DOCKER_URL,
+        INTERNAL_DOCKER_URL,
     )
+    def test_update_docker_compute_resource(self, url):
+        """@Test: Create a Docker-based Compute Resource in the Satellite 6
+        instance then edit its attributes.
+
+        @Assert: Compute Resource can be created, listed and its attributes can
+        be updated.
+
+        @Feature: Docker
+
+        """
+        compute_resource = make_compute_resource({
+            'provider': DOCKER_PROVIDER,
+            'url': url,
+        })
+        self.assertEqual(compute_resource['url'], url)
+        new_url = gen_url(subdomain=gen_alpha())
+        result = ComputeResource.update({
+            'id': compute_resource['id'],
+            'url': new_url,
+        })
+        self.assertEqual(result.return_code, 0)
+        compute_resource = ComputeResource.info({
+            'id': compute_resource['id'],
+        }).stdout
+        self.assertEqual(compute_resource['url'], new_url)
+
+    @data(
+        EXTERNAL_DOCKER_URL,
+        INTERNAL_DOCKER_URL,
+    )
+    def test_list_containers_docker_compute_resource(self, url):
+        """@Test: Create a Docker-based Compute Resource in the Satellite 6
+        instance then list its running containers.
+
+        @Assert: Compute Resource can be created, listed and existing running
+        instances can be listed.
+
+        @Feature: Docker
+
+        """
+        compute_resource = make_compute_resource({
+            'organization-ids': [self.org['id']],
+            'provider': DOCKER_PROVIDER,
+            'url': url,
+        })
+        self.assertEqual(compute_resource['url'], url)
+        result = DockerContainer.list({
+            'compute-resource-id': compute_resource['id'],
+        })
+        self.assertEqual(len(result.stdout), 0)
+        container = make_container({
+            'compute-resource-id': compute_resource['id'],
+            'organization-ids': [self.org['id']],
+        })
+        result = DockerContainer.list({
+            'compute-resource-id': compute_resource['id'],
+        })
+        self.assertEqual(len(result.stdout), 1)
+        self.assertEqual(result.stdout[0]['name'], container['name'])
+
+    @data(*valid_data_list())
     def test_create_external_docker_compute_resource(self, name):
         """@Test: Create a Docker-based Compute Resource using an external
         Docker-enabled system.
@@ -1070,42 +1251,16 @@ class DockerComputeResourceTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        compute_resource = make_compute_resource({
+            'name': name,
+            'provider': DOCKER_PROVIDER,
+            'url': EXTERNAL_DOCKER_URL,
+        })
+        self.assertEqual(compute_resource['name'], name)
+        self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
+        self.assertEqual(compute_resource['url'], EXTERNAL_DOCKER_URL)
 
-    @stubbed()
-    @run_only_on('sat')
-    def test_update_external_docker_compute_resource(self):
-        """@Test:@Test: Create a Docker-based Compute Resource using
-        an external Docker-enabled system then edit its attributes.
-
-        @Assert: Compute Resource can be created, listed and its
-        attributes can be updated.
-
-        @Feature: Docker
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_list_containers_external_docker_compute_resource(self):
-        """@Test: Create a Docker-based Compute Resource using
-        an external Docker-enabled system then list its running containers.
-
-        @Assert: Compute Resource can be created, listed and existing
-        running instances can be listed.
-
-        @Feature: Docker
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
     @data(
         EXTERNAL_DOCKER_URL,
         INTERNAL_DOCKER_URL,
@@ -1117,9 +1272,17 @@ class DockerComputeResourceTestCase(CLITestCase):
 
         @Feature: Docker
 
-        @Status: Manual
-
         """
+        compute_resource = make_compute_resource({
+            'provider': DOCKER_PROVIDER,
+            'url': url,
+        })
+        self.assertEqual(compute_resource['url'], url)
+        self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
+        result = ComputeResource.delete({'id': compute_resource['id']})
+        self.assertEqual(result.return_code, 0)
+        result = ComputeResource.info({'id': compute_resource['id']})
+        self.assertNotEqual(result.return_code, 0)
 
 
 class DockerContainersTestCase(CLITestCase):

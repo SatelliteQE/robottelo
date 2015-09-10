@@ -120,14 +120,7 @@ class DockerRepositoryTestCase(APITestCase):
         super(DockerRepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
+    @data(*valid_data_list())
     def test_create_one_docker_repo(self, name):
         """@Test: Create one Docker-type repository
 
@@ -225,14 +218,7 @@ class DockerRepositoryTestCase(APITestCase):
         repo = repo.read()
         self.assertGreaterEqual(repo.content_counts['docker_image'], 1)
 
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
+    @data(*valid_data_list())
     def test_update_docker_repo_name(self, new_name):
         """@Test: Create a Docker-type repository and update its name.
 
@@ -833,8 +819,8 @@ class DockerActivationKeyTestCase(APITestCase):
         super(DockerActivationKeyTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.lce = entities.LifecycleEnvironment(organization=cls.org).create()
-        cls.product = entities.Product(organization=cls.org).create()
-        cls.repo = _create_repository(cls.product)
+        cls.repo = _create_repository(
+            entities.Product(organization=cls.org).create())
         content_view = entities.ContentView(
             composite=False,
             organization=cls.org,
@@ -858,7 +844,6 @@ class DockerActivationKeyTestCase(APITestCase):
         ak = entities.ActivationKey(
             content_view=self.content_view,
             environment=self.lce,
-            name=gen_string('utf8'),
             organization=self.org,
         ).create()
         self.assertEqual(ak.content_view.id, self.content_view.id)
@@ -879,7 +864,6 @@ class DockerActivationKeyTestCase(APITestCase):
         ak = entities.ActivationKey(
             content_view=self.content_view,
             environment=self.lce,
-            name=gen_string('utf8'),
             organization=self.org,
         ).create()
         self.assertEqual(ak.content_view.id, self.content_view.id)
@@ -912,7 +896,6 @@ class DockerActivationKeyTestCase(APITestCase):
         ak = entities.ActivationKey(
             content_view=comp_content_view,
             environment=self.lce,
-            name=gen_string('utf8'),
             organization=self.org,
         ).create()
         self.assertEqual(ak.content_view.id, comp_content_view.id)
@@ -945,7 +928,6 @@ class DockerActivationKeyTestCase(APITestCase):
         ak = entities.ActivationKey(
             content_view=comp_content_view,
             environment=self.lce,
-            name=gen_string('utf8'),
             organization=self.org,
         ).create()
         self.assertEqual(ak.content_view.id, comp_content_view.id)
@@ -964,14 +946,7 @@ class DockerComputeResourceTestCase(APITestCase):
         super(DockerComputeResourceTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
+    @data(*valid_data_list())
     def test_create_internal_docker_compute_resource(self, name):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance.
@@ -989,7 +964,11 @@ class DockerComputeResourceTestCase(APITestCase):
         self.assertEqual(compute_resource.provider, DOCKER_PROVIDER)
         self.assertEqual(compute_resource.url, INTERNAL_DOCKER_URL)
 
-    def test_update_internal_docker_compute_resource(self):
+    @data(
+        EXTERNAL_DOCKER_URL,
+        INTERNAL_DOCKER_URL,
+    )
+    def test_update_docker_compute_resource(self, url):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance then edit its attributes.
 
@@ -1000,18 +979,21 @@ class DockerComputeResourceTestCase(APITestCase):
 
         """
         compute_resource = entities.DockerComputeResource(
-            name=gen_string('alpha'),
             organization=[self.org],
-            url=INTERNAL_DOCKER_URL,
+            url=url,
         ).create()
-        self.assertEqual(compute_resource.url, INTERNAL_DOCKER_URL)
+        self.assertEqual(compute_resource.url, url)
         compute_resource.url = gen_url()
         self.assertEqual(
             compute_resource.url,
             compute_resource.update(['url']).url,
         )
 
-    def test_list_containers_internal_docker_compute_resource(self):
+    @data(
+        EXTERNAL_DOCKER_URL,
+        INTERNAL_DOCKER_URL,
+    )
+    def test_list_containers_internal_docker_compute_resource(self, url):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance then list its running containers.
 
@@ -1023,14 +1005,14 @@ class DockerComputeResourceTestCase(APITestCase):
         """
         compute_resource = entities.DockerComputeResource(
             organization=[self.org],
-            url=INTERNAL_DOCKER_URL,
+            url=url,
         ).create()
-        self.assertEqual(compute_resource.url, INTERNAL_DOCKER_URL)
+        self.assertEqual(compute_resource.url, url)
         self.assertEqual(len(entities.AbstractDockerContainer(
             compute_resource=compute_resource).search()), 0)
         container = entities.DockerHubContainer(
-            compute_resource=compute_resource,
             command='top',
+            compute_resource=compute_resource,
             organization=[self.org],
         ).create()
         result = entities.AbstractDockerContainer(
@@ -1038,14 +1020,7 @@ class DockerComputeResourceTestCase(APITestCase):
         self.assertEqual(len(result), 1)
         self.assertEqual(result[0].name, container.name)
 
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
+    @data(*valid_data_list())
     def test_create_external_docker_compute_resource(self, name):
         """@Test: Create a Docker-based Compute Resource using an external
         Docker-enabled system.
@@ -1062,55 +1037,6 @@ class DockerComputeResourceTestCase(APITestCase):
         self.assertEqual(compute_resource.name, name)
         self.assertEqual(compute_resource.provider, DOCKER_PROVIDER)
         self.assertEqual(compute_resource.url, EXTERNAL_DOCKER_URL)
-
-    def test_update_external_docker_compute_resource(self):
-        """@Test:@Test: Create a Docker-based Compute Resource using an
-        external Docker-enabled system then edit its attributes.
-
-        @Assert: Compute Resource can be created, listed and its attributes can
-        be updated.
-
-        @Feature: Docker
-
-        """
-        compute_resource = entities.DockerComputeResource(
-            name=gen_string('alpha'),
-            organization=[self.org],
-            url=EXTERNAL_DOCKER_URL,
-        ).create()
-        self.assertEqual(compute_resource.url, EXTERNAL_DOCKER_URL)
-        compute_resource.url = gen_url()
-        self.assertEqual(
-            compute_resource.url,
-            compute_resource.update(['url']).url,
-        )
-
-    def test_list_containers_external_docker_compute_resource(self):
-        """@Test: Create a Docker-based Compute Resource using an external
-        Docker-enabled system then list its running containers.
-
-        @Assert: Compute Resource can be created and existing instances can be
-        listed.
-
-        @Feature: Docker
-
-        """
-        compute_resource = entities.DockerComputeResource(
-            organization=[self.org],
-            url=EXTERNAL_DOCKER_URL,
-        ).create()
-        self.assertEqual(compute_resource.url, EXTERNAL_DOCKER_URL)
-        self.assertEqual(len(entities.AbstractDockerContainer(
-            compute_resource=compute_resource).search()), 0)
-        container = entities.DockerHubContainer(
-            compute_resource=compute_resource,
-            command='top',
-            organization=[self.org],
-        ).create()
-        result = entities.AbstractDockerContainer(
-            compute_resource=compute_resource).search()
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].name, container.name)
 
     @data(
         EXTERNAL_DOCKER_URL,

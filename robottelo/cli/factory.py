@@ -243,7 +243,7 @@ def make_container(options=None):
         u'location-ids': None,
         u'locations': None,
         u'memory': None,
-        u'name': gen_string('utf8'),
+        u'name': gen_string('alphanumeric'),
         u'organization-ids': None,
         u'organizations': None,
         u'registry-id': None,
