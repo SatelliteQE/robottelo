@@ -1,6 +1,54 @@
 """Tests for the ``smart_proxies`` paths."""
-from robottelo.common.decorators import run_only_on, stubbed
+from nailgun import entities
+from nailgun.entity_mixins import _get_entity_ids
+from robottelo.common.decorators import run_only_on, stubbed, skip_if_bug_open
 from robottelo.test import APITestCase
+
+
+@skip_if_bug_open('bugzilla', 1262037)
+class MissingAttrTestCase(APITestCase):
+    """Tests to see if the server returns the attributes it should.
+
+    Satellite should return a full description of an entity each time an entity
+    is created, read or updated. These tests verify that certain attributes
+    really are returned. Satellite may name a given attribute in one of several
+    ways, and the ``_get_entity_*`` methods know about all the names Satellite
+    may give to an attribute.
+
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        """Find a ``SmartProxy``.
+
+        Every Satellite has a built-in smart proxy, so searching for an
+        existing smart proxy should always succeed.
+
+        """
+        smart_proxies = entities.SmartProxy().search()
+        assert len(smart_proxies) > 0
+        cls.smart_proxy_attrs = smart_proxies[0].update_json([])
+
+    def test_location(self):
+        """@Test: Update a smart proxy. Inspect the server's response.
+
+        @Assert: The response contains some value for the ``location`` field.
+
+        @Feature: SmartProxy
+
+        """
+        _get_entity_ids('location', self.smart_proxy_attrs)
+
+    def test_organization(self):
+        """@Test: Update a smart proxy. Inspect the server's response.
+
+        @Assert: The response contains some value for the ``organization``
+        field.
+
+        @Feature: SmartProxy
+
+        """
+        _get_entity_ids('organization', self.smart_proxy_attrs)
 
 
 @run_only_on('sat')
