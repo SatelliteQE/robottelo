@@ -1,9 +1,9 @@
 """Test class for Active Directory Feature"""
 from ddt import ddt
-from robottelo.common import conf
-from robottelo.common.constants import LDAP_SERVER_TYPE, LDAP_ATTR
-from robottelo.common.decorators import data
-from robottelo.common.helpers import generate_strings_list
+from robottelo.config import conf
+from robottelo.constants import LDAP_SERVER_TYPE, LDAP_ATTR
+from robottelo.decorators import data
+from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_ldapauth
 from robottelo.ui.session import Session

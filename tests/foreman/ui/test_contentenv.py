@@ -4,8 +4,8 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import generate_strings_list
+from robottelo.decorators import data, run_only_on
+from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_lifecycle_environment
 from robottelo.ui.locators import locators

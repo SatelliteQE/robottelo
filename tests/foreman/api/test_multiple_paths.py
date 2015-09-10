@@ -1,16 +1,17 @@
 """Data-driven unit tests for multiple paths."""
 import httplib
 import logging
+
 from ddt import data, ddt
 from nailgun import client, entities, entity_fields
 from requests.exceptions import HTTPError
-from robottelo.common import conf
-from robottelo.common.decorators import (
+from robottelo.config import conf
+from robottelo.decorators import (
     bz_bug_is_open,
     run_only_on,
     skip_if_bug_open,
 )
-from robottelo.common.helpers import get_nailgun_config, get_server_credentials
+from robottelo.helpers import get_nailgun_config, get_server_credentials
 from robottelo.test import APITestCase
 # (too-many-public-methods) pylint:disable=R0904
 

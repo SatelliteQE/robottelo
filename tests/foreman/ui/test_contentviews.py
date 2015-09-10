@@ -9,8 +9,8 @@ from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
-from robottelo.common import manifests
-from robottelo.common.constants import (
+from robottelo import manifests
+from robottelo.constants import (
     DEFAULT_CV,
     ENVIRONMENT,
     FAKE_0_PUPPET_REPO,
@@ -23,9 +23,9 @@ from robottelo.common.constants import (
     REPO_TYPE,
     ZOO_CUSTOM_GPG_KEY,
 )
-from robottelo.common.decorators import (
+from robottelo.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
-from robottelo.common.helpers import (
+from robottelo.helpers import (
     invalid_names_list, read_data_file, valid_data_list)
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment

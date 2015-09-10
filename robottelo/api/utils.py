@@ -3,7 +3,7 @@
 import time
 
 from nailgun import entities
-from robottelo.common.helpers import bz_bug_is_open
+from robottelo.helpers import bz_bug_is_open
 
 
 def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,

@@ -9,11 +9,10 @@ import unittest
 
 from ddt import data as ddt_data
 from functools import wraps
-from robottelo.common import conf
-from robottelo.common.constants import NOT_IMPLEMENTED
+from robottelo.config import conf
+from robottelo.constants import NOT_IMPLEMENTED
 from xml.parsers.expat import ExpatError, errors
 from xmlrpclib import Fault
-
 
 LOGGER = logging.getLogger(__name__)
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
@@ -100,7 +99,7 @@ def run_only_on(project):
 
     To skip an entire test class::
 
-        from robottelo.common.decorators import run_only_on
+        from robottelo.decorators import run_only_on
 
         @run_only_on('sat')
         Class HostTests():
@@ -112,7 +111,7 @@ def run_only_on(project):
 
     To skip a specific test::
 
-        from robottelo.common.decorators import run_only_on
+        from robottelo.decorators import run_only_on
 
         @run_only_on('sat')
         def test_hostgroup_create():

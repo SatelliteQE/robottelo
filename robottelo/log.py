@@ -1,10 +1,9 @@
 """Utilities to help work with log files"""
-
 import os
 import re
 
-from robottelo.common import get_app_root, ssh
-
+from robottelo import ssh
+from robottelo.config import get_app_root
 
 LOGS_DATA_DIR = os.path.join(get_app_root(), 'data', 'logs')
 

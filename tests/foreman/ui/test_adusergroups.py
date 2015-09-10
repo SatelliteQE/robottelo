@@ -2,10 +2,10 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.common import conf
-from robottelo.common.constants import (
+from robottelo.config import conf
+from robottelo.constants import (
     LDAP_SERVER_TYPE, LDAP_ATTR, PERMISSIONS, ANY_CONTEXT)
-from robottelo.common.decorators import stubbed, skip_if_bug_open
+from robottelo.decorators import stubbed, skip_if_bug_open
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_role, make_usergroup, make_loc, make_org, set_context)

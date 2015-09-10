@@ -8,13 +8,13 @@ from nailgun.entities import (
     Errata, ErratumContentViewFilter, HostCollection, LifecycleEnvironment,
     Organization, Repository, Subscription, System
 )
+from robottelo import manifests
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid, promote, upload_manifest
 )
 from robottelo.cli.contentview import ContentView as ContentViewCLI
-from robottelo.common import manifests
-from robottelo.common.constants import PRD_SETS
-from robottelo.common.decorators import run_only_on, skip_if_bug_open
+from robottelo.constants import PRD_SETS
+from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.vm import VirtualMachine
 from unittest import TestCase
 

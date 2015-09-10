@@ -6,16 +6,45 @@ Submodules:
 .. toctree::
     robottelo.api
     robottelo.cli
-    robottelo.common
     robottelo.performance
     robottelo.ui
 
 .. automodule:: robottelo
 
+:mod:`robottelo.constants`
+---------------------------------
+
+.. automodule:: robottelo.constants
+
+:mod:`robottelo.decorators`
+----------------------------------
+
+.. automodule:: robottelo.decorators
+
+:mod:`robottelo.helpers`
+-------------------------------
+
+.. automodule:: robottelo.helpers
+
 :mod:`robottelo.log`
 --------------------
 
 .. automodule:: robottelo.log
+
+:mod:`robottelo.manifests`
+---------------------------------
+
+.. automodule:: robottelo.manifests
+
+:mod:`robottelo.ssh`
+---------------------------
+
+.. automodule:: robottelo.ssh
+
+:mod:`robottelo.system_facts`
+------------------------------------
+
+.. automodule:: robottelo.system_facts
 
 :mod:`robottelo.test`
 ---------------------
@@ -26,3 +55,4 @@ Submodules:
 ---------------------
 
 .. automodule:: robottelo.vm
+

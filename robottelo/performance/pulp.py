@@ -7,8 +7,8 @@ sequential repository sync, sequential repository re-sync.
 """
 import logging
 
+from robottelo import ssh
 from robottelo.cli.repository import Repository
-from robottelo.common import ssh
 
 LOGGER = logging.getLogger(__name__)
 

@@ -1,10 +1,10 @@
-"""Tests for module ``robottelo.common.helpers``."""
+"""Tests for module ``robottelo.helpers``."""
 # (Too many public methods) pylint: disable=R0904
 import mock
 import unittest
 
-from robottelo.common import conf
-from robottelo.common.helpers import (
+from robottelo.config import conf
+from robottelo.helpers import (
     HostInfoError,
     escape_search,
     generate_strings_list,
@@ -121,7 +121,7 @@ class GetServerCredentialsTestCase(unittest.TestCase):
 class GetHostInfoTestCase(unittest.TestCase):
     """Tests for method ``get_host_credentials``."""
 
-    @mock.patch('robottelo.common.helpers.ssh')
+    @mock.patch('robottelo.helpers.ssh')
     def test_fedora_info(self, ssh):
         ssh.command = mock.MagicMock(return_value=FakeSSHResult(
             ['Fedora release 20 (Heisenbug)'],
@@ -129,7 +129,7 @@ class GetHostInfoTestCase(unittest.TestCase):
         ))
         self.assertTupleEqual(get_host_info(), ('Fedora', 20, None))
 
-    @mock.patch('robottelo.common.helpers.ssh')
+    @mock.patch('robottelo.helpers.ssh')
     def test_rhel_info(self, ssh):
         ssh.command = mock.MagicMock(return_value=FakeSSHResult(
             ['Red Hat Enterprise Linux Server release 7.1 (Maipo)'],
@@ -140,7 +140,7 @@ class GetHostInfoTestCase(unittest.TestCase):
             ('Red Hat Enterprise Linux Server', 7, 1)
         )
 
-    @mock.patch('robottelo.common.helpers.ssh')
+    @mock.patch('robottelo.helpers.ssh')
     def test_cat_fail(self, ssh):
         ssh.command = mock.MagicMock(
             return_value=FakeSSHResult([], 1, 'stderr'))
@@ -151,7 +151,7 @@ class GetHostInfoTestCase(unittest.TestCase):
             'Not able to cat /etc/redhat-release "stderr"'
         )
 
-    @mock.patch('robottelo.common.helpers.ssh')
+    @mock.patch('robottelo.helpers.ssh')
     def test_release_parse_fail(self, ssh):
         ssh.command = mock.MagicMock(return_value=FakeSSHResult([''], 0))
         with self.assertRaises(HostInfoError) as context:

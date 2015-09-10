@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Test class for CLI Foreman Discovery"""
+from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase
-from robottelo.common.decorators import stubbed
 
 
 class Discovery(CLITestCase):

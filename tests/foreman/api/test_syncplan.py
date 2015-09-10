@@ -10,13 +10,13 @@ from fauxfactory import gen_string
 from nailgun import client, entities
 from random import sample
 from requests.exceptions import HTTPError
-from robottelo.common.helpers import (
+from robottelo.helpers import (
     get_server_credentials,
     get_server_url,
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.common.decorators import (
+from robottelo.decorators import (
     data,
     run_only_on,
     skip_if_bug_open,

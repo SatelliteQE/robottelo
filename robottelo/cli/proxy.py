@@ -19,11 +19,12 @@ Subcommands::
     refresh-features              Refresh smart proxy features
     update                        Update a smart proxy.
 """
-
-from robottelo.cli.base import Base
-from robottelo.common import conf, ssh
 import contextlib
 import logging
+
+from robottelo import ssh
+from robottelo.cli.base import Base
+from robottelo.config import conf
 
 
 class SSHTunnelError(Exception):

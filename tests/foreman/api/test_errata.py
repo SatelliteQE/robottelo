@@ -2,7 +2,7 @@
 
 # For ease of use hc refers to host-collection throughout this document
 
-from robottelo.common.decorators import stubbed
+from robottelo.decorators import stubbed
 from robottelo.test import APITestCase
 
 

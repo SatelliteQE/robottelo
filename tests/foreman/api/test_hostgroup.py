@@ -4,9 +4,9 @@ from fauxfactory import gen_string
 from nailgun import client, entities, entity_fields
 from nailgun.entity_mixins import _get_entity_id
 from robottelo.api.utils import promote
-from robottelo.common.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.common.decorators import skip_if_bug_open, stubbed
-from robottelo.common.helpers import get_data_file, get_server_credentials
+from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
+from robottelo.decorators import skip_if_bug_open, stubbed
+from robottelo.helpers import get_data_file, get_server_credentials
 from robottelo.test import APITestCase
 
 

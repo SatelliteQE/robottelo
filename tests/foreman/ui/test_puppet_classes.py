@@ -2,8 +2,8 @@
 
 from ddt import ddt
 from nailgun import entities
-from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import generate_strings_list
+from robottelo.decorators import data, run_only_on
+from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 

@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Test class for Host/System Unification"""
 
-from robottelo.common.decorators import run_only_on, stubbed
+from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import CLITestCase
 
 

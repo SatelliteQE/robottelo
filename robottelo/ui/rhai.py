@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """ Implements methods for RHAI"""
 
-from robottelo.common import conf
+from robottelo.config import conf
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
 from robottelo.vm import VirtualMachine

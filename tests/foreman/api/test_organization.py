@@ -7,11 +7,12 @@ http://theforeman.org/api/apidoc/v2/organizations.html
 """
 import ddt
 import httplib
+
 from fauxfactory import gen_alphanumeric, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
-from robottelo.common.decorators import skip_if_bug_open
-from robottelo.common.helpers import get_nailgun_config, get_server_credentials
+from robottelo.decorators import skip_if_bug_open
+from robottelo.helpers import get_nailgun_config, get_server_credentials
 from robottelo.test import APITestCase
 
 

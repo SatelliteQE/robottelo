@@ -1,6 +1,6 @@
 """UI Tests for the errata management feature"""
 
-from robottelo.common.decorators import stubbed
+from robottelo.decorators import stubbed
 from robottelo.test import UITestCase
 
 

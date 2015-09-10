@@ -6,20 +6,19 @@ from nailgun import entities
 from random import randint, shuffle
 from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
-from robottelo.common.constants import DOCKER_REGISTRY_HUB
-from robottelo.common.decorators import (
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.decorators import (
     data,
     run_only_on,
     skip_if_bug_open,
     stubbed,
 )
-from robottelo.common.helpers import (
+from robottelo.helpers import (
     get_external_docker_url,
     get_internal_docker_url,
     valid_data_list,
 )
 from robottelo.test import APITestCase
-
 
 DOCKER_PROVIDER = 'Docker'
 EXTERNAL_DOCKER_URL = get_external_docker_url()

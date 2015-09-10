@@ -1,9 +1,10 @@
 """Smoke tests for the ``UI`` end-to-end scenario."""
+
 from ddt import ddt
 from fauxfactory import gen_string, gen_ipaddr
-from robottelo.common import conf
-from robottelo.common import manifests
-from robottelo.common.constants import (
+from robottelo import manifests
+from robottelo.config import conf
+from robottelo.constants import (
     ANY_CONTEXT,
     DEFAULT_LOC,
     DEFAULT_ORG,
@@ -21,8 +22,8 @@ from robottelo.common.constants import (
     SAT6_TOOLS_TREE,
     FAKE_6_PUPPET_REPO,
 )
-from robottelo.common.decorators import bz_bug_is_open
-from robottelo.common.ssh import upload_file
+from robottelo.decorators import bz_bug_is_open
+from robottelo.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_activationkey,
@@ -48,8 +49,7 @@ class TestSmoke(UITestCase):
     """End-to-end tests using the ``WebUI``."""
 
     def test_find_default_org(self):
-        """@Test: Check if :data:`robottelo.common.constants.DEFAULT_ORG`
-        is present
+        """@Test: Check if :data:`robottelo.constants.DEFAULT_ORG` is present
 
         @Feature: Smoke Test
 
@@ -63,8 +63,7 @@ class TestSmoke(UITestCase):
             )
 
     def test_find_default_location(self):
-        """@Test: Check if :data:`robottelo.common.constants.DEFAULT_LOC`
-        is present
+        """@Test: Check if :data:`robottelo.constants.DEFAULT_LOC` is present
 
         @Feature: Smoke Test
 

@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Test class for Users UI"""
 
-from robottelo.common.decorators import stubbed
+from robottelo.decorators import stubbed
 from robottelo.test import UITestCase
 
 

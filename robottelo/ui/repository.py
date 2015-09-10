@@ -1,6 +1,6 @@
 """Implements Repos UI."""
+from robottelo.constants import CHECKSUM_TYPE, REPO_TYPE
 from robottelo.ui.base import Base, UIError
-from robottelo.common.constants import CHECKSUM_TYPE, REPO_TYPE
 from robottelo.ui.locators import common_locators, locators
 from selenium.webdriver.support.select import Select
 

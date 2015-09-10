@@ -1,12 +1,12 @@
 """Test class for Subscriptions"""
 from ddt import ddt
+from robottelo import manifests
 from robottelo.cli.factory import make_org
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
-from robottelo.common import manifests
-from robottelo.common.decorators import skip_if_bug_open
-from robottelo.common.ssh import upload_file
+from robottelo.decorators import skip_if_bug_open
+from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
 

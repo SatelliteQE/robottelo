@@ -3,8 +3,10 @@
 import logging
 import re
 
+from robottelo import ssh
 from robottelo.cli import hammer
-from robottelo.common import conf, ssh
+from robottelo.config import conf
+
 
 # Task status message have two formats:
 #   * "Task b18d3363-f4b8-44eb-871c-760e51444d22 success: 1.0/1, 100%,

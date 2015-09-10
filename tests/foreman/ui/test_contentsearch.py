@@ -3,9 +3,9 @@
 
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.common.constants import FAKE_0_YUM_REPO
-from robottelo.ui.session import Session
+from robottelo.constants import FAKE_0_YUM_REPO
 from robottelo.test import UITestCase
+from robottelo.ui.session import Session
 
 
 class TestContentSearchUI(UITestCase):

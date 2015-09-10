@@ -1,8 +1,8 @@
 """Unit tests for the ``katello/api/v2/puppet_modules`` paths."""
 from nailgun import entities
-from robottelo.common.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.common.decorators import skip_if_bug_open
-from robottelo.common.helpers import get_data_file
+from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
+from robottelo.decorators import skip_if_bug_open
+from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
 

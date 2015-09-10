@@ -1,12 +1,12 @@
 """Test class for Environment Preparation after a fresh installation"""
+from robottelo import ssh
 from robottelo.cli.org import Org
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
-from robottelo.common import conf, ssh
+from robottelo.config import conf
 from robottelo.performance.constants import MANIFEST_FILE_NAME
-
 from robottelo.test import TestCase
 
 

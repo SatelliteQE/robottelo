@@ -6,15 +6,16 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 
 """
 import httplib
+
 from ddt import ddt
 from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
-from robottelo.common.decorators import (
+from robottelo.decorators import (
     bz_bug_is_open,
     data,
     run_only_on,
 )
-from robottelo.common.helpers import get_server_credentials
+from robottelo.helpers import get_server_credentials
 from robottelo.test import APITestCase
 
 

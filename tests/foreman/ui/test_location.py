@@ -5,20 +5,20 @@
 from ddt import ddt
 from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
-from robottelo.common import conf
-from robottelo.common.decorators import (
+from robottelo.config import conf
+from robottelo.decorators import (
     bz_bug_is_open,
     data,
     run_only_on,
     skip_if_bug_open,
 )
-from robottelo.common.constants import (
+from robottelo.constants import (
     ANY_CONTEXT,
     INSTALL_MEDIUM_URL,
     LIBVIRT_RESOURCE_URL,
     OS_TEMPLATE_DATA_FILE,
 )
-from robottelo.common.helpers import generate_strings_list, get_data_file
+from robottelo.helpers import generate_strings_list, get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_loc, make_templates, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators

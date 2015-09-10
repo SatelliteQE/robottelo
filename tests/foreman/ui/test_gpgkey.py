@@ -4,8 +4,8 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.common import conf
-from robottelo.common.constants import (
+from robottelo.config import conf
+from robottelo.constants import (
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
     REPO_DISCOVERY_URL,
@@ -13,13 +13,13 @@ from robottelo.common.constants import (
     VALID_GPG_KEY_FILE,
     ZOO_CUSTOM_GPG_KEY,
 )
-from robottelo.common.decorators import (
+from robottelo.decorators import (
     data,
     run_only_on,
     skip_if_bug_open,
     stubbed,
 )
-from robottelo.common.helpers import (
+from robottelo.helpers import (
     generate_strings_list,
     get_data_file,
     invalid_names_list,

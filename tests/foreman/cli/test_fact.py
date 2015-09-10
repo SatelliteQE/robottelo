@@ -4,7 +4,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.fact import Fact
-from robottelo.common.decorators import data, run_only_on, stubbed
+from robottelo.decorators import data, run_only_on, stubbed
 from robottelo.test import CLITestCase
 
 

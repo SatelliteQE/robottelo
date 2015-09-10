@@ -3,6 +3,7 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
+from robottelo import ssh
 from robottelo.cli.factory import (
     make_gpg_key,
     make_org,
@@ -11,29 +12,28 @@ from robottelo.cli.factory import (
     CLIFactoryError
 )
 from robottelo.cli.repository import Repository
-from robottelo.common.constants import (
+from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     FAKE_0_YUM_REPO,
-    FAKE_1_YUM_REPO,
-    FAKE_2_YUM_REPO,
-    FAKE_3_YUM_REPO,
-    FAKE_4_YUM_REPO,
     FAKE_1_PUPPET_REPO,
+    FAKE_1_YUM_REPO,
     FAKE_2_PUPPET_REPO,
+    FAKE_2_YUM_REPO,
     FAKE_3_PUPPET_REPO,
+    FAKE_3_YUM_REPO,
     FAKE_4_PUPPET_REPO,
+    FAKE_4_YUM_REPO,
     FAKE_5_PUPPET_REPO,
+    RPM_TO_UPLOAD,
 )
-from robottelo.common.decorators import (
+from robottelo.decorators import (
     data,
     run_only_on,
     skip_if_bug_open,
     stubbed,
 )
+from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
-from robottelo.common import ssh
-from robottelo.common.constants import RPM_TO_UPLOAD
-from robottelo.common.helpers import get_data_file
 
 
 @ddt

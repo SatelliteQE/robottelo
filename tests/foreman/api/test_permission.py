@@ -13,9 +13,9 @@ from fauxfactory import gen_alphanumeric
 from itertools import chain
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.common.constants import PERMISSIONS
-from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import get_nailgun_config, get_server_software
+from robottelo.constants import PERMISSIONS
+from robottelo.decorators import data, run_only_on
+from robottelo.helpers import get_nailgun_config, get_server_software
 from robottelo.test import APITestCase
 
 
@@ -72,7 +72,7 @@ class PermissionsTestCase(APITestCase):
         @feature: Permissions
 
         @assert: The permissions returned are equal to what is listed for that
-        resource type in :data:`robottelo.common.constants.PERMISSIONS`.
+        resource type in :data:`robottelo.constants.PERMISSIONS`.
 
         """
         failures = {}
@@ -136,10 +136,9 @@ class PermissionsTestCase(APITestCase):
 def _permission_name(entity, which_perm):
     """Find a permission name.
 
-    Attempt to locate a permission in
-    :data:`robottelo.common.constants.PERMISSIONS`. For example, return
-    'view_architectures' if ``entity`` is ``Architecture`` and ``which_perm``
-    is 'read'.
+    Attempt to locate a permission in :data:`robottelo.constants.PERMISSIONS`.
+    For example, return 'view_architectures' if ``entity`` is ``Architecture``
+    and ``which_perm`` is 'read'.
 
     :param entity: A ``nailgun.entity_mixins.Entity`` subclass.
     :param str which_perm: Either the word "create", "read", "update" or

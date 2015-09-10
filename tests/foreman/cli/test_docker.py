@@ -20,14 +20,14 @@ from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
-from robottelo.common.constants import DOCKER_REGISTRY_HUB
-from robottelo.common.decorators import (
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.decorators import (
     data,
     run_only_on,
     skip_if_bug_open,
     stubbed,
 )
-from robottelo.common.helpers import (
+from robottelo.helpers import (
     get_external_docker_url,
     get_internal_docker_url,
     valid_data_list,

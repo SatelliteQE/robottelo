@@ -1,7 +1,7 @@
 """Tests for the ``smart_proxies`` paths."""
 from nailgun import entities
 from nailgun.entity_mixins import _get_entity_ids
-from robottelo.common.decorators import run_only_on, stubbed, skip_if_bug_open
+from robottelo.decorators import run_only_on, stubbed, skip_if_bug_open
 from robottelo.test import APITestCase
 
 

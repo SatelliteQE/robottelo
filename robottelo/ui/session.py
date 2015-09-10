@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from robottelo.common import conf
+from robottelo.config import conf
 from robottelo.ui.login import Login
 from robottelo.ui.navigator import Navigator
 

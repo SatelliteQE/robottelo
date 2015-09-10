@@ -5,15 +5,15 @@ import random
 
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo.common import conf
-from robottelo.common.constants import FOREMAN_PROVIDERS
 from robottelo.cli.factory import (
     make_domain, make_hostgroup, make_lifecycle_environment,
     make_medium, make_org, make_proxy, make_subnet, make_template, make_user,
     make_compute_resource, CLIFactoryError)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
-from robottelo.common.decorators import (
+from robottelo.config import conf
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
 from robottelo.test import CLITestCase
 

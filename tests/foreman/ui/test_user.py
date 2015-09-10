@@ -4,10 +4,10 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.common.constants import LANGUAGES
-from robottelo.common.decorators import (
+from robottelo.constants import LANGUAGES
+from robottelo.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
-from robottelo.common.helpers import invalid_names_list
+from robottelo.helpers import invalid_names_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_user
 from robottelo.ui.locators import common_locators, locators, tab_locators

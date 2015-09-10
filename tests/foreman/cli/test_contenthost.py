@@ -17,7 +17,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.common.constants import (
+from robottelo.constants import (
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
@@ -31,7 +31,7 @@ from robottelo.common.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 

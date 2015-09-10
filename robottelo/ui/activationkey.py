@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Implements Activation keys UI."""
-
-from robottelo.common.helpers import escape_search
+from robottelo.helpers import escape_search
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from selenium.webdriver.support.select import Select

@@ -12,7 +12,7 @@ from robottelo.cli.factory import (
     make_org,
     make_os,
 )
-from robottelo.common.decorators import run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.test import MetaCLITestCase
 
 

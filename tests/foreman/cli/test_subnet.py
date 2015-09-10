@@ -1,20 +1,21 @@
 # -*- encoding: utf-8 -*-
 """Test class for Subnet CLI"""
 
+import random
+import re
+
 from ddt import ddt
 from fauxfactory import gen_string, gen_integer, gen_ipaddr
 from robottelo.cli.factory import make_domain, make_subnet, CLIFactoryError
 from robottelo.cli.subnet import Subnet
-from robottelo.common.constants import SUBNET_IPAM_TYPES
-from robottelo.common.decorators import (
+from robottelo.constants import SUBNET_IPAM_TYPES
+from robottelo.decorators import (
     bz_bug_is_open,
     data,
     run_only_on,
     skip_if_bug_open,
 )
 from robottelo.test import CLITestCase
-import random
-import re
 
 
 @run_only_on('sat')

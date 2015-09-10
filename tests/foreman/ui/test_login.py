@@ -2,8 +2,8 @@
 """Test class for Login UI"""
 
 from ddt import ddt
-from robottelo.common.decorators import data
-from robottelo.common.helpers import gen_string
+from robottelo.decorators import data
+from robottelo.helpers import gen_string
 from robottelo.test import UITestCase
 
 

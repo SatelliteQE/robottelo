@@ -5,14 +5,15 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 
 """
 import httplib
+
 from ddt import ddt
 from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from random import randint
 from requests.exceptions import HTTPError
-from robottelo.common.constants import DOCKER_REGISTRY_HUB
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
-from robottelo.common.helpers import get_server_credentials
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.helpers import get_server_credentials
 from robottelo.test import APITestCase
 
 

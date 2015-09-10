@@ -5,7 +5,7 @@ import types
 
 from ddt import ddt
 from robottelo.cli.metatest import default_data, template_methods
-from robottelo.common.decorators import data
+from robottelo.decorators import data
 
 
 # Possible permutations of CRUD tests:

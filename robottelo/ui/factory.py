@@ -1,9 +1,7 @@
 # -*- encoding: utf-8 -*-
-
 from fauxfactory import gen_string, gen_email
-from selenium.webdriver.common.action_chains import ActionChains
-from robottelo.common.helpers import update_dictionary
-from robottelo.common.constants import REPO_TYPE, CHECKSUM_TYPE
+from robottelo.constants import REPO_TYPE, CHECKSUM_TYPE
+from robottelo.helpers import update_dictionary
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeresource import ComputeResource
@@ -16,12 +14,13 @@ from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hardwaremodel import HardwareModel
 from robottelo.ui.hostgroup import Hostgroup
-from robottelo.ui.operatingsys import OperatingSys
-from robottelo.ui.org import Org
-from robottelo.ui.partitiontable import PartitionTable
+from robottelo.ui.ldapauthsource import LdapAuthSource
 from robottelo.ui.location import Location
 from robottelo.ui.locators import menu_locators
 from robottelo.ui.medium import Medium
+from robottelo.ui.operatingsys import OperatingSys
+from robottelo.ui.org import Org
+from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.products import Products
 from robottelo.ui.puppetclasses import PuppetClasses
 from robottelo.ui.repository import Repos
@@ -33,7 +32,7 @@ from robottelo.ui.template import Template
 from robottelo.ui.trend import Trend
 from robottelo.ui.user import User
 from robottelo.ui.usergroup import UserGroup
-from robottelo.ui.ldapauthsource import LdapAuthSource
+from selenium.webdriver.common.action_chains import ActionChains
 
 
 def core_factory(create_args, kwargs, session, page, org=None, loc=None,

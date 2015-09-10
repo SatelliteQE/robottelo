@@ -1,11 +1,12 @@
 """Unit tests for the ``activation_keys`` paths."""
 import httplib
+
 from ddt import data, ddt
 from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
-from robottelo.common.decorators import skip_if_bug_open
-from robottelo.common.helpers import get_server_credentials
+from robottelo.decorators import skip_if_bug_open
+from robottelo.helpers import get_server_credentials
 from robottelo.test import APITestCase
 
 

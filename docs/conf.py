@@ -94,7 +94,7 @@ epub_copyright = u'2012, Og Maciel <omaciel@redhat.com>'
 # As a result, the API documentation is much more concise.
 
 import ddt  # noqa
-import robottelo.common.decorators  # noqa pylint:disable=import-error
+import robottelo.decorators  # noqa pylint:disable=import-error
 # robttelo.common.decorators can only be imported if the `sys.path.insert` at
 # the top of this document is executed. pylint tries to be a static code
 # analyzer, so that does not happen, and it therefore cannot find this module.
@@ -113,11 +113,11 @@ def monkey_data(*values):
     return lambda func: func
 
 # Cache the robottelo wrapper docstring
-robottelo_data_docstring = robottelo.common.decorators.data.__doc__
+robottelo_data_docstring = robottelo.decorators.data.__doc__
 
 # Do the monkey patch on ddt.data and robottelo wrapper
-ddt.data = robottelo.common.decorators.data = monkey_data
+ddt.data = robottelo.decorators.data = monkey_data
 
 # Copy back the docstring to allow Sphinx generate the documentation for the
 # robottelo wrapper
-robottelo.common.decorators.data.__doc__ = robottelo_data_docstring
+robottelo.decorators.data.__doc__ = robottelo_data_docstring

@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-from robottelo.common.constants import FILTER
+from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator

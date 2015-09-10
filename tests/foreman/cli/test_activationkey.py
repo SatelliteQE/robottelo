@@ -3,10 +3,9 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
+from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.cli.repository import Repository
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_activation_key,
@@ -15,14 +14,15 @@ from robottelo.cli.factory import (
     make_org, make_product, make_repository,
     make_host_collection
 )
-from robottelo.common.decorators import (
+from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
+from robottelo.cli.repository import Repository
+from robottelo.cli.subscription import Subscription
+from robottelo.decorators import (
     bz_bug_is_open, data, run_only_on,
     skip_if_bug_open, stubbed
 )
+from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
-from robottelo.cli.subscription import Subscription
-from robottelo.common import manifests
-from robottelo.common.ssh import upload_file
 
 
 @ddt

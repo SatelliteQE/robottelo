@@ -2,11 +2,12 @@
 
 import ConfigParser
 import logging
-import os
-
 from ConfigParser import NoSectionError
 from logging import config
-from robottelo.common.constants import ROBOTTELO_PROPERTIES
+
+import os
+
+from robottelo.constants import ROBOTTELO_PROPERTIES
 
 
 class Configs(object):
@@ -64,7 +65,6 @@ def get_app_root():
     """
     return os.path.realpath(os.path.join(
         os.path.dirname(__file__),
-        os.pardir,
         os.pardir,
     ))
 

@@ -1,12 +1,13 @@
 """Utility module to handle the shared ssh connection."""
 import json
 import logging
+from contextlib import contextmanager
+
 import paramiko
 import re
 
-from contextlib import contextmanager
 from robottelo.cli import hammer
-from robottelo.common import conf
+from robottelo.config import conf
 
 logger = logging.getLogger(__name__)
 

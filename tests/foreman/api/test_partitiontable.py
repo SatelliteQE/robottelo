@@ -9,9 +9,9 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
-from robottelo.common.constants import OPERATING_SYSTEMS
-from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.common.helpers import (
+from robottelo.constants import OPERATING_SYSTEMS
+from robottelo.decorators import data, skip_if_bug_open
+from robottelo.helpers import (
     generate_strings_list,
     invalid_values_list,
     valid_data_list,

@@ -23,14 +23,14 @@ import random
 from ddt import ddt
 from fauxfactory import gen_string, gen_url
 from robottelo.cli.computeresource import ComputeResource
-from robottelo.common import conf
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_compute_resource,
     make_location,
 )
-from robottelo.common.constants import FOREMAN_PROVIDERS
+from robottelo.config import conf
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 

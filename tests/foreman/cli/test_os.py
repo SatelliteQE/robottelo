@@ -11,9 +11,8 @@ from robottelo.cli.factory import (
     make_partition_table,
     make_template,
 )
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
-
 
 POSITIVE_CREATE_DATA = (
     {'name': gen_string("latin1")},

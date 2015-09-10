@@ -1,6 +1,6 @@
 """Unit tests for host collections."""
 from nailgun import entities
-from robottelo.common.decorators import skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open
 from robottelo.test import APITestCase
 
 

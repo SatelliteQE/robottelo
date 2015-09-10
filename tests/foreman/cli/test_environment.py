@@ -5,8 +5,8 @@ from fauxfactory import gen_string
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_environment, make_location, make_org
-from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
-from robottelo.common.helpers import bz_bug_is_open
+from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.helpers import bz_bug_is_open
 from robottelo.test import MetaCLITestCase
 
 

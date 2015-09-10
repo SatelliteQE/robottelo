@@ -1,13 +1,13 @@
 """Unit tests for the ``content_view_versions`` paths."""
 from nailgun import entities
+from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
-from robottelo.common.constants import (
+from robottelo.constants import (
     FAKE_1_YUM_REPO,
     PUPPET_MODULE_NTP_PUPPETLABS,
     ZOO_CUSTOM_GPG_KEY,
 )
-from robottelo.common.helpers import get_data_file, read_data_file
-from requests.exceptions import HTTPError
+from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import APITestCase
 
 

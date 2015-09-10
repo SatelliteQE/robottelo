@@ -12,9 +12,9 @@ from robottelo.cli.factory import (
     make_repository,
 )
 from robottelo.cli.repository import Repository
-from robottelo.common.constants import DOCKER_REGISTRY_HUB
-from robottelo.common.decorators import data, skip_if_bug_open
-from robottelo.common.helpers import invalid_values_list, valid_data_list
+from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.decorators import data, skip_if_bug_open
+from robottelo.helpers import invalid_values_list, valid_data_list
 from robottelo.test import CLITestCase
 
 

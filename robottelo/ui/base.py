@@ -3,7 +3,7 @@
 
 import logging
 
-from robottelo.common.helpers import escape_search
+from robottelo.helpers import escape_search
 from robottelo.ui.locators import locators, common_locators
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException

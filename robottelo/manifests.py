@@ -3,17 +3,18 @@
 Implements Manifest functions
 """
 
-import zipfile
-import tempfile
 import json
-import uuid
-import shutil
 import os
 import requests
-from Crypto.Signature import PKCS1_v1_5
+import shutil
+import tempfile
+import uuid
+import zipfile
+
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
-from robottelo.common import conf
+from Crypto.Signature import PKCS1_v1_5
+from robottelo.config import conf
 
 
 def get_tempfile():

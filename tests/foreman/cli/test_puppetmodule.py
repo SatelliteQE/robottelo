@@ -2,9 +2,9 @@
 # pylint: disable=R0904
 """Test class for PuppetModule CLI"""
 
-from robottelo.test import CLITestCase
 from robottelo.cli.puppetmodule import PuppetModule
-from robottelo.common.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.test import CLITestCase
 
 
 @run_only_on('sat')

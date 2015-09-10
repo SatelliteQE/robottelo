@@ -1,20 +1,23 @@
 # -*- encoding: utf-8 -*-
 """Several helper methods and functions."""
 import logging
+from random import randint
+from urlparse import urljoin, urlunsplit
+
 import os
 import re
-
 from os.path import join
 
 from fauxfactory import gen_string, gen_integer
-from nailgun import entities, entity_mixins
-from nailgun.config import ServerConfig
-from random import randint
-from robottelo.common import conf, ssh
-from robottelo.common.constants import VALID_GPG_KEY_FILE
-from robottelo.common.decorators import bz_bug_is_open
-from urlparse import urljoin, urlunsplit
 
+from nailgun import entities, entity_mixins
+
+from nailgun.config import ServerConfig
+
+from robottelo import ssh
+from robottelo.config import conf
+from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.decorators import bz_bug_is_open
 
 LOGGER = logging.getLogger(__name__)
 
@@ -156,7 +159,7 @@ def get_nailgun_config():
     """Return a NailGun configuration file constructed from default values.
 
     :return: A ``nailgun.config.ServerConfig`` object, populated with values
-        from :data:`robottelo.common.conf`.
+        from :data:`robottelo.config.conf`.
 
     """
     return ServerConfig(
@@ -308,7 +311,7 @@ def update_dictionary(default, updates):
 def get_data_file(filename):
     """Returns correct path of file from data folder."""
     path = os.path.realpath(
-        os.path.join(os.path.dirname(__file__), os.pardir, os.pardir))
+        os.path.join(os.path.dirname(__file__), os.pardir))
     data_file = os.path.join(path, "tests", "foreman", "data", filename)
     if os.path.isfile(data_file):
         return data_file
@@ -335,7 +338,7 @@ def configure_entities():
       ``EntityCreateMixin.create_raw`` to generate values for empty and
       required fields.
     * Set ``nailgun.entity_mixins.DEFAULT_SERVER_CONFIG`` to whatever is
-      returned by :meth:`robottelo.common.helpers.get_nailgun_config`. See
+      returned by :meth:`robottelo.helpers.get_nailgun_config`. See
       ``robottelo.entity_mixins.Entity`` for more information on the effects of
       this.
     * Set a default value for ``nailgun.entities.GPGKey.content``.

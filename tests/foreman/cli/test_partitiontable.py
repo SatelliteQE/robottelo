@@ -1,12 +1,12 @@
 # -*- encoding: utf-8 -*-
 """Test class for Partition table CLI"""
-from robottelo.test import CLITestCase
 from fauxfactory import gen_string, gen_alphanumeric
 from robottelo.cli.factory import (
     CLIFactoryError, make_partition_table, make_os)
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.partitiontable import PartitionTable
-from robottelo.common.decorators import run_only_on
+from robottelo.decorators import run_only_on
+from robottelo.test import CLITestCase
 
 
 @run_only_on('sat')

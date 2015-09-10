@@ -5,8 +5,8 @@ from nailgun import client, entities
 from random import randint
 from requests.exceptions import HTTPError
 from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
-from robottelo.common import manifests
-from robottelo.common.constants import (
+from robottelo import manifests
+from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     FAKE_0_PUPPET_REPO,
     FAKE_2_YUM_REPO,
@@ -17,13 +17,13 @@ from robottelo.common.constants import (
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
 )
-from robottelo.common.decorators import (
+from robottelo.decorators import (
     bz_bug_is_open,
     data,
     run_only_on,
     skip_if_bug_open,
 )
-from robottelo.common.helpers import (
+from robottelo.helpers import (
     get_data_file,
     get_server_credentials,
     read_data_file,

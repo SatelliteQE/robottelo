@@ -10,7 +10,7 @@ from robottelo.cli.factory import (
     make_template
 )
 from robottelo.cli.template import Template
-from robottelo.common.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 

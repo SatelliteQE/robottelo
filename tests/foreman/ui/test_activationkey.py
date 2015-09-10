@@ -4,13 +4,13 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import client, entities
+from robottelo import manifests
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
     promote,
     upload_manifest,
 )
-from robottelo.common import manifests
-from robottelo.common.constants import (
+from robottelo.constants import (
     DEFAULT_CV,
     DEFAULT_SUBSCRIPTION_NAME,
     ENVIRONMENT,
@@ -18,14 +18,14 @@ from robottelo.common.constants import (
     FAKE_2_YUM_REPO,
     REPO_TYPE,
 )
-from robottelo.common.decorators import (
+from robottelo.decorators import (
     data, run_only_on, skip_if_bug_open, stubbed)
-from robottelo.common.helpers import (
+from robottelo.helpers import (
     invalid_names_list, valid_data_list, get_server_credentials)
+from robottelo.test import UITestCase
 from robottelo.ui.factory import make_activationkey, set_context
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.session import Session
-from robottelo.test import UITestCase
 from robottelo.vm import VirtualMachine
 
 

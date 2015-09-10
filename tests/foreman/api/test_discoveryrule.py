@@ -4,8 +4,8 @@ from ddt import ddt
 from fauxfactory import gen_choice, gen_integer, gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.common.decorators import data, run_only_on
-from robottelo.common.helpers import valid_data_list
+from robottelo.decorators import data, run_only_on
+from robottelo.helpers import valid_data_list
 from robottelo.test import APITestCase
 
 
