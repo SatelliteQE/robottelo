@@ -2,6 +2,7 @@
 """Module containing convenience functions for working with the API."""
 import time
 
+from inflector import Inflector
 from nailgun import entities
 from robottelo.helpers import bz_bug_is_open
 
@@ -66,3 +67,33 @@ def upload_manifest(organization_id, manifest):
         data={'organization_id': organization_id},
         files={'content': manifest},
     )
+
+
+def one_to_one_names(name):
+    """Generate the names Satellite might use for a one to one field.
+
+    Example of usage::
+
+        >>> one_to_many_names('person') == {'person', 'person_id'}
+        True
+
+    :param name: A field name.
+    :returns: A set including both ``name`` and variations on ``name``.
+
+    """
+    return set((name, name + '_id'))
+
+
+def one_to_many_names(name):
+    """Generate the names Satellite might use for a one to many field.
+
+    Example of usage::
+
+        >>> one_to_many_names('person') == {'person', 'person_ids', 'people'}
+        True
+
+    :param name: A field name.
+    :returns: A set including both ``name`` and variations on ``name``.
+
+    """
+    return set((name, name + '_ids', Inflector().pluralize(name)))
