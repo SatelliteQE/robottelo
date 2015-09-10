@@ -94,35 +94,34 @@ def _get_connection(
         logger.info('Destroyed Paramiko client {0}'.format(client_id))
 
 
-def upload_file(local_file, remote_file=None):
-    """
-    Uploads a remote file to a normal server or
-    uploads a file to sauce labs via VPN tunnel.
-    """
+def upload_file(local_file, remote_file=None, hostname=None):
+    """Upload a local file to a remote machine. If ``hostname`` is not provided
+    will be used the server.hostname from the cofiguration.
 
-    remote = int(conf.properties['main.remote'])
-
+    """
     if not remote_file:
         remote_file = local_file
-
-    if not remote:
-        with _get_connection() as connection:
+    with _get_connection(hostname=hostname) as connection:
+        try:
             sftp = connection.open_sftp()
             sftp.put(local_file, remote_file)
+        finally:
             sftp.close()
-    # TODO: Upload file to sauce labs via VPN tunnel in the else part.
 
 
-def download_file(remote_file, local_file=None):
-    """Download a remote file using sftp"""
+def download_file(remote_file, local_file=None, hostname=None):
+    """Download a remote file to the local machine. If ``hostname`` is not
+    provided will be used the server.
 
+    """
     if local_file is None:
         local_file = remote_file
-
-    with _get_connection() as connection:
-        sftp = connection.open_sftp()
-        sftp.get(remote_file, local_file)
-        sftp.close()
+    with _get_connection(hostname=hostname) as connection:
+        try:
+            sftp = connection.open_sftp()
+            sftp.get(remote_file, local_file)
+        finally:
+            sftp.close()
 
 
 def command(cmd, hostname=None, output_format=None, timeout=None):
