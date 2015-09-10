@@ -8,8 +8,9 @@ import random
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
+from nailgun.entity_mixins import _get_entity_ids
 from requests.exceptions import HTTPError
-from robottelo.common.decorators import data, run_only_on
+from robottelo.common.decorators import data, run_only_on, skip_if_bug_open
 from robottelo.test import APITestCase
 
 
@@ -63,3 +64,43 @@ class EnvironmentTestCase(APITestCase):
         """
         with self.assertRaises(HTTPError):
             entities.Environment(name=name).create()
+
+
+@skip_if_bug_open('bugzilla', 1262029)
+class MissingAttrTestCase(APITestCase):
+    """Tests to see if the server returns the attributes it should.
+
+    Satellite should return a full description of an entity each time an entity
+    is created, read or updated. These tests verify that certain attributes
+    really are returned. Satellite may name a given attribute in one of several
+    ways, and the ``_get_entity_*`` methods know about all the names Satellite
+    may give to an attribute.
+
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        """Create an ``Environment``."""
+        env = entities.Environment().create()
+        cls.env_attrs = env.update_json([])
+
+    def test_location(self):
+        """@Test: Update an environment. Inspect the server's response.
+
+        @Assert: The response contains some value for the ``location`` field.
+
+        @Feature: Environment
+
+        """
+        _get_entity_ids('location', self.env_attrs)
+
+    def test_organization(self):
+        """@Test: Update an environment. Inspect the server's response.
+
+        @Assert: The response contains some value for the ``organization``
+        field.
+
+        @Feature: Environment
+
+        """
+        _get_entity_ids('organization', self.env_attrs)
