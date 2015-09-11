@@ -179,6 +179,18 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
          "//a[@id='menu_item_architectures']")),
+    "menu.oscap_policy": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_compliance_policies']")),
+    "menu.oscap_content": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_compliance_contents']")),
+    "menu.oscap_reports": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_compliance_reports']")),
 
     # Configure Menu
     "menu.configure": (
@@ -979,6 +991,12 @@ locators = LocatorDict({
         By.XPATH,
         ("//td/a/span[contains(., '%s')]"
          "/following::td/div/ul/li[2]/a[@class='delete']")),
+    "hostgroups.content_source": (
+        By.ID, "hostgroup_content_source_id"),
+    "hostgroups.puppet_ca": (
+        By.ID, "hostgroup_puppet_ca_proxy_id"),
+    "hostgroups.puppet_master": (
+        By.ID, "hostgroup_puppet_proxy_id"),
 
     # Users
 
@@ -2020,4 +2038,56 @@ locators = LocatorDict({
         By.XPATH, (
             "//div[@class='text-center']//h4")
         ),
+
+    # OpenScap locators
+    # Scap Content
+    "oscap.content_search": (
+        By.XPATH, "//input[contains(@data-url, 'auto_complete_search')]"),
+    "oscap.content_edit": (
+        By.XPATH, "//td[contains(.,'%s')]/../td/div/span/a"),
+    "oscap.content_download": (
+        By.XPATH,
+        ("//td[contains(.,'%s')]/../td/div/ul/li/"
+         "a[contains(@data-id, 'compliance_scap_contents') "
+         "and not(contains(@class, 'delete'))]")),
+    "oscap.content_delete": (
+        By.XPATH,
+        ("//td[contains(.,'%s')]/../td/div/ul/li/"
+         "a[contains(@data-id, 'compliance_scap_contents') "
+         "and contains(@class, 'delete')]")),
+    "oscap.content_select": (
+        By.XPATH,
+        "//div[@id='content']//td[contains(.,'%s')]"),
+
+    # oscap policy
+    "oscap.new_policy": (
+        By.XPATH,
+        ("//a[contains(@class, 'btn') and "
+         "contains(@data-id, 'compliance_policies_new')]")),
+    "oscap.select_policy": (
+        By.XPATH,
+        "//a[contains(@href,'policies') and contains(.,'%s')]"),
+    "oscap.delete_policy": (
+        By.XPATH,
+        ("//a[contains(@href,'policies') and contains(.,'%s')]/../../"
+         "td/div/ul/li/a[@class='delete']")),
+    "oscap.edit_policy": (
+        By.XPATH,
+        ("//a[contains(@href,'policies') and contains(.,'%s')]"
+         "/../../td/div/ul/li/a[contains(@href,'edit')]")),
+    "oscap.dropdown_policy": (
+        By.XPATH,
+        ("//a[contains(@href,'policies') and contains(.,'%s')]"
+         "/../../td/div/a/i")),
+    "oscap.name_policy": (By.ID, "policy_name"),
+    "oscap.desc_policy": (By.ID, "policy_description"),
+    "oscap.content_policy": (By.ID, "policy_scap_content_id"),
+    "oscap.profile_policy": (By.ID, "policy_scap_content_profile_id"),
+    "oscap.period_policy": (By.ID, "policy_period"),
+    "oscap.weekday_policy": (By.ID, "policy_weekday"),
+
+    # oscap reports
+    "oscap.report_select": (
+        By.XPATH, "//span[contains(@data-original-title, '%s')]"),
+
 })

@@ -488,7 +488,7 @@ class TestSmoke(UITestCase):
                 vm.install_katello_cert()
                 vm.register_contenthost(activation_key_name, org_name)
                 vm.configure_puppet(rhel6_repo)
-                host = vm.fetch_hostname()
+                host = vm.hostname
                 session.nav.go_to_hosts()
                 set_context(session, org=ANY_CONTEXT['org'])
                 self.hosts.update_host_bulkactions(host=host, org=org_name)
