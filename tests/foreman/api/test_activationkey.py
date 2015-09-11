@@ -296,3 +296,25 @@ class ActivationKeysTestCase(APITestCase):
             auto_attach=(not act_key.auto_attach),
         ).update(['auto_attach'])
         self.assertNotEqual(act_key.auto_attach, act_key_2.auto_attach)
+
+
+class SearchTestCase(APITestCase):
+    """Tests that search for activation keys."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create an organization and an activation key belonging to it."""
+        cls.org = entities.Organization().create()
+        cls.act_key = entities.ActivationKey(organization=cls.org).create()
+
+    def test_search_by_org(self):
+        """@Test: Search for all activation keys in an organization.
+
+        @Assert: Only activation keys in the organization are returned.
+
+        @Feature: ActivationKey
+
+        """
+        act_keys = entities.ActivationKey(organization=self.org).search()
+        self.assertEqual(len(act_keys), 1)
+        self.assertEqual(act_keys[0].id, self.act_key.id)
