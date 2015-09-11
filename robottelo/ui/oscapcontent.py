@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements Open Scap  Content for UI."""
+from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
-from robottelo.common.constants import FILTER
 from robottelo.ui.locators import locators, tab_locators, common_locators
 from robottelo.ui.navigator import Navigator
 
