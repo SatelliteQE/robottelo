@@ -1,7 +1,7 @@
 """Tests for module ``robottelo.helpers``."""
 # (Too many public methods) pylint: disable=R0904
 import mock
-import unittest
+import unittest2
 
 from robottelo.config import conf
 from robottelo.helpers import (
@@ -17,7 +17,7 @@ from robottelo.helpers import (
 )
 
 
-class GetServerURLTestCase(unittest.TestCase):
+class GetServerURLTestCase(unittest2.TestCase):
     """Tests for method ``get_server_url``.
 
     The methods in this class test ``get_server_url`` by setting different
@@ -89,7 +89,7 @@ class GetServerURLTestCase(unittest.TestCase):
         self.assertEqual(get_server_url(), 'telnet://example.com:1234')
 
 
-class GetServerCredentialsTestCase(unittest.TestCase):
+class GetServerCredentialsTestCase(unittest2.TestCase):
     """Tests for method ``get_server_credentials``."""
     def setUp(self):  # noqa pylint:disable=C0103
         """Back up and customize ``conf.properties``."""
@@ -118,7 +118,7 @@ class GetServerCredentialsTestCase(unittest.TestCase):
             get_server_credentials()
 
 
-class GetHostInfoTestCase(unittest.TestCase):
+class GetHostInfoTestCase(unittest2.TestCase):
     """Tests for method ``get_host_credentials``."""
 
     @mock.patch('robottelo.helpers.ssh')
@@ -167,35 +167,35 @@ class FakeSSHResult(object):
         self.return_code = return_code
 
 
-class ValidNamesListTestCase(unittest.TestCase):
+class ValidNamesListTestCase(unittest2.TestCase):
     def test_return_type(self):
         """Tests if valid names list returns a unicode string"""
         for name in valid_names_list():
             self.assertIsInstance(name, unicode)
 
 
-class ValidDataListTestCase(unittest.TestCase):
+class ValidDataListTestCase(unittest2.TestCase):
     def test_return_type(self):
         """Tests if valid data list returns a unicode string"""
         for data in valid_data_list():
             self.assertIsInstance(data, unicode)
 
 
-class InvalidNamesListTestCase(unittest.TestCase):
+class InvalidNamesListTestCase(unittest2.TestCase):
     def test_return_type(self):
         """Tests if invalid names list returns a unicode string"""
         for name in invalid_names_list():
             self.assertIsInstance(name, unicode)
 
 
-class GenerateStringListTestCase(unittest.TestCase):
+class GenerateStringListTestCase(unittest2.TestCase):
     def test_return_type(self):
         """Tests if generate string list returns a unicode string"""
         for string in generate_strings_list():
             self.assertIsInstance(string, unicode)
 
 
-class EscapeSearchTestCase(unittest.TestCase):
+class EscapeSearchTestCase(unittest2.TestCase):
     def test_return_type(self):
         """Tests if escape search returns a unicode string"""
         self.assertIsInstance(escape_search('search term'), unicode)

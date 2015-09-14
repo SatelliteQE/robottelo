@@ -31,7 +31,7 @@ from robottelo.helpers import (
 from robottelo.test import APITestCase
 
 
-# FIXME: Use unittest's subTest context manager instead of this and @ddt.data.
+# FIXME: Use unittest2's subTest context manager instead of this and @ddt.data.
 # Only available in Python 3.2 and above.
 def _test_data():
     """Return a tuple of dicts. The dicts can be used to make products."""

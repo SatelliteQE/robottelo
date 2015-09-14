@@ -25,7 +25,7 @@ from robottelo.constants import (
 from robottelo.decorators import bz_bug_is_open, skip_if_bug_open
 from robottelo.helpers import get_nailgun_config
 from robottelo.vm import VirtualMachine
-from unittest import TestCase
+from unittest2 import TestCase
 # (too many public methods) pylint: disable=R0904
 
 API_PATHS = {

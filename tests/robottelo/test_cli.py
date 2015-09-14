@@ -1,4 +1,4 @@
-import unittest
+import unittest2
 
 from robottelo.cli.base import Base
 from robottelo.config import conf
@@ -11,7 +11,7 @@ class CLIClass(Base):
     foreman_admin_password = 'adminpassword'
 
 
-class BaseCliTestCase(unittest.TestCase):
+class BaseCliTestCase(unittest2.TestCase):
     """Tests for the Base cli class"""
     def setUp(self):  # noqa
         super(BaseCliTestCase, self).setUp()

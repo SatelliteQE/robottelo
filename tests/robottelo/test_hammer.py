@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
 """Tests for Robottelo's hammer helpers"""
-import unittest
+import unittest2
 
 from robottelo.cli import hammer
 
 
-class ParseCSVTestCase(unittest.TestCase):
+class ParseCSVTestCase(unittest2.TestCase):
     """Tests for parsing CSV hammer output"""
     def test_parse_csv(self):
         output_lines = [
@@ -38,7 +38,7 @@ class ParseCSVTestCase(unittest.TestCase):
         )
 
 
-class ParseHelpTestCase(unittest.TestCase):
+class ParseHelpTestCase(unittest2.TestCase):
     """Tests for parsing hammer help output"""
     def test_parse_help(self):
         """Can parse hammer help output"""
@@ -152,7 +152,7 @@ class ParseHelpTestCase(unittest.TestCase):
         )
 
 
-class ParseInfoTestCase(unittest.TestCase):
+class ParseInfoTestCase(unittest2.TestCase):
     """Tests for parsing info hammer output"""
     def test_parse_simple(self):
         """Can parse a simple info output"""

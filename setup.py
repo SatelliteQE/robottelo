@@ -27,6 +27,7 @@ setup(
         'python-bugzilla',
         'requests',
         'selenium',
+        'unittest2',
     ],
     license='GNU GPL v3.0',
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers

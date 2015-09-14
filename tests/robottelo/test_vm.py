@@ -1,5 +1,5 @@
 """Tests for :mod:`robottelo.vm`."""
-import unittest
+import unittest2
 
 from mock import call, patch
 from robottelo import ssh
@@ -7,7 +7,7 @@ from robottelo.config import conf
 from robottelo.vm import VirtualMachine, VirtualMachineError
 
 
-class VirtualMachineTestCase(unittest.TestCase):
+class VirtualMachineTestCase(unittest2.TestCase):
     """Tests for :class:`robottelo.vm.VirtualMachine`."""
 
     provisioning_server = 'provisioning.example.com'
