@@ -10,15 +10,14 @@ import unittest
 from ddt import data as ddt_data
 from functools import wraps
 from robottelo.config import conf
-from robottelo.constants import NOT_IMPLEMENTED
+from robottelo.constants import BZ_OPEN_STATUSES, NOT_IMPLEMENTED
 from xml.parsers.expat import ExpatError, errors
 from xmlrpclib import Fault
 
-LOGGER = logging.getLogger(__name__)
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
-BUGZILLA_OPEN_BUG_STATUSES = ('NEW', 'ASSIGNED', 'POST', 'MODIFIED')
-REDMINE_URL = 'http://projects.theforeman.org'
+LOGGER = logging.getLogger(__name__)
 OBJECT_CACHE = {}
+REDMINE_URL = 'http://projects.theforeman.org'
 
 # A dict mapping bug IDs to python-bugzilla bug objects.
 _bugzilla = {}
@@ -40,6 +39,7 @@ def data(*values):
     tests
     """
     def wrapper(func):
+        """Perform smoke test attribute check"""
         smoke = conf.properties.get('main.smoke', '0') == '1'
         if smoke:
             return ddt_data(random.choice(values))(func)
@@ -273,12 +273,19 @@ def bz_bug_is_open(bug_id):
     :rtype: bool
 
     """
+    upstream_mode = conf.properties.get('main.upstream', '1') == '1'
     bug = None
     try:
         bug = _get_bugzilla_bug(bug_id)
     except BugFetchError as err:
         LOGGER.warning(err.message)
-    if bug is None or bug.status not in BUGZILLA_OPEN_BUG_STATUSES:
+        return False
+    if bug is None or bug.status not in BZ_OPEN_STATUSES:
+        # if not upstream mode, verify whiteboard field for the presence of
+        # 'verified in upstream' text
+        if (not upstream_mode and bug.whiteboard and
+                'verified in upstream' in bug.whiteboard.lower()):
+            return True
         return False
     return True
 

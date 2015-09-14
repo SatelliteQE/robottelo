@@ -3,6 +3,7 @@ from ddt import DATA_ATTR
 from fauxfactory import gen_integer
 from robottelo import decorators
 from robottelo.config import conf
+from robottelo.constants import BZ_CLOSED_STATUSES, BZ_OPEN_STATUSES
 from unittest import TestCase
 # (Too many public methods) pylint: disable=R0904
 
@@ -17,6 +18,7 @@ class DataTestCase(TestCase):
         self.function = function
 
     def test_smoke(self):
+        """Test for smoke attribute on"""
         conf.properties['main.smoke'] = '1'
         decorated = decorators.data(*self.test_data)(self.function)
         data_attr = getattr(decorated, DATA_ATTR)
@@ -25,6 +27,7 @@ class DataTestCase(TestCase):
         self.assertIn(data_attr[0], self.test_data)
 
     def test_not_smoke(self):
+        """Test for smoke attribute off"""
         conf.properties['main.smoke'] = '0'
         decorated = decorators.data(*self.test_data)(self.function)
         data_attr = getattr(decorated, DATA_ATTR)
@@ -36,20 +39,37 @@ class DataTestCase(TestCase):
 class BzBugIsOpenTestCase(TestCase):
     """Tests for :func:`robottelo.decorators.bz_bug_is_open`."""
     # (protected-access) pylint:disable=W0212
-    def setUp(self):  # noqa pylint:disable=C0103
+    # (test names are long to make it readable) pylint:disable=C0103
+    def setUp(self):
         """Back up objects and generate common values."""
         self.backup = decorators._get_bugzilla_bug
         self.bug_id = gen_integer()
+        self.upstream_backup = conf.properties.get('main.upstream')
 
-    def tearDown(self):  # noqa pylint:disable=C0103
+        self.valid_whiteboard_data = [
+            'VERIFIED IN UPSTREAM',
+            'VeRiFiEd In UpStReAm',
+            'verified in upstream'
+        ]
+        self.invalid_whiteboard_data = [
+            'VERIED IN UPSTREAM',
+            'VeRiFiEd I UpStReAm',
+            'verified in uppstream',
+            'None',
+            ''
+        ]
+
+    def tearDown(self):
         """Restore backed-up objects."""
         decorators._get_bugzilla_bug = self.backup
+        conf.properties['main.upstream'] = self.upstream_backup
 
     def test_bug_is_open(self):
         """Assert ``True`` is returned if the bug is 'NEW' or 'ASSIGNED'."""
         class MockBug(object):  # pylint:disable=R0903
             """A mock bug with an open status."""
             status = 'NEW'
+            whiteboard = None
         decorators._get_bugzilla_bug = lambda bug_id: MockBug()
         self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
         MockBug.status = 'ASSIGNED'
@@ -60,6 +80,7 @@ class BzBugIsOpenTestCase(TestCase):
         class MockBug(object):  # pylint:disable=R0903
             """A mock bug with a closed status."""
             status = 'CLOSED'
+            whiteboard = None
         decorators._get_bugzilla_bug = lambda bug_id: MockBug()
         self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
         MockBug.status = 'ON_QA'
@@ -74,6 +95,78 @@ class BzBugIsOpenTestCase(TestCase):
             raise decorators.BugFetchError
         decorators._get_bugzilla_bug = bomb
         self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+
+    def test_upstream_with_whiteboard(self):
+        """Assert that upstream bug is not affected by whiteboard texts"""
+        class MockBug(object):  # pylint:disable=R0903
+            """A mock bug"""
+            status = None
+            whiteboard = None
+        conf.properties['main.upstream'] = '1'  # upstream mode
+        decorators._get_bugzilla_bug = lambda bug_id: MockBug()
+        # Assert bug is really closed with valid/invalid whiteboard texts
+        for MockBug.status in BZ_CLOSED_STATUSES:
+            for MockBug.whiteboard in (self.valid_whiteboard_data +
+                                       self.invalid_whiteboard_data):
+                self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+
+        # Assert bug is really open with valid/invalid whiteboard texts
+        for MockBug.status in BZ_OPEN_STATUSES:
+            for MockBug.whiteboard in (self.valid_whiteboard_data +
+                                       self.invalid_whiteboard_data):
+                self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
+
+    def test_downstream_valid_whiteboard(self):
+        """Assert ``True`` is returned if
+        - bug is in any status
+        - bug has a valid Whiteboard text
+        - robottelo in downstream mode
+
+        """
+        class MockBug(object):  # pylint:disable=R0903
+            """A mock bug with a closed status."""
+            status = None
+            whiteboard = None
+        conf.properties['main.upstream'] = '0'  # downstream mode
+        decorators._get_bugzilla_bug = lambda bug_id: MockBug()
+        for MockBug.status in BZ_OPEN_STATUSES + BZ_CLOSED_STATUSES:
+            for MockBug.whiteboard in self.valid_whiteboard_data:
+                self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
+
+    def test_downstream_closedbug_invalid_whiteboard(self):
+        """Assert ``False`` is returned if
+        - bug is in closed status
+        - bug has an invalid Whiteboard text
+        - robottelo in downstream mode
+
+        """
+        class MockBug(object):  # pylint:disable=R0903
+            """A mock bug with a closed status."""
+            status = None
+            whiteboard = None
+        conf.properties['main.upstream'] = '0'  # downstream mode
+        decorators._get_bugzilla_bug = lambda bug_id: MockBug()
+        for MockBug.status in BZ_CLOSED_STATUSES:
+            for MockBug.whiteboard in self.invalid_whiteboard_data:
+                self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+
+    def test_downstream_openbug_whiteboard(self):
+        """Assert ``True`` is returned if
+        - bug is in open status
+        - bug has a valid/invalid Whiteboard text
+        - robottelo in downstream mode
+
+        """
+        class MockBug(object):  # pylint:disable=R0903
+            """A mock bug"""
+            status = None
+            whiteboard = None
+        conf.properties['main.upstream'] = '0'  # downstream mode
+        decorators._get_bugzilla_bug = lambda bug_id: MockBug()
+        for MockBug.status in BZ_OPEN_STATUSES:
+            for MockBug.whiteboard in (self.valid_whiteboard_data +
+                                       self.invalid_whiteboard_data):
+                self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
 
 
 class RmBugIsOpenTestCase(TestCase):
@@ -124,7 +217,7 @@ class RunOnlyOnTestCase(TestCase):
         """Restore backed-up object."""
         conf.properties['main.project'] = self.project_backup
 
-    def test_project_mode_different_cases(self):
+    def test_project_mode_different_cases(self):  # pylint:disable=C0103
         """Assert ``True`` for different cases of accepted input values
            for project / robottelo modes."""
         accepted_values = ('SAT', 'SAt', 'SaT', 'Sat', 'sat', 'sAt',

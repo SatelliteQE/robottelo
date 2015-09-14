@@ -26,6 +26,8 @@ project=sat
 locale=en_US.UTF-8
 remote=0
 smoke=0
+# Update upstream=0 for downstream run
+upstream=1
 
 # For testing with fake manifests, zipfile containing valid manifest is required,
 # as well as key/cert pair. All of these settings are urls.
