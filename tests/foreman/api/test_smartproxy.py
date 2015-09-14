@@ -1,8 +1,8 @@
 """Tests for the ``smart_proxies`` paths."""
 from nailgun import entities
-from nailgun.entity_mixins import _get_entity_ids
 from robottelo.decorators import run_only_on, stubbed, skip_if_bug_open
 from robottelo.test import APITestCase
+from robottelo.api.utils import one_to_many_names
 
 
 @skip_if_bug_open('bugzilla', 1262037)
@@ -11,9 +11,8 @@ class MissingAttrTestCase(APITestCase):
 
     Satellite should return a full description of an entity each time an entity
     is created, read or updated. These tests verify that certain attributes
-    really are returned. Satellite may name a given attribute in one of several
-    ways, and the ``_get_entity_*`` methods know about all the names Satellite
-    may give to an attribute.
+    really are returned. The ``one_to_*_names`` functions know what names
+    Satellite may assign to fields.
 
     """
 
@@ -27,7 +26,7 @@ class MissingAttrTestCase(APITestCase):
         """
         smart_proxies = entities.SmartProxy().search()
         assert len(smart_proxies) > 0
-        cls.smart_proxy_attrs = smart_proxies[0].update_json([])
+        cls.smart_proxy_attrs = set(smart_proxies[0].update_json([]).keys())
 
     def test_location(self):
         """@Test: Update a smart proxy. Inspect the server's response.
@@ -37,7 +36,12 @@ class MissingAttrTestCase(APITestCase):
         @Feature: SmartProxy
 
         """
-        _get_entity_ids('location', self.smart_proxy_attrs)
+        names = one_to_many_names('location')
+        self.assertGreater(
+            len(names & self.smart_proxy_attrs),
+            1,
+            'None of {0} are in {1}'.format(names, self.smart_proxy_attrs),
+        )
 
     def test_organization(self):
         """@Test: Update a smart proxy. Inspect the server's response.
@@ -48,7 +52,12 @@ class MissingAttrTestCase(APITestCase):
         @Feature: SmartProxy
 
         """
-        _get_entity_ids('organization', self.smart_proxy_attrs)
+        names = one_to_many_names('organization')
+        self.assertGreater(
+            len(names & self.smart_proxy_attrs),
+            1,
+            'None of {0} are in {1}'.format(names, self.smart_proxy_attrs),
+        )
 
 
 @run_only_on('sat')

@@ -2,8 +2,7 @@
 """Tests for the ``hostgroups`` paths."""
 from fauxfactory import gen_string
 from nailgun import client, entities, entity_fields
-from nailgun.entity_mixins import _get_entity_id
-from robottelo.api.utils import promote
+from robottelo.api.utils import promote, one_to_one_names
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.decorators import skip_if_bug_open, stubbed
 from robottelo.helpers import get_data_file, get_server_credentials
@@ -155,11 +154,8 @@ class MissingAttrTestCase(APITestCase):
 
     Satellite should return a full description of an entity each time an entity
     is created, read or updated. These tests verify that certain attributes
-    really are returned. Satellite may name a given attribute in one of several
-    ways, and the ``_get_entity_id`` method knows about all the names that may
-    be assigned to an attribute. For example, this will return ``5``::
-
-        _get_entity_id('content_source', {'content_source_id': 5})
+    really are returned. The ``one_to_*_names`` functions know what names
+    Satellite may assign to fields.
 
     """
 
@@ -167,7 +163,7 @@ class MissingAttrTestCase(APITestCase):
     def setUpClass(cls):
         """Create a ``HostGroup``."""
         host_group = entities.HostGroup().create()
-        cls.host_group_attrs = host_group.read_json()
+        cls.host_group_attrs = set(host_group.read_json().keys())
 
     def test_get_content_source(self):
         """@Test: Read a host group. Inspect the server's response.
@@ -178,7 +174,12 @@ class MissingAttrTestCase(APITestCase):
         @Feature: HostGroup
 
         """
-        _get_entity_id('content_source', self.host_group_attrs)
+        names = one_to_one_names('content_source')
+        self.assertGreater(
+            len(names & self.host_group_attrs),
+            1,
+            'None of {0} are in {1}'.format(names, self.host_group_attrs)
+        )
 
     def test_get_content_view(self):
         """@Test: Read a host group. Inspect the server's response.
@@ -189,7 +190,12 @@ class MissingAttrTestCase(APITestCase):
         @Feature: HostGroup
 
         """
-        _get_entity_id('content_view', self.host_group_attrs)
+        names = one_to_one_names('content_view')
+        self.assertGreater(
+            len(names & self.host_group_attrs),
+            1,
+            'None of {0} are in {1}'.format(names, self.host_group_attrs)
+        )
 
     def test_get_lifecycle_environment(self):
         """@Test: Read a host group. Inspect the server's response.
@@ -200,7 +206,12 @@ class MissingAttrTestCase(APITestCase):
         @Feature: HostGroup
 
         """
-        _get_entity_id('lifecycle_environment', self.host_group_attrs)
+        names = one_to_one_names('lifecycle_environment')
+        self.assertGreater(
+            len(names & self.host_group_attrs),
+            1,
+            'None of {0} are in {1}'.format(names, self.host_group_attrs)
+        )
 
 
 class HostGroupTestCaseStub(APITestCase):

@@ -19,6 +19,7 @@ setup(
         'SeleniumFactory',
         'ddt',
         'fauxfactory',
+        'inflector',
         'nailgun',
         'numpy',
         'paramiko',
