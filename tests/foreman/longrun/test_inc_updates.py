@@ -289,13 +289,11 @@ class TestIncrementalUpdate(TestCase):
         self.assertGreater(len(errata_list), 0)
 
         # Apply incremental update using the first applicable errata
-        result = ContentViewCLI.version_incremental_update({
+        ContentViewCLI.version_incremental_update({
             u'content-view-version-id': cv_versions[-1].id,
+            u'environment-ids': self.qe_lce.id,
             u'errata-ids': errata_list[0].id,
-            u'environment-ids': self.qe_lce.id
         })
-
-        self.assertEqual(result.return_code, 0)
 
         # Re-read the content view to get the latest versions
         self.rhel_6_partial_cv = self.rhel_6_partial_cv.read()

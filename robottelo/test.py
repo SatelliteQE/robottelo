@@ -13,6 +13,7 @@ import unittest2
 
 from datetime import datetime
 from robottelo import ssh
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.metatest import MetaCLITest
 from robottelo.cli.org import Org as OrgCli
 from robottelo.cli.subscription import Subscription
@@ -406,11 +407,12 @@ class ConcurrentTestCase(TestCase):
     @classmethod
     def _get_organization_id(cls):
         """Get organization id"""
-        result = OrgCli.list(per_page=False)
-        if result.return_code != 0:
+        try:
+            result = OrgCli.list(per_page=False)
+        except CLIReturnCodeError:
             cls.logger.error('Fail to get organization id.')
             raise RuntimeError('Invalid organization id. Stop!')
-        return result.stdout[0]['id']
+        return result[0]['id']
 
     def setUp(self):
         self.logger.debug(
@@ -429,16 +431,16 @@ class ConcurrentTestCase(TestCase):
 
     def _get_subscription_id(self):
         """Get subscription id"""
-        result = Subscription.list(
-            {'organization-id': self.org_id},
-            per_page=False
-        )
-
-        if result.return_code != 0:
+        try:
+            result = Subscription.list(
+                {'organization-id': self.org_id},
+                per_page=False
+            )
+        except CLIReturnCodeError:
             self.logger.error('Fail to get subscription id!')
             raise RuntimeError('Invalid subscription id. Stop!')
-        subscription_id = result.stdout[0]['id']
-        subscription_name = result.stdout[0]['name']
+        subscription_id = result[0]['id']
+        subscription_name = result[0]['name']
         self.logger.info(
             'Subscribed to {0} with subscription id {1}'
             .format(subscription_name, subscription_id)

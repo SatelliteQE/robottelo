@@ -1,5 +1,6 @@
 """Test class for Environment Preparation after a fresh installation"""
 from robottelo import ssh
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.org import Org
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
@@ -11,7 +12,7 @@ from robottelo.test import TestCase
 
 
 class StandardPrepTestCase(TestCase):
-    """Standard process of preparation after fresh install Sattellite 6.
+    """Standard process of preparation after fresh install Satellite 6.
 
     Standard Preparation Process:
 
@@ -97,12 +98,12 @@ class StandardPrepTestCase(TestCase):
         """Utility function to upload manifest"""
         self.logger.debug('org-id is {}'.format(self.org_id))
 
-        result = Subscription.upload({
-            'file': '/root/{}'.format(MANIFEST_FILE_NAME),
-            'organization-id': self.org_id
-        })
-
-        if result.return_code != 0:
+        try:
+            Subscription.upload({
+                'file': '/root/{}'.format(MANIFEST_FILE_NAME),
+                'organization-id': self.org_id,
+            })
+        except CLIReturnCodeError:
             self.logger.error('Fail to upload manifest!')
             raise RuntimeError('Invalid manifest. Stop!')
         self.logger.info('Upload successful!')
@@ -114,39 +115,42 @@ class StandardPrepTestCase(TestCase):
 
     def _get_organization_id(self):
         """Get organization id"""
-        result = Org.list(per_page=False)
-
-        if result.return_code != 0:
+        try:
+            result = Org.list(per_page=False)
+        except CLIReturnCodeError:
             self.logger.error('Fail to list default organization.')
             raise RuntimeError('Invalid organization id. Stop!')
-        return result.stdout[0]['id']
+        return result[0]['id']
 
     def _get_production_id(self):
         """Get available product id after uploading manifest"""
-        result = Product.list({'organization-id': self.org_id}, per_page=False)
-
-        if result.return_code != 0:
+        try:
+            result = Product.list(
+                {'organization-id': self.org_id},
+                per_page=False
+            )
+        except CLIReturnCodeError:
             self.logger.error('Fail to list default products.')
             raise RuntimeError('Invalid product id. Stop!')
-        for item in result.stdout:
+        for item in result:
             if item['name'] == u'Red Hat Enterprise Linux Server':
                 return item['id']
 
     def _get_subscription_id(self):
         """Utility function to get subscription id after uploading manifest"""
-        result = Subscription.list(
-            {'organization-id': self.org_id},
-            per_page=False
-        )
-
-        if result.return_code != 0:
+        try:
+            result = Subscription.list(
+                {'organization-id': self.org_id},
+                per_page=False
+            )
+        except CLIReturnCodeError:
             self.logger.error('Fail to list subscriptions!')
             raise RuntimeError('Invalid subscription id. Stop!')
-        if not result.stdout:
+        if not result:
             self.logger.error('Fail to get subscription id!')
             raise RuntimeError('Manifest has no subscription!')
-        subscription_id = result.stdout[0]['id']
-        subscription_name = result.stdout[0]['name']
+        subscription_id = result[0]['id']
+        subscription_name = result[0]['name']
         self.logger.info(
             'Subscribe to {0} with subscription id: {1}'
             .format(subscription_name, subscription_id)
@@ -160,16 +164,16 @@ class StandardPrepTestCase(TestCase):
 
         Org.update({
             'id': self.org_id,
-            'redhat-repository-url': self.target_url
+            'redhat-repository-url': self.target_url,
         })
-        result = Org.info({'id': self.org_id})
-
-        if result.return_code != 0:
+        try:
+            result = Org.info({'id': self.org_id})
+        except CLIReturnCodeError:
             self.logger.error('Fail to update CDN address!')
             return
         self.logger.info(
             'RH CDN URL: {}'
-            .format(result.stdout['red-hat-repository-url']))
+            .format(result['red-hat-repository-url']))
 
     def _enable_repositories(self):
         """Utility function to retrieve enabled repositories"""
@@ -183,11 +187,11 @@ class StandardPrepTestCase(TestCase):
                 .format(i, repo_id, basearch, releasever))
 
             # Enable repos from Repository Set
-            result = RepositorySet.enable({
-                'product-id': self.pid,
+            RepositorySet.enable({
                 'basearch': basearch,
+                'id': repo_id,
+                'product-id': self.pid,
                 'releasever': releasever,
-                'id': repo_id
             })
 
         # verify enabled repository list
@@ -197,7 +201,7 @@ class StandardPrepTestCase(TestCase):
         )
 
         # repo_list_ids would contain all repositories in the hammer repo list
-        repo_list_ids = [repo['id'] for repo in result.stdout]
+        repo_list_ids = [repo['id'] for repo in result]
         self.logger.debug(repo_list_ids)
 
     def test_standard_prep(self):

@@ -2,6 +2,7 @@
 """Test class for Operating System CLI"""
 from ddt import ddt
 from fauxfactory import gen_string
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -99,18 +100,13 @@ class TestOperatingSystem(CLITestCase):
         @bz: redmine#4547
 
         """
-        result = OperatingSys.list()
-        self.assertEqual(result.return_code, 0)
-        length = len(result.stdout)
-        result = make_os()
-        name = result['name']
-        os_list = OperatingSys.list({'search': 'name=%s' % name})
-        os_info = OperatingSys.info({'id': os_list.stdout[0]['id']})
-
-        self.assertEqual(result['id'], os_info.stdout['id'])
-        result = OperatingSys.list()
-        self.assertGreater(len(result.stdout), length)
-        self.assertEqual(result.return_code, 0)
+        os_list_before = OperatingSys.list()
+        os = make_os()
+        os_list = OperatingSys.list({'search': 'name=%s' % os['name']})
+        os_info = OperatingSys.info({'id': os_list[0]['id']})
+        self.assertEqual(os['id'], os_info['id'])
+        os_list_after = OperatingSys.list()
+        self.assertGreater(len(os_list_after), len(os_list_before))
 
     def test_bugzilla_1051557(self):
         """@test: Update an Operating System's major version.
@@ -120,37 +116,24 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System major version is updated
 
         """
-
-        try:
-            os = make_os()
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        os = make_os()
         # New value for major
         major = int(os['major-version']) + 1
-
-        result = OperatingSys.update(
-            {'id': os['id'], 'major': major})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = OperatingSys.info({
-            u'id': os['id'],
+        OperatingSys.update({
+            'id': os['id'],
+            'major': major,
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(int(result.stdout['major-version']), major)
+        os = OperatingSys.info({
+            'id': os['id'],
+        })
+        self.assertEqual(int(os['major-version']), major)
 
-    @skip_if_bug_open('bugzilla', 1203457)
-    @skip_if_bug_open('bugzilla', 1200116)
     def test_bugzilla_1203457(self):
         """@test: Create an OS pointing to an arch, medium and partition table.
 
         @feature: Operating System - Create
 
         @assert: An operating system is created.
-
-        @bz: 1203457, 1200116
 
         """
         architecture = make_architecture()
@@ -180,20 +163,14 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is created and listed
 
         """
-        result = OperatingSys.list()
-        self.assertEqual(result.return_code, 0)
-        length = len(result.stdout)
-
-        name = gen_string("alpha")
-        result = make_os({'name': name})
-
+        os_list_before = OperatingSys.list()
+        name = gen_string('alpha')
+        os = make_os({'name': name})
         os_list = OperatingSys.list({'search': 'name=%s' % name})
-        os_info = OperatingSys.info({'id': os_list.stdout[0]['id']})
-
-        self.assertEqual(result['id'], os_info.stdout['id'])
-        result = OperatingSys.list()
-        self.assertGreater(len(result.stdout), length)
-        self.assertEqual(result.return_code, 0)
+        os_info = OperatingSys.info({'id': os_list[0]['id']})
+        self.assertEqual(os['id'], os_info['id'])
+        os_list_after = OperatingSys.list()
+        self.assertGreater(len(os_list_after), len(os_list_before))
 
     def test_info_1(self):
         """@test: Displays info for operating system
@@ -203,22 +180,14 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is created and have the correct data
 
         """
-
-        result = make_os()
-        os_info = OperatingSys.info({'id': result['id']})
-
+        os = make_os()
+        os_info = OperatingSys.info({'id': os['id']})
         # Info does not return major or minor but a concat of name,
         # major and minor
-        self.assertEqual(result['id'], os_info.stdout['id'])
-        self.assertEqual(result['name'], os_info.stdout['name'])
-        self.assertEqual(
-            str(result['major-version']),
-            os_info.stdout['major-version']
-        )
-        self.assertEqual(
-            str(result['minor-version']),
-            os_info.stdout['minor-version']
-        )
+        self.assertEqual(os['id'], os_info['id'])
+        self.assertEqual(os['name'], os_info['name'])
+        self.assertEqual(str(os['major-version']), os_info['major-version'])
+        self.assertEqual(str(os['minor-version']), os_info['minor-version'])
 
     @data(*POSITIVE_CREATE_DATA)
     def test_positive_create_1(self, test_data):
@@ -256,26 +225,19 @@ class TestOperatingSystem(CLITestCase):
         """
         # "Unpacks" values from tuple
         orig_dict, updates_dict = test_data
-
         # Create a new object passing @test_data to factory method
-        new_obj = make_os(orig_dict)
-
+        os = make_os(orig_dict)
         # Update original test_data with new values
-        updates_dict['id'] = new_obj['id']
+        updates_dict['id'] = os['id']
         orig_dict.update(updates_dict)
         # Now update the Foreman object
-        result = OperatingSys.update(orig_dict)
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(
-            len(result.stderr), 0)
-
-        result = OperatingSys.info({'id': new_obj['id']})
-
+        OperatingSys.update(orig_dict)
+        result = OperatingSys.info({'id': os['id']})
         # Verify that standard values are correct
-        self.assertEqual(new_obj['id'], result.stdout['id'])
-        self.assertNotEqual(result.stdout['name'], new_obj['name'])
+        self.assertEqual(os['id'], result['id'])
+        self.assertNotEqual(result['name'], os['name'])
         # There should be some attributes changed now
-        self.assertNotEqual(new_obj, result.stdout)
+        self.assertNotEqual(os, result)
 
     @data(*NEGATIVE_UPDATE_DATA)
     def test_negative_update_1(self, test_data):
@@ -286,27 +248,19 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is not updated
 
         """
-
         # "Unpacks" values from tuple
         orig_dict, updates_dict = test_data
-
         # Create a new object passing @test_data to factory method
-        new_obj = make_os(orig_dict)
-
+        os = make_os(orig_dict)
         # Update original data with new values
-        updates_dict['id'] = new_obj['id']
+        updates_dict['id'] = os['id']
         orig_dict.update(updates_dict)
-
         # Now update the Foreman object
-        result = OperatingSys.update(orig_dict)
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
-
+        with self.assertRaises(CLIReturnCodeError):
+            OperatingSys.update(orig_dict)
         # OS should not have changed
-        result = OperatingSys.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+        result = OperatingSys.info({'id': os['id']})
+        self.assertEqual(os['name'], result['name'])
 
     @data(*POSITIVE_DELETE_DATA)
     def test_positive_delete_1(self, test_data):
@@ -318,18 +272,12 @@ class TestOperatingSystem(CLITestCase):
 
         """
         # Create a new object passing @test_data to factory method
-        new_obj = make_os(test_data)
-
+        os = make_os(test_data)
         # Now delete it...
-        result = OperatingSys.delete(
-            {'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        OperatingSys.delete({'id': os['id']})
         # ... and make sure it does not exist anymore
-        result = OperatingSys.info({'id': new_obj['id']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
-        self.assertEqual(len(result.stdout), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            OperatingSys.info({'id': os['id']})
 
     @data(*NEGATIVE_DELETE_DATA)
     def test_negative_delete_1(self, test_data):
@@ -341,18 +289,14 @@ class TestOperatingSystem(CLITestCase):
 
         """
         # Create a new object using default values
-        new_obj = make_os()
-
+        os = make_os()
         # The delete method requires the ID which we will not pass
-        result = OperatingSys.delete(test_data)
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
-
+        with self.assertRaises(CLIReturnCodeError):
+            OperatingSys.delete(test_data)
         # Now make sure that it still exists
-        result = OperatingSys.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(new_obj['id'], result.stdout['id'])
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+        result = OperatingSys.info({'id': os['id']})
+        self.assertEqual(os['id'], result['id'])
+        self.assertEqual(os['name'], result['name'])
 
     def test_add_architecture(self):
         """@test: Add Architecture to os
@@ -363,20 +307,14 @@ class TestOperatingSystem(CLITestCase):
 
         """
         architecture = make_architecture()
-        new_obj = make_os()
-
-        result = OperatingSys.add_architecture({
-            'id': new_obj['id'],
+        os = make_os()
+        OperatingSys.add_architecture({
             'architecture-id': architecture['id'],
+            'id': os['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = OperatingSys.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['architectures']), 1)
-        self.assertEqual(
-            architecture['name'], result.stdout['architectures'][0])
+        os = OperatingSys.info({'id': os['id']})
+        self.assertEqual(len(os['architectures']), 1)
+        self.assertEqual(architecture['name'], os['architectures'][0])
 
     def test_add_configtemplate(self):
         """@test: Add configtemplate to os
@@ -387,18 +325,14 @@ class TestOperatingSystem(CLITestCase):
 
         """
         template = make_template()
-        new_obj = make_os()
-        result = OperatingSys.add_config_template({
-            'id': new_obj['id'],
+        os = make_os()
+        OperatingSys.add_config_template({
             'config-template': template['name'],
+            'id': os['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = OperatingSys.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['templates']), 1)
-        template_name = result.stdout['templates'][0]
+        os = OperatingSys.info({'id': os['id']})
+        self.assertEqual(len(os['templates']), 1)
+        template_name = os['templates'][0]
         self.assertTrue(template_name.startswith(template['name']))
 
     def test_add_ptable(self):
@@ -413,16 +347,12 @@ class TestOperatingSystem(CLITestCase):
         ptable_name = make_partition_table()['name']
         # Create an operating system.
         os_id = make_os()['id']
-
         # Add the partition table to the operating system.
-        response = OperatingSys.add_ptable({
+        OperatingSys.add_ptable({
             'id': os_id,
             'partition-table': ptable_name,
         })
-        self.assertEqual(response.return_code, 0)
-        self.assertEqual(len(response.stderr), 0)
-
         # Verify that the operating system has a partition table.
-        response = OperatingSys.info({'id': os_id})
-        self.assertEqual(len(response.stdout['partition-tables']), 1)
-        self.assertEqual(response.stdout['partition-tables'][0], ptable_name)
+        os = OperatingSys.info({'id': os_id})
+        self.assertEqual(len(os['partition-tables']), 1)
+        self.assertEqual(os['partition-tables'][0], ptable_name)

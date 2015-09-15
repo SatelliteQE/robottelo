@@ -64,8 +64,8 @@ class Host(Base):
 
         facts = []
 
-        if result.stdout:
-            facts = result.stdout
+        if result:
+            facts = result
 
         return facts
 
@@ -134,8 +134,8 @@ class Host(Base):
 
         reports = []
 
-        if result.stdout:
-            reports = result.stdout
+        if result:
+            reports = result
 
         return reports
 

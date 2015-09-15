@@ -2,6 +2,7 @@
 """
 Templates for generic positive/negative CRUD tests.
 """
+from robottelo.cli.base import CLIReturnCodeError
 
 
 def test_positive_create(self, data):
@@ -27,10 +28,7 @@ def test_positive_create(self, data):
         search=(self.search_key, new_obj[self.search_key])
     )
 
-    self.assertTrue(result.return_code == 0, 'Failed to create object')
-    self.assertTrue(
-        len(result.stderr) == 0, 'There should not be an exception here')
-    self.assertEqual(new_obj[self.search_key], result.stdout[self.search_key])
+    self.assertEqual(new_obj[self.search_key], result[self.search_key])
 
 
 def test_negative_create(self, data):
@@ -50,9 +48,8 @@ def test_negative_create(self, data):
     """
 
     # Try to create a new object passing @data to factory method
-    new_obj = self.factory_obj().create(data)
-    self.assertFalse(new_obj.return_code == 0, 'Object should not be created')
-    self.assertTrue(len(new_obj.stderr) > 0, 'Should have raised an exception')
+    with self.assertRaises(CLIReturnCodeError):
+        self.factory_obj().create(data)
 
 
 def test_positive_update(self, data):
@@ -83,31 +80,25 @@ def test_positive_update(self, data):
     result = self.factory_obj().exists(
         search=(self.search_key, new_obj[self.search_key])
     )
-    self.assertTrue(result.return_code == 0, 'Failed to create object')
-    self.assertTrue(
-        len(result.stderr) == 0, 'There should not be an exception here')
-    self.assertEqual(new_obj[self.search_key], result.stdout[self.search_key])
+    self.assertEqual(new_obj[self.search_key], result[self.search_key])
 
     # Store the new object for future assertions and to use its ID
-    new_obj = result.stdout
+    new_obj = result
 
     # Update original data with new values
-    orig_dict['id'] = result.stdout['id']
+    orig_dict['id'] = result['id']
     orig_dict.update(updates_dict)
     # Now update the Foreman object
-    result = self.factory_obj().update(orig_dict)
-    self.assertTrue(result.return_code == 0, 'Failed to update object')
-    self.assertTrue(
-        len(result.stderr) == 0, 'There should not be an exception here')
+    self.factory_obj().update(orig_dict)
 
     result = self.factory_obj().info({'id': new_obj['id']})
 
     # Verify that standard values are correct
-    self.assertEqual(new_obj['id'], result.stdout['id'], 'IDs should match')
+    self.assertEqual(new_obj['id'], result['id'], 'IDs should match')
     self.assertNotEqual(
-        new_obj[self.search_key], result.stdout[self.search_key])
+        new_obj[self.search_key], result[self.search_key])
     # There should be some attributes changed now
-    self.assertNotEqual(new_obj, result.stdout, 'Object should be updated')
+    self.assertNotEqual(new_obj, result, 'Object should be updated')
 
 
 def test_negative_update(self, data):
@@ -139,29 +130,23 @@ def test_negative_update(self, data):
     result = self.factory_obj().exists(
         search=(self.search_key, new_obj[self.search_key])
     )
-    self.assertTrue(result.return_code == 0, 'Failed to create object')
-    self.assertTrue(
-        len(result.stderr) == 0, 'There should not be an exception here')
-    self.assertEqual(new_obj[self.search_key], result.stdout[self.search_key])
+    self.assertEqual(new_obj[self.search_key], result[self.search_key])
 
-    # Store the new object for future assertionss and to use its ID
-    new_obj = result.stdout
+    # Store the new object for future assertions and to use its ID
+    new_obj = result
 
     # Update original data with new values
-    orig_dict['id'] = int(result.stdout['id'])
+    orig_dict['id'] = int(result['id'])
     orig_dict.update(updates_dict)
     # Now update the Foreman object
-    result = self.factory_obj().update(orig_dict)
-    self.assertFalse(
-        result.return_code == 0, '{0}, {1}'.format((data, result.stdout))
-    )
-    self.assertTrue(len(result.stderr) > 0, 'There should be errors')
+    with self.assertRaises(CLIReturnCodeError):
+        self.factory_obj().update(orig_dict)
 
     result = self.factory_obj().exists(
         search=(self.search_key, new_obj[self.search_key])
     )
     # Verify that new values were not updated
-    self.assertEqual(new_obj, result.stdout, 'Object should not be updated')
+    self.assertEqual(new_obj, result, 'Object should not be updated')
 
 
 def test_positive_delete(self, data):
@@ -187,21 +172,15 @@ def test_positive_delete(self, data):
     result = self.factory_obj().exists(
         search=(self.search_key, new_obj[self.search_key])
     )
-    self.assertTrue(result.return_code == 0, 'Failed to create object')
 
     # Store the new object for future assertionss and to use its ID
-    new_obj = result.stdout
+    new_obj = result
 
     # Now delete it...
-    result = self.factory_obj().delete(
-        {'id': new_obj['id']})
-    self.assertTrue(result.return_code == 0, 'Failed to delete object')
-    self.assertTrue(len(result.stderr) == 0, 'Should not get an error.')
+    self.factory_obj().delete({'id': new_obj['id']})
     # ... and make sure it does not exist anymore
-    result = self.factory_obj().info({'id': new_obj['id']})
-    self.assertFalse(result.return_code == 0, 'Return code should not be zero')
-    self.assertTrue(len(result.stderr) > 0, 'Should have gotten an error')
-    self.assertEqual(result.stdout, {}, 'Should not get any output')
+    with self.assertRaises(CLIReturnCodeError):
+        self.factory_obj().info({'id': new_obj['id']})
 
 
 def test_negative_delete(self, data):
@@ -227,18 +206,15 @@ def test_negative_delete(self, data):
     result = self.factory_obj().exists(
         search=(self.search_key, new_obj[self.search_key])
     )
-    self.assertTrue(result.return_code == 0, 'Failed to create object')
     # Store the new object for further assertions
-    new_obj = result.stdout
+    new_obj = result
 
     # Now try to delete it...
-    result = self.factory_obj().delete(data)
-    self.assertFalse(result.return_code == 0, 'Should not delete object')
-    self.assertTrue(len(result.stderr) > 0, 'Should have gotten an error')
+    with self.assertRaises(CLIReturnCodeError):
+        self.factory_obj().delete(data)
     # Now make sure that it still exists
 
     result = self.factory_obj().exists(
         search=(self.search_key, new_obj[self.search_key])
     )
-    self.assertTrue(result.return_code == 0, 'Failed to find object')
-    self.assertEqual(new_obj, result.stdout)
+    self.assertEqual(new_obj, result)

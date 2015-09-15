@@ -2,6 +2,7 @@
 """Test class for Domain  CLI"""
 
 from fauxfactory import gen_string
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.domain import Domain
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_domain, make_location, make_org
@@ -34,10 +35,9 @@ class TestDomain(MetaCLITestCase):
         @Assert: Domain successfully created
 
         """
-        try:
-            make_domain(options)
-        except CLIFactoryError as err:
-            self.fail(err)
+        domain = make_domain(options)
+        self.assertEqual(domain['name'], options['name'])
+        self.assertEqual(domain['description'], options['description'])
 
     def test_create_domain_with_location(self):
         """@Test: Check if domain with location can be created
@@ -47,11 +47,8 @@ class TestDomain(MetaCLITestCase):
         @Assert: Domain is created and has new location assigned
 
         """
-        try:
-            location = make_location()
-            domain = make_domain({'location-ids': location['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
+        location = make_location()
+        domain = make_domain({'location-ids': location['id']})
         self.assertIn(location['name'], domain['locations'])
 
     def test_create_domain_with_organization(self):
@@ -62,11 +59,8 @@ class TestDomain(MetaCLITestCase):
         @Assert: Domain is created and has new organization assigned
 
         """
-        try:
-            org = make_org()
-            domain = make_domain({'organization-ids': org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
+        org = make_org()
+        domain = make_domain({'organization-ids': org['id']})
         self.assertIn(org['name'], domain['organizations'])
 
     @data(
@@ -103,23 +97,15 @@ class TestDomain(MetaCLITestCase):
         @Assert: Domain is updated
 
         """
-        try:
-            domain = make_domain({
-                u'description': gen_string(str_type='utf8')
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        domain = make_domain({
+            u'description': gen_string(str_type='utf8')
+        })
         # update description
-        result = Domain.update(dict(options, id=domain['id']))
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Domain.update(dict(options, id=domain['id']))
         # check - domain updated
-        result = Domain.info({'id': domain['id']})
-        self.assertEqual(result.return_code, 0)
+        domain = Domain.info({'id': domain['id']})
         for key, val in options.iteritems():
-            self.assertEqual(result.stdout[key], val)
+            self.assertEqual(domain[key], val)
 
     @data(
         {u'name': ''},
@@ -135,21 +121,14 @@ class TestDomain(MetaCLITestCase):
         @Assert: Domain is not updated
 
         """
-        try:
-            domain = make_domain()
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        domain = make_domain()
         # update description
-        result = Domain.update(dict(options, id=domain['id']))
-        self.assertNotEqual(result.return_code, 0)
-        self.assertNotEqual(len(result.stderr), 0)
-
+        with self.assertRaises(CLIReturnCodeError):
+            Domain.update(dict(options, id=domain['id']))
         # check - domain not updated
         result = Domain.info({'id': domain['id']})
-        self.assertEqual(result.return_code, 0)
         for key in options.keys():
-            self.assertEqual(result.stdout[key], domain[key])
+            self.assertEqual(result[key], domain[key])
 
     @data(
         {'name': gen_string(str_type='utf8'),
@@ -169,26 +148,17 @@ class TestDomain(MetaCLITestCase):
         @Assert: Domain parameter is set
 
         """
-        try:
-            domain = make_domain()
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        domain = make_domain()
         options['domain-id'] = domain['id']
         # set parameter
-        result = Domain.set_parameter(options)
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Domain.set_parameter(options)
         # check - parameter set
-        result = Domain.info({'id': domain['id']})
-        self.assertEqual(result.return_code, 0)
-
+        domain = Domain.info({'id': domain['id']})
         parameter = {
             # Sattelite applies lower to parameter's name
             options['name'].lower(): options['value'],
         }
-        self.assertDictEqual(parameter, result.stdout['parameters'])
+        self.assertDictEqual(parameter, domain['parameters'])
 
     @data(
         {'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
@@ -206,20 +176,14 @@ class TestDomain(MetaCLITestCase):
         @Assert: Domain parameter is not set
 
         """
-        try:
-            domain = make_domain()
-        except CLIFactoryError as err:
-            self.fail(err)
+        domain = make_domain()
         options['domain-id'] = domain['id']
         # set parameter
-        result = Domain.set_parameter(options)
-        self.assertNotEqual(result.return_code, 0)
-        self.assertNotEqual(len(result.stderr), 0)
-
+        with self.assertRaises(CLIReturnCodeError):
+            Domain.set_parameter(options)
         # check - parameter not set
-        result = Domain.info({'id': domain['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['parameters']), 0)
+        domain = Domain.info({'id': domain['id']})
+        self.assertEqual(len(domain['parameters']), 0)
 
     @data(
         {'name': gen_string(str_type='utf8'),
@@ -237,24 +201,13 @@ class TestDomain(MetaCLITestCase):
         @Assert: Domain parameter is removed
 
         """
-        try:
-            domain = make_domain()
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        domain = make_domain()
         options['domain'] = domain['name']
-        result = Domain.set_parameter(options)
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = Domain.delete_parameter({
+        Domain.set_parameter(options)
+        Domain.delete_parameter({
             u'name': options['name'],
-            u'domain-id': domain['id']
+            u'domain-id': domain['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # check - parameter not set
-        result = Domain.info({'name': domain['name']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['parameters']), 0)
+        domain = Domain.info({'name': domain['name']})
+        self.assertEqual(len(domain['parameters']), 0)

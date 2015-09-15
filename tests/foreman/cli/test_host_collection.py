@@ -3,12 +3,14 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.factory import (
     CLIFactoryError, make_org, make_host_collection, make_content_view,
     make_lifecycle_environment, make_content_host)
 from robottelo.cli.hostcollection import HostCollection
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.decorators import data, skip_if_bug_open
 from robottelo.test import CLITestCase
 
@@ -24,7 +26,7 @@ class TestHostCollection(CLITestCase):
     library = None
     default_cv = None
 
-    def setUp(self):  # noqa
+    def setUp(self):
         """Tests for Host Collections via Hammer CLI"""
         super(TestHostCollection, self).setUp()
 
@@ -36,37 +38,30 @@ class TestHostCollection(CLITestCase):
                 cached=True
             )
         if TestHostCollection.library is None:
-            result = LifecycleEnvironment.info({
+            TestHostCollection.library = LifecycleEnvironment.info({
                 u'organization-id': TestHostCollection.org['id'],
-                u'name': u'Library',
+                u'name': ENVIRONMENT,
             })
-            self.assertEqual(result.return_code, 0)
-            TestHostCollection.library = result.stdout
         if TestHostCollection.default_cv is None:
-            result = ContentView.info(
+            TestHostCollection.default_cv = ContentView.info(
                 {u'organization-id': TestHostCollection.org['id'],
-                 u'name': u'Default Organization View'}
+                 u'name': DEFAULT_CV}
             )
-            self.assertEqual(result.return_code, 0)
-            TestHostCollection.default_cv = result.stdout
         if TestHostCollection.new_cv is None:
             TestHostCollection.new_cv = make_content_view(
                 {u'organization-id': TestHostCollection.org['id']}
             )
             TestHostCollection.promoted_cv = None
             cv_id = TestHostCollection.new_cv['id']
-            result = ContentView.publish({u'id': cv_id})
-            self.assertEqual(result.return_code, 0)
+            ContentView.publish({u'id': cv_id})
             result = ContentView.version_list({u'content-view-id': cv_id})
-            self.assertEqual(result.return_code, 0)
-            version_id = result.stdout[0]['id']
-            result = ContentView.version_promote({
+            version_id = result[0]['id']
+            ContentView.version_promote({
                 u'id': version_id,
+                u'organization-id': TestHostCollection.org['id'],
                 u'to-lifecycle-environment-id': (
                     TestHostCollection.new_lifecycle['id']),
-                u'organization-id': TestHostCollection.org['id']
             })
-            self.assertEqual(result.return_code, 0)
             TestHostCollection.promoted_cv = TestHostCollection.new_cv
 
     def _new_host_collection(self, options=None):
@@ -94,7 +89,6 @@ class TestHostCollection(CLITestCase):
         @Assert: Host collection is created and has random name
 
         """
-
         new_host_col = self._new_host_collection({'name': test_data['name']})
         # Assert that name matches data passed
         self.assertEqual(new_host_col['name'], test_data['name'])
@@ -115,7 +109,6 @@ class TestHostCollection(CLITestCase):
         @Assert: Host collection is created and has random description
 
         """
-
         new_host_col = self._new_host_collection({
             'description': test_data['description'],
         })
@@ -131,7 +124,6 @@ class TestHostCollection(CLITestCase):
         @Assert: Host collection is created and has random limits
 
         """
-
         new_host_col = self._new_host_collection({
             'max-content-hosts': test_data,
         })
@@ -152,23 +144,20 @@ class TestHostCollection(CLITestCase):
         @BZ: 1214675
 
         """
-        try:
-            host_collection = make_host_collection({
-                u'organization-id': self.org['id'],
-                u'unlimited-content-hosts': unlimited,
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        host_collection = make_host_collection({
+            u'organization-id': self.org['id'],
+            u'unlimited-content-hosts': unlimited,
+        })
         result = HostCollection.info({
             u'id': host_collection['id'],
             u'organization-id': self.org['id'],
         })
         if unlimited in (u'True', u'Yes', 1):
             self.assertEqual(
-                result.stdout['unlimited-content-hosts'], u'true')
+                result['unlimited-content-hosts'], u'true')
         else:
             self.assertEqual(
-                result.stdout['unlimited-content-hosts'], u'false')
+                result['unlimited-content-hosts'], u'false')
 
     @data(
         {'name': gen_string('alpha', 300)},
@@ -205,33 +194,22 @@ class TestHostCollection(CLITestCase):
         @Assert: Host collection is created and name is updated
 
         """
-
         new_host_col = self._new_host_collection()
         # Assert that name does not matches data passed
         self.assertNotEqual(new_host_col['name'], test_data['name'])
-
         # Update host collection
-        result = HostCollection.update({
+        HostCollection.update({
             'id': new_host_col['id'],
+            'name': test_data['name'],
             'organization-id': self.org['id'],
-            'name': test_data['name']
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Fetch it
-        result = HostCollection.info({
-            'id': new_host_col['id'],
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        result = HostCollection.info({'id': new_host_col['id']})
         # Assert that name matches new value
-        self.assertIsNotNone(result.stdout.get('name', None))
-        self.assertEqual(result.stdout['name'], test_data['name'])
+        self.assertEqual(result['name'], test_data['name'])
         # Assert that name does not match original value
-        self.assertNotEqual(new_host_col['name'], result.stdout['name'])
+        self.assertNotEqual(new_host_col['name'], result['name'])
 
-    @skip_if_bug_open('bugzilla', 1171669)
     @data(
         {'description': gen_string('alpha', 15)},
         {'description': gen_string('alphanumeric', 15)},
@@ -247,37 +225,23 @@ class TestHostCollection(CLITestCase):
 
         @Assert: Host collection is created and description is updated
 
-        @BZ: 1171669
-
         """
-
         new_host_col = self._new_host_collection()
         # Assert that description does not match data passed
         self.assertNotEqual(
             new_host_col['description'], test_data['description'])
-
         # Update sync plan
-        result = HostCollection.update({
+        HostCollection.update({
+            'description': test_data['description'],
             'id': new_host_col['id'],
             'organization-id': self.org['id'],
-            'description': test_data['description']
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Fetch it
-        result = HostCollection.info({
-            'id': new_host_col['id'],
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        result = HostCollection.info({'id': new_host_col['id']})
         # Assert that description matches new value
-        self.assertIsNotNone(result.stdout.get('description', None))
-        self.assertEqual(
-            result.stdout['description'], test_data['description'])
+        self.assertEqual(result['description'], test_data['description'])
         # Assert that description does not matches original value
-        self.assertNotEqual(
-            new_host_col['description'], result.stdout['description'])
+        self.assertNotEqual(new_host_col['description'], result['description'])
 
     @skip_if_bug_open('bugzilla', 1245334)
     @data('3', '6', '9', '12', '15', '17', '19')
@@ -291,30 +255,18 @@ class TestHostCollection(CLITestCase):
         @BZ: 1245334
 
         """
-
         new_host_col = self._new_host_collection()
-
         # Update sync interval
-        result = HostCollection.update({
+        HostCollection.update({
             'id': new_host_col['id'],
+            'max-content-hosts': test_data,
             'organization-id': self.org['id'],
-            'max-content-hosts': test_data
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Fetch it
-        result = HostCollection.info({
-            'id': new_host_col['id'],
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        result = HostCollection.info({'id': new_host_col['id']})
         # Assert that limit was updated
-        self.assertEqual(result.stdout['limit'], test_data)
-        self.assertNotEqual(
-            new_host_col['limit'],
-            result.stdout['limit']
-        )
+        self.assertEqual(result['limit'], test_data)
+        self.assertNotEqual(new_host_col['limit'], result['limit'])
 
     @data(
         {'name': gen_string('alpha', 15)},
@@ -332,26 +284,17 @@ class TestHostCollection(CLITestCase):
         @Assert: Host collection is created and then deleted
 
         """
-
         new_host_col = self._new_host_collection({'name': test_data['name']})
         # Assert that name matches data passed
         self.assertEqual(new_host_col['name'], test_data['name'])
-
         # Delete it
-        result = HostCollection.delete(
-            {'id': new_host_col['id'],
-             'organization-id': self.org['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        HostCollection.delete({
+            'id': new_host_col['id'],
+            'organization-id': self.org['id'],
+        })
         # Fetch it
-        result = HostCollection.info(
-            {
-                'id': new_host_col['id'],
-            }
-        )
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            HostCollection.info({'id': new_host_col['id']})
 
     def test_add_content_host(self):
         """@Test: Check if content host can be added to host collection
@@ -361,39 +304,25 @@ class TestHostCollection(CLITestCase):
         @Assert: Host collection is created and content-host is added
 
         """
-
-        host_col_name = gen_string('alpha', 15)
-        content_host_name = gen_string('alpha', 15)
-
-        try:
-            new_host_col = self._new_host_collection({'name': host_col_name})
-            new_system = make_content_host({
-                u'name': content_host_name,
-                u'organization-id': self.org['id'],
-                u'content-view-id': self.default_cv['id'],
-                u'lifecycle-environment-id': self.library['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_host_col = self._new_host_collection({
+            'name': gen_string('alpha', 15)})
+        new_system = make_content_host({
+            u'content-view-id': self.default_cv['id'],
+            u'lifecycle-environment-id': self.library['id'],
+            u'name': gen_string('alpha', 15),
+            u'organization-id': self.org['id'],
+        })
         no_of_content_host = new_host_col['total-content-hosts']
-
-        result = HostCollection.add_content_host({
+        HostCollection.add_content_host({
+            u'content-host-ids': new_system['id'],
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
-            u'content-host-ids': new_system['id']
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         result = HostCollection.info({
             u'id': new_host_col['id'],
             u'organization-id': self.org['id']
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertGreater(
-            result.stdout['total-content-hosts'], no_of_content_host)
+        self.assertGreater(result['total-content-hosts'], no_of_content_host)
 
     def test_remove_content_host(self):
         """@Test: Check if content host can be removed from host collection
@@ -403,52 +332,33 @@ class TestHostCollection(CLITestCase):
         @Assert: Host collection is created and content-host is removed
 
         """
-
-        host_col_name = gen_string('alpha', 15)
-        content_host_name = gen_string('alpha', 15)
-
-        try:
-            new_host_col = self._new_host_collection({'name': host_col_name})
-            new_system = make_content_host({
-                u'name': content_host_name,
-                u'organization-id': self.org['id'],
-                u'content-view-id': self.default_cv['id'],
-                u'lifecycle-environment-id': self.library['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        result = HostCollection.add_content_host({
+        new_host_col = self._new_host_collection({
+            'name': gen_string('alpha', 15)})
+        new_system = make_content_host({
+            u'content-view-id': self.default_cv['id'],
+            u'lifecycle-environment-id': self.library['id'],
+            u'name': gen_string('alpha', 15),
+            u'organization-id': self.org['id'],
+        })
+        HostCollection.add_content_host({
+            u'content-host-ids': new_system['id'],
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
-            u'content-host-ids': new_system['id']
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = HostCollection.info({
+        no_of_content_host = HostCollection.info({
             u'id': new_host_col['id'],
             u'organization-id': self.org['id']
-        })
-
-        no_of_content_host = result.stdout['total-content-hosts']
-
-        result = HostCollection.remove_content_host({
+        })['total-content-hosts']
+        HostCollection.remove_content_host({
+            u'content-host-ids': new_system['id'],
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
-            u'content-host-ids': new_system['id']
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         result = HostCollection.info({
             u'id': new_host_col['id'],
-            u'organization-id': self.org['id']
+            u'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertGreater(
-            no_of_content_host, result.stdout['total-content-hosts'])
+        self.assertGreater(no_of_content_host, result['total-content-hosts'])
 
     def test_content_hosts(self):
         """@Test: Check if content hosts added to host collection is listed
@@ -458,42 +368,27 @@ class TestHostCollection(CLITestCase):
         @Assert: Content-host added to host-collection is listed
 
         """
-
         host_col_name = gen_string('alpha', 15)
-        content_host_name = gen_string('alpha', 15)
-
-        try:
-            new_host_col = self._new_host_collection({'name': host_col_name})
-            new_system = make_content_host({
-                u'name': content_host_name,
-                u'organization-id': self.org['id'],
-                u'content-view-id': self.default_cv['id'],
-                u'lifecycle-environment-id': self.library['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        new_host_col = self._new_host_collection({'name': host_col_name})
+        new_system = make_content_host({
+            u'content-view-id': self.default_cv['id'],
+            u'lifecycle-environment-id': self.library['id'],
+            u'name': gen_string('alpha', 15),
+            u'organization-id': self.org['id'],
+        })
         no_of_content_host = new_host_col['total-content-hosts']
-        result = HostCollection.add_content_host({
+        HostCollection.add_content_host({
+            u'content-host-ids': new_system['id'],
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
-            u'content-host-ids': new_system['id']
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         result = HostCollection.info({
             u'id': new_host_col['id'],
             u'organization-id': self.org['id']
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertGreater(
-            result.stdout['total-content-hosts'], no_of_content_host)
-
+        self.assertGreater(result['total-content-hosts'], no_of_content_host)
         result = HostCollection.content_hosts({
             u'name': host_col_name,
             u'organization-id': self.org['id']
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_system['id'], result.stdout[0]['id'])
+        self.assertEqual(new_system['id'], result[0]['id'])

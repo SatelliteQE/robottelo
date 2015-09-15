@@ -1,5 +1,6 @@
 """Test class for concurrent subscription by Activation Key"""
 from robottelo.cli.activationkey import ActivationKey
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (make_activation_key)
 from robottelo.performance.constants import (
     ACTIVATION_KEY,
@@ -63,27 +64,27 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
             'name': self.ak_name
         })
 
-        # output activation key informatin
+        # output activation key information
         self.logger.info('Retrieve activation keys info list:')
-        result = ActivationKey.list(
-            {'organization-id': self.org_id},
-            per_page=False
-        )
-
-        if result.return_code != 0:
+        try:
+            result = ActivationKey.list(
+                {'organization-id': self.org_id},
+                per_page=False
+            )
+        except CLIReturnCodeError:
             self.logger.error('Fail to make new activation key!')
             return
-        return result.stdout[0]['id'], result.stdout[0]['name']
+        return result[0]['id'], result[0]['name']
 
     def _add_ak_to_subscription(self, ak_id, sub_id):
         """Add activation key to subscription"""
-        result = ActivationKey.add_subscription({
-            'id': ak_id,
-            'subscription-id': sub_id,
-            'quantity': self.add_ak_subscription_qty
-        })
-
-        if result.return_code != 0:
+        try:
+            ActivationKey.add_subscription({
+                'id': ak_id,
+                'quantity': self.add_ak_subscription_qty,
+                'subscription-id': sub_id,
+            })
+        except CLIReturnCodeError:
             self.logger.error('Fail to add activation-key to subscription')
             return
         self.logger.info('Subscription added to this activation key.')

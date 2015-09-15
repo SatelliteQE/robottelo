@@ -34,22 +34,28 @@ class Subscription(Base):
     def upload(cls, options=None):
         """Upload a subscription manifest."""
         cls.command_sub = 'upload'
-        return cls._remove_task_status(
-            cls.execute(cls._construct_command(options)))
+        return cls.execute(
+            cls._construct_command(options),
+            ignore_stderr=True,
+        )
 
     @classmethod
     def delete_manifest(cls, options=None):
         """Deletes a subscription manifest."""
         cls.command_sub = 'delete-manifest'
-        return cls._remove_task_status(
-            cls.execute(cls._construct_command(options)))
+        return cls.execute(
+            cls._construct_command(options),
+            ignore_stderr=True,
+        )
 
     @classmethod
     def refresh_manifest(cls, options=None):
         """Refreshes a subscription manifest."""
         cls.command_sub = 'refresh-manifest'
-        return cls._remove_task_status(
-            cls.execute(cls._construct_command(options)))
+        return cls.execute(
+            cls._construct_command(options),
+            ignore_stderr=True,
+        )
 
     @classmethod
     def manifest_history(cls, options=None):
