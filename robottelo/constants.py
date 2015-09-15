@@ -3,6 +3,19 @@
 Defines various constants
 """
 
+# Bugzilla
+BZ_OPEN_STATUSES = [
+    'NEW',
+    'ASSIGNED',
+    'POST',
+    'MODIFIED'
+]
+BZ_CLOSED_STATUSES = [
+    'ON_QA',
+    'VERIFIED',
+    'RELEASE_PENDING',
+    'CLOSED'
+]
 ROBOTTELO_PROPERTIES = "robottelo.properties"
 
 FOREMAN_PROVIDERS = {
