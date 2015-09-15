@@ -3,7 +3,6 @@ from nailgun import entities
 from robottelo.cli.host import Host
 from robottelo.cli.proxy import Proxy
 from robottelo.config import conf
-from robottelo.decorators import skip_if_bug_open
 from robottelo.test import CLITestCase
 
 
@@ -54,30 +53,28 @@ class HostTestCase(CLITestCase):
             result.stdout['name'],
         )
 
-    @skip_if_bug_open('bugzilla', 1177570)
-    def test_bz_1177570(self):
-        """@Test: Create a libvirt host and specify just a MAC address.
+    def test_create_libvirt_without_mac(self):
+        """@Test: Create a libvirt host and not specify a MAC address.
 
         @Feature: Hosts
 
-        @Assert: No host is created, and an appropriately descriptive error
-        message is returned.
+        @Assert: Host is created
 
         """
-        compute_resource_id = entities.LibvirtComputeResource(
+        compute_resource = entities.LibvirtComputeResource(
             url='qemu+tcp://{0}:16509/system'.format(
                 conf.properties['main.server.hostname']
             ),
-        ).create_json()['id']
+        ).create()
         host = entities.Host()
         host.create_missing()
         result = Host.create({
             u'architecture-id': host.architecture.id,
-            u'compute-resource-id': compute_resource_id,
+            u'compute-resource-id': compute_resource.id,
             u'domain-id': host.domain.id,
             u'environment-id': host.environment.id,
+            u'interface': 'type=network',
             u'location-id': host.location.id,  # pylint:disable=no-member
-            u'mac': host.mac,
             u'medium-id': host.medium.id,
             u'name': host.name,
             u'operatingsystem-id': host.operatingsystem.id,
@@ -86,9 +83,5 @@ class HostTestCase(CLITestCase):
             u'puppet-proxy-id': self.puppet_proxy['id'],
             u'root-pass': host.root_pass,
         })
-        self.assertNotEqual(result.return_code, 0)
-        self.assertNotIn(u'mac value is blank', result.stderr)
-        self.assertIn(
-            u'you must specify either compute attributes or a compute profile',
-            result.stderr
-        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
