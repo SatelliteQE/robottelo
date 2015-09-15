@@ -56,13 +56,18 @@ class Repository(Base):
     def synchronize(cls, options):
         """Synchronizes a repository."""
         cls.command_sub = 'synchronize'
-        return cls._remove_task_status(
-            cls.execute(cls._construct_command(options), output_format='csv'))
+        return cls.execute(
+            cls._construct_command(options),
+            output_format='csv',
+            ignore_stderr=True,
+        )
 
     @classmethod
     def upload_content(cls, options):
         """Upload content to repository."""
         cls.command_sub = 'upload-content'
-        result = cls.execute(
-            cls._construct_command(options), output_format='csv')
-        return result
+        return cls.execute(
+            cls._construct_command(options),
+            output_format='csv',
+            ignore_stderr=True,
+        )

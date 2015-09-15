@@ -45,8 +45,8 @@ class Template(Base):
 
         kinds = []
 
-        if result.stdout:
-            kinds = result.stdout
+        if result:
+            kinds = result
 
         return kinds
 
