@@ -54,7 +54,6 @@ class HostTestCase(CLITestCase):
             result.stdout['name'],
         )
 
-    @skip_if_bug_open('bugzilla', 1177570)
     def test_bz_1177570(self):
         """@Test: Create a libvirt host and specify just a MAC address.
 
@@ -77,7 +76,6 @@ class HostTestCase(CLITestCase):
             u'domain-id': host.domain.id,
             u'environment-id': host.environment.id,
             u'location-id': host.location.id,  # pylint:disable=no-member
-            u'mac': host.mac,
             u'medium-id': host.medium.id,
             u'name': host.name,
             u'operatingsystem-id': host.operatingsystem.id,
@@ -85,10 +83,8 @@ class HostTestCase(CLITestCase):
             u'partition-table-id': host.ptable.id,
             u'puppet-proxy-id': self.puppet_proxy['id'],
             u'root-pass': host.root_pass,
+            u'interface': 'type=network',
         })
         self.assertNotEqual(result.return_code, 0)
         self.assertNotIn(u'mac value is blank', result.stderr)
-        self.assertIn(
-            u'you must specify either compute attributes or a compute profile',
-            result.stderr
-        )
+        self.assertEqual(len(result.stderr), 0)
