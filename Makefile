@@ -2,6 +2,7 @@
 
 FOREMAN_API_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), api)
 FOREMAN_CLI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), cli)
+FOREMAN_LONGRUN_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), longrun)
 FOREMAN_RHAI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhai)
 FOREMAN_RHCI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhci)
 FOREMAN_SMOKE_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), smoke)
@@ -60,6 +61,9 @@ test-foreman-cli:
 test-foreman-cli-threaded:
 	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_CLI_TESTS_PATH)\
 	    --processes=-1 --process-timeout=300
+
+test-foreman-longrun:
+	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_LONGRUN_TESTS_PATH)
 
 test-foreman-rhai:
 	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_RHAI_TESTS_PATH)
