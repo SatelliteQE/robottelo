@@ -349,7 +349,7 @@ class Base(object):
 
     @classmethod
     def with_user(cls, username=None, password=None):
-        "Context Manager for credentials"
+        """Context Manager for credentials"""
         if username is None:
             username = conf.properties['foreman.admin.username']
         if password is None:
