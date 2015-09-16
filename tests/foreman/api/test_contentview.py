@@ -2,7 +2,6 @@
 """Unit tests for the ``content_views`` paths."""
 import random
 
-from ddt import ddt
 from fauxfactory import gen_integer, gen_string, gen_utf8
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -15,12 +14,7 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.decorators import (
-    bz_bug_is_open,
-    data,
-    run_only_on,
-    stubbed,
-)
+from robottelo.decorators import bz_bug_is_open, run_only_on, stubbed
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
@@ -29,6 +23,19 @@ from robottelo.test import APITestCase
 # How many times should that be done? A higher number means a more interesting
 # but longer test.
 REPEAT = 3
+
+
+def _strings():
+    """Return a generator yielding various kinds of strings."""
+    return (gen_string(str_type) for str_type in (
+        'alpha',
+        'alphanumeric',
+        'cjk',
+        'html',
+        'latin1',
+        'numeric',
+        'utf8',
+    ))
 
 
 @run_only_on('sat')
@@ -226,44 +233,25 @@ class ContentViewTestCase(APITestCase):
         self.assertEqual(len(content_view.read().puppet_module), 1)
 
 
-@ddt
 class ContentViewCreateTestCase(APITestCase):
     """Tests for creating content views."""
 
     def test_positive_create_1(self):
-        """@Test: Create an empty non-composite content view.
+        """@Test: Create composite and non-composite content views.
 
-        @Assert: Creation succeeds and content-view is non-composite.
+        @Assert: Creation succeeds and content-view is composite or
+        non-composite, respectively.
 
         @Feature: ContentView
 
         """
-        self.assertFalse(
-            entities.ContentView(composite=False).create().composite
-        )
+        for composite in (True, False):
+            self.assertEqual(
+                composite,
+                entities.ContentView(composite=composite).create().composite,
+            )
 
     def test_positive_create_2(self):
-        """@Test: Create an empty composite content view.
-
-        @Assert: Creation succeeds and content-view is composite.
-
-        @Feature: ContentView
-
-        """
-        self.assertTrue(
-            entities.ContentView(composite=True).create().composite
-        )
-
-    @data(
-        gen_string('alpha', gen_integer(3, 30)),
-        gen_string('alphanumeric', gen_integer(3, 30)),
-        gen_string('cjk', gen_integer(3, 30)),
-        gen_string('html', gen_integer(3, 30)),
-        gen_string('latin1', gen_integer(3, 30)),
-        gen_string('numeric', gen_integer(3, 30)),
-        gen_string('utf8', gen_integer(3, 30)),
-    )
-    def test_positive_create_3(self, name):
         """@Test: Create empty content-view with random names.
 
         @Assert: Content-view is created and had random name.
@@ -271,18 +259,13 @@ class ContentViewCreateTestCase(APITestCase):
         @Feature: ContentView
 
         """
-        self.assertEqual(entities.ContentView(name=name).create().name, name)
+        for name in _strings():
+            self.assertEqual(
+                entities.ContentView(name=name).create().name,
+                name
+            )
 
-    @data(
-        gen_string('alpha', gen_integer(3, 30)),
-        gen_string('alphanumeric', gen_integer(3, 30)),
-        gen_string('cjk', gen_integer(3, 30)),
-        gen_string('html', gen_integer(3, 30)),
-        gen_string('latin1', gen_integer(3, 30)),
-        gen_string('numeric', gen_integer(3, 30)),
-        gen_string('utf8', gen_integer(3, 30)),
-    )
-    def test_positive_create_4(self, description):
+    def test_positive_create_3(self):
         """@Test: Create empty content view with random description.
 
         @Assert: Content-view is created and has random description.
@@ -290,10 +273,11 @@ class ContentViewCreateTestCase(APITestCase):
         @Feature: ContentView
 
         """
-        self.assertEqual(
-            description,
-            entities.ContentView(description=description).create().description,
-        )
+        for desc in _strings():
+            self.assertEqual(
+                desc,
+                entities.ContentView(description=desc).create().description,
+            )
 
 
 class CVPublishPromoteTestCase(APITestCase):
@@ -797,7 +781,6 @@ class CVPublishPromoteTestCase(APITestCase):
         )
 
 
-@ddt
 class ContentViewUpdateTestCase(APITestCase):
     """Tests for updating content views."""
 
@@ -806,14 +789,7 @@ class ContentViewUpdateTestCase(APITestCase):
         """Create a content view."""
         cls.content_view = entities.ContentView().create()
 
-    @data(
-        {u'name': entities.ContentView().get_fields()['name'].gen_value()},
-        {
-            u'description':
-            entities.ContentView().get_fields()['description'].gen_value()
-        },
-    )
-    def test_positive_update(self, attrs):
+    def test_positive_update(self):
         """@Test: Update a content view and provide valid attributes.
 
         @Assert: The update succeeds.
@@ -821,18 +797,14 @@ class ContentViewUpdateTestCase(APITestCase):
         @Feature: ContentView
 
         """
-        content_view = entities.ContentView(
-            id=self.content_view.id,
-            **attrs
-        ).update()
-        for field_name, field_value in attrs.items():
-            self.assertEqual(getattr(content_view, field_name), field_value)
+        attrs = {'description': gen_utf8(), 'name': gen_utf8()}
+        for key, value in attrs.items():
+            with self.subTest((key, value)):
+                setattr(self.content_view, key, value)
+                self.content_view = self.content_view.update({key})
+                self.assertEqual(getattr(self.content_view, key), value)
 
-    @data(
-        {u'label': gen_utf8(30), u'bz-bug': 1147100},  # Immutable.
-        {u'name': gen_utf8(256)},
-    )
-    def test_negative_update_1(self, attrs):
+    def test_negative_update_1(self):
         """@Test: Update a content view and provide an invalid attribute.
 
         @Assert: The content view's attributes are not updated.
@@ -840,11 +812,14 @@ class ContentViewUpdateTestCase(APITestCase):
         @Feature: ContentView
 
         """
-        bug_id = attrs.pop('bz-bug', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-        with self.assertRaises(HTTPError):
-            entities.ContentView(id=self.content_view.id, **attrs).update()
+        attrs = {'label': gen_utf8(30), 'name': gen_utf8(256)}
+        for key, value in attrs.items():
+            with self.subTest((key, value)):
+                if key == 'label' and bz_bug_is_open(1147100):
+                    continue
+                setattr(self.content_view, key, value)
+                with self.assertRaises(HTTPError):
+                    self.content_view.update({key})
 
 
 class CVRedHatContent(APITestCase):
