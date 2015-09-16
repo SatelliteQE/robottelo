@@ -147,6 +147,10 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//a[@id='menu_item_hosts']")),
+    "menu.discovered_hosts": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='menu_item_discovered_hosts']")),
     "menu.content_hosts": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
@@ -1978,6 +1982,17 @@ locators = LocatorDict({
                    " and contains(., '%s')]")),
     "discoveryrules.rule_delete": (
         By.XPATH, "//a[contains(@data-confirm, '%s') and @class='delete']"),
+
+    # Discovered Hosts
+    "discoveredhosts.hostname": (
+        By.XPATH, ("//a[contains(@href, 'discovered_hosts')"
+                   " and contains(., '%s')]")),
+    "discoveredhosts.dropdown": (
+        By.XPATH, ("//a[contains(@href,'%s')]"
+                   "/following::a[@data-toggle='dropdown']")),
+    "discoveredhosts.delete": (
+        By.XPATH, ("//a[@class='delete' and contains(@data-confirm, '%s')]")),
+
     # LDAP Authentication
     "ldapsource.new": (
         By.XPATH, "//a[@href='/auth_source_ldaps/new']"),

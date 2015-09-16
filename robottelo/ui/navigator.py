@@ -143,6 +143,12 @@ class Navigator(Base):
             menu_locators['menu.hosts'], menu_locators['menu.all_hosts'],
         )
 
+    def go_to_discovered_hosts(self):
+        self.menu_click(
+            menu_locators['menu.hosts'],
+            menu_locators['menu.discovered_hosts'],
+        )
+
     def go_to_content_hosts(self):
         self.menu_click(
             menu_locators['menu.hosts'],
