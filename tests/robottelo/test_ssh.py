@@ -4,7 +4,7 @@ import os
 
 from robottelo import ssh
 from robottelo.config import conf, get_app_root
-from unittest import TestCase
+from unittest2 import TestCase
 
 
 class MockSSHClient(object):

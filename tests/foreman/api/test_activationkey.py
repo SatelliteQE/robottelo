@@ -1,7 +1,6 @@
 """Unit tests for the ``activation_keys`` paths."""
 import httplib
 
-from ddt import data, ddt
 from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
@@ -10,7 +9,24 @@ from robottelo.helpers import get_server_credentials
 from robottelo.test import APITestCase
 
 
-@ddt
+def _good_max_content_hosts():
+    """Return a generator yielding valid ``max_content_hosts`` values."""
+    return (gen_integer(*limits) for limits in ((1, 20), (10000, 20000)))
+
+
+def _good_names():
+    """Return a generator yielding valid ``name`` values."""
+    return (
+        gen_string(str_type)
+        for str_type in ('alpha', 'alphanumeric', 'cjk', 'latin1')
+    )
+
+
+def _bad_max_content_hosts():
+    """Return a generator yielding invalid ``max_content_hosts`` values."""
+    return (gen_integer(-100, -1), 0, gen_string('alpha'))
+
+
 class ActivationKeysTestCase(APITestCase):
     """Tests for the ``activation_keys`` path."""
 
@@ -27,11 +43,7 @@ class ActivationKeysTestCase(APITestCase):
             entities.ActivationKey().create().unlimited_content_hosts
         )
 
-    @data(
-        gen_integer(min_value=1, max_value=20),
-        gen_integer(min_value=10000, max_value=20000),
-    )
-    def test_positive_create_2(self, max_content_hosts):
+    def test_positive_create_2(self):
         """@Test: Create an activation key with limited content hosts.
 
         @Assert: Activation key is created, defaults to limited content host
@@ -39,20 +51,16 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        act_key = entities.ActivationKey(
-            max_content_hosts=max_content_hosts,
-            unlimited_content_hosts=False,
-        ).create()
-        self.assertEqual(act_key.max_content_hosts, max_content_hosts)
-        self.assertFalse(act_key.unlimited_content_hosts)
+        for mch in _good_max_content_hosts():
+            with self.subTest(mch):
+                act_key = entities.ActivationKey(
+                    max_content_hosts=mch,
+                    unlimited_content_hosts=False,
+                ).create()
+                self.assertEqual(act_key.max_content_hosts, mch)
+                self.assertFalse(act_key.unlimited_content_hosts)
 
-    @data(
-        gen_string(str_type='alpha'),
-        gen_string(str_type='alphanumeric'),
-        gen_string(str_type='cjk'),
-        gen_string(str_type='latin1'),
-    )
-    def test_positive_create_3(self, name):
+    def test_positive_create_3(self):
         """@Test: Create an activation key providing the initial name.
 
         @Assert: Activation key is created and contains provided name.
@@ -60,18 +68,12 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        self.assertEqual(
-            entities.ActivationKey(name=name).create().name,
-            name,
-        )
+        for name in _good_names():
+            with self.subTest(name):
+                act_key = entities.ActivationKey(name=name).create()
+                self.assertEqual(name, act_key.name)
 
-    @data(
-        gen_string(str_type='alpha'),
-        gen_string(str_type='alphanumeric'),
-        gen_string(str_type='cjk'),
-        gen_string(str_type='latin1'),
-    )
-    def test_positive_create_4(self, description):
+    def test_positive_create_4(self):
         """@Test: Create an activation key and provide a description.
 
         @Assert: Created entity contains the provided description.
@@ -79,8 +81,10 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        act_key = entities.ActivationKey(description=description).create()
-        self.assertEqual(act_key.description, description)
+        for desc in _good_names():  # yes, _good_names pulls double duty
+            with self.subTest(desc):
+                act_key = entities.ActivationKey(description=desc).create()
+                self.assertEqual(desc, act_key.description)
 
     def test_negative_create_1(self):
         """@Test: Create activation key with limited content hosts but no limit
@@ -94,12 +98,7 @@ class ActivationKeysTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.ActivationKey(unlimited_content_hosts=False).create()
 
-    @data(
-        gen_string(str_type='alpha'),
-        gen_integer(max_value=-1),
-        0,
-    )
-    def test_negative_create_2(self, max_content_hosts):
+    def test_negative_create_2(self):
         """@Test: Create activation key with limited content hosts but with
         invalid limit values.
 
@@ -108,19 +107,16 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        with self.assertRaises(HTTPError):
-            entities.ActivationKey(
-                max_content_hosts=max_content_hosts,
-                unlimited_content_hosts=False,
-            ).create()
+        for mch in _bad_max_content_hosts():
+            with self.subTest(mch):
+                with self.assertRaises(HTTPError):
+                    entities.ActivationKey(
+                        max_content_hosts=mch,
+                        unlimited_content_hosts=False,
+                    ).create()
 
     @skip_if_bug_open('bugzilla', 1156555)
-    @data(
-        gen_integer(min_value=-10, max_value=-1),
-        gen_integer(min_value=1, max_value=20),
-        gen_string(str_type='alpha'),
-    )
-    def test_negative_create_3(self, max_content_hosts):
+    def test_negative_create_3(self):
         """@Test Create activation key with unlimited content hosts and set max
         content hosts of varied values.
 
@@ -129,17 +125,15 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        with self.assertRaises(HTTPError):
-            entities.ActivationKey(
-                max_content_hosts=max_content_hosts,
-                unlimited_content_hosts=True,
-            ).create()
+        for mch in _good_max_content_hosts() + _bad_max_content_hosts():
+            with self.subTest(mch):
+                with self.assertRaises(HTTPError):
+                    entities.ActivationKey(
+                        max_content_hosts=mch,
+                        unlimited_content_hosts=True,
+                    ).create()
 
-    @data(
-        gen_integer(min_value=1, max_value=30),
-        gen_integer(min_value=10000, max_value=20000),
-    )
-    def test_positive_update_1(self, max_content_hosts):
+    def test_positive_update_1(self):
         """@Test: Create activation key then update it to limited content
         hosts.
 
@@ -148,24 +142,18 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        # Create and update an activation key.
+        # unlimited_content_hosts defaults to True.
         act_key = entities.ActivationKey().create()
-        attrs = {
-            'description': act_key.get_fields()['description'].gen_value(),
-            'max_content_hosts': max_content_hosts,
-            'unlimited_content_hosts': False,
-        }
-        act_key = entities.ActivationKey(id=act_key.id, **attrs).update()
-        for field_name, field_value in attrs.items():
-            self.assertEqual(getattr(act_key, field_name), field_value)
+        for mch in _good_max_content_hosts():
+            want = {'max_content_hosts': mch, 'unlimited_content_hosts': False}
+            for key, value in want.items():
+                setattr(act_key, key, value)
+            with self.subTest(want):
+                act_key = act_key.update(want.keys())
+                actual = {attr: getattr(act_key, attr) for attr in want.keys()}
+                self.assertEqual(want, actual)
 
-    @data(
-        gen_string(str_type='alpha'),
-        gen_integer(min_value=-200, max_value=-1),
-        -1,
-        0
-    )
-    def test_negative_update_1(self, max_content_hosts):
+    def test_negative_update_1(self):
         """@Test: Create activation key then update its limit to invalid value.
 
         @Assert:
@@ -178,16 +166,19 @@ class ActivationKeysTestCase(APITestCase):
 
         """
         act_key = entities.ActivationKey().create()
-        self.assertTrue(act_key.unlimited_content_hosts)
-        with self.assertRaises(HTTPError):
-            entities.ActivationKey(
-                id=act_key.id,
-                max_content_hosts=max_content_hosts,
-                unlimited_content_hosts=False,
-            ).update(['max_content_hosts', 'unlimited_content_hosts'])
-        act_key_2 = act_key.read()
-        for attr in ('max_content_hosts', 'unlimited_content_hosts'):
-            self.assertEqual(getattr(act_key, attr), getattr(act_key_2, attr))
+        want = {
+            'max_content_hosts': act_key.max_content_hosts,
+            'unlimited_content_hosts': act_key.unlimited_content_hosts,
+        }
+        for mch in _bad_max_content_hosts():
+            with self.subTest(mch):
+                act_key.max_content_hosts = mch
+                act_key.unlimited_content_hosts = False
+                with self.assertRaises(HTTPError):
+                    act_key.update(want.keys())
+                act_key = act_key.read()
+                actual = {attr: getattr(act_key, attr) for attr in want.keys()}
+                self.assertEqual(want, actual)
 
     def test_update_max_content_hosts(self):
         """@Test: Create an activation key with ``max_content_hosts == 1``,

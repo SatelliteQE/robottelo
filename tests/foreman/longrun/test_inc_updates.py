@@ -16,7 +16,7 @@ from robottelo.cli.contentview import ContentView as ContentViewCLI
 from robottelo.constants import PRD_SETS
 from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.vm import VirtualMachine
-from unittest import TestCase
+from unittest2 import TestCase
 
 
 @run_only_on('sat')

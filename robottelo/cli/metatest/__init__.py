@@ -37,7 +37,7 @@ class MetaCLITest(type):
             MetaCLITest, cls).__new__(cls, name, bases, attributes)
 
         # When loading test classes for a test run, the Nose class
-        # loader "transplants" any class that inherits from unittest.TestCase
+        # loader "transplants" any class that inherits from unittest2.TestCase
         # into an internal class "C". If your test class uses MetaCLI,
         # then it will automatically also inherit from BaseCLI and
         # Nose will automatically see a new "C". We want to ignore

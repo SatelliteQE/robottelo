@@ -9,7 +9,7 @@ import logging
 import os
 import signal
 import sys
-import unittest
+import unittest2
 
 from datetime import datetime
 from robottelo import ssh
@@ -81,7 +81,7 @@ from selenium_factory.SeleniumFactory import SeleniumFactory
 SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
 
 
-class TestCase(unittest.TestCase):
+class TestCase(unittest2.TestCase):
     """Robottelo test case"""
 
     @classmethod

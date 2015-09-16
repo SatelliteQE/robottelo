@@ -5,7 +5,7 @@ import bugzilla
 import logging
 import random
 import requests
-import unittest
+import unittest2
 
 from ddt import data as ddt_data
 from functools import wraps
@@ -54,7 +54,7 @@ def stubbed(reason=None):
     # Assume 'not implemented' if no reason is given
     if reason is None:
         reason = NOT_IMPLEMENTED
-    return unittest.skip(reason)
+    return unittest2.skip(reason)
 
 
 def cacheable(func):
@@ -118,7 +118,7 @@ def run_only_on(project):
             # test code continues here
 
     :param str project: Enter 'sat' for Satellite and 'sam' for SAM
-    :returns: ``unittest.skipIf``
+    :returns: ``unittest2.skipIf``
     :raises: :meth:`ProjectModeError` if invalid `project` is given or invalid
         mode is specified in ``robottelo.properties`` file
 
@@ -144,7 +144,7 @@ def run_only_on(project):
         )
 
     # Preconditions PASS.  Now skip the test if modes does not match
-    return unittest.skipIf(
+    return unittest2.skipIf(
         project != robottelo_mode,
         'Server runs in "{0}" mode and this test will run '
         'only on "{1}" mode.'.format(robottelo_mode, project))
@@ -155,7 +155,7 @@ def skipRemote(func):  # noqa
     Remote in the sense whether it is Sauce Labs"""
 
     remote = int(conf.properties['main.remote'])
-    return unittest.skipIf(
+    return unittest2.skipIf(
         remote == 1,
         "Skipping as setup related to sauce labs is missing")(func)
 
@@ -343,7 +343,7 @@ class skip_if_bug_open(object):  # noqa pylint:disable=C0103,R0903
             open, skip test ``func``. Otherwise, run the test.
 
             :return: The return value of test method ``func``.
-            :raises unittest.SkipTest: If bug ``bug_id`` is open.
+            :raises unittest2.SkipTest: If bug ``bug_id`` is open.
             :raises BugTypeError: If ``bug_type`` is not recognized.
 
             """
@@ -359,7 +359,7 @@ class skip_if_bug_open(object):  # noqa pylint:disable=C0103,R0903
                     func.__module__,
                     self.bug_id
                 )
-                raise unittest.SkipTest(
+                raise unittest2.SkipTest(
                     'Skipping test due to open Bugzilla bug #{0}.'
                     ''.format(self.bug_id)
                 )
@@ -370,7 +370,7 @@ class skip_if_bug_open(object):  # noqa pylint:disable=C0103,R0903
                     func.__module__,
                     self.bug_id
                 )
-                raise unittest.SkipTest(
+                raise unittest2.SkipTest(
                     'Skipping test due to open Redmine bug #{0}.'
                     ''.format(self.bug_id)
                 )

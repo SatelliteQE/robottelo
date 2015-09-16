@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Test class for Content Views"""
 import random
-import unittest
+import unittest2
 
 from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_string
@@ -233,7 +233,7 @@ class TestContentView(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(result.stdout['name'], new_name)
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @unittest2.skip(NOT_IMPLEMENTED)
     def test_cv_edit_rh_custom_spin(self):
         # Variations might be:
         #   * A filter on errata date (only content that matches date
@@ -1136,7 +1136,7 @@ class TestContentView(CLITestCase):
         }
         self.assertIn(environment, result.stdout['lifecycle-environments'])
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @unittest2.skip(NOT_IMPLEMENTED)
     def test_cv_promote_rh_custom_spin(self):
         """@test: attempt to promote a content view containing a custom RH
         spin - i.e., contains filters.
@@ -1450,7 +1450,7 @@ class TestContentView(CLITestCase):
             'Publishing new version of CV was not successful'
         )
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @unittest2.skip(NOT_IMPLEMENTED)
     def test_cv_publish_rh_custom_spin(self):
         """@test: attempt to publish  a content view containing a custom RH
         spin - i.e., contains filters.
@@ -2239,7 +2239,7 @@ class TestContentView(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(result.stdout['content-host-count'], '1')
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @unittest2.skip(NOT_IMPLEMENTED)
     def test_cv_clone_within_same_env(self):
         # Dev note: "not implemented yet"
         """@test: attempt to create new content view based on existing
@@ -2252,7 +2252,7 @@ class TestContentView(CLITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @unittest2.skip(NOT_IMPLEMENTED)
     def test_cv_clone_within_diff_env(self):
         # Dev note: "not implemented yet"
         """@test: attempt to create new content view based on existing
@@ -2266,7 +2266,7 @@ class TestContentView(CLITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @unittest2.skip(NOT_IMPLEMENTED)
     def test_cv_refresh_errata_to_new_view_in_same_env(self):
         """@test: attempt to refresh errata in a new view, based on
         an existing view, from within the same  environment
@@ -2279,7 +2279,7 @@ class TestContentView(CLITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @unittest2.skip(NOT_IMPLEMENTED)
     def test_cv_dynflow_restart_promote(self):
         """@test: attempt to restart a promotion
 
@@ -2295,7 +2295,7 @@ class TestContentView(CLITestCase):
 
         """
 
-    @unittest.skip(NOT_IMPLEMENTED)
+    @unittest2.skip(NOT_IMPLEMENTED)
     def test_cv_dynflow_restart_publish(self):
         """@test: attempt to restart a publish
 
