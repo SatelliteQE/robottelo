@@ -1,9 +1,8 @@
 # -*- encoding: utf-8 -*-
 """API Tests for foreman discovery feature"""
-from ddt import ddt
 from fauxfactory import gen_string, gen_ipaddr, gen_mac
 from nailgun import entities
-from robottelo.decorators import stubbed, data, run_only_on
+from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import APITestCase
 
 
@@ -23,7 +22,7 @@ def _create_discovered_host(name=None, ipaddress=None, discovery_bootif=None):
         ipaddress = gen_ipaddr()
     if discovery_bootif is None:
         discovery_bootif = gen_mac()
-    return entities.DiscoveredHost().facts(data={
+    return entities.DiscoveredHost().facts(json={
         u'facts': {
             u'name': name,
             u'ipaddress': ipaddress,
@@ -32,7 +31,14 @@ def _create_discovered_host(name=None, ipaddress=None, discovery_bootif=None):
     })
 
 
-@ddt
+def _valid_strings():
+    """Return a variety of strings for use in positive creation tests."""
+    return (
+        gen_string(str_type) for str_type in
+        ('alpha', 'alphanumeric', 'html', 'latin1', 'numeric', 'utf8')
+    )
+
+
 class Discovery(APITestCase):
     """Implements tests for foreman discovery feature"""
 
@@ -94,15 +100,7 @@ class Discovery(APITestCase):
         """
 
     @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_upload_facts_for_discovered_host(self, name):
+    def test_upload_facts(self):
         """@Test: Upload fake facts to create a discovered host
 
         @Feature: Foreman Discovery
@@ -114,9 +112,11 @@ class Discovery(APITestCase):
         @Assert: Host should be created successfully
 
         """
-        host = _create_discovered_host(name)
-        host_name = 'mac{0}'.format(host['mac'].replace(':', ""))
-        self.assertEqual(host['name'], host_name)
+        for name in _valid_strings():
+            with self.subTest(name):
+                host = _create_discovered_host(name)
+                host_name = 'mac{0}'.format(host['mac'].replace(':', ''))
+                self.assertEqual(host['name'], host_name)
 
     @stubbed()
     def test_provision_discovered_host(self):
