@@ -7,20 +7,14 @@ http://theforeman.org/api/apidoc/v2/hosts.html
 """
 import httplib
 
-from ddt import ddt
 from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
-from robottelo.decorators import (
-    bz_bug_is_open,
-    data,
-    run_only_on,
-)
+from robottelo.decorators import bz_bug_is_open, run_only_on
 from robottelo.helpers import get_server_credentials
 from robottelo.test import APITestCase
 
 
 @run_only_on('sat')
-@ddt
 class HostsTestCase(APITestCase):
     """Tests for ``entities.Host().path()``."""
 
@@ -60,8 +54,7 @@ class HostsTestCase(APITestCase):
         self.assertEqual(response.status_code, httplib.OK)
         self.assertEqual(response.json()['per_page'], per_page)
 
-    @data('User', 'Usergroup')
-    def test_create_owner_type(self, owner_type):
+    def test_create_owner_type(self):
         """@Test: Create a host and specify an ``owner_type``.
 
         @Feature: Host
@@ -70,27 +63,29 @@ class HostsTestCase(APITestCase):
         correct.
 
         """
-        if owner_type == 'Usergroup' and bz_bug_is_open(1203865):
-            self.skipTest('BZ 1203865: owner_type ignored when creating host')
-        host = entities.Host()
-        host.create_missing()
-        host.owner_type = owner_type
-        host = host.create(create_missing=False)
-        self.assertEqual(host.owner_type, owner_type)
+        for owner_type in ('User', 'Usergroup'):
+            with self.subTest(owner_type):
+                if owner_type == 'Usergroup' and bz_bug_is_open(1203865):
+                    continue  # instead of skip for compatibility with nose
+                host = entities.Host()
+                host.create_missing()
+                host.owner_type = owner_type
+                host = host.create(create_missing=False)
+                self.assertEqual(host.owner_type, owner_type)
 
-    @data('User', 'Usergroup')
-    def test_update_owner_type(self, owner_type):
-        """@Test: Update a host and specify an ``owner_type``.
+    def test_update_owner_type(self):
+        """@Test: Update a host's ``owner_type``.
 
         @Feature: Host
 
-        @Assert: The host can be read back, and the ``owner_type`` attribute is
-        correct.
+        @Assert: The host's ``owner_type`` attribute is updated as requested.
 
         """
-        if owner_type == 'Usergroup' and bz_bug_is_open(1210001):
-            self.skipTest('BZ 1210001: host update should block or yield task')
         host = entities.Host().create()
-        host.owner_type = owner_type
-        host = host.update(['owner_type'])
-        self.assertEqual(host.owner_type, owner_type)
+        for owner_type in ('User', 'Usergroup'):
+            with self.subTest(owner_type):
+                if owner_type == 'Usergroup' and bz_bug_is_open(1210001):
+                    continue  # instead of skip for compatibility with nose
+                host.owner_type = owner_type
+                host = host.update(['owner_type'])
+                self.assertEqual(host.owner_type, owner_type)
