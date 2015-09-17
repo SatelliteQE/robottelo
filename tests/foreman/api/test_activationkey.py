@@ -4,7 +4,7 @@ import httplib
 from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import rm_bug_is_open, skip_if_bug_open
 from robottelo.helpers import get_server_credentials
 from robottelo.test import APITestCase
 
@@ -297,6 +297,8 @@ class SearchTestCase(APITestCase):
         """Create an organization and an activation key belonging to it."""
         cls.org = entities.Organization().create()
         cls.act_key = entities.ActivationKey(organization=cls.org).create()
+        if rm_bug_is_open(4638):
+            cls.act_key.read()  # Wait for elasticsearch to index new act key.
 
     def test_search_by_org(self):
         """@Test: Search for all activation keys in an organization.
