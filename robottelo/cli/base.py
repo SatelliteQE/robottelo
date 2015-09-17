@@ -237,7 +237,7 @@ class Base(object):
         return result
 
     @classmethod
-    def info(cls, options=None):
+    def info(cls, options=None, output_format=None):
         """Reads the entity information."""
         cls.command_sub = 'info'
 
@@ -250,8 +250,12 @@ class Base(object):
                 .format(cls.__name__)
             )
 
-        result = cls.execute(cls._construct_command(options))
-        result.stdout = hammer.parse_info(result.stdout)
+        result = cls.execute(
+            command=cls._construct_command(options),
+            output_format=output_format
+        )
+        if output_format != 'json':
+            result.stdout = hammer.parse_info(result.stdout)
         return result
 
     @classmethod
@@ -345,6 +349,7 @@ class Base(object):
 
     @classmethod
     def with_user(cls, username=None, password=None):
+        """Context Manager for credentials"""
         if username is None:
             username = conf.properties['foreman.admin.username']
         if password is None:

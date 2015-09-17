@@ -1,9 +1,11 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=R0904
 """Test class for PuppetModule CLI"""
 
+from robottelo.cli.factory import make_org, make_product, make_repository
 from robottelo.cli.puppetmodule import PuppetModule
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.cli.repository import Repository
+from robottelo.constants import FAKE_0_PUPPET_REPO
+from robottelo.decorators import run_only_on
 from robottelo.test import CLITestCase
 
 
@@ -11,33 +13,54 @@ from robottelo.test import CLITestCase
 class TestPuppetModule(CLITestCase):
     """Tests for PuppetModule via Hammer CLI"""
 
-    @skip_if_bug_open('bugzilla', 1127382)
-    def test_bugzilla_1127382(self):
-        """@Test: hammer puppet-module <info,list> --help
+    @classmethod
+    def setUpClass(cls):
+        super(TestPuppetModule, cls).setUpClass()
+        cls.org = make_org()
+        cls.product = make_product({
+            u'organization-id': cls.org['id']
+        })
+        cls.repo = make_repository({
+            u'organization-id': cls.org['id'],
+            u'product-id': cls.product['id'],
+            u'content-type': u'puppet',
+            u'url': FAKE_0_PUPPET_REPO,
+        })
+        Repository.synchronize({'id': cls.repo['id']})
 
-        @Feature: puppet-module info/list
+    def test_puppet_module_list(self):
+        """@Test: Check if puppet-module list retrieves puppet-modules of
+        the given org
 
-        @Assert: Assert product option are present
+        @Feature: Puppet-module
+
+        @Assert: Puppet-modules are retrieved for the given org
 
         """
-        # puppet-module list --help:
-        result = PuppetModule.list({'help': True})
-        # get list of lines and check they all are unique
-        lines = [line['message'] for line in result.stdout]
-        self.assertEqual(len(set(lines)), len(lines),
-                         'The help should not have repeat options')
-        product_options = [line for line in lines
-                           if line.startswith('--product')]
-        self.assertGreater(len(product_options), 0,
-                           'At least one --product option should be present')
+        result = PuppetModule.list({'organization-id': self.org['id']})
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stderr), 0)
+        # There are 4 puppet modules in the test puppet-module url
+        self.assertEqual(len(result.stdout), 4)
 
-        # puppet-module info --help:info, ignore exception
-        result = PuppetModule.info({'help': True})
-        # get list of lines and check they all are unique
-        lines = [line for line in result.stdout['options']]
-        self.assertEqual(len(set(lines)), len(lines),
-                         'The help should not have repeat options')
-        product_options = [line for line in lines
-                           if line.startswith('--product')]
-        self.assertGreater(len(product_options), 0,
-                           'At least one --product option should be present')
+    def test_puppet_module_info(self):
+        """@Test: Check if puppet-module info retrieves info for the given
+        puppet-module id
+
+        @Feature: Puppet-module
+
+        @Assert: The puppet-module info is retrieved
+
+        """
+        return_value = PuppetModule.list({
+            'organization-id': self.org['id']
+        })
+        # There are 4 puppet modules in the test puppet-module url
+        for i in range(4):
+            result = PuppetModule.info(
+                {'id': return_value.stdout[i]['id']},
+                output_format='json'
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertEqual(len(result.stderr), 0)
+            self.assertEqual(result.stdout['ID'], return_value.stdout[i]['id'])
