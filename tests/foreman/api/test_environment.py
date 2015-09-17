@@ -4,28 +4,20 @@ A full API reference for environments can be found here:
 http://theforeman.org/api/apidoc/v2/environments.html
 
 """
-import random
-
-from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.api.utils import one_to_many_names
-from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.helpers import invalid_names_list
 from robottelo.test import APITestCase
 
 
 @run_only_on('sat')
-@ddt
 class EnvironmentTestCase(APITestCase):
     """Tests for environments."""
 
-    @data(
-        gen_string('alpha', random.randint(1, 255)),
-        gen_string('numeric', random.randint(1, 255)),
-        gen_string('alphanumeric', random.randint(1, 255)),
-    )
-    def test_positive_create_1(self, name):
+    def test_positive_create_1(self):
         """@Test: Create an environment and provide a valid name.
 
         @Assert: The environment has the provided attributes.
@@ -33,38 +25,46 @@ class EnvironmentTestCase(APITestCase):
         @Feature: Environment
 
         """
-        # Create an environment and validate the returned data.
-        env = entities.Environment(name=name).create()
-        self.assertEqual(env.name, name)
+        for name in (
+                gen_string(str_type)
+                for str_type in ('alpha', 'numeric', 'alphanumeric')):
+            with self.subTest(name):
+                env = entities.Environment(name=name).create()
+                self.assertEqual(env.name, name)
+                env = env.read()  # check sat isn't blindly handing back data
+                self.assertEqual(env.name, name)
 
-        # Let's double-check by reading the environment.
-        env = env.read()
-        self.assertEqual(env.name, name)
-
-    @data(
-        gen_string('alpha', 256),
-        gen_string('numeric', 256),
-        gen_string('alphanumeric', 256),
-        gen_string('cjk', random.randint(1, 255)),
-        gen_string('latin1', random.randint(1, 255)),
-        gen_string('utf8', random.randint(1, 255)),
-    )
-    def test_negative_create_1(self, name):
+    def test_negative_create_1(self):
         """@Test: Create an environment and provide an invalid name.
 
         @Assert: The server returns an error.
 
         @Feature: Environment
 
-        In the context of this test, an "invalid name" is one that it either
-        too long or contains illegal characters. The API returns this error
-        message when an illegal character is submitted:
-
-            Name is alphanumeric and cannot contain spaces
+        In this test, an "invalid name" is one that is too long.
 
         """
-        with self.assertRaises(HTTPError):
-            entities.Environment(name=name).create()
+        for name in invalid_names_list():
+            with self.subTest(name):
+                with self.assertRaises(HTTPError):
+                    entities.Environment(name=name).create()
+
+    def test_negative_create_2(self):
+        """@Test: Create an environment and provide an illegal name.
+
+        @Assert: The server returns an error.
+
+        @Feature: Environment
+
+        In this test, an "invalid name" is one that contains illegal
+        characters, such as latin1 characters.
+
+        """
+        str_types = ('cjk', 'latin1', 'utf8')
+        for name in (gen_string(str_type) for str_type in str_types):
+            with self.subTest(name):
+                with self.assertRaises(HTTPError):
+                    entities.Environment(name=name).create()
 
 
 @skip_if_bug_open('bugzilla', 1262029)
