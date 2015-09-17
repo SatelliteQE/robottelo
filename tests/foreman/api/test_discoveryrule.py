@@ -1,15 +1,13 @@
 # -*- encoding: utf-8 -*-
 """API Tests for foreman discovery feature"""
-from ddt import ddt
 from fauxfactory import gen_choice, gen_integer, gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.decorators import data, run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.helpers import valid_data_list
 from robottelo.test import APITestCase
 
 
-@ddt
 class DiscoveryRule(APITestCase):
     """Tests for ``katello/api/v2/discovery_rules``."""
 
@@ -43,8 +41,7 @@ class DiscoveryRule(APITestCase):
         )
 
     @run_only_on('sat')
-    @data(*valid_data_list())
-    def test_create_discovery_rule_1(self, name):
+    def test_create_discovery_rule_1(self):
         """@Test: Create a new discovery rule.
 
         Set query as (e.g CPU_Count = 1)
@@ -54,14 +51,18 @@ class DiscoveryRule(APITestCase):
         @Assert: Rule should be created with given name and query
 
         """
-        self.discovery_rule.name = name
-        discovery_rule = self.discovery_rule.create()
-        self.assertEqual(self.discovery_rule.name, discovery_rule.name)
-        self.assertEqual(self.discovery_rule.search_, discovery_rule.search_)
+        for name in valid_data_list():
+            with self.subTest(name):
+                self.discovery_rule.name = name
+                discovery_rule = self.discovery_rule.create()
+                self.assertEqual(self.discovery_rule.name, discovery_rule.name)
+                self.assertEqual(
+                    self.discovery_rule.search_,
+                    discovery_rule.search_,
+                )
 
     @run_only_on('sat')
-    @data(*valid_data_list())
-    def test_delete_discovery_rule(self, name):
+    def test_delete_discovery_rule(self):
         """@Test: Delete a discovery rule
 
         @Feature: Foreman Discovery
@@ -69,18 +70,15 @@ class DiscoveryRule(APITestCase):
         @Assert: Rule should be deleted successfully
 
         """
-        self.discovery_rule.name = name
-        discovery_rule = self.discovery_rule.create()
-        discovery_rule.delete()
-        with self.assertRaises(HTTPError):
-            discovery_rule.read()
+        for name in valid_data_list():
+            with self.subTest(name):
+                self.discovery_rule.name = name
+                discovery_rule = self.discovery_rule.create()
+                discovery_rule.delete()
+                with self.assertRaises(HTTPError):
+                    discovery_rule.read()
 
-    @data(
-        gen_string('alpha', 256),
-        gen_string('numeric', 256),
-        gen_string('alphanumeric', 256),
-    )
-    def test_create_rule_with_invalid_name(self, name):
+    def test_create_rule_with_invalid_name(self):
         """@Test: Create a discovery rule with more than 255 char in name
 
         @Feature: Foreman Discovery
@@ -88,9 +86,13 @@ class DiscoveryRule(APITestCase):
         @Assert: Validation error should be raised
 
         """
-        self.discovery_rule.name = name
-        with self.assertRaises(HTTPError):
-            self.discovery_rule.create()
+        for name in (
+                gen_string(str_type, 256)
+                for str_type in ('alpha', 'numeric', 'alphanumeric')):
+            with self.subTest(name):
+                self.discovery_rule.name = name
+                with self.assertRaises(HTTPError):
+                    self.discovery_rule.create()
 
     def test_create_rule_with_invalid_host_limit(self):
         """@Test: Create a discovery rule with invalid host limit
@@ -117,8 +119,7 @@ class DiscoveryRule(APITestCase):
             self.discovery_rule.create()
 
     @run_only_on('sat')
-    @data(*valid_data_list())
-    def test_update_discovery_rule_name(self, new_name):
+    def test_update_discovery_rule_name(self):
         """@Test: Update an existing discovery rule name
 
         @Feature: Foreman Discovery
@@ -127,9 +128,11 @@ class DiscoveryRule(APITestCase):
 
         """
         discovery_rule = self.discovery_rule.create()
-        discovery_rule.name = new_name
-        discovery_rule = discovery_rule.update(['name'])
-        self.assertEqual(discovery_rule.name, new_name)
+        for name in valid_data_list():
+            with self.subTest(name):
+                discovery_rule.name = name
+                discovery_rule = discovery_rule.update(['name'])
+                self.assertEqual(discovery_rule.name, name)
 
     def test_update_search_rule(self):
         """@Test: Update an existing discovery search rule
