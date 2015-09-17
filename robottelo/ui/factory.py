@@ -14,6 +14,7 @@ from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hardwaremodel import HardwareModel
 from robottelo.ui.hostgroup import Hostgroup
+from robottelo.ui.hosts import Hosts
 from robottelo.ui.ldapauthsource import LdapAuthSource
 from robottelo.ui.location import Location
 from robottelo.ui.locators import menu_locators
@@ -359,6 +360,40 @@ def make_hostgroup(session, org=None, loc=None, force_context=True, **kwargs):
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
     Hostgroup(session.browser).create(**create_args)
+
+
+def make_host(session, org=None, loc=None, force_context=True, **kwargs):
+    """Creates a host"""
+
+    create_args = {
+        u'arch': None,
+        u'cpus': '1',
+        u'cv': None,
+        u'custom_ptable': None,
+        u'domain': None,
+        u'env': None,
+        u'host_group': None,
+        u'ip_addr': None,
+        u'lifecycle_env': None,
+        u'mac': None,
+        u'media': None,
+        u'memory': '768 MB',
+        u'name': None,
+        u'os': None,
+        u'ptable': None,
+        u'puppet_ca': None,
+        u'puppet_master': None,
+        u'reset_puppetenv': True,
+        u'resource': None,
+        u'root_pwd': None,
+        u'subnet': None,
+        u'network_type': None,
+        u'network': None,
+    }
+    page = session.nav.go_to_hosts
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc, force_context=force_context)
+    Hosts(session.browser).create(**create_args)
 
 
 def make_discoveryrule(session, org=None, loc=None, force_context=True,

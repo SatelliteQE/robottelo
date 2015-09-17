@@ -7,6 +7,7 @@ from robottelo.constants import ENVIRONMENT
 from robottelo.decorators import run_only_on
 from robottelo.test import UITestCase
 from robottelo.ui.base import Base
+from robottelo.ui.factory import make_host
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -281,14 +282,14 @@ class Host(UITestCase, Base):
         @Assert: Host is created
 
         """
-        resource = '{0} (Libvirt)'.format(self.computeresource.name)
+        resource = u'{0} (Libvirt)'.format(self.computeresource.name)
         root_pwd = gen_string("alpha", 15)
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.org_name)
-            self.navigator.go_to_hosts()
-            self.hosts.create(
-                name=self.hostname,
+            make_host(
+                session,
+                org=self.org_name,
                 loc=self.loc_name,
+                name=self.hostname,
                 host_group=self.host_group.name,
                 resource=resource,
                 root_pwd=root_pwd,
