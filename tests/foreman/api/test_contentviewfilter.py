@@ -12,36 +12,12 @@ from random import randint
 from requests.exceptions import HTTPError
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.decorators import run_only_on, skip_if_bug_open
-from robottelo.helpers import get_server_credentials
+from robottelo.helpers import (
+    get_server_credentials,
+    invalid_names_list,
+    valid_data_list,
+)
 from robottelo.test import APITestCase
-
-
-def _positive_data():
-    """Random data for positive creation."""
-    return (
-        gen_string('alphanumeric', randint(1, 255)),
-        gen_string('alpha', randint(1, 255)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 255)),
-        gen_string('numeric', randint(1, 255)),
-        gen_string('utf8', randint(1, 85)),
-        gen_string('html', randint(1, 85)),
-    )
-
-
-def _negative_data():
-    """Random data for negative creation."""
-    return (
-        '',
-        ' ',
-        gen_string('alphanumeric', 300),
-        gen_string('alpha', 300),
-        gen_string('cjk', 300),
-        gen_string('latin1', 300),
-        gen_string('numeric', 300),
-        gen_string('utf8', 300),
-        gen_string('html', 300),
-    )
 
 
 @run_only_on('sat')
@@ -122,7 +98,7 @@ class ContentViewFilterTestCase(APITestCase):
         @Feature: Content View Filter - Create
 
         """
-        for name in _positive_data():
+        for name in valid_data_list():
             with self.subTest(name):
                 cvf = entities.ErratumContentViewFilter(
                     content_view=self.content_view,
@@ -141,7 +117,7 @@ class ContentViewFilterTestCase(APITestCase):
         @Feature: Content View Filter - Create
 
         """
-        for name in _positive_data():
+        for name in valid_data_list():
             with self.subTest(name):
                 cvf = entities.PackageGroupContentViewFilter(
                     content_view=self.content_view,
@@ -160,7 +136,7 @@ class ContentViewFilterTestCase(APITestCase):
         @Feature: Content View Filter - Create
 
         """
-        for name in _positive_data():
+        for name in valid_data_list():
             with self.subTest(name):
                 cvf = entities.RPMContentViewFilter(
                     content_view=self.content_view,
@@ -196,7 +172,7 @@ class ContentViewFilterTestCase(APITestCase):
         @Feature: Content View Filter - Create
 
         """
-        for description in _positive_data():
+        for description in valid_data_list():
             with self.subTest(description):
                 cvf = entities.RPMContentViewFilter(
                     content_view=self.content_view,
@@ -276,7 +252,7 @@ class ContentViewFilterTestCase(APITestCase):
         @Feature: Content View Filter - Create
 
         """
-        for name in _negative_data():
+        for name in invalid_names_list():
             with self.subTest(name):
                 with self.assertRaises(HTTPError):
                     entities.RPMContentViewFilter(
@@ -353,7 +329,7 @@ class ContentViewFilterTestCase(APITestCase):
         cvf = entities.RPMContentViewFilter(
             content_view=self.content_view,
         ).create()
-        for name in _positive_data():
+        for name in valid_data_list():
             with self.subTest(name):
                 cvf.name = name
                 self.assertEqual(cvf.update(['name']).name, name)
@@ -370,7 +346,7 @@ class ContentViewFilterTestCase(APITestCase):
         cvf = entities.RPMContentViewFilter(
             content_view=self.content_view,
         ).create()
-        for desc in _positive_data():
+        for desc in valid_data_list():
             with self.subTest(desc):
                 cvf.description = desc
                 self.assertEqual(cvf.update(['description']).description, desc)
@@ -507,7 +483,7 @@ class ContentViewFilterTestCase(APITestCase):
         cvf = entities.RPMContentViewFilter(
             content_view=self.content_view,
         ).create()
-        for name in _negative_data():
+        for name in invalid_names_list():
             with self.subTest(name):
                 cvf.name = name
                 with self.assertRaises(HTTPError):
