@@ -5,21 +5,13 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
 from robottelo.decorators import rm_bug_is_open, skip_if_bug_open
-from robottelo.helpers import get_server_credentials
+from robottelo.helpers import get_server_credentials, valid_data_list
 from robottelo.test import APITestCase
 
 
 def _good_max_content_hosts():
     """Return a generator yielding valid ``max_content_hosts`` values."""
     return (gen_integer(*limits) for limits in ((1, 20), (10000, 20000)))
-
-
-def _good_names():
-    """Return a generator yielding valid ``name`` values."""
-    return (
-        gen_string(str_type)
-        for str_type in ('alpha', 'alphanumeric', 'cjk', 'latin1')
-    )
 
 
 def _bad_max_content_hosts():
@@ -68,7 +60,7 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        for name in _good_names():
+        for name in valid_data_list():
             with self.subTest(name):
                 act_key = entities.ActivationKey(name=name).create()
                 self.assertEqual(name, act_key.name)
@@ -81,7 +73,7 @@ class ActivationKeysTestCase(APITestCase):
         @Feature: ActivationKey
 
         """
-        for desc in _good_names():  # yes, _good_names pulls double duty
+        for desc in valid_data_list():
             with self.subTest(desc):
                 act_key = entities.ActivationKey(description=desc).create()
                 self.assertEqual(desc, act_key.description)

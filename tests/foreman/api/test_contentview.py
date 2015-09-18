@@ -15,7 +15,7 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.decorators import bz_bug_is_open, run_only_on, stubbed
-from robottelo.helpers import get_data_file
+from robottelo.helpers import get_data_file, valid_data_list
 from robottelo.test import APITestCase
 
 
@@ -23,19 +23,6 @@ from robottelo.test import APITestCase
 # How many times should that be done? A higher number means a more interesting
 # but longer test.
 REPEAT = 3
-
-
-def _strings():
-    """Return a generator yielding various kinds of strings."""
-    return (gen_string(str_type) for str_type in (
-        'alpha',
-        'alphanumeric',
-        'cjk',
-        'html',
-        'latin1',
-        'numeric',
-        'utf8',
-    ))
 
 
 @run_only_on('sat')
@@ -259,7 +246,7 @@ class ContentViewCreateTestCase(APITestCase):
         @Feature: ContentView
 
         """
-        for name in _strings():
+        for name in valid_data_list():
             self.assertEqual(
                 entities.ContentView(name=name).create().name,
                 name
@@ -273,7 +260,7 @@ class ContentViewCreateTestCase(APITestCase):
         @Feature: ContentView
 
         """
-        for desc in _strings():
+        for desc in valid_data_list():
             self.assertEqual(
                 desc,
                 entities.ContentView(description=desc).create().description,

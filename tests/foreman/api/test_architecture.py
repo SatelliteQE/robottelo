@@ -46,16 +46,9 @@ class ArchitectureTestCase(APITestCase):
         @Feature: Architecture
 
         """
-        # Create an architecture and an OS.
-        os_id = entities.OperatingSystem().create_json()['id']
-        arch_id = entities.Architecture(
-            operatingsystem=[os_id]
-        ).create_json()['id']
-
-        # Read back the architecture and verify its attributes.
-        arch_attrs = entities.Architecture(id=arch_id).read_json()
-        self.assertIn('operatingsystems', arch_attrs)
+        operating_sys = entities.OperatingSystem().create()
+        arch = entities.Architecture(operatingsystem=[operating_sys]).create()
         self.assertEqual(
-            [os_id],
-            [os['id'] for os in arch_attrs['operatingsystems']],
+            {operating_sys.id},
+            {os.id for os in arch.operatingsystem},
         )

@@ -3,6 +3,7 @@
 from fauxfactory import gen_string, gen_ipaddr, gen_mac
 from nailgun import entities
 from robottelo.decorators import run_only_on, stubbed
+from robottelo.helpers import valid_data_list
 from robottelo.test import APITestCase
 
 
@@ -29,14 +30,6 @@ def _create_discovered_host(name=None, ipaddress=None, discovery_bootif=None):
             u'discovery_bootif': discovery_bootif,
         }
     })
-
-
-def _valid_strings():
-    """Return a variety of strings for use in positive creation tests."""
-    return (
-        gen_string(str_type) for str_type in
-        ('alpha', 'alphanumeric', 'html', 'latin1', 'numeric', 'utf8')
-    )
 
 
 class Discovery(APITestCase):
@@ -112,7 +105,7 @@ class Discovery(APITestCase):
         @Assert: Host should be created successfully
 
         """
-        for name in _valid_strings():
+        for name in valid_data_list():
             with self.subTest(name):
                 host = _create_discovered_host(name)
                 host_name = 'mac{0}'.format(host['mac'].replace(':', ''))
