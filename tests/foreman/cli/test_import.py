@@ -9,7 +9,7 @@ from ddt import ddt
 from fauxfactory import gen_string
 from itertools import product
 from random import sample
-from robottelo import manifests, ssh
+from robottelo import ssh
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import make_org
 from robottelo.cli.hostcollection import HostCollection
@@ -18,40 +18,9 @@ from robottelo.cli.org import Org
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
-from robottelo.decorators import (
-    data,
-    bz_bug_is_open,
-    skip_if_bug_open,
-)
+from robottelo.decorators import data, bz_bug_is_open, skip_if_bug_open
 from robottelo.helpers import prepare_import_data
 from robottelo.test import CLITestCase
-
-
-def csv_to_dataset(csv_files):
-    """Process and return remote CSV files.
-
-    Read the remote CSV files, and return a list of dictionaries for them
-
-    :param csv_files: A list of strings, where each string is a path to a CSV
-        file on the remote server.
-
-    :returns: A list of dict, where each dict holds the contents of one CSV
-        file.
-
-    """
-    result = []
-    for csv_file in csv_files:
-        ssh_cat = ssh.command(u'cat {0}'.format(csv_file))
-        if ssh_cat.return_code != 0:
-            raise AssertionError(ssh_cat.stderr)
-        csv = ssh_cat.stdout[:-1]
-        keys = csv[0].split(',')
-        result.extend([
-            dict(zip(keys, val.split(',')))
-            for val
-            in csv[1:]
-        ])
-    return result
 
 
 def build_csv_file(rows=None, dirname=None):
@@ -112,7 +81,7 @@ def update_csv_values(csv_file, key, new_data=None, dirname=None):
     # if new_data is not specified, no change happens
     if new_data is None:
         return csv_file
-    result = csv_to_dataset([csv_file])
+    result = Import.csv_to_dataset([csv_file])
     for change in new_data:
         for record in result:
             if record.get(key) == change['key_id']:
@@ -284,7 +253,7 @@ class TestImport(CLITestCase):
         ssh_import = Import.organization({'csv-file': files['users']})
         # now to check whether the orgs from csv appeared in satellite
         self.assertEqual(ssh_import.return_code, 0)
-        for org in csv_to_dataset([files['users']]):
+        for org in Import.csv_to_dataset([files['users']]):
             self.assertEqual(
                 Org.info({'name': org['organization']}).return_code, 0
             )
@@ -306,30 +275,16 @@ class TestImport(CLITestCase):
             test_data,
             self.default_dataset[0]
         )
-        csv_records = csv_to_dataset([files['users']])
-        # create number of manifests corresponding to the number of orgs
-        manifest_list = []
-        man_dir = ssh.command(
-            u'mktemp -d -p {}'.format(self.default_dataset[0])
-        ).stdout[0]
-        for org in set([rec['organization'] for rec in csv_records]):
-            for char in [' ', '.', '#']:
-                org = org.replace(char, '_')
-            man_file = manifests.clone()
-            ssh.upload_file(man_file, u'{0}/{1}.zip'.format(man_dir, org))
-            manifest_list.append(u'{0}/{1}.zip'.format(man_dir, org))
-            os.remove(man_file)
-        ssh_import = Import.organization({
+        ssh_import = Import.organization_with_tr_data_manifests({
             'csv-file': files['users'],
-            'upload-manifests-from': man_dir,
         })
         # now to check whether the orgs from csv appeared in satellite
         orgs = set(org['name'] for org in Org.list().stdout)
         imp_orgs = set(
             org['organization'] for
-            org in csv_to_dataset([files['users']])
+            org in Import.csv_to_dataset([files['users']])
         )
-        self.assertEqual(ssh_import.return_code, 0)
+        self.assertEqual(ssh_import[0].return_code, 0)
         self.assertTrue(imp_orgs.issubset(orgs))
         for org in imp_orgs:
             manifest_history = Subscription.manifest_history(
@@ -448,7 +403,7 @@ class TestImport(CLITestCase):
         logins = set(user['login'] for user in users.stdout)
         imp_users = set(
             user['username']
-            for user in csv_to_dataset([files['users']])
+            for user in Import.csv_to_dataset([files['users']])
         )
         self.assertTrue(all((user in logins for user in imp_users)))
 
@@ -482,7 +437,7 @@ class TestImport(CLITestCase):
         logins = set(user['login'] for user in User.list().stdout)
         imp_users = set(
             user['username']
-            for user in csv_to_dataset([files['users']])
+            for user in Import.csv_to_dataset([files['users']])
         )
         self.assertTrue(imp_users.issubset(logins))
 
@@ -667,7 +622,10 @@ class TestImport(CLITestCase):
         for result in (import_org, import_hc):
             self.assertEqual(result[0].return_code, 0)
         # now to check whether the all HC from csv appeared in satellite
-        imp_orgs = get_sat6_id(csv_to_dataset([files['users']]), import_org[1])
+        imp_orgs = get_sat6_id(
+            Import.csv_to_dataset([files['users']]),
+            import_org[1]
+        )
         for imp_org in imp_orgs:
             self.assertNotEqual(
                 HostCollection.list(
@@ -835,7 +793,10 @@ class TestImport(CLITestCase):
             self.assertEqual(result[0].return_code, 0)
 
         # get the sat6 mapping of the imported organizations
-        imp_orgs = get_sat6_id(csv_to_dataset([files['users']]), import_org[1])
+        imp_orgs = get_sat6_id(
+            Import.csv_to_dataset([files['users']]),
+            import_org[1]
+        )
         # now to check whether all repos from csv appeared in satellite
         for imp_org in imp_orgs:
             self.assertNotEqual(
@@ -880,7 +841,10 @@ class TestImport(CLITestCase):
             self.assertEqual(result[0].return_code, 0)
 
         # get the sat6 mapping of the imported organizations
-        imp_orgs = get_sat6_id(csv_to_dataset([files['users']]), import_org[1])
+        imp_orgs = get_sat6_id(
+            Import.csv_to_dataset([files['users']]),
+            import_org[1]
+        )
         repos_before = [
             Repository.list({'organization-id': imp_org['sat6']}).stdout
             for imp_org in imp_orgs
@@ -1025,7 +989,10 @@ class TestImport(CLITestCase):
             self.assertEqual(result[0].return_code, 0)
 
         # get the sat6 mapping of the imported organizations
-        imp_orgs = get_sat6_id(csv_to_dataset([files['users']]), import_org[1])
+        imp_orgs = get_sat6_id(
+            Import.csv_to_dataset([files['users']]),
+            import_org[1]
+        )
         # now to check whether all content views from csv appeared in satellite
         for imp_org in imp_orgs:
             self.assertNotEqual(
@@ -1079,7 +1046,10 @@ class TestImport(CLITestCase):
             self.assertEqual(result[0].return_code, 0)
 
         # get the sat6 mapping of the imported organizations
-        imp_orgs = get_sat6_id(csv_to_dataset([files['users']]), import_org[1])
+        imp_orgs = get_sat6_id(
+            Import.csv_to_dataset([files['users']]),
+            import_org[1]
+        )
         cvs_before = [
             ContentView.list({'organization-id': imp_org['sat6']}).stdout
             for imp_org in imp_orgs
