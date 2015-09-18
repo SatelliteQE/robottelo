@@ -44,6 +44,14 @@ from robottelo.cli.base import Base
 class Import(Base):
     """Imports configurations from another Satellite instances."""
     command_base = 'import'
+    repos = {
+        u'rhn-tools-rhel-x86_64-server-5':
+        u'RHN Tools for Red Hat Enterprise Linux 5 Server RPMs x86_64 5Server',
+        u'rhn-tools-rhel-x86_64-server-6':
+        u'RHN Tools for Red Hat Enterprise Linux 6 Server RPMs x86_64 6Server',
+        u'rhn-tools-rhel-x86_64-server-7':
+        u'RHN Tools for Red Hat Enterprise Linux 7 Server RPMs x86_64 7Server',
+    }
 
     @staticmethod
     def csv_to_dataset(csv_files):
@@ -421,3 +429,33 @@ class Import(Base):
         else:
             raise AssertionError(result.stderr)
         return (result, transition_data)
+
+    @classmethod
+    def repository_enable_with_tr_data(cls, options=None):
+        """Enable any Red Hat repositories accessible to any Organization
+        (from spacewalk-report channels).
+
+        :returns: A tuple of SSHCommandResult and a List containing
+            the transition data of the Import
+
+        """
+        result = cls.repository_enable(options)
+        transition_data = []
+        if result.return_code == 0:
+            transition_data = [
+                cls.read_transition_csv(
+                    ssh.command(cmd).stdout[:-1], key
+                )
+                for cmd, key
+                in (
+                    (
+                        u'ls -v ${HOME}/.transition_data/redhat_content_view*',
+                        u'org_id'
+                    ),
+                    (
+                        u'ls -v ${HOME}/.transition_data/redhat_repositories*',
+                        u'org_id'
+                    ),
+                )
+            ]
+        return(result, transition_data)

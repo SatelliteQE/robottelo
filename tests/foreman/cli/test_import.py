@@ -56,7 +56,6 @@ def update_csv_values(files, new_data, dirname=None):
 
     :param files: A dictionary with transition files and their paths on
         a remote server.
-
     :param new_data: A dictionary containing a file name as a key and a list
         of dictionaries representing the individual changes to the CSV.
         For example::
@@ -92,6 +91,42 @@ def update_csv_values(files, new_data, dirname=None):
         if updated:
             files[file_] = build_csv_file(result, dirname)
     return files
+
+
+def verify_rh_repos(tr_data, channels_file):
+    """Verifies that appropriate Products and Content Views have been created
+    for the enabled Red Hat repository.
+
+    :param tr_data: Transition data of the Import command
+    :param channels_file: Sat5 transition file containing the channels to be
+        imported/enabled
+    :returns: A tuple of lists containing info about all related Products and
+        Content Views
+
+    """
+    rh_repos = [
+        repo for repo in Import.csv_to_dataset([channels_file])
+        if (
+            repo['channel_name'].startswith('Red Hat') or
+            repo['channel_name'].startswith('RHN')
+        )
+    ]
+    repo_list = []
+    cv_list = []
+    for record in product(rh_repos, tr_data):
+        repo_list.append(
+            Repository.list({
+                u'organization-id': record[1]['sat6'],
+                u'name':  Import.repos[record[0]['channel_label']]
+            }).stdout
+        )
+        cv_list.append(
+            ContentView.info({
+                u'organization-id': record[1]['sat6'],
+                u'name': record[0]['channel_name']
+            }).stdout['id']
+        )
+    return repo_list, cv_list
 
 
 def get_sat6_id(entity_dict, transition_dict, key='sat5'):
@@ -230,6 +265,34 @@ def gen_import_cv_data():
             u'channel_label': gen_string('alphanumeric')}
             for i in range(3)
         ]},
+    )
+
+
+def gen_import_rh_repo_data():
+    """Random data for Organization Import tests"""
+    org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
+    # wipe all channel names and labels excepting channel id 106
+    return (
+        {
+            u'users': [{
+                u'key': u'organization_id',
+                u'key_id': type(u'')(i + 1),
+                u'organization_id': org_ids[i],
+                u'organization': gen_string('alphanumeric'),
+            } for i in range(len(org_ids))],
+            u'channels': [{
+                u'key': u'channel_id',
+                u'key_id': type(u'')(i),
+                u'channel_label': u'',
+                u'channel_name': gen_string('alphanumeric'),
+            } for i in set(range(101, 113)) - set(range(106, 107))] + [
+                {
+                    u'key': u'org_id',
+                    u'key_id': type(u'')(i + 1),
+                    u'org_id': org_ids[i],
+                } for i in range(len(org_ids))
+            ],
+        },
     )
 
 
@@ -1182,4 +1245,96 @@ class TestImport(CLITestCase):
         self.assertEqual(
             cat_cmd.stdout[:-1],
             [fact['name'] + '=' + fact['fact'] for fact in test_data],
+        )
+
+    @data(*gen_import_rh_repo_data())
+    def test_import_enable_rh_repos(self, test_data):
+        """@test: Import and enable all red hat repositories from predefined
+        dataset
+
+        @feature: Import Enable RH Repositories
+
+        @assert: All Repositories imported and synchronized
+
+        """
+        tmp_dir = self.default_dataset[0]
+        files = dict(self.default_dataset[1])
+        files = update_csv_values(dict(files), test_data, tmp_dir)
+        rh_repos = [
+            repo for repo in Import.csv_to_dataset([files['channels']])
+            if (
+                repo['channel_name'].startswith('Red Hat') or
+                repo['channel_name'].startswith('RHN')
+            )
+        ]
+        # import the prerequisities (organizations with manifests)
+        ssh_import_org = Import.organization_with_tr_data_manifests({
+            'csv-file': files['users'],
+        })
+        self.assertEqual(ssh_import_org[0].return_code, 0)
+        ssh_enable = Import.repository_enable_with_tr_data({
+            'csv-file': files['channels'],
+            'synchronize': True,
+            'wait': True,
+        })
+        self.assertEqual(ssh_enable[0].return_code, 0)
+        # verify rh repos appended in every imported org
+        for record in product(rh_repos, ssh_import_org[1]):
+            self.assertNotEqual(
+                Repository.list({
+                    u'organization-id': record[1]['sat6'],
+                    u'name':  Import.repos[record[0]['channel_label']]
+                }).stdout,
+                []
+            )
+            self.assertNotEqual(
+                ContentView.info({
+                    u'organization-id': record[1]['sat6'],
+                    u'name': record[0]['channel_name']
+                }).stdout,
+                []
+            )
+
+    @data(*gen_import_rh_repo_data())
+    def test_reimport_enable_rh_repos_negative(self, test_data):
+        """@test: Repetitive Import and enable of all red hat repositories from
+        the predefined dataset
+
+        @feature: Repetitive Import Enable RH Repositories
+
+        @assert: All Repositories imported and synchronized only once
+
+        """
+        tmp_dir = self.default_dataset[0]
+        files = dict(self.default_dataset[1])
+        files = update_csv_values(files, test_data, tmp_dir)
+
+        # import the prerequisities (organizations with manifests)
+        ssh_import_org = Import.organization_with_tr_data_manifests({
+            'csv-file': files['users'],
+        })
+        self.assertEqual(ssh_import_org[0].return_code, 0)
+        self.assertEqual(Import.repository_enable({
+            'csv-file': files['channels'],
+            'synchronize': True,
+            'wait': True,
+        }).return_code, 0)
+        # verify rh repos appended in every imported org
+        repos_before, cvs_before = verify_rh_repos(
+            ssh_import_org[1],
+            files['channels']
+        )
+        self.assertFalse([] in repos_before)
+        self.assertFalse([] in cvs_before)
+        self.assertEqual(Import.repository_enable({
+            'csv-file': files['channels'],
+            'synchronize': True,
+            'wait': True,
+        }).return_code, 0)
+        # compare the list to make sure nothing has changed after 2nd import
+        self.assertEqual(
+            (repos_before, cvs_before),
+            verify_rh_repos(
+                ssh_import_org[1], files['channels']
+            )
         )
