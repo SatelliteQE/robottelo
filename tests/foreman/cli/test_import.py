@@ -49,19 +49,19 @@ def build_csv_file(rows=None, dirname=None):
     return remote_file
 
 
-def update_csv_values(csv_file, key, new_data=None, dirname=None):
-    """Build CSV with updated key values provided as an argument
+def update_csv_values(files, new_data, dirname=None):
+    """Build CSV file(s) with updated key values provided as an argument
     in order to randomize the dataset with keeping the organization_id
     mappings
 
-    :param csv_file: A string. The path to a CSV file that resides
-        on a remote server.
-    :param new_data: A list of dictionary objects. Each object has to
-        contain an key_id key corresponding to org[anization]_id of the
-        record being updated and the key-value pairs of attributes to be
-        replaced by the particular records. For example::
+    :param files: A dictionary with transition files and their paths on
+        a remote server.
 
-            [
+    :param new_data: A dictionary containing a file name as a key and a list
+        of dictionaries representing the individual changes to the CSV.
+        For example::
+
+            {'users': [
                 {
                     u'key_id': u'1',
                     u'organization': u'updated_organization_name_1',
@@ -72,26 +72,26 @@ def update_csv_values(csv_file, key, new_data=None, dirname=None):
                     u'organization': u'updated_organization_name_2',
                     u'username': u'updated_user_name_2',
                 }
-            ]
+            ]}
 
-    :returns: A string. The path to a remotely created CSV file
+    :param dirname: A string. Target destination for the new CSV files.
+    :returns: A dictionary with updated CSV file paths.
 
     """
-    updated = False
-    # if new_data is not specified, no change happens
-    if new_data is None:
-        return csv_file
-    result = Import.csv_to_dataset([csv_file])
-    for change in new_data:
-        for record in result:
-            if record.get(key) == change['key_id']:
-                record.update(change)
-                del record['key_id']
-                updated = True
-    if updated:
-        return build_csv_file(result, dirname)
-    else:
-        return csv_file
+    for file_ in new_data:
+        updated = False
+        result = Import.csv_to_dataset([files[file_]])
+        for change in new_data[file_]:
+            key = change.get('key')
+            for record in result:
+                if record.get(key) == change['key_id']:
+                    record.update(change)
+                    del record['key_id']
+                    del record['key']
+                    updated = True
+        if updated:
+            files[file_] = build_csv_file(result, dirname)
+    return files
 
 
 def get_sat6_id(entity_dict, transition_dict, key='sat5'):
@@ -115,56 +115,79 @@ def get_sat6_id(entity_dict, transition_dict, key='sat5'):
 def gen_import_org_data():
     """Random data for Organization Import tests"""
     org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
-    return ([
-        {
+    return (
+        {'users': [{
+            u'key': 'organization_id',
             u'key_id': type(u'')(i + 1),
             u'organization_id': org_ids[i],
             u'organization': gen_string('alphanumeric')
-        }
-        for i in range(3)
-    ], [
-        {
+        } for i in range(len(org_ids))]},
+        {'users': [{
+            u'key': 'organization_id',
             u'key_id': type(u'')(i + 1),
             u'organization_id': org_ids[i],
             u'organization': gen_string('utf8')
-        }
-        for i in range(3)
-    ],)
+        } for i in range(len(org_ids))]},
+    )
+
+
+def gen_import_org_manifest_data():
+    """Random data for Organization Import tests"""
+    org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
+    random_data = (
+        {'users': [{
+            u'key': 'organization_id',
+            u'key_id': type(u'')(i + 1),
+            u'organization_id': org_ids[i],
+            u'organization': gen_string('alphanumeric')
+        } for i in range(len(org_ids))]},
+    )
+    if not bz_bug_is_open('1260722'):
+        random_data = random_data + (
+            {'users': [{
+                u'key': 'organization_id',
+                u'key_id': type(u'')(i + 1),
+                u'organization_id': org_ids[i],
+                u'organization': gen_string('utf8')
+            } for i in range(len(org_ids))]},
+        )
+    return random_data
 
 
 def gen_import_user_data():
     """Random data for User Import tests"""
     org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
-    return ([
-        {
+    return (
+        {'users': [{
+            u'key': u'organization_id',
             u'key_id': type(u'')(i + 1),
             u'organization_id': org_ids[i],
             u'organization': gen_string('alphanumeric'),
             u'username': gen_string('alphanumeric')
-        }
-        for i in range(3)
-    ], [
-        {
+        } for i in range(len(org_ids))]},
+        {'users': [{
+            u'key': u'organization_id',
             u'key_id': type(u'')(i + 1),
             u'organization_id': org_ids[i],
             u'organization': gen_string('utf8'),
             u'username': gen_string('utf8')
-        }
-        for i in range(3)
-    ],)
+        } for i in range(len(org_ids))]},
+    )
 
 
 def gen_import_hostcol_data():
     """Random data for Organization Import tests"""
     org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
-    random_data = {'orgs': [], 'hcs': []}
-    for i in range(3):
-        random_data['orgs'].append({
+    random_data = {'users': [], 'system-groups': []}
+    for i in range(len(org_ids)):
+        random_data['users'].append({
+            u'key': 'organization_id',
             u'key_id': type(u'')(i + 1),
             u'organization_id': org_ids[i],
             u'organization': gen_string('alphanumeric'),
         })
-        random_data['hcs'].append({
+        random_data['system-groups'].append({
+            u'key': u'org_id',
             u'key_id': type(u'')(i + 1),
             u'org_id': org_ids[i],
             u'name': gen_string('alphanumeric'),
@@ -176,13 +199,15 @@ def gen_import_repo_data():
     """Random data for Repository Import tests"""
     org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
     random_data = {'users': [], 'repositories': []}
-    for i in range(3):
+    for i in range(len(org_ids)):
         random_data['users'].append({
+            u'key': 'organization_id',
             u'key_id': type(u'')(i + 1),
             u'organization_id': org_ids[i],
             u'organization': gen_string('alphanumeric'),
         })
         random_data['repositories'].append({
+            u'key': 'org_id',
             u'key_id': type(u'')(i + 1),
             u'org_id': org_ids[i],
         })
@@ -191,19 +216,20 @@ def gen_import_repo_data():
 
 def gen_import_cv_data():
     """Random data for Content View Import tests"""
-
-    return (
-        {
-            u'users': [{
-                u'key_id': type(u'')(i + 1),
-                u'organization': gen_string('alphanumeric')
-            } for i in range(3)],
-            u'content-views': [{
-                u'key_id': type(u'')(i + 1),
-                u'channel_name': gen_string('alphanumeric'),
-                u'channel_label': gen_string('alphanumeric'),
-            } for i in range(3)]
-        },
+    return ({
+        u'users': [{
+            u'key': 'organization_id',
+            u'key_id': type(u'')(i + 1),
+            u'organization': gen_string('alphanumeric')}
+            for i in range(3)
+        ],
+        u'content-views': [{
+            u'key': u'org_id',
+            u'key_id': type(u'')(i + 1),
+            u'channel_name': gen_string('alphanumeric'),
+            u'channel_label': gen_string('alphanumeric')}
+            for i in range(3)
+        ]},
     )
 
 
@@ -243,13 +269,9 @@ class TestImport(CLITestCase):
         @assert: 3 Organizations are created
 
         """
+        tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
-        files['users'] = update_csv_values(
-            files['users'],
-            u'organization_id',
-            test_data,
-            self.default_dataset[0]
-        )
+        files = update_csv_values(files, test_data, tmp_dir)
         ssh_import = Import.organization({'csv-file': files['users']})
         # now to check whether the orgs from csv appeared in satellite
         self.assertEqual(ssh_import.return_code, 0)
@@ -258,7 +280,7 @@ class TestImport(CLITestCase):
                 Org.info({'name': org['organization']}).return_code, 0
             )
 
-    @data(*gen_import_org_data())
+    @data(*gen_import_org_manifest_data())
     def test_import_orgs_manifests(self, test_data):
         """@test: Import all organizations from the default data set
         (predefined source) and upload manifests for each of them
@@ -268,13 +290,9 @@ class TestImport(CLITestCase):
         @assert: 3 Organizations are created with 3 manifests uploaded
 
         """
+        tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
-        files['users'] = update_csv_values(
-            files['users'],
-            u'organization_id',
-            test_data,
-            self.default_dataset[0]
-        )
+        files = update_csv_values(files, test_data, tmp_dir)
         ssh_import = Import.organization_with_tr_data_manifests({
             'csv-file': files['users'],
         })
@@ -302,13 +320,10 @@ class TestImport(CLITestCase):
         @assert: 2nd Import will result in No Action Taken
 
         """
+        tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
-        files['users'] = update_csv_values(
-            files['users'],
-            u'organization_id',
-            test_data,
-            self.default_dataset[0]
-        )
+        files = update_csv_values(files, test_data, tmp_dir)
+
         self.assertEqual(
             Import.organization({'csv-file': files['users']}).return_code, 0)
         orgs_before = Org.list().stdout
@@ -327,14 +342,9 @@ class TestImport(CLITestCase):
         the new organizations, and the 4th one will map them
 
         """
-        # prepare the data
+        tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
-        files['users'] = update_csv_values(
-            files['users'],
-            'organization_id',
-            test_data,
-            self.default_dataset[0]
-        )
+        files = update_csv_values(files, test_data, tmp_dir)
         # initial import
         self.assertEqual(
             Import.organization({'csv-file': files['users']}).return_code, 0)
@@ -350,7 +360,7 @@ class TestImport(CLITestCase):
         ssh_imp_rename = Import.organization_with_tr_data(
             {'csv-file': files['users']}
         )
-        self.assertEqual(len(ssh_imp_rename[1]), len(test_data))
+        self.assertEqual(len(ssh_imp_rename[1]), len(test_data['users']))
         for record in ssh_imp_rename[1]:
             self.assertEqual(Org.info({'id': record['sat6']}).return_code, 0)
         Import.organization({'csv-file': files['users'], 'delete': True})
@@ -382,12 +392,7 @@ class TestImport(CLITestCase):
         tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
         pwdfile = os.path.join(tmp_dir, gen_string('alpha', 6))
-        files['users'] = update_csv_values(
-            files['users'],
-            u'organization_id',
-            test_data,
-            self.default_dataset[0]
-        )
+        files = update_csv_values(files, test_data, tmp_dir)
         self.assertEqual(
             Import.organization({
                 'csv-file': files['users'],
@@ -419,14 +424,9 @@ class TestImport(CLITestCase):
         """
         tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
+        files = update_csv_values(files, test_data, tmp_dir)
         pwdfile = os.path.join(tmp_dir, gen_string('alpha', 6))
 
-        files['users'] = update_csv_values(
-            files['users'],
-            u'organization_id',
-            test_data,
-            self.default_dataset[0]
-        )
         Import.organization({'csv-file': files['users']})
         ssh_import = Import.user({
             'csv-file': files['users'],
@@ -453,13 +453,8 @@ class TestImport(CLITestCase):
         """
         tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
+        files = update_csv_values(files, test_data, tmp_dir)
         pwdfile = os.path.join(tmp_dir, gen_string('alpha', 6))
-        files['users'] = update_csv_values(
-            files['users'],
-            u'organization_id',
-            test_data,
-            self.default_dataset[0]
-        )
         # Import the organizations first
         self.assertEqual(
             Import.organization({
@@ -494,15 +489,10 @@ class TestImport(CLITestCase):
         # prepare the data
         tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
+        files = update_csv_values(files, test_data, tmp_dir)
         pwdfiles = [
             os.path.join(tmp_dir, gen_string('alpha', 6)) for _ in range(2)
         ]
-        files['users'] = update_csv_values(
-            files['users'],
-            u'organization_id',
-            test_data,
-            self.default_dataset[0]
-        )
         # initial import
         for result in (
             Import.organization({'csv-file': files['users']}),
@@ -536,15 +526,10 @@ class TestImport(CLITestCase):
         # prepare the data
         tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
+        files = update_csv_values(files, test_data, tmp_dir)
         pwdfiles = [
             os.path.join(tmp_dir, gen_string('alpha', 6)) for _ in range(4)
         ]
-        files['users'] = update_csv_values(
-            files['users'],
-            u'organization_id',
-            test_data,
-            self.default_dataset[0]
-        )
         # initial import
         for result in (
             Import.organization({'csv-file': files['users']}),
@@ -600,18 +585,9 @@ class TestImport(CLITestCase):
         @assert: 3 Host Collections created
 
         """
+        tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
-        for file_ in zip(
-            ['users', 'system-groups'],
-            [u'organization_id', u'org_id'],
-            [u'orgs', u'hcs']
-        ):
-            files[file_[0]] = update_csv_values(
-                files[file_[0]],
-                file_[1],
-                test_data[file_[2]],
-                self.default_dataset[0]
-            )
+        files = update_csv_values(files, test_data, tmp_dir)
         # import the prerequisities
         import_org = Import.organization_with_tr_data(
             {'csv-file': files['users']}
@@ -643,18 +619,9 @@ class TestImport(CLITestCase):
         @assert: 3 Host Collections created, no action taken on 2nd Import
 
         """
+        tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
-        for file_ in zip(
-            ['users', 'system-groups'],
-            [u'organization_id', u'org_id'],
-            [u'orgs', u'hcs']
-        ):
-            files[file_[0]] = update_csv_values(
-                files[file_[0]],
-                file_[1],
-                test_data[file_[2]],
-                self.default_dataset[0]
-            )
+        files = update_csv_values(files, test_data, tmp_dir)
         # import the prerequisities
         import_org = Import.organization_with_tr_data(
             {'csv-file': files['users']}
@@ -692,18 +659,9 @@ class TestImport(CLITestCase):
 
         """
         # prepare the data
+        tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
-        for file_ in zip(
-            ['users', 'system-groups'],
-            [u'organization_id', u'org_id'],
-            [u'orgs', u'hcs']
-        ):
-            files[file_[0]] = update_csv_values(
-                files[file_[0]],
-                file_[1],
-                test_data[file_[2]],
-                self.default_dataset[0]
-            )
+        files = update_csv_values(files, test_data, tmp_dir)
         # initial import
         import_org = Import.organization_with_tr_data(
             {'csv-file': files['users']}
@@ -768,17 +726,9 @@ class TestImport(CLITestCase):
 
         """
         # randomize the values for orgs and repos
+        tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
-        for file_ in zip(
-            ['users', 'repositories'],
-            [u'organization_id', u'org_id'],
-        ):
-            files[file_[0]] = update_csv_values(
-                files[file_[0]],
-                file_[1],
-                test_data[file_[0]],
-                self.default_dataset[0]
-            )
+        files = update_csv_values(files, test_data, tmp_dir)
         # import the prerequisities
         import_org = Import.organization_with_tr_data(
             {'csv-file': files['users']}
@@ -816,17 +766,9 @@ class TestImport(CLITestCase):
 
         """
         # randomize the values for orgs and repos
+        tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
-        for file_ in zip(
-            ['users', 'repositories'],
-            [u'organization_id', u'org_id'],
-        ):
-            files[file_[0]] = update_csv_values(
-                files[file_[0]],
-                file_[1],
-                test_data[file_[0]],
-                self.default_dataset[0]
-            )
+        files = update_csv_values(files, test_data, tmp_dir)
         # import the prerequisities
         import_org = Import.organization_with_tr_data(
             {'csv-file': files['users']}
@@ -877,19 +819,9 @@ class TestImport(CLITestCase):
 
         """
         # prepare the data
+        tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
-        # randomize the values for orgs and repos
-        files = dict(self.default_dataset[1])
-        for file_ in zip(
-            ['users', 'repositories'],
-            [u'organization_id', u'org_id'],
-        ):
-            files[file_[0]] = update_csv_values(
-                files[file_[0]],
-                file_[1],
-                test_data[file_[0]],
-                self.default_dataset[0]
-            )
+        files = update_csv_values(files, test_data, tmp_dir)
         # import the prerequisities
         import_org = Import.organization_with_tr_data(
             {'csv-file': files['users']}
@@ -961,16 +893,7 @@ class TestImport(CLITestCase):
             tmp_dir,
             'exports/CHANNELS/export.csv',
         )
-        for file_ in zip(
-            ['users', 'content-views'],
-            [u'organization_id', u'org_id'],
-        ):
-            files[file_[0]] = update_csv_values(
-                files[file_[0]],
-                file_[1],
-                test_data[file_[0]],
-                self.default_dataset[0]
-            )
+        files = update_csv_values(files, test_data, tmp_dir)
         # import the prerequisities
         import_org = Import.organization_with_tr_data(
             {'csv-file': files['users']}
@@ -1019,16 +942,7 @@ class TestImport(CLITestCase):
         files['content-views'] = os.path.join(
             tmp_dir, 'exports/CHANNELS/export.csv'
         )
-        for file_ in zip(
-            ['users', 'content-views'],
-            [u'organization_id', u'org_id'],
-        ):
-            files[file_[0]] = update_csv_values(
-                files[file_[0]],
-                file_[1],
-                test_data[file_[0]],
-                self.default_dataset[0]
-            )
+        files = update_csv_values(files, test_data, tmp_dir)
         # import the prerequisities
         import_org = Import.organization_with_tr_data(
             {'csv-file': files['users']}
@@ -1087,17 +1001,7 @@ class TestImport(CLITestCase):
             tmp_dir,
             'exports/CHANNELS/export.csv',
         )
-        # randomize the values for orgs and repos
-        for file_ in zip(
-            ['users', 'content-views'],
-            [u'organization_id', u'org_id'],
-        ):
-            files[file_[0]] = update_csv_values(
-                files[file_[0]],
-                file_[1],
-                test_data[file_[0]],
-                self.default_dataset[0]
-            )
+        files = update_csv_values(files, test_data, tmp_dir)
         # import the prerequisities
         import_org = Import.organization_with_tr_data(
             {'csv-file': files['users']}
