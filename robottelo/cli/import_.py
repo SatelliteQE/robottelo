@@ -90,7 +90,8 @@ class Import(Base):
         cls.command_sub = 'activation-key'
         return cls.execute(
             cls._construct_command(options),
-            output_format='csv'
+            output_format='csv',
+            return_raw_response=True,
         )
 
     @classmethod
@@ -99,7 +100,8 @@ class Import(Base):
         cls.command_sub = 'organization'
         return cls.execute(
             cls._construct_command(options),
-            output_format=''
+            output_format='',
+            return_raw_response=True,
         )
 
     @classmethod
@@ -108,7 +110,8 @@ class Import(Base):
         cls.command_sub = 'user'
         return cls.execute(
             cls._construct_command(options),
-            output_format=''
+            output_format='',
+            return_raw_response=True,
         )
 
     @classmethod
@@ -117,7 +120,8 @@ class Import(Base):
         cls.command_sub = 'host-collection'
         return cls.execute(
             cls._construct_command(options),
-            output_format=''
+            output_format='',
+            return_raw_response=True,
         )
 
     @classmethod
@@ -129,7 +133,8 @@ class Import(Base):
         cls.command_sub = 'config-file'
         return cls.execute(
             cls._construct_command(options),
-            output_format=''
+            output_format='',
+            return_raw_response=True,
         )
 
     @classmethod
@@ -138,7 +143,8 @@ class Import(Base):
         cls.command_sub = 'content-host'
         return cls.execute(
             cls._construct_command(options),
-            output_format=''
+            output_format='',
+            return_raw_response=True,
         )
 
     @classmethod
@@ -150,7 +156,8 @@ class Import(Base):
         cls.command_sub = 'content-view'
         return cls.execute(
             cls._construct_command(options),
-            output_format=''
+            output_format='',
+            return_raw_response=True,
         )
 
     @classmethod
@@ -159,7 +166,8 @@ class Import(Base):
         cls.command_sub = 'repository'
         return cls.execute(
             cls._construct_command(options),
-            output_format=''
+            output_format='',
+            return_raw_response=True,
         )
 
     @classmethod
@@ -171,7 +179,8 @@ class Import(Base):
         cls.command_sub = 'repository-enable'
         return cls.execute(
             cls._construct_command(options),
-            output_format=''
+            output_format='',
+            return_raw_response=True,
         )
 
     @classmethod
@@ -183,7 +192,8 @@ class Import(Base):
         cls.command_sub = 'template-snippet'
         return cls.execute(
             cls._construct_command(options),
-            output_format=''
+            output_format='',
+            return_raw_response=True,
         )
 
     @classmethod
@@ -195,7 +205,8 @@ class Import(Base):
         cls.command_sub = 'all'
         return cls.execute(
             cls._construct_command(options),
-            output_format=''
+            output_format='',
+            return_raw_response=True,
         )
 
     @classmethod

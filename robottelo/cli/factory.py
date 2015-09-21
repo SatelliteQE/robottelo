@@ -17,6 +17,7 @@ from os import chmod
 from robottelo import manifests, ssh
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.architecture import Architecture
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
@@ -83,23 +84,24 @@ def create_object(cli_object, options, values):
 
     """
     update_dictionary(options, values)
-    result = cli_object.create(options)
-
-    # If the object is not created, raise exception, stop the show.
-    if result.return_code != 0:
+    try:
+        result = cli_object.create(options)
+    except CLIReturnCodeError as err:
+        # If the object is not created, raise exception, stop the show.
         raise CLIFactoryError(
-            'Failed to create {0} with data:\n{1}'.format(
+            'Failed to create {0} with data:\n{1}\n{2}'.format(
                 cli_object.__name__,
-                json.dumps(options, indent=2, sort_keys=True)
+                json.dumps(options, indent=2, sort_keys=True),
+                err.msg,
             )
         )
 
     # Sometimes we get a list with a dictionary and not
     # a dictionary.
-    if type(result.stdout) is list and len(result.stdout) > 0:
-        result.stdout = result.stdout[0]
+    if type(result) is list and len(result) > 0:
+        result = result[0]
 
-    return result.stdout
+    return result
 
 
 @cacheable
@@ -1638,24 +1640,27 @@ def activationkey_add_subscription_to_repo(options=None):
             'subscription.'
         )
     # List the subscriptions in given org
-    result = Subscription.list(
+    subscriptions = Subscription.list(
         {u'organization-id': options['organization-id']},
-        per_page=False
+        per_page=False,
     )
     # Add subscription to activation-key
-    for subscription in result.stdout:
+    for subscription in subscriptions:
         if subscription['name'] == options['subscription']:
             if int(subscription['quantity']) == 0:
                 raise CLIFactoryError(
                     'All the subscriptions are already consumed')
-            result = ActivationKey.add_subscription({
-                u'id': options['activationkey-id'],
-                u'subscription-id': subscription['id'],
-                u'quantity': 1,
-            })
-            if result.return_code != 0:
+            try:
+                ActivationKey.add_subscription({
+                    u'id': options['activationkey-id'],
+                    u'subscription-id': subscription['id'],
+                    u'quantity': 1,
+                })
+            except CLIReturnCodeError as err:
                 raise CLIFactoryError(
-                    'Failed to add subscription to activation key')
+                    'Failed to add subscription to activation key\n{0}'
+                    .format(err.msg)
+                )
 
 
 def setup_org_for_a_custom_repo(options=None):
@@ -1702,41 +1707,52 @@ def setup_org_for_a_custom_repo(options=None):
     # Create custom product and repository
     custom_product = make_product({u'organization-id': org_id})
     custom_repo = make_repository({
-        u'url': options.get('url'),
         u'content-type': 'yum',
         u'product-id': custom_product['id'],
+        u'url': options.get('url'),
     })
     # Synchronize custom repository
-    result = Repository.synchronize({'id': custom_repo['id']})
-    if result.return_code != 0:
-        raise CLIFactoryError('Failed to synchronize repository')
+    try:
+        Repository.synchronize({'id': custom_repo['id']})
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            'Failed to synchronize repository\n{0}'.format(err.msg))
     # Create CV if needed and associate repo with it
     if options.get('content-view-id') is None:
         cv_id = make_content_view({u'organization-id': org_id})['id']
     else:
         cv_id = options['content-view-id']
-    result = ContentView.add_repository({
-        u'id': cv_id,
-        u'repository-id': custom_repo['id'],
-        u'organization-id': org_id,
-    })
-    if result.return_code != 0:
-        raise CLIFactoryError('Failed to add repository to content view')
+    try:
+        ContentView.add_repository({
+            u'id': cv_id,
+            u'organization-id': org_id,
+            u'repository-id': custom_repo['id'],
+        })
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            'Failed to add repository to content view\n{0}'.format(err.msg))
     # Publish a new version of CV
-    result = ContentView.publish({u'id': cv_id})
-    if result.return_code != 0:
-        raise CLIFactoryError('Failed to publish new version of content view')
+    try:
+        ContentView.publish({u'id': cv_id})
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            'Failed to publish new version of content view\n{0}'
+            .format(err.msg)
+        )
     # Get the version id
-    result = ContentView.info({u'id': cv_id})
-    cvv = result.stdout['versions'][-1]
+    cvv = ContentView.info({u'id': cv_id})['versions'][-1]
     # Promote version to next env
-    result = ContentView.version_promote({
-        u'id': cvv['id'],
-        u'to-lifecycle-environment-id': env_id,
-        u'organization-id': org_id,
-    })
-    if result.return_code != 0:
-        raise CLIFactoryError('Failed to promote version to next environment')
+    try:
+        ContentView.version_promote({
+            u'id': cvv['id'],
+            u'organization-id': org_id,
+            u'to-lifecycle-environment-id': env_id,
+        })
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            'Failed to promote version to next environment\n{0}'
+            .format(err.msg)
+        )
     # Create activation key if needed and associate content view with it
     if options.get('activationkey-id') is None:
         activationkey_id = make_activation_key({
@@ -1748,18 +1764,21 @@ def setup_org_for_a_custom_repo(options=None):
         activationkey_id = options['activationkey-id']
         # Given activation key may have no (or different) CV associated.
         # Associate activation key with CV just to be sure
-        result = ActivationKey.update({
-            u'id': activationkey_id,
-            u'organization-id': org_id,
-            u'content-view-id': cv_id,
-        })
-        if result.return_code != 0:
+        try:
+            ActivationKey.update({
+                u'content-view-id': cv_id,
+                u'id': activationkey_id,
+                u'organization-id': org_id,
+            })
+        except CLIReturnCodeError as err:
             raise CLIFactoryError(
-                'Failed to associate activation-key with CV')
+                'Failed to associate activation-key with CV\n{0}'
+                .format(err.msg)
+            )
     # Add subscription to activation-key
     activationkey_add_subscription_to_repo({
-        u'organization-id': org_id,
         u'activationkey-id': activationkey_id,
+        u'organization-id': org_id,
         u'subscription': custom_product['name'],
     })
 
@@ -1816,68 +1835,85 @@ def setup_org_for_a_rh_repo(options=None):
     # Clone manifest and upload it
     manifest = manifests.clone()
     upload_file(manifest, remote_file=manifest)
-    result = Subscription.upload({
-        u'file': manifest,
-        u'organization-id': org_id,
-    })
-    if result.return_code != 0:
-        raise CLIFactoryError('Failed to upload manifest')
+    try:
+        Subscription.upload({
+            u'file': manifest,
+            u'organization-id': org_id,
+        })
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError('Failed to upload manifest\n{0}'.format(err.msg))
     # Enable repo from Repository Set
-    result = RepositorySet.enable({
-        u'name': options['repository-set'],
-        u'organization-id': org_id,
-        u'product': options['product'],
-        u'releasever': options.get('releasever'),
-        u'basearch': 'x86_64',
-    })
-    if result.return_code != 0:
-        raise CLIFactoryError('Failed to enable repository set')
+    try:
+        RepositorySet.enable({
+            u'basearch': 'x86_64',
+            u'name': options['repository-set'],
+            u'organization-id': org_id,
+            u'product': options['product'],
+            u'releasever': options.get('releasever'),
+        })
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            'Failed to enable repository set\n{0}'.format(err.msg))
     # Fetch repository info
-    result = Repository.info({
-        u'name': options['repository'],
-        u'product': options['product'],
-        u'organization-id': org_id,
-    })
-    if result.return_code != 0:
-        raise CLIFactoryError('Failed to fetch repository info')
-    rhel_repo = result.stdout
+    try:
+        rhel_repo = Repository.info({
+            u'name': options['repository'],
+            u'organization-id': org_id,
+            u'product': options['product'],
+        })
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            'Failed to fetch repository info\n{0}'.format(err.msg))
     # Synchronize the RH repository
-    result = Repository.synchronize({
-        u'name': options['repository'],
-        u'organization-id': org_id,
-        u'product': options['product'],
-    })
-    if result.return_code != 0:
-        raise CLIFactoryError('Failed to synchronize repository')
+    try:
+        Repository.synchronize({
+            u'name': options['repository'],
+            u'organization-id': org_id,
+            u'product': options['product'],
+        })
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            'Failed to synchronize repository\n{0}'.format(err.msg))
     # Create CV if needed and associate repo with it
     if options.get('content-view-id') is None:
         cv_id = make_content_view({u'organization-id': org_id})['id']
     else:
         cv_id = options['content-view-id']
-    result = ContentView.add_repository({
-        u'id': cv_id,
-        u'repository-id': rhel_repo['id'],
-        u'organization-id': org_id,
-    })
-    if result.return_code != 0:
-        raise CLIFactoryError('Failed to add repository to content view')
+    try:
+        ContentView.add_repository({
+            u'id': cv_id,
+            u'organization-id': org_id,
+            u'repository-id': rhel_repo['id'],
+        })
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            'Failed to add repository to content view\n{0}'.format(err.msg))
     # Publish a new version of CV
-    result = ContentView.publish({u'id': cv_id})
-    if result.return_code != 0:
-        raise CLIFactoryError('Failed to publish new version of content view')
+    try:
+        ContentView.publish({u'id': cv_id})
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            'Failed to publish new version of content view\n{0}'
+            .format(err.msg)
+        )
     # Get the version id
-    result = ContentView.info({u'id': cv_id})
-    if result.return_code != 0:
-        raise CLIFactoryError('Failed to fetch content view info')
-    cvv = result.stdout['versions'][-1]
+    try:
+        cvv = ContentView.info({u'id': cv_id})['versions'][-1]
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            'Failed to fetch content view info\n{0}'.format(err.msg))
     # Promote version1 to next env
-    result = ContentView.version_promote({
-        u'id': cvv['id'],
-        u'to-lifecycle-environment-id': env_id,
-        u'organization-id': org_id,
-    })
-    if result.return_code != 0:
-        raise CLIFactoryError('Failed to promote version to next environment')
+    try:
+        ContentView.version_promote({
+            u'id': cvv['id'],
+            u'organization-id': org_id,
+            u'to-lifecycle-environment-id': env_id,
+        })
+    except CLIReturnCodeError as err:
+        raise CLIFactoryError(
+            'Failed to promote version to next environment\n{0}'
+            .format(err.msg)
+        )
     # Create activation key if needed and associate content view with it
     if options.get('activationkey-id') is None:
         activationkey_id = make_activation_key({
@@ -1889,13 +1925,17 @@ def setup_org_for_a_rh_repo(options=None):
         activationkey_id = options['activationkey-id']
         # Given activation key may have no (or different) CV associated.
         # Associate activation key with CV just to be sure
-        result = ActivationKey.update({
-            u'id': activationkey_id,
-            u'organization-id': org_id,
-            u'content-view-id': cv_id,
-        })
-        if result.return_code != 0:
-            raise CLIFactoryError('Failed to associate activation-key with CV')
+        try:
+            ActivationKey.update({
+                u'id': activationkey_id,
+                u'organization-id': org_id,
+                u'content-view-id': cv_id,
+            })
+        except CLIReturnCodeError as err:
+            raise CLIFactoryError(
+                'Failed to associate activation-key with CV\n{0}'
+                .format(err.msg)
+            )
     # Add subscription to activation-key
     activationkey_add_subscription_to_repo({
         u'organization-id': org_id,
