@@ -25,6 +25,7 @@ help:
 	@echo "  test-foreman-api-threaded  to do the above with threading"
 	@echo "  test-foreman-cli      to test a Foreman deployment CLI"
 	@echo "  test-foreman-cli-threaded  to do the above with threading"
+	@echo "  test-foreman-rhai	   to test Red Hat Access Insights plugin"
 	@echo "  test-foreman-rhci     to test a Foreman deployment w/RHCI plugin"
 	@echo "  test-foreman-ui       to test a Foreman deployment UI"
 	@echo "  test-foreman-ui-xvfb  to test a Foreman deployment UI using xvfb-run"

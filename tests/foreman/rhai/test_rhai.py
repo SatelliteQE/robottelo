@@ -77,6 +77,9 @@ class RHAITestCase(UITestCase):
                 self.assertIn("1", result, 'Registered clients are not listed')
 
         finally:
+            self.rhai.vm.get('/var/log/redhat-access-insights/redhat-access'
+                             '-insights.log',
+                             './insights_client_registration.log')
             self.rhai.vm.destroy()
 
     def test_org_selection_for_rhai(self):
@@ -140,5 +143,8 @@ class RHAITestCase(UITestCase):
                              "System has not been unregistered")
 
         finally:
+            self.rhai.vm.get('/var/log/redhat-access-insights/redhat-access'
+                             '-insights.log',
+                             './insights_unregister.log')
             # Destroy the VM
             self.rhai.vm.destroy()
