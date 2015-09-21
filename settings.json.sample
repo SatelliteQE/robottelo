@@ -3,8 +3,8 @@
         "hostname":"test",
         "scheme":"https",
         "port":"",
-        "ssh.key_private":"/home/whoami/.ssh/id_hudson_dsa",
-        "ssh.username":"root"
+        "ssh_key":"/home/whoami/.ssh/id_hudson_dsa",
+        "ssh_username":"root"
     },
     "ldap":{
         "ldaphost":"test",
