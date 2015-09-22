@@ -3,8 +3,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
-from robottelo.decorators import (
-    bz_bug_is_open, data, run_only_on, skip_if_bug_open)
+from robottelo.decorators import bz_bug_is_open, data, run_only_on
 from robottelo.helpers import generate_strings_list, read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_partitiontable
@@ -110,9 +109,15 @@ class PartitionTable(UITestCase):
                                  (common_locators['haserror']))
             self.assertIsNone(self.partitiontable.search(name))
 
-    @skip_if_bug_open('bugzilla', 1177591)
+    @data(
+        {u'name': gen_string('alpha')},
+        {u'name': gen_string('numeric')},
+        {u'name': gen_string('alphanumeric')},
+        {u'name': gen_string('html'), 'bugzilla': 1225857},
+        {u'name': gen_string('latin1')},
+        {u'name': gen_string('utf8')})
     @data(*generate_strings_list())
-    def test_remove_partition_table(self, name):
+    def test_remove_partition_table(self, test_data):
         """@Test: Delete a partition table
 
         @Feature: Partition table - Positive Delete
@@ -121,6 +126,13 @@ class PartitionTable(UITestCase):
 
         """
         with Session(self.browser) as session:
+            bug_id = test_data.pop('bugzilla', None)
+            if bug_id is not None and bz_bug_is_open(bug_id):
+                self.skipTest(
+                    'Bugzilla bug {0} is open for html data.'.format(bug_id)
+                )
+
+            name = test_data['name']
             make_partitiontable(
                 session, name=name, layout='test layout', os_family='Red Hat')
             self.assertIsNotNone(self.partitiontable.search(name))
