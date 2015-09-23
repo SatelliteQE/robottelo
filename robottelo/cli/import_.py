@@ -418,6 +418,33 @@ class Import(Base):
         return (result, transition_data)
 
     @classmethod
+    def content_host_with_tr_data(cls, options=None):
+        """Import Content Hosts (from spacewalk-report system-profiles).
+
+        :returns: A tuple of SSHCommandResult and a Dictionary containing the
+            transition data of the Import
+        :raises: AssertionError if a non-zero return code is encountered.
+
+        """
+        result = cls.content_host(options)
+        transition_data = []
+        if result.return_code == 0:
+            transition_data = [
+                cls.read_transition_csv(
+                    ssh.command(cmd).stdout[:-1], key
+                )
+                for cmd, key
+                in (
+                    (u'ls -v ${HOME}/.transition_data/system_content_views*',
+                        u'ch_seq'),
+                    (u'ls -v ${HOME}/.transition_data/systems*', u'sat5'),
+                )
+            ]
+        else:
+            raise AssertionError(result.stderr)
+        return (result, transition_data)
+
+    @classmethod
     def repository_with_tr_data(cls, options=None):
         """Import repositories (from spacewalk-report repositories).
 
