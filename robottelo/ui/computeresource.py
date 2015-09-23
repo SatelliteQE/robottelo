@@ -117,9 +117,7 @@ class ComputeResource(Base):
     def search(self, name):
         """Searches existing compute resource from UI."""
         Navigator(self.browser).go_to_compute_resources()
-        self.wait_for_ajax()
-        element = self.search_entity(name, locators['resource.select_name'])
-        return element
+        return self.search_entity(name, locators['resource.select_name'])
 
     def update(self, name, newname=None, parameter_list=None,
                orgs=None, org_select=None, locations=None, loc_select=None):
@@ -147,5 +145,5 @@ class ComputeResource(Base):
             really,
             locators['resource.select_name'],
             locators['resource.delete'],
-            drop_locator=locators['resource.dropdown']
+            drop_locator=locators['resource.dropdown'],
         )

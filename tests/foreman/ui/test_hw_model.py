@@ -101,7 +101,4 @@ class HardwareModelTestCase(UITestCase):
 
             name = test_data['name']
             make_hw_model(session, name=name)
-            search = self.hardwaremodel.search(name)
-            self.assertIsNotNone(search)
             self.hardwaremodel.delete(name)
-            self.assertIsNone(self.hardwaremodel.search(name, timeout=3))

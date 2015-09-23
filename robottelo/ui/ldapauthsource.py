@@ -58,7 +58,6 @@ class LdapAuthSource(Base):
     def search(self, name, really=False):
         """Searches existing ldap auth source from UI."""
         Navigator(self.browser).go_to_ldap_auth()
-        self.wait_for_ajax()
         strategy1, value1 = locators['ldapserver.ldap_servername']
         element = self.wait_until_element((strategy1, value1 % (name, name)))
         if element is None:
@@ -71,7 +70,6 @@ class LdapAuthSource(Base):
     def delete(self, name, really=False):
         """Deletes existing ldap auth source from UI."""
         Navigator(self.browser).go_to_ldap_auth()
-        self.wait_for_ajax()
         strategy1, value1 = locators['ldapserver.ldap_delete']
         element = self.wait_until_element((strategy1, value1 % name))
         if element is None:

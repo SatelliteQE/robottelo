@@ -59,8 +59,7 @@ class Trend(Base):
         """
         Navigator(self.browser).go_to_trends()
         strategy, value = locators['trend.trend_name']
-        element = self.wait_until_element((strategy, value % tr_type))
-        return element
+        return self.wait_until_element((strategy, value % tr_type))
 
     def delete(self, trend_name, really=True):
         """Deletes the trend."""

@@ -128,9 +128,7 @@ class Medium(UITestCase):
         path = INSTALL_MEDIUM_URL % name
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family='Red Hat')
-            self.assertIsNotNone(self.medium.search(name))
             self.medium.delete(name)
-            self.assertIsNone(self.medium.search(name))
 
     def test_update_medium(self):
         """@Test: Updates Install media with name, path, OS family

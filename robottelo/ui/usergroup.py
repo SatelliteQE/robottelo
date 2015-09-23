@@ -46,7 +46,7 @@ class UserGroup(Base):
             name,
             really,
             locators['usergroups.usergroup'],
-            locators['usergroups.delete']
+            locators['usergroups.delete'],
         )
 
     def update(self, old_name, new_name=None,

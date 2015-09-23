@@ -39,7 +39,6 @@ class Medium(Base):
     def search(self, name):
         """Searches existing medium from UI."""
         Navigator(self.browser).go_to_installation_media()
-        self.wait_for_ajax()
         if len(name) <= 30:
             element = self.search_entity(name, locators['medium.medium_name'])
         else:
@@ -53,7 +52,7 @@ class Medium(Base):
             name,
             really,
             locators['medium.medium_name'],
-            locators['medium.delete']
+            locators['medium.delete'],
         )
 
     def update(self, old_name, new_name=None, new_path=None, os_family=None):

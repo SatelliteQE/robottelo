@@ -223,11 +223,10 @@ class Org(UITestCase):
         @assert: Organization is deleted successfully
 
         """
+        entities.Organization(name=org_name).create()
         with Session(self.browser) as session:
-            make_org(session, org_name=org_name)
-            self.assertIsNotNone(self.org.search(org_name))
+            session.nav.go_to_org()
             self.org.remove(org_name)
-            self.assertIsNone(self.org.search(org_name))
 
     @skip_if_bug_open('bugzilla', 1225588)
     @data(*generate_strings_list())

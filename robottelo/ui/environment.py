@@ -55,5 +55,5 @@ class Environment(Base):
             really,
             locators['env.env_name'],
             locators['env.delete'],
-            drop_locator=locators['env.dropdown']
+            drop_locator=locators['env.dropdown'],
         )

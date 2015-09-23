@@ -10,7 +10,6 @@ class OpenScapReports(Base):
 
     def search(self, name):
         """Searches existing oscap reports from UI"""
-        self.wait_for_ajax()
         Navigator(self.browser).go_to_oscap_reports()
         return self.search_entity(
             name,

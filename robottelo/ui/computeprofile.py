@@ -10,7 +10,6 @@ class ComputeProfile(Base):
     def search(self, name):
         """Search for existing compute profile from UI."""
         Navigator(self.browser).go_to_compute_profiles()
-        self.wait_for_ajax()
         return self.search_entity(name, locators['profile.select_name'])
 
     def select_resource(self, profile_name, res_name, res_type):

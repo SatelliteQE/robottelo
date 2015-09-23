@@ -52,7 +52,6 @@ class PuppetClasses(UITestCase):
 
         """
         entities.PuppetClass(name=name).create()
-        with Session(self.browser):
-            self.assertIsNotNone(self.puppetclasses.search(name))
+        with Session(self.browser) as session:
+            session.nav.go_to_puppet_classes()
             self.puppetclasses.delete(name)
-            self.assertIsNone(self.puppetclasses.search(name))

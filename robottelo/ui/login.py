@@ -36,9 +36,7 @@ class Login(Base):
         if self.wait_until_element(locators['login.gravatar']) is None:
             raise UINoSuchElementError(
                 'could not find login.gravatar to sign out')
-        nav = Navigator(self.browser)
-        nav.go_to_sign_out()
-        self.wait_for_ajax()
+        Navigator(self.browser).go_to_sign_out()
 
     def is_logged(self):
         """Checks whether user is logged by validating a session cookie"""

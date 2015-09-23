@@ -104,9 +104,7 @@ class Org(Base):
     def search(self, name):
         """Searches existing Organization from UI."""
         Navigator(self.browser).go_to_org()
-        self.wait_for_ajax()
-        element = self.search_entity(name, locators['org.org_name'])
-        return element
+        return self.search_entity(name, locators['org.org_name'])
 
     def update(self, org_name, new_parent_org=None, new_name=None, users=None,
                proxies=None, subnets=None, resources=None, medias=None,
@@ -155,12 +153,11 @@ class Org(Base):
 
     def remove(self, org_name, really=True):
         """Remove Organization in UI."""
-        searched = self.search(org_name)
-        if searched is None:
-            raise UINoSuchElementError(
-                u'Could not search the entity {0}'.format(org_name))
-        strategy, value = locators['org.dropdown']
-        self.click((strategy, value % org_name))
-        strategy1, value1 = locators['org.delete']
-        self.click((strategy1, value1 % org_name), wait_for_ajax=False)
-        self.handle_alert(really)
+        Navigator(self.browser).go_to_org()
+        self.delete_entity(
+            org_name,
+            really,
+            locators['org.org_name'],
+            locators['org.delete'],
+            drop_locator=locators['org.dropdown'],
+        )

@@ -43,7 +43,7 @@ class Syncplan(Base):
                rm_products=None):
         """Updates Sync Plans from UI."""
         sp_element = self.search_entity(
-            name, locators['sp.select'], katello=True, timeout=20)
+            name, locators['sp.select'], katello=True, result_timeout=20)
         if sp_element is None:
             raise UIError(
                 'Unable to find the sync_plan "{0}" for update.'.format(name)

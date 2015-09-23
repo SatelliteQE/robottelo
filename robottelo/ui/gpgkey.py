@@ -41,7 +41,6 @@ class GPGKey(Base):
     def search(self, element_name):
         """Uses the search box to locate an element from a list of elements."""
         Navigator(self.browser).go_to_gpg_keys()
-        self.wait_for_ajax()
         element = None
         strategy, value = locators["gpgkey.key_name"]
         searchbox = self.wait_until_element(common_locators["kt_search"])
@@ -118,9 +117,7 @@ class GPGKey(Base):
 
     def assert_key_from_product(self, name, product, repo=None):
         """Assert the key association after deletion from product tab."""
-        nav = Navigator(self.browser)
-        nav.go_to_products()
-        self.wait_for_ajax()
+        Navigator(self.browser).go_to_products()
         prd_element = self.search_entity(
             product, locators["prd.select"], katello=True)
         if prd_element:

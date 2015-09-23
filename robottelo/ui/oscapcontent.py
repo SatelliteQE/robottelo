@@ -20,7 +20,6 @@ class OpenScapContent(Base):
 
     def search(self, name):
         """Searches existing oscap content from UI"""
-        self.wait_for_ajax()
         Navigator(self.browser).go_to_oscap_content()
         return self.search_entity(
             name,

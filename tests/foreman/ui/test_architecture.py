@@ -3,7 +3,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.decorators import data, run_only_on
 from robottelo.helpers import generate_strings_list, invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_arch
@@ -82,7 +82,6 @@ class Architecture(UITestCase):
             self.assertIsNotNone(self.architecture.wait_until_element
                                  (common_locators['name_haserror']))
 
-    @skip_if_bug_open('bugzilla', 1123388)
     @data(*generate_strings_list())
     def test_remove_architecture(self, name):
         """@Test: Delete an existing Architecture
@@ -91,18 +90,13 @@ class Architecture(UITestCase):
 
         @Assert: Architecture is deleted
 
-        @BZ: 1131815
-
         """
-        os_name = gen_string('alpha')
-        entities.OperatingSystem(name=os_name).create()
+        os = entities.OperatingSystem(name=gen_string('alpha')).create()
+        entities.Architecture(name=name, operatingsystem=[os]).create()
         with Session(self.browser) as session:
-            make_arch(session, name=name, os_names=[os_name])
-            self.assertIsNotNone(self.architecture.search(name))
+            session.nav.go_to_architectures()
             self.architecture.delete(name)
-            self.assertIsNone(self.architecture.search(name))
 
-    @skip_if_bug_open('bugzilla', 1123388)
     @data(*generate_strings_list())
     def test_update_arch(self, name):
         """@Test: Update Architecture with new name and OS

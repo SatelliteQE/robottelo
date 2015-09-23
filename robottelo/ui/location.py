@@ -105,7 +105,6 @@ class Location(Base):
     def search(self, name):
         """Searches existing location from UI."""
         Navigator(self.browser).go_to_loc()
-        self.wait_for_ajax()
         element = self.search_entity(name, locators['location.select_name'])
         return element
 

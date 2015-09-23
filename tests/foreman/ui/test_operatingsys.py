@@ -250,7 +250,6 @@ class OperatingSys(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_operating_systems()
             self.operatingsys.delete(os_name)
-            self.assertIsNone(self.operatingsys.search(os_name))
 
     @data(
         {u'new_name': gen_string('alpha', 10),

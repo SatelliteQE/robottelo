@@ -30,8 +30,7 @@ class Hostgroup(Base):
     def search(self, name):
         """Searches existing hostgroup from UI."""
         Navigator(self.browser).go_to_host_groups()
-        element = self.search_entity(name, locators['hostgroups.hostgroup'])
-        return element
+        return self.search_entity(name, locators['hostgroups.hostgroup'])
 
     def delete(self, name, really=True):
         """Deletes existing hostgroup from UI."""
@@ -41,7 +40,7 @@ class Hostgroup(Base):
             really,
             locators['hostgroups.hostgroup'],
             locators['hostgroups.delete'],
-            drop_locator=locators['hostgroups.dropdown']
+            drop_locator=locators['hostgroups.dropdown'],
         )
 
     def update(self, name, new_name=None, parent=None, environment=None):
