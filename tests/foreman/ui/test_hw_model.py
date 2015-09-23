@@ -2,7 +2,7 @@
 
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo.decorators import data, run_only_on
+from robottelo.decorators import bz_bug_is_open, data, run_only_on
 from robottelo.helpers import generate_strings_list, valid_data_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hw_model
@@ -77,8 +77,14 @@ class HardwareModelTestCase(UITestCase):
             search = self.hardwaremodel.search(new_name)
             self.assertIsNotNone(search)
 
-    @data(*generate_strings_list())
-    def test_delete_positive(self, name):
+    @data(
+        {u'name': gen_string('alpha')},
+        {u'name': gen_string('numeric')},
+        {u'name': gen_string('alphanumeric')},
+        {u'name': gen_string('html'), 'bugzilla': 1265150},
+        {u'name': gen_string('latin1')},
+        {u'name': gen_string('utf8')})
+    def test_delete_positive(self, test_data):
         """@test: Deletes the Hardware-Model
 
         @feature: Hardware-Model - Positive delete
@@ -87,6 +93,13 @@ class HardwareModelTestCase(UITestCase):
 
         """
         with Session(self.browser) as session:
+            bug_id = test_data.pop('bugzilla', None)
+            if bug_id is not None and bz_bug_is_open(bug_id):
+                self.skipTest(
+                    'Bugzilla bug {0} is open for html data.'.format(bug_id)
+                )
+
+            name = test_data['name']
             make_hw_model(session, name=name)
             search = self.hardwaremodel.search(name)
             self.assertIsNotNone(search)
