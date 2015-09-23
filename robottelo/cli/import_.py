@@ -36,9 +36,11 @@ Subcommands::
     user                          Import Users (from spacewalk-report users).
 
 """
+import csv
 import os
 from robottelo import manifests, ssh
 from robottelo.cli.base import Base
+import tempfile
 
 
 class Import(Base):
@@ -66,17 +68,17 @@ class Import(Base):
 
         """
         result = []
-        for csv_file in csv_files:
-            ssh_cat = ssh.command(u'cat {0}'.format(csv_file))
-            if ssh_cat.return_code != 0:
-                raise AssertionError(ssh_cat.stderr)
-            csv = ssh_cat.stdout[:-1]
-            keys = csv[0].split(',')
-            result.extend([
-                dict(zip(keys, val.split(',')))
-                for val
-                in csv[1:]
-            ])
+        for file in csv_files:
+            temp_file = tempfile.mkstemp()[1]
+            ssh.download_file(file, temp_file)
+            with open(temp_file, 'rb') as file:
+                reader = csv.DictReader(file)
+                result.extend([{
+                    key.decode('utf8'): val.decode('utf8')
+                    for key, val in row.items()}
+                    for row in reader
+                ])
+            os.remove(temp_file)
         return result
 
     @staticmethod
