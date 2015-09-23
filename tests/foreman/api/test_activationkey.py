@@ -4,8 +4,9 @@ import httplib
 from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
+from robottelo.config import settings
 from robottelo.decorators import rm_bug_is_open, skip_if_bug_open
-from robottelo.helpers import get_server_credentials, valid_data_list
+from robottelo.helpers import valid_data_list
 from robottelo.test import APITestCase
 
 
@@ -201,7 +202,7 @@ class ActivationKeysTestCase(APITestCase):
         path = act_key.path('releases')
         response = client.get(
             path,
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             verify=False,
         )
         status_code = httplib.OK
@@ -219,7 +220,7 @@ class ActivationKeysTestCase(APITestCase):
         act_key = entities.ActivationKey().create()
         response = client.get(
             act_key.path('releases'),
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             verify=False,
         ).json()
         self.assertIn('results', response.keys())

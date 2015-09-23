@@ -11,6 +11,7 @@ ssh_username=root
 admin_username=admin
 admin_password=changeme
 
+
 # Override robottelo configuration
 # [robottelo]
 # The directory where screenshots will be saved.
@@ -109,6 +110,7 @@ admin_password=changeme
 # URL of the  exported data archive (typically a .tgz containing a bunch of CSV
 # files together with repo data)
 # exported_data=http://example.org/sat5_export_data.tgz
+
 
 # Section for performance tests parameters.
 # [performance]

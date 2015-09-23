@@ -14,7 +14,7 @@ import zipfile
 from Crypto.Hash import SHA256
 from Crypto.PublicKey import RSA
 from Crypto.Signature import PKCS1_v1_5
-from robottelo.config import conf
+from robottelo.config import settings
 
 
 def get_tempfile():
@@ -49,7 +49,7 @@ def download_signing_key():
     Downloads the configured key file to a temporary file and returns the path.
 
     """
-    return retrieve(conf.properties['main.manifest.key_url'])
+    return retrieve(settings.fake_manifest.key_url)
 
 
 def download_manifest_template():
@@ -59,7 +59,7 @@ def download_manifest_template():
     returns the path.
 
     """
-    return retrieve(conf.properties['main.manifest.fake_url'])
+    return retrieve(settings.fake_manifest.url)
 
 
 def sign(key_file, file_to_sign):

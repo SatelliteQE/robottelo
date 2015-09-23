@@ -5,7 +5,7 @@
 from ddt import ddt
 from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.decorators import (
     bz_bug_is_open,
     data,
@@ -395,7 +395,7 @@ class Location(UITestCase):
         """
         strategy, value = common_locators['entity_deselect']
         loc_name = gen_string('alpha')
-        url = (LIBVIRT_RESOURCE_URL % conf.properties['main.server.hostname'])
+        url = LIBVIRT_RESOURCE_URL % settings.server.hostname
         resource = entities.LibvirtComputeResource(
             name=resource_name, url=url).create()
         self.assertEqual(resource.name, resource_name)
@@ -672,7 +672,7 @@ class Location(UITestCase):
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
         loc_name = gen_string('alpha')
-        url = (LIBVIRT_RESOURCE_URL % conf.properties['main.server.hostname'])
+        url = LIBVIRT_RESOURCE_URL % settings.server.hostname
         resource = entities.LibvirtComputeResource(
             name=resource_name, url=url).create()
         self.assertEqual(resource.name, resource_name)

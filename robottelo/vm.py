@@ -14,8 +14,7 @@ import os
 import time
 
 from robottelo import ssh
-from robottelo.config import conf
-from robottelo.helpers import get_server_cert_rpm_url
+from robottelo.config import settings
 
 BASE_IMAGES = (
     'rhel65',
@@ -66,8 +65,7 @@ class VirtualMachine(object):
                 .format(self.distro, ', '.join(BASE_IMAGES))
             )
         if provisioning_server is None:
-            self.provisioning_server = conf.properties.get(
-                'clients.provisioning_server')
+            self.provisioning_server = settings.clients.provisioning_server
         else:
             self.provisioning_server = provisioning_server
         if self.provisioning_server is None or self.provisioning_server == '':
@@ -78,8 +76,7 @@ class VirtualMachine(object):
                 'argument.'
             )
         if image_dir is None:
-            self.image_dir = conf.properties.get(
-                'clients.image_dir', '/var/lib/libvirt/images/')
+            self.image_dir = settings.clients.image_dir
         else:
             self.image_dir = image_dir
 
@@ -224,14 +221,14 @@ class VirtualMachine(object):
 
         """
         result = self.run(
-            u'rpm -Uvh {}'.format(get_server_cert_rpm_url())
+            u'rpm -Uvh {}'.format(settings.server.get_cert_rpm_url())
         )
         if result.return_code != 0:
             raise VirtualMachineError(
                 'Failed to download and install the katello-ca rpm')
         result = self.run(
             u'rpm -q katello-ca-consumer-{0}'
-            .format(conf.properties['main.server.hostname'])
+            .format(settings.server.hostname)
         )
         if result.return_code != 0:
             raise VirtualMachineError('Failed to find the katello-ca rpm')
@@ -324,7 +321,7 @@ class VirtualMachine(object):
         :return: None.
 
         """
-        sat6_hostname = conf.properties['main.server.hostname']
+        sat6_hostname = settings.server.hostname
         self.configure_rhel_repo(rhel_repo)
         puppet_conf = (
             'pluginsync      = true\n'

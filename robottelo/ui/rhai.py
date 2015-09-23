@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """ Implements methods for RHAI"""
 
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.ui.base import Base
 from robottelo.ui.locators import locators
 from robottelo.vm import VirtualMachine
@@ -28,14 +28,12 @@ class RHAI(Base):
 
         # Red Hat Access Insights requires RHEL 6/7 repo and it not
         # possible to sync the repo during the tests, Adding repo file.
-        self.vm.configure_rhel_repo(conf.properties['clients.rhel6_repo'])
+        self.vm.configure_rhel_repo(settings.rhel6_repo)
 
-        try:
-            insights_repo = conf.properties['insights.insights_el6repo']
+        if settings.rhai.insights_client_el6repo:
             self.vm.run('wget -O /etc/yum.repos.d/insights.repo {0}'.format(
-                insights_repo))
-        except KeyError:
-            pass
+                settings.rhai.insights_client_el6repo
+            ))
 
         # Install redhat-access-insights package
         package_name = 'redhat-access-insights'

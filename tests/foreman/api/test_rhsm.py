@@ -7,7 +7,7 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 import httplib
 
 from nailgun import client
-from robottelo.helpers import get_server_credentials, get_server_url
+from robottelo.config import settings
 from robottelo.test import APITestCase
 
 
@@ -25,10 +25,10 @@ class RHSMTestCase(APITestCase):
         This test targets bugzilla bug 1112802.
 
         """
-        path = '{0}/rhsm'.format(get_server_url())
+        path = '{0}/rhsm'.format(settings.server.get_url())
         response = client.get(
             path,
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             verify=False,
         )
         self.assertEqual(response.status_code, httplib.OK)

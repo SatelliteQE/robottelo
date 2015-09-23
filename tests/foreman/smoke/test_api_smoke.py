@@ -11,7 +11,7 @@ from robottelo.api.utils import (
     promote,
     upload_manifest,
 )
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_LOC,
     DEFAULT_ORG,
@@ -652,7 +652,7 @@ class TestAvailableURLs(TestCase):
 
     def setUp(self):
         """Define commonly-used variables."""
-        self.path = '{0}/api/v2'.format(helpers.get_server_url())
+        self.path = '{0}/api/v2'.format(settings.server.get_url())
 
     def test_get_status_code(self):
         """@Test: GET ``api/v2`` and examine the response.
@@ -664,7 +664,7 @@ class TestAvailableURLs(TestCase):
         """
         response = client.get(
             self.path,
-            auth=helpers.get_server_credentials(),
+            auth=settings.server.get_credentials(),
             verify=False,
         )
         self.assertEqual(response.status_code, httplib.OK)
@@ -682,7 +682,7 @@ class TestAvailableURLs(TestCase):
         # Did the server give us any paths at all?
         response = client.get(
             self.path,
-            auth=helpers.get_server_credentials(),
+            auth=settings.server.get_credentials(),
             verify=False,
         )
         response.raise_for_status()
@@ -940,7 +940,7 @@ class TestSmoke(TestCase):
         entities.LibvirtComputeResource(
             server_config,
             url=u'qemu+tcp://{0}:16509/system'.format(
-                conf.properties['main.server.hostname']),
+                settings.server.hostname),
         ).create()
 
         # step 2.12: Create a new subnet

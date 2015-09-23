@@ -11,7 +11,7 @@ from robottelo.cli.factory import (
     make_compute_resource, CLIFactoryError)
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
 from robottelo.test import CLITestCase
@@ -596,9 +596,7 @@ class TestOrg(CLITestCase):
         org = make_org()
         compute_res = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': "qemu+tcp://%s:16509/system" % conf.properties[
-                'main.server.hostname'
-            ]
+            'url': "qemu+tcp://%s:16509/system" % settings.server.hostname
         })
         Org.add_compute_resource({
             'compute-resource': compute_res['name'],

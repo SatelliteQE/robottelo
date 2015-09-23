@@ -2,7 +2,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import (
     FOREMAN_PROVIDERS,
     LIBVIRT_RESOURCE_URL,
@@ -24,8 +24,7 @@ from robottelo.ui.session import Session
 class ComputeResource(UITestCase):
     """Implements Compute Resource tests in UI"""
 
-    current_libvirt_url = (LIBVIRT_RESOURCE_URL
-                           % conf.properties['main.server.hostname'])
+    current_libvirt_url = LIBVIRT_RESOURCE_URL % settings.server.hostname
 
     @data(*valid_data_list())
     def test_create_libvirt_resource_different_names(self, name):

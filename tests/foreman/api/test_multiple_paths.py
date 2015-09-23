@@ -5,9 +5,9 @@ import logging
 
 from nailgun import client, entities, entity_fields
 from requests.exceptions import HTTPError
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.decorators import bz_bug_is_open, run_only_on, skip_if_bug_open
-from robottelo.helpers import get_nailgun_config, get_server_credentials
+from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 
 logger = logging.getLogger(__name__)  # pylint:disable=invalid-name
@@ -114,7 +114,7 @@ def skip_if_sam(self, entity):
 
     The above code snippet skips the test when:
 
-    * ``robottelo.properties`` is defined with ``main.project=sam``, and
+    * ``robottelo.properties`` is defined with ``[robottelo] project=sam``, and
     * the corresponding entity's definition in module ``nailgun.entities`` does
       not specify sam in server_modes. For example: ``server_modes = ('sat')``.
 
@@ -122,7 +122,7 @@ def skip_if_sam(self, entity):
     :returns: Either ``self.skipTest`` or ``None``.
 
     """
-    robottelo_mode = conf.properties.get('main.project', '').lower()
+    robottelo_mode = settings.project
     server_modes = [
         server_mode.lower()
         for server_mode
@@ -165,7 +165,7 @@ class EntityTestCase(APITestCase):
                 skip_if_sam(self, entity_cls)
                 response = client.get(
                     entity_cls().path(),
-                    auth=get_server_credentials(),
+                    auth=settings.server.get_credentials(),
                     verify=False,
                 )
                 response.raise_for_status()
@@ -307,7 +307,7 @@ class EntityIdTestCase(APITestCase):
                     entity_cls(id=entity_id).path(),
                     # FIXME: use entity.update_payload()
                     entity.create_payload(),
-                    auth=get_server_credentials(),
+                    auth=settings.server.get_credentials(),
                     verify=False,
                 )
                 self.assertEqual(httplib.OK, response.status_code)
@@ -398,7 +398,7 @@ class DoubleCheckTestCase(APITestCase):
                 response = client.put(
                     entity_cls(id=entity_id).path(),
                     entity.create_payload(),
-                    auth=get_server_credentials(),
+                    auth=settings.server.get_credentials(),
                     verify=False,
                 )
                 response.raise_for_status()

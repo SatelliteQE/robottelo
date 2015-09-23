@@ -8,14 +8,10 @@ from datetime import datetime, timedelta
 from fauxfactory import gen_string
 from nailgun import client, entities
 from random import sample
+from robottelo.config import settings
 from requests.exceptions import HTTPError
-from robottelo.helpers import (
-    get_server_credentials,
-    get_server_url,
-    invalid_values_list,
-    valid_data_list,
-)
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
+from robottelo.helpers import invalid_values_list, valid_data_list
 from robottelo.test import APITestCase
 
 
@@ -56,17 +52,17 @@ class SyncPlanTestCase(APITestCase):
         org = entities.Organization().create()
         entities.SyncPlan(organization=org).create()
         response1 = client.get(
-            '{0}/katello/api/v2/sync_plans'.format(get_server_url()),
-            auth=get_server_credentials(),
+            '{0}/katello/api/v2/sync_plans'.format(settings.server.get_url()),
+            auth=settings.server.get_credentials(),
             data={'organization_id': org.id},
             verify=False,
         )
         response2 = client.get(
             '{0}/katello/api/v2/organizations/{1}/sync_plans'.format(
-                get_server_url(),
+                settings.server.get_url(),
                 org.id
             ),
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             verify=False,
         )
         for response in (response1, response2):

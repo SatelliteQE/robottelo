@@ -6,7 +6,7 @@ from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.performance.constants import MANIFEST_FILE_NAME
 from robottelo.test import TestCase
 
@@ -29,20 +29,14 @@ class StandardPrepTestCase(TestCase):
 
         # parameters for standard process test
         # note: may need to change savepoint name
-        cls.savepoint = conf.properties.get(
-            'performance.test.savepoint1_fresh_install',
-            ''
-        )
+        cls.savepoint = settings.performance.fresh_install_savepoint,
 
         # parameters for uploading manifests
-        cls.manifest_file = conf.properties.get('main.manifest.fake_url')
+        cls.manifest_file = settings.fake_manifest.url
         cls.org_id = ''
 
         # parameters for changing cdn address
-        cls.target_url = conf.properties.get(
-            'performance.test.cdn.address',
-            ''
-        )
+        cls.target_url = settings.performance.cdn_address
 
         # parameters for enabling repositories
         cls.sub_id = ''

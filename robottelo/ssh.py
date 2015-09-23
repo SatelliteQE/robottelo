@@ -7,7 +7,7 @@ import paramiko
 import re
 
 from robottelo.cli import hammer
-from robottelo.config import conf
+from robottelo.config import settings
 
 logger = logging.getLogger(__name__)
 
@@ -70,11 +70,11 @@ def _get_connection(
 
     """
     if hostname is None:
-        hostname = conf.properties['main.server.hostname']
+        hostname = settings.server.hostname
     if username is None:
-        username = conf.properties['main.server.ssh.username']
+        username = settings.server.username
     if key_filename is None:
-        key_filename = conf.properties['main.server.ssh.key_private']
+        key_filename = settings.server.ssh_key
 
     client = _call_paramiko_sshclient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -141,7 +141,7 @@ def command(cmd, hostname=None, output_format=None, timeout=None):
     # Remove escape code for colors displayed in the output
     regex = re.compile(r'\x1b\[\d\d?m')
 
-    hostname = hostname or conf.properties['main.server.hostname']
+    hostname = hostname or settings.server.hostname
 
     logger.debug('>>> [%s] %s', hostname, cmd)
 
