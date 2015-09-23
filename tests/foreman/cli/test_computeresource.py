@@ -22,12 +22,9 @@ import random
 
 from ddt import ddt
 from fauxfactory import gen_string, gen_url
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
-from robottelo.cli.factory import (
-    CLIFactoryError,
-    make_compute_resource,
-    make_location,
-)
+from robottelo.cli.factory import make_location, make_compute_resource
 from robottelo.config import conf
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.decorators import data, run_only_on, skip_if_bug_open
@@ -44,18 +41,15 @@ class TestComputeResource(CLITestCase):
 
         @Feature: Compute Resource - Positive Create
 
-        @Assert: Compute reource is created
+        @Assert: Compute resource is created
 
         """
-        name = gen_string(str_type='alpha')
-        result = ComputeResource.create({
-            'name': name,
+        ComputeResource.create({
+            'name': gen_string(str_type='alpha'),
             'provider': 'Libvirt',
-            'url': "qemu+tcp://%s:16509/system" %
+            'url': 'qemu+tcp://%s:16509/system' %
             conf.properties['main.server.hostname']
         })
-        self.assertEquals(result.return_code, 0,
-                          "ComputeResource create - exit code")
 
     def test_info(self):
         """@Test: Test Compute Resource Info
@@ -69,7 +63,7 @@ class TestComputeResource(CLITestCase):
         compute_resource = make_compute_resource({
             'name': name,
             'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': "qemu+tcp://{0}:16509/system".format(
+            'url': 'qemu+tcp://{0}:16509/system'.format(
                 conf.properties['main.server.hostname']
             ),
         })
@@ -84,23 +78,16 @@ class TestComputeResource(CLITestCase):
         @Assert: Compute resource List is displayed
 
         """
-        result_create = make_compute_resource({
+        comp_res = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': "qemu+tcp://%s:16509/system" %
+            'url': 'qemu+tcp://%s:16509/system' %
             conf.properties['main.server.hostname']})
-        self.assertTrue(result_create['name'],
-                        "ComputeResource create - has name")
-        result_list = ComputeResource.list({'search': "name=%s" %
-                                            result_create['name']})
-        self.assertEquals(result_list.return_code, 0,
-                          "ComputeResource list - exit code")
-        self.assertTrue(len(result_list.stdout) > 0,
-                        "ComputeResource list - stdout has results")
-        stdout = ComputeResource.exists(
-            search=('name', result_create['name'])).stdout
-        self.assertTrue(
-            stdout,
-            "ComputeResource list - exists name")
+        self.assertTrue(comp_res['name'])
+        result_list = ComputeResource.list({
+            'search': 'name=%s' % comp_res['name']})
+        self.assertTrue(len(result_list) > 0)
+        result = ComputeResource.exists(search=('name', comp_res['name']))
+        self.assertTrue(result)
 
     def test_delete(self):
         """@Test: Test Compute Resource delete
@@ -110,22 +97,14 @@ class TestComputeResource(CLITestCase):
         @Assert: Compute resource deleted
 
         """
-        result_create = make_compute_resource({
+        comp_res = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': "qemu+tcp://%s:16509/system" %
+            'url': 'qemu+tcp://%s:16509/system' %
             conf.properties['main.server.hostname']})
-        self.assertTrue(result_create['name'],
-                        "ComputeResource create - has name")
-        result_delete = ComputeResource.delete(
-            {'name': result_create['name']})
-        self.assertEquals(
-            result_delete.return_code, 0,
-            "ComputeResource delete - exit code")
-        stdout = ComputeResource.exists(
-            search=('name', result_create['name'])).stdout
-        self.assertFalse(
-            stdout,
-            "ComputeResource list - does not exist name")
+        self.assertTrue(comp_res['name'])
+        ComputeResource.delete({'name': comp_res['name']})
+        result = ComputeResource.exists(search=('name', comp_res['name']))
+        self.assertFalse(result)
 
     # Positive create
 
@@ -155,15 +134,12 @@ class TestComputeResource(CLITestCase):
         @Assert: Compute Resource created
 
         """
-        result = ComputeResource.create({
-            u'name': options['name'],
-            u'url': gen_url(),
-            u'provider': FOREMAN_PROVIDERS['libvirt'],
+        ComputeResource.create({
             u'description': options['description'],
+            u'name': options['name'],
+            u'provider': FOREMAN_PROVIDERS['libvirt'],
+            u'url': gen_url(),
         })
-
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
     def test_create_compute_resource_with_location(self):
         """@Test: Create Compute Resource with location
@@ -173,13 +149,8 @@ class TestComputeResource(CLITestCase):
         @Assert: Compute resource is created and has location assigned
 
         """
-        try:
-            location = make_location()
-            comp_resource = make_compute_resource({
-                'location-ids': location['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        location = make_location()
+        comp_resource = make_compute_resource({'location-ids': location['id']})
         self.assertEqual(1, len(comp_resource['locations']))
         self.assertEqual(comp_resource['locations'][0], location['name'])
 
@@ -192,14 +163,11 @@ class TestComputeResource(CLITestCase):
         assigned
 
         """
-        try:
-            locations_amount = random.randint(3, 5)
-            locations = [make_location() for _ in range(locations_amount)]
-            comp_resource = make_compute_resource({
-                'location-ids': [location['id'] for location in locations],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        locations_amount = random.randint(3, 5)
+        locations = [make_location() for _ in range(locations_amount)]
+        comp_resource = make_compute_resource({
+            'location-ids': [location['id'] for location in locations],
+        })
         self.assertEqual(len(comp_resource['locations']), locations_amount)
         for location in locations:
             self.assertIn(location['name'], comp_resource['locations'])
@@ -218,19 +186,16 @@ class TestComputeResource(CLITestCase):
         @BZ: 1214312
 
         """
-        try:
-            comp_resource = make_compute_resource({
-                u'url': gen_url(),
-                u'provider': FOREMAN_PROVIDERS['libvirt'],
-                u'set-console-password': console_password,
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        comp_resource = make_compute_resource({
+            u'provider': FOREMAN_PROVIDERS['libvirt'],
+            u'set-console-password': console_password,
+            u'url': gen_url(),
+        })
         result = ComputeResource.info({'id': comp_resource['id']})
         if console_password in (u'True', u'Yes', 1):
-            self.assertEqual(result.stdout['set-console-password'], u'true')
+            self.assertEqual(result['set-console-password'], u'true')
         else:
-            self.assertEqual(result.stdout['set-console-password'], u'false')
+            self.assertEqual(result['set-console-password'], u'false')
 
     # Negative create
 
@@ -251,17 +216,14 @@ class TestComputeResource(CLITestCase):
         @Assert: Compute resource not created
 
         """
-        result = ComputeResource.create({
-            u'name': options.get(
-                'name', gen_string(str_type='alphanumeric')
-            ),
-            u'url': options.get('url', gen_url()),
-            u'provider': FOREMAN_PROVIDERS['libvirt'],
-            u'description': options.get('description', '')
-        })
-
-        self.assertNotEqual(result.return_code, 0)
-        self.assertNotEqual(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            ComputeResource.create({
+                u'description': options.get('description', ''),
+                u'name': options.get(
+                    'name', gen_string(str_type='alphanumeric')),
+                u'provider': FOREMAN_PROVIDERS['libvirt'],
+                u'url': options.get('url', gen_url()),
+            })
 
     def test_create_negative_2(self):
         """@Test: Compute Resource negative create with the same name
@@ -272,14 +234,12 @@ class TestComputeResource(CLITestCase):
 
         """
         comp_res = make_compute_resource()
-
-        result = ComputeResource.create({
-            u'name': comp_res['name'],
-            u'provider': FOREMAN_PROVIDERS['libvirt'],
-            u'url': gen_url()
-        })
-        self.assertNotEquals(result.return_code, 0)
-        self.assertNotEqual(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            ComputeResource.create({
+                u'name': comp_res['name'],
+                u'provider': FOREMAN_PROVIDERS['libvirt'],
+                u'url': gen_url(),
+            })
 
     # Update Positive
 
@@ -300,33 +260,24 @@ class TestComputeResource(CLITestCase):
 
         """
         comp_res = make_compute_resource()
-        options.update({
-            'name': comp_res['name'],
-        })
-
+        options.update({'name': comp_res['name']})
         # update Compute Resource
-        result = ComputeResource.update(options)
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        ComputeResource.update(options)
         # check updated values
         result = ComputeResource.info({'id': comp_res['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
         self.assertEqual(
-            result.stdout['description'],
+            result['description'],
             options.get('description', comp_res['description'])
         )
         self.assertEqual(
-            result.stdout['name'],
-            options.get('new-name', comp_res['name'])
+            result['name'],
+            options.get('new-name', comp_res['name']),
         )
+        self.assertEqual(result['url'], options.get('url', comp_res['url']))
         self.assertEqual(
-            result.stdout['url'],
-            options.get('url', comp_res['url'])
+            result['provider'].lower(),
+            comp_res['provider'].lower(),
         )
-        self.assertEqual(
-            result.stdout['provider'].lower(), comp_res['provider'].lower())
 
     # Update Negative
 
@@ -348,20 +299,14 @@ class TestComputeResource(CLITestCase):
 
         """
         comp_res = make_compute_resource()
-
-        result = ComputeResource.update(
-            dict({'name': comp_res['name']}, **options))
-
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
-
+        with self.assertRaises(CLIReturnCodeError):
+            ComputeResource.update(dict({'name': comp_res['name']}, **options))
         result = ComputeResource.info({'id': comp_res['id']})
-        self.assertEqual(result.return_code, 0)
         # check attributes have not changed
-        self.assertEqual(result.stdout['name'], comp_res['name'])
+        self.assertEqual(result['name'], comp_res['name'])
         options.pop('new-name', None)
         for key in options.keys():
-            self.assertEqual(comp_res[key], result.stdout[key])
+            self.assertEqual(comp_res[key], result[key])
 
     @data('true', 'false')
     def test_set_console_password_v1(self, set_console_password):
@@ -374,15 +319,12 @@ class TestComputeResource(CLITestCase):
         Targets BZ 1100344.
 
         """
-        name = gen_string('utf8')
-        result = ComputeResource.create({
-            'name': name,
+        ComputeResource.create({
+            'name': gen_string('utf8'),
             'provider': 'Libvirt',
             'set-console-password': set_console_password,
             'url': gen_url(),
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
     @data('true', 'false')
     def test_set_console_password_v2(self, set_console_password):
@@ -396,17 +338,12 @@ class TestComputeResource(CLITestCase):
 
         """
         name = gen_string('utf8')
-        result = ComputeResource.create({
+        ComputeResource.create({
             'name': name,
             'provider': 'Libvirt',
             'url': gen_url(),
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ComputeResource.update({
+        ComputeResource.update({
             'name': name,
             'set-console-password': set_console_password,
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)

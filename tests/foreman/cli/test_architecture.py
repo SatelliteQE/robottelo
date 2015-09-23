@@ -3,7 +3,8 @@
 
 from fauxfactory import gen_string
 from robottelo.cli.architecture import Architecture
-from robottelo.cli.factory import make_architecture, CLIFactoryError
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import make_architecture
 from robottelo.decorators import data
 from robottelo.decorators import run_only_on
 from robottelo.test import MetaCLITestCase
@@ -24,7 +25,7 @@ class TestArchitecture(MetaCLITestCase):
         gen_string('utf8', 300),
         gen_string('latin1', 300),
         gen_string('html', 300))
-    def test_negative_update(self, data):
+    def test_negative_update(self, new_name):
         """@test: Create architecture then fail to update
         its name
 
@@ -33,18 +34,13 @@ class TestArchitecture(MetaCLITestCase):
         @assert: architecture name is not updated
 
         """
-        try:
-            new_obj = make_architecture()
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        arch = make_architecture()
         # Update the architecture name
-        result = Architecture.update({
-            'id': new_obj['id'],
-            'new-name': data,
-        })
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            Architecture.update({
+                'id': arch['id'],
+                'new-name': new_name,
+            })
 
     @data(
         gen_string("latin1", 10),
@@ -53,7 +49,7 @@ class TestArchitecture(MetaCLITestCase):
         gen_string("alphanumeric", 10),
         gen_string("numeric", 10),
         gen_string("html", 10))
-    def test_positive_delete(self, data):
+    def test_positive_delete(self, name):
         """@test: Create architecture with valid values then delete it
         by ID
 
@@ -62,17 +58,8 @@ class TestArchitecture(MetaCLITestCase):
         @assert: architecture is deleted
 
         """
-        try:
-            new_obj = make_architecture({'name': data})
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        return_value = Architecture.delete({'id': new_obj['id']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
-
+        arch = make_architecture({'name': name})
+        Architecture.delete({'id': arch['id']})
         # Can we find the object?
-        result = Architecture.info({'id': new_obj['id']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
-        self.assertEqual(len(result.stdout), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            Architecture.info({'id': arch['id']})
