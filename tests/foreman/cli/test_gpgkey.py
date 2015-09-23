@@ -5,7 +5,8 @@
 from ddt import ddt
 from fauxfactory import gen_string, gen_alphanumeric, gen_integer
 from robottelo import ssh
-from robottelo.cli.factory import CLIFactoryError, make_gpg_key, make_org
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import make_gpg_key, make_org
 from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.constants import VALID_GPG_KEY_FILE
@@ -22,12 +23,12 @@ def positive_create_data():
     """Random data for positive creation"""
 
     return (
-        {'name': gen_string("latin1")},
-        {'name': gen_string("utf8")},
-        {'name': gen_string("alpha")},
-        {'name': gen_string("alphanumeric")},
-        {'name': gen_string("numeric", 20)},
-        {'name': gen_string("html")},
+        {'name': gen_string('latin1')},
+        {'name': gen_string('utf8')},
+        {'name': gen_string('alpha')},
+        {'name': gen_string('alphanumeric')},
+        {'name': gen_string('numeric', 20)},
+        {'name': gen_string('html')},
     )
 
 
@@ -91,20 +92,15 @@ class TestGPGKey(CLITestCase):
         """
         # GPG Key data
         data = {
-            'name': gen_string("alpha"),
+            'name': gen_string('alpha'),
             'organization-id': self.org['id'],
         }
-
         # Setup a new key file
         content = gen_alphanumeric()
         gpg_key = self.create_gpg_key_file(content=content)
         self.assertIsNotNone(gpg_key, 'GPG Key file must be created')
         data['key'] = gpg_key
-        try:
-            gpg_key = make_gpg_key(data)
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        gpg_key = make_gpg_key(data)
         self.assertEqual(gpg_key['content'], content)
 
     def test_info_by_name(self):
@@ -116,29 +112,22 @@ class TestGPGKey(CLITestCase):
 
         """
         name = gen_string('utf8')
-
-        try:
-            new_obj = make_gpg_key({
-                u'key': VALID_GPG_KEY_FILE_PATH,
-                u'name': name,
-                u'organization-id': self.org['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        result = GPGKey().info({
-            u'name': new_obj['name'],
+        gpg_key = make_gpg_key({
+            u'key': VALID_GPG_KEY_FILE_PATH,
+            u'name': name,
             u'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(result.stdout['name'], name)
+        gpg_key = GPGKey().info({
+            u'name': gpg_key['name'],
+            u'organization-id': self.org['id'],
+        })
+        self.assertEqual(gpg_key['name'], name)
 
     # Positive Create
 
     @skip_if_bug_open('bugzilla', 1172009)
     @data(*positive_create_data())
-    def test_positive_create_1(self, data):
+    def test_positive_create_1(self, test_data):
         """@test: Create gpg key with valid name and valid gpg key via file
         import using the default created organization
 
@@ -149,36 +138,24 @@ class TestGPGKey(CLITestCase):
         @BZ: 1172009
 
         """
-
         result = Org.list()
-        self.assertGreater(len(result.stdout), 0, 'No organization found')
-        org = result.stdout[0]
-
+        self.assertGreater(len(result), 0, 'No organization found')
+        org = result[0]
         # Setup data to pass to the factory
-        data = data.copy()
-        data['key'] = VALID_GPG_KEY_FILE_PATH
-        data['organization-id'] = org['id']
-
-        try:
-            new_obj = make_gpg_key(data)
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        test_data = test_data.copy()
+        test_data['key'] = VALID_GPG_KEY_FILE_PATH
+        test_data['organization-id'] = org['id']
+        gpg_key = make_gpg_key(test_data)
         # Can we find the new object?
         result = GPGKey().exists(
             {'organization-id': org['id']},
-            (self.search_key, new_obj[self.search_key])
+            (self.search_key, gpg_key[self.search_key])
         )
-
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-        self.assertEqual(
-            new_obj[self.search_key], result.stdout[self.search_key])
+        self.assertEqual(gpg_key[self.search_key], result[self.search_key])
 
     @skip_if_bug_open('bugzilla', 1172009)
     @data(*positive_create_data())
-    def test_positive_create_2(self, data):
+    def test_positive_create_2(self, test_data):
         """@test: Create gpg key with valid name and valid gpg key via file
         import using the a new organization
 
@@ -189,33 +166,23 @@ class TestGPGKey(CLITestCase):
         @BZ: 1172009
 
         """
-
         # Setup data to pass to the factory
-        data = data.copy()
-        data['key'] = VALID_GPG_KEY_FILE_PATH
-        data['organization-id'] = self.org['id']
-        try:
-            new_obj = make_gpg_key(data)
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        test_data = test_data.copy()
+        test_data['key'] = VALID_GPG_KEY_FILE_PATH
+        test_data['organization-id'] = self.org['id']
+        gpg_key = make_gpg_key(test_data)
         # Can we find the new object?
         result = GPGKey().exists(
             {'organization-id': self.org['id']},
-            (self.search_key, new_obj[self.search_key])
+            (self.search_key, gpg_key[self.search_key])
         )
-
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-        self.assertEqual(
-            new_obj[self.search_key], result.stdout[self.search_key])
+        self.assertEqual(gpg_key[self.search_key], result[self.search_key])
 
     # Negative Create
 
     @skip_if_bug_open('bugzilla', 1172009)
     @data(*positive_create_data())
-    def test_negative_create_1(self, data):
+    def test_negative_create_1(self, test_data):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then try to create new one with same name
 
@@ -226,42 +193,27 @@ class TestGPGKey(CLITestCase):
         @BZ: 1172009
 
         """
-
         # Setup data to pass to the factory
-        data = data.copy()
-        data['organization-id'] = self.org['id']
-        try:
-            new_obj = make_gpg_key(data)
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        test_data = test_data.copy()
+        test_data['organization-id'] = self.org['id']
+        gpg_key = make_gpg_key(test_data)
         # Can we find the new object?
         result = GPGKey().exists(
             {'organization-id': self.org['id']},
-            (self.search_key, new_obj[self.search_key])
+            (self.search_key, gpg_key[self.search_key])
         )
-
-        self.assertEqual(result.return_code, 0, "Failed to create object")
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an exception here")
-        self.assertEqual(
-            new_obj[self.search_key], result.stdout[self.search_key])
-
+        self.assertEqual(gpg_key[self.search_key], result[self.search_key])
         # Setup a new key file
-        data['key'] = '/tmp/%s' % gen_alphanumeric()
+        test_data['key'] = '/tmp/%s' % gen_alphanumeric()
         gpg_key = self.create_gpg_key_file()
         self.assertIsNotNone(gpg_key, 'GPG Key file must be created')
-        ssh.upload_file(local_file=gpg_key, remote_file=data['key'])
-
+        ssh.upload_file(local_file=gpg_key, remote_file=test_data['key'])
         # Try to create a gpg key with the same name
-        new_obj = GPGKey().create(data)
-        self.assertNotEqual(
-            new_obj.return_code, 0, "Object should not be created")
-        self.assertGreater(
-            len(new_obj.stderr), 0, "Should have raised an exception")
+        with self.assertRaises(CLIReturnCodeError):
+            GPGKey().create(test_data)
 
     @data(*positive_create_data())
-    def test_negative_create_2(self, data):
+    def test_negative_create_2(self, test_data):
         """@test: Create gpg key with valid name and no gpg key
 
         @feature: GPG Keys
@@ -269,20 +221,15 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is not created
 
         """
-
         # Setup data to pass to create
-        data = data.copy()
-        data['organization-id'] = self.org['id']
-
+        test_data = test_data.copy()
+        test_data['organization-id'] = self.org['id']
         # Try to create a new object passing @data to factory method
-        new_obj = GPGKey().create(data)
-        self.assertNotEqual(
-            new_obj.return_code, 0, "Object should not be created")
-        self.assertGreater(
-            len(new_obj.stderr), 0, "Should have raised an exception")
+        with self.assertRaises(CLIReturnCodeError):
+            GPGKey().create(test_data)
 
     @data(*negative_create_data())
-    def test_negative_create_3(self, data):
+    def test_negative_create_3(self, test_data):
         """@test: Create gpg key with invalid name and valid gpg key via
         file import
 
@@ -293,19 +240,14 @@ class TestGPGKey(CLITestCase):
         """
 
         # Setup data to pass to create
-        data = data.copy()
-        data['key'] = '/tmp/%s' % gen_alphanumeric()
-        data['organization-id'] = self.org['id']
-
+        test_data = test_data.copy()
+        test_data['key'] = '/tmp/%s' % gen_alphanumeric()
+        test_data['organization-id'] = self.org['id']
         ssh.upload_file(
-            local_file=VALID_GPG_KEY_FILE_PATH, remote_file=data['key'])
-
+            local_file=VALID_GPG_KEY_FILE_PATH, remote_file=test_data['key'])
         # Try to create a new object passing @data to factory method
-        new_obj = GPGKey().create(data)
-        self.assertNotEqual(
-            new_obj.return_code, 0, "Object should not be created")
-        self.assertGreater(
-            len(new_obj.stderr), 0, "Should have raised an exception")
+        with self.assertRaises(CLIReturnCodeError):
+            GPGKey().create(test_data)
 
     # Positive Delete
 
