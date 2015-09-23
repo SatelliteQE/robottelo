@@ -1,9 +1,8 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=R0904
+# pylint: disable=too-many-public-methods, too-many-lines
 """Test class for Organization CLI"""
 import random
 
-from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.factory import (
     make_domain, make_hostgroup, make_lifecycle_environment,
@@ -13,14 +12,12 @@ from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
 from robottelo.config import conf
 from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.decorators import (
-    data, run_only_on, skip_if_bug_open, stubbed)
+from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
 from robottelo.test import CLITestCase
 
 
-def positive_create_data_1():
+def valid_names():
     """Random data for positive creation"""
-
     return (
         {'name': gen_string("latin1")},
         {'name': gen_string("utf8")},
@@ -31,13 +28,14 @@ def positive_create_data_1():
     )
 
 
-# Use this when name and label must match. Labels cannot
-# contain the same data type as names, so this is a bit limited
-# compared to other tests.
-# Label cannot contain characters other than ascii alpha numerals, '_', '-'.
-def positive_create_data_2():
-    """Random simpler data for positive creation"""
+def valid_name_label_combo():
+    """Random simpler data for positive creation
 
+    Use this when name and label must match. Labels cannot contain the same
+    data type as names, so this is a bit limited compared to other tests.
+    Label cannot contain characters other than ascii alpha numerals, '_', '-'.
+
+    """
     return (
         {'name': gen_string("alpha")},
         {'name': gen_string("alphanumeric")},
@@ -49,10 +47,32 @@ def positive_create_data_2():
     )
 
 
-# Label cannot contain characters other than ascii alpha numerals, '_', '-'.
-def positive_name_label_data():
-    """Random data for Label tests"""
+def valid_names_simple():
+    """Random data for alpha, numeric and alphanumeric"""
+    return(
+        gen_string('alpha'),
+        gen_string('numeric'),
+        gen_string('alphanumeric')
+    )
 
+
+def valid_names_simple_all():
+    """Random data for alpha, numeric and alphanumeric"""
+    return(
+        gen_string('alpha', 15),
+        gen_string('alphanumeric', 15),
+        gen_string('numeric', 15),
+        gen_string('latin1', 15),
+        gen_string('utf8', 15),
+        )
+
+
+def valid_name_label():
+    """Random data for Label tests
+
+    Label cannot contain characters other than ascii alpha numerals, '_', '-'.
+
+    """
     return (
         {'name': gen_string("latin1"),
          'label': gen_string("alpha")},
@@ -69,9 +89,8 @@ def positive_name_label_data():
     )
 
 
-def positive_name_desc_data():
+def valid_name_desc():
     """Random data for Descriptions tests"""
-
     return (
         {'name': gen_string("latin1"),
          'description': gen_string("latin1")},
@@ -84,13 +103,12 @@ def positive_name_desc_data():
         {'name': gen_string("numeric"),
          'description': gen_string("numeric")},
         {'name': gen_string("html"),
-         'description': gen_string("numeric")},
+         'description': gen_string("html")},
     )
 
 
-def positive_name_desc_label_data():
+def valid_name_desc_label():
     """Random data for Labels and Description"""
-
     return (
         {'name': gen_string("alpha"),
          'description': gen_string("alpha"),
@@ -107,15 +125,56 @@ def positive_name_desc_label_data():
     )
 
 
-@ddt
+def invalid_name_label():
+    """Random invalid name and label data"""
+    return(
+        {'label': gen_string('alpha'),
+         'name': gen_string('alpha', 300)},
+        {'label': gen_string('alpha'),
+         'name': gen_string('numeric', 300)},
+        {'label': gen_string('alpha'),
+         'name': gen_string('alphanumeric', 300)},
+        {'label': gen_string('alpha'),
+         'name': gen_string('utf8', 300)},
+        {'label': gen_string('alpha'),
+         'name': gen_string('latin1', 300)},
+        {'label': gen_string('alpha'),
+         'name': gen_string('html', 300)},
+    )
+
+
+def positive_desc_data():
+    """Random valid data for description"""
+    return(
+        {'description': gen_string("latin1")},
+        {'description': gen_string("utf8")},
+        {'description': gen_string("alpha")},
+        {'description': gen_string("alphanumeric")},
+        {'description': gen_string("numeric")},
+        {'description': gen_string("html")},
+    )
+
+
+def invalid_name_data():
+    """Random invalid name data"""
+    return(
+        {'name': ' '},
+        {'name': gen_string('alpha', 300)},
+        {'name': gen_string('numeric', 300)},
+        {'name': gen_string('alphanumeric', 300)},
+        {'name': gen_string('utf8', 300)},
+        {'name': gen_string('latin1', 300)},
+        {'name': gen_string('html', 300)}
+    )
+
+
 class TestOrg(CLITestCase):
     """Tests for Organizations via Hammer CLI"""
 
     # Tests for issues
 
     # This test also covers the redmine bug 4443
-    @data(*positive_create_data_1())
-    def test_redmine_4486(self, test_data):
+    def test_redmine_4486(self):
         """@test: Can search for an organization by name
 
         @feature: Organizations
@@ -123,14 +182,14 @@ class TestOrg(CLITestCase):
         @assert: organization is created and can be searched by name
 
         """
-
-        new_obj = make_org(test_data)
-        # Can we find the new object?
-        result = Org.exists(search=('name', new_obj['name']))
-
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
+        for test_data in valid_names():
+            with self.subTest(test_data):
+                new_obj = make_org(test_data)
+                # Can we find the new object?
+                result = Org.exists(search=('name', new_obj['name']))
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
+                self.assertEqual(new_obj['name'], result.stdout['name'])
 
     @run_only_on('sat')
     def test_remove_domain(self):
@@ -150,8 +209,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(return_value.return_code, 0)
         self.assertEqual(len(return_value.stderr), 0)
 
-    @data(*positive_create_data_1())
-    def test_bugzilla_1079587(self, test_data):
+    def test_bugzilla_1079587(self):
         """@test: Search for an organization by label
 
         @feature: Organizations
@@ -159,24 +217,21 @@ class TestOrg(CLITestCase):
         @assert: organization is created and can be searched by label
 
         """
+        for test_data in valid_names():
+            with self.subTest(test_data):
+                new_obj = make_org(test_data)
+                # Can we find the new object?
+                result = Org.exists(search=('label', new_obj['label']))
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
+                self.assertEqual(new_obj['name'], result.stdout['name'])
 
-        new_obj = make_org(test_data)
-        # Can we find the new object?
-        result = Org.exists(search=('label', new_obj['label']))
-
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(new_obj['name'], result.stdout['name'])
-
-    @skip_if_bug_open('bugzilla', 1076568)
     def test_bugzilla_1076568_1(self):
         """@test: Delete organization by name
 
         @feature: Organizations
 
         @assert: Organization is deleted
-
-        @BZ: 1076568
 
         """
         org = make_org()
@@ -191,15 +246,12 @@ class TestOrg(CLITestCase):
         self.assertGreater(len(result.stderr), 0)
         self.assertEqual(len(result.stdout), 0)
 
-    @skip_if_bug_open('bugzilla', 1076568)
     def test_bugzilla_1076568_2(self):
         """@test: Delete organization by ID
 
         @feature: Organizations
 
         @assert: Organization is deleted
-
-        @BZ: 1076568
 
         """
         org = make_org()
@@ -214,15 +266,12 @@ class TestOrg(CLITestCase):
         self.assertGreater(len(result.stderr), 0)
         self.assertEqual(len(result.stdout), 0)
 
-    @skip_if_bug_open('bugzilla', 1076568)
     def test_bugzilla_1076568_3(self):
         """@test: Delete organization by label
 
         @feature: Organizations
 
         @assert: Organization is deleted
-
-        @BZ: 1076568
 
         """
         org = make_org()
@@ -369,8 +418,7 @@ class TestOrg(CLITestCase):
 
     # CRUD
 
-    @data(*positive_create_data_1())
-    def test_positive_create_1(self, test_data):
+    def test_positive_create_1(self):
         """@test: Create organization with valid name only
 
         @feature: Organizations
@@ -378,11 +426,12 @@ class TestOrg(CLITestCase):
         @assert: organization is created, label is auto-generated
 
         """
-        org = make_org(test_data)
-        self.assertEqual(org['name'], test_data['name'])
+        for test_data in valid_names():
+            with self.subTest(test_data):
+                org = make_org(test_data)
+                self.assertEqual(org['name'], test_data['name'])
 
-    @data(*positive_create_data_2())
-    def test_positive_create_2(self, test_data):
+    def test_positive_create_2(self):
         """@test: Create organization with valid matching name and label only
 
         @feature: Organizations
@@ -390,13 +439,14 @@ class TestOrg(CLITestCase):
         @assert: organization is created, label matches name
 
         """
-        test_data['label'] = test_data['name']
-        org = make_org(test_data)
-        self.assertEqual(org['name'], org['label'])
+        for test_data in valid_name_label_combo():
+            with self.subTest(test_data):
+                test_data['label'] = test_data['name']
+                org = make_org(test_data)
+                self.assertEqual(org['name'], org['label'])
 
     @skip_if_bug_open('bugzilla', 1142821)
-    @data(*positive_name_label_data())
-    def test_positive_create_3(self, test_data):
+    def test_positive_create_3(self):
         """@test: Create organization with valid unmatching name and label only
 
         @feature: Organizations
@@ -406,13 +456,14 @@ class TestOrg(CLITestCase):
         @bz: 1142821
 
         """
-        org = make_org(test_data)
-        self.assertNotEqual(org['name'], org['label'])
-        self.assertEqual(org['name'], test_data['name'])
-        self.assertEqual(org['label'], test_data['label'])
+        for test_data in valid_name_label():
+            with self.subTest(test_data):
+                org = make_org(test_data)
+                self.assertNotEqual(org['name'], org['label'])
+                self.assertEqual(org['name'], test_data['name'])
+                self.assertEqual(org['label'], test_data['label'])
 
-    @data(*positive_name_desc_data())
-    def test_positive_create_4(self, test_data):
+    def test_positive_create_4(self):
         """@test: Create organization with valid name and description only
 
         @feature: Organizations
@@ -420,14 +471,15 @@ class TestOrg(CLITestCase):
         @assert: organization is created, label is auto-generated
 
         """
-        org = make_org(test_data)
-        self.assertNotEqual(org['name'], org['description'])
-        self.assertEqual(org['name'], test_data['name'])
-        self.assertEqual(org['description'], test_data['description'])
+        for test_data in valid_name_desc():
+            with self.subTest(test_data):
+                org = make_org(test_data)
+                self.assertNotEqual(org['name'], org['description'])
+                self.assertEqual(org['name'], test_data['name'])
+                self.assertEqual(org['description'], test_data['description'])
 
     @skip_if_bug_open('bugzilla', 1142821)
-    @data(*positive_name_desc_data())
-    def test_positive_create_5(self, test_data):
+    def test_positive_create_5(self):
         """@test: Create organization with valid name, label and description
 
         @feature: Organizations
@@ -437,11 +489,13 @@ class TestOrg(CLITestCase):
         @bz: 1142821
 
         """
-        test_data['label'] = gen_string('alpha')
-        org = make_org(test_data)
-        self.assertEqual(org['name'], test_data['name'])
-        self.assertEqual(org['description'], test_data['description'])
-        self.assertEqual(org['label'], test_data['label'])
+        for test_data in valid_name_desc():
+            with self.subTest(test_data):
+                test_data['label'] = gen_string('alpha')
+                org = make_org(test_data)
+                self.assertEqual(org['name'], test_data['name'])
+                self.assertEqual(org['description'], test_data['description'])
+                self.assertEqual(org['label'], test_data['label'])
 
     def test_list_org(self):
         """@Test: Check if Org can be listed
@@ -567,13 +621,14 @@ class TestOrg(CLITestCase):
         @Assert: Compute Resource is added to the org
 
         """
-
         try:
             org = make_org()
             compute_res = make_compute_resource({
                 'provider': FOREMAN_PROVIDERS['libvirt'],
-                'url': "qemu+tcp://%s:16509/system" %
-                conf.properties['main.server.hostname']})
+                'url': "qemu+tcp://%s:16509/system" % conf.properties[
+                    'main.server.hostname'
+                ]
+            })
         except CLIFactoryError as err:
             self.fail(err)
         return_value = Org.add_compute_resource({
@@ -602,9 +657,9 @@ class TestOrg(CLITestCase):
         self.assertEqual(1, len(org['compute-resources']))
         self.assertEqual(org['compute-resources'][0], compute_res['name'])
 
-    def test_add_multiple_compute_resources_by_id(self):
-        """@Test: Check that new organization with multiple compute resources
-        associated to it can be created in the system
+    def test_add_compute_resources(self):
+        """@Test: Check if Organization can be created with multiple compute
+        resources
 
         @Feature: Org - Compute Resource
 
@@ -676,14 +731,7 @@ class TestOrg(CLITestCase):
         self.assertEqual(len(return_value.stderr), 0)
 
     @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-    )
-    def test_add_configtemplate(self, data):
+    def test_add_configtemplate(self):
         """@Test: Check if a Config Template can be added to an Org
 
         @Feature: Org - Config Template
@@ -691,25 +739,27 @@ class TestOrg(CLITestCase):
         @Assert: Config Template is added to the org
 
         """
-        try:
-            org = make_org()
-            template = make_template({
-                'name': data,
-                'content': gen_string('alpha'),
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-        result = Org.add_config_template({
-            'name': org['name'],
-            'config-template': template['name']
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        result = Org.info({'id': org['id']})
-        self.assertIn(
-            u'{0} ({1})'. format(template['name'], template['type']),
-            result.stdout['templates']
-        )
+        for data in valid_names_simple_all():
+            with self.subTest(data):
+                try:
+                    org = make_org()
+                    template = make_template({
+                        'name': data,
+                        'content': gen_string('alpha'),
+                    })
+                except CLIFactoryError as err:
+                    self.fail(err)
+                result = Org.add_config_template({
+                    'name': org['name'],
+                    'config-template': template['name']
+                })
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
+                result = Org.info({'id': org['id']})
+                self.assertIn(
+                    u'{0} ({1})'. format(template['name'], template['type']),
+                    result.stdout['templates']
+                )
 
     def test_add_configtemplate_by_id(self):
         """@Test: Check that new organization with config template associated
@@ -730,7 +780,7 @@ class TestOrg(CLITestCase):
             org['templates']
         )
 
-    def test_add_multiple_configtemplate_by_id(self):
+    def test_add_configtemplates(self):
         """@Test: Check that new organization with multiple config templates
         associated to it can be created in the system
 
@@ -756,14 +806,7 @@ class TestOrg(CLITestCase):
             )
 
     @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-    )
-    def test_remove_configtemplate(self, data):
+    def test_remove_configtemplate(self):
         """@Test: Check if a ConfigTemplate can be removed from an Org
 
         @Feature: Org - ConfigTemplate
@@ -771,40 +814,42 @@ class TestOrg(CLITestCase):
         @Assert: ConfigTemplate is removed from the org
 
         """
-        try:
-            org = make_org()
-            tmplt = make_template({
-                'name': data,
-                'content': gen_string('alpha')
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        for data in valid_names_simple_all():
+            with self.subTest(data):
+                try:
+                    org = make_org()
+                    tmplt = make_template({
+                        'name': data,
+                        'content': gen_string('alpha')
+                    })
+                except CLIFactoryError as err:
+                    self.fail(err)
 
-        # Add config-template
-        result = Org.add_config_template({
-            'name': org['name'],
-            'config-template': tmplt['name']
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        result = Org.info({'id': org['id']})
-        self.assertIn(
-            u'{0} ({1})'. format(tmplt['name'], tmplt['type']),
-            result.stdout['templates']
-        )
+                # Add config-template
+                result = Org.add_config_template({
+                    'name': org['name'],
+                    'config-template': tmplt['name']
+                })
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
+                result = Org.info({'id': org['id']})
+                self.assertIn(
+                    u'{0} ({1})'. format(tmplt['name'], tmplt['type']),
+                    result.stdout['templates']
+                )
 
-        # Remove config-template
-        result = Org.remove_config_template({
-            'name': org['name'],
-            'config-template': tmplt['name']
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        result = Org.info({'id': org['id']})
-        self.assertNotIn(
-            u'{0} ({1})'. format(tmplt['name'], tmplt['type']),
-            result.stdout['templates']
-        )
+                # Remove config-template
+                result = Org.remove_config_template({
+                    'name': org['name'],
+                    'config-template': tmplt['name']
+                })
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
+                result = Org.info({'id': org['id']})
+                self.assertNotIn(
+                    u'{0} ({1})'. format(tmplt['name'], tmplt['type']),
+                    result.stdout['templates']
+                )
 
     @run_only_on('sat')
     def test_add_environment(self):
@@ -903,19 +948,7 @@ class TestOrg(CLITestCase):
 
     # Negative Create
 
-    @data({'label': gen_string('alpha'),
-           'name': gen_string('alpha', 300)},
-          {'label': gen_string('alpha'),
-           'name': gen_string('numeric', 300)},
-          {'label': gen_string('alpha'),
-           'name': gen_string('alphanumeric', 300)},
-          {'label': gen_string('alpha'),
-           'name': gen_string('utf8', 300)},
-          {'label': gen_string('alpha'),
-           'name': gen_string('latin1', 300)},
-          {'label': gen_string('alpha'),
-           'name': gen_string('html', 300)})
-    def test_negative_create_0(self, test_data):
+    def test_negative_create_0(self):
         """@test: Create organization with valid label and description, name is
         too long
 
@@ -924,18 +957,17 @@ class TestOrg(CLITestCase):
         @assert: organization is not created
 
         """
-        result = Org.create({
-            'description': test_data['label'],
-            'label': test_data['label'],
-            'name': test_data['name'],
-        })
-        self.assertGreater(len(result.stderr), 0)
-        self.assertNotEqual(result.return_code, 0)
+        for test_data in invalid_name_label():
+            with self.subTest(test_data):
+                result = Org.create({
+                    'description': test_data['label'],
+                    'label': test_data['label'],
+                    'name': test_data['name'],
+                })
+                self.assertGreater(len(result.stderr), 0)
+                self.assertNotEqual(result.return_code, 0)
 
-    @data(gen_string('alpha'),
-          gen_string('numeric'),
-          gen_string('alphanumeric'))
-    def test_negative_create_1(self, test_data):
+    def test_negative_create_1(self):
         """@test: Create organization with valid label and description, name is
         blank
 
@@ -944,18 +976,17 @@ class TestOrg(CLITestCase):
         @assert: organization is not created
 
         """
-        result = Org.create({
-            'description': test_data,
-            'label': test_data,
-            'name': '',
-        })
-        self.assertTrue(result.stderr)
-        self.assertNotEqual(result.return_code, 0)
+        for test_data in valid_names_simple():
+            with self.subTest(test_data):
+                result = Org.create({
+                    'description': test_data,
+                    'label': test_data,
+                    'name': '',
+                })
+                self.assertTrue(result.stderr)
+                self.assertNotEqual(result.return_code, 0)
 
-    @data(gen_string('alpha'),
-          gen_string('numeric'),
-          gen_string('alphanumeric'))
-    def test_negative_create_2(self, test_data):
+    def test_negative_create_2(self):
         """@test: Create organization with valid label and description, name is
         whitespace
 
@@ -964,18 +995,17 @@ class TestOrg(CLITestCase):
         @assert: organization is not created
 
         """
-        result = Org.create({
-            'label': test_data,
-            'description': test_data,
-            'name': ' \t',
-        })
-        self.assertGreater(len(result.stderr), 0)
-        self.assertNotEqual(result.return_code, 0)
+        for test_data in valid_names_simple():
+            with self.subTest(test_data):
+                result = Org.create({
+                    'label': test_data,
+                    'description': test_data,
+                    'name': ' \t',
+                })
+                self.assertGreater(len(result.stderr), 0)
+                self.assertNotEqual(result.return_code, 0)
 
-    @data(gen_string('alpha'),
-          gen_string('numeric'),
-          gen_string('alphanumeric'))
-    def test_negative_create_3(self, test_data):
+    def test_negative_create_3(self):
         """@test: Create organization with valid values, then create a new one
         with same values.
 
@@ -984,26 +1014,26 @@ class TestOrg(CLITestCase):
         @assert: organization is not created
 
         """
-        result = Org.create({
-            'description': test_data,
-            'label': test_data,
-            'name': test_data,
-        })
-        self.assertFalse(result.stderr)
-        self.assertEqual(result.return_code, 0)
-        result = Org.create({
-            'description': test_data,
-            'label': test_data,
-            'name': test_data,
-        })
+        for test_data in valid_names_simple():
+            with self.subTest(test_data):
+                result = Org.create({
+                    'description': test_data,
+                    'label': test_data,
+                    'name': test_data,
+                })
+                self.assertFalse(result.stderr)
+                self.assertEqual(result.return_code, 0)
+                result = Org.create({
+                    'description': test_data,
+                    'label': test_data,
+                    'name': test_data,
+                })
         self.assertGreater(len(result.stderr), 0)
         self.assertNotEqual(result.return_code, 0)
 
     # Positive Delete
 
-    @skip_if_bug_open('bugzilla', 1076568)
-    @data(*positive_name_desc_label_data())
-    def test_positive_delete_1(self, test_data):
+    def test_positive_delete_1(self):
         """@test: Create organization with valid values then delete it
         by ID
 
@@ -1011,24 +1041,22 @@ class TestOrg(CLITestCase):
 
         @assert: organization is deleted
 
-        @BZ: 1076568
-
         """
-        org = make_org(test_data)
+        for test_data in valid_name_desc_label():
+            with self.subTest(test_data):
+                org = make_org(test_data)
 
-        result = Org.delete({'id': org['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+                result = Org.delete({'id': org['id']})
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
 
-        # Can we find the object?
-        result = Org.info({'id': org['id']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
-        self.assertEqual(len(result.stdout), 0)
+                # Can we find the object?
+                result = Org.info({'id': org['id']})
+                self.assertNotEqual(result.return_code, 0)
+                self.assertGreater(len(result.stderr), 0)
+                self.assertEqual(len(result.stdout), 0)
 
-    @skip_if_bug_open('bugzilla', 1076568)
-    @data(*positive_name_desc_label_data())
-    def test_positive_delete_2(self, test_data):
+    def test_positive_delete_2(self):
         """@test: Create organization with valid values then delete it
         by label
 
@@ -1036,24 +1064,21 @@ class TestOrg(CLITestCase):
 
         @assert: organization is deleted
 
-        @BZ: 1076568
-
         """
-        org = make_org(test_data)
+        for test_data in valid_name_desc_label():
+            with self.subTest(test_data):
+                org = make_org(test_data)
+                return_value = Org.delete({'label': org['label']})
+                self.assertEqual(return_value.return_code, 0)
+                self.assertEqual(len(return_value.stderr), 0)
 
-        return_value = Org.delete({'label': org['label']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+                # Can we find the object?
+                result = Org.info({'id': org['id']})
+                self.assertNotEqual(result.return_code, 0)
+                self.assertGreater(len(result.stderr), 0)
+                self.assertEqual(len(result.stdout), 0)
 
-        # Can we find the object?
-        result = Org.info({'id': org['id']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
-        self.assertEqual(len(result.stdout), 0)
-
-    @skip_if_bug_open('bugzilla', 1076568)
-    @data(*positive_name_desc_label_data())
-    def test_positive_delete_3(self, test_data):
+    def test_positive_delete_3(self):
         """@test: Create organization with valid values then delete it
         by name
 
@@ -1061,28 +1086,21 @@ class TestOrg(CLITestCase):
 
         @assert: organization is deleted
 
-        @BZ: 1076568
-
         """
-        org = make_org(test_data)
+        for test_data in valid_name_desc_label():
+            with self.subTest(test_data):
+                org = make_org(test_data)
+                return_value = Org.delete({'name': org['name']})
+                self.assertEqual(return_value.return_code, 0)
+                self.assertEqual(len(return_value.stderr), 0)
 
-        return_value = Org.delete({'name': org['name']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+                # Can we find the object?
+                result = Org.info({'id': org['id']})
+                self.assertNotEqual(result.return_code, 0)
+                self.assertGreater(len(result.stderr), 0)
+                self.assertEqual(len(result.stdout), 0)
 
-        # Can we find the object?
-        result = Org.info({'id': org['id']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
-        self.assertEqual(len(result.stdout), 0)
-
-    @data({'name': gen_string("latin1")},
-          {'name': gen_string("utf8")},
-          {'name': gen_string("alpha")},
-          {'name': gen_string("alphanumeric")},
-          {'name': gen_string("numeric")},
-          {'name': gen_string("html")})
-    def test_positive_update_1(self, test_data):
+    def test_positive_update_1(self):
         """@test: Create organization with valid values then update its name
 
         @feature: Organizations
@@ -1090,30 +1108,25 @@ class TestOrg(CLITestCase):
         @assert: organization name is updated
 
         """
-        org = make_org()
+        for test_data in valid_names():
+            with self.subTest(test_data):
+                org = make_org()
 
-        # Update the org name
-        result = Org.update({
-            'id': org['id'],
-            'new-name': test_data['name'],
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+                # Update the org name
+                result = Org.update({
+                    'id': org['id'],
+                    'new-name': test_data['name'],
+                })
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
 
-        # Fetch the org again
-        result = Org.info({'id': org['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(result.stdout['name'], test_data['name'])
+                # Fetch the org again
+                result = Org.info({'id': org['id']})
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
+                self.assertEqual(result.stdout['name'], test_data['name'])
 
-    @skip_if_bug_open('bugzilla', 1114136)
-    @data({'description': gen_string("latin1")},
-          {'description': gen_string("utf8")},
-          {'description': gen_string("alpha")},
-          {'description': gen_string("alphanumeric")},
-          {'description': gen_string("numeric")},
-          {'description': gen_string("html")})
-    def test_positive_update_3(self, test_data):
+    def test_positive_update_3(self):
         """@test: Create organization with valid values then update its
         description
 
@@ -1121,78 +1134,62 @@ class TestOrg(CLITestCase):
 
         @assert: organization description is updated
 
-        @bz: 1114136
-
         """
-        org = make_org()
+        for test_data in positive_desc_data():
+            with self.subTest(test_data):
+                org = make_org()
 
-        # Update the org name
-        result = Org.update({
-            'id': org['id'],
-            'description': test_data['description'],
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+                # Update the org name
+                result = Org.update({
+                    'id': org['id'],
+                    'description': test_data['description'],
+                })
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
 
-        # Fetch the org again
-        result = Org.info({'id': org['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['description'], test_data['description'])
+                # Fetch the org again
+                result = Org.info({'id': org['id']})
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
+                self.assertEqual(
+                    result.stdout['description'],
+                    test_data['description']
+                )
 
-    @skip_if_bug_open('bugzilla', 1114136)
-    @data({'description': gen_string("latin1"),
-           'name': gen_string("latin1")},
-          {'description': gen_string("utf8"),
-           'name': gen_string("utf8")},
-          {'description': gen_string("alpha"),
-           'name': gen_string("alpha")},
-          {'description': gen_string("alphanumeric"),
-           'name': gen_string("alphanumeric")},
-          {'description': gen_string("numeric"),
-           'name': gen_string("numeric")},
-          {'description': gen_string("html"),
-           'name': gen_string("html")})
-    def test_positive_update_4(self, test_data):
+    def test_positive_update_4(self):
         """@test: Create organization with valid values then update all values
 
         @feature: Organizations
 
         @assert: organization name and description are updated
 
-        @bz: 1114136
-
         """
-        org = make_org()
+        for test_data in valid_name_desc():
+            with self.subTest(test_data):
+                org = make_org()
 
-        # Update the org name
-        result = Org.update({
-            'id': org['id'],
-            'new-name': test_data['name'],
-            'description': test_data['description'],
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+                # Update the org name
+                result = Org.update({
+                    'id': org['id'],
+                    'new-name': test_data['name'],
+                    'description': test_data['description'],
+                })
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
 
-        # Fetch the org again
-        result = Org.info({'id': org['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['description'], test_data['description'])
-        self.assertEqual(result.stdout['name'], test_data['name'])
+                # Fetch the org again
+                result = Org.info({'id': org['id']})
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
+                self.assertEqual(
+                    result.stdout['description'],
+                    test_data['description']
+                )
+                self.assertEqual(result.stdout['name'], test_data['name'])
 
     # Negative Update
 
-    @data({'name': ' '},
-          {'name': gen_string('alpha', 300)},
-          {'name': gen_string('numeric', 300)},
-          {'name': gen_string('alphanumeric', 300)},
-          {'name': gen_string('utf8', 300)},
-          {'name': gen_string('latin1', 300)},
-          {'name': gen_string('html', 300)})
-    def test_negative_update_1(self, test_data):
+    def test_negative_update_1(self):
         """@test: Create organization then fail to update
         its name
 
@@ -1200,31 +1197,23 @@ class TestOrg(CLITestCase):
 
         @assert: organization name is not updated
 
-        @bz: 1076541
-
         """
-        org = make_org()
+        for test_data in invalid_name_data():
+            with self.subTest(test_data):
+                org = make_org()
 
-        # Update the org name
-        result = Org.update({
-            'id': org['id'],
-            'new-name': test_data['name'],
-        })
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+                # Update the org name
+                result = Org.update({
+                    'id': org['id'],
+                    'new-name': test_data['name'],
+                })
+                self.assertNotEqual(result.return_code, 0)
+                self.assertGreater(len(result.stderr), 0)
 
     # Miscelaneous
 
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        name, label and description are is alpha
-        name, label and description are is numeric
-        name, label and description are is alphanumeric
-        name, label and description are is utf-8
-        name, label and description are is latin1
-        name, label and description are is html
-    """)
-    def test_list_key_1(self, test_data):
+    def test_list_key_1(self):
         """@test: Create organization and list it
 
         @feature: Organizations
@@ -1238,15 +1227,7 @@ class TestOrg(CLITestCase):
         pass
 
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        name, label and description are is alpha
-        name, label and description are is numeric
-        name, label and description are is alphanumeric
-        name, label and description are is utf-8
-        name, label and description are is latin1
-        name, label and description are is html
-    """)
-    def test_search_key_1(self, test_data):
+    def test_search_key_1(self):
         """@test: Create organization and search/find it
 
         @feature: Organizations
@@ -1260,15 +1241,7 @@ class TestOrg(CLITestCase):
         pass
 
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        name, label and description are is alpha
-        name, label and description are is numeric
-        name, label and description are is alphanumeric
-        name, label and description are is utf-8
-        name, label and description are is latin1
-        name, label and description are is html
-    """)
-    def test_info_key_1(self, test_data):
+    def test_info_key_1(self):
         """@test: Create single organization and get its info
 
         @feature: Organizations
@@ -1285,15 +1258,7 @@ class TestOrg(CLITestCase):
     # Associations
 
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        domain name is alpha
-        domain name is numeric
-        domain name is alph_numeric
-        domain name is utf-8
-        domain name is latin1
-        domain name is html
-    """)
-    def test_remove_domain_1(self, test_data):
+    def test_remove_domain_1(self):
         """@test: Add a domain to an organization and remove it by organization
         name and domain name
 
@@ -1308,15 +1273,7 @@ class TestOrg(CLITestCase):
         pass
 
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        domain name is alpha
-        domain name is numeric
-        domain name is alph_numeric
-        domain name is utf-8
-        domain name is latin1
-        domain name is html
-    """)
-    def test_remove_domain_2(self, test_data):
+    def test_remove_domain_2(self):
         """@test: Add a domain to an organization and remove it by organization
         ID and domain name
 
@@ -1331,15 +1288,7 @@ class TestOrg(CLITestCase):
         pass
 
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        domain name is alpha
-        domain name is numeric
-        domain name is alph_numeric
-        domain name is utf-8
-        domain name is latin1
-        domain name is html
-    """)
-    def test_remove_domain_3(self, test_data):
+    def test_remove_domain_3(self):
         """@test: Add a domain to an organization and remove it by organization
         name and domain ID
 
@@ -1354,15 +1303,7 @@ class TestOrg(CLITestCase):
         pass
 
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        domain name is alpha
-        domain name is numeric
-        domain name is alph_numeric
-        domain name is utf-8
-        domain name is latin1
-        domain name is html
-    """)
-    def test_remove_domain_4(self, test_data):
+    def test_remove_domain_4(self):
         """@test: Add a domain to an organization and remove it by organization
         ID and domain ID
 
@@ -1377,15 +1318,7 @@ class TestOrg(CLITestCase):
         pass
 
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        user name is alpha
-        user name is numeric
-        user name is alpha_numeric
-        user name is utf-8
-        user name is latin1
-        user name is html
-    """)
-    def test_remove_user_1(self, test_data):
+    def test_remove_user_1(self):
         """@test: Create different types of users then add/remove user
         by using the organization ID
 
@@ -1400,15 +1333,7 @@ class TestOrg(CLITestCase):
         pass
 
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        user name is alpha
-        user name is numeric
-        user name is alpha_numeric
-        user name is utf-8
-        user name is latin1
-        user name is html
-    """)
-    def test_remove_user_2(self, test_data):
+    def test_remove_user_2(self):
         """@test: Create different types of users then add/remove user
         by using the organization name
 
@@ -1423,15 +1348,7 @@ class TestOrg(CLITestCase):
         pass
 
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        user name is alpha and admin
-        user name is numeric and admin
-        user name is alpha_numeric and admin
-        user name is utf-8 and admin
-        user name is latin1 and admin
-        user name is html and admin
-    """)
-    def test_remove_user_3(self, test_data):
+    def test_remove_user_3(self):
         """@test: Create admin users then add user and remove it
         by using the organization name
 
@@ -1447,15 +1364,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_remove_hostgroup_1(self, test_data):
+    def test_remove_hostgroup_1(self):
         """@test: Add a hostgroup and remove it by using the organization
         name and hostgroup name
 
@@ -1471,15 +1380,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_remove_hostgroup_2(self, test_data):
+    def test_remove_hostgroup_2(self):
         """@test: Add a hostgroup and remove it by using the organization
         ID and hostgroup name
 
@@ -1495,15 +1396,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_remove_hostgroup_3(self, test_data):
+    def test_remove_hostgroup_3(self):
         """@test: Add a hostgroup and remove it by using the organization
         name and hostgroup ID
 
@@ -1519,15 +1412,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_remove_hostgroup_4(self, test_data):
+    def test_remove_hostgroup_4(self):
         """@test: Add a hostgroup and remove it by using the organization
         ID and hostgroup ID
 
@@ -1543,16 +1428,9 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_add_smartproxy_1(self, test_data):
-        """@test: Add a smart proxy by using organization name and smartproxy name
+    def test_add_smartproxy_1(self):
+        """@test: Add a smart proxy by using organization name and smartproxy
+        name
 
         @feature: Organizations
 
@@ -1566,16 +1444,9 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_add_smartproxy_2(self, test_data):
-        """@test: Add a smart proxy by using organization ID and smartproxy name
+    def test_add_smartproxy_2(self):
+        """@test: Add a smart proxy by using organization ID and smartproxy
+        name
 
         @feature: Organizations
 
@@ -1589,16 +1460,9 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_add_smartproxy_3(self, test_data):
-        """@test: Add a smart proxy by using organization name and smartproxy ID
+    def test_add_smartproxy_3(self):
+        """@test: Add a smart proxy by using organization name and smartproxy
+        ID
 
         @feature: Organizations
 
@@ -1612,15 +1476,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_add_smartproxy_4(self, test_data):
+    def test_add_smartproxy_4(self):
         """@test: Add a smart proxy by using organization ID and smartproxy ID
 
         @feature: Organizations
@@ -1634,12 +1490,7 @@ class TestOrg(CLITestCase):
         pass
 
     @run_only_on('sat')
-    @data(gen_string('alpha'),
-          gen_string('numeric'),
-          gen_string('alphanumeric'),
-          gen_string('utf8'),
-          gen_string('latin1'))
-    def test_add_subnet_1(self, name):
+    def test_add_subnet_1(self):
         """@test: Add a subnet by using organization name and subnet name
 
         @feature: Organizations
@@ -1647,33 +1498,28 @@ class TestOrg(CLITestCase):
         @assert: subnet is added
 
         """
+        for name in (gen_string('alpha'), gen_string('numeric'),
+                     gen_string('alphanumeric'), gen_string('utf8'),
+                     gen_string('latin1')):
+            with self.subTest(name):
+                try:
+                    org = make_org()
+                    new_subnet = make_subnet({'name': name})
+                except CLIFactoryError as err:
+                    self.fail(err)
 
-        try:
-            org = make_org()
-            new_subnet = make_subnet({'name': name})
-        except CLIFactoryError as err:
-            self.fail(err)
+                result = Org.add_subnet({
+                    'name': org['name'],
+                    'subnet': new_subnet['name'],
+                })
+                self.assertEqual(result.return_code, 0)
 
-        result = Org.add_subnet({
-            'name': org['name'],
-            'subnet': new_subnet['name'],
-        })
-        self.assertEqual(result.return_code, 0)
-
-        result = Org.info({'id': org['id']})
-        self.assertIn(name, result.stdout['subnets'][0])
+                result = Org.info({'id': org['id']})
+                self.assertIn(name, result.stdout['subnets'][0])
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_add_subnet_2(self, test_data):
+    def test_add_subnet_2(self):
         """@test: Add a subnet by using organization ID and subnet name
 
         @feature: Organizations
@@ -1688,15 +1534,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_add_subnet_3(self, test_data):
+    def test_add_subnet_3(self):
         """@test: Add a subnet by using organization name and subnet ID
 
         @feature: Organizations
@@ -1711,15 +1549,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_add_subnet_4(self, test_data):
+    def test_add_subnet_4(self):
         """@test: Add a subnet by using organization ID and subnet ID
 
         @feature: Organizations
@@ -1734,15 +1564,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        domain name is alpha
-        domain name is numeric
-        domain name is alph_numeric
-        domain name is utf-8
-        domain name is latin1
-        domain name is html
-    """)
-    def test_add_domain_1(self, test_data):
+    def test_add_domain_1(self):
         """@test: Add a domain to an organization
 
         @feature: Organizations
@@ -1756,15 +1578,7 @@ class TestOrg(CLITestCase):
         pass
 
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        user name is alpha
-        user name is numeric
-        user name is alpha_numeric
-        user name is utf-8
-        user name is latin1
-        user name is html
-    """)
-    def test_add_user_1(self, test_data):
+    def test_add_user_1(self):
         """@test: Create different types of users then add user
         by using the organization ID
 
@@ -1779,15 +1593,7 @@ class TestOrg(CLITestCase):
         pass
 
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        user name is alpha
-        user name is numeric
-        user name is alpha_numeric
-        user name is utf-8
-        user name is latin1
-        user name is html
-    """)
-    def test_add_user_2(self, test_data):
+    def test_add_user_2(self):
         """@test: Create different types of users then add user
         by using the organization name
 
@@ -1802,16 +1608,9 @@ class TestOrg(CLITestCase):
         pass
 
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        user name is alpha and an admin
-        user name is numeric and an admin
-        user name is alpha_numeric and an admin
-        user name is utf-8 and an admin
-        user name is latin1 and an admin
-        user name is html and an admin
-    """)
-    def test_add_user_3(self, test_data):
-        """@test: Create admin users then add user by using the organization name
+    def test_add_user_3(self):
+        """@test: Create admin users then add user by using the organization
+        name
 
         @feature: Organizations
 
@@ -1825,15 +1624,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_add_hostgroup_1(self, test_data):
+    def test_add_hostgroup_1(self):
         """@test: Add a hostgroup by using the organization
         name and hostgroup name
 
@@ -1849,15 +1640,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_add_hostgroup_2(self, test_data):
+    def test_add_hostgroup_2(self):
         """@test: Add a hostgroup by using the organization
         ID and hostgroup name
 
@@ -1873,15 +1656,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_add_hostgroup_3(self, test_data):
+    def test_add_hostgroup_3(self):
         """@test: Add a hostgroup by using the organization
         name and hostgroup ID
 
@@ -1897,15 +1672,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        hostgroup name is alpha
-        hostgroup name is numeric
-        hostgroup name is alpha_numeric
-        hostgroup name is utf-8
-        hostgroup name is latin1
-        hostgroup name is html
-    """)
-    def test_add_hostgroup_4(self, test_data):
+    def test_add_hostgroup_4(self):
         """@test: Add a hostgroup by using the organization
         ID and hostgroup ID
 
@@ -1921,15 +1688,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_remove_computeresource_1(self, test_data):
+    def test_remove_computeresource_1(self):
         """@test: Remove computeresource by using the organization
         name and computeresource name
 
@@ -1945,15 +1704,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_remove_computeresource_2(self, test_data):
+    def test_remove_computeresource_2(self):
         """@test: Remove computeresource by using the organization
         ID and computeresource name
 
@@ -1969,15 +1720,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_remove_computeresource_3(self, test_data):
+    def test_remove_computeresource_3(self):
         """@test: Remove computeresource by using the organization
         name and computeresource ID
 
@@ -1993,15 +1736,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_remove_computeresource_4(self, test_data):
+    def test_remove_computeresource_4(self):
         """@test: Remove computeresource by using the organization
         ID and computeresource ID
 
@@ -2017,15 +1752,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-        """)
-    def test_remove_medium_1(self, test_data):
+    def test_remove_medium_1(self):
         """@test: Remove medium by using organization name and medium name
 
         @feature: Organizations
@@ -2040,15 +1767,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-        """)
-    def test_remove_medium_2(self, test_data):
+    def test_remove_medium_2(self):
         """@test: Remove medium by using organization ID and medium name
 
         @feature: Organizations
@@ -2063,15 +1782,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-        """)
-    def test_remove_medium_3(self, test_data):
+    def test_remove_medium_3(self):
         """@test: Remove medium by using organization name and medium ID
 
         @feature: Organizations
@@ -2086,15 +1797,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-        """)
-    def test_remove_medium_4(self, test_data):
+    def test_remove_medium_4(self):
         """@test: Remove medium by using organization ID and medium ID
 
         @feature: Organizations
@@ -2109,15 +1812,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        configtemplate name is alpha
-        configtemplate name is numeric
-        configtemplate name is alpha_numeric
-        configtemplate name is utf-8
-        configtemplate name is latin1
-        configtemplate name  is html
-    """)
-    def test_remove_configtemplate_1(self, test_data):
+    def test_remove_configtemplate_1(self):
         """@test: Remove config template
 
         @feature: Organizations
@@ -2132,15 +1827,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_remove_environment_1(self, test_data):
+    def test_remove_environment_1(self):
         """@test: Remove environment by using organization name and
         evironment name
 
@@ -2156,15 +1843,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_remove_environment_2(self, test_data):
+    def test_remove_environment_2(self):
         """@test: Remove environment by using organization ID and
         evironment name
 
@@ -2180,15 +1859,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_remove_environment_3(self, test_data):
+    def test_remove_environment_3(self):
         """@test: Remove environment by using organization name and
         evironment ID
 
@@ -2204,15 +1875,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_remove_environment_4(self, test_data):
+    def test_remove_environment_4(self):
         """@test: Remove environment by using organization ID and
         evironment ID
 
@@ -2228,16 +1891,9 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_remove_smartproxy_1(self, test_data):
-        """@test: Remove smartproxy by using organization name and smartproxy name
+    def test_remove_smartproxy_1(self):
+        """@test: Remove smartproxy by using organization name and smartproxy
+        name
 
         @feature: Organizations
 
@@ -2251,16 +1907,9 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_remove_smartproxy_2(self, test_data):
-        """@test: Remove smartproxy by using organization ID and smartproxy name
+    def test_remove_smartproxy_2(self):
+        """@test: Remove smartproxy by using organization ID and smartproxy
+        name
 
         @feature: Organizations
 
@@ -2274,16 +1923,9 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_remove_smartproxy_3(self, test_data):
-        """@test: Remove smartproxy by using organization name and smartproxy ID
+    def test_remove_smartproxy_3(self):
+        """@test: Remove smartproxy by using organization name and smartproxy
+        ID
 
         @feature: Organizations
 
@@ -2297,15 +1939,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        smartproxy name is alpha
-        smartproxy name is numeric
-        smartproxy name is alpha_numeric
-        smartproxy name  is utf-8
-        smartproxy name is latin1
-        smartproxy name is html
-    """)
-    def test_remove_smartproxy_4(self, test_data):
+    def test_remove_smartproxy_4(self):
         """@test: Remove smartproxy by using organization ID and smartproxy ID
 
         @feature: Organizations
@@ -2320,15 +1954,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_add_computeresource_1(self, test_data):
+    def test_add_computeresource_1(self):
         """@test: Add compute resource using the organization
         name and computeresource name
 
@@ -2344,15 +1970,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_add_computeresource_2(self, test_data):
+    def test_add_computeresource_2(self):
         """@test: Add compute resource using the organization
         ID and computeresource name
 
@@ -2368,15 +1986,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_add_computeresource_3(self, test_data):
+    def test_add_computeresource_3(self):
         """@test: Add compute resource using the organization
         name and computeresource ID
 
@@ -2392,15 +2002,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        computeresource is alpha
-        computeresource is numeric
-        computeresource is alpha_numeric
-        computeresource is utf-8
-        computeresource is latin1
-        computeresource is html
-    """)
-    def test_add_computeresource_4(self, test_data):
+    def test_add_computeresource_4(self):
         """@test: Add compute resource using the organization
         ID and computeresource ID
 
@@ -2416,15 +2018,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-    """)
-    def test_add_medium_1(self, test_data):
+    def test_add_medium_1(self):
         """@test: Add medium by using the organization name and medium name
 
         @feature: Organizations
@@ -2439,15 +2033,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-    """)
-    def test_add_medium_2(self, test_data):
+    def test_add_medium_2(self):
         """@test: Add medium by using the organization ID and medium name
 
         @feature: Organizations
@@ -2462,15 +2048,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-    """)
-    def test_add_medium_3(self, test_data):
+    def test_add_medium_3(self):
         """@test: Add medium by using the organization name and medium ID
 
         @feature: Organizations
@@ -2485,15 +2063,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        medium name is alpha
-        medium name is numeric
-        medium name is alpha_numeric
-        medium name is utf-8
-        medium name is latin1
-        medium name is html
-    """)
-    def test_add_medium_4(self, test_data):
+    def test_add_medium_4(self):
         """@test: Add medium by using the organization ID and medium ID
 
         @feature: Organizations
@@ -2508,15 +2078,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        configtemplate name is alpha
-        configtemplate name is numeric
-        configtemplate name is alpha_numeric
-        configtemplate name is utf-8
-        configtemplate name is latin1
-        configtemplate name  is html
-    """)
-    def test_add_configtemplate_1(self, test_data):
+    def test_add_configtemplate_1(self):
         """@test: Add config template by using organization name and
         configtemplate name
 
@@ -2532,15 +2094,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        configtemplate name is alpha
-        configtemplate name is numeric
-        configtemplate name is alpha_numeric
-        configtemplate name is utf-8
-        configtemplate name is latin1
-        configtemplate name  is html
-    """)
-    def test_add_configtemplate_2(self, test_data):
+    def test_add_configtemplate_2(self):
         """@test: Add config template by using organization ID and
         configtemplate name
 
@@ -2556,15 +2110,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        configtemplate name is alpha
-        configtemplate name is numeric
-        configtemplate name is alpha_numeric
-        configtemplate name is utf-8
-        configtemplate name is latin1
-        configtemplate name  is html
-    """)
-    def test_add_configtemplate_3(self, test_data):
+    def test_add_configtemplate_3(self):
         """@test: Add config template by using organization name and
         configtemplate ID
 
@@ -2580,15 +2126,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        configtemplate name is alpha
-        configtemplate name is numeric
-        configtemplate name is alpha_numeric
-        configtemplate name is utf-8
-        configtemplate name is latin1
-        configtemplate name  is html
-    """)
-    def test_add_configtemplate_4(self, test_data):
+    def test_add_configtemplate_4(self):
         """@test: Add config template by using organization ID and
         configtemplate ID
 
@@ -2604,16 +2142,9 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_add_environment_1(self, test_data):
-        """@test: Add environment by using organization name and evironment name
+    def test_add_environment_1(self):
+        """@test: Add environment by using organization name and evironment
+        name
 
         @feature: Organizations
 
@@ -2627,15 +2158,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_add_environment_2(self, test_data):
+    def test_add_environment_2(self):
         """@test: Add environment by using organization ID and evironment name
 
         @feature: Organizations
@@ -2650,15 +2173,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_add_environment_3(self, test_data):
+    def test_add_environment_3(self):
         """@test: Add environment by using organization name and evironment ID
 
         @feature: Organizations
@@ -2673,15 +2188,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        environment name is alpha
-        environment name is numeric
-        environment name is alpha_numeric
-        environment name is utf-8
-        environment name is latin1
-        environment name  is html
-    """)
-    def test_add_environment_4(self, test_data):
+    def test_add_environment_4(self):
         """@test: Add environment by using organization ID and evironment ID
 
         @feature: Organizations
@@ -2696,15 +2203,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_remove_subnet_1(self, test_data):
+    def test_remove_subnet_1(self):
         """@test: Remove subnet by using organization name and subnet name
 
         @feature: Organizations
@@ -2719,15 +2218,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_remove_subnet_2(self, test_data):
+    def test_remove_subnet_2(self):
         """@test: Remove subnet by using organization ID and subnet name
 
         @feature: Organizations
@@ -2742,15 +2233,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_remove_subnet_3(self, test_data):
+    def test_remove_subnet_3(self):
         """@test: Remove subnet by using organization name and subnet ID
 
         @feature: Organizations
@@ -2765,15 +2248,7 @@ class TestOrg(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    @data("""DATADRIVENGOESHERE
-        subnet name is alpha
-        subnet name is numeric
-        subnet name is alpha_numeric
-        subnet name is utf-8
-        subnet name is latin1
-        subnet name  is html
-    """)
-    def test_remove_subnet_4(self, test_data):
+    def test_remove_subnet_4(self):
         """@test: Remove subnet by using organization ID and subnet ID
 
         @feature: Organizations
