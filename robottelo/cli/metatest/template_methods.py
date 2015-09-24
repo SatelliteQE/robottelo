@@ -132,7 +132,7 @@ def test_negative_update(self, data):
     )
     self.assertEqual(new_obj[self.search_key], result[self.search_key])
 
-    # Store the new object for future assertionss and to use its ID
+    # Store the new object for future assertions and to use its ID
     new_obj = result
 
     # Update original data with new values
