@@ -499,3 +499,23 @@ class Import(Base):
                 )
             ]
         return(result, transition_data)
+
+    @classmethod
+    def template_snippet_with_tr_data(cls, options=None):
+        """Import template snippets (from spacewalk-report ks-scripts).
+
+        :returns: A tuple of SSHCommandResult and a List containing the
+            transition data of the Import
+        :raises: AssertionError if a non-zero return code is encountered.
+
+        """
+        result = cls.template_snippet(options)
+        transition_data = [
+            cls.read_transition_csv(
+                ssh.command(
+                    u'ls -v ${HOME}/.transition_data/template_snippets*'
+                ).stdout[:-1],
+                u'id',
+            )
+        ]
+        return (result, transition_data)
