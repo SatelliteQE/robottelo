@@ -4,6 +4,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from random import randint
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_compute_resource,
@@ -399,16 +400,12 @@ class TestLocation(CLITestCase):
         """
         loc = make_location()
         self.assertNotEqual(loc['name'], name)
-
-        result = Location.update({
+        Location.update({
             'id': loc['id'],
             'new-name': name,
         })
-        self.assertEqual(result.return_code, 0)
-
-        result = Location.info({'id': loc['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['name'], name)
+        loc = Location.info({'id': loc['id']})
+        self.assertEqual(loc['name'], name)
 
     def test_update_location_with_user_by_id(self):
         """@Test: Create new location with assigned user to it. Try to update
@@ -424,16 +421,12 @@ class TestLocation(CLITestCase):
         user = [make_user() for _ in range(2)]
         loc = make_location({'user-ids': user[0]['id']})
         self.assertEqual(loc['users'][0], user[0]['login'])
-
-        result = Location.update({
+        Location.update({
             'id': loc['id'],
             'user-ids': user[1]['id'],
         })
-        self.assertEqual(result.return_code, 0)
-
-        result = Location.info({'id': loc['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['users'][0], user[1]['login'])
+        loc = Location.info({'id': loc['id']})
+        self.assertEqual(loc['users'][0], user[1]['login'])
 
     def test_update_location_with_subnet_by_name(self):
         """@Test: Create new location with assigned subnet to it. Try to update
@@ -450,17 +443,13 @@ class TestLocation(CLITestCase):
         loc = make_location({'subnets': subnet[0]['name']})
         self.assertIn(subnet[0]['name'], loc['subnets'][0])
         self.assertIn(subnet[0]['network'], loc['subnets'][0])
-
-        result = Location.update({
+        Location.update({
             'id': loc['id'],
             'subnets': subnet[1]['name'],
         })
-        self.assertEqual(result.return_code, 0)
-
-        result = Location.info({'id': loc['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertIn(subnet[1]['name'], result.stdout['subnets'][0])
-        self.assertIn(subnet[1]['network'], result.stdout['subnets'][0])
+        loc = Location.info({'id': loc['id']})
+        self.assertIn(subnet[1]['name'], loc['subnets'][0])
+        self.assertIn(subnet[1]['network'], loc['subnets'][0])
 
     def test_update_location_with_multiple_comp_resources_to_single(self):
         """@Test: Create location with multiple (not less than three) compute
@@ -484,17 +473,14 @@ class TestLocation(CLITestCase):
             self.assertIn(resource['name'], loc['compute-resources'])
 
         new_resource = make_compute_resource()
-        result = Location.update({
-            'id': loc['id'],
+        Location.update({
             'compute-resource-ids': new_resource['id'],
+            'id': loc['id'],
         })
-        self.assertEqual(result.return_code, 0)
 
-        result = Location.info({'id': loc['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['compute-resources']), 1)
-        self.assertEqual(
-            result.stdout['compute-resources'][0], new_resource['name'])
+        loc = Location.info({'id': loc['id']})
+        self.assertEqual(len(loc['compute-resources']), 1)
+        self.assertEqual(loc['compute-resources'][0], new_resource['name'])
 
     def test_update_location_with_multiple_host_group_to_multiple(self):
         """@Test: Create location with multiple (three) host groups assigned to
@@ -507,27 +493,22 @@ class TestLocation(CLITestCase):
         host groups assigned to it
 
         """
-
         host_groups = [make_hostgroup() for _ in range(3)]
         loc = make_location({
             'hostgroups': [hg['name'] for hg in host_groups],
-            })
+        })
         self.assertEqual(len(loc['hostgroups']), 3)
         for host_group in host_groups:
             self.assertIn(host_group['name'], loc['hostgroups'])
-
         new_host_groups = [make_hostgroup() for _ in range(2)]
-        result = Location.update({
-            'id': loc['id'],
+        Location.update({
             'hostgroups': [hg['name'] for hg in new_host_groups],
+            'id': loc['id'],
         })
-        self.assertEqual(result.return_code, 0)
-
-        result = Location.info({'id': loc['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['hostgroups']), 2)
+        loc = Location.info({'id': loc['id']})
+        self.assertEqual(len(loc['hostgroups']), 2)
         for host_group in new_host_groups:
-            self.assertIn(host_group['name'], result.stdout['hostgroups'])
+            self.assertIn(host_group['name'], loc['hostgroups'])
 
     @data(
         '',
@@ -549,13 +530,11 @@ class TestLocation(CLITestCase):
 
         """
         loc = make_location()
-
-        result = Location.update({
-            'id': loc['id'],
-            'new-name': name,
-        })
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            Location.update({
+                'id': loc['id'],
+                'new-name': name,
+            })
 
     def test_update_location_with_domain_by_id_negative(self):
         """@Test: Try to update existing location with incorrect domain. Use
@@ -567,12 +546,11 @@ class TestLocation(CLITestCase):
 
         """
         loc = make_location()
-        result = Location.update({
-            'id': loc['id'],
-            'domain-ids': gen_string('numeric', 6),
-        })
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            Location.update({
+                'domain-ids': gen_string('numeric', 6),
+                'id': loc['id'],
+            })
 
     def test_update_location_with_template_by_name_negative(self):
         """@Test: Try to update existing location with incorrect config
@@ -584,12 +562,11 @@ class TestLocation(CLITestCase):
 
         """
         loc = make_location()
-        result = Location.update({
-            'id': loc['id'],
-            'config-templates': gen_string('utf8', 80),
-        })
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            Location.update({
+                'config-templates': gen_string('utf8', 80),
+                'id': loc['id'],
+            })
 
     @data(
         gen_string('alphanumeric', randint(1, 246)),
@@ -611,13 +588,9 @@ class TestLocation(CLITestCase):
         """
         loc = make_location({'name': name})
         self.assertEqual(loc['name'], name)
-        result = Location.delete({'name': loc['name']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = Location.info({'id': loc['id']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertNotEqual(len(result.stderr), 0)
+        Location.delete({'name': loc['name']})
+        with self.assertRaises(CLIReturnCodeError):
+            Location.info({'id': loc['id']})
 
     def test_delete_location_by_id(self):
         """@Test: Try to delete location using id of that location as a
@@ -629,10 +602,6 @@ class TestLocation(CLITestCase):
 
         """
         loc = make_location()
-        result = Location.delete({'id': loc['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = Location.info({'id': loc['id']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertNotEqual(len(result.stderr), 0)
+        Location.delete({'id': loc['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Location.info({'id': loc['id']})

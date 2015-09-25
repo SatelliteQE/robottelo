@@ -29,8 +29,4 @@ class TestSmartClassParameter(CLITestCase):
         """
 
         self.run_puppet_module()
-        result = SmartClassParameter().list()
-        self.assertEqual(
-            result.return_code, 0, "Command should have succeeded")
-        self.assertEqual(
-            len(result.stderr), 0, "Should not have raised an error")
+        SmartClassParameter.list()

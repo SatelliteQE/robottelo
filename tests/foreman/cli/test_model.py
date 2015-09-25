@@ -2,7 +2,6 @@
 """Test class for Model CLI"""
 
 from fauxfactory import gen_string
-from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.model import Model
 from robottelo.cli.factory import make_model
 from robottelo.decorators import run_only_on
@@ -23,10 +22,7 @@ class TestModel(MetaCLITestCase):
         @Assert: Model is created
 
         """
-        try:
-            make_model()
-        except CLIFactoryError as err:
-            self.fail(err)
+        make_model()
 
     def test_create_model_2(self):
         """@Test: Check if Model can be created with specific vendor class
@@ -49,25 +45,10 @@ class TestModel(MetaCLITestCase):
 
         """
 
-        name = gen_string("alpha")
-        try:
-            model = self.factory({'name': name})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        name = gen_string('alpha')
+        model = self.factory({'name': name})
         self.assertEqual(name, model['name'])
-
-        new_name = gen_string("alpha")
-        result = Model().update({'name': model['name'], 'new-name': new_name})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(
-            len(result.stderr), 0, "There should not be an error here")
-
-        result = Model.info({'name': new_name})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['name'],
-            new_name,
-            "Model name was not updated"
-        )
+        new_name = gen_string('alpha')
+        Model.update({'name': model['name'], 'new-name': new_name})
+        model = Model.info({'name': new_name})
+        self.assertEqual(model['name'], new_name)

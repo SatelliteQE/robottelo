@@ -2,7 +2,8 @@
 """Test class for Roles CLI"""
 from ddt import ddt
 from fauxfactory import gen_string
-from robottelo.cli.factory import CLIFactoryError, make_role
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import make_role
 from robottelo.cli.role import Role
 from robottelo.constants import NOT_IMPLEMENTED
 from robottelo.decorators import data, skip_if_bug_open
@@ -20,21 +21,18 @@ class TestRole(CLITestCase):
         gen_string('latin1', 15),
         gen_string('utf8', 15),
     )
-    def test_positive_create_role_1(self, data):
+    def test_positive_create_role_1(self, name):
         """@Test: Create new roles and assign to the custom user
 
         @Feature: Roles
 
         @Assert: Assert creation of roles
 
+        @BZ: 1138553
+
         """
-        try:
-            role = make_role({'name': data})
-        except CLIFactoryError as err:
-            self.fail(err)
-        self.assertEqual(
-            role['name'],
-            data, "Input and output name should be consistent")
+        role = make_role({'name': name})
+        self.assertEqual(role['name'], name)
 
     @skip_if_bug_open('bugzilla', 1138559)
     def test_create_role_permission_1(self):
@@ -56,7 +54,7 @@ class TestRole(CLITestCase):
         gen_string('alphanumeric', 15),
         gen_string('numeric', 15),
     )
-    def test_positive_delete_role_1(self, data):
+    def test_positive_delete_role_1(self, name):
         """@Test: Delete roles after creating them
 
         @Feature: Roles
@@ -64,27 +62,13 @@ class TestRole(CLITestCase):
         @Assert: Assert deletion of roles
 
         """
-        try:
-            role = make_role({'name': data})
-        except CLIFactoryError as err:
-            self.fail(err)
-        self.assertEqual(
-            role['name'],
-            data, "Input and output name should be consistent")
-
+        role = make_role({'name': name})
+        self.assertEqual(role['name'], name)
         # Delete it
-        result = Role.delete({'id': role['id']})
-        self.assertEqual(result.return_code, 0,
-                         "Role was not deleted")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-
+        Role.delete({'id': role['id']})
         # Fetch it
-        result = Role.info({'id': role['id']})
-        self.assertNotEqual(result.return_code, 0,
-                            "Role should not be found")
-        self.assertGreater(len(result.stderr), 0,
-                           "Expected an error here")
+        with self.assertRaises(CLIReturnCodeError):
+            Role.info({'id': role['id']})
 
     @skip_if_bug_open('bugzilla', 1138553)
     @data(
@@ -92,38 +76,22 @@ class TestRole(CLITestCase):
         gen_string('alphanumeric', 15),
         gen_string('numeric', 15),
     )
-    def test_positive_update_role_1(self, data):
+    def test_positive_update_role_1(self, new_name):
         """@Test: Update roles after creating them
 
         @Feature: Roles
 
-        @Assert: Assert updation of roles
+        @Assert: Assert updating of roles
 
         """
-        name = gen_string('alpha', 15)
-        try:
-            role = make_role({'name': name})
-        except CLIFactoryError as err:
-            self.fail(err)
-        self.assertEqual(
-            role['name'],
-            data, "Input and output name should be consistent")
-
+        role = make_role({'name': gen_string('alpha', 15)})
+        self.assertEqual(role['name'], new_name)
         # Update it
-        result = Role.update({'id': role['id'],
-                              'new-name': data})
-        self.assertEqual(result.return_code, 0,
-                         "Role was not updated")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
-
+        Role.update({
+            'id': role['id'],
+            'new-name': new_name,
+        })
         # Fetch it
-        result = Role.info({'id': role['id']})
-        self.assertEqual(result.return_code, 0,
-                         "Role was not updated")
-        self.assertEqual(
-            len(result.stderr), 0, "No error was expected")
+        role = Role.info({'id': role['id']})
         # Assert that name was updated
-        self.assertEqual(result.stdout['name'],
-                         data,
-                         "Names do not match")
+        self.assertEqual(role['name'], new_name)

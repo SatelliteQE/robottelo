@@ -4,6 +4,7 @@
 import random
 
 from robottelo import ssh
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.report import Report
 from robottelo.decorators import run_only_on
 from robottelo.test import CLITestCase
@@ -13,7 +14,7 @@ from robottelo.test import CLITestCase
 class TestReport(CLITestCase):
     """Test class for Reports CLI. """
 
-    def setUp(self):  # noqa
+    def setUp(self):
         super(TestReport, self).setUp()
         self.run_puppet_agent()
 
@@ -23,7 +24,6 @@ class TestReport(CLITestCase):
         that we have reports available.
 
         """
-
         ssh.command('puppet agent -t')
 
     def test_list(self):
@@ -34,10 +34,7 @@ class TestReport(CLITestCase):
         @Assert: Puppert Report List is displayed
 
         """
-
-        result = Report.list()
-        self.assertEqual(result.return_code, 0)
-        self.assertGreater(len(result.stdout), 0)
+        Report.list()
 
     def test_info(self):
         """@Test: Test Info for Puppet report
@@ -47,16 +44,12 @@ class TestReport(CLITestCase):
         @Assert: Puppet Report Info is displayed
 
         """
-
         result = Report.list()
-        self.assertEqual(result.return_code, 0)
-        self.assertGreater(len(result.stdout), 0)
-
+        self.assertGreater(len(result), 0)
         # Grab a random report
-        report = random.choice(result.stdout)
+        report = random.choice(result)
         result = Report.info({'id': report['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(report['id'], result.stdout['id'])
+        self.assertEqual(report['id'], result['id'])
 
     def test_delete(self):
         """@Test: Check if Puppet Report can be deleted
@@ -66,16 +59,10 @@ class TestReport(CLITestCase):
         @Assert: Puppet Report is deleted
 
         """
-
         result = Report.list()
-        self.assertEqual(result.return_code, 0)
-        self.assertGreater(len(result.stdout), 0)
-
+        self.assertGreater(len(result), 0)
         # Grab a random report
-        report = random.choice(result.stdout)
-        result = Report.delete({'id': report['id']})
-        self.assertEqual(result.return_code, 0)
-
-        result = Report.info({'id': report['id']})
-        self.assertGreater(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        report = random.choice(result)
+        Report.delete({'id': report['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Report.info({'id': report['id']})
