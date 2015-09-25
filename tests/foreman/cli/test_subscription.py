@@ -1,6 +1,7 @@
 """Test class for Subscriptions"""
 from ddt import ddt
 from robottelo import manifests
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_org
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
@@ -14,7 +15,7 @@ from robottelo.test import CLITestCase
 class TestSubscription(CLITestCase):
     """Manifest CLI tests"""
 
-    def setUp(self):  # noqa
+    def setUp(self):
         """Tests for content-view via Hammer CLI"""
         super(TestSubscription, self).setUp()
         self.org = make_org()
@@ -23,12 +24,10 @@ class TestSubscription(CLITestCase):
     def _upload_manifest(self, manifest, org_id):
         """Uploads a manifest file and import it into an organization"""
         upload_file(manifest, remote_file=manifest)
-        result = Subscription.upload({
+        Subscription.upload({
             'file': manifest,
             'organization-id': org_id,
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
     def test_manifest_upload(self):
         """@Test: upload manifest (positive)
@@ -39,13 +38,11 @@ class TestSubscription(CLITestCase):
 
         """
         self._upload_manifest(self.manifest, self.org['id'])
-        result = Subscription.list(
+        Subscription.list(
             {'organization-id': self.org['id']},
-            per_page=False)
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+            per_page=False,
+        )
 
-    @skip_if_bug_open('bugzilla', 1207501)
     def test_manifest_delete(self):
         """@Test: Delete uploaded manifest (positive)
 
@@ -53,29 +50,19 @@ class TestSubscription(CLITestCase):
 
         @Assert: Manifest are deleted properly
 
-        @BZ: 1207501
-
         """
         self._upload_manifest(self.manifest, self.org['id'])
-        result = Subscription.list(
+        Subscription.list(
             {'organization-id': self.org['id']},
-            per_page=False
+            per_page=False,
         )
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = Subscription.delete_manifest({
+        Subscription.delete_manifest({
             'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = Subscription.list(
+        Subscription.list(
             {'organization-id': self.org['id']},
-            per_page=False
+            per_page=False,
         )
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout), 0)
 
     def test_enable_manifest_repository_set(self):
         """@Test: enable repository set (positive)
@@ -87,14 +74,12 @@ class TestSubscription(CLITestCase):
 
         """
         self._upload_manifest(self.manifest, self.org['id'])
-        result = Subscription.list(
+        Subscription.list(
             {'organization-id': self.org['id']},
-            per_page=False
+            per_page=False,
         )
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = RepositorySet.enable({
+        RepositorySet.enable({
+            'basearch': 'x86_64',
             'name': (
                 'Red Hat Enterprise Virtualization Agents '
                 'for RHEL 6 Workstation (RPMs)'
@@ -102,12 +87,8 @@ class TestSubscription(CLITestCase):
             'organization-id': self.org['id'],
             'product': 'Red Hat Enterprise Linux Workstation',
             'releasever': '6Workstation',
-            'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = Repository.synchronize({
+        Repository.synchronize({
             'name': (
                 'Red Hat Enterprise Virtualization Agents '
                 'for RHEL 6 Workstation '
@@ -116,9 +97,6 @@ class TestSubscription(CLITestCase):
             'organization-id': self.org['id'],
             'product': 'Red Hat Enterprise Linux Workstation',
         })
-
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
     def test_manifest_history(self):
         """@Test: upload manifest (positive) and check history
@@ -129,21 +107,16 @@ class TestSubscription(CLITestCase):
 
         """
         self._upload_manifest(self.manifest, self.org['id'])
-        result = Subscription.list(
+        Subscription.list(
             {'organization-id': self.org['id']},
-            per_page=None
+            per_page=None,
         )
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = Subscription.manifest_history({
+        history = Subscription.manifest_history({
             'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
         self.assertIn(
             '{0} file imported successfully.'.format(self.org['name']),
-            ''.join(result.stdout)
+            ''.join(history),
         )
 
     def test_manifest_refresh(self):
@@ -156,24 +129,16 @@ class TestSubscription(CLITestCase):
         """
         self._upload_manifest(
             manifests.download_manifest_template(), self.org['id'])
-        result = Subscription.list(
+        Subscription.list(
             {'organization-id': self.org['id']},
-            per_page=False
+            per_page=False,
         )
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = Subscription.refresh_manifest({
+        Subscription.refresh_manifest({
             'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = Subscription.delete_manifest({
+        Subscription.delete_manifest({
             'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
     @skip_if_bug_open('bugzilla', 1226425)
     def test_invalid_manifest_refresh(self):
@@ -187,15 +152,11 @@ class TestSubscription(CLITestCase):
 
         """
         self._upload_manifest(self.manifest, self.org['id'])
-        result = Subscription.list(
+        Subscription.list(
             {'organization-id': self.org['id']},
-            per_page=False
+            per_page=False,
         )
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = Subscription.refresh_manifest({
-            'organization-id': self.org['id'],
-        })
-        self.assertNotEqual(result.return_code, 0)
-        self.assertNotEqual(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            Subscription.refresh_manifest({
+                'organization-id': self.org['id'],
+            })
