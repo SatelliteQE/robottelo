@@ -1,7 +1,8 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=too-many-public-methods, too-many-lines
+# pylint: disable=unexpected-keyword-arg
 """Test class for Activation key CLI"""
 
-from ddt import ddt
 from fauxfactory import gen_string
 from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
@@ -18,41 +19,40 @@ from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.decorators import (
-    bz_bug_is_open, data, run_only_on,
-    skip_if_bug_open, stubbed
+    bz_bug_is_open,
+    run_only_on,
+    skip_if_bug_open,
+    stubbed
 )
+from robottelo.helpers import valid_data_list
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
 
-@ddt
 class TestActivationKey(CLITestCase):
     """Activation Key CLI tests"""
     org = None
     library = None
-    product = None
     env1 = None
-    env2 = None
     pub_key = None
 
-    def setUp(self):  # noqa
+    def setUp(self):
         """Tests for activation keys via Hammer CLI"""
         super(TestActivationKey, self).setUp()
-
         if TestActivationKey.org is None:
             TestActivationKey.org = make_org(cached=True)
+
+    @staticmethod
+    def update_env():
+        """Populate env1 and env2"""
         if TestActivationKey.env1 is None:
             TestActivationKey.env1 = make_lifecycle_environment(
                 {u'organization-id': TestActivationKey.org['id']},
                 cached=True)
-        if TestActivationKey.env2 is None:
-            TestActivationKey.env2 = make_lifecycle_environment(
-                {u'organization-id': TestActivationKey.org['id'],
-                 u'prior': TestActivationKey.env1['label']})
-        if TestActivationKey.product is None:
-            TestActivationKey.product = make_product(
-                {u'organization-id': TestActivationKey.org['id']},
-                cached=True)
+
+    @staticmethod
+    def update_library():
+        """Populate library"""
         if TestActivationKey.library is None:
             TestActivationKey.library = LifecycleEnvironment.info(
                 {'organization-id': TestActivationKey.org['id'],
@@ -123,9 +123,8 @@ class TestActivationKey(CLITestCase):
 
                 subscription_result = Subscription.list({
                     'organization-id': TestActivationKey.pub_key['org_id'],
-                    'order': 'id desc'},
-                    per_page=False
-                )
+                    'order': 'id desc'
+                }, per_page=False)
 
                 ActivationKey.add_subscription({
                     u'id': TestActivationKey.pub_key['key_id'],
@@ -135,17 +134,9 @@ class TestActivationKey(CLITestCase):
                 TestActivationKey.pub_key = None
                 self.fail(err)
 
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_positive_create_activation_key_1(self, name):
-        """@Test: Create Activation key for all variations of
-            Activation key name
+    def test_positive_create_ak_1(self):
+        """@Test: Create Activation key for all variations of Activation key
+        name
 
         @Feature: Activation key
 
@@ -156,19 +147,15 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is created with chosen name
 
         """
-        new_ackey_name = self._make_activation_key({u'name': name})['name']
-        # Name should match passed data
-        self.assertEqual(new_ackey_name, name)
+        for name in valid_data_list():
+            with self.subTest(name):
+                new_ackey_name = self._make_activation_key({
+                    u'name': name
+                })['name']
+                # Name should match passed data
+                self.assertEqual(new_ackey_name, name)
 
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_positive_create_activation_key_2(self, description):
+    def test_positive_create_ak_2(self):
         """@Test: Create Activation key for all variations of Description
 
         @Feature: Activation key
@@ -180,21 +167,15 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is created with chosen description
 
         """
-        new_ackey_description = self._make_activation_key(
-            {u'description': description})['description']
-        # Description should match passed data
-        self.assertEqual(new_ackey_description, description)
+        for desc in valid_data_list():
+            with self.subTest(desc):
+                new_ackey_description = self._make_activation_key({
+                    u'description': desc
+                })['description']
+                # Description should match passed data
+                self.assertEqual(new_ackey_description, desc)
 
-    @run_only_on('sat')
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_positive_create_associate_environ_1(self, name):
+    def test_positive_add_env_1(self):
         """@Test: Create Activation key and associate with Library environment
 
         @Feature: Activation key
@@ -206,23 +187,18 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is created and associated to Library
 
         """
-        new_ackey_env = self._make_activation_key(
-            {u'name': name,
-             u'lifecycle-environment-id': self.library['id']}
-        )['lifecycle-environment']
-        # Description should match passed data
-        self.assertEqual(new_ackey_env, self.library['name'])
+        self.update_library()
+        for name in valid_data_list():
+            with self.subTest(name):
+                new_ackey_env = self._make_activation_key({
+                    u'name': name,
+                    u'lifecycle-environment-id': self.library['id']
+                })['lifecycle-environment']
+                # Description should match passed data
+                self.assertEqual(new_ackey_env, self.library['name'])
 
     @run_only_on('sat')
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_positive_create_associate_environ_2(self, name):
+    def test_positive_add_env_2(self):
         """@Test: Create Activation key and associate with environment
 
         @Feature: Activation key
@@ -234,24 +210,17 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is created and associated to environment
 
         """
-        new_ackey_env = self._make_activation_key({
-            u'name': name,
-            u'lifecycle-environment-id': self.env1['id']
-        })['lifecycle-environment']
-        # Description should match passed data
-        self.assertEqual(new_ackey_env, self.env1['name'])
+        self.update_env()
+        for name in valid_data_list():
+            with self.subTest(name):
+                new_ackey_env = self._make_activation_key({
+                    u'name': name,
+                    u'lifecycle-environment-id': self.env1['id']
+                })['lifecycle-environment']
+                # Description should match passed data
+                self.assertEqual(new_ackey_env, self.env1['name'])
 
-    @data(
-        {'name': gen_string('alpha'),
-         'content-view': gen_string('alpha')},
-        {'name': gen_string('alphanumeric'),
-         'content-view': gen_string('alpha')},
-        {'name': gen_string('numeric'),
-         'content-view': gen_string('alpha')},
-        {'name': gen_string('html'),
-         'content-view': gen_string('alpha')},
-    )
-    def test_positive_create_activation_key_4(self, test_data):
+    def test_positive_create_ak_3(self):
         """@Test: Create Activation key for all variations of Content Views
 
         @Feature: Activation key - Positive Create
@@ -264,28 +233,30 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is created
 
         """
-        try:
-            org_obj = make_org(cached=True)
-            con_view = make_content_view({
-                u'organization-id': org_obj['id'],
-                u'name': test_data['content-view']
-            })
-            new_ackey = self._make_activation_key({
-                u'name': test_data['name'],
-                u'content-view': con_view['name'],
-                u'environment': self.library['name'],
-                u'organization-id': org_obj['id']
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        for name in valid_data_list():
+            with self.subTest(name):
+                # Using the same name for content view and Activation key
+                try:
+                    con_view = make_content_view({
+                        u'organization-id': self.org['id'],
+                        u'name': name,
+                    })
+                    new_ackey = self._make_activation_key({
+                        u'name': name,
+                        u'content-view': con_view['name'],
+                        u'environment': self.library['name'],
+                        u'organization-id': self.org['id'],
+                    })
+                except CLIFactoryError as err:
+                    self.fail(err)
 
-        # Name should match passed data
-        self.assertEqual(new_ackey['name'], test_data['name'])
-        # ContentView should match passed data
-        self.assertEqual(new_ackey['content-view'], test_data['content-view'])
+                # Name should match passed data
+                self.assertEqual(new_ackey['name'], name)
+                # ContentView should match passed data
+                self.assertEqual(new_ackey['content-view'], name)
 
     @stubbed()
-    def test_positive_create_activation_key_5(self):
+    def test_positive_create_ak_4(self):
         """@Test: Create Activation key for all variations of System Groups
 
         @Feature: Activation key - Positive Create
@@ -303,7 +274,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @stubbed()
-    def test_positive_create_activation_key_6(self):
+    def test_positive_create_ak_5(self):
         """@Test: Create Activation key with default Usage limit (Unlimited)
 
         @Feature: Activation key - Positive Create
@@ -321,7 +292,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @stubbed()
-    def test_positive_create_activation_key_7(self):
+    def test_positive_create_ak_6(self):
         """@Test: Create Activation key with finite Usage limit
 
         @Feature: Activation key - Positive Create
@@ -339,7 +310,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @stubbed()
-    def test_positive_create_activation_key_8(self):
+    def test_positive_create_ak_7(self):
         """@Test: Create Activation key with minimal input parameters
 
         @Feature: Activation key - Positive Create
@@ -357,7 +328,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @run_only_on('sat')
-    def test_positive_create_9(self):
+    def test_positive_create_ak_8(self):
         """@test: Create Activation key with environment name
 
         @feature: Activation key - Positive Create
@@ -370,6 +341,7 @@ class TestActivationKey(CLITestCase):
         @assert: Activation key is created
 
         """
+        self.update_library()
         content_view = make_content_view({
             u'organization-id': self.org['id'],
         })
@@ -384,7 +356,7 @@ class TestActivationKey(CLITestCase):
             self.fail(err)
 
     @stubbed()
-    def test_negative_create_activation_key_1(self):
+    def test_negative_create_ak_1(self):
         """@Test: Create Activation key with invalid Name
 
         @Feature: Activation key - Negative Create
@@ -402,7 +374,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @stubbed()
-    def test_negative_create_activation_key_2(self):
+    def test_negative_create_ak_2(self):
         """@Test: Create Activation key with invalid Description
 
         @Feature: Activation key - Negative Create
@@ -420,7 +392,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @stubbed()
-    def test_negative_create_activation_key_3(self):
+    def test_negative_create_ak_3(self):
         """@Test: Create Activation key with invalid Usage Limit
 
         @Feature: Activation key - Negative Create
@@ -437,15 +409,7 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_delete_activation_key_by_name(self, name):
+    def test_delete_ak_by_name(self):
         """@Test: Create Activation key and delete it for all variations of
         Activation key name
 
@@ -459,25 +423,27 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is deleted
 
         """
-        try:
-            activation_key = self._make_activation_key({
-                u'name': name,
-                u'organization-id': self.org['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        for name in valid_data_list():
+            with self.subTest(name):
+                try:
+                    activation_key = self._make_activation_key({
+                        u'name': name,
+                        u'organization-id': self.org['id'],
+                    })
+                except CLIFactoryError as err:
+                    self.fail(err)
 
-        result = ActivationKey.delete({
-            'name': activation_key['name'],
-            'organization-id': self.org['id'],
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0, result.stderr)
+                result = ActivationKey.delete({
+                    'name': activation_key['name'],
+                    'organization-id': self.org['id'],
+                })
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0, result.stderr)
 
-        result = ActivationKey.info({'id': activation_key['id']})
-        self.assertNotEqual(result.return_code, 0)
+                result = ActivationKey.info({'id': activation_key['id']})
+                self.assertNotEqual(result.return_code, 0)
 
-    def test_delete_activation_key_by_org_name(self):
+    def test_delete_ak_by_org_name(self):
         """@Test: Create Activation key and delete it using organization name
         for which that key was created
 
@@ -495,7 +461,6 @@ class TestActivationKey(CLITestCase):
             activation_key = self._make_activation_key({
                 u'name': gen_string('alpha'),
                 u'description': gen_string('alpha'),
-                u'organization-id': self.org['id'],
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -510,7 +475,7 @@ class TestActivationKey(CLITestCase):
         result = ActivationKey.info({'id': activation_key['id']})
         self.assertNotEqual(result.return_code, 0)
 
-    def test_delete_activation_key_by_org_label(self):
+    def test_delete_ak_by_org_label(self):
         """@Test: Create Activation key and delete it using organization
         label for which that key was created
 
@@ -527,7 +492,6 @@ class TestActivationKey(CLITestCase):
         try:
             activation_key = self._make_activation_key({
                 u'name': gen_string('alpha'),
-                u'organization-id': self.org['id'],
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -542,9 +506,9 @@ class TestActivationKey(CLITestCase):
         result = ActivationKey.info({'id': activation_key['id']})
         self.assertNotEqual(result.return_code, 0)
 
-    def test_delete_activation_key_with_content_view(self):
-        """@Test: Create activation key with content view assigned to it and delete
-        it using activation key id
+    def test_delete_ak_with_cv(self):
+        """@Test: Create activation key with content view assigned to it and
+        delete it using activation key id
 
         @Feature: Activation key - Positive Delete
 
@@ -557,11 +521,12 @@ class TestActivationKey(CLITestCase):
 
         """
         try:
-            cv = make_content_view({u'organization-id': self.org['id']})
+            contentview = make_content_view({
+                u'organization-id': self.org['id']
+            })
             activation_key = self._make_activation_key({
                 u'name': gen_string('alpha'),
-                u'content-view': cv['name'],
-                u'organization-id': self.org['id'],
+                u'content-view': contentview['name'],
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -573,7 +538,7 @@ class TestActivationKey(CLITestCase):
         result = ActivationKey.info({'id': activation_key['id']})
         self.assertNotEqual(result.return_code, 0)
 
-    def test_delete_activation_key_with_lifecycle_environment(self):
+    def test_delete_ak_with_env(self):
         """@Test: Create activation key with lifecycle environment assigned to
         it and delete it using activation key id
 
@@ -587,6 +552,7 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is deleted
 
         """
+        self.update_env()
         try:
             env = make_lifecycle_environment({
                 u'organization-id': self.org['id'],
@@ -594,7 +560,6 @@ class TestActivationKey(CLITestCase):
             activation_key = self._make_activation_key({
                 u'name': gen_string('alpha'),
                 u'lifecycle-environment': env['name'],
-                u'organization-id': self.org['id'],
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -606,15 +571,7 @@ class TestActivationKey(CLITestCase):
         result = ActivationKey.info({'id': activation_key['id']})
         self.assertNotEqual(result.return_code, 0)
 
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_positive_update_activation_key_1(self, name):
+    def test_positive_update_ak_1(self):
         """@Test: Update Activation Key Name in Activation key searching by ID
 
         @Feature: Activation key - Positive Update
@@ -627,42 +584,32 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is updated
 
         """
-        try:
-            activation_key = self._make_activation_key({
-                u'organization-id': self.org['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        for name in valid_data_list():
+            with self.subTest(name):
+                try:
+                    activation_key = self._make_activation_key()
+                except CLIFactoryError as err:
+                    self.fail(err)
+                result = ActivationKey.update({
+                    u'id': activation_key['id'],
+                    u'new-name': name,
+                    u'organization-id': self.org['id'],
+                })
+                self.assertEqual(result.return_code, 0, 'Failed updating ak')
+                self.assertEqual(len(result.stderr), 0)
 
-        result = ActivationKey.update({
-            u'id': activation_key['id'],
-            u'new-name': name,
-            u'organization-id': self.org['id'],
-        })
-        self.assertEqual(result.return_code, 0,
-                         'Failed to update activation key')
-        self.assertEqual(len(result.stderr), 0,
-                         'There should not be an error here')
+                result = ActivationKey.info({
+                    u'id': activation_key['id'],
+                })
+                self.assertEqual(result.return_code, 0, 'Get info failed')
+                self.assertEqual(len(result.stderr), 0)
+                self.assertEqual(
+                    result.stdout['name'],
+                    name,
+                    'Activation key name update failed'
+                )
 
-        result = ActivationKey.info({
-            u'id': activation_key['id'],
-        })
-        self.assertEqual(result.return_code, 0,
-                         'Failed to get info for activation key')
-        self.assertEqual(len(result.stderr), 0,
-                         'There should not be an error here')
-        self.assertEqual(result.stdout['name'], name,
-                         'Activation key name was not updated')
-
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_positive_update_activation_key_2(self, name):
+    def test_positive_update_ak_2(self):
         """@Test: Update Activation Key Name in an Activation key searching by
         name
 
@@ -676,42 +623,32 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is updated
 
         """
-        try:
-            activation_key = self._make_activation_key({
-                u'organization-id': self.org['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        for name in valid_data_list():
+            with self.subTest(name):
+                try:
+                    activation_key = self._make_activation_key()
+                except CLIFactoryError as err:
+                    self.fail(err)
+                result = ActivationKey.update({
+                    u'name': activation_key['name'],
+                    u'new-name': name,
+                    u'organization-id': self.org['id'],
+                })
+                self.assertEqual(result.return_code, 0, 'Failed updating ak')
+                self.assertEqual(len(result.stderr), 0)
 
-        result = ActivationKey.update({
-            u'name': activation_key['name'],
-            u'new-name': name,
-            u'organization-id': self.org['id'],
-        })
-        self.assertEqual(result.return_code, 0,
-                         'Failed to update activation key')
-        self.assertEqual(len(result.stderr), 0,
-                         'There should not be an error here')
+                result = ActivationKey.info({
+                    u'id': activation_key['id'],
+                })
+                self.assertEqual(result.return_code, 0, 'Failed updating ak')
+                self.assertEqual(len(result.stderr), 0)
+                self.assertEqual(
+                    result.stdout['name'],
+                    name,
+                    'Activation key name update failed'
+                )
 
-        result = ActivationKey.info({
-            u'id': activation_key['id'],
-        })
-        self.assertEqual(result.return_code, 0,
-                         'Failed to get info for activation key')
-        self.assertEqual(len(result.stderr), 0,
-                         'There should not be an error here')
-        self.assertEqual(result.stdout['name'], name,
-                         'Activation key name was not updated')
-
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_positive_update_activation_key_3(self, description):
+    def test_positive_update_ak_3(self):
         """@Test: Update Description in an Activation key
 
         @Feature: Activation key - Positive Update
@@ -724,37 +661,41 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is updated
 
         """
-        try:
-            activation_key = self._make_activation_key({
-                u'organization-id': self.org['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        for description in valid_data_list():
+            with self.subTest(description):
+                try:
+                    activation_key = self._make_activation_key()
+                except CLIFactoryError as err:
+                    self.fail(err)
+                result = ActivationKey.update({
+                    u'name': activation_key['name'],
+                    u'description': description,
+                    u'organization-id': self.org['id'],
+                })
+                self.assertEqual(
+                    result.return_code,
+                    0,
+                    'Failed to update activation key')
+                self.assertEqual(len(result.stderr), 0, result.stderr)
 
-        result = ActivationKey.update({
-            u'name': activation_key['name'],
-            u'description': description,
-            u'organization-id': self.org['id'],
-        })
-        self.assertEqual(
-            result.return_code, 0, 'Failed to update activation key')
-        self.assertEqual(
-            len(result.stderr), 0, result.stderr)
-
-        result = ActivationKey.info({
-            u'id': activation_key['id'],
-        })
-        self.assertEqual(
-            result.return_code, 0, 'Failed to get info for activation key')
-        self.assertEqual(
-            len(result.stderr), 0, result.stderr)
-        self.assertEqual(
-            result.stdout['description'], description,
-            'Activation key description was not updated')
+                result = ActivationKey.info({
+                    u'id': activation_key['id'],
+                })
+                self.assertEqual(
+                    result.return_code,
+                    0,
+                    'Failed to get info for activation key'
+                )
+                self.assertEqual(len(result.stderr), 0, result.stderr)
+                self.assertEqual(
+                    result.stdout['description'],
+                    description,
+                    'Activation key description was not updated'
+                )
 
     @run_only_on('sat')
     @stubbed()
-    def test_positive_update_activation_key_4(self):
+    def test_positive_update_ak4(self):
         """@Test: Update Environment in an Activation key
 
         @Feature: Activation key - Positive Update
@@ -773,15 +714,7 @@ class TestActivationKey(CLITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1109649)
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_positive_update_activation_key_5(self, content_view):
+    def test_positive_update_ak5(self):
         """@Test: Update Content View in an Activation key
 
         @Feature: Activation key - Positive Update
@@ -795,40 +728,45 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is updated
 
         """
-        try:
-            activation_key = self._make_activation_key({
-                u'organization-id': self.org['id'],
-            })
-            con_view = make_content_view({
-                u'organization-id': self.org['id'],
-                u'name': content_view
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        activation_key = self._make_activation_key()
+        for content_view_name in valid_data_list():
+            with self.subTest(content_view_name):
+                try:
+                    con_view = make_content_view({
+                        u'organization-id': self.org['id'],
+                        u'name': content_view_name,
+                    })
+                except CLIFactoryError as err:
+                    self.fail(err)
 
-        result = ActivationKey.update({
-            u'name': activation_key['name'],
-            u'content-view': con_view['name'],
-            u'organization-id': self.org['id'],
-        })
-        self.assertEqual(
-            result.return_code, 0, 'Failed to update activation key')
-        self.assertEqual(
-            len(result.stderr), 0, result.stderr)
+                result = ActivationKey.update({
+                    u'name': activation_key['name'],
+                    u'content-view': con_view['name'],
+                    u'organization-id': self.org['id'],
+                })
+                self.assertEqual(
+                    result.return_code,
+                    0,
+                    'Failed to update activation key')
+                self.assertEqual(len(result.stderr), 0, result.stderr)
 
-        result = ActivationKey.info({
-            u'id': activation_key['id'],
-        })
-        self.assertEqual(
-            result.return_code, 0, 'Failed to get info for activation key')
-        self.assertEqual(
-            len(result.stderr), 0, result.stderr)
-        self.assertEqual(
-            result.stdout['content-view'], content_view,
-            'Activation key content-view was not updated')
+                result = ActivationKey.info({
+                    u'id': activation_key['id'],
+                })
+                self.assertEqual(
+                    result.return_code,
+                    0,
+                    'Failed to get info for activation key'
+                )
+                self.assertEqual(len(result.stderr), 0, result.stderr)
+                self.assertEqual(
+                    result.stdout['content-view'],
+                    content_view_name,
+                    'Activation key content-view was not updated'
+                )
 
     @stubbed()
-    def test_positive_update_activation_key_6(self):
+    def test_positive_update_ak6(self):
         """@Test: Update Usage limit from Unlimited to a finite number
 
         @Feature: Activation key - Positive Update
@@ -846,7 +784,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @stubbed()
-    def test_positive_update_activation_key_7(self):
+    def test_positive_update_ak7(self):
         """@Test: Update Usage limit from definite number to Unlimited
 
         @Feature: Activation key - Positive Update
@@ -864,7 +802,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @stubbed()
-    def test_negative_update_activation_key_1(self):
+    def test_negative_update_ak1(self):
         """@Test: Update invalid name in an activation key
 
         @Feature: Activation key - Negative Update
@@ -882,7 +820,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @stubbed()
-    def test_negative_update_activation_key_2(self):
+    def test_negative_update_ak2(self):
         """@Test: Update invalid Description in an activation key
 
         @Feature: Activation key - Negative Update
@@ -900,7 +838,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @stubbed()
-    def test_negative_update_activation_key_3(self):
+    def test_negative_update_ak3(self):
         """@Test: Update invalid Usage Limit in an activation key
 
         @Feature: Activation key - Negative Update
@@ -938,65 +876,64 @@ class TestActivationKey(CLITestCase):
         pass
 
     @skip_if_bug_open('bugzilla', 1110476)
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_associate_host(self, host_col):
-        """@Test: Test that hosts can be associated to Activation Keys
+    def test_associate_host(self):
+        """@Test: Test that host collection can be associated to Activation
+        Keys
 
         @Feature: Activation key - Host
 
         @Steps:
 
         1. Create Activation key
-        2. Create different hosts
-        3. Associate the hosts to Activation key
+        2. Create host collection
+        3. Associate the host collection to Activation key
 
         @Assert: Hosts are successfully associated to Activation key
 
         """
-        try:
-            activation_key = self._make_activation_key({
-                u'organization-id': self.org['id'],
-            })
-            new_host_col_name = make_host_collection({
-                'name': host_col
-            })['name']
-        except CLIFactoryError as err:
-            self.fail(err)
+        for host_col_name in valid_data_list():
+            with self.subTest(host_col_name):
+                try:
+                    activation_key = self._make_activation_key()
+                    new_host_col_name = make_host_collection({
+                        'name': host_col_name
+                    })['name']
+                except CLIFactoryError as err:
+                    self.fail(err)
 
-        # Assert that name matches data passed
-            self.assertEqual(
-                new_host_col_name,
-                host_col,
-                'Names don\'t match'
-            )
+                # Assert that name matches data passed
+                self.assertEqual(
+                    new_host_col_name,
+                    host_col_name,
+                    'Names don\'t match'
+                )
 
-        result = ActivationKey.add_host_collection({
-            u'name': activation_key['name'],
-            u'host-collection': new_host_col_name,
-            u'organization-id': self.org['id'],
-        })
-        self.assertEqual(
-            result.return_code, 0, 'Failed to add host-col activation key')
-        self.assertEqual(
-            len(result.stderr), 0, result.stderr)
+                result = ActivationKey.add_host_collection({
+                    u'name': activation_key['name'],
+                    u'host-collection': new_host_col_name,
+                    u'organization-id': self.org['id'],
+                })
+                self.assertEqual(
+                    result.return_code,
+                    0,
+                    'Failed to add host-col activation key'
+                )
+                self.assertEqual(len(result.stderr), 0, result.stderr)
 
-        result = ActivationKey.info({
-            u'id': activation_key['id'],
-        })
-        self.assertEqual(
-            result.return_code, 0, 'Failed to get info for activation key')
-        self.assertEqual(
-            len(result.stderr), 0, result.stderr)
-        self.assertEqual(
-            result.stdout['host-collection'], host_col,
-            'Activation key host-collection added')
+                result = ActivationKey.info({
+                    u'id': activation_key['id'],
+                })
+                self.assertEqual(
+                    result.return_code,
+                    0,
+                    'Failed to get info for activation key'
+                )
+                self.assertEqual(len(result.stderr), 0, result.stderr)
+                self.assertEqual(
+                    result.stdout['host-collection'],
+                    host_col_name,
+                    'Activation key host-collection added'
+                )
 
     @stubbed()
     def test_associate_product_1(self):
@@ -1075,7 +1012,7 @@ class TestActivationKey(CLITestCase):
         pass
 
     @stubbed()
-    def test_multiple_activation_keys_to_system(self):
+    def test_multiple_aks_to_system(self):
         """@Test: Check if multiple Activation keys can be attached to a system
 
         @Feature: Activation key - System
@@ -1130,44 +1067,6 @@ class TestActivationKey(CLITestCase):
         pass
 
     @stubbed()
-    def test_search_activation_keys_1(self):
-        """@Test: Search Activation key for all variations of
-            Activation key name
-
-        @Feature: Activation key - search
-
-        @Steps:
-
-        1. Create Activation key for all valid Activation Key name variation
-        in [1]
-        2. Search/find Activation key
-
-        @Assert: Activation key is found
-
-        @Status: Manual
-
-        """
-        pass
-
-    @stubbed()
-    def test_search_activation_keys_2(self):
-        """@Test: Search Activation key for all variations of Description
-
-        @Feature: Activation key - search
-
-        @Steps:
-
-        1. Create Activation key for all valid Description variation in [1]
-        2. Search/find Activation key
-
-        @Assert: Activation key is found
-
-        @Status: Manual
-
-        """
-        pass
-
-    @stubbed()
     def test_info_activation_keys_1(self):
         """@Test: Get Activation key info for all variations of Activation key
         name
@@ -1205,25 +1104,6 @@ class TestActivationKey(CLITestCase):
         """
         pass
 
-    @run_only_on('sat')
-    @stubbed()
-    def test_end_to_end(self):
-        """@Test: Create Activation key and provision systems with it
-
-        @Feature: Activation key - End to End
-
-        @Steps:
-
-        1. Create Activation key
-        2. Provision systems with Activation key
-
-        @Assert: Systems are successfully provisioned with Activation key
-
-        @Status: Manual
-
-        """
-        pass
-
     def test_bugzilla_1111723(self):
         """@test: Create activation key, rename it and create another with the
         initial name
@@ -1244,7 +1124,6 @@ class TestActivationKey(CLITestCase):
         try:
             activation_key = self._make_activation_key({
                 u'name': name,
-                u'organization-id': self.org['id'],
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -1283,7 +1162,7 @@ class TestActivationKey(CLITestCase):
 
         self.assertEqual(new_activation_key['name'], name)
 
-    def test_remove_host_collection_by_id(self):
+    def test_remove_hc_by_id(self):
         """@Test: Test that hosts associated to Activation Keys can be removed
         using id of that host collection
 
@@ -1301,9 +1180,7 @@ class TestActivationKey(CLITestCase):
 
         """
         try:
-            activation_key = self._make_activation_key({
-                u'organization-id': self.org['id'],
-            })
+            activation_key = self._make_activation_key()
             new_host_col = make_host_collection({
                 u'name': gen_string('alpha'),
                 u'organization-id': self.org['id'],
@@ -1333,15 +1210,7 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout['host-collections']), 0)
 
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_remove_host_collection_by_name(self, host_col):
+    def test_remove_hc_by_name(self):
         """@Test: Test that hosts associated to Activation Keys can be removed
         using name of that host collection
 
@@ -1358,46 +1227,45 @@ class TestActivationKey(CLITestCase):
         @Assert: Host collection successfully removed from activation key
 
         """
-        try:
-            org_id = make_org(cached=True)['id']
-            activation_key = self._make_activation_key({
-                u'organization-id': org_id,
-            })
-            new_host_col = make_host_collection({
-                u'name': host_col,
-                u'organization-id': org_id,
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        for host_col in valid_data_list():
+            with self.subTest(host_col):
+                try:
+                    activation_key = self._make_activation_key()
+                    new_host_col = make_host_collection({
+                        u'name': host_col,
+                        u'organization-id': self.org['id'],
+                    })
+                except CLIFactoryError as err:
+                    self.fail(err)
 
-        # Assert that name matches data passed
-        self.assertEqual(new_host_col['name'], host_col)
+                # Assert that name matches data passed
+                self.assertEqual(new_host_col['name'], host_col)
 
-        result = ActivationKey.add_host_collection({
-            u'name': activation_key['name'],
-            u'host-collection': new_host_col['name'],
-            u'organization-id': org_id,
-        })
-        self.assertEqual(result.return_code, 0)
+                result = ActivationKey.add_host_collection({
+                    u'name': activation_key['name'],
+                    u'host-collection': new_host_col['name'],
+                    u'organization-id': self.org['id'],
+                })
+                self.assertEqual(result.return_code, 0)
 
-        result = ActivationKey.info({u'id': activation_key['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['host-collections']), 1)
-        self.assertEqual(
-            result.stdout['host-collections'][0]['name'],
-            host_col,
-        )
+                result = ActivationKey.info({u'id': activation_key['id']})
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stdout['host-collections']), 1)
+                self.assertEqual(
+                    result.stdout['host-collections'][0]['name'],
+                    host_col,
+                )
 
-        result = ActivationKey.remove_host_collection({
-            u'name': activation_key['name'],
-            u'host-collection': new_host_col['name'],
-            u'organization-id': org_id,
-        })
-        self.assertEqual(result.return_code, 0)
+                result = ActivationKey.remove_host_collection({
+                    u'name': activation_key['name'],
+                    u'host-collection': new_host_col['name'],
+                    u'organization-id': self.org['id'],
+                })
+                self.assertEqual(result.return_code, 0)
 
-        result = ActivationKey.info({u'id': activation_key['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['host-collections']), 0)
+                result = ActivationKey.info({u'id': activation_key['id']})
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stdout['host-collections']), 0)
 
     def test_add_subscription(self):
         """@Test: Test that subscription can be added to activation key
@@ -1417,10 +1285,8 @@ class TestActivationKey(CLITestCase):
         upload_file(manifest, remote_file=manifest)
         try:
             org_id = make_org()['id']
-            activation_key_id = self._make_activation_key({
-                u'organization-id': org_id,
-            })['id']
-            result = Subscription.upload({
+            ackey_id = self._make_activation_key()['id']
+            Subscription.upload({
                 'file': manifest,
                 'organization-id': org_id,
             })
@@ -1432,22 +1298,14 @@ class TestActivationKey(CLITestCase):
             per_page=False)
 
         result = ActivationKey.add_subscription({
-            u'id': activation_key_id,
+            u'id': ackey_id,
             u'subscription-id': subs_id.stdout[0]['id'],
         })
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0, result.stderr)
         self.assertIn('Subscription added to activation key', result.stdout)
 
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_positive_copy_activation_key_1(self, new_name):
+    def test_positive_copy_ak1(self):
         """@Test: Copy Activation key for all valid Activation Key name
            variations
 
@@ -1460,23 +1318,25 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is sucessfully copied
 
         """
-        org_id = make_org(cached=True)['id']
         parent_id = make_activation_key(
-            {u'organization-id': org_id}, cached=True)['id']
+            {u'organization-id': self.org['id']},
+            cached=True,
+        )['id']
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                try:
+                    result = ActivationKey.copy({
+                        u'id': parent_id,
+                        u'new-name': new_name,
+                        u'organization-id': self.org['id'],
+                    })
+                except CLIFactoryError as err:
+                    self.fail(err)
 
-        try:
-            result = ActivationKey.copy({
-                u'id': parent_id,
-                u'new-name': new_name,
-                u'organization-id': org_id
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(result.stdout[0], u'Activation key copied')
 
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout[0], u'Activation key copied')
-
-    def test_positive_copy_activation_key_2(self):
+    def test_positive_copy_ak2(self):
         """@Test: Copy Activation key by passing name of parent
 
         @Feature: Activation key copy
@@ -1488,15 +1348,16 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key is sucessfully copied
 
         """
-        org_id = make_org(cached=True)['id']
         parent_name = make_activation_key(
-            {u'organization-id': org_id}, cached=True)['name']
+            {u'organization-id': self.org['id']},
+            cached=True,
+        )['name']
 
         try:
             result = ActivationKey.copy({
                 u'name': parent_name,
                 u'new-name': gen_string('alpha'),
-                u'organization-id': org_id
+                u'organization-id': self.org['id'],
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -1504,7 +1365,7 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(result.stdout[0], u'Activation key copied')
 
-    def test_negative_copy_activation_key(self):
+    def test_negative_copy_ak(self):
         """@Test: Copy activation key with duplicate name
 
         @Feature: Activation key copy
@@ -1516,15 +1377,16 @@ class TestActivationKey(CLITestCase):
         @Assert: Activation key not sucessfully copied
 
         """
-        org_id = make_org(cached=True)['id']
         parent_name = make_activation_key(
-            {u'organization-id': org_id}, cached=True)['name']
+            {u'organization-id': self.org['id']},
+            cached=True,
+        )['name']
 
         try:
             result = ActivationKey.copy({
                 u'name': parent_name,
                 u'new-name': parent_name,
-                u'organization-id': org_id,
+                u'organization-id': self.org['id'],
             })
         except CLIFactoryError as err:
             self.fail(err)
@@ -1548,13 +1410,14 @@ class TestActivationKey(CLITestCase):
         """
         # Begin test setup
         org_id = make_org()['id']
-        parent_id = make_activation_key(
-            {u'organization-id': org_id})['id']
+        parent_id = make_activation_key({
+            u'organization-id': org_id
+        })['id']
 
         manifest = manifests.clone()
         upload_file(manifest, remote_file=manifest)
         try:
-            result = Subscription.upload({
+            Subscription.upload({
                 'file': manifest,
                 'organization-id': org_id,
             })
@@ -1603,7 +1466,7 @@ class TestActivationKey(CLITestCase):
             result.stdout[3]  # subscription list
         )
 
-    def test_positive_update_auto_attach(self):
+    def test_update_autoattach_1(self):
         """@Test: Update Activation key with inverse auto-attach value
 
         @Feature: Activation key update / info
@@ -1618,7 +1481,10 @@ class TestActivationKey(CLITestCase):
 
         """
         org_id = make_org(cached=True)['id']
-        key = make_activation_key({u'organization-id': org_id}, cached=True)
+        key = make_activation_key(
+            {u'organization-id': org_id},
+            cached=True,
+        )
         attach_value = key['auto-attach']
 
         # invert value
@@ -1639,15 +1505,7 @@ class TestActivationKey(CLITestCase):
 
         self.assertEqual(attach_value, new_value)
 
-    @data(
-        u'1',
-        u'0',
-        u'true',
-        u'false',
-        u'yes',
-        u'no',
-    )
-    def test_positive_update_auto_attach_2(self, new_value):
+    def test_update_autoattach_2(self):
         """@Test: Update Activation key with valid auto-attach values
 
         @Feature: Activation key update / info
@@ -1662,21 +1520,27 @@ class TestActivationKey(CLITestCase):
         """
         org_id = make_org(cached=True)['id']
         key_id = make_activation_key(
-            {u'organization-id': org_id}, cached=True)['id']
-        try:
-            result = ActivationKey.update({
-                u'auto-attach': new_value,
-                u'id': key_id,
-                u'organization-id': org_id,
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+            {u'organization-id': org_id},
+            cached=True,
+        )['id']
+        for new_value in (u'1', u'0', u'true', u'false', u'yes', u'no'):
+            with self.subTest(new_value):
+                try:
+                    result = ActivationKey.update({
+                        u'auto-attach': new_value,
+                        u'id': key_id,
+                        u'organization-id': org_id,
+                    })
+                except CLIFactoryError as err:
+                    self.fail(err)
 
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(
-            u'Activation key updated', result.stdout[0]['message'])
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(
+                    u'Activation key updated',
+                    result.stdout[0]['message']
+                )
 
-    def test_negative_update_auto_attach(self):
+    def test_negative_update_autoattach(self):
         """@Test: Attempt to update Activation key with bad auto-attach value
 
         @Feature: Activation key update / info
@@ -1691,7 +1555,9 @@ class TestActivationKey(CLITestCase):
         """
         org_id = make_org(cached=True)['id']
         key_id = make_activation_key(
-            {u'organization-id': org_id}, cached=True)['id']
+            {u'organization-id': org_id},
+            cached=True,
+        )['id']
         try:
             result = ActivationKey.update({
                 u'auto-attach': gen_string('utf8'),
@@ -1703,12 +1569,7 @@ class TestActivationKey(CLITestCase):
 
         self.assertIn(u"'--auto-attach': value must be one of", result.stderr)
 
-    @skip_if_bug_open('bugzilla', 1221778)
-    @data(
-        u'1',
-        u'0',
-    )
-    def test_positive_content_override(self, override_value):
+    def test_positive_content_override(self):
         """@Test: Positive content override
 
         @Feature: Activation key copy
@@ -1726,12 +1587,12 @@ class TestActivationKey(CLITestCase):
 
         """
         if not bz_bug_is_open(1180282):
-            self.fail('BZ 1180282 has been closed. This test should be '
-                      'updated to verify value change via product-content.')
-
+            self.fail(
+                'BZ 1180282 has been closed. This test should be updated to'
+                'verify value change via product-content.'
+            )
         if self.pub_key is None:
             self._make_public_key()
-
         result = ActivationKey.product_content({
             u'id': self.pub_key['key_id'],
             u'organization-id': self.pub_key['org_id'],
@@ -1739,13 +1600,14 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stderr), 0)
         product_label = result.stdout[3].split('|')[5].replace(' ', '')
-
-        result = ActivationKey.content_override({
-            u'id': self.pub_key['key_id'],
-            u'organization-id': self.pub_key['org_id'],
-            u'content-label': product_label,
-            u'value': override_value,
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertIn(result.stdout[0], 'Updated content override')
+        for override_value in (u'1', u'0'):
+            with self.subTest(override_value):
+                result = ActivationKey.content_override({
+                    u'id': self.pub_key['key_id'],
+                    u'organization-id': self.pub_key['org_id'],
+                    u'content-label': product_label,
+                    u'value': override_value,
+                })
+                self.assertEqual(result.return_code, 0)
+                self.assertEqual(len(result.stderr), 0)
+                self.assertIn(result.stdout[0], 'Updated content override')
