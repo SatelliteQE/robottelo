@@ -32,18 +32,15 @@ class Domain(Base):
                 'Could not create new domain "{0}"'.format(name)
             )
 
-    def search(self, description, timeout=None):
+    def search(self, description):
         """Searches existing domain from UI"""
         Navigator(self.browser).go_to_domains()
-        self.wait_for_ajax()
         if len(description) <= 30:
             element = self.search_entity(
-                description, locators['domain.domain_description'],
-                timeout=timeout)
+                description, locators['domain.domain_description'])
         else:
             element = self.search_entity(
-                description, common_locators['select_filtered_entity'],
-                timeout=timeout)
+                description, common_locators['select_filtered_entity'])
         return element
 
     def delete(self, description, really=True):
@@ -52,7 +49,7 @@ class Domain(Base):
             description,
             really,
             locators['domain.domain_description'],
-            locators['domain.delete']
+            locators['domain.delete'],
         )
 
     def update(self, old_description, new_name=None, description=None,

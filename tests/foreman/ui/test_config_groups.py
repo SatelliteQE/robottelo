@@ -10,7 +10,7 @@ from robottelo.helpers import (
 )
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_config_groups
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
@@ -78,11 +78,6 @@ class ConfigGroups(UITestCase):
         @Assert: Config-Groups is deleted
 
         """
-
         with Session(self.browser) as session:
             make_config_groups(session, name=name)
-            search = self.configgroups.search(name)
-            self.assertIsNotNone(search)
-            self.configgroups.delete(
-                name, drop_locator=locators['config_groups.dropdown'])
-            self.assertIsNone(self.configgroups.search(name))
+            self.configgroups.delete(name)

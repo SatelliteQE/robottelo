@@ -63,16 +63,10 @@ class Domain(UITestCase):
         @Assert: Domain is deleted
 
         """
-        name = gen_string('alpha')
-        domain_name = description = DOMAIN % name
+        domain_name = description = DOMAIN % gen_string('alpha')
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
-            element = self.domain.search(description)
-            self.assertIsNotNone(element)
-            self.domain.delete(description)
-            self.assertIsNotNone(self.user.wait_until_element(
-                common_locators['notif.success']))
-            self.assertIsNone(self.domain.search(description, timeout=5))
+            self.domain.delete(domain_name)
 
     @data({'name': gen_string('alpha', 10),
            'newname': gen_string('alpha', 10)},

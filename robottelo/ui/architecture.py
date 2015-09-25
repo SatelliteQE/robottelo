@@ -26,17 +26,15 @@ class Architecture(Base):
     def search(self, name):
         """Searches existing architecture from UI"""
         Navigator(self.browser).go_to_architectures()
-        element = self.search_entity(name, locators['arch.arch_name'])
-        return element
+        return self.search_entity(name, locators['arch.arch_name'])
 
     def delete(self, name, really=True):
         """Delete existing architecture from UI"""
-
         self.delete_entity(
             name,
             really,
             locators['arch.arch_name'],
-            locators['arch.delete']
+            locators['arch.delete'],
         )
 
     def update(self, old_name, new_name=None, os_names=None,

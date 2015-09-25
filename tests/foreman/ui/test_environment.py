@@ -95,11 +95,10 @@ class Environment(UITestCase):
             search = self.environment.search(new_name)
             self.assertIsNotNone(search)
 
-    @skip_if_bug_open('bugzilla', 1126033)
     @data(
         gen_string('alpha'),
         gen_string('numeric'),
-        gen_string('alphanumeric')
+        gen_string('alphanumeric'),
     )
     def test_remove_env(self, name):
         """@Test: Delete an environment
@@ -112,4 +111,3 @@ class Environment(UITestCase):
         with Session(self.browser) as session:
             make_env(session, name=name)
             self.environment.delete(name)
-            self.assertIsNone(self.environment.search(name))

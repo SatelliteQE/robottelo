@@ -47,7 +47,6 @@ class User(UITestCase):
 
     """
 
-    @skip_if_bug_open('bugzilla', 1177097)
     @data(*valid_strings())
     def test_delete_user(self, user_name):
         """@Test: Delete a User
@@ -56,14 +55,10 @@ class User(UITestCase):
 
         @Assert: User is deleted
 
-        @BZ: 1177097
-
         """
         with Session(self.browser) as session:
             make_user(session, username=user_name)
-            self.assertIsNotNone(self.user.search(user_name, search_key))
             self.user.delete(user_name, search_key)
-            self.assertIsNone(self.user.search(user_name, search_key))
 
     @skip_if_bug_open('bugzilla', 1139616)
     def test_update_password(self):

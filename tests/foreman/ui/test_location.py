@@ -200,11 +200,10 @@ class Location(UITestCase):
         @assert: Location is deleted
 
         """
+        entities.Location(name=loc_name).create()
         with Session(self.browser) as session:
-            make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.search(loc_name))
+            session.nav.go_to_loc()
             self.location.delete(loc_name)
-            self.assertIsNone(self.location.search(loc_name))
 
     @data(*generate_strings_list())
     def test_add_subnet(self, subnet_name):
@@ -652,7 +651,7 @@ class Location(UITestCase):
                 (strategy, value % host_grp_name))
             # Item is listed in 'Selected Items' list and not 'All Items' list.
             self.assertIsNotNone(element)
-            self.hostgroup.delete(host_grp_name, True)
+            self.hostgroup.delete(host_grp_name)
             self.location.search(loc_name).click()
             session.nav.click(tab_locators['context.tab_hostgrps'])
             element = session.nav.wait_until_element(

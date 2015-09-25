@@ -40,8 +40,7 @@ class PartitionTable(Base):
     def search(self, name):
         """Searches existing partition table from UI."""
         Navigator(self.browser).go_to_partition_tables()
-        element = self.search_entity(name, locators['ptable.ptable_name'])
-        return element
+        return self.search_entity(name, locators['ptable.ptable_name'])
 
     def delete(self, name, really=True):
         """Removes existing partition table from UI."""
@@ -49,7 +48,7 @@ class PartitionTable(Base):
             name,
             really,
             locators['ptable.ptable_name'],
-            locators['ptable.delete']
+            locators['ptable.delete'],
         )
 
     def update(self, old_name, new_name=None,

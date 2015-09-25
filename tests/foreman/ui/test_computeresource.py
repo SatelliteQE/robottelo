@@ -230,7 +230,6 @@ class ComputeResource(UITestCase):
             )
             self.assertIsNotNone(self.compute_resource.search(name))
             self.compute_resource.delete(name)
-            self.assertIsNone(self.compute_resource.search(name))
 
     def test_access_docker_resource_via_compute_profile(self):
         """@Test: Try to access docker compute resource via compute profile

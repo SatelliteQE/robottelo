@@ -4,7 +4,7 @@ from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
-from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.decorators import data, run_only_on
 from robottelo.helpers import generate_strings_list, get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -188,7 +188,6 @@ class Template(UITestCase):
             )
             self.assertIsNotNone(self.template.search(name))
 
-    @skip_if_bug_open('bugzilla', 1177756)
     @data(*generate_strings_list(len1=8))
     def test_remove_template(self, template_name):
         """@Test: Remove a template
@@ -197,15 +196,12 @@ class Template(UITestCase):
 
         @Assert: Template removed successfully
 
-        @BZ: 1177756
-
         """
         entities.ConfigTemplate(
             name=template_name, organization=[self.organization]).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.template.delete(template_name)
-            self.assertIsNone(self.template.search(template_name))
 
     def test_update_template(self):
         """@Test: Update template name and template type

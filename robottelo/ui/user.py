@@ -94,7 +94,6 @@ class User(Base):
     def search(self, name, search_key):
         """Searches existing user from UI."""
         Navigator(self.browser).go_to_users()
-        self.wait_for_ajax()
         return self.search_entity(
             name, locators['users.user'], search_key=search_key)
 
@@ -105,7 +104,7 @@ class User(Base):
             really,
             locators['users.user'],
             locators['users.delete'],
-            search_key=search_key
+            search_key=search_key,
         )
 
     def update(self, search_key, username, new_username=None,

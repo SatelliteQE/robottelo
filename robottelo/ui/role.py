@@ -26,14 +26,14 @@ class Role(Base):
         element = self.search_entity(name, locators['roles.role'])
         return element
 
-    def remove(self, name, really=True):
+    def delete(self, name, really=True):
         """Delete existing role."""
         self.delete_entity(
             name,
             really,
             locators['roles.role'],
             locators['roles.delete'],
-            locators['roles.dropdown']
+            locators['roles.dropdown'],
         )
 
     def update(self, name, new_name=None, add_permission=False,

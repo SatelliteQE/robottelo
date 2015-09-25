@@ -374,10 +374,3 @@ class Host(UITestCase, Base):
             # Delete host
             self.hosts.delete(
                 u'{0}.{1}'.format(host.name, host.domain.name))
-            self.assertIsNotNone(
-                self.user.wait_until_element(common_locators['notif.success']))
-            # confirm the Host disappeared from the UI
-            search = self.hosts.search(
-                u'{0}.{1}'.format(host.name, host.domain.name)
-            )
-            self.assertIsNone(search)

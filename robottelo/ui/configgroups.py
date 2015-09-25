@@ -31,7 +31,6 @@ class ConfigGroups(Base):
     def search(self, name):
         """Searches existing config-groups from UI"""
         Navigator(self.browser).go_to_config_groups()
-        self.wait_for_ajax()
         if len(name) <= 30:
             element = self.search_entity(
                 name, locators['config_groups.select_name'])
@@ -40,13 +39,12 @@ class ConfigGroups(Base):
                 name, common_locators['select_filtered_entity'])
         return element
 
-    def delete(self, name, really=True, drop_locator=None):
+    def delete(self, name, really=True):
         """Deletes the config-groups."""
-
         self.delete_entity(
             name,
             really,
             locators['config_groups.select_name'],
             locators['config_groups.delete'],
-            drop_locator=drop_locator,
+            drop_locator=locators['config_groups.dropdown'],
         )

@@ -1,44 +1,21 @@
 # -*- encoding: utf-8 -*-
 """Implements Navigator UI."""
-from robottelo.ui.base import Base, UIError, UINoSuchElementError
+from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import menu_locators
-from selenium.webdriver.common.action_chains import ActionChains
 
 
 class Navigator(Base):
     """Quickly navigate through menus and tabs."""
 
     def menu_click(self, top_menu_locator, sub_menu_locator,
-                   tertiary_menu_locator=None, entity=None):
-        menu_element = self.wait_until_element(top_menu_locator)
-
-        if menu_element is None:
-            raise UINoSuchElementError(
-                u'top_menu_locator not found: {0}'.format(top_menu_locator))
-        ActionChains(
-            self.browser
-        ).move_to_element(menu_element).perform()
-        submenu_element = self.wait_until_element(sub_menu_locator)
-        if submenu_element is None:
-            raise UINoSuchElementError(
-                u'sub_menu_locator not found: {0}'.format(sub_menu_locator))
-        elif submenu_element and not tertiary_menu_locator:
-            submenu_element.click()
-        elif submenu_element and tertiary_menu_locator:
-            ActionChains(
-                self.browser
-            ).move_to_element(submenu_element).perform()
-            if entity:
-                strategy, value = tertiary_menu_locator
-                tertiary_element = self.wait_until_element(
-                    (strategy, value % entity))
-            else:
-                tertiary_element = self.wait_until_element(
-                    tertiary_menu_locator)
-            if tertiary_element is None:
-                raise UINoSuchElementError(
-                    u'Tertiary_menu_locator not found: {0}'
-                    .format(tertiary_menu_locator))
+                   tertiary_menu_locator=None):
+        self.perform_action_chain_move(top_menu_locator)
+        if not tertiary_menu_locator:
+            self.click(sub_menu_locator)
+        else:
+            self.perform_action_chain_move(sub_menu_locator)
+            tertiary_element = self.wait_until_element(
+                tertiary_menu_locator)
             self.browser.execute_script(
                 "arguments[0].click();",
                 tertiary_element,
@@ -401,44 +378,40 @@ class Navigator(Base):
         :rtype: str
 
         """
+        strategy, value = menu_locators['org.select_org']
         self.menu_click(
             menu_locators['menu.any_context'],
             menu_locators['org.nav_current_org'],
-            menu_locators['org.select_org'], entity=org
+            (strategy, value % org),
         )
-        current_text = self.wait_until_element(
-            menu_locators['menu.current_text'])
-        ActionChains(self.browser).move_to_element(current_text).perform()
-        org_text = self.wait_until_element(
-            menu_locators['menu.fetch_org']).text
-        if org == org_text:
-            return org
-        else:
+        self.perform_action_chain_move(menu_locators['menu.current_text'])
+        if self.wait_until_element(
+                menu_locators['menu.fetch_org']).text != org:
             raise UIError(
                 u'Could not select the organization: {0}'.format(org)
             )
+        self.wait_for_ajax()
+        return org
 
     def go_to_select_loc(self, loc):
         """Selects the specified location.
 
-        :param str org: The location to select.
+        :param str loc: The location to select.
         :return: Returns the location.
         :rtype: str
 
         """
+        strategy, value = menu_locators['loc.select_loc']
         self.menu_click(
             menu_locators['menu.any_context'],
             menu_locators['loc.nav_current_loc'],
-            menu_locators['loc.select_loc'], entity=loc
+            (strategy, value % loc),
         )
-        current_text = self.wait_until_element(
-            menu_locators['menu.current_text'])
-        ActionChains(self.browser).move_to_element(current_text).perform()
-        loc_text = self.wait_until_element(
-            menu_locators['menu.fetch_loc']).text
-        if loc == loc_text:
-            return loc
-        else:
+        self.perform_action_chain_move(menu_locators['menu.current_text'])
+        if self.wait_until_element(
+                menu_locators['menu.fetch_loc']).text != loc:
             raise UIError(
                 u'Could not select the location: {0}'.format(loc)
             )
+        self.wait_for_ajax()
+        return loc

@@ -36,7 +36,6 @@ class OpenScapPolicy(Base):
 
     def search(self, name):
         """Searches existing oscap policy from UI"""
-        self.wait_for_ajax()
         Navigator(self.browser).go_to_oscap_policy()
         strategy, value = common_locators['search']
         return self.wait_until_element((strategy, value % name))

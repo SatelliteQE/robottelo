@@ -40,9 +40,7 @@ class Hostgroup(UITestCase):
         """
         with Session(self.browser) as session:
             make_hostgroup(session, name=name)
-            self.assertIsNotNone(self.hostgroup.search(name))
             self.hostgroup.delete(name)
-            self.assertIsNone(self.hostgroup.search(name))
 
     @data(*generate_strings_list(len1=4))
     def test_update_hostgroup(self, new_name):

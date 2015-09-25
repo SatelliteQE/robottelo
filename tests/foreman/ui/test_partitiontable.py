@@ -135,9 +135,7 @@ class PartitionTable(UITestCase):
             name = test_data['name']
             make_partitiontable(
                 session, name=name, layout='test layout', os_family='Red Hat')
-            self.assertIsNotNone(self.partitiontable.search(name))
             self.partitiontable.delete(name)
-            self.assertIsNone(self.partitiontable.search(name))
 
     @data({u'name': gen_string('alpha'),
            u'new_name': gen_string('alpha')},

@@ -103,11 +103,7 @@ class UserGroup(UITestCase):
         with Session(self.browser) as session:
             make_usergroup(
                 session, org=self.organization.name, name=group_name)
-            self.assertIsNotNone(self.usergroup.search(group_name))
             self.usergroup.delete(group_name)
-            self.assertIsNotNone(self.usergroup.wait_until_element(
-                common_locators['notif.success']))
-            self.assertIsNone(self.usergroup.search(group_name))
 
     @skip_if_bug_open('bugzilla', 1142588)
     def test_remove_usergroup(self):
@@ -119,18 +115,22 @@ class UserGroup(UITestCase):
 
         """
         user_name = gen_string('alpha')
-        password = gen_string('alpha')
         group_name = gen_string('utf8')
         # Create a new user
-        entities.User(login=user_name, password=password).create()
+        entities.User(
+            login=user_name,
+            password=gen_string('alpha'),
+            organization=[self.organization],
+        ).create()
 
         with Session(self.browser) as session:
-            make_usergroup(session, name=group_name, users=[user_name])
-            self.assertIsNotNone(self.usergroup.search(group_name))
+            make_usergroup(
+                session,
+                name=group_name,
+                users=[user_name],
+                org=self.organization.name,
+            )
             self.usergroup.delete(group_name)
-            self.assertIsNotNone(self.usergroup.wait_until_element(
-                common_locators['notif.success']))
-            self.assertIsNone(self.usergroup.search(group_name))
             self.assertIsNotNone(self.user.search(
                 name=user_name, search_key='login'))
 

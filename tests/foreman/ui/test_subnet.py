@@ -200,8 +200,6 @@ class Subnet(UITestCase):
                 subnet_mask=gen_netmask(),
             )
             self.subnet.delete(name)
-            self.assertIsNone(self.subnet.search_subnet(
-                subnet_name=name, timeout=5))
 
     def test_remove_subnet_and_cancel(self):
         """@Test: Delete subnet.
@@ -222,8 +220,6 @@ class Subnet(UITestCase):
                 subnet_mask=gen_netmask(),
             )
             self.subnet.delete(name, False)
-            self.assertIsNotNone(self.subnet.search_subnet(
-                subnet_name=name, timeout=5))
 
     @data(*generate_strings_list(len1=8))
     def test_update_subnet_with_name(self, new_name):

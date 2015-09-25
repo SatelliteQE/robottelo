@@ -8,6 +8,7 @@ from robottelo.ui.locators import locators, common_locators
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
@@ -64,20 +65,14 @@ class Base(object):
         return None
 
     def search_entity(self, element_name, element_locator, search_key=None,
-                      katello=None, timeout=None):
+                      katello=None, button_timeout=15, result_timeout=15):
         """Uses the search box to locate an element from a list of elements."""
-
         search_key = search_key or 'name'
-        element = None
 
-        if katello:
-            searchbox = self.wait_until_element(common_locators['kt_search'])
-            search_button = self.wait_until_element(
-                common_locators['kt_search_button'])
-        else:
-            searchbox = self.wait_until_element(common_locators['search'])
-            search_button = self.wait_until_element(
-                common_locators['search_button'])
+        prefix = 'kt_' if katello else ''
+        searchbox = self.wait_until_element(
+            common_locators[prefix + 'search'], timeout=button_timeout)
+        search_button_locator = common_locators[prefix + 'search_button']
 
         # Do not proceed if searchbox is not found
         if searchbox is None:
@@ -87,24 +82,14 @@ class Base(object):
                 raise UINoSuchElementError('Search box not found.')
             # ...but not for foreman
             return None
-        else:
-            searchbox.clear()
-            if search_button:
-                searchbox.send_keys(
-                    u'{0} = {1}'.format(
-                        search_key, escape_search(element_name))
-                )
-                search_button.click()
-            else:
-                searchbox.send_keys(escape_search(element_name))
-            if timeout:
-                element = self.wait_until_element(
-                    (element_locator[0], element_locator[1] % element_name),
-                    timeout=timeout,
-                )
-            else:
-                element = self.wait_until_element(
-                    (element_locator[0], element_locator[1] % element_name))
+        searchbox.clear()
+        searchbox.send_keys(u'{0} = {1}'.format(
+            search_key, escape_search(element_name)))
+        self.click(search_button_locator)
+        element = self.wait_until_element(
+            (element_locator[0], element_locator[1] % element_name),
+            timeout=result_timeout,
+        )
         return element
 
     def handle_alert(self, really):
@@ -175,6 +160,24 @@ class Base(object):
         strategy, value = del_locator
         self.click((strategy, value % name), wait_for_ajax=False)
         self.handle_alert(really)
+        # Make sure that element is really removed from UI. It is necessary to
+        # verify that fact few times as sometimes 1 second is not enough for
+        # element to be actually deleted from DB
+        for _ in range(3):
+            searched = self.search_entity(
+                name,
+                name_locator,
+                search_key=search_key,
+                button_timeout=3,
+                result_timeout=1,
+            )
+            if bool(searched) != really:
+                break
+            self.browser.refresh()
+        if bool(searched) == really:
+            raise UIError(
+                'Delete functionality works improperly for "{0}" entity'
+                .format(name))
 
     def wait_until_element_exists(
             self, locator, timeout=12, poll_frequency=0.5):
@@ -495,3 +498,20 @@ class Base(object):
         Select(element).select_by_visible_text(value)
         if wait_for_ajax:
             self.wait_for_ajax(timeout)
+
+    def perform_action_chain_move(self, locator):
+        """Locate the element described by the ``locator`` and put it into
+        action chain. Then mouse cursor is moved to each element from that
+        chain in a given order.
+
+        :param locator: The locator that describes the element.
+        :raise: UINoSuchElementError if the element could not be found.
+
+        """
+        element = self.wait_until_element(locator)
+        if element is None:
+            raise UINoSuchElementError(
+                'Cannot move cursor to {}: element with locator {}'
+                .format(type(self).__name__, locator)
+            )
+        ActionChains(self.browser).move_to_element(element).perform()

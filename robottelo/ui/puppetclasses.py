@@ -34,10 +34,7 @@ class PuppetClasses(Base):
     def search(self, name):
         """Searches existing puppet-classes from UI"""
         Navigator(self.browser).go_to_puppet_classes()
-        self.wait_for_ajax()
-        element = self.search_entity(
-            name, locators['puppetclass.select_name'])
-        return element
+        return self.search_entity(name, locators['puppetclass.select_name'])
 
     def delete(self, name, really=True):
         """Deletes the puppet-classes."""
@@ -51,7 +48,6 @@ class PuppetClasses(Base):
     def import_scap_client_puppet_classes(self):
         """Imports puppet-foreman_scap_client puppet classes."""
         Navigator(self.browser).go_to_puppet_classes()
-        self.wait_for_ajax()
         self.click(locators['puppetclass.import'])
         # Checking if the scap client puppet classes are already imported
         if self.wait_until_element(

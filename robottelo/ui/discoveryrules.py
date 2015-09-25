@@ -59,11 +59,9 @@ class DiscoveryRules(Base):
 
     def search(self, rule_name):
         """Searches existing discovery rule from UI"""
-        self.wait_for_ajax()
         Navigator(self.browser).go_to_discovery_rules()
         strategy, value = locators['discoveryrules.rule_name']
-        element = self.wait_until_element((strategy, value % rule_name))
-        return element
+        return self.wait_until_element((strategy, value % rule_name))
 
     def delete(self, rule_name, really=True):
         """Delete existing discovery rule from UI"""
