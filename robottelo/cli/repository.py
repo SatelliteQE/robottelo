@@ -53,13 +53,14 @@ class Repository(Base):
         return result
 
     @classmethod
-    def synchronize(cls, options):
+    def synchronize(cls, options, return_raw_response=None):
         """Synchronizes a repository."""
         cls.command_sub = 'synchronize'
         return cls.execute(
             cls._construct_command(options),
             output_format='csv',
             ignore_stderr=True,
+            return_raw_response=return_raw_response,
         )
 
     @classmethod

@@ -23,7 +23,7 @@ class TestPuppetModule(CLITestCase):
         # puppet-module list --help:
         result = PuppetModule.list({'help': True})
         # get list of lines and check they all are unique
-        lines = [line['message'] for line in result.stdout]
+        lines = [line['message'] for line in result]
         self.assertEqual(len(set(lines)), len(lines),
                          'The help should not have repeat options')
         product_options = [line for line in lines
@@ -34,7 +34,7 @@ class TestPuppetModule(CLITestCase):
         # puppet-module info --help:info, ignore exception
         result = PuppetModule.info({'help': True})
         # get list of lines and check they all are unique
-        lines = [line for line in result.stdout['options']]
+        lines = [line for line in result['options']]
         self.assertEqual(len(set(lines)), len(lines),
                          'The help should not have repeat options')
         product_options = [line for line in lines

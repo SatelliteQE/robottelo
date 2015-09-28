@@ -8,6 +8,7 @@ sequential repository sync, sequential repository re-sync.
 import logging
 
 from robottelo import ssh
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.repository import Repository
 
 LOGGER = logging.getLogger(__name__)
@@ -34,9 +35,10 @@ class Pulp(object):
             .format(repo_name, thread_id)
         )
 
-        result = Repository.synchronize({
-            'id': repo_id
-        })
+        result = Repository.synchronize(
+            {'id': repo_id},
+            return_raw_response=True
+        )
 
         if result.return_code != 0:
             LOGGER.error(
@@ -72,19 +74,19 @@ class Pulp(object):
         """
         LOGGER.info('Searching for enabled repositories by hammer CLI:')
 
-        result = Repository.list(
-            {'organization-id': org_id},
-            per_page=False
-        )
-
-        if result.return_code != 0:
+        try:
+            result = Repository.list(
+                {'organization-id': org_id},
+                per_page=False
+            )
+        except CLIReturnCodeError:
             raise RuntimeError(
                 'No enabled repository found in organization {}!'
                 .format(org_id)
             )
         # map repository name with id
         map_repo_name_id = {}
-        for repo in result.stdout:
+        for repo in result:
             map_repo_name_id[repo['name']] = repo['id']
         return map_repo_name_id
 
