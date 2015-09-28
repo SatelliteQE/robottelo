@@ -1,18 +1,12 @@
 # -*- encoding: utf-8 -*-
 """Unit tests for the Docker feature."""
-from ddt import ddt
 from fauxfactory import gen_choice, gen_string, gen_url
 from nailgun import entities
 from random import randint, shuffle
 from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
 from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.decorators import (
-    data,
-    run_only_on,
-    skip_if_bug_open,
-    stubbed,
-)
+from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
 from robottelo.helpers import (
     get_external_docker_url,
     get_internal_docker_url,
@@ -24,61 +18,75 @@ DOCKER_PROVIDER = 'Docker'
 EXTERNAL_DOCKER_URL = get_external_docker_url()
 INTERNAL_DOCKER_URL = get_internal_docker_url()
 STRING_TYPES = ['alpha', 'alphanumeric', 'cjk', 'utf8', 'latin1']
-INVALID_DOCKER_UPSTREAM_NAMES = (
-    # boundaries
-    gen_string('alphanumeric', 2),
-    gen_string('alphanumeric', 31),
-    u'{0}/{1}'.format(
-        gen_string('alphanumeric', 3),
-        gen_string('alphanumeric', 3)
-    ),
-    u'{0}/{1}'.format(
-        gen_string('alphanumeric', 4),
-        gen_string('alphanumeric', 2)
-    ),
-    u'{0}/{1}'.format(
+
+
+def _invalid_names():
+    """Return a generator yielding various kinds of invalid strings for
+    Docker repositories.
+
+    """
+    return (
+        # boundaries
+        gen_string('alphanumeric', 2),
         gen_string('alphanumeric', 31),
-        gen_string('alphanumeric', 30)
-    ),
-    u'{0}/{1}'.format(
-        gen_string('alphanumeric', 30),
-        gen_string('alphanumeric', 31)
-    ),
-    # not allowed non alphanumeric character
-    u'{0}+{1}_{2}/{2}-{1}_{0}.{3}'.format(
-        gen_string('alphanumeric', randint(3, 6)),
-        gen_string('alphanumeric', randint(3, 6)),
-        gen_string('alphanumeric', randint(3, 6)),
-        gen_string('alphanumeric', randint(3, 6)),
-    ),
-    u'{0}-{1}_{2}/{2}+{1}_{0}.{3}'.format(
-        gen_string('alphanumeric', randint(3, 6)),
-        gen_string('alphanumeric', randint(3, 6)),
-        gen_string('alphanumeric', randint(3, 6)),
-        gen_string('alphanumeric', randint(3, 6)),
-    ),
-)
-VALID_DOCKER_UPSTREAM_NAMES = (
-    # boundaries
-    gen_string('alphanumeric', 3).lower(),
-    gen_string('alphanumeric', 30).lower(),
-    u'{0}/{1}'.format(
-        gen_string('alphanumeric', 4).lower(),
+        u'{0}/{1}'.format(
+            gen_string('alphanumeric', 3),
+            gen_string('alphanumeric', 3)
+        ),
+        u'{0}/{1}'.format(
+            gen_string('alphanumeric', 4),
+            gen_string('alphanumeric', 2)
+        ),
+        u'{0}/{1}'.format(
+            gen_string('alphanumeric', 31),
+            gen_string('alphanumeric', 30)
+        ),
+        u'{0}/{1}'.format(
+            gen_string('alphanumeric', 30),
+            gen_string('alphanumeric', 31)
+        ),
+        # not allowed non alphanumeric character
+        u'{0}+{1}_{2}/{2}-{1}_{0}.{3}'.format(
+            gen_string('alphanumeric', randint(3, 6)),
+            gen_string('alphanumeric', randint(3, 6)),
+            gen_string('alphanumeric', randint(3, 6)),
+            gen_string('alphanumeric', randint(3, 6)),
+        ),
+        u'{0}-{1}_{2}/{2}+{1}_{0}.{3}'.format(
+            gen_string('alphanumeric', randint(3, 6)),
+            gen_string('alphanumeric', randint(3, 6)),
+            gen_string('alphanumeric', randint(3, 6)),
+            gen_string('alphanumeric', randint(3, 6)),
+        ),
+    )
+
+
+def _valid_names():
+    """Return a generator yielding various kinds of valid strings for
+    Docker repositories.
+
+    """
+    return (
+        # boundaries
         gen_string('alphanumeric', 3).lower(),
-    ),
-    u'{0}/{1}'.format(
         gen_string('alphanumeric', 30).lower(),
-        gen_string('alphanumeric', 30).lower(),
-    ),
-    # allowed non alphanumeric character
-    u'{0}-{1}_{2}/{2}-{1}_{0}.{3}'.format(
-        gen_string('alphanumeric', randint(3, 6)).lower(),
-        gen_string('alphanumeric', randint(3, 6)).lower(),
-        gen_string('alphanumeric', randint(3, 6)).lower(),
-        gen_string('alphanumeric', randint(3, 6)).lower(),
-    ),
-    u'-_-_/-_.',
-)
+        u'{0}/{1}'.format(
+            gen_string('alphanumeric', 4).lower(),
+            gen_string('alphanumeric', 3).lower(),
+        ),
+        u'{0}/{1}'.format(
+            gen_string('alphanumeric', 30).lower(),
+            gen_string('alphanumeric', 30).lower(),
+        ),
+        # allowed non alphanumeric character
+        u'{0}-{1}_{2}/{2}-{1}_{0}.{3}'.format(
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+        ),
+        u'-_-_/-_.',
+    )
 
 
 def _create_repository(product, name=None, upstream_name=None):
@@ -106,7 +114,6 @@ def _create_repository(product, name=None, upstream_name=None):
 
 
 @run_only_on('sat')
-@ddt
 class DockerRepositoryTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
@@ -119,8 +126,7 @@ class DockerRepositoryTestCase(APITestCase):
         super(DockerRepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
-    @data(*valid_data_list())
-    def test_create_one_docker_repo(self, name):
+    def test_create_one_docker_repo(self):
         """@Test: Create one Docker-type repository
 
         @Assert: A repository is created with a Docker image.
@@ -128,16 +134,17 @@ class DockerRepositoryTestCase(APITestCase):
         @Feature: Docker
 
         """
-        repo = _create_repository(
-            entities.Product(organization=self.org).create(),
-            name,
-        )
-        self.assertEqual(repo.name, name)
-        self.assertEqual(repo.docker_upstream_name, 'busybox')
-        self.assertEqual(repo.content_type, 'docker')
+        for name in valid_data_list():
+            with self.subTest(name):
+                repo = _create_repository(
+                    entities.Product(organization=self.org).create(),
+                    name,
+                )
+                self.assertEqual(repo.name, name)
+                self.assertEqual(repo.docker_upstream_name, 'busybox')
+                self.assertEqual(repo.content_type, 'docker')
 
-    @data(*VALID_DOCKER_UPSTREAM_NAMES)
-    def test_create_docker_repo_valid_upstream_name(self, upstream_name):
+    def test_create_docker_repo_valid_upstream_name(self):
         """@Test: Create a Docker-type repository with a valid docker upstream
         name
 
@@ -146,15 +153,16 @@ class DockerRepositoryTestCase(APITestCase):
         @Feature: Docker
 
         """
-        repo = _create_repository(
-            entities.Product(organization=self.org).create(),
-            upstream_name=upstream_name,
-        )
-        self.assertEqual(repo.docker_upstream_name, upstream_name)
-        self.assertEqual(repo.content_type, u'docker')
+        for upstream_name in _valid_names():
+            with self.subTest(upstream_name):
+                repo = _create_repository(
+                    entities.Product(organization=self.org).create(),
+                    upstream_name=upstream_name,
+                )
+                self.assertEqual(repo.docker_upstream_name, upstream_name)
+                self.assertEqual(repo.content_type, u'docker')
 
-    @data(*INVALID_DOCKER_UPSTREAM_NAMES)
-    def test_create_docker_repo_invalid_upstream_name(self, upstream_name):
+    def test_create_docker_repo_invalid_upstream_name(self):
         """@Test: Create a Docker-type repository with a invalid docker
         upstream name.
 
@@ -164,8 +172,10 @@ class DockerRepositoryTestCase(APITestCase):
 
         """
         product = entities.Product(organization=self.org).create()
-        with self.assertRaises(HTTPError):
-            _create_repository(product, upstream_name=upstream_name)
+        for upstream_name in _invalid_names():
+            with self.subTest(upstream_name):
+                with self.assertRaises(HTTPError):
+                    _create_repository(product, upstream_name=upstream_name)
 
     def test_create_multiple_docker_repo(self):
         """@Test: Create multiple Docker-type repositories
@@ -217,8 +227,7 @@ class DockerRepositoryTestCase(APITestCase):
         repo = repo.read()
         self.assertGreaterEqual(repo.content_counts['docker_image'], 1)
 
-    @data(*valid_data_list())
-    def test_update_docker_repo_name(self, new_name):
+    def test_update_docker_repo_name(self):
         """@Test: Create a Docker-type repository and update its name.
 
         @Assert: A repository is created with a Docker image and that its
@@ -229,11 +238,13 @@ class DockerRepositoryTestCase(APITestCase):
         """
         repo = _create_repository(
             entities.Product(organization=self.org).create())
-        self.assertNotEqual(repo.name, new_name)
+
         # Update the repository name to random value
-        repo.name = new_name
-        repo = repo.update()
-        self.assertEqual(repo.name, new_name)
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                repo.name = new_name
+                repo = repo.update()
+                self.assertEqual(repo.name, new_name)
 
     def test_update_docker_repo_upstream_name(self):
         """@Test: Create a Docker-type repository and update its upstream name.
@@ -324,7 +335,6 @@ class DockerRepositoryTestCase(APITestCase):
 
 
 @run_only_on('sat')
-@ddt
 class DockerContentViewTestCase(APITestCase):
     """Tests specific to using ``Docker`` repositories with Content Views."""
 
@@ -808,7 +818,6 @@ class DockerContentViewTestCase(APITestCase):
 
 
 @run_only_on('sat')
-@ddt
 class DockerActivationKeyTestCase(APITestCase):
     """Tests specific to adding ``Docker`` repositories to Activation Keys."""
 
@@ -935,7 +944,6 @@ class DockerActivationKeyTestCase(APITestCase):
 
 
 @run_only_on('sat')
-@ddt
 class DockerComputeResourceTestCase(APITestCase):
     """Tests specific to managing Docker-based Compute Resources."""
 
@@ -945,8 +953,7 @@ class DockerComputeResourceTestCase(APITestCase):
         super(DockerComputeResourceTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
-    @data(*valid_data_list())
-    def test_create_internal_docker_compute_resource(self, name):
+    def test_create_internal_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance.
 
@@ -955,19 +962,17 @@ class DockerComputeResourceTestCase(APITestCase):
         @Feature: Docker
 
         """
-        compute_resource = entities.DockerComputeResource(
-            name=name,
-            url=INTERNAL_DOCKER_URL,
-        ).create()
-        self.assertEqual(compute_resource.name, name)
-        self.assertEqual(compute_resource.provider, DOCKER_PROVIDER)
-        self.assertEqual(compute_resource.url, INTERNAL_DOCKER_URL)
+        for name in valid_data_list():
+            with self.subTest(name):
+                compute_resource = entities.DockerComputeResource(
+                    name=name,
+                    url=INTERNAL_DOCKER_URL,
+                ).create()
+                self.assertEqual(compute_resource.name, name)
+                self.assertEqual(compute_resource.provider, DOCKER_PROVIDER)
+                self.assertEqual(compute_resource.url, INTERNAL_DOCKER_URL)
 
-    @data(
-        EXTERNAL_DOCKER_URL,
-        INTERNAL_DOCKER_URL,
-    )
-    def test_update_docker_compute_resource(self, url):
+    def test_update_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance then edit its attributes.
 
@@ -977,22 +982,20 @@ class DockerComputeResourceTestCase(APITestCase):
         @Feature: Docker
 
         """
-        compute_resource = entities.DockerComputeResource(
-            organization=[self.org],
-            url=url,
-        ).create()
-        self.assertEqual(compute_resource.url, url)
-        compute_resource.url = gen_url()
-        self.assertEqual(
-            compute_resource.url,
-            compute_resource.update(['url']).url,
-        )
+        for url in (EXTERNAL_DOCKER_URL, INTERNAL_DOCKER_URL):
+            with self.subTest(url):
+                compute_resource = entities.DockerComputeResource(
+                    organization=[self.org],
+                    url=url,
+                ).create()
+                self.assertEqual(compute_resource.url, url)
+                compute_resource.url = gen_url()
+                self.assertEqual(
+                    compute_resource.url,
+                    compute_resource.update(['url']).url,
+                )
 
-    @data(
-        EXTERNAL_DOCKER_URL,
-        INTERNAL_DOCKER_URL,
-    )
-    def test_list_containers_internal_docker_compute_resource(self, url):
+    def test_list_containers_internal_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance then list its running containers.
 
@@ -1002,25 +1005,26 @@ class DockerComputeResourceTestCase(APITestCase):
         @Feature: Docker
 
         """
-        compute_resource = entities.DockerComputeResource(
-            organization=[self.org],
-            url=url,
-        ).create()
-        self.assertEqual(compute_resource.url, url)
-        self.assertEqual(len(entities.AbstractDockerContainer(
-            compute_resource=compute_resource).search()), 0)
-        container = entities.DockerHubContainer(
-            command='top',
-            compute_resource=compute_resource,
-            organization=[self.org],
-        ).create()
-        result = entities.AbstractDockerContainer(
-            compute_resource=compute_resource).search()
-        self.assertEqual(len(result), 1)
-        self.assertEqual(result[0].name, container.name)
+        for url in (EXTERNAL_DOCKER_URL, INTERNAL_DOCKER_URL):
+            with self.subTest(url):
+                compute_resource = entities.DockerComputeResource(
+                    organization=[self.org],
+                    url=url,
+                ).create()
+                self.assertEqual(compute_resource.url, url)
+                self.assertEqual(len(entities.AbstractDockerContainer(
+                    compute_resource=compute_resource).search()), 0)
+                container = entities.DockerHubContainer(
+                    command='top',
+                    compute_resource=compute_resource,
+                    organization=[self.org],
+                ).create()
+                result = entities.AbstractDockerContainer(
+                    compute_resource=compute_resource).search()
+                self.assertEqual(len(result), 1)
+                self.assertEqual(result[0].name, container.name)
 
-    @data(*valid_data_list())
-    def test_create_external_docker_compute_resource(self, name):
+    def test_create_external_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource using an external
         Docker-enabled system.
 
@@ -1029,19 +1033,17 @@ class DockerComputeResourceTestCase(APITestCase):
         @Feature: Docker
 
         """
-        compute_resource = entities.DockerComputeResource(
-            name=name,
-            url=EXTERNAL_DOCKER_URL,
-        ).create()
-        self.assertEqual(compute_resource.name, name)
-        self.assertEqual(compute_resource.provider, DOCKER_PROVIDER)
-        self.assertEqual(compute_resource.url, EXTERNAL_DOCKER_URL)
+        for name in valid_data_list():
+            with self.subTest(name):
+                compute_resource = entities.DockerComputeResource(
+                    name=name,
+                    url=EXTERNAL_DOCKER_URL,
+                ).create()
+                self.assertEqual(compute_resource.name, name)
+                self.assertEqual(compute_resource.provider, DOCKER_PROVIDER)
+                self.assertEqual(compute_resource.url, EXTERNAL_DOCKER_URL)
 
-    @data(
-        EXTERNAL_DOCKER_URL,
-        INTERNAL_DOCKER_URL,
-    )
-    def test_delete_docker_compute_resource(self, url):
+    def test_delete_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource then delete it.
 
         @Assert: Compute Resource can be created, listed and deleted.
@@ -1049,12 +1051,14 @@ class DockerComputeResourceTestCase(APITestCase):
         @Feature: Docker
 
         """
-        compute_resource = entities.DockerComputeResource(url=url).create()
-        self.assertEqual(compute_resource.url, url)
-        self.assertEqual(compute_resource.provider, DOCKER_PROVIDER)
-        compute_resource.delete()
-        with self.assertRaises(HTTPError):
-            compute_resource.read()
+        for url in (EXTERNAL_DOCKER_URL, INTERNAL_DOCKER_URL):
+            with self.subTest(url):
+                resource = entities.DockerComputeResource(url=url).create()
+                self.assertEqual(resource.url, url)
+                self.assertEqual(resource.provider, DOCKER_PROVIDER)
+                resource.delete()
+                with self.assertRaises(HTTPError):
+                    resource.read()
 
 
 @run_only_on('sat')
@@ -1272,7 +1276,6 @@ class DockerContainersTestCase(APITestCase):
             container.read()
 
 
-@ddt
 class DockerRegistriesTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
@@ -1280,8 +1283,7 @@ class DockerRegistriesTestCase(APITestCase):
     """
 
     @run_only_on('sat')
-    @data(*valid_data_list())
-    def test_create_registry(self, name):
+    def test_create_registry(self):
         """@Test: Create an external docker registry
 
         @Feature: Docker
@@ -1289,20 +1291,21 @@ class DockerRegistriesTestCase(APITestCase):
         @Assert: External registry is created successfully
 
         """
-        url = gen_url(subdomain=gen_string('alpha'))
-        description = gen_string('alphanumeric')
-        registry = entities.Registry(
-            name=name,
-            url=url,
-            description=description,
-        ).create()
-        self.assertEqual(registry.name, name)
-        self.assertEqual(registry.url, url)
-        self.assertEqual(registry.description, description)
+        for name in valid_data_list():
+            with self.subTest(name):
+                url = gen_url(subdomain=gen_string('alpha'))
+                description = gen_string('alphanumeric')
+                registry = entities.Registry(
+                    name=name,
+                    url=url,
+                    description=description,
+                ).create()
+                self.assertEqual(registry.name, name)
+                self.assertEqual(registry.url, url)
+                self.assertEqual(registry.description, description)
 
     @run_only_on('sat')
-    @data(*valid_data_list())
-    def test_update_registry_name(self, new_name):
+    def test_update_registry_name(self):
         """@Test: Create an external docker registry and update its name
 
         @Feature: Docker
@@ -1310,12 +1313,12 @@ class DockerRegistriesTestCase(APITestCase):
         @Assert: the external registry is updated with the new name
 
         """
-        name = gen_string('alpha')
-        registry = entities.Registry(name=name).create()
-        self.assertEqual(registry.name, name)
-        registry.name = new_name
-        registry = registry.update()
-        self.assertEqual(registry.name, new_name)
+        registry = entities.Registry(name=gen_string('alpha')).create()
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                registry.name = new_name
+                registry = registry.update()
+                self.assertEqual(registry.name, new_name)
 
     @run_only_on('sat')
     def test_update_registry_url(self):
@@ -1335,8 +1338,7 @@ class DockerRegistriesTestCase(APITestCase):
         self.assertEqual(registry.url, new_url)
 
     @run_only_on('sat')
-    @data(*valid_data_list())
-    def test_update_registry_description(self, new_desc):
+    def test_update_registry_description(self):
         """@Test: Create an external docker registry and update its description
 
         @Feature: Docker
@@ -1344,12 +1346,12 @@ class DockerRegistriesTestCase(APITestCase):
         @Assert: the external registry is updated with the new description
 
         """
-        desc = gen_string('utf8')
-        registry = entities.Registry(description=desc).create()
-        self.assertEqual(registry.description, desc)
-        registry.description = new_desc
-        registry = registry.update()
-        self.assertEqual(registry.description, new_desc)
+        registry = entities.Registry().create()
+        for new_desc in valid_data_list():
+            with self.subTest(new_desc):
+                registry.description = new_desc
+                registry = registry.update()
+                self.assertEqual(registry.description, new_desc)
 
     @run_only_on('sat')
     def test_update_registry_username(self):
@@ -1372,8 +1374,7 @@ class DockerRegistriesTestCase(APITestCase):
         self.assertEqual(registry.username, new_username)
 
     @run_only_on('sat')
-    @data(*valid_data_list())
-    def test_delete_registry(self, name):
+    def test_delete_registry(self):
         """@Test: Create an external docker registry and then delete it
 
         @Feature: Docker
@@ -1381,7 +1382,9 @@ class DockerRegistriesTestCase(APITestCase):
         @Assert: The external registry is deleted successfully
 
         """
-        registry = entities.Registry(name=name).create()
-        registry.delete()
-        with self.assertRaises(HTTPError):
-            registry.read()
+        for name in valid_data_list():
+            with self.subTest(name):
+                registry = entities.Registry(name=name).create()
+                registry.delete()
+                with self.assertRaises(HTTPError):
+                    registry.read()
