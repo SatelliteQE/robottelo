@@ -4,18 +4,21 @@ Each ``APITestCase`` subclass tests a single URL. A full list of URLs to be
 tested can be found here: http://theforeman.org/api/apidoc/v2/users.html
 
 """
-import ddt
 
 from fauxfactory import gen_string
 from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
-from robottelo import decorators
 from robottelo.test import APITestCase
 
 
 def _user_attrs():
-    """Return an iterable of dicts. Each dict contains user attributes."""
+    """Return an iterable of dicts. Each dict contains user attributes.
+
+    Note: Supplying utf8 values for firstname, lastname or login is rejected
+    by Satellite
+
+    """
     return (
         {u'admin': False},
         {u'admin': True},
@@ -24,28 +27,23 @@ def _user_attrs():
         {u'firstname': gen_string('cjk', randint(1, 50))},
         {u'firstname': gen_string('latin1', randint(1, 50))},
         {u'firstname': gen_string('numeric', randint(1, 50))},
-        {u'firstname': gen_string('utf8', randint(1, 16))},
         {u'lastname': gen_string('alphanumeric', randint(1, 50))},
         {u'lastname': gen_string('alpha', randint(1, 50))},
         {u'lastname': gen_string('cjk', randint(1, 50))},
         {u'lastname': gen_string('latin1', randint(1, 50))},
         {u'lastname': gen_string('numeric', randint(1, 50))},
-        {u'lastname': gen_string('utf8', randint(1, 16))},
         {u'login': gen_string('alphanumeric', randint(1, 100))},
         {u'login': gen_string('alpha', randint(1, 100))},
         {u'login': gen_string('cjk', randint(1, 100))},
         {u'login': gen_string('latin1', randint(1, 100))},
         {u'login': gen_string('numeric', randint(1, 100))},
-        {u'login': gen_string('utf8', randint(1, 33))},
     )
 
 
-@ddt.ddt
 class UsersTestCase(APITestCase):
     """Tests for the ``users`` path."""
 
-    @decorators.data(*_user_attrs())
-    def test_create(self, attrs):
+    def test_create(self):
         """@Test: Create a user with attributes ``attrs`` and delete it.
 
         @Assert: The created user has the given attributes.
@@ -53,12 +51,13 @@ class UsersTestCase(APITestCase):
         @Feature: User
 
         """
-        user = entities.User(**attrs).create()
-        for name, value in attrs.items():
-            self.assertEqual(getattr(user, name), value)
+        for attr in _user_attrs():
+            with self.subTest(attr):
+                user = entities.User(**attr).create()
+                for name, value in attr.items():
+                    self.assertEqual(getattr(user, name), value)
 
-    @decorators.data(*_user_attrs())
-    def test_delete(self, attrs):
+    def test_delete(self):
         """@Test: Create a user with attributes ``attrs`` and delete it.
 
         @Assert: The user cannot be fetched after deletion.
@@ -66,13 +65,14 @@ class UsersTestCase(APITestCase):
         @Feature: User
 
         """
-        user = entities.User(**attrs).create()
-        user.delete()
-        with self.assertRaises(HTTPError):
-            user.read()
+        for attr in _user_attrs():
+            with self.subTest(attr):
+                user = entities.User(**attr).create()
+                user.delete()
+                with self.assertRaises(HTTPError):
+                    user.read()
 
-    @decorators.data(True, False)
-    def test_update_admin(self, admin):
+    def test_update_admin(self):
         """@Test: Update a user and provide the ``admin`` attribute.
 
         @Assert: The user's ``admin`` attribute is updated.
@@ -80,9 +80,11 @@ class UsersTestCase(APITestCase):
         @Feature: User
 
         """
-        user = entities.User(admin=admin).create()
-        user.admin = not admin
-        self.assertEqual(user.update().admin, not admin)
+        for admin_enable in (True, False):
+            with self.subTest(admin_enable):
+                user = entities.User(admin=admin_enable).create()
+                user.admin = not admin_enable
+                self.assertEqual(user.update().admin, not admin_enable)
 
 
 class UserRoleTestCase(APITestCase):
