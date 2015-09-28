@@ -44,5 +44,5 @@ class OpenScapPolicy(Base):
         """Delete existing oscap policy from UI"""
         Navigator(self.browser).go_to_oscap_policy()
         strategy, value = locators['oscap.delete_policy']
-        self.wait_until_element((strategy, value % name)).click()
+        self.click((strategy, value % name), wait_for_ajax=False)
         self.handle_alert(really)

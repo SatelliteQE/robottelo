@@ -18,15 +18,12 @@ class ActivationKey(Base):
     def create(self, name, env, limit=None, description=None,
                content_view=None):
         """Creates new activation key from UI."""
-        self.wait_for_ajax()
         self.click(locators['ak.new'])
 
         if self.wait_until_element(common_locators['name']):
             self.text_field_update(common_locators['name'], name)
-            self.wait_for_ajax()
             if limit:
                 self.set_limit(limit)
-                self.wait_for_ajax()
             if description:
                 self.text_field_update(
                     common_locators['description'], description)
@@ -136,7 +133,7 @@ class ActivationKey(Base):
                 'Could not update the activation key "{0}"'.format(name)
             )
 
-    def delete(self, name, really):
+    def delete(self, name, really=True):
         """Deletes an existing activation key."""
         element = self.search_key(name)
 
@@ -252,8 +249,11 @@ class ActivationKey(Base):
         if element and new_name:
             element.click()
             self.wait_for_ajax()
-            self.edit_entity(locators['ak.copy'],
-                             locators['ak.copy_name'],
-                             new_name, locators['ak.copy_create'])
+            self.edit_entity(
+                locators['ak.copy'],
+                locators['ak.copy_name'],
+                new_name,
+                locators['ak.copy_create'],
+            )
         else:
             raise UIError('Could not copy activation key "{0}"'.format(name))

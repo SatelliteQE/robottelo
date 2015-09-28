@@ -1,8 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-"""
-Implements System Groups UI
-"""
+"""Implements System Groups UI"""
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators
@@ -11,13 +9,10 @@ from robottelo.ui.locators import common_locators, locators
 class SystemGroup(Base):
 
     def create(self, name, description=None, limit=None):
-        """
-        Creates new System Group from UI
-        """
-
+        """Creates new System Group from UI"""
         if self.wait_until_element(locators['system-groups.new']):
             # new
-            self.find_element(locators['system-groups.new']).click()
+            self.click(locators['system-groups.new'])
             self.wait_until_element(locators['system-groups.name'])
             # fill name
             self.field_update('system-groups.name', name)
@@ -26,17 +21,13 @@ class SystemGroup(Base):
                 self.field_update('system-groups.description', description)
             # set limit (unlimited by default)
             if limit:
-                self.find_element(locators['system-groups.unlimited']).click()
+                self.click(locators['system-groups.unlimited'])
                 self.field_update('system-groups.limit', limit)
             # create
-            self.find_element(common_locators['create']).click()
-            self.wait_for_ajax()
+            self.click(common_locators['create'])
 
     def update(self, name, new_name=None, new_description=None, limit=None):
-        """
-        Updates existing System Group from UI
-        """
-
+        """Updates existing System Group from UI"""
         system_group = self.search(name)
         self.wait_for_ajax()
         if system_group:
@@ -56,8 +47,7 @@ class SystemGroup(Base):
                     locators["system-groups.update_description_save"]
                 )
             if limit:  # update limit
-                self.wait_until_element(
-                    locators["system-groups.update_limit"]).click()
+                self.click(locators["system-groups.update_limit"])
                 checkbox = self.wait_until_element(
                     locators["system-groups.update_limit_checkbox"])
                 # uncheck checkbox when needed
@@ -66,30 +56,19 @@ class SystemGroup(Base):
                 self.wait_for_ajax()
                 # update field and save
                 self.field_update("system-groups.update_limit_field", limit)
-                self.wait_until_element(
-                    locators["system-groups.update_limit_save"]).click()
-                self.wait_for_ajax()
+                self.click(locators["system-groups.update_limit_save"])
 
     def remove(self, name):
-        """
-        Removes existing System Group from UI
-        """
-
+        """Removes existing System Group from UI"""
         system_group = self.search(name)
         self.wait_for_ajax()
         if system_group:
             system_group.click()
             self.wait_for_ajax()
-            self.wait_until_element(locators["system-groups.remove"]).click()
-            self.wait_for_ajax()
-            self.wait_until_element(
-                locators["system-groups.confirm_remove"]).click()
-            self.wait_for_ajax()
+            self.click(locators["system-groups.remove"])
+            self.click(locators["system-groups.confirm_remove"])
 
     def search(self, name):
-        """
-        Searches existing System Group from UI
-        """
-
-        return self.search_entity(name, locators['system-groups.search'],
-                                  katello=True)
+        """Searches existing System Group from UI"""
+        return self.search_entity(
+            name, locators['system-groups.search'], katello=True)
