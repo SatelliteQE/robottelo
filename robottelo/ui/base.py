@@ -319,6 +319,7 @@ class Base(object):
         txt_field = self.find_element(locators[loc_string])
         txt_field.clear()
         txt_field.send_keys(newtext)
+        self.wait_for_ajax()
 
     def text_field_update(self, locator, newtext):
         """

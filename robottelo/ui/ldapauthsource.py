@@ -17,18 +17,18 @@ class LdapAuthSource(Base):
         """Create new ldap auth source from UI."""
         if not self.wait_until_element(locators['ldapsource.new']):
             return
-        self.wait_until_element(locators['ldapsource.new']).click()
+        self.click(locators['ldapsource.new'])
         if self.wait_until_element(locators['ldapserver.name']):
             self.field_update('ldapserver.name', name)
             self.field_update('ldapserver.server', server)
             if ldaps:
-                self.wait_until_element(locators['ldapserver.ldaps']).click()
+                self.click(locators['ldapserver.ldaps'])
             if port:
                 self.field_update('ldapserver.port', port)
             Select(
                 self.find_element(locators['ldapserver.server_type'])
             ).select_by_visible_text(server_type)
-        self.wait_until_element(tab_locators['ldapserver.tab_account']).click()
+        self.click(tab_locators['ldapserver.tab_account'])
         if self.wait_until_element(locators['ldapserver.acc_user']) is None:
             raise UINoSuchElementError(u'Could not select the attributes Tab.')
         self.field_update('ldapserver.acc_user', account_user)
@@ -36,14 +36,10 @@ class LdapAuthSource(Base):
         self.field_update('ldapserver.basedn', account_basedn)
         self.field_update('ldapserver.group_basedn', account_grpbasedn)
         if ldap_filter:
-            self.wait_until_element(locators['ldapserver.ldap_filter']).click()
-        self.wait_until_element(
-            locators['ldapserver.otf_register'],
-            otf_register
-        ).click()
-        self.wait_until_element(
-            tab_locators['ldapserver.tab_attributes']
-        ).click()
+            self.click(locators['ldapserver.ldap_filter'])
+        if otf_register:
+            self.click(locators['ldapserver.otf_register'])
+        self.click(tab_locators['ldapserver.tab_attributes'])
         if self.wait_until_element(locators['ldapserver.loginname']) is None:
             raise UINoSuchElementError(u'Could not select the account Tab.')
         self.field_update('ldapserver.loginname', login_name)
@@ -52,10 +48,9 @@ class LdapAuthSource(Base):
         self.field_update('ldapserver.mail', mail)
         if photo:
             self.field_update('ldapserver.photo', photo)
-        self.wait_until_element(common_locators['submit']).click()
-        self.wait_for_ajax()
+        self.click(common_locators['submit'])
 
-    def search(self, name, really=False):
+    def search(self, name):
         """Searches existing ldap auth source from UI."""
         Navigator(self.browser).go_to_ldap_auth()
         strategy1, value1 = locators['ldapserver.ldap_servername']

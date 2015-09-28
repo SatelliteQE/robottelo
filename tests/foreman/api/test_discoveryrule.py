@@ -41,7 +41,7 @@ class DiscoveryRule(APITestCase):
         )
 
     @run_only_on('sat')
-    def test_create_discovery_rule_1(self):
+    def test_create_discovery_rule_basic(self):
         """@Test: Create a new discovery rule.
 
         Set query as (e.g CPU_Count = 1)

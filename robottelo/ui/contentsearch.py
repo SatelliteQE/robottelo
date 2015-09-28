@@ -56,7 +56,7 @@ class ContentSearch(Base):
         strategy, value = locators['contentsearch.autocomplete_field']
         self.wait_until_element((strategy, value % filter_value))
         if auto_complete is not None:
-            self.wait_until_element((strategy, value % auto_complete)).click()
+            self.click((strategy, value % auto_complete))
         self.wait_for_ajax()
         add_button = self.wait_until_element_is_clickable(
             locators['contentsearch.add_{}_filter'.format(self.ft_locator)]

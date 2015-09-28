@@ -26,7 +26,6 @@ class ContentViews(Base):
         self.click(locators['contentviews.content_filters'])
         self.text_field_update(
             locators['contentviews.search_filters'], filter_name)
-        self.wait_for_ajax()
         self.click(locators['contentviews.search_button'])
         strategy, value = locators['contentviews.select_filter_name']
         self.click((strategy, value % filter_name))

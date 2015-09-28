@@ -1,7 +1,7 @@
 """Test class for Active Directory Feature"""
 from ddt import ddt
 from robottelo.config import conf
-from robottelo.constants import LDAP_SERVER_TYPE, LDAP_ATTR
+from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.decorators import data
 from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
@@ -47,7 +47,7 @@ class LDAPAuthSource(UITestCase):
                 account_user=self.ldap_user_name,
                 account_passwd=self.ldap_user_passwd,
                 account_basedn=self.base_dn,
-                account_grpbasedn=self.group_base_dn
+                account_grpbasedn=self.group_base_dn,
             )
             self.assertIsNotNone(self.ldapauthsource.search(server_name))
 
