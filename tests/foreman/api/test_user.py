@@ -13,7 +13,7 @@ from robottelo.test import APITestCase
 
 
 def _user_attrs():
-    """Return an iterable of dicts. Each dict contains user attributes.
+    """Returns a tuple of dicts. Each dict contains user attributes.
 
     Note: Supplying utf8 values for firstname, lastname or login is rejected
     by Satellite
