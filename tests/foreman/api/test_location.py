@@ -1,32 +1,23 @@
+# pylint: disable=too-many-public-methods
 """Unit tests for the ``locations`` paths.
 
 A full API reference for locations can be found here:
 http://theforeman.org/api/apidoc/v2/locations.html
 
 """
-from ddt import ddt
 from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
-from robottelo.decorators import data
+from robottelo.helpers import valid_data_list, invalid_values_list
 from robottelo.test import APITestCase
 
 
-@ddt
 class LocationTestCase(APITestCase):
     """Tests for the ``locations`` path."""
     # TODO Add coverage for media, smart_proxy, realms once they implemented
 
-    @data(
-        gen_string('alphanumeric', randint(1, 246)),
-        gen_string('alpha', randint(1, 246)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 246)),
-        gen_string('numeric', randint(1, 246)),
-        gen_string('utf8', randint(1, 85)),
-    )
-    def test_create_location_with_different_names(self, name):
+    def test_create_loc_diff_names(self):
         """@Test: Create new locations using different inputs as a name
 
         @Assert: Location created successfully and has expected and correct
@@ -35,10 +26,12 @@ class LocationTestCase(APITestCase):
         @Feature: Location
 
         """
-        location = entities.Location(name=name).create()
-        self.assertEqual(location.name, name)
+        for name in valid_data_list():
+            with self.subTest(name):
+                location = entities.Location(name=name).create()
+                self.assertEqual(location.name, name)
 
-    def test_create_location_with_description(self):
+    def test_create_loc_with_desc(self):
         """@Test: Create new location with custom description
 
         @Assert: Location created successfully and has expected and correct
@@ -51,7 +44,7 @@ class LocationTestCase(APITestCase):
         location = entities.Location(description=description).create()
         self.assertEqual(location.description, description)
 
-    def test_create_location_with_user(self):
+    def test_create_loc_with_user(self):
         """@Test: Create new location with assigned user to it
 
         @Assert: Location created successfully and has correct user assigned to
@@ -65,7 +58,7 @@ class LocationTestCase(APITestCase):
         self.assertEqual(location.user[0].id, user.id)
         self.assertEqual(location.user[0].read().login, user.login)
 
-    def test_create_location_with_comp_resource_libvirt(self):
+    def test_create_loc_libvirt_cr(self):
         """@Test: Create new location with Libvirt compute resource assigned to
         it
 
@@ -81,7 +74,7 @@ class LocationTestCase(APITestCase):
         self.assertEqual(
             location.compute_resource[0].read().provider, 'Libvirt')
 
-    def test_create_location_with_comp_resource_docker(self):
+    def test_create_loc_docker_cr(self):
         """@Test: Create new location with Docker compute resource assigned to
         it
 
@@ -97,7 +90,7 @@ class LocationTestCase(APITestCase):
         self.assertEqual(
             location.compute_resource[0].read().provider, 'Docker')
 
-    def test_create_location_with_template(self):
+    def test_create_loc_with_template(self):
         """@Test: Create new location with config template assigned to it
 
         @Assert: Location created successfully and list of config templates
@@ -110,11 +103,11 @@ class LocationTestCase(APITestCase):
         location = entities.Location(config_template=[template]).create()
         self.assertGreaterEqual(len(location.config_template), 1)
         self.assertNotEqual(
-            filter(lambda ct: ct.id == template.id, location.config_template),
+            [ct for ct in location.config_template if ct.id == template.id],
             []
         )
 
-    def test_create_location_with_domain(self):
+    def test_create_loc_with_domain(self):
         """@Test: Create new location with assigned domain to it
 
         @Assert: Location created successfully and has correct and expected
@@ -127,7 +120,7 @@ class LocationTestCase(APITestCase):
         location = entities.Location(domain=[domain]).create()
         self.assertEqual(location.domain[0].id, domain.id)
 
-    def test_create_location_with_subnet(self):
+    def test_create_loc_with_subnet(self):
         """@Test: Create new location with assigned subnet to it
 
         @Assert: Location created successfully and has correct subnet with
@@ -141,7 +134,7 @@ class LocationTestCase(APITestCase):
         self.assertEqual(location.subnet[0].id, subnet.id)
         self.assertEqual(subnet.network, location.subnet[0].read().network)
 
-    def test_create_location_with_environment(self):
+    def test_create_loc_with_env(self):
         """@Test: Create new location with assigned environment to it
 
         @Assert: Location created successfully and has correct and expected
@@ -154,7 +147,7 @@ class LocationTestCase(APITestCase):
         location = entities.Location(environment=[env]).create()
         self.assertEqual(location.environment[0].id, env.id)
 
-    def test_create_location_with_host_group(self):
+    def test_create_loc_with_host_group(self):
         """@Test: Create new location with assigned host group to it
 
         @Assert: Location created successfully and has correct and expected
@@ -167,7 +160,7 @@ class LocationTestCase(APITestCase):
         location = entities.Location(hostgroup=[host_group]).create()
         self.assertEqual(location.hostgroup[0].id, host_group.id)
 
-    def test_create_location_with_organization(self):
+    def test_create_loc_with_org(self):
         """@Test: Create new location with assigned organization to it
 
         @Assert: Location created successfully and has correct organization
@@ -181,7 +174,7 @@ class LocationTestCase(APITestCase):
         self.assertEqual(location.organization[0].id, org.id)
         self.assertEqual(location.organization[0].read().title, org.title)
 
-    def test_create_location_with_multiple_organization(self):
+    def test_create_loc_multiple_org(self):
         """@Test: Basically, verifying that location with multiple entities
         assigned to it can be created in the system. Organizations were chosen
         for that purpose
@@ -214,15 +207,7 @@ class LocationTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             location.read()
 
-    @data(
-        gen_string('alphanumeric', randint(1, 246)),
-        gen_string('alpha', randint(1, 246)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 246)),
-        gen_string('numeric', randint(1, 246)),
-        gen_string('utf8', randint(1, 85)),
-    )
-    def test_update_location_with_new_name(self, new_name):
+    def test_update_loc_name(self):
         """@Test: Update location with new name
 
         @Assert: Location updated successfully and name was changed
@@ -230,19 +215,13 @@ class LocationTestCase(APITestCase):
         @Feature: Location - Update
 
         """
-        location = entities.Location().create()
-        location.name = new_name
-        self.assertEqual(location.update(['name']).name, new_name)
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                location = entities.Location().create()
+                location.name = new_name
+                self.assertEqual(location.update(['name']).name, new_name)
 
-    @data(
-        gen_string('alphanumeric', randint(1, 246)),
-        gen_string('alpha', randint(1, 246)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 246)),
-        gen_string('numeric', randint(1, 246)),
-        gen_string('utf8', randint(1, 85)),
-    )
-    def test_update_location_with_new_description(self, new_description):
+    def test_update_loc_desc(self):
         """@Test: Update location with new description
 
         @Assert: Location updated successfully and description was changed
@@ -250,14 +229,16 @@ class LocationTestCase(APITestCase):
         @Feature: Location - Update
 
         """
-        location = entities.Location().create()
-        location.description = new_description
-        self.assertEqual(
-            location.update(['description']).description,
-            new_description
-        )
+        for new_description in valid_data_list():
+            with self.subTest(new_description):
+                location = entities.Location().create()
+                location.description = new_description
+                self.assertEqual(
+                    location.update(['description']).description,
+                    new_description
+                )
 
-    def test_update_location_with_new_user(self):
+    def test_update_loc_user(self):
         """@Test: Update location with new user
 
         @Assert: Location updated successfully and has correct user assigned
@@ -270,7 +251,7 @@ class LocationTestCase(APITestCase):
         location.user = [new_user]
         self.assertEqual(location.update(['user']).user[0].id, new_user.id)
 
-    def test_update_location_with_new_comp_resource_libvirt(self):
+    def test_update_loc_libvirt_cr(self):
         """@Test: Update location with new Libvirt compute resource
 
         @Assert: Location updated successfully and has correct Libvirt compute
@@ -291,7 +272,7 @@ class LocationTestCase(APITestCase):
         self.assertEqual(
             location.compute_resource[0].read().provider, 'Libvirt')
 
-    def test_update_location_with_new_comp_resource_docker(self):
+    def test_update_loc_docker_cr(self):
         """@Test: Update location with new Docker compute resource
 
         @Assert: Location updated successfully and has correct Docker compute
@@ -312,7 +293,7 @@ class LocationTestCase(APITestCase):
         self.assertEqual(
             location.compute_resource[0].read().provider, 'Docker')
 
-    def test_update_location_with_new_template(self):
+    def test_update_loc_template(self):
         """@Test: Update location with new config template
 
         @Assert: Location updated successfully and has correct config template
@@ -334,7 +315,7 @@ class LocationTestCase(APITestCase):
         ]
         self.assertEqual(len(ct_list), 1)
 
-    def test_update_location_with_new_domain(self):
+    def test_update_loc_domain(self):
         """@Test: Update location with new domain
 
         @Assert: Location updated successfully and has correct domain assigned
@@ -349,7 +330,7 @@ class LocationTestCase(APITestCase):
         location.domain = [domain]
         self.assertEqual(location.update(['domain']).domain[0].id, domain.id)
 
-    def test_update_location_with_new_subnet(self):
+    def test_update_loc_subnet(self):
         """@Test: Update location with new subnet
 
         @Assert: Location updated successfully and has correct subnet assigned
@@ -364,7 +345,7 @@ class LocationTestCase(APITestCase):
         location.subnet = [subnet]
         self.assertEqual(location.update(['subnet']).subnet[0].id, subnet.id)
 
-    def test_update_location_with_new_environment(self):
+    def test_update_loc_env(self):
         """@Test: Update location with new environment
 
         @Assert: Location updated successfully and has correct environment
@@ -383,7 +364,7 @@ class LocationTestCase(APITestCase):
             env.id
         )
 
-    def test_update_location_with_new_host_group(self):
+    def test_update_loc_hostgroup(self):
         """@Test: Update location with new host group
 
         @Assert: Location updated successfully and has correct host group
@@ -402,7 +383,7 @@ class LocationTestCase(APITestCase):
             host_group.id
         )
 
-    def test_update_location_with_new_organization(self):
+    def test_update_loc_org(self):
         """@Test: Update location with new organization
 
         @Assert: Location updated successfully and has correct organization
@@ -421,7 +402,7 @@ class LocationTestCase(APITestCase):
             org.id
         )
 
-    def test_update_location_with_multiple_organizations(self):
+    def test_update_loc_multiple_orgs(self):
         """@Test: Update location with with multiple organizations
 
         @Assert: Location created successfully and has correct organizations
@@ -441,18 +422,7 @@ class LocationTestCase(APITestCase):
             set([org.id for org in location.organization]),
         )
 
-    @data(
-        '',
-        ' ',
-        gen_string('alphanumeric', 300),
-        gen_string('alpha', 300),
-        gen_string('cjk', 300),
-        gen_string('latin1', 300),
-        gen_string('numeric', 300),
-        gen_string('utf8', 300),
-        gen_string('html', 300),
-    )
-    def test_update_location_with_different_names_negative(self, new_name):
+    def test_update_loc_name_negative(self):
         """@Test: Try to update location using invalid names only
 
         @Assert: Location is not updated
@@ -460,12 +430,17 @@ class LocationTestCase(APITestCase):
         @Feature: Location - Update
 
         """
-        location = entities.Location().create()
-        location.name = new_name
-        with self.assertRaises(HTTPError):
-            self.assertNotEqual(location.update(['name']).name, new_name)
+        for new_name in invalid_values_list():
+            with self.subTest(new_name):
+                location = entities.Location().create()
+                location.name = new_name
+                with self.assertRaises(HTTPError):
+                    self.assertNotEqual(
+                        location.update(['name']).name,
+                        new_name
+                    )
 
-    def test_update_location_with_domain_by_id_negative(self):
+    def test_update_loc_domain_negative(self):
         """@Test: Try to update existing location with incorrect domain. Use
         domain id
 
