@@ -8,18 +8,16 @@ tested can be found here: http://theforeman.org/api/apidoc/v2/permissions.html
 import json
 import re
 
-from ddt import ddt
 from fauxfactory import gen_alphanumeric
 from itertools import chain
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.constants import PERMISSIONS
-from robottelo.decorators import data, run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.helpers import get_nailgun_config, get_server_software
 from robottelo.test import APITestCase
 
 
-@ddt
 class PermissionsTestCase(APITestCase):
     """Tests for the ``permissions`` path."""
     @classmethod
@@ -167,7 +165,6 @@ def _permission_name(entity, which_perm):
 
 
 # This class might better belong in module test_multiple_paths.
-@ddt
 class UserRoleTestCase(APITestCase):
     """Give a user various permissions and see if they are enforced."""
 
@@ -204,11 +201,7 @@ class UserRoleTestCase(APITestCase):
         self.user.role = [role]
         self.user = self.user.update(['role'])
 
-    @data(
-        entities.Architecture,
-        entities.Domain,
-    )
-    def test_create(self, entity_cls):
+    def test_create(self):
         """@Test: Check whether the "create_*" role has an effect.
 
         @Assert: A user cannot create an entity when missing the "create_*"
@@ -217,17 +210,17 @@ class UserRoleTestCase(APITestCase):
         @Feature: Role
 
         """
-        with self.assertRaises(HTTPError):
-            entity_cls(self.cfg).create()
-        self.give_user_permission(_permission_name(entity_cls, 'create'))
-        entity_id = entity_cls(self.cfg).create_json()['id']
-        entity_cls(id=entity_id).read()  # As admin user.
+        for entity_cls in (entities.Architecture, entities.Domain):
+            with self.subTest(entity_cls):
+                with self.assertRaises(HTTPError):
+                    entity_cls(self.cfg).create()
+                self.give_user_permission(
+                    _permission_name(entity_cls, 'create')
+                )
+                entity_id = entity_cls(self.cfg).create_json()['id']
+                entity_cls(id=entity_id).read()  # As admin user.
 
-    @data(
-        entities.Architecture,
-        entities.Domain,
-    )
-    def test_read(self, entity_cls):
+    def test_read(self):
         """@Test: Check whether the "view_*" role has an effect.
 
         @Assert: A user cannot read an entity when missing the "view_*" role,
@@ -236,17 +229,15 @@ class UserRoleTestCase(APITestCase):
         @Feature: Role
 
         """
-        entity_id = entity_cls().create().id
-        with self.assertRaises(HTTPError):
-            entity_cls(self.cfg, id=entity_id).read()
-        self.give_user_permission(_permission_name(entity_cls, 'read'))
-        entity_cls(self.cfg, id=entity_id).read()
+        for entity_cls in (entities.Architecture, entities.Domain):
+            with self.subTest(entity_cls):
+                entity_id = entity_cls().create().id
+                with self.assertRaises(HTTPError):
+                    entity_cls(self.cfg, id=entity_id).read()
+                self.give_user_permission(_permission_name(entity_cls, 'read'))
+                entity_cls(self.cfg, id=entity_id).read()
 
-    @data(
-        entities.Architecture,
-        entities.Domain,
-    )
-    def test_delete(self, entity_cls):
+    def test_delete(self):
         """@Test: Check whether the "destroy_*" role has an effect.
 
         @Assert: A user cannot read an entity with missing the "destroy_*"
@@ -255,19 +246,19 @@ class UserRoleTestCase(APITestCase):
         @Feature: Role
 
         """
-        entity = entity_cls().create()
-        with self.assertRaises(HTTPError):
-            entity_cls(self.cfg, id=entity.id).delete()
-        self.give_user_permission(_permission_name(entity_cls, 'delete'))
-        entity_cls(self.cfg, id=entity.id).delete()
-        with self.assertRaises(HTTPError):
-            entity.read()  # As admin user
+        for entity_cls in (entities.Architecture, entities.Domain):
+            with self.subTest(entity_cls):
+                entity = entity_cls().create()
+                with self.assertRaises(HTTPError):
+                    entity_cls(self.cfg, id=entity.id).delete()
+                self.give_user_permission(
+                    _permission_name(entity_cls, 'delete')
+                )
+                entity_cls(self.cfg, id=entity.id).delete()
+                with self.assertRaises(HTTPError):
+                    entity.read()  # As admin user
 
-    @data(
-        entities.Architecture,
-        entities.Domain,
-    )
-    def test_update(self, entity_cls):
+    def test_update(self):
         """@Test: Check whether the "edit_*" role has an effect.
 
         @Assert: A user cannot update an entity when missing the "edit_*" role,
@@ -278,10 +269,19 @@ class UserRoleTestCase(APITestCase):
         NOTE: This method will only work if ``entity`` has a name.
 
         """
-        entity = entity_cls().create()
-        name = entity.get_fields()['name'].gen_value()
-        with self.assertRaises(HTTPError):
-            entity_cls(self.cfg, id=entity.id, name=name).update(['name'])
-        self.give_user_permission(_permission_name(entity_cls, 'update'))
-        # update() calls read() under the hood, which triggers permission error
-        entity_cls(self.cfg, id=entity.id, name=name).update_json(['name'])
+        for entity_cls in (entities.Architecture, entities.Domain):
+            with self.subTest(entity_cls):
+                entity = entity_cls().create()
+                name = entity.get_fields()['name'].gen_value()
+                with self.assertRaises(HTTPError):
+                    entity_cls(self.cfg, id=entity.id, name=name).update(
+                        ['name']
+                    )
+                self.give_user_permission(
+                    _permission_name(entity_cls, 'update')
+                )
+                # update() calls read() under the hood, which triggers
+                # permission error
+                entity_cls(self.cfg, id=entity.id, name=name).update_json(
+                    ['name']
+                )
