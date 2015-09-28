@@ -42,6 +42,7 @@ from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.contentenv import ContentEnvironment
 from robottelo.ui.contentviews import ContentViews
 from robottelo.ui.contentsearch import ContentSearch
+from robottelo.ui.discoveredhosts import DiscoveredHosts
 from robottelo.ui.discoveryrules import DiscoveryRules
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
@@ -210,6 +211,7 @@ class UITestCase(TestCase):
         self.content_views = ContentViews(self.browser)
         self.content_search = ContentSearch(self.browser)
         self.domain = Domain(self.browser)
+        self.discoveredhosts = DiscoveredHosts(self.browser)
         self.discoveryrules = DiscoveryRules(self.browser)
         self.environment = Environment(self.browser)
         self.gpgkey = GPGKey(self.browser)

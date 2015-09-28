@@ -1,31 +1,90 @@
 # -*- encoding: utf-8 -*-
 """Test class for Foreman Discovery"""
+from fauxfactory import gen_string, gen_mac
+from nailgun import entities
+from robottelo.config import conf
 from robottelo.decorators import stubbed
+from robottelo import ssh
 from robottelo.test import UITestCase
+from robottelo.ui.session import Session
+from time import sleep
 
 
 class Discovery(UITestCase):
     """Implements Foreman discovery tests in UI."""
 
-    @stubbed()
-    def test_host_discovery_1(self):
-        """@Test: Discover a host in legacy mode by setting
-        "proxy.type=foreman" in PXE default
+    name = gen_string("alpha")
+    image_path = '/var/lib/libvirt/images/{0}.img'.format(name)
 
-        @Feature: Foreman Discovery
+    def _pxe_boot_host(self, mac):
+        """PXE boot a unknown host"""
+        libvirt_server = 'qemu+tcp://{0}:16509/system'.format(
+            conf.properties['main.server.hostname'])
+        ssh.command('virt-install --hvm --network=bridge:virbr1, --mac={0} '
+                    '--pxe --name {1} --ram=1024 --vcpus=1 --os-type=linux '
+                    '--os-variant=rhel7 --disk path={2},size=10 --connect {3} '
+                    '--noautoconsole'
+                    .format(mac, self.name, self.image_path, libvirt_server))
+        sleep(30)
 
-        @Setup: Provisioning should be configured
+    @classmethod
+    def setUpClass(cls):
+        """Steps to Configure foreman discovery
 
-        @Steps: PXE boot a host/VM
-
-        @Assert: Host should be successfully discovered
-
-        @Status: Manual
+        1. Build PXE default template
+        2. Create Organization/Location
+        3. Update Global parameters to set default org and location for
+        discovered hosts.
+        4. Enable auto_provision flag to perform discovery via discovery rules.
 
         """
+        # Build PXE default template to get default PXE file
+        entities.ConfigTemplate().build_pxe_default()
 
-    @stubbed()
-    def test_host_discovery_2(self):
+        # Create Org and location
+        cls.org = entities.Organization(name=gen_string("alpha")).create()
+        cls.org_name = cls.org.name
+        cls.loc = entities.Location(
+            name=gen_string('alpha'),
+            organization=[cls.org],
+        ).create()
+
+        # Update default org and location params to place discovered host
+        cls.discovery_loc = entities.Setting().search(
+            query={'search': 'name="discovery_location"'})[0]
+        cls.discovery_loc.value = cls.loc.name
+        cls.discovery_loc.update({'value'})
+        cls.discovery_org = entities.Setting().search(
+            query={'search': 'name="discovery_organization"'})[0]
+        cls.discovery_org.value = cls.org.name
+        cls.discovery_org.update({'value'})
+
+        # Enable flag to auto provision discovered hosts via discovery rules
+        cls.discovery_auto = entities.Setting().search(
+            query={'search': 'name="discovery_auto"'})[0]
+        cls.default_discovery_auto = str(cls.discovery_auto.value)
+        cls.discovery_auto.value = 'True'
+        cls.discovery_auto.update({'value'})
+
+        super(Discovery, cls).setUpClass()
+
+    @classmethod
+    def tearDownClass(cls):
+        """Restore default 'discovery_auto' global setting's value"""
+        cls.discovery_auto.value = cls.default_discovery_auto
+        cls.discovery_auto.update({'value'})
+
+        super(Discovery, cls).tearDownClass()
+
+    def tearDown(self):
+        """Delete the pxe host to free the resources"""
+        ssh.command('virsh destroy {0}'.format(self.name))
+        ssh.command('virsh undefine {0}'.format(self.name))
+        ssh.command('virsh vol-delete --pool default {0}'
+                    .format(self.image_path))
+        super(Discovery, self).tearDown()
+
+    def test_host_discovery(self):
         """@Test: Discover a host via proxy by setting "proxy.type=proxy" in
         PXE default
 
@@ -37,9 +96,13 @@ class Discovery(UITestCase):
 
         @Assert: Host should be successfully discovered
 
-        @Status: Manual
-
         """
+        mac = gen_mac(multicast=True, locally=True)
+        hostname = 'mac{0}'.format(mac.replace(':', ""))
+        self._pxe_boot_host(mac)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            self.assertIsNotNone(self.discoveredhosts.search(hostname))
 
     @stubbed()
     def test_host_discovery_facts(self):
@@ -89,7 +152,6 @@ class Discovery(UITestCase):
 
         """
 
-    @stubbed()
     def test_delete_discovered_host_1(self):
         """@Test: Delete the selected discovered host
 
@@ -99,9 +161,13 @@ class Discovery(UITestCase):
 
         @Assert: Selected host should be removed successfully
 
-        @Status: Manual
-
         """
+        mac = gen_mac(multicast=True, locally=True)
+        hostname = 'mac{0}'.format(mac.replace(':', ""))
+        self._pxe_boot_host(mac)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            self.discoveredhosts.delete(hostname)
 
     @stubbed()
     def test_delete_discovered_host_2(self):
@@ -268,61 +334,6 @@ class Discovery(UITestCase):
 
         @Assert: Rule should only be applied to one discovered host and for
         other rule should already be skipped.
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    def test_rule_with_invalid_host_limit(self):
-        """@Test: Create a discovery rule with invalid(-ve/text value) host
-        limit
-
-        @Feature: Foreman Discovery
-
-        @Setup: Host with two CPUs should already be discovered
-
-        @Assert: Validation error should be raised
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    def test_rule_with_invalid_priority(self):
-        """@Test: Create a discovery rule with invalid(text value) priority
-
-        @Feature: Foreman Discovery
-
-        @Setup: Host with two CPUs should already be discovered
-
-        @Assert: Validation error should be raised
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    def test_create_rule_with_long_name(self):
-        """@Test: Create a discovery rule with more than 255 char
-
-        @Feature: Foreman Discovery
-
-        @Setup: Host with two CPUs should already be discovered
-
-        @Assert: Validation error should be raised
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    def test_delete_discovery_rule(self):
-        """@Test: Delete a discovery rule
-
-        @Feature: Foreman Discovery
-
-        @Assert: Rule should be deleted successfully
 
         @Status: Manual
 
