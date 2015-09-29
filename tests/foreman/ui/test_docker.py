@@ -1,8 +1,6 @@
 """Unit tests for the Docker feature."""
-from ddt import ddt
-from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import data, run_only_on, stubbed
+from robottelo.decorators import run_only_on, stubbed
 from robottelo.helpers import (
     get_external_docker_url,
     get_internal_docker_url,
@@ -14,7 +12,6 @@ EXTERNAL_DOCKER_URL = get_external_docker_url()
 INTERNAL_DOCKER_URL = get_internal_docker_url()
 
 
-@ddt
 class DockerTagsTestCase(UITestCase):
     """Tests related to Content > Docker Tags page"""
 
@@ -32,7 +29,6 @@ class DockerTagsTestCase(UITestCase):
         """
 
 
-@ddt
 class DockerRepositoryTestCase(UITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
@@ -47,15 +43,7 @@ class DockerRepositoryTestCase(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_create_one_docker_repo(self, name):
+    def test_create_one_docker_repo(self):
         """@Test: Create one Docker-type repository
 
         @Assert: A repository is created with a Docker image.
@@ -65,6 +53,7 @@ class DockerRepositoryTestCase(UITestCase):
         @Status: Manual
 
         """
+        # Use robottelo.helpers.valid_data_list for random valid strings
 
     @stubbed()
     @run_only_on('sat')
@@ -110,15 +99,7 @@ class DockerRepositoryTestCase(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_update_docker_repo_name(self, new_name):
+    def test_update_docker_repo_name(self):
         """@Test: Create a Docker-type repository and update its name.
 
         @Assert: A repository is created with a Docker image and that its
@@ -129,18 +110,11 @@ class DockerRepositoryTestCase(UITestCase):
         @Status: Manual
 
         """
+        # Use robottelo.helpers.valid_data_list for random valid strings
 
     @stubbed()
     @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_update_docker_repo_upstream_name(self, name):
+    def test_update_docker_repo_upstream_name(self):
         """@Test: Create a Docker-type repository and update its upstream name.
 
         @Assert: A repository is created with a Docker image and that its
@@ -151,18 +125,11 @@ class DockerRepositoryTestCase(UITestCase):
         @Status: Manual
 
         """
+        # Use robottelo.helpers.valid_data_list for random valid strings
 
     @stubbed()
     @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_update_docker_repo_url(self, name):
+    def test_update_docker_repo_url(self):
         """@Test: Create a Docker-type repository and update its URL.
 
         @Assert: A repository is created with a Docker image and that its
@@ -173,18 +140,11 @@ class DockerRepositoryTestCase(UITestCase):
         @Status: Manual
 
         """
+        # Use robottelo.helpers.valid_data_list for random valid strings
 
     @stubbed()
     @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_delete_docker_repo(self, name):
+    def test_delete_docker_repo(self):
         """@Test: Create and delete a Docker-type repository
 
         @Assert: A repository is created with a Docker image and then deleted.
@@ -194,6 +154,7 @@ class DockerRepositoryTestCase(UITestCase):
         @Status: Manual
 
         """
+        # Use robottelo.helpers.valid_data_list for random valid strings
 
     @stubbed()
     @run_only_on('sat')
@@ -211,7 +172,6 @@ class DockerRepositoryTestCase(UITestCase):
         """
 
 
-@ddt
 class DockerContentViewTestCase(UITestCase):
     """Tests specific to using ``Docker`` repositories with Content Views."""
 
@@ -223,15 +183,7 @@ class DockerContentViewTestCase(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_add_docker_repo_to_content_view(self, name):
+    def test_add_docker_repo_to_content_view(self):
         """@Test: Add one Docker-type repository to a non-composite content view
 
         @Assert: A repository is created with a Docker repository and the
@@ -242,6 +194,7 @@ class DockerContentViewTestCase(UITestCase):
         @Status: Manual
 
         """
+        # Use robottelo.helpers.valid_data_list for random valid strings
 
     @stubbed()
     @run_only_on('sat')
@@ -274,15 +227,7 @@ class DockerContentViewTestCase(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_add_docker_repo_to_composite_content_view(self, name):
+    def test_add_docker_repo_to_composite_content_view(self):
         """@Test: Add one Docker-type repository to a composite content view
 
         @Assert: A repository is created with a Docker repository and the
@@ -294,6 +239,7 @@ class DockerContentViewTestCase(UITestCase):
         @Status: Manual
 
         """
+        # Use robottelo.helpers.valid_data_list for random valid strings
 
     @stubbed()
     @run_only_on('sat')
@@ -436,7 +382,6 @@ class DockerContentViewTestCase(UITestCase):
         """
 
 
-@ddt
 class DockerActivationKeyTestCase(UITestCase):
     """Tests specific to adding ``Docker`` repositories to Activation Keys."""
 
@@ -513,7 +458,6 @@ class DockerActivationKeyTestCase(UITestCase):
         """
 
 
-@ddt
 class DockerClientTestCase(UITestCase):
     """Tests specific to using ``Docker`` as a client to pull Docker images from
     a Satellite 6 instance."""
@@ -563,7 +507,6 @@ class DockerClientTestCase(UITestCase):
         """
 
 
-@ddt
 class DockerComputeResourceTestCase(UITestCase):
     """Tests specific to managing Docker-based Compute Resources."""
 
@@ -575,15 +518,7 @@ class DockerComputeResourceTestCase(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_create_internal_docker_compute_resource(self, name):
+    def test_create_internal_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance.
 
@@ -594,6 +529,7 @@ class DockerComputeResourceTestCase(UITestCase):
         @Status: Manual
 
         """
+        # Use robottelo.helpers.valid_data_list for random valid strings
 
     @stubbed()
     @run_only_on('sat')
@@ -627,15 +563,7 @@ class DockerComputeResourceTestCase(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    @data(
-        gen_string('alpha'),
-        gen_string('alphanumeric'),
-        gen_string('numeric'),
-        gen_string('latin1'),
-        gen_string('utf8'),
-        gen_string('html'),
-    )
-    def test_create_external_docker_compute_resource(self, name):
+    def test_create_external_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource using an external
         Docker-enabled system.
 
@@ -646,6 +574,7 @@ class DockerComputeResourceTestCase(UITestCase):
         @Status: Manual
 
         """
+        # Use robottelo.helpers.valid_data_list for random valid strings
 
     @stubbed()
     @run_only_on('sat')
@@ -679,11 +608,7 @@ class DockerComputeResourceTestCase(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    @data(
-        EXTERNAL_DOCKER_URL,
-        INTERNAL_DOCKER_URL,
-    )
-    def test_delete_docker_compute_resource(self, url):
+    def test_delete_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource then delete it.
 
         @Assert: Compute Resource can be created, listed and deleted.
@@ -693,6 +618,8 @@ class DockerComputeResourceTestCase(UITestCase):
         @Status: Manual
 
         """
+        # Use (EXTERNAL_DOCKER_URL, INTERNAL_DOCKER_URL) for random
+        # URL values.
 
 
 class DockerContainersTestCase(UITestCase):
@@ -837,7 +764,6 @@ class DockerContainersTestCase(UITestCase):
         """
 
 
-@ddt
 class DockerRegistriesTestCase(UITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
