@@ -1,5 +1,4 @@
 """Unit tests for the Docker feature."""
-from ddt import ddt
 from fauxfactory import gen_alpha, gen_choice, gen_string, gen_url
 from nailgun import entities
 from random import choice, randint
@@ -21,12 +20,7 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.decorators import (
-    data,
-    run_only_on,
-    skip_if_bug_open,
-    stubbed,
-)
+from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
 from robottelo.helpers import (
     get_external_docker_url,
     get_internal_docker_url,
@@ -64,7 +58,6 @@ def _make_docker_repo(product_id, name=None, upstream_name=None):
     })
 
 
-@ddt
 class DockerImageTestCase(CLITestCase):
     """Tests related to docker image command"""
 
@@ -123,7 +116,6 @@ class DockerImageTestCase(CLITestCase):
 
 
 @run_only_on('sat')
-@ddt
 class DockerRepositoryTestCase(CLITestCase):
     """Tests specific to performing CRUD methods against ``Docker``
     repositories.
@@ -136,8 +128,7 @@ class DockerRepositoryTestCase(CLITestCase):
         super(DockerRepositoryTestCase, cls).setUpClass()
         cls.org_id = make_org()['id']
 
-    @data(*valid_data_list())
-    def test_create_one_docker_repo(self, name):
+    def test_create_one_docker_repo(self):
         """@Test: Create one Docker-type repository
 
         @Assert: A repository is created with a Docker image.
@@ -145,13 +136,16 @@ class DockerRepositoryTestCase(CLITestCase):
         @Feature: Docker
 
         """
-        repo = _make_docker_repo(
-            make_product({'organization-id': self.org_id})['id'],
-            name,
-        )
-        self.assertEqual(repo['name'], name)
-        self.assertEqual(repo['upstream-repository-name'], REPO_UPSTREAM_NAME)
-        self.assertEqual(repo['content-type'], REPO_CONTENT_TYPE)
+        for name in valid_data_list():
+            with self.subTest(name):
+                repo = _make_docker_repo(
+                    make_product({'organization-id': self.org_id})['id'],
+                    name,
+                )
+                self.assertEqual(repo['name'], name)
+                self.assertEqual(
+                    repo['upstream-repository-name'], REPO_UPSTREAM_NAME)
+                self.assertEqual(repo['content-type'], REPO_CONTENT_TYPE)
 
     def test_create_multiple_docker_repo(self):
         """@Test: Create multiple Docker-type repositories
@@ -218,15 +212,7 @@ class DockerRepositoryTestCase(CLITestCase):
         self.assertGreaterEqual(
             int(repo['content-counts']['docker-images']), 1)
 
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_update_docker_repo_name(self, new_name):
+    def test_update_docker_repo_name(self):
         """@Test: Create a Docker-type repository and update its name.
 
         @Assert: A repository is created with a Docker image and that its
@@ -237,15 +223,17 @@ class DockerRepositoryTestCase(CLITestCase):
         """
         repo = _make_docker_repo(
             make_product({'organization-id': self.org_id})['id'])
-        self.assertNotEqual(repo['name'], new_name)
-        result = Repository.update({
-            'id': repo['id'],
-            'new-name': new_name,
-            'url': repo['url'],
-        })
-        self.assertEqual(result.return_code, 0)
-        repo = Repository.info({'id': repo['id']}).stdout
-        self.assertEqual(repo['name'], new_name)
+
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                result = Repository.update({
+                    'id': repo['id'],
+                    'new-name': new_name,
+                    'url': repo['url'],
+                })
+                self.assertEqual(result.return_code, 0)
+                repo = Repository.info({'id': repo['id']}).stdout
+                self.assertEqual(repo['name'], new_name)
 
     def test_update_docker_repo_upstream_name(self):
         """@Test: Create a Docker-type repository and update its upstream name.
@@ -340,7 +328,6 @@ class DockerRepositoryTestCase(CLITestCase):
 
 
 @run_only_on('sat')
-@ddt
 class DockerContentViewTestCase(CLITestCase):
     """Tests specific to using ``Docker`` repositories with Content Views."""
 
@@ -864,7 +851,6 @@ class DockerContentViewTestCase(CLITestCase):
 
 
 @run_only_on('sat')
-@ddt
 class DockerActivationKeyTestCase(CLITestCase):
     """Tests specific to adding ``Docker`` repositories to Activation Keys."""
 
@@ -1098,7 +1084,6 @@ class DockerActivationKeyTestCase(CLITestCase):
             activation_key['content-view'], comp_content_view['name'])
 
 
-@ddt
 class DockerClientTestCase(CLITestCase):
     """Tests specific to using ``Docker`` as a client to pull Docker images
     from a Satellite 6 instance."""
@@ -1149,7 +1134,6 @@ class DockerClientTestCase(CLITestCase):
 
 
 @run_only_on('sat')
-@ddt
 class DockerComputeResourceTestCase(CLITestCase):
     """Tests specific to managing Docker-based Compute Resources."""
 
@@ -1159,8 +1143,7 @@ class DockerComputeResourceTestCase(CLITestCase):
         super(DockerComputeResourceTestCase, cls).setUpClass()
         cls.org = make_org()
 
-    @data(*valid_data_list())
-    def test_create_internal_docker_compute_resource(self, name):
+    def test_create_internal_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance.
 
@@ -1169,20 +1152,18 @@ class DockerComputeResourceTestCase(CLITestCase):
         @Feature: Docker
 
         """
-        compute_resource = make_compute_resource({
-            'name': name,
-            'provider': DOCKER_PROVIDER,
-            'url': INTERNAL_DOCKER_URL,
-        })
-        self.assertEqual(compute_resource['name'], name)
-        self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
-        self.assertEqual(compute_resource['url'], INTERNAL_DOCKER_URL)
+        for name in valid_data_list():
+            with self.subTest(name):
+                compute_resource = make_compute_resource({
+                    'name': name,
+                    'provider': DOCKER_PROVIDER,
+                    'url': INTERNAL_DOCKER_URL,
+                })
+                self.assertEqual(compute_resource['name'], name)
+                self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
+                self.assertEqual(compute_resource['url'], INTERNAL_DOCKER_URL)
 
-    @data(
-        EXTERNAL_DOCKER_URL,
-        INTERNAL_DOCKER_URL,
-    )
-    def test_update_docker_compute_resource(self, url):
+    def test_update_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance then edit its attributes.
 
@@ -1192,27 +1173,25 @@ class DockerComputeResourceTestCase(CLITestCase):
         @Feature: Docker
 
         """
-        compute_resource = make_compute_resource({
-            'provider': DOCKER_PROVIDER,
-            'url': url,
-        })
-        self.assertEqual(compute_resource['url'], url)
-        new_url = gen_url(subdomain=gen_alpha())
-        result = ComputeResource.update({
-            'id': compute_resource['id'],
-            'url': new_url,
-        })
-        self.assertEqual(result.return_code, 0)
-        compute_resource = ComputeResource.info({
-            'id': compute_resource['id'],
-        }).stdout
-        self.assertEqual(compute_resource['url'], new_url)
+        for url in (EXTERNAL_DOCKER_URL, INTERNAL_DOCKER_URL):
+            with self.subTest(url):
+                compute_resource = make_compute_resource({
+                    'provider': DOCKER_PROVIDER,
+                    'url': url,
+                })
+                self.assertEqual(compute_resource['url'], url)
+                new_url = gen_url(subdomain=gen_alpha())
+                result = ComputeResource.update({
+                    'id': compute_resource['id'],
+                    'url': new_url,
+                })
+                self.assertEqual(result.return_code, 0)
+                compute_resource = ComputeResource.info({
+                    'id': compute_resource['id'],
+                }).stdout
+                self.assertEqual(compute_resource['url'], new_url)
 
-    @data(
-        EXTERNAL_DOCKER_URL,
-        INTERNAL_DOCKER_URL,
-    )
-    def test_list_containers_docker_compute_resource(self, url):
+    def test_list_containers_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance then list its running containers.
 
@@ -1222,28 +1201,29 @@ class DockerComputeResourceTestCase(CLITestCase):
         @Feature: Docker
 
         """
-        compute_resource = make_compute_resource({
-            'organization-ids': [self.org['id']],
-            'provider': DOCKER_PROVIDER,
-            'url': url,
-        })
-        self.assertEqual(compute_resource['url'], url)
-        result = DockerContainer.list({
-            'compute-resource-id': compute_resource['id'],
-        })
-        self.assertEqual(len(result.stdout), 0)
-        container = make_container({
-            'compute-resource-id': compute_resource['id'],
-            'organization-ids': [self.org['id']],
-        })
-        result = DockerContainer.list({
-            'compute-resource-id': compute_resource['id'],
-        })
-        self.assertEqual(len(result.stdout), 1)
-        self.assertEqual(result.stdout[0]['name'], container['name'])
+        for url in (EXTERNAL_DOCKER_URL, INTERNAL_DOCKER_URL):
+            with self.subTest(url):
+                compute_resource = make_compute_resource({
+                    'organization-ids': [self.org['id']],
+                    'provider': DOCKER_PROVIDER,
+                    'url': url,
+                })
+                self.assertEqual(compute_resource['url'], url)
+                result = DockerContainer.list({
+                    'compute-resource-id': compute_resource['id'],
+                })
+                self.assertEqual(len(result.stdout), 0)
+                container = make_container({
+                    'compute-resource-id': compute_resource['id'],
+                    'organization-ids': [self.org['id']],
+                })
+                result = DockerContainer.list({
+                    'compute-resource-id': compute_resource['id'],
+                })
+                self.assertEqual(len(result.stdout), 1)
+                self.assertEqual(result.stdout[0]['name'], container['name'])
 
-    @data(*valid_data_list())
-    def test_create_external_docker_compute_resource(self, name):
+    def test_create_external_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource using an external
         Docker-enabled system.
 
@@ -1252,20 +1232,18 @@ class DockerComputeResourceTestCase(CLITestCase):
         @Feature: Docker
 
         """
-        compute_resource = make_compute_resource({
-            'name': name,
-            'provider': DOCKER_PROVIDER,
-            'url': EXTERNAL_DOCKER_URL,
-        })
-        self.assertEqual(compute_resource['name'], name)
-        self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
-        self.assertEqual(compute_resource['url'], EXTERNAL_DOCKER_URL)
+        for name in valid_data_list():
+            with self.subTest(name):
+                compute_resource = make_compute_resource({
+                    'name': name,
+                    'provider': DOCKER_PROVIDER,
+                    'url': EXTERNAL_DOCKER_URL,
+                })
+                self.assertEqual(compute_resource['name'], name)
+                self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
+                self.assertEqual(compute_resource['url'], EXTERNAL_DOCKER_URL)
 
-    @data(
-        EXTERNAL_DOCKER_URL,
-        INTERNAL_DOCKER_URL,
-    )
-    def test_delete_docker_compute_resource(self, url):
+    def test_delete_docker_compute_resource(self):
         """@Test: Create a Docker-based Compute Resource then delete it.
 
         @Assert: Compute Resource can be created, listed and deleted.
@@ -1273,16 +1251,18 @@ class DockerComputeResourceTestCase(CLITestCase):
         @Feature: Docker
 
         """
-        compute_resource = make_compute_resource({
-            'provider': DOCKER_PROVIDER,
-            'url': url,
-        })
-        self.assertEqual(compute_resource['url'], url)
-        self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
-        result = ComputeResource.delete({'id': compute_resource['id']})
-        self.assertEqual(result.return_code, 0)
-        result = ComputeResource.info({'id': compute_resource['id']})
-        self.assertNotEqual(result.return_code, 0)
+        for url in (EXTERNAL_DOCKER_URL, INTERNAL_DOCKER_URL):
+            with self.subTest(url):
+                compute_resource = make_compute_resource({
+                    'provider': DOCKER_PROVIDER,
+                    'url': url,
+                })
+                self.assertEqual(compute_resource['url'], url)
+                self.assertEqual(compute_resource['provider'], DOCKER_PROVIDER)
+                result = ComputeResource.delete({'id': compute_resource['id']})
+                self.assertEqual(result.return_code, 0)
+                result = ComputeResource.info({'id': compute_resource['id']})
+                self.assertNotEqual(result.return_code, 0)
 
 
 class DockerContainersTestCase(CLITestCase):
@@ -1427,7 +1407,6 @@ class DockerContainersTestCase(CLITestCase):
         """
 
 
-@ddt
 class DockerRegistriesTestCase(CLITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
