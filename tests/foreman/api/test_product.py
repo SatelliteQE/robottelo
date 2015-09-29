@@ -5,24 +5,20 @@ A full API reference for products can be found here:
 http://theforeman.org/api/apidoc/v2/products.html
 
 """
-from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
 from random import randint
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import PRDS, REPOSET, VALID_GPG_KEY_FILE
-from robottelo.decorators import data, run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.helpers import read_data_file, generate_strings_list
 from robottelo.test import APITestCase
 
 
-@ddt
-class ProductsTestCase(APITestCase):
-    """Tests for ``katello/api/v2/products``."""
-
-    @run_only_on('sat')
-    @data(
+def valid_name_desc_list():
+    """Returns a tuple with random data for name/description"""
+    return(
         {u'name': gen_string('alphanumeric', randint(1, 255))},
         {u'name': gen_string('alpha', randint(1, 255))},
         {u'name': gen_string('cjk', randint(1, 85))},
@@ -36,7 +32,13 @@ class ProductsTestCase(APITestCase):
         {u'description': gen_string('numeric', randint(1, 255))},
         {u'description': gen_string('utf8', randint(1, 85))},
     )
-    def test_positive_create_1(self, attrs):
+
+
+class ProductsTestCase(APITestCase):
+    """Tests for ``katello/api/v2/products``."""
+
+    @run_only_on('sat')
+    def test_positive_create_1(self):
         """@Test: Create a product and provide a name or description.
 
         @Assert: A product is created with the provided attributes.
@@ -44,9 +46,11 @@ class ProductsTestCase(APITestCase):
         @Feature: Product
 
         """
-        product = entities.Product(**attrs).create()
-        for name, value in attrs.items():
-            self.assertEqual(getattr(product, name), value)
+        for attr in valid_name_desc_list():
+            with self.subTest(attr):
+                product = entities.Product(**attr).create()
+                for name, value in attr.items():
+                    self.assertEqual(getattr(product, name), value)
 
     @run_only_on('sat')
     def test_positive_create_2(self):
@@ -73,7 +77,6 @@ class ProductsTestCase(APITestCase):
 
 
 @run_only_on('sat')
-@ddt
 class ProductUpdateTestCase(APITestCase):
     """Tests for updating a product."""
 
@@ -82,21 +85,7 @@ class ProductUpdateTestCase(APITestCase):
         """Create a product."""
         cls.product = entities.Product().create()
 
-    @data(
-        (u'name', gen_string('alphanumeric', randint(1, 255))),
-        (u'name', gen_string('alpha', randint(1, 255))),
-        (u'name', gen_string('cjk', randint(1, 85))),
-        (u'name', gen_string('latin1', randint(1, 255))),
-        (u'name', gen_string('numeric', randint(1, 255))),
-        (u'name', gen_string('utf8', randint(1, 85))),
-        (u'description', gen_string('alphanumeric', randint(1, 255))),
-        (u'description', gen_string('alpha', randint(1, 255))),
-        (u'description', gen_string('cjk', randint(1, 85))),
-        (u'description', gen_string('latin1', randint(1, 255))),
-        (u'description', gen_string('numeric', randint(1, 255))),
-        (u'description', gen_string('utf8', randint(1, 85))),
-    )
-    def test_positive_update_1(self, attrs):
+    def test_positive_update_1(self):
         """@Test: Update a product with a new name or description.
 
         @Assert: The given attributes are used.
@@ -104,12 +93,16 @@ class ProductUpdateTestCase(APITestCase):
         @Feature: Product
 
         """
-        setattr(self.product, attrs[0], attrs[1])
-        self.product = self.product.update()
-        self.assertEqual(getattr(self.product, attrs[0]), attrs[1])
+        for attrs in valid_name_desc_list():
+            with self.subTest(attrs):
+                setattr(self.product, attrs.keys()[0], attrs.values()[0])
+                self.product = self.product.update()
+                self.assertEqual(
+                    getattr(self.product, attrs.keys()[0]),
+                    attrs.values()[0]
+                )
 
-    @data(*generate_strings_list())
-    def test_positive_update_2(self, new_name):
+    def test_positive_update_2(self):
         """@Test: Rename Product back to original name
 
         @Feature: Product
@@ -117,13 +110,21 @@ class ProductUpdateTestCase(APITestCase):
         @Assert: Product Renamed to original
 
         """
-        old_name = self.product.name
-        # Update new product name
-        self.product.name = new_name
-        self.assertEqual(self.product.name, self.product.update(['name']).name)
-        # Rename product to old name and verify
-        self.product.name = old_name
-        self.assertEqual(self.product.name, self.product.update(['name']).name)
+        for new_name in generate_strings_list():
+            with self.subTest(new_name):
+                old_name = self.product.name
+                # Update new product name
+                self.product.name = new_name
+                self.assertEqual(
+                    self.product.name,
+                    self.product.update(['name']).name
+                )
+                # Rename product to old name and verify
+                self.product.name = old_name
+                self.assertEqual(
+                    self.product.name,
+                    self.product.update(['name']).name
+                )
 
 
 @run_only_on('sat')

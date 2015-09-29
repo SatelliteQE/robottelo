@@ -1,5 +1,4 @@
 """Unit tests for the ``repositories`` paths."""
-from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import client, entities
 from random import randint
@@ -19,7 +18,6 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
-    data,
     run_only_on,
     skip_if_bug_open,
 )
@@ -31,8 +29,6 @@ from robottelo.helpers import (
 from robottelo.test import APITestCase
 
 
-# FIXME: Use unittest2's subTest context manager instead of this and @ddt.data.
-# Only available in Python 3.2 and above.
 def _test_data():
     """Return a tuple of dicts. The dicts can be used to make products."""
     return (
@@ -50,7 +46,18 @@ def _test_data():
     )
 
 
-@ddt
+def _valid_names():
+    """Returns a tuple of valid repo names."""
+    return(
+        gen_string('alpha', 15),
+        gen_string('alphanumeric', 15),
+        gen_string('numeric', 15),
+        gen_string('latin1', 15),
+        gen_string('utf8', 15),
+        gen_string('html', 15),
+    )
+
+
 class RepositoryTestCase(APITestCase):
     """Tests for ``katello/api/v2/repositories``."""
 
@@ -61,8 +68,7 @@ class RepositoryTestCase(APITestCase):
         cls.product = entities.Product(organization=cls.org).create()
 
     @run_only_on('sat')
-    @data(*_test_data())
-    def test_create_attrs(self, attrs):
+    def test_create_attrs(self):
         """@Test: Create a repository and provide valid attributes.
 
         @Assert: A repository is created with the given attributes.
@@ -70,11 +76,16 @@ class RepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        repo = entities.Repository(product=self.product, **attrs).create()
-        repo_attrs = repo.read_json()
-        for name, value in attrs.items():
-            self.assertIn(name, repo_attrs.keys())
-            self.assertEqual(value, repo_attrs[name])
+        for attrs in _test_data():
+            with self.subTest(attrs):
+                repo = entities.Repository(
+                    product=self.product,
+                    **attrs
+                ).create()
+                repo_attrs = repo.read_json()
+                for name, value in attrs.items():
+                    self.assertIn(name, repo_attrs.keys())
+                    self.assertEqual(value, repo_attrs[name])
 
     @run_only_on('sat')
     def test_create_gpgkey(self):
@@ -118,8 +129,7 @@ class RepositoryTestCase(APITestCase):
             self.assertEqual(repo.name, repo1.name)
 
     @run_only_on('sat')
-    @data(*_test_data())
-    def test_delete(self, attrs):
+    def test_delete(self):
         """@Test: Create a repository with attributes ``attrs`` and delete it.
 
         @Assert: The repository cannot be fetched after deletion.
@@ -127,10 +137,15 @@ class RepositoryTestCase(APITestCase):
         @Feature: Repository
 
         """
-        repo = entities.Repository(product=self.product, **attrs).create()
-        repo.delete()
-        with self.assertRaises(HTTPError):
-            repo.read()
+        for attrs in _test_data():
+            with self.subTest(attrs):
+                repo = entities.Repository(
+                    product=self.product,
+                    **attrs
+                ).create()
+                repo.delete()
+                with self.assertRaises(HTTPError):
+                    repo.read()
 
     @run_only_on('sat')
     def test_update_gpgkey(self):
@@ -189,7 +204,6 @@ class RepositoryTestCase(APITestCase):
         self.assertGreaterEqual(repo.read_json()[u'content_counts'][u'rpm'], 1)
 
 
-@ddt
 class RepositoryUpdateTestCase(APITestCase):
     """Tests for updating repositories."""
 
@@ -199,8 +213,7 @@ class RepositoryUpdateTestCase(APITestCase):
         cls.repository = entities.Repository().create()
 
     @run_only_on('sat')
-    @data(*_test_data())
-    def test_update(self, attrs):
+    def test_update(self):
         """@Test: Create a repository and update its attributes.
 
         @Assert: The repository's attributes are updated.
@@ -208,23 +221,26 @@ class RepositoryUpdateTestCase(APITestCase):
         @Feature: Repository
 
         """
-        client.put(
-            self.repository.path(),
-            attrs,
-            auth=get_server_credentials(),
-            verify=False,
-        ).raise_for_status()
-        real_attrs = self.repository.read_json()
-        for name, value in attrs.items():
-            self.assertIn(name, real_attrs.keys())
-            if name == 'content_type':
-                # Cannot update a repository's content type.
-                self.assertEqual(
-                    self.repository.get_fields()['content_type'].default,
-                    real_attrs[name]
-                )
-            else:
-                self.assertEqual(value, real_attrs[name])
+        for attrs in _test_data():
+            with self.subTest(attrs):
+                client.put(
+                    self.repository.path(),
+                    attrs,
+                    auth=get_server_credentials(),
+                    verify=False,
+                ).raise_for_status()
+                real_attrs = self.repository.read_json()
+                for name, value in attrs.items():
+                    self.assertIn(name, real_attrs.keys())
+                    if name == 'content_type':
+                        # Cannot update a repository's content type.
+                        con_type = self.repository.get_fields()['content_type']
+                        self.assertEqual(
+                            con_type.default,
+                            real_attrs[name]
+                        )
+                    else:
+                        self.assertEqual(value, real_attrs[name])
 
 
 class RepositorySyncTestCase(APITestCase):
@@ -253,7 +269,6 @@ class RepositorySyncTestCase(APITestCase):
         entities.Repository(id=repo_id).sync()
 
 
-@ddt
 class DockerRepositoryTestCase(APITestCase):
     """Tests specific to using ``Docker`` repositories."""
 
@@ -263,15 +278,7 @@ class DockerRepositoryTestCase(APITestCase):
         cls.org = entities.Organization().create()
 
     @run_only_on('sat')
-    @data(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-        gen_string('html', 15),
-    )
-    def test_create_docker_repo(self, name):
+    def test_create_docker_repo(self):
         """@Test: Create a Docker-type repository
 
         @Assert: A repository is created with a Docker repository.
@@ -280,17 +287,22 @@ class DockerRepositoryTestCase(APITestCase):
 
         """
         product = entities.Product(organization=self.org).create()
-        repo = entities.Repository(
-            content_type=u'docker',
-            docker_upstream_name=u'busybox',
-            name=name,
-            product=product,
-            url=DOCKER_REGISTRY_HUB,
-        ).create()
-        repo2 = repo.read()
-        self.assertEqual(repo.name, repo2.name)
-        self.assertEqual(repo.docker_upstream_name, repo2.docker_upstream_name)
-        self.assertEqual(repo.content_type, repo2.content_type)
+        for name in _valid_names():
+            with self.subTest(name):
+                repo = entities.Repository(
+                    content_type=u'docker',
+                    docker_upstream_name=u'busybox',
+                    name=name,
+                    product=product,
+                    url=DOCKER_REGISTRY_HUB,
+                ).create()
+                repo2 = repo.read()
+                self.assertEqual(repo.name, repo2.name)
+                self.assertEqual(
+                    repo.docker_upstream_name,
+                    repo2.docker_upstream_name
+                )
+                self.assertEqual(repo.content_type, repo2.content_type)
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1217603)
@@ -321,8 +333,7 @@ class DockerRepositoryTestCase(APITestCase):
             1
         )
 
-    @data('yum', 'docker')
-    def test_update_name(self, content_type):
+    def test_update_name(self):
         """@Test: Update a repository's name.
 
         @Assert: The repository's name is updated.
@@ -333,10 +344,14 @@ class DockerRepositoryTestCase(APITestCase):
         information about the repository (such as its URL) is provided.
 
         """
-        if content_type == 'docker' and bz_bug_is_open(1194476):
-            self.skipTest(1194476)
-        repository = entities.Repository(content_type=content_type).create()
-        name = repository.get_fields()['name'].gen_value()
-        repository.name = name
-        repository = repository.update()
-        self.assertEqual(repository.name, name)
+        for content_type in ('yum', 'docker'):
+            with self.subTest(content_type):
+                if content_type == 'docker' and bz_bug_is_open(1194476):
+                    self.skipTest(1194476)
+                repository = entities.Repository(
+                    content_type=content_type
+                ).create()
+                name = repository.get_fields()['name'].gen_value()
+                repository.name = name
+                repository = repository.update()
+                self.assertEqual(repository.name, name)
