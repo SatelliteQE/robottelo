@@ -10,8 +10,8 @@ When testing email validation [1] and [2] should be taken into consideration.
 
 from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_string
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
-    CLIFactoryError,
     make_location,
     make_org,
     make_role,
@@ -41,15 +41,11 @@ class User(CLITestCase):
         Login,Name,Email
 
         """
-        result = UserObj().list({
+        result = UserObj.list({
             u'search': u'login="{0}"'.format(user['login']),
         })
-        self.assertEqual(
-            result.return_code, 0,
-            'User search - exit code {0}'.format(result.return_code)
-        )
-        self.assertEqual(result.stdout[0]['name'], user['name'])
-        self.assertEqual(result.stdout[0]['email'], user['email'])
+        self.assertEqual(result[0]['name'], user['name'])
+        self.assertEqual(result[0]['email'], user['email'])
 
     # Issues
     def test_bugzilla_1079649_1(self):
@@ -64,19 +60,12 @@ class User(CLITestCase):
         @Assert: User is deleted
 
         """
-
-        try:
-            user = make_user()
-        except CLIFactoryError as err:
-            self.fail(err)
+        user = make_user()
         self.__assert_exists(user)
-        result = UserObj().delete({'login': user['login']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        UserObj.delete({'login': user['login']})
         # make sure user was removed
-        result = UserObj().info({'login': user['login']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.info({'login': user['login']})
 
     def test_bugzilla_1079649_2(self):
         """@Test: Delete a user by it's ID
@@ -92,19 +81,12 @@ class User(CLITestCase):
         @BZ: 1079649
 
         """
-
-        try:
-            user = make_user()
-        except CLIFactoryError as err:
-            self.fail(err)
+        user = make_user()
         self.__assert_exists(user)
-        result = UserObj().delete({'id': user['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        UserObj.delete({'id': user['id']})
         # make sure user was removed
-        result = UserObj().info({'login': user['login']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.info({'login': user['login']})
 
     # CRUD
 
@@ -116,7 +98,7 @@ class User(CLITestCase):
         {'login': gen_string("numeric")},
         {'login': gen_string("alphanumeric", 100)}
     )
-    def test_positive_create_user_1(self, data):
+    def test_positive_create_user_1(self, test_data):
         """@Test: Create User for all variations of Username
 
         @Feature: User - Positive Create
@@ -128,11 +110,8 @@ class User(CLITestCase):
         @Assert: User is created
 
         """
-        try:
-            args = make_user(data)
-        except CLIFactoryError as err:
-            self.fail(err)
-        self.__assert_exists(args)
+        user = make_user(test_data)
+        self.__assert_exists(user)
 
     @data(
         {'firstname': gen_string("latin1")},
@@ -142,7 +121,7 @@ class User(CLITestCase):
         {'firstname': gen_string("numeric")},
         {'firstname': gen_string("alphanumeric", 50)}
     )
-    def test_positive_create_user_2(self, data):
+    def test_positive_create_user_2(self, test_data):
         """@Test: Create User for all variations of First Name
 
         @Feature: User - Positive Create
@@ -154,11 +133,8 @@ class User(CLITestCase):
         @Assert: User is created
 
         """
-        try:
-            args = make_user(data)
-        except CLIFactoryError as err:
-            self.fail(err)
-        self.__assert_exists(args)
+        user = make_user(test_data)
+        self.__assert_exists(user)
 
     @data(
         {'lastname': gen_string("latin1")},
@@ -168,7 +144,7 @@ class User(CLITestCase):
         {'lastname': gen_string("numeric")},
         {'lastname': gen_string("alphanumeric", 50)}
     )
-    def test_positive_create_user_3(self, data):
+    def test_positive_create_user_3(self, test_data):
         """@Test: Create User for all variations of Surname
 
         @Feature: User - Positive Create
@@ -180,11 +156,8 @@ class User(CLITestCase):
         @Assert: User is created
 
         """
-        try:
-            args = make_user(data)
-        except CLIFactoryError as err:
-            self.fail(err)
-        self.__assert_exists(args)
+        user = make_user(test_data)
+        self.__assert_exists(user)
 
     @data(
         u'{0}@example.com'.format(gen_string('alpha')),
@@ -211,10 +184,7 @@ class User(CLITestCase):
         # The email must be escaped because some characters to not fail the
         # parsing of the generated shell command
         escaped_email = email.replace('"', r'\"').replace('`', r'\`')
-        try:
-            user = make_user({'mail': escaped_email})
-        except CLIFactoryError as err:
-            self.fail(err)
+        user = make_user({'mail': escaped_email})
         self.assertEqual(user['email'], email)
 
     @data({'password': gen_string("latin1")},
@@ -223,7 +193,7 @@ class User(CLITestCase):
           {'password': gen_string("alphanumeric")},
           {'password': gen_string("numeric")},
           {'password': gen_string("alphanumeric", 3000)})
-    def test_positive_create_user_5(self, data):
+    def test_positive_create_user_5(self, test_data):
         """@Test: Create User for all variations of Password
 
         @Feature: User - Positive Create
@@ -235,11 +205,8 @@ class User(CLITestCase):
         @Assert: User is created
 
         """
-        try:
-            args = make_user(data)
-        except CLIFactoryError as err:
-            self.fail(err)
-        self.__assert_exists(args)
+        user = make_user(test_data)
+        self.__assert_exists(user)
 
     def test_positive_create_user_6(self):
         """@Test: Create an Admin user
@@ -249,13 +216,9 @@ class User(CLITestCase):
         @Assert: Admin User is created
 
         """
-        try:
-            args = make_user({'admin': '1'})
-        except CLIFactoryError as err:
-            self.fail(err)
-        self.__assert_exists(args)
+        user = make_user({'admin': '1'})
+        self.__assert_exists(user)
 
-    @skip_if_bug_open('bugzilla', 1213426)
     def test_create_user_with_default_location(self):
         """@Test: Check if user with default location can be created
 
@@ -263,21 +226,15 @@ class User(CLITestCase):
 
         @Assert: User is created and has new default location assigned
 
-        @BZ: 1213426
-
         """
-        try:
-            location = make_location()
-            user = make_user({
-                'location-ids': location['id'],
-                'default-location-id': location['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        location = make_location()
+        user = make_user({
+            'default-location-id': location['id'],
+            'location-ids': location['id'],
+        })
         self.assertIn(location['name'], user['locations'])
         self.assertEqual(location['name'], user['default-location'])
 
-    @skip_if_bug_open('bugzilla', 1213426)
     def test_create_user_with_defaut_org(self):
         """@Test: Check if user with default organization can be created
 
@@ -285,17 +242,12 @@ class User(CLITestCase):
 
         @Assert: User is created and has new default organization assigned
 
-        @BZ: 1213426
-
         """
-        try:
-            org = make_org()
-            user = make_user({
-                'organization-ids': org['id'],
-                'default-organization-id': org['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        org = make_org()
+        user = make_user({
+            'default-organization-id': org['id'],
+            'organization-ids': org['id'],
+        })
         self.assertIn(org['name'], user['organizations'])
         self.assertEqual(org['name'], user['default-organization'])
 
@@ -628,15 +580,14 @@ class User(CLITestCase):
 
         """
         options = {
+            'auth-source-id': 1,
             'login': opts['login'],
-            'mail': "root@localhost",
-            'password': gen_string("alpha"),
-            'auth-source-id': 1
+            'mail': 'root@localhost',
+            'password': gen_string('alpha'),
         }
         self.logger.debug(str(options))
-        result = UserObj().create(options)
-        self.assertNotEqual(result.return_code, 0)
-        self.assertTrue(result.stderr)
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.create(options)
 
     @data({'firstname': gen_string("alpha", 51)},
           {'firstname': gen_string("html")})
@@ -652,16 +603,14 @@ class User(CLITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        options = {
-            'login': gen_string("alpha"),
-            'firstname': opts['firstname'],
-            'mail': "root@localhost",
-            'password': gen_string("alpha"),
-            'auth-source-id': 1
-        }
-        result = UserObj().create(options)
-        self.assertNotEqual(result.return_code, 0)
-        self.assertTrue(result.stderr)
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.create({
+                'auth-source-id': 1,
+                'login': gen_string('alpha'),
+                'firstname': opts['firstname'],
+                'mail': 'root@localhost',
+                'password': gen_string('alpha'),
+            })
 
     @data({'lastname': gen_string("alpha", 51)},
           {'lastname': gen_string("html")})
@@ -677,16 +626,14 @@ class User(CLITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        options = {
-            'login': gen_string("alpha"),
-            'lastname': opts['lastname'],
-            'mail': "root@localhost",
-            'password': gen_string("alpha"),
-            'auth-source-id': 1
-        }
-        result = UserObj().create(options)
-        self.assertNotEqual(result.return_code, 0)
-        self.assertTrue(result.stderr)
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.create({
+                'auth-source-id': 1,
+                'login': gen_string('alpha'),
+                'lastname': opts['lastname'],
+                'mail': 'root@localhost',
+                'password': gen_string('alpha'),
+            })
 
     @data(
         'foreman@',
@@ -712,17 +659,15 @@ class User(CLITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        options = {
-            'login': gen_string("alpha"),
-            'firstname': gen_string("alpha"),
-            'lastname': gen_string("alpha"),
-            'mail': email,
-            'password': gen_string("alpha"),
-            'auth-source-id': 1
-        }
-        result = UserObj().create(options)
-        self.assertNotEqual(result.return_code, 0)
-        self.assertTrue(result.stderr)
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.create({
+                'auth-source-id': 1,
+                'firstname': gen_string('alpha'),
+                'lastname': gen_string('alpha'),
+                'login': gen_string('alpha'),
+                'mail': email,
+                'password': gen_string('alpha'),
+            })
 
     @skip_if_bug_open('bugzilla', 1204686)
     def test_bugzilla_1204686(self):
@@ -739,18 +684,15 @@ class User(CLITestCase):
         @BZ: 1204686
 
         """
-        options = {
-            'login': gen_string("alpha"),
-            'firstname': gen_string("alpha"),
-            'lastname': gen_string("alpha"),
-            'mail': '',
-            'password': gen_string("alpha"),
-            'auth-source-id': 1
-        }
-        result = UserObj().create(options)
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreaterThan(len(result.stderr), 0)
-        self.assertIn('Email address is invalid', result.stdout)
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.create({
+                'auth-source-id': 1,
+                'firstname': gen_string('alpha'),
+                'lastname': gen_string('alpha'),
+                'login': gen_string('alpha'),
+                'mail': '',
+                'password': gen_string('alpha'),
+            })
 
     def test_negative_create_user_5(self):
         """@Test: Create User with blank Authorized by
@@ -764,14 +706,12 @@ class User(CLITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        options = {
-            'login': gen_string("alpha"),
-            'mail': "root@localhost",
-            'auth-source-id': ''
-        }
-        result = UserObj().create(options)
-        self.assertNotEqual(result.return_code, 0)
-        self.assertTrue(result.stderr)
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.create({
+                'auth-source-id': '',
+                'login': gen_string('alpha'),
+                'mail': 'root@localhost',
+            })
 
     def test_negative_create_user_6(self):
         """@Test: Create User with blank Authorized by but values in
@@ -786,15 +726,13 @@ class User(CLITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        options = {
-            'login': gen_string("alpha"),
-            'mail': "root@localhost",
-            'password': gen_string("alpha"),
-            'auth-source-id': ''
-        }
-        result = UserObj().create(options)
-        self.assertNotEqual(result.return_code, 0)
-        self.assertTrue(result.stderr)
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.create({
+                'auth-source-id': '',
+                'login': gen_string('alpha'),
+                'mail': 'root@localhost',
+                'password': gen_string('alpha'),
+            })
 
     @data(
         {'firstname': gen_string("latin1")},
@@ -815,29 +753,16 @@ class User(CLITestCase):
         @Assert: User is updated
 
         """
-        try:
-            new_obj = make_user()
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        user = make_user()
         # Update the user name
-        result = UserObj().update({
-            'id': new_obj['id'],
+        UserObj.update({
             'firstname': test_data['firstname'],
+            'id': user['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Fetch the user again
-        result = UserObj().info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        user_name = result.stdout['name'].split(' ')
-        self.assertEqual(
-            user_name[0],
-            test_data['firstname'],
-            "User first name was not updated"
-        )
+        result = UserObj.info({'id': user['id']})
+        user_name = result['name'].split(' ')
+        self.assertEqual(user_name[0], test_data['firstname'])
 
     @data(
         {'login': gen_string("latin1")},
@@ -859,28 +784,15 @@ class User(CLITestCase):
         @Assert: User login is updated
 
         """
-        try:
-            new_obj = make_user()
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        user = make_user()
         # Update the user login
-        result = UserObj().update({
-            'id': new_obj['id'],
+        UserObj.update({
+            'id': user['id'],
             'login': test_data['login'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Fetch the user again
-        result = UserObj().info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['login'],
-            test_data['login'],
-            "User login was not updated"
-        )
+        user = UserObj.info({'id': user['id']})
+        self.assertEqual(user['login'], test_data['login'])
 
     @data(
         {'lastname': gen_string("latin1")},
@@ -901,31 +813,18 @@ class User(CLITestCase):
         @Assert: User is updated
 
         """
-        try:
-            new_obj = make_user()
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        user = make_user()
+        last_name_before = user['name'].split(' ')
         # Update the last name
-        result = UserObj().update({
-            'id': new_obj['id'],
+        UserObj.update({
+            'id': user['id'],
             'lastname': test_data['lastname'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Fetch the user again
-        result = UserObj().info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        user_last_name = result.stdout['name'].split(' ')
-        new_obj_user_last_name = new_obj['name'].split(' ')
-        self.assertNotEqual(user_last_name[1], new_obj_user_last_name[1])
-        self.assertEqual(
-            user_last_name[1],
-            test_data['lastname'],
-            "User last name was not updated"
-        )
+        user = UserObj.info({'id': user['id']})
+        last_name_after = user['name'].split(' ')
+        self.assertNotEqual(last_name_after[1], last_name_before[1])
+        self.assertEqual(last_name_after[1], test_data['lastname'])
 
     @data(
         gen_string("alpha"),
@@ -947,31 +846,18 @@ class User(CLITestCase):
         @Assert: User is updated
 
         """
-        try:
-            new_obj = make_user()
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        user = make_user()
         # Update the mail
         email = '{0}@example.com'.format(test_data)
-        result = UserObj().update({
-            'id': new_obj['id'],
+        UserObj.update({
+            'id': user['id'],
             # escape ` to avoid bash syntax error
             'mail': email.replace('`', r'\`'),
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Fetch the user again
-        result = UserObj().info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertNotEqual(result.stdout['email'], new_obj['email'])
-        self.assertEqual(
-            result.stdout['email'],
-            email,
-            "User Email was not updated"
-        )
+        result = UserObj.info({'id': user['id']})
+        self.assertNotEqual(result['email'], user['email'])
+        self.assertEqual(result['email'], email)
 
     @stubbed()
     def test_positive_update_user_5(self):
@@ -1394,18 +1280,16 @@ class User(CLITestCase):
         @Assert: User is not updated.  Appropriate error shown.
 
         """
-        try:
-            new_user = make_user()
-        except CLIFactoryError as err:
-            self.fail(err)
-        result = UserObj().update({'login': new_user['login'],
-                                   'firstname': opts['firstname']})
-        self.assertTrue(result.stderr)
-        self.assertNotEqual(result.return_code, 0)
+        new_user = make_user()
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.update({
+                'firstname': opts['firstname'],
+                'login': new_user['login'],
+            })
         # check name have not changed
-        updated_user = UserObj().exists(
+        updated_user = UserObj.exists(
             search=('login', new_user['login']))
-        self.assertEqual(updated_user.stdout['name'], new_user['name'])
+        self.assertEqual(updated_user['name'], new_user['name'])
 
     @data({'lastname': gen_string("alpha", 51)},
           {'lastname': gen_string("html")})
@@ -1421,18 +1305,16 @@ class User(CLITestCase):
         @Assert: User is not updated.  Appropriate error shown.
 
         """
-        try:
-            new_user = make_user()
-        except CLIFactoryError as err:
-            self.fail(err)
-        result = UserObj().update({'login': new_user['login'],
-                                   'lastname': opts['lastname']})
-        self.assertTrue(result.stderr)
-        self.assertNotEqual(result.return_code, 0)
+        new_user = make_user()
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.update({
+                'lastname': opts['lastname'],
+                'login': new_user['login'],
+            })
         # check name have not changed
-        updated_user = UserObj().exists(
+        updated_user = UserObj.exists(
             search=('login', new_user['login']))
-        self.assertEqual(updated_user.stdout['name'], new_user['name'])
+        self.assertEqual(updated_user['name'], new_user['name'])
 
     @data(
         'foreman@',
@@ -1459,17 +1341,16 @@ class User(CLITestCase):
         @Assert: User is not updated.  Appropriate error shown.
 
         """
-        try:
-            new_user = make_user()
-        except CLIFactoryError as err:
-            self.fail(err)
-        result = UserObj().update({'login': new_user['login'], 'mail': mail})
-        self.assertTrue(result.stderr)
-        self.assertNotEqual(result.return_code, 0)
+        new_user = make_user()
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.update({
+                'login': new_user['login'],
+                'mail': mail,
+            })
         # check name have not changed
-        updated_user = UserObj().exists(
+        updated_user = UserObj.exists(
             search=('login', new_user['login']))
-        self.assertEqual(updated_user.stdout['email'], new_user['email'])
+        self.assertEqual(updated_user['email'], new_user['email'])
 
     @data(
         {'login': gen_string("latin1")},
@@ -1491,18 +1372,12 @@ class User(CLITestCase):
         @Assert: User is deleted
 
         """
-        try:
-            user = make_user(test_data)
-        except CLIFactoryError as err:
-            self.fail(err)
+        user = make_user(test_data)
         self.__assert_exists(user)
-        result = UserObj().delete({'login': user['login']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        UserObj.delete({'login': user['login']})
         # make sure user was removed
-        result = UserObj().info({'login': user['login']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.info({'login': user['login']})
 
     @data(
         {'login': gen_string("latin1")},
@@ -1525,18 +1400,12 @@ class User(CLITestCase):
 
         """
         test_data.update({'admin': 'true'})
-        try:
-            user = make_user(test_data)
-        except CLIFactoryError as err:
-            self.fail(err)
+        user = make_user(test_data)
         self.__assert_exists(user)
-        result = UserObj().delete({'login': user['login']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        UserObj.delete({'login': user['login']})
         # make sure user was removed
-        result = UserObj().info({'login': user['login']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            UserObj.info({'login': user['login']})
 
     @data({'admin': 'true'},
           {'login': 'admin', 'password': 'changeme'})
@@ -1553,19 +1422,15 @@ class User(CLITestCase):
         """
         login = opts.get('login')
         if login is None:
-            try:
-                login = make_user(opts)['login']
-            except CLIFactoryError as err:
-                self.fail(err)
+            login = make_user(opts)['login']
 
-        user = UserObj()
+        user = UserObj
         user.katello_user = login
         user.katello_passwd = opts.get('password', gen_alphanumeric())
-        result = user.delete({'login': 'admin'})
-        self.assertTrue(result.stderr)
-        self.assertNotEqual(result.return_code, 0)
-        result = UserObj().exists(search=('login', 'admin'))
-        self.assertTrue(result.stdout)
+        with self.assertRaises(CLIReturnCodeError):
+            user.delete({'login': 'admin'})
+        result = UserObj.exists(search=('login', 'admin'))
+        self.assertTrue(result)
 
     @data(
         {'login': gen_string("alpha")},
@@ -1588,22 +1453,22 @@ class User(CLITestCase):
         @Assert: User is listed
 
         """
-        try:
-            user = make_user(test_data)
-        except CLIFactoryError as err:
-            self.fail(err)
+        user = make_user(test_data)
         self.__assert_exists(user)
         result = UserObj.list({
             u'search': u'login = {0}'.format(test_data['login']),
         })
-        self.assertEqual(len(result.stdout), 1)
-        self.assertEqual(len(result.stderr), 0)
+        self.assertEqual(len(result), 1)
         # make sure user is in list result
-        self.assertEqual({
-            'name': user['name'],
-            'login': user['login'],
-            'id': user['id'],
-            'email': user['email']}, result.stdout[0])
+        self.assertEqual(
+            {
+                'email': user['email'],
+                'id': user['id'],
+                'login': user['login'],
+                'name': user['name'],
+            },
+            result[0],
+        )
 
     @data(
         {'firstname': gen_string("latin1")},
@@ -1626,21 +1491,21 @@ class User(CLITestCase):
         @Assert: User is listed
 
         """
-        try:
-            user = make_user(test_data)
-        except CLIFactoryError as err:
-            self.fail(err)
+        user = make_user(test_data)
         self.__assert_exists(user)
         result = UserObj.list({
             u'search': u'firstname = {0}'.format(test_data['firstname']),
         })
-        self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
-        self.assertTrue({
-            'name': user['name'],
-            'login': user['login'],
-            'id': user['id'],
-            'email': user['email']} in result.stdout)
+        self.assertIn(
+            {
+                'email': user['email'],
+                'id': user['id'],
+                'login': user['login'],
+                'name': user['name'],
+            },
+            result,
+        )
 
     @data(
         {'lastname': gen_string("latin1")},
@@ -1663,21 +1528,21 @@ class User(CLITestCase):
         @Assert: User is listed
 
         """
-        try:
-            user = make_user(test_data)
-        except CLIFactoryError as err:
-            self.fail(err)
+        user = make_user(test_data)
         self.__assert_exists(user)
         result = UserObj.list({
             u'search': u'lastname = {0}'.format(test_data['lastname']),
         })
-        self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
-        self.assertTrue({
-            'name': user['name'],
-            'login': user['login'],
-            'id': user['id'],
-            'email': user['email']} in result.stdout)
+        self.assertIn(
+            {
+                'email': user['email'],
+                'id': user['id'],
+                'login': user['login'],
+                'name': user['name'],
+            },
+            result,
+        )
 
     @data(
         {'mail': gen_string("alpha") + "@somemail.com"},
@@ -1700,21 +1565,21 @@ class User(CLITestCase):
         @Assert: User is listed
 
         """
-        try:
-            user = make_user(test_data)
-        except CLIFactoryError as err:
-            self.fail(err)
+        user = make_user(test_data)
         self.__assert_exists(user)
         result = UserObj.list({
             u'search': u'mail = {0}'.format(test_data['mail']),
         })
-        self.assertEqual(len(result.stderr), 0)
         # make sure user is in list result
-        self.assertTrue({
-            'name': user['name'],
-            'login': user['login'],
-            'id': user['id'],
-            'email': user['email']} in result.stdout)
+        self.assertIn(
+            {
+                'email': user['email'],
+                'id': user['id'],
+                'login': user['login'],
+                'name': user['name'],
+            },
+            result,
+        )
 
     @skip_if_bug_open('bugzilla', 1204667)
     @data(
@@ -1736,22 +1601,21 @@ class User(CLITestCase):
         @BZ: 1204667
 
         """
-        try:
-            user = make_user(test_data)
-        except CLIFactoryError as err:
-            self.fail(err)
+        user = make_user(test_data)
         self.__assert_exists(user)
         result = UserObj.list({
             u'search': u'mail = {0}'.format(test_data['mail']),
         })
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(result.return_code, 0)
         # make sure user is in list result
-        self.assertTrue({
-            'name': user['name'],
-            'login': user['login'],
-            'id': user['id'],
-            'email': user['email']} in result.stdout)
+        self.assertIn(
+            {
+                'email': user['email'],
+                'id': user['id'],
+                'login': user['login'],
+                'name': user['name'],
+            },
+            result,
+        )
 
     @stubbed()
     def test_search_user_1(self):
@@ -1985,23 +1849,17 @@ class User(CLITestCase):
         @Assert: No undefined method exception
 
         """
-        try:
-            users = [make_user() for _ in range(4)]
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        users = [make_user() for _ in range(4)]
         # non-existing user info
-        result = UserObj.info({'id': 0})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertNotRegexpMatches(result.stderr, 'undefined method')
-
+        with self.assertRaises(CLIReturnCodeError) as e:
+            UserObj.info({'id': 0})
+        self.assertNotRegexpMatches(e.exception.stderr, 'undefined method')
         # list users
         result = UserObj.list()
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
         for user in users:
-            self.assertNotEqual(str(result.stdout).find(user['login']), -1)
+            self.assertNotEqual(str(result).find(user['login']), -1)
 
+    @skip_if_bug_open('bugzilla', 1138553)
     @data(
         {'name': gen_string("latin1")},
         {'name': gen_string("utf8")},
@@ -2010,7 +1868,7 @@ class User(CLITestCase):
         {'name': gen_string("numeric")},
         {'name': gen_string("alphanumeric", 100)},
     )
-    def test_user_add_role_1(self, data):
+    def test_user_add_role_1(self, test_data):
         """@Test: Add role to User for all variations of role names
 
         @Feature: User - Add role
@@ -2020,26 +1878,20 @@ class User(CLITestCase):
 
         @Assert: Role is added to user
 
-        """
-        try:
-            user = make_user()
-            role = make_role(data)
-        except CLIFactoryError as err:
-            self.fail(err)
-        self.__assert_exists(user)
-        result = UserObj.add_role({
-            'login': user['login'],
-            'role': role['name']
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an error here")
-        result = UserObj.info({'id': user['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an error here")
-        self.assertIn(role['name'], result.stdout['roles'])
+        @BZ: 1138553
 
+        """
+        user = make_user()
+        role = make_role(test_data)
+        self.__assert_exists(user)
+        UserObj.add_role({
+            'login': user['login'],
+            'role': role['name'],
+        })
+        user = UserObj.info({'id': user['id']})
+        self.assertIn(role['name'], user['roles'])
+
+    @skip_if_bug_open('bugzilla', 1138553)
     @data(
         {'name': gen_string("latin1")},
         {'name': gen_string("utf8")},
@@ -2048,7 +1900,7 @@ class User(CLITestCase):
         {'name': gen_string("numeric")},
         {'name': gen_string("alphanumeric", 100)},
     )
-    def test_user_remove_role_1(self, data):
+    def test_user_remove_role_1(self, test_data):
         """@Test: Remove role to User for all variations of role names
 
         @Feature: User - Remove role
@@ -2058,34 +1910,21 @@ class User(CLITestCase):
 
         @Assert: Role is removed
 
+        @BZ: 1138553
+
         """
-        try:
-            user = make_user()
-            role = make_role(data)
-        except CLIFactoryError as err:
-            self.fail(err)
+        user = make_user()
+        role = make_role(test_data)
         self.__assert_exists(user)
-        result = UserObj.add_role({
+        UserObj.add_role({
             'login': user['login'],
-            'role': role['name']
+            'role': role['name'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an error here")
-        result = UserObj.info({'id': user['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an error here")
-        self.assertIn(role['name'], result.stdout['roles'])
-        result = UserObj.remove_role({
+        user = UserObj.info({'id': user['id']})
+        self.assertIn(role['name'], user['roles'])
+        UserObj.remove_role({
             'login': user['login'],
-            'role': role['name']
+            'role': role['name'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an error here")
-        result = UserObj.info({'id': user['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0,
-                         "There should not be an error here")
-        self.assertNotIn(role['name'], result.stdout['roles'])
+        user = UserObj.info({'id': user['id']})
+        self.assertNotIn(role['name'], user['roles'])

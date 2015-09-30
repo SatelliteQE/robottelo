@@ -34,21 +34,17 @@ class TestRepositorySet(CLITestCase):
         valid amount of enabled repositories
 
         """
-        rhel_product_name = 'Red Hat Enterprise Linux Server'
-        rhel_repo_set = (
-            'Red Hat Enterprise Virtualization Agents '
-            'for RHEL 6 Server (RPMs)'
-        )
+        rhel_product_name = PRDS['rhel']
+        rhel_repo_set = REPOSET['rhva6']
 
         # Clone manifest and upload it
         org = make_org()
         manifest = manifests.clone()
         upload_file(manifest, remote_file=manifest)
-        result = Subscription.upload({
+        Subscription.upload({
             u'file': manifest,
             u'organization-id': org['id'],
         })
-        self.assertEqual(result.return_code, 0)
 
         # No repos should be enabled by default
         result = RepositorySet.available_repositories({
@@ -56,21 +52,19 @@ class TestRepositorySet(CLITestCase):
             u'organization-id': org['id'],
             u'product': rhel_product_name,
         })
-        self.assertEqual(result.return_code, 0)
         self.assertEqual(
-            sum(int(repo['enabled'] == u'true') for repo in result.stdout),
+            sum(int(repo['enabled'] == u'true') for repo in result),
             0
         )
 
         # Enable repo from Repository Set
-        result = RepositorySet.enable({
+        RepositorySet.enable({
+            u'basearch': 'x86_64',
             u'name': rhel_repo_set,
             u'organization-id': org['id'],
             u'product': rhel_product_name,
             u'releasever': '6Server',
-            u'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0)
 
         # Only 1 repo should be enabled
         result = RepositorySet.available_repositories({
@@ -78,21 +72,19 @@ class TestRepositorySet(CLITestCase):
             u'organization': org['name'],
             u'product': rhel_product_name,
         })
-        self.assertEqual(result.return_code, 0)
         self.assertEqual(
-            sum(int(repo['enabled'] == u'true') for repo in result.stdout),
+            sum(int(repo['enabled'] == u'true') for repo in result),
             1
         )
 
         # Enable one more repo
-        result = RepositorySet.enable({
+        RepositorySet.enable({
+            u'basearch': 'i386',
             u'name': rhel_repo_set,
             u'organization-id': org['id'],
             u'product': rhel_product_name,
             u'releasever': '6Server',
-            u'basearch': 'i386',
         })
-        self.assertEqual(result.return_code, 0)
 
         # 2 repos should be enabled
         result = RepositorySet.available_repositories({
@@ -100,21 +92,19 @@ class TestRepositorySet(CLITestCase):
             u'organization-label': org['label'],
             u'product': rhel_product_name,
         })
-        self.assertEqual(result.return_code, 0)
         self.assertEqual(
-            sum(int(repo['enabled'] == u'true') for repo in result.stdout),
+            sum(int(repo['enabled'] == u'true') for repo in result),
             2
         )
 
         # Disable one repo
-        result = RepositorySet.disable({
+        RepositorySet.disable({
+            u'basearch': 'i386',
             u'name': rhel_repo_set,
             u'organization-id': org['id'],
             u'product': rhel_product_name,
             u'releasever': '6Server',
-            u'basearch': 'i386',
         })
-        self.assertEqual(result.return_code, 0)
 
         # There should remain only 1 enabled repo
         result = RepositorySet.available_repositories({
@@ -122,21 +112,19 @@ class TestRepositorySet(CLITestCase):
             u'organization-id': org['id'],
             u'product': rhel_product_name,
         })
-        self.assertEqual(result.return_code, 0)
         self.assertEqual(
-            sum(int(repo['enabled'] == u'true') for repo in result.stdout),
+            sum(int(repo['enabled'] == u'true') for repo in result),
             1
         )
 
         # Disable the last enabled repo
-        result = RepositorySet.disable({
+        RepositorySet.disable({
+            u'basearch': 'x86_64',
             u'name': rhel_repo_set,
             u'organization-id': org['id'],
             u'product': rhel_product_name,
             u'releasever': '6Server',
-            u'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0)
 
         # There should be no enabled repos
         result = RepositorySet.available_repositories({
@@ -144,9 +132,8 @@ class TestRepositorySet(CLITestCase):
             u'organization-id': org['id'],
             u'product': rhel_product_name,
         })
-        self.assertEqual(result.return_code, 0)
         self.assertEqual(
-            sum(int(repo['enabled'] == u'true') for repo in result.stdout),
+            sum(int(repo['enabled'] == u'true') for repo in result),
             0
         )
 
@@ -161,29 +148,26 @@ class TestRepositorySet(CLITestCase):
         org = make_org()
         manifest = manifests.clone()
         upload_file(manifest, remote_file=manifest)
-        result = Subscription.upload({
+        Subscription.upload({
             u'file': manifest,
             u'organization-id': org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        result = RepositorySet.enable({
+        RepositorySet.enable({
+            u'basearch': 'x86_64',
             u'name': REPOSET['rhva6'],
             u'organization': org['name'],
             u'product': PRDS['rhel'],
             u'releasever': '6Server',
-            u'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0)
         result = RepositorySet.available_repositories({
             u'name': REPOSET['rhva6'],
             u'organization': org['name'],
             u'product': PRDS['rhel'],
         })
-        self.assertEqual(result.return_code, 0)
         enabled = [
             repo['enabled']
             for repo
-            in result.stdout
+            in result
             if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
         ][0]
         self.assertEqual(enabled, 'true')
@@ -200,29 +184,26 @@ class TestRepositorySet(CLITestCase):
         org = make_org()
         manifest = manifests.clone()
         upload_file(manifest, remote_file=manifest)
-        result = Subscription.upload({
+        Subscription.upload({
             u'file': manifest,
             u'organization-id': org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        result = RepositorySet.enable({
+        RepositorySet.enable({
+            u'basearch': 'x86_64',
             u'name': REPOSET['rhva6'],
             u'organization-label': org['label'],
             u'product': PRDS['rhel'],
             u'releasever': '6Server',
-            u'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0)
         result = RepositorySet.available_repositories({
             u'name': REPOSET['rhva6'],
             u'organization-label': org['label'],
             u'product': PRDS['rhel'],
         })
-        self.assertEqual(result.return_code, 0)
         enabled = [
             repo['enabled']
             for repo
-            in result.stdout
+            in result
             if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
         ][0]
         self.assertEqual(enabled, 'true')
@@ -238,44 +219,42 @@ class TestRepositorySet(CLITestCase):
         org = make_org()
         manifest = manifests.clone()
         upload_file(manifest, remote_file=manifest)
-        result = Subscription.upload({
+        Subscription.upload({
             u'file': manifest,
             u'organization-id': org['id'],
         })
-        self.assertEqual(result.return_code, 0)
         product_id = Product.info({
             u'name': PRDS['rhel'],
             u'organization-id': org['id'],
-        }).stdout['id']
+        })['id']
         reposet_id = RepositorySet.info({
             u'name': REPOSET['rhva6'],
             u'organization-id': org['id'],
             u'product-id': product_id,
-        }).stdout['id']
-        result = RepositorySet.enable({
+        })['id']
+        RepositorySet.enable({
+            u'basearch': 'x86_64',
             u'id': reposet_id,
             u'organization-id': org['id'],
             u'product-id': product_id,
             u'releasever': '6Server',
-            u'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0)
         result = RepositorySet.available_repositories({
             u'id': reposet_id,
             u'organization-id': org['id'],
             u'product-id': product_id,
         })
-        self.assertEqual(result.return_code, 0)
         enabled = [
             repo['enabled']
             for repo
-            in result.stdout
+            in result
             if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
         ][0]
         self.assertEqual(enabled, 'true')
 
     def test_repositoryset_disable_by_name(self):
-        """@Test: Disable repo from reposet by names of reposet, org and product
+        """@Test: Disable repo from reposet by names of reposet, org and
+        product
 
         @Feature: Repository-set
 
@@ -285,37 +264,33 @@ class TestRepositorySet(CLITestCase):
         org = make_org()
         manifest = manifests.clone()
         upload_file(manifest, remote_file=manifest)
-        result = Subscription.upload({
+        Subscription.upload({
             u'file': manifest,
             u'organization-id': org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        result = RepositorySet.enable({
+        RepositorySet.enable({
+            u'basearch': 'x86_64',
             u'name': REPOSET['rhva6'],
             u'organization': org['name'],
             u'product': PRDS['rhel'],
             u'releasever': '6Server',
-            u'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0)
-        result = RepositorySet.disable({
+        RepositorySet.disable({
+            u'basearch': 'x86_64',
             u'name': REPOSET['rhva6'],
             u'organization': org['name'],
             u'product': PRDS['rhel'],
             u'releasever': '6Server',
-            u'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0)
         result = RepositorySet.available_repositories({
             u'name': REPOSET['rhva6'],
             u'organization': org['name'],
             u'product': PRDS['rhel'],
         })
-        self.assertEqual(result.return_code, 0)
         enabled = [
             repo['enabled']
             for repo
-            in result.stdout
+            in result
             if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
         ][0]
         self.assertEqual(enabled, 'false')
@@ -332,37 +307,33 @@ class TestRepositorySet(CLITestCase):
         org = make_org()
         manifest = manifests.clone()
         upload_file(manifest, remote_file=manifest)
-        result = Subscription.upload({
+        Subscription.upload({
             u'file': manifest,
             u'organization-id': org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        result = RepositorySet.enable({
+        RepositorySet.enable({
+            u'basearch': 'x86_64',
             u'name': REPOSET['rhva6'],
             u'organization-label': org['label'],
             u'product': PRDS['rhel'],
             u'releasever': '6Server',
-            u'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0)
-        result = RepositorySet.disable({
+        RepositorySet.disable({
+            u'basearch': 'x86_64',
             u'name': REPOSET['rhva6'],
             u'organization-label': org['label'],
             u'product': PRDS['rhel'],
             u'releasever': '6Server',
-            u'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0)
         result = RepositorySet.available_repositories({
             u'name': REPOSET['rhva6'],
             u'organization-label': org['label'],
             u'product': PRDS['rhel'],
         })
-        self.assertEqual(result.return_code, 0)
         enabled = [
             repo['enabled']
             for repo
-            in result.stdout
+            in result
             if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
         ][0]
         self.assertEqual(enabled, 'false')
@@ -378,46 +349,42 @@ class TestRepositorySet(CLITestCase):
         org = make_org()
         manifest = manifests.clone()
         upload_file(manifest, remote_file=manifest)
-        result = Subscription.upload({
+        Subscription.upload({
             u'file': manifest,
             u'organization-id': org['id'],
         })
-        self.assertEqual(result.return_code, 0)
         product_id = Product.info({
             u'name': PRDS['rhel'],
             u'organization-id': org['id'],
-        }).stdout['id']
+        })['id']
         reposet_id = RepositorySet.info({
             u'name': REPOSET['rhva6'],
             u'organization-id': org['id'],
             u'product-id': product_id,
-        }).stdout['id']
-        result = RepositorySet.enable({
+        })['id']
+        RepositorySet.enable({
+            u'basearch': 'x86_64',
             u'id': reposet_id,
             u'organization-id': org['id'],
             u'product-id': product_id,
             u'releasever': '6Server',
-            u'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0)
-        result = RepositorySet.disable({
+        RepositorySet.disable({
+            u'basearch': 'x86_64',
             u'id': reposet_id,
             u'organization-id': org['id'],
             u'product-id': product_id,
             u'releasever': '6Server',
-            u'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0)
         result = RepositorySet.available_repositories({
             u'id': reposet_id,
             u'organization-id': org['id'],
             u'product-id': product_id,
         })
-        self.assertEqual(result.return_code, 0)
         enabled = [
             repo['enabled']
             for repo
-            in result.stdout
+            in result
             if repo['arch'] == 'x86_64' and repo['release'] == '6Server'
         ][0]
         self.assertEqual(enabled, 'false')

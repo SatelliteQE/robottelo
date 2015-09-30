@@ -5,6 +5,7 @@ import unittest2
 
 from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_string
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -22,7 +23,12 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.subscription import Subscription
-from robottelo.constants import FAKE_0_PUPPET_REPO, NOT_IMPLEMENTED
+from robottelo.constants import (
+    DEFAULT_CV,
+    ENVIRONMENT,
+    FAKE_0_PUPPET_REPO,
+    NOT_IMPLEMENTED,
+)
 from robottelo.decorators import (
     data,
     run_only_on,
@@ -112,23 +118,23 @@ class TestContentView(CLITestCase):
             'RPMs x86_64 6Workstation'
         )
 
-        result = Repository.info({
+        TestContentView.rhel_repo = Repository.info({
             u'name': TestContentView.rhel_repo_name,
+            u'organization-id': self.rhel_content_org['id'],
             u'product': TestContentView.rhel_product_name,
-            u'organization-id': self.rhel_content_org['id']
         })
-        TestContentView.rhel_repo = result.stdout
 
-        result = Repository.synchronize({
-            'name': TestContentView.rhel_repo_name,
-            'organization-id': TestContentView.rhel_content_org['id'],
-            'product': TestContentView.rhel_product_name,
-        })
-        if result.return_code != 0:
+        try:
+            Repository.synchronize({
+                'name': TestContentView.rhel_repo_name,
+                'organization-id': TestContentView.rhel_content_org['id'],
+                'product': TestContentView.rhel_product_name,
+            })
+        except CLIReturnCodeError as e:
             TestContentView.rhel_content_org = None
-            self.fail("Couldn't synchronize repo")
+            self.fail("Couldn't synchronize repo\n{0}".format(e.msg))
 
-    def setUp(self):  # noqa
+    def setUp(self):
         """Tests for content-view via Hammer CLI"""
 
         super(TestContentView, self).setUp()
@@ -158,11 +164,8 @@ class TestContentView(CLITestCase):
         @assert: content views are created
 
         """
-        try:
-            test_data['organization-id'] = make_org(cached=True)['id']
-            content_view = make_content_view(test_data)
-        except CLIFactoryError as err:
-            self.fail(err)
+        test_data['organization-id'] = make_org(cached=True)['id']
+        content_view = make_content_view(test_data)
 
         self.assertEqual(content_view['name'], test_data['name'])
 
@@ -178,11 +181,7 @@ class TestContentView(CLITestCase):
         system handles it gracefully
 
         """
-        try:
-            test_data['organization-id'] = make_org(cached=True)['id']
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        test_data['organization-id'] = make_org(cached=True)['id']
         with self.assertRaises(CLIFactoryError):
             make_content_view(test_data)
 
@@ -196,13 +195,8 @@ class TestContentView(CLITestCase):
         system handles it gracefully
 
         """
-
-        org_name = gen_string("alpha")
-        con_name = gen_string("alpha")
-        result = ContentView.create({'name': con_name,
-                                     'organization-id': org_name})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.create({'organization-id': gen_string('alpha')})
 
     def test_cv_edit(self):
         """@test: edit content views - name, description, etc.
@@ -213,25 +207,17 @@ class TestContentView(CLITestCase):
         updated
 
         """
-        try:
-            con_view = make_content_view({
-                'name': gen_string('utf8'),
-                'organization-id': make_org(cached=True)['id']
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        con_view = make_content_view({
+            'name': gen_string('utf8'),
+            'organization-id': make_org(cached=True)['id'],
+        })
         new_name = gen_string('utf8')
-        result = ContentView.update({
+        ContentView.update({
             'id': con_view['id'],
             'name': new_name,
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({'id': con_view['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['name'], new_name)
+        con_view = ContentView.info({'id': con_view['id']})
+        self.assertEqual(con_view['name'], new_name)
 
     @unittest2.skip(NOT_IMPLEMENTED)
     def test_cv_edit_rh_custom_spin(self):
@@ -261,20 +247,12 @@ class TestContentView(CLITestCase):
         appears in any content view UI updated
 
         """
-        try:
-            con_view = make_content_view({
-                'organization-id': make_org(cached=True)['id']
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        result = ContentView.delete({'id': con_view['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({'id': con_view['id']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        con_view = make_content_view({
+            'organization-id': make_org(cached=True)['id'],
+        })
+        ContentView.delete({'id': con_view['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.info({'id': con_view['id']})
 
     def test_delete_cv_version_name(self):
         """@test: Create content view and publish it. After that try to
@@ -288,31 +266,22 @@ class TestContentView(CLITestCase):
 
         """
         cv = make_content_view({u'organization-id': self.org['id']})
-        result = ContentView.publish({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['versions']), 1)
-        cvv = result.stdout['versions'][0]
-
-        env_id = result.stdout['lifecycle-environments'][0]['id']
-        result = ContentView.remove_from_environment({
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(len(cv['versions']), 1)
+        cvv = cv['versions'][0]
+        env_id = cv['lifecycle-environments'][0]['id']
+        ContentView.remove_from_environment({
             u'id': cv['id'],
             u'lifecycle-environment-id': env_id,
         })
-        self.assertEqual(result.return_code, 0)
-
-        result = ContentView.version_delete({
-            u'organization': self.org['name'],
+        ContentView.version_delete({
             u'content-view': cv['name'],
+            u'organization': self.org['name'],
             u'version': cvv['version'],
         })
-        self.assertEqual(result.return_code, 0)
-
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['versions']), 0)
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(len(cv['versions']), 0)
 
     def test_delete_cv_version_id(self):
         """@test: Create content view and publish it. After that try to
@@ -331,41 +300,32 @@ class TestContentView(CLITestCase):
         new_product = make_product({u'organization-id': new_org['id']})
         new_repo = make_repository({u'product-id': new_product['id']})
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        Repository.synchronize({'id': new_repo['id']})
         # Create new content-view and add repository to view
         new_cv = make_content_view({u'organization-id': new_org['id']})
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
-            u'repository-id': new_repo['id'],
             u'organization-id': new_org['id'],
+            u'repository-id': new_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
         # Publish a version1 of CV
-        result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
+        ContentView.publish({u'id': new_cv['id']})
         # Get the CV info
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['versions']), 1)
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['versions']), 1)
         # Store the associated environment_id
-        env_id = result.stdout['lifecycle-environments'][0]['id']
+        env_id = new_cv['lifecycle-environments'][0]['id']
         # Store the version1 id
-        version1_id = result.stdout['versions'][0]['id']
+        version1_id = new_cv['versions'][0]['id']
         # Remove the CV from selected environment
-        result = ContentView.remove_from_environment({
+        ContentView.remove_from_environment({
             u'id': new_cv['id'],
             u'lifecycle-environment-id': env_id,
         })
-        self.assertEqual(result.return_code, 0)
         # Delete the version
-        result = ContentView.version_delete({u'id': version1_id})
-        self.assertEqual(result.return_code, 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['versions']), 0)
+        ContentView.version_delete({u'id': version1_id})
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['versions']), 0)
 
     def test_delete_cv_version_negative(self):
         """@test: Create content view and publish it. Try to delete content
@@ -378,21 +338,16 @@ class TestContentView(CLITestCase):
 
         """
         cv = make_content_view({u'organization-id': self.org['id']})
-        result = ContentView.publish({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['versions']), 1)
-        cvv = result.stdout['versions'][0]
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(len(cv['versions']), 1)
+        cvv = cv['versions'][0]
         # Try to delete content view version while it is in environment Library
-        result = ContentView.version_delete({u'id': cvv['id']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.version_delete({u'id': cvv['id']})
         # Check that version was not actually removed from the cv
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout['versions']), 1)
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(len(cv['versions']), 1)
 
     def test_remove_cv_environment(self):
         """@Test: Remove content view from lifecycle environment assignment
@@ -405,17 +360,15 @@ class TestContentView(CLITestCase):
         new_org = make_org({u'name': gen_alphanumeric()})
         new_cv = make_content_view({u'organization-id': new_org['id']})
         ContentView.publish({u'id': new_cv['id']})
-        result = ContentView.info({u'id': new_cv['id']})
-        env = result.stdout['lifecycle-environments'][0]
-
-        result = ContentView.remove({
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        env = new_cv['lifecycle-environments'][0]
+        ContentView.remove({
             u'id': new_cv['id'],
             u'environment-ids': env['id'],
             u'organization-id': new_org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(len(result.stdout['lifecycle-environments']), 0)
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['lifecycle-environments']), 0)
 
     def test_remove_cv_env_and_reassign_key(self):
         """Test: Remove content view environment and re-assign activation key
@@ -434,46 +387,43 @@ class TestContentView(CLITestCase):
 
         source_cv = make_content_view({u'organization-id': new_org['id']})
         ContentView.publish({u'id': source_cv['id']})
-        result = ContentView.info({u'id': source_cv['id']})
-        cvv = result.stdout['versions'][0]
-        result = ContentView.version_promote({
+        source_cv = ContentView.info({u'id': source_cv['id']})
+        cvv = source_cv['versions'][0]
+        ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env[0]['id'],
         })
-        self.assertEqual(result.return_code, 0)
 
         destination_cv = make_content_view({u'organization-id': new_org['id']})
         ContentView.publish({u'id': destination_cv['id']})
-        result = ContentView.info({u'id': destination_cv['id']})
-        cvv = result.stdout['versions'][0]
-        result = ContentView.version_promote({
+        destination_cv = ContentView.info({u'id': destination_cv['id']})
+        cvv = destination_cv['versions'][0]
+        ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env[1]['id'],
         })
-        self.assertEqual(result.return_code, 0)
 
         ac_key = make_activation_key({
+            u'content-view-id': source_cv['id'],
+            u'lifecycle-environment-id': env[0]['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': new_org['id'],
-            u'lifecycle-environment-id': env[0]['id'],
-            u'content-view-id': source_cv['id'],
         })
-        result = ContentView.info({u'id': source_cv['id']})
-        self.assertEqual(result.stdout['activation-keys'][0], ac_key['name'])
-        result = ContentView.info({u'id': destination_cv['id']})
-        self.assertEqual(len(result.stdout['activation-keys']), 0)
+        source_cv = ContentView.info({u'id': source_cv['id']})
+        self.assertEqual(source_cv['activation-keys'][0], ac_key['name'])
+        destination_cv = ContentView.info({u'id': destination_cv['id']})
+        self.assertEqual(len(destination_cv['activation-keys']), 0)
 
-        result = ContentView.remove({
+        ContentView.remove({
             u'id': source_cv['id'],
             u'environment-ids': env[0]['id'],
             u'key-content-view-id': destination_cv['id'],
             u'key-environment-id': env[1]['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        result = ContentView.info({u'id': source_cv['id']})
-        self.assertEqual(len(result.stdout['activation-keys']), 0)
-        result = ContentView.info({u'id': destination_cv['id']})
-        self.assertEqual(result.stdout['activation-keys'][0], ac_key['name'])
+        source_cv = ContentView.info({u'id': source_cv['id']})
+        self.assertEqual(len(source_cv['activation-keys']), 0)
+        destination_cv = ContentView.info({u'id': destination_cv['id']})
+        self.assertEqual(destination_cv['activation-keys'][0], ac_key['name'])
 
     def test_remove_cv_env_and_reassign_content_host(self):
         """Test: Remove content view environment and re-assign content host
@@ -492,51 +442,48 @@ class TestContentView(CLITestCase):
 
         source_cv = make_content_view({u'organization-id': new_org['id']})
         ContentView.publish({u'id': source_cv['id']})
-        result = ContentView.info({u'id': source_cv['id']})
-        cvv = result.stdout['versions'][0]
-        result = ContentView.version_promote({
+        source_cv = ContentView.info({u'id': source_cv['id']})
+        cvv = source_cv['versions'][0]
+        ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env[0]['id'],
         })
-        self.assertEqual(result.return_code, 0)
 
         destination_cv = make_content_view({u'organization-id': new_org['id']})
         ContentView.publish({u'id': destination_cv['id']})
-        result = ContentView.info({u'id': destination_cv['id']})
-        cvv = result.stdout['versions'][0]
-        result = ContentView.version_promote({
+        destination_cv = ContentView.info({u'id': destination_cv['id']})
+        cvv = destination_cv['versions'][0]
+        ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env[1]['id'],
         })
-        self.assertEqual(result.return_code, 0)
 
-        result = ContentView.info({u'id': source_cv['id']})
-        self.assertEqual(result.stdout['content-host-count'], '0')
+        source_cv = ContentView.info({u'id': source_cv['id']})
+        self.assertEqual(source_cv['content-host-count'], '0')
 
         make_content_host({
+            u'content-view-id': source_cv['id'],
+            u'lifecycle-environment-id': env[0]['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': new_org['id'],
-            u'lifecycle-environment-id': env[0]['id'],
-            u'content-view-id': source_cv['id'],
         })
 
-        result = ContentView.info({u'id': source_cv['id']})
-        self.assertEqual(result.stdout['content-host-count'], '1')
-        result = ContentView.info({u'id': destination_cv['id']})
-        self.assertEqual(result.stdout['content-host-count'], '0')
+        source_cv = ContentView.info({u'id': source_cv['id']})
+        self.assertEqual(source_cv['content-host-count'], '1')
+        destination_cv = ContentView.info({u'id': destination_cv['id']})
+        self.assertEqual(destination_cv['content-host-count'], '0')
 
-        result = ContentView.remove({
+        ContentView.remove({
+            u'environment-ids': env[0]['id'],
             u'name': source_cv['name'],
             u'organization': new_org['name'],
-            u'environment-ids': env[0]['id'],
             u'system-content-view-id': destination_cv['id'],
             u'system-environment-id': env[1]['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        result = ContentView.info({u'id': source_cv['id']})
-        self.assertEqual(result.stdout['content-host-count'], '0')
-        result = ContentView.info({u'id': destination_cv['id']})
-        self.assertEqual(result.stdout['content-host-count'], '1')
+        source_cv = ContentView.info({u'id': source_cv['id']})
+        self.assertEqual(source_cv['content-host-count'], '0')
+        destination_cv = ContentView.info({u'id': destination_cv['id']})
+        self.assertEqual(destination_cv['content-host-count'], '1')
 
     def test_remove_cv_version(self):
         """@Test: Delete content view version through 'remove' command
@@ -549,23 +496,21 @@ class TestContentView(CLITestCase):
         new_org = make_org({u'name': gen_alphanumeric()})
         new_cv = make_content_view({u'organization-id': new_org['id']})
         ContentView.publish({u'id': new_cv['id']})
-        result = ContentView.info({u'id': new_cv['id']})
-        env = result.stdout['lifecycle-environments'][0]
-        cvv = result.stdout['versions'][0]
-        result = ContentView.remove_from_environment({
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        env = new_cv['lifecycle-environments'][0]
+        cvv = new_cv['versions'][0]
+        ContentView.remove_from_environment({
             u'id': new_cv['id'],
             u'lifecycle-environment-id': env['id'],
         })
-        self.assertEqual(result.return_code, 0)
 
-        result = ContentView.remove({
-            u'id': new_cv['id'],
+        ContentView.remove({
             u'content-view-version-ids': cvv['id'],
+            u'id': new_cv['id'],
             u'organization-id': new_org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(len(result.stdout['versions']), 0)
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['versions']), 0)
 
     def test_cv_composite_create(self):
         # Note: puppet repos cannot/should not be used in this test
@@ -581,64 +526,39 @@ class TestContentView(CLITestCase):
         @assert: Composite content views are created
 
         """
-
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id']})
-
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        try:
-            new_cv = make_content_view({u'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV
-        result = ContentView.add_repository({u'id': new_cv['id'],
-                                             u'repository-id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        # Publish a new version of CV
-        result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0,
-                         "Publishing a new version of CV was not successful")
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        # Let us now store the version1 id
-        version1_id = result.stdout['versions'][0]['id']
-
-        # Create CV
-        try:
-            con_view = make_content_view({
-                'organization-id': self.org['id'],
-                'composite': True
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        # Associate version to composite CV
-        result = ContentView.add_version({
-            u'id': con_view['id'],
-            u'content-view-version-id': version1_id,
+        ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'repository-id': new_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        # Publish a new version of CV
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        # Let us now store the version1 id
+        version1_id = new_cv['versions'][0]['id']
+        # Create CV
+        con_view = make_content_view({
+            'composite': True,
+            'organization-id': self.org['id'],
+        })
+        # Associate version to composite CV
+        ContentView.add_version({
+            u'content-view-version-id': version1_id,
+            u'id': con_view['id'],
+        })
         # Assert whether version was associated to composite CV
-        result = ContentView.info({u'id': con_view['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(result.stdout['components'][0]['id'],
-                         version1_id,
-                         "version was not associated to composite CV")
+        con_view = ContentView.info({u'id': con_view['id']})
+        self.assertEqual(
+            con_view['components'][0]['id'],
+            version1_id,
+            'version was not associated to composite CV',
+        )
 
     # Content Views: Adding products/repos
     # katello content definition add_filter --label=MyView
@@ -660,32 +580,20 @@ class TestContentView(CLITestCase):
         """
         self.create_rhel_content()
         # Create CV
-        try:
-            new_cv = make_content_view({
-                u'organization-id': self.rhel_content_org['id']
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        # Associate repo to CV
-        result = ContentView.add_repository({
-            u'id': new_cv['id'],
-            u'repository-id': TestContentView.rhel_repo['id'],
-            u'organization-id': TestContentView.rhel_content_org['id'],
+        new_cv = make_content_view({
+            u'organization-id': self.rhel_content_org['id']
         })
-
+        # Associate repo to CV
+        ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'organization-id': TestContentView.rhel_content_org['id'],
+            u'repository-id': TestContentView.rhel_repo['id'],
+        })
+        new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(
-            result.return_code, 0,
-            'Repository was not associated to selected CV'
-        )
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['yum-repositories'][0]['name'], self.rhel_repo_name,
-            'Repo was not associated to CV'
+            new_cv['yum-repositories'][0]['name'],
+            self.rhel_repo_name,
+            'Repo was not associated to CV',
         )
 
     def test_associate_view_rh_custom_spin(self):
@@ -702,55 +610,33 @@ class TestContentView(CLITestCase):
         """
         self.create_rhel_content()
         # Create CV
-        try:
-            new_cv = make_content_view({
-                u'organization-id': self.rhel_content_org['id']
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        # Associate repo to CV
-        result = ContentView.add_repository({
-            u'id': new_cv['id'],
-            u'repository-id': TestContentView.rhel_repo['id'],
-            u'organization-id': TestContentView.rhel_content_org['id'],
+        new_cv = make_content_view({
+            u'organization-id': self.rhel_content_org['id']
         })
-
+        # Associate repo to CV
+        ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'organization-id': TestContentView.rhel_content_org['id'],
+            u'repository-id': TestContentView.rhel_repo['id'],
+        })
+        new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(
-            result.return_code, 0,
-            'Repository was not associated to selected CV'
-        )
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['yum-repositories'][0]['name'],
+            new_cv['yum-repositories'][0]['name'],
             TestContentView.rhel_repo_name,
-            'Repo was not associated to CV'
+            'Repo was not associated to CV',
         )
-
         name = gen_string('alphanumeric')
-        result_flt = ContentView.filter_create({
+        ContentView.filter_create({
             'content-view-id': new_cv['id'],
-            'type': 'rpm',
             'inclusion': 'true',
             'name': name,
+            'type': 'rpm',
         })
-        self.assertEqual(result_flt.return_code, 0)
-        self.assertEqual(len(result_flt.stderr), 0)
-
-        result_rl = ContentView.filter_rule_create({
+        ContentView.filter_rule_create({
+            'content-view-filter': name,
             'content-view-id': new_cv['id'],
             'name': 'walgrind',
-            'content-view-filter': name,
         })
-        self.assertEqual(
-            result.return_code, 0,
-            'Filter rule was not created'
-        )
-        self.assertEqual(len(result_rl.stderr), 0)
 
     def test_associate_view_custom_content(self):
         """@test: associate Red Hat content in a view
@@ -762,43 +648,21 @@ class TestContentView(CLITestCase):
         @assert: Custom content can be seen in a view
 
         """
-        try:
-            new_repo = make_repository({u'product-id': self.product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(
-            result.return_code, 0,
-            'Repository was not synchronized'
-        )
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        try:
-            new_cv = make_content_view({u'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
             u'repository-id': new_repo['id'],
         })
+        new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(
-            result.return_code, 0,
-            'Repository was not associated to selected CV'
-        )
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['yum-repositories'][0]['name'],
+            new_cv['yum-repositories'][0]['name'],
             new_repo['name'],
-            'Repo was not associated to CV'
+            'Repo was not associated to CV',
         )
 
     def test_add_custom_repos_with_name(self):
@@ -809,51 +673,29 @@ class TestContentView(CLITestCase):
         @assert: whether repos are added to cv.
 
         """
-        try:
-            new_repo = make_repository({u'product-id': self.product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(
-            result.return_code, 0,
-            'Repository was not synchronized'
-        )
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        try:
-            new_cv = make_content_view({u'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV with names.
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'name': new_cv['name'],
-            u'repository': new_repo['name'],
             u'organization': self.org['name'],
             u'product': self.product['name'],
+            u'repository': new_repo['name'],
         })
+        new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(
-            result.return_code, 0,
-            'Repository was not associated to selected CV'
-        )
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['yum-repositories'][0]['name'],
+            new_cv['yum-repositories'][0]['name'],
             new_repo['name'],
-            'Repo was not associated to CV'
+            'Repo was not associated to CV',
         )
 
     def test_cv_associate_puppet_repo_negative(self):
         # Again, individual modules should be ok.
-        """@test: attempt to associate puppet repos within a custom
-        content view
+        """@test: attempt to associate puppet repos within a custom content
+        view
 
         @feature: Content Views
 
@@ -861,23 +703,18 @@ class TestContentView(CLITestCase):
         that contains direct puppet repos.
 
         """
-        try:
-            new_repo = make_repository({
-                u'product-id': self.product['id'],
-                u'content-type': u'puppet',
-                u'url': FAKE_0_PUPPET_REPO,
-            })
-            new_cv = make_content_view({u'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        # Associate puppet repo to CV
-        result = ContentView.add_repository({
-            u'id': new_cv['id'],
-            u'repository-id': new_repo['id'],
+        new_repo = make_repository({
+            u'content-type': u'puppet',
+            u'product-id': self.product['id'],
+            u'url': FAKE_0_PUPPET_REPO,
         })
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        new_cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate puppet repo to CV
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.add_repository({
+                u'id': new_cv['id'],
+                u'repository-id': new_repo['id'],
+            })
 
     def test_cv_associate_components_composite_negative(self):
         """@test: attempt to associate components in a non-composite
@@ -888,48 +725,28 @@ class TestContentView(CLITestCase):
         @assert: User cannot add components to the view
 
         """
-        try:
-            # Create REPO
-            new_repo = make_repository({u'product-id': self.product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        # Create REPO
+        new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': new_repo['id']})
         # Create component CV
-        try:
-            new_cv = make_content_view({u'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
             u'repository-id': new_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Publish a new version of CV
-        result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        ContentView.publish({u'id': new_cv['id']})
         # Fetch version id
         cv_version = ContentView.version_list({
             u'content-view-id': new_cv['id']
         })
-        self.assertEqual(cv_version.return_code, 0)
-        self.assertEqual(len(cv_version.stderr), 0)
-
         # Create non-composite CV
         with self.assertRaises(CLIFactoryError):
-            result = make_content_view({
+            make_content_view({
+                u'component-ids': cv_version[0]['id'],
                 u'organization-id': self.org['id'],
-                u'component-ids': cv_version.stdout[0]['id'],
             })
 
     def test_cv_associate_composite_dupe_repos_negative(self):
@@ -941,65 +758,35 @@ class TestContentView(CLITestCase):
         @assert: User cannot add repos multiple times to the view
 
         """
-        try:
-            new_repo = make_repository({u'product-id': self.product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(
-            result.return_code, 0,
-            'Repository was not synchronized'
-        )
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        try:
-            new_cv = make_content_view({u'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
             u'repository-id': new_repo['id'],
         })
+        new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(
-            result.return_code, 0,
-            'Repository was not associated to selected CV'
+            new_cv['yum-repositories'][0]['name'],
+            new_repo['name'],
+            'Repo was not associated to CV',
         )
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['yum-repositories'][0]['name'], new_repo['name'],
-            'Repo was not associated to CV'
-        )
-        repos_length = len(result.stdout['yum-repositories'])
-
+        repos_length = len(new_cv['yum-repositories'])
         # Re-associate repo to CV
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
             u'repository-id': new_repo['id'],
         })
+        new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(
-            result.return_code, 0,
-            'Repository was not associated to selected CV'
-        )
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            len(result.stdout['yum-repositories']), repos_length,
-            'No new entry of same repo is expected'
+            len(new_cv['yum-repositories']),
+            repos_length,
+            'No new entry of same repo is expected',
         )
 
-    @skip_if_bug_open('bugzilla', 1162799)
     @skip_if_bug_open('bugzilla', 1222118)
     def test_cv_associate_composite_dupe_modules_negative(self):
         """@test: attempt to associate duplicate puppet module(s) within a
@@ -1009,70 +796,45 @@ class TestContentView(CLITestCase):
 
         @assert: User cannot add modules multiple times to the view
 
-        @bz: 1162799, 1222118
+        @bz: 1222118
 
         """
-        try:
-            repository = make_repository({
-                u'content-type': u'puppet',
-                u'product-id': self.product['id'],
-                u'url': FAKE_0_PUPPET_REPO,
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        repository = make_repository({
+            u'content-type': u'puppet',
+            u'product-id': self.product['id'],
+            u'url': FAKE_0_PUPPET_REPO,
+        })
         # Sync REPO
-        result = Repository.synchronize({'id': repository['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = Repository.info({'id': repository['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        puppet_modules = int(result.stdout['content-counts']['puppet-modules'])
-
+        Repository.synchronize({'id': repository['id']})
+        repository = Repository.info({'id': repository['id']})
+        puppet_modules = int(repository['content-counts']['puppet-modules'])
         # Create CV
-        try:
-            content_view = make_content_view({
-                u'organization-id': self.org['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        content_view = make_content_view({
+            u'organization-id': self.org['id'],
+        })
         # Fetch puppet module
         puppet_result = PuppetModule.list({
             u'repository-id': repository['id'],
             u'per-page': False,
         })
-        self.assertEqual(puppet_result.return_code, 0)
-        self.assertEqual(len(puppet_result.stderr), 0)
-        self.assertEqual(len(puppet_result.stdout), puppet_modules)
-
-        for puppet_module in puppet_result.stdout:
+        self.assertEqual(len(puppet_result), puppet_modules)
+        for puppet_module in puppet_result:
             # Associate puppet module to CV
-            result = ContentView.puppet_module_add({
+            ContentView.puppet_module_add({
                 u'content-view-id': content_view['id'],
                 u'name': puppet_module['name']
             })
-            self.assertEqual(result.return_code, 0)
-            self.assertEqual(len(result.stderr), 0)
-
             # Re-associate same puppet module to CV
-            result = ContentView.puppet_module_add({
-                u'content-view-id': content_view['id'],
-                u'name': puppet_module['name'],
-            })
-            self.assertNotEqual(
-                result.return_code, 0,
-                'An already added puppet module should not be added twice'
-            )
-            self.assertGreater(len(result.stderr), 0)
+            with self.assertRaises(CLIReturnCodeError):
+                ContentView.puppet_module_add({
+                    u'content-view-id': content_view['id'],
+                    u'name': puppet_module['name'],
+                })
 
     # Content View: promotions
     # katello content view promote --label=MyView --env=Dev --org=ACME
     # katello content view promote --view=MyView --env=Staging --org=ACME
 
-    @skip_if_bug_open('bugzilla', 1156629)
     def test_cv_promote_rh(self):
         """@test: attempt to promote a content view containing RH content
 
@@ -1082,59 +844,34 @@ class TestContentView(CLITestCase):
 
         @assert: Content view can be promoted
 
-        @bz: 1156629
-
         """
         self.create_rhel_content()
         # Create CV
-        try:
-            new_cv = make_content_view({
-                u'organization-id': self.rhel_content_org['id']
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_cv = make_content_view({
+            u'organization-id': self.rhel_content_org['id'],
+        })
         # Associate repo to CV
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
-            u'repository-id': self.rhel_repo['id']
+            u'repository-id': self.rhel_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Publish a new version of CV
-        result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code, 0,
-            "Publishing a new version of CV was not successful")
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
         env1 = make_lifecycle_environment({
-            u'organization-id': TestContentView.rhel_content_org['id']
+            u'organization-id': TestContentView.rhel_content_org['id'],
         })
-
         # Promote the Published version of CV to the next env
-        result = ContentView.version_promote({
-            u'id': result.stdout['versions'][0]['id'],
+        ContentView.version_promote({
+            u'id': new_cv['versions'][0]['id'],
             u'to-lifecycle-environment-id': env1['id'],
         })
-        self.assertEqual(result.return_code, 0,
-                         "Promoting a version of CV was not successful")
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        new_cv = ContentView.info({u'id': new_cv['id']})
         environment = {
             'id': env1['id'],
             'name': env1['name'],
         }
-        self.assertIn(environment, result.stdout['lifecycle-environments'])
+        self.assertIn(environment, new_cv['lifecycle-environments'])
 
     @unittest2.skip(NOT_IMPLEMENTED)
     def test_cv_promote_rh_custom_spin(self):
@@ -1151,7 +888,6 @@ class TestContentView(CLITestCase):
 
         """
 
-    @skip_if_bug_open('bugzilla', 1156629)
     def test_cv_promote_custom_content(self):
         """@test: attempt to promote a content view containing custom content
 
@@ -1161,60 +897,32 @@ class TestContentView(CLITestCase):
 
         @assert: Content view can be promoted
 
-        @bz: 1156629
-
         """
-        try:
-            # Create REPO
-            new_repo = make_repository({u'product-id': self.product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        # Create REPO
+        new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        try:
-            new_cv = make_content_view({u'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
             u'repository-id': new_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Publish a new version of CV
-        result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
         # Promote the Published version of CV to the next env
-        result = ContentView.version_promote({
-            u'id': result.stdout['versions'][0]['id'],
+        ContentView.version_promote({
+            u'id': new_cv['versions'][0]['id'],
             u'to-lifecycle-environment-id': self.env1['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertIn(
             {u'id': self.env1['id'], u'name': self.env1['name']},
-            result.stdout['lifecycle-environments'],
+            new_cv['lifecycle-environments'],
         )
 
-    @skip_if_bug_open('bugzilla', 1156629)
     def test_cv_promote_composite(self):
         # Variations:
         # RHEL, custom content (i.e., google repos), puppet modules
@@ -1230,87 +938,46 @@ class TestContentView(CLITestCase):
 
         @assert: Content view can be promoted
 
-        @bz: 1156629
-
         """
-        try:
-            # Create REPO
-            new_repo = make_repository({u'product-id': self.product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        # Create REPO
+        new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        try:
-            new_cv = make_content_view({u'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
             u'repository-id': new_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Publish a new version of CV
-        result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
         # Let us now store the version1 id
-        version1_id = result.stdout['versions'][0]['id']
-
+        version1_id = new_cv['versions'][0]['id']
         # Create CV
-        try:
-            con_view = make_content_view({
-                'organization-id': self.org['id'],
-                'composite': True
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        # Associate version to composite CV
-        result = ContentView.add_version({
-            u'id': con_view['id'],
-            u'content-view-version-id': version1_id,
+        con_view = make_content_view({
+            'composite': True,
+            'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        # Associate version to composite CV
+        ContentView.add_version({
+            u'content-view-version-id': version1_id,
+            u'id': con_view['id'],
+        })
         # Publish a new version of CV
-        result = ContentView.publish({u'id': con_view['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        ContentView.publish({u'id': con_view['id']})
         # As version info is populated after publishing only
-        result = ContentView.info({u'id': con_view['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        con_view = ContentView.info({u'id': con_view['id']})
         # Promote the Published version of CV to the next env
-        result = ContentView.version_promote({
-            u'id': result.stdout['versions'][0]['id'],
+        ContentView.version_promote({
+            u'id': con_view['versions'][0]['id'],
             u'to-lifecycle-environment-id': self.env1['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': con_view['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        con_view = ContentView.info({u'id': con_view['id']})
         self.assertIn(
             {u'id': self.env1['id'], u'name': self.env1['name']},
-            result.stdout['lifecycle-environments'],
+            con_view['lifecycle-environments'],
         )
 
     def test_cv_promote_defaultcv_negative(self):
@@ -1323,28 +990,19 @@ class TestContentView(CLITestCase):
         """
         result = ContentView.list(
             {u'organization-id': self.org['id']},
-            per_page=False
+            per_page=False,
         )
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         content_view = random.choice([
-            cv for cv in result.stdout
-            if cv['name'] == u'Default Organization View'
+            cv for cv in result
+            if cv['name'] == DEFAULT_CV
         ])
-
         # Promote the Default CV to the next env
-        result = ContentView.version_promote({
-            u'id': content_view['content-view-id'],
-            u'to-lifecycle-environment-id': self.env1['id'],
-        })
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(
-            len(result.stderr), 0,
-            'There should be an exception here.'
-        )
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.version_promote({
+                u'id': content_view['content-view-id'],
+                u'to-lifecycle-environment-id': self.env1['id'],
+            })
 
-    @skip_if_bug_open('bugzilla', 1156629)
     def test_cv_promote_badenvironment_negative(self):
         """@test: attempt to promote a content view using an invalid environment
 
@@ -1352,52 +1010,29 @@ class TestContentView(CLITestCase):
 
         @assert: Content views cannot be promoted; handled gracefully
 
-        @BZ: 1156629
-
         """
-        try:
-            # Create REPO
-            new_repo = make_repository({u'product-id': self.product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        # Create REPO
+        new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        try:
-            new_cv = make_content_view({u'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
             u'repository-id': new_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Publish a new version of CV
-        result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
         # Promote the Published version of CV,
         # to the previous env which is Library
-        result = ContentView.version_promote({
-            u'id': result.stdout['versions'][0]['id'],
-            u'to-lifecycle-environment-id': result.stdout[
-                'lifecycle-environments'][0]['id'],
-        })
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.version_promote({
+                u'id': new_cv['versions'][0]['id'],
+                u'to-lifecycle-environment-id': new_cv[
+                    'lifecycle-environments'][0]['id'],
+            })
 
     # Content Views: publish
     # katello content definition publish --label=MyView
@@ -1414,39 +1049,24 @@ class TestContentView(CLITestCase):
         """
         self.create_rhel_content()
         # Create CV
-        try:
-            new_cv = make_content_view({
-                u'organization-id': self.rhel_content_org['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_cv = make_content_view({
+            u'organization-id': self.rhel_content_org['id'],
+        })
         # Associate repo to CV
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
             u'repository-id': TestContentView.rhel_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Publish a new version of CV
-        result = ContentView.publish({u'id': new_cv['id']})
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(
-            result.return_code, 0,
-            'Publishing a new version of CV was not successful'
-        )
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['yum-repositories'][0]['name'],
+            new_cv['yum-repositories'][0]['name'],
             self.rhel_repo['name'],
-            'Repo was not associated to CV'
+            'Repo was not associated to CV',
         )
         self.assertEqual(
-            result.stdout['versions'][0]['version'], u'1.0',
+            new_cv['versions'][0]['version'], u'1.0',
             'Publishing new version of CV was not successful'
         )
 
@@ -1475,48 +1095,28 @@ class TestContentView(CLITestCase):
         @assert: Content view can be published
 
         """
-        try:
-            new_repo = make_repository({u'product-id': self.product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        try:
-            new_cv = make_content_view({u'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
             u'repository-id': new_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Publish a new version of CV
-        result = ContentView.publish({u'id': new_cv['id']})
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(
-            result.return_code, 0,
-            'Publishing a new version of CV was not successful'
-        )
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['yum-repositories'][0]['name'], new_repo['name'],
-            'Repo was not associated to CV'
+            new_cv['yum-repositories'][0]['name'],
+            new_repo['name'],
+            'Repo was not associated to CV',
         )
         self.assertEqual(
-            result.stdout['versions'][0]['version'], u'1.0',
-            'Publishing new version of CV was not successful'
+            new_cv['versions'][0]['version'],
+            u'1.0',
+            'Publishing new version of CV was not successful',
         )
 
     def test_cv_publish_composite(self):
@@ -1533,91 +1133,52 @@ class TestContentView(CLITestCase):
         @assert: Content view can be published
 
         """
-        try:
-            repository = make_repository({u'product-id': self.product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        repository = make_repository({u'product-id': self.product['id']})
         # Sync REPO
-        result = Repository.synchronize({'id': repository['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': repository['id']})
         # Create CV
-        try:
-            content_view = make_content_view({
-                u'organization-id': self.org['id'],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        content_view = make_content_view({
+            u'organization-id': self.org['id'],
+        })
         # Associate repo to CV
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': content_view['id'],
             u'repository-id': repository['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Publish a new version of CV
-        result = ContentView.publish({u'id': content_view['id']})
-        self.assertEqual(
-            result.return_code, 0,
-            'Publishing a new version of CV was not successful'
-        )
-        self.assertEqual(len(result.stderr), 0)
-
-        result = ContentView.info({u'id': content_view['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
         # Let us now store the version1 id
-        version1_id = result.stdout['versions'][0]['id']
-
+        version1_id = content_view['versions'][0]['id']
         # Create composite CV
-        try:
-            composite_cv = make_content_view({
-                'organization-id': self.org['id'],
-                'composite': True
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        # Associate version to composite CV
-        result = ContentView.add_version({
-            u'id': composite_cv['id'],
-            u'content-view-version-id': version1_id,
+        composite_cv = make_content_view({
+            'composite': True,
+            'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        # Associate version to composite CV
+        ContentView.add_version({
+            u'content-view-version-id': version1_id,
+            u'id': composite_cv['id'],
+        })
         # Assert whether version was associated to composite CV
-        result = ContentView.info({u'id': composite_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        composite_cv = ContentView.info({u'id': composite_cv['id']})
         self.assertEqual(
-            result.stdout['components'][0]['id'], version1_id,
-            'version was not associated to composite CV'
+            composite_cv['components'][0]['id'],
+            version1_id,
+            'version was not associated to composite CV',
         )
-
         # Publish a new version of CV
-        result = ContentView.publish({u'id': composite_cv['id']})
-        self.assertEqual(
-            result.return_code, 0,
-            'Publishing a version of composite CV not successful'
-        )
-        self.assertEqual(len(result.stderr), 0)
-
+        ContentView.publish({u'id': composite_cv['id']})
         # Assert whether Version1 was created and exists in Library Env.
-        result = ContentView.info({u'id': composite_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        composite_cv = ContentView.info({u'id': composite_cv['id']})
         self.assertEqual(
-            result.stdout['lifecycle-environments'][0]['name'], u'Library',
-            'version1 does not exist in Library'
+            composite_cv['lifecycle-environments'][0]['name'],
+            ENVIRONMENT,
+            'version1 does not exist in Library',
         )
         self.assertEqual(
-            result.stdout['versions'][0]['version'], u'1.0',
+            composite_cv['versions'][0]['version'],
+            u'1.0',
             'Publishing new version of CV was not successful'
         )
 
@@ -1641,132 +1202,69 @@ class TestContentView(CLITestCase):
         @assert: Content view version is updated intarget environment.
 
         """
-        try:
-            # Create REPO
-            new_repo = make_repository({u'product-id': self.product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        # Create REPO
+        new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        try:
-            new_cv = make_content_view({u'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
             u'repository-id': new_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Publish a version1 of CV
-        result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code, 0,
-            "Publishing version1 of CV was not successful"
-        )
-        self.assertEqual(len(result.stderr), 0)
-
+        ContentView.publish({u'id': new_cv['id']})
         # Only after we publish version1 the info is populated.
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        new_cv = ContentView.info({u'id': new_cv['id']})
         # Let us now store the version1 id
-        version1_id = result.stdout['versions'][0]['id']
-
+        version1_id = new_cv['versions'][0]['id']
         # Actual assert for this test happens HERE
         # Test whether the version1 now belongs to Library
-        result_version = ContentView.version_info({u'id': version1_id})
+        version1 = ContentView.version_info({u'id': version1_id})
         self.assertEqual(
-            result_version.return_code, 0,
-            "ContentView version 1 was not found"
+            version1['lifecycle-environments'][0]['label'],
+            ENVIRONMENT,
+            'Version 1 is not in Library',
         )
-        self.assertEqual(len(result_version.stderr), 0)
-        self.assertEqual(
-            result_version.stdout['lifecycle-environments'][0]['label'],
-            u'Library',
-            'Version 1 is not in Library'
-        )
-
         # Promotion of version1 to Dev env
-        result = ContentView.version_promote({
+        ContentView.version_promote({
             u'id': version1_id,
             u'to-lifecycle-environment-id': self.env1['id'],
         })
-        self.assertEqual(
-            result.return_code, 0,
-            "Promoting version1 of CV was not successful"
-        )
-        self.assertEqual(len(result.stderr), 0)
-
         # The only way to validate whether env has the version is to
         # validate that version has the env.
-        result = ContentView.version_info({u'id': version1_id})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        version1 = ContentView.version_info({u'id': version1_id})
         self.assertEqual(
-            result.stdout['lifecycle-environments'][1]['id'],
+            version1['lifecycle-environments'][1]['id'],
             self.env1['id'],
-            "Promotion of version1 not successful to the env"
+            'Promotion of version1 not successful to the env',
         )
-
         # Now Publish version2 of CV
-        result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code, 0,
-            "Publishing version2 of CV was not successful"
-        )
-        self.assertEqual(len(result.stderr), 0)
-
+        ContentView.publish({u'id': new_cv['id']})
         # Only after we publish version2 the info is populated.
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        new_cv = ContentView.info({u'id': new_cv['id']})
         # Let us now store the version2 id
-        version2_id = result.stdout['versions'][1]['id']
-
+        version2_id = new_cv['versions'][1]['id']
         # Test whether the version2 now belongs to Library
-        result_version = ContentView.version_info({u'id': version2_id})
+        version2 = ContentView.version_info({u'id': version2_id})
         self.assertEqual(
-            result_version.return_code, 0,
-            "ContentView version 2 was not found"
-        )
-        self.assertEqual(len(result_version.stderr), 0)
-        self.assertEqual(
-            result_version.stdout['lifecycle-environments'][0]['label'],
-            u'Library',
+            version2['lifecycle-environments'][0]['label'],
+            ENVIRONMENT,
             'Version 2 not in Library'
         )
-
         # Promotion of version2 to Dev env
-        result = ContentView.version_promote({
+        ContentView.version_promote({
             u'id': version2_id,
             u'to-lifecycle-environment-id': self.env1['id'],
         })
-        self.assertEqual(
-            result.return_code, 0,
-            "Promoting version2 of CV was not successful"
-        )
-        self.assertEqual(len(result.stderr), 0)
-
         # Actual assert for this test happens here.
         # Test whether the version2 now belongs to next env
-        result = ContentView.version_info({u'id': version2_id})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        version2 = ContentView.version_info({u'id': version2_id})
         self.assertEqual(
-            result.stdout['lifecycle-environments'][1]['id'],
+            version2['lifecycle-environments'][1]['id'],
             self.env1['id'],
-            "Promotion of version2 not successful to the env"
+            'Promotion of version2 not successful to the env',
         )
 
     def test_cv_publish_version_changes_in_source_env(self):
@@ -1787,140 +1285,78 @@ class TestContentView(CLITestCase):
         @assert: Content view version is updated in source environment.
 
         """
-        try:
-            # Create REPO
-            new_repo = make_repository({u'product-id': self.product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        # Create REPO
+        new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': new_repo['id']})
         # Create CV
-        try:
-            new_cv = make_content_view({u'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_cv = make_content_view({u'organization-id': self.org['id']})
         # Associate repo to CV
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
             u'repository-id': new_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Publish a version1 of CV
-        result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code, 0,
-            "Publishing version1 of CV was not successful"
-        )
-        self.assertEqual(len(result.stderr), 0)
-
+        ContentView.publish({u'id': new_cv['id']})
         # Only after we publish version1 the info is populated.
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        new_cv = ContentView.info({u'id': new_cv['id']})
         # Let us now store the version1 id
-        version1_id = result.stdout['versions'][0]['id']
-
+        version1_id = new_cv['versions'][0]['id']
         # Test whether the version1 now belongs to Library
-        result_version = ContentView.version_info({u'id': version1_id})
+        version = ContentView.version_info({u'id': version1_id})
         self.assertEqual(
-            result_version.return_code, 0,
-            "ContentView version 1 was not found"
+            version['lifecycle-environments'][0]['label'],
+            ENVIRONMENT,
+            'Version 1 is not in Library',
         )
-        self.assertEqual(len(result_version.stderr), 0)
-        self.assertEqual(
-            result_version.stdout['lifecycle-environments'][0]['label'],
-            u'Library',
-            'Version 1 is not in Library'
-        )
-
         # Promotion of version1 to Dev env
-        result = ContentView.version_promote({
+        ContentView.version_promote({
             u'id': version1_id,
             u'to-lifecycle-environment-id': self.env1['id'],
         })
-        self.assertEqual(
-            result.return_code, 0,
-            "Promoting version1 of CV was not successful"
-        )
-        self.assertEqual(len(result.stderr), 0)
-
         # The only way to validate whether env has the version is to
         # validate that version has the env.
         # Test whether the version1 now belongs to next env
-        result = ContentView.version_info({u'id': version1_id})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        version1 = ContentView.version_info({u'id': version1_id})
         self.assertEqual(
-            result.stdout['lifecycle-environments'][1]['id'],
+            version1['lifecycle-environments'][1]['id'],
             self.env1['id'],
-            "Promotion of version1 not successful to the env"
+            'Promotion of version1 not successful to the env',
         )
-
         # Now Publish version2 of CV
-        result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code, 0,
-            "Publishing version2 of CV was not successful"
-        )
-        self.assertEqual(len(result.stderr), 0)
-
+        ContentView.publish({u'id': new_cv['id']})
         # As per Dev Notes:
         # Similarly when I publish version y, version x goes away from Library.
         # Actual assert for this test happens here.
         # Test that version1 doesnot exist in Library after publishing version2
-        result = ContentView.version_info({u'id': version1_id})
+        version1 = ContentView.version_info({u'id': version1_id})
         self.assertEqual(
-            result.return_code, 0, "ContentView version 1 was not found"
-        )
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            len(result.stdout['lifecycle-environments']), 1,
-            "Version1 may still exist in Library"
+            len(version1['lifecycle-environments']),
+            1,
+            'Version1 may still exist in Library',
         )
         self.assertNotEqual(
-            result.stdout['lifecycle-environments'][0]['label'],
-            u'Library',
-            'Version1 still exists in Library'
+            version1['lifecycle-environments'][0]['label'],
+            ENVIRONMENT,
+            'Version1 still exists in Library',
         )
-
         # Only after we publish version2 the info is populated.
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(
-            result.return_code, 0, "ContentView version 2 was not found"
-        )
-        self.assertEqual(len(result.stderr), 0)
-
+        new_cv = ContentView.info({u'id': new_cv['id']})
         # Let us now store the version2 id
-        version2_id = result.stdout['versions'][1]['id']
-
+        version2_id = new_cv['versions'][1]['id']
         # Promotion of version2 to next env
-        result = ContentView.version_promote({
+        ContentView.version_promote({
             u'id': version2_id,
             u'to-lifecycle-environment-id': self.env1['id'],
         })
-        self.assertEqual(
-            result.return_code, 0,
-            "Promoting version2 of CV was not successful"
-        )
-        self.assertEqual(len(result.stderr), 0)
-
         # Actual assert for this test happens here.
         # Test that version1 doesnot exist in any/next env after,
         # promoting version2 to next env
-        result = ContentView.version_info({u'id': version1_id})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
+        version1 = ContentView.version_info({u'id': version1_id})
         self.assertEqual(
-            len(result.stdout['lifecycle-environments']), 0,
-            "version1 still exists in the next env"
+            len(version1['lifecycle-environments']),
+            0,
+            'version1 still exists in the next env',
         )
 
     def test_cv_subscribe_system(self):
@@ -1934,30 +1370,23 @@ class TestContentView(CLITestCase):
         new_org = make_org()
         env = make_lifecycle_environment({u'organization-id': new_org['id']})
         cv = make_content_view({u'organization-id': new_org['id']})
-        result = ContentView.publish({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        cvv = result.stdout['versions'][0]
-        result = ContentView.version_promote({
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        cvv = cv['versions'][0]
+        ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env['id'],
         })
-        self.assertEqual(result.return_code, 0)
-
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['content-host-count'], '0')
-
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(cv['content-host-count'], '0')
         make_content_host({
+            u'content-view-id': cv['id'],
+            u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': new_org['id'],
-            u'lifecycle-environment-id': env['id'],
-            u'content-view-id': cv['id'],
         })
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['content-host-count'], '1')
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(cv['content-host-count'], '1')
 
     def test_cv_subscribe_system_rh(self):
         """@test: Attempt to subscribe content host to content view that has
@@ -1976,42 +1405,33 @@ class TestContentView(CLITestCase):
         cv = make_content_view({
             u'organization-id': self.rhel_content_org['id'],
         })
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': cv['id'],
-            u'repository-id': TestContentView.rhel_repo['id'],
             u'organization-id': TestContentView.rhel_content_org['id'],
+            u'repository-id': TestContentView.rhel_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
+        cv = ContentView.info({u'id': cv['id']})
         self.assertEqual(
-            result.stdout['yum-repositories'][0]['name'],
+            cv['yum-repositories'][0]['name'],
             self.rhel_repo_name,
         )
-        result = ContentView.publish({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        cvv = result.stdout['versions'][0]
-        result = ContentView.version_promote({
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        cvv = cv['versions'][0]
+        ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env['id'],
         })
-        self.assertEqual(result.return_code, 0)
-
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['content-host-count'], '0')
-
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(cv['content-host-count'], '0')
         make_content_host({
+            u'content-view-id': cv['id'],
+            u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': self.rhel_content_org['id'],
-            u'lifecycle-environment-id': env['id'],
-            u'content-view-id': cv['id'],
         })
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['content-host-count'], '1')
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(cv['content-host-count'], '1')
 
     def test_cv_subscribe_system_rh_spin(self):
         """@test: Attempt to subscribe content host to filtered content view
@@ -2030,59 +1450,50 @@ class TestContentView(CLITestCase):
         cv = make_content_view({
             u'organization-id': self.rhel_content_org['id'],
         })
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': cv['id'],
-            u'repository-id': TestContentView.rhel_repo['id'],
             u'organization-id': TestContentView.rhel_content_org['id'],
+            u'repository-id': TestContentView.rhel_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
+        cv = ContentView.info({u'id': cv['id']})
         self.assertEqual(
-            result.stdout['yum-repositories'][0]['name'],
+            cv['yum-repositories'][0]['name'],
             self.rhel_repo_name,
         )
 
         name = gen_string('utf8')
-        result = ContentView.filter_create({
+        ContentView.filter_create({
             'content-view-id': cv['id'],
-            'type': 'rpm',
             'inclusion': 'true',
             'name': name,
+            'type': 'rpm',
         })
-        self.assertEqual(result.return_code, 0)
 
-        result_rl = ContentView.filter_rule_create({
+        ContentView.filter_rule_create({
+            'content-view-filter': name,
             'content-view-id': cv['id'],
             'name': gen_string('utf8'),
-            'content-view-filter': name,
         })
-        self.assertEqual(result_rl.return_code, 0)
 
-        result = ContentView.publish({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        cvv = result.stdout['versions'][0]
-        result = ContentView.version_promote({
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        cvv = cv['versions'][0]
+        ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env['id'],
         })
-        self.assertEqual(result.return_code, 0)
 
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['content-host-count'], '0')
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(cv['content-host-count'], '0')
 
         make_content_host({
+            u'content-view-id': cv['id'],
+            u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': self.rhel_content_org['id'],
-            u'lifecycle-environment-id': env['id'],
-            u'content-view-id': cv['id'],
         })
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['content-host-count'], '1')
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(cv['content-host-count'], '1')
 
     def test_cv_subscribe_system_custom(self):
         """@test: Attempt to subscribe content host to content view that has
@@ -2098,40 +1509,33 @@ class TestContentView(CLITestCase):
         new_product = make_product({u'organization-id': new_org['id']})
         new_repo = make_repository({u'product-id': new_product['id']})
         env = make_lifecycle_environment({u'organization-id': new_org['id']})
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
+        Repository.synchronize({'id': new_repo['id']})
         cv = make_content_view({u'organization-id': new_org['id']})
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': cv['id'],
-            u'repository-id': new_repo['id'],
             u'organization-id': new_org['id'],
+            u'repository-id': new_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
 
-        result = ContentView.publish({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        cvv = result.stdout['versions'][0]
-        result = ContentView.version_promote({
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        cvv = cv['versions'][0]
+        ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env['id'],
         })
-        self.assertEqual(result.return_code, 0)
 
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['content-host-count'], '0')
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(cv['content-host-count'], '0')
 
         make_content_host({
+            u'content-view-id': cv['id'],
+            u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': new_org['id'],
-            u'lifecycle-environment-id': env['id'],
-            u'content-view-id': cv['id'],
         })
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['content-host-count'], '1')
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(cv['content-host-count'], '1')
 
     def test_cv_subscribe_system_composite(self):
         """@test: Attempt to subscribe content host to composite content view
@@ -2144,33 +1548,28 @@ class TestContentView(CLITestCase):
         new_org = make_org()
         env = make_lifecycle_environment({u'organization-id': new_org['id']})
         cv = make_content_view({
-            'organization-id': new_org['id'],
             'composite': True,
+            'organization-id': new_org['id'],
         })
-        result = ContentView.publish({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        cvv = result.stdout['versions'][0]
-        result = ContentView.version_promote({
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        cvv = cv['versions'][0]
+        ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env['id'],
         })
-        self.assertEqual(result.return_code, 0)
 
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['content-host-count'], '0')
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(cv['content-host-count'], '0')
 
         make_content_host({
+            u'content-view-id': cv['id'],
+            u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': new_org['id'],
-            u'lifecycle-environment-id': env['id'],
-            u'content-view-id': cv['id'],
         })
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['content-host-count'], '1')
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(cv['content-host-count'], '1')
 
     @skip_if_bug_open('bugzilla', 1222118)
     def test_cv_subscribe_system_puppet(self):
@@ -2193,8 +1592,7 @@ class TestContentView(CLITestCase):
             u'product-id': new_product['id'],
             u'url': FAKE_0_PUPPET_REPO,
         })
-        result = Repository.synchronize({'id': repository['id']})
-        self.assertEqual(result.return_code, 0)
+        Repository.synchronize({'id': repository['id']})
 
         cv = make_content_view({u'organization-id': new_org['id']})
 
@@ -2202,42 +1600,35 @@ class TestContentView(CLITestCase):
             u'repository-id': repository['id'],
             u'per-page': False,
         })
-        self.assertEqual(puppet_result.return_code, 0)
 
-        for puppet_module in puppet_result.stdout:
+        for puppet_module in puppet_result:
             # Associate puppet module to CV
-            result = ContentView.puppet_module_add({
+            ContentView.puppet_module_add({
                 u'content-view-id': cv['id'],
-                u'name': puppet_module['name']
+                u'name': puppet_module['name'],
             })
-            self.assertEqual(result.return_code, 0)
 
         env = make_lifecycle_environment({u'organization-id': new_org['id']})
 
-        result = ContentView.publish({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        cvv = result.stdout['versions'][0]
-        result = ContentView.version_promote({
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        cvv = cv['versions'][0]
+        ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env['id'],
         })
-        self.assertEqual(result.return_code, 0)
 
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['content-host-count'], '0')
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(cv['content-host-count'], '0')
 
         make_content_host({
+            u'content-view-id': cv['id'],
+            u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': new_org['id'],
-            u'lifecycle-environment-id': env['id'],
-            u'content-view-id': cv['id'],
         })
-        result = ContentView.info({u'id': cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(result.stdout['content-host-count'], '1')
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(cv['content-host-count'], '1')
 
     @unittest2.skip(NOT_IMPLEMENTED)
     def test_cv_clone_within_same_env(self):
@@ -2339,40 +1730,20 @@ class TestContentView(CLITestCase):
         password = gen_alphanumeric()
         no_rights_user = make_user({'password': password})
         no_rights_user['password'] = password
-
-        try:
-            test_data['organization-id'] = make_org(cached=True)['id']
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        test_data['organization-id'] = make_org(cached=True)['id']
         # test that user can't create
-        result = ContentView.with_user(
-            no_rights_user["login"],
-            no_rights_user["password"]
-        ).create(
-            test_data
-        )
-        self.assertGreater(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
-
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.with_user(
+                no_rights_user['login'],
+                no_rights_user['password'],
+            ).create(test_data)
         # test that user can't read
-        try:
-            con_view = make_content_view(test_data)
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        result = ContentView.with_user(
-            no_rights_user["login"],
-            no_rights_user["password"]
-        ).info(
-            {'id': con_view['id']}
-        )
-        self.assertGreater(
-            result.return_code, 0,
-            "User shouldn't be able to create object")
-        self.assertGreater(
-            len(result.stderr), 0,
-            "There should have been an exception here")
+        con_view = make_content_view(test_data)
+        with self.assertRaises(CLIReturnCodeError):
+            ContentView.with_user(
+                no_rights_user['login'],
+                no_rights_user['password'],
+            ).info({'id': con_view['id']})
 
     @stubbed()
     def test_cv_roles_readonly_user(self):

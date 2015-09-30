@@ -30,16 +30,15 @@ class TestFact(CLITestCase):
             'search': "fact='%s'" % fact,
         }
 
-        result = Fact().list(args)
-        stdout = result.stdout
+        facts = Fact().list(args)
 
-        self.assertEqual(stdout[0]['fact'], fact)
+        self.assertEqual(facts[0]['fact'], fact)
 
     @data(
-        gen_string("alpha", 10),
-        gen_string("alpha", 10),
-        gen_string("alpha", 10),
-        gen_string("alpha", 10),
+        gen_string('alpha', 10),
+        gen_string('alpha', 10),
+        gen_string('alpha', 10),
+        gen_string('alpha', 10),
     )
     def test_list_fail(self, fact):
         """@Test: Test Fact List failure
@@ -54,4 +53,4 @@ class TestFact(CLITestCase):
             'search': "fact='%s'" % fact,
         }
         self.assertEqual(
-            Fact().list(args).stdout, [], "No records should be returned")
+            Fact().list(args), [], 'No records should be returned')

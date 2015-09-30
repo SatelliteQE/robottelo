@@ -31,6 +31,7 @@ from robottelo.constants import (
     GOOGLE_CHROME_REPO
 )
 from robottelo.config import conf
+from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.helpers import generate_strings_list, get_server_software
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -51,7 +52,7 @@ class TestSmoke(CLITestCase):
         """
         query = {u'name': DEFAULT_ORG}
         result = self._search(Org, query)
-        self.assertEqual(result.stdout['name'], DEFAULT_ORG)
+        self.assertEqual(result['name'], DEFAULT_ORG)
 
     def test_find_default_location(self):
         """@Test: Check if 'Default Location' is present
@@ -63,7 +64,7 @@ class TestSmoke(CLITestCase):
         """
         query = {u'name': DEFAULT_LOC}
         result = self._search(Location, query)
-        self.assertEqual(result.stdout['name'], DEFAULT_LOC)
+        self.assertEqual(result['name'], DEFAULT_LOC)
 
     def test_find_admin_user(self):
         """@Test: Check if Admin User is present
@@ -75,8 +76,8 @@ class TestSmoke(CLITestCase):
         """
         query = {u'login': u'admin'}
         result = self._search(User, query)
-        self.assertEqual(result.stdout['login'], 'admin')
-        self.assertEqual(result.stdout['admin'], 'yes')
+        self.assertEqual(result['login'], 'admin')
+        self.assertEqual(result['admin'], 'yes')
 
     def test_foreman_version(self):
         """@Test: Check if /usr/share/foreman/VERSION does not contain the
@@ -140,8 +141,8 @@ class TestSmoke(CLITestCase):
             new_user,
             LifecycleEnvironment,
             {
-                u'organization-id': new_org['id'],
                 u'name': gen_alphanumeric(),
+                u'organization-id': new_org['id'],
                 u'prior': u'Library',
             }
         )
@@ -151,8 +152,8 @@ class TestSmoke(CLITestCase):
             new_user,
             LifecycleEnvironment,
             {
-                u'organization-id': new_org['id'],
                 u'name': gen_alphanumeric(),
+                u'organization-id': new_org['id'],
                 u'prior': lifecycle1['name'],
             }
         )
@@ -162,8 +163,8 @@ class TestSmoke(CLITestCase):
             new_user,
             Product,
             {
-                u'organization-id': new_org['id'],
                 u'name': gen_alphanumeric(),
+                u'organization-id': new_org['id'],
             }
         )
 
@@ -172,9 +173,9 @@ class TestSmoke(CLITestCase):
             new_user,
             Repository,
             {
-                u'product-id': new_product['id'],
-                u'name': gen_alphanumeric(),
                 u'content-type': u'yum',
+                u'name': gen_alphanumeric(),
+                u'product-id': new_product['id'],
                 u'publish-via-http': u'true',
                 u'url': GOOGLE_CHROME_REPO,
             }
@@ -185,50 +186,44 @@ class TestSmoke(CLITestCase):
             new_user,
             Repository,
             {
-                u'product-id': new_product['id'],
-                u'name': gen_alphanumeric(),
                 u'content-type': u'puppet',
+                u'name': gen_alphanumeric(),
+                u'product-id': new_product['id'],
                 u'publish-via-http': u'true',
                 u'url': FAKE_0_PUPPET_REPO,
             }
         )
 
         # Synchronize YUM repository
-        result = Repository.with_user(
+        Repository.with_user(
             new_user['login'],
             new_user['password']
         ).synchronize({u'id': new_repo1['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
         # Synchronize puppet repository
-        result = Repository.with_user(
+        Repository.with_user(
             new_user['login'],
             new_user['password']
         ).synchronize({u'id': new_repo2['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
         # Create a Content View
         new_cv = self._create(
             new_user,
             ContentView,
             {
-                u'organization-id': new_org['id'],
                 u'name': gen_alphanumeric(),
+                u'organization-id': new_org['id'],
             }
         )
 
         # Associate yum repository to content view
-        result = ContentView.with_user(
+        ContentView.with_user(
             new_user['login'],
             new_user['password']
         ).add_repository({
             u'id': new_cv['id'],
             u'repository-id': new_repo1['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
         # Fetch puppet module
         puppet_result = PuppetModule.with_user(
@@ -238,63 +233,51 @@ class TestSmoke(CLITestCase):
             u'repository-id': new_repo2['id'],
             u'per-page': False,
         })
-        self.assertEqual(puppet_result.return_code, 0)
-        self.assertEqual(len(puppet_result.stderr), 0)
 
         # Associate puppet repository to content view
-        result = ContentView.with_user(
+        ContentView.with_user(
             new_user['login'],
             new_user['password']
         ).puppet_module_add({
             u'content-view-id': new_cv['id'],
-            u'id': puppet_result.stdout[0]['id'],
+            u'id': puppet_result[0]['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
         # Publish content view
-        result = ContentView.with_user(
+        ContentView.with_user(
             new_user['login'],
             new_user['password']
         ).publish({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
         # Only after we publish version1 the info is populated.
         result = ContentView.with_user(
             new_user['login'],
             new_user['password']
         ).info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
         # Let us now store the version1 id
-        version1_id = result.stdout['versions'][0]['id']
+        version1_id = result['versions'][0]['id']
 
         # Promote content view to first lifecycle
-        result = ContentView.with_user(
+        ContentView.with_user(
             new_user['login'],
             new_user['password']
         ).version_promote({
-            u'id': result.stdout['versions'][0]['id'],
+            u'id': version1_id,
             u'to-lifecycle-environment-id': lifecycle1['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
         # Promote content view to second lifecycle
-        result = ContentView.with_user(
+        ContentView.with_user(
             new_user['login'],
             new_user['password']
         ).version_promote({
             u'id': version1_id,
             u'to-lifecycle-environment-id': lifecycle2['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
         # Create a new libvirt compute resource
-        result = self._create(
+        self._create(
             new_user,
             ComputeResource,
             {
@@ -341,11 +324,9 @@ class TestSmoke(CLITestCase):
         ).list({
             u'search': u'organization="{0}"'.format(new_org['name']),
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
         # Now look for the puppet environment that matches lifecycle2
         puppet_env = [
-            env for env in result.stdout
+            env for env in result
             if env['name'].startswith(env_name)
         ]
         self.assertEqual(len(puppet_env), 1)
@@ -355,22 +336,20 @@ class TestSmoke(CLITestCase):
             new_user,
             HostGroup,
             {
-                u'name': gen_alphanumeric(),
                 u'domain-id': new_domain['id'],
-                u'subnet-id': new_subnet['id'],
                 u'environment-id': puppet_env[0]['id'],
+                u'name': gen_alphanumeric(),
+                u'subnet-id': new_subnet['id'],
             }
         )
         # ...and add it to the organization
-        result = Org.with_user(
+        Org.with_user(
             new_user['login'],
             new_user['password']
         ).add_hostgroup({
-            u'id': new_org['id'],
             u'hostgroup-id': new_hg['id'],
+            u'id': new_org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
     def _create(self, user, entity, attrs):
         """Creates a Foreman entity and returns it.
@@ -385,16 +364,10 @@ class TestSmoke(CLITestCase):
         """
 
         # Create new entity as new user
-        result = entity.with_user(
+        return entity.with_user(
             user['login'],
             user['password']
         ).create(attrs)
-
-        # Assertion
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(result.return_code, 0)
-
-        return result.stdout
 
     def _search(self, entity, attrs):
         """Looks up for a Foreman entity by specifying using its ``Info`` CLI
@@ -403,15 +376,12 @@ class TestSmoke(CLITestCase):
         :param robottelo.cli.Base entity: A logical representation of a
             Foreman CLI entity.
         :param string query: A ``search`` parameter.
-        :return: A ``SSHCommandResult`` instance.
-        :rtype: robottelo.ssh.SSHCommandResult
+        :return: A ``dict`` representing the Foreman entity.
+        :rtype: dict
 
         """
-        result = entity.info(attrs)
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
 
-        return result
+        return entity.info(attrs)
 
     def test_end_to_end(self):
         """@Test: Perform end to end smoke tests using RH repos.
@@ -436,107 +406,88 @@ class TestSmoke(CLITestCase):
 
         """
         # Product, RepoSet and repository variables
-        rhel_product_name = 'Red Hat Enterprise Linux Server'
-        rhel_repo_set = (
-            'Red Hat Enterprise Virtualization Agents '
-            'for RHEL 6 Server (RPMs)'
-        )
-        rhel_repo_name = (
-            'Red Hat Enterprise Virtualization Agents '
-            'for RHEL 6 Server '
-            'RPMs x86_64 6Server'
-        )
+        rhel_product_name = PRDS['rhel']
+        rhel_repo_set = REPOSET['rhva6']
+        rhel_repo_name = REPOS['rhva6']['name']
         org_name = random.choice(generate_strings_list())
         # Create new org and environment
         new_org = make_org({u'name': org_name})
         new_env = make_lifecycle_environment({
             u'organization-id': new_org['id'],
-            u'name': gen_alphanumeric(),
         })
         # Clone manifest and upload it
         manifest = manifests.clone()
         ssh.upload_file(manifest, remote_file=manifest)
-        result = Subscription.upload({
+        Subscription.upload({
             u'file': manifest,
             u'organization-id': new_org['id'],
         })
-        self.assertEqual(result.return_code, 0)
         # Enable repo from Repository Set
-        result = RepositorySet.enable({
+        RepositorySet.enable({
+            u'basearch': 'x86_64',
             u'name': rhel_repo_set,
             u'organization-id': new_org['id'],
             u'product': rhel_product_name,
             u'releasever': '6Server',
-            u'basearch': 'x86_64',
         })
-        self.assertEqual(result.return_code, 0)
         # Fetch repository info
-        result = Repository.info({
+        rhel_repo = Repository.info({
             u'name': rhel_repo_name,
-            u'product': rhel_product_name,
             u'organization-id': new_org['id'],
+            u'product': rhel_product_name,
         })
-        rhel_repo = result.stdout
         # Synchronize the repository
-        result = Repository.synchronize({
+        Repository.synchronize({
             u'name': rhel_repo_name,
             u'organization-id': new_org['id'],
             u'product': rhel_product_name,
         })
-        self.assertEqual(result.return_code, 0)
         # Create CV and associate repo to it
         new_cv = make_content_view({u'organization-id': new_org['id']})
-        result = ContentView.add_repository({
+        ContentView.add_repository({
             u'id': new_cv['id'],
-            u'repository-id': rhel_repo['id'],
             u'organization-id': new_org['id'],
+            u'repository-id': rhel_repo['id'],
         })
-        self.assertEqual(result.return_code, 0)
         # Publish a version1 of CV
-        result = ContentView.publish({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
+        ContentView.publish({u'id': new_cv['id']})
         # Get the CV info
-        result = ContentView.info({u'id': new_cv['id']})
-        self.assertEqual(result.return_code, 0)
+        version1_id = ContentView.info({
+            u'id': new_cv['id']})['versions'][0]['id']
         # Store the version1 id
-        version1_id = result.stdout['versions'][0]['id']
         # Promotion of version1 to next env
-        result = ContentView.version_promote({
+        ContentView.version_promote({
             u'id': version1_id,
             u'to-lifecycle-environment-id': new_env['id'],
         })
-        self.assertEqual(result.return_code, 0)
         # Create activation key
         activation_key = make_activation_key({
-            u'name': gen_alphanumeric(),
+            u'content-view': new_cv['name'],
             u'lifecycle-environment-id': new_env['id'],
             u'organization-id': new_org['id'],
-            u'content-view': new_cv['name'],
         })
         # List the subscriptions in given org
         result = Subscription.list(
             {u'organization-id': new_org['id']},
             per_page=False
         )
-        self.assertEqual(result.return_code, 0)
         # Get the subscription ID from subscriptions list
-        for subscription in result.stdout:
+        for subscription in result:
             if subscription['name'] == DEFAULT_SUBSCRIPTION_NAME:
                 subscription_id = subscription['id']
                 subscription_quantity = int(subscription['quantity'])
         self.assertGreater(int(subscription_quantity), 0)
         # Add the subscriptions to activation-key
-        result = ActivationKey.add_subscription({
+        ActivationKey.add_subscription({
             u'id': activation_key['id'],
-            u'subscription-id': subscription_id,
             u'quantity': 1,
+            u'subscription-id': subscription_id,
         })
-        self.assertEqual(result.return_code, 0)
         # Enable product content
         ActivationKey.content_override({
+            u'content-label': 'rhel-6-server-rhev-agent-rpms',
             u'id': activation_key['id'],
             u'organization-id': new_org['id'],
-            u'content-label': 'rhel-6-server-rhev-agent-rpms',
             u'value': '1',
         })
         # Create VM

@@ -17,10 +17,8 @@ class HostTestCase(CLITestCase):
         """
         # Use the default installation smart proxy
         result = Proxy.list()
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertGreater(len(result.stdout), 0)
-        self.puppet_proxy = result.stdout[0]
+        self.assertGreater(len(result), 0)
+        self.puppet_proxy = result[0]
 
     def test_positive_create_1(self):
         """@test: A host can be created with a random name
@@ -46,11 +44,9 @@ class HostTestCase(CLITestCase):
             u'puppet-proxy-id': self.puppet_proxy['id'],
             u'root-pass': host.root_pass,
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
         self.assertEqual(
             '{0}.{1}'.format(host.name, host.domain.read().name).lower(),
-            result.stdout['name'],
+            result['name'],
         )
 
     def test_create_libvirt_without_mac(self):
@@ -68,7 +64,7 @@ class HostTestCase(CLITestCase):
         ).create()
         host = entities.Host()
         host.create_missing()
-        result = Host.create({
+        Host.create({
             u'architecture-id': host.architecture.id,
             u'compute-resource-id': compute_resource.id,
             u'domain-id': host.domain.id,
@@ -83,5 +79,3 @@ class HostTestCase(CLITestCase):
             u'puppet-proxy-id': self.puppet_proxy['id'],
             u'root-pass': host.root_pass,
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)

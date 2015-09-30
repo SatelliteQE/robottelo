@@ -38,10 +38,8 @@ class TestPuppetModule(CLITestCase):
 
         """
         result = PuppetModule.list({'organization-id': self.org['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
         # There are 4 puppet modules in the test puppet-module url
-        self.assertEqual(len(result.stdout), 4)
+        self.assertEqual(len(result), 4)
 
     def test_puppet_module_info(self):
         """@Test: Check if puppet-module info retrieves info for the given
@@ -53,14 +51,12 @@ class TestPuppetModule(CLITestCase):
 
         """
         return_value = PuppetModule.list({
-            'organization-id': self.org['id']
+            'organization-id': self.org['id'],
         })
         # There are 4 puppet modules in the test puppet-module url
         for i in range(4):
             result = PuppetModule.info(
-                {'id': return_value.stdout[i]['id']},
+                {'id': return_value[i]['id']},
                 output_format='json'
             )
-            self.assertEqual(result.return_code, 0)
-            self.assertEqual(len(result.stderr), 0)
-            self.assertEqual(result.stdout['ID'], return_value.stdout[i]['id'])
+            self.assertEqual(result['ID'], return_value[i]['id'])

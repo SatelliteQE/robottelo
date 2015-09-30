@@ -4,6 +4,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo import ssh
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     make_gpg_key,
     make_org,
@@ -43,8 +44,8 @@ class TestRepository(CLITestCase):
     org = None
     product = None
 
-    def setUp(self):  # noqa
-        """Tests for Repositiry via Hammer CLI"""
+    def setUp(self):
+        """Tests for Repository via Hammer CLI"""
 
         super(TestRepository, self).setUp()
 
@@ -76,11 +77,10 @@ class TestRepository(CLITestCase):
 
         """
         repository = self._make_repository({
-            u'name': gen_string('alpha'),
             u'content-type': u'docker',
+            u'name': gen_string('alpha'),
             u'docker-upstream-name': u'fedora/rabbitmq',
         })
-
         self.assertIn(u'upstream-repository-name', repository)
         self.assertEqual(
             repository['upstream-repository-name'], u'fedora/rabbitmq')
@@ -102,7 +102,6 @@ class TestRepository(CLITestCase):
         @Assert: Repository is created and has random name
 
         """
-
         new_repo = self._make_repository({u'name': name})
         # Assert that name matches data passed
         self.assertEqual(new_repo['name'], name)
@@ -124,13 +123,11 @@ class TestRepository(CLITestCase):
         @Assert: Repository is created and has random name and labels
 
         """
-
         # Generate a random, 'safe' label
         label = gen_string('alpha', 20)
-
         new_repo = self._make_repository({
-            u'name': name,
             u'label': label,
+            u'name': name,
         })
         # Assert that name matches data passed
         self.assertEqual(new_repo['name'], name)
@@ -152,10 +149,9 @@ class TestRepository(CLITestCase):
         @Assert: YUM repository is created
 
         """
-
         new_repo = self._make_repository({
-            u'url': test_data['url'],
             u'content-type': test_data['content-type'],
+            u'url': test_data['url'],
         })
         # Assert that urls and content types matches data passed
         self.assertEqual(new_repo['url'], test_data['url'])
@@ -177,10 +173,9 @@ class TestRepository(CLITestCase):
         @Assert: Puppet repository is created
 
         """
-
         new_repo = self._make_repository({
-            u'url': test_data['url'],
             u'content-type': test_data['content-type'],
+            u'url': test_data['url'],
         })
         # Assert that urls and content types matches data passed
         self.assertEqual(new_repo['url'], test_data['url'])
@@ -205,12 +200,10 @@ class TestRepository(CLITestCase):
         """
         # Make a new gpg key
         new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
-
         repository = self._make_repository({
-            u'name': name,
             u'gpg-key-id': new_gpg_key['id'],
+            u'name': name,
         })
-
         # Assert that data matches data passed
         self.assertEqual(repository['gpg-key']['id'], new_gpg_key['id'])
         self.assertEqual(repository['gpg-key']['name'], new_gpg_key['name'])
@@ -237,10 +230,9 @@ class TestRepository(CLITestCase):
         """
         new_gpg_key = make_gpg_key({'organization-id': self.org['id']})
         new_repo = self._make_repository({
-            u'name': name,
             u'gpg-key': new_gpg_key['name'],
+            u'name': name,
         })
-
         # Assert that data matches data passed
         self.assertEqual(new_repo['gpg-key']['id'], new_gpg_key['id'])
         self.assertEqual(new_repo['gpg-key']['name'], new_gpg_key['name'])
@@ -290,8 +282,8 @@ class TestRepository(CLITestCase):
         """
         content_type = u'yum'
         repository = self._make_repository({
-            u'content-type': content_type,
             u'checksum-type': checksum_type,
+            u'content-type': content_type,
         })
         self.assertEqual(repository['content-type'], content_type)
         self.assertEqual(repository['checksum-type'], checksum_type)
@@ -307,10 +299,10 @@ class TestRepository(CLITestCase):
         """
         content_type = u'docker'
         new_repo = self._make_repository({
-            u'name': u'busybox',
-            u'docker-upstream-name': u'busybox',
-            u'url': DOCKER_REGISTRY_HUB,
             u'content-type': content_type,
+            u'docker-upstream-name': u'busybox',
+            u'name': u'busybox',
+            u'url': DOCKER_REGISTRY_HUB,
         })
         # Assert that urls and content types matches data passed
         self.assertEqual(new_repo['url'], DOCKER_REGISTRY_HUB)
@@ -327,7 +319,7 @@ class TestRepository(CLITestCase):
         gen_string('html', 15),
     )
     def test_positive_create_docker_repo_2(self, name):
-        """@Test: Create a Docker repository with a randon name.
+        """@Test: Create a Docker repository with a random name.
 
         @Feature: Repository
 
@@ -336,10 +328,10 @@ class TestRepository(CLITestCase):
         """
         content_type = u'docker'
         new_repo = self._make_repository({
-            u'name': name,
-            u'docker-upstream-name': u'busybox',
-            u'url': DOCKER_REGISTRY_HUB,
             u'content-type': content_type,
+            u'docker-upstream-name': u'busybox',
+            u'name': name,
+            u'url': DOCKER_REGISTRY_HUB,
         })
         # Assert that urls, content types and name matches data passed
         self.assertEqual(new_repo['url'], DOCKER_REGISTRY_HUB)
@@ -381,22 +373,17 @@ class TestRepository(CLITestCase):
         @Assert: Repository is created and synced
 
         """
-
         new_repo = self._make_repository({
-            u'url': test_data['url'],
             u'content-type': test_data['content-type'],
+            u'url': test_data['url'],
         })
         # Assertion that repo is not yet synced
         self.assertEqual(new_repo['sync']['status'], 'Not Synced')
-
         # Synchronize it
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': new_repo['id']})
         # Verify it has finished
-        result = Repository.info({'id': new_repo['id']})
-        self.assertEqual(result.stdout['sync']['status'], 'Finished')
+        new_repo = Repository.info({'id': new_repo['id']})
+        self.assertEqual(new_repo['sync']['status'], 'Finished')
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1152237)
@@ -408,23 +395,18 @@ class TestRepository(CLITestCase):
         @Assert: Docker repository is created and synced
 
         """
-
         new_repo = self._make_repository({
+            u'content-type': u'docker',
             u'docker-upstream-name': u'busybox',
             u'url': DOCKER_REGISTRY_HUB,
-            u'content-type': u'docker',
         })
         # Assertion that repo is not yet synced
         self.assertEqual(new_repo['sync']['status'], 'Not Synced')
-
         # Synchronize it
-        result = Repository.synchronize({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.synchronize({'id': new_repo['id']})
         # Verify it has finished
-        result = Repository.info({'id': new_repo['id']})
-        self.assertEqual(result.stdout['sync']['status'], 'Finished')
+        new_repo = Repository.info({'id': new_repo['id']})
+        self.assertEqual(new_repo['sync']['status'], 'Finished')
 
     @run_only_on('sat')
     @data(
@@ -442,23 +424,16 @@ class TestRepository(CLITestCase):
         @Assert: Repository url is updated
 
         """
-
         new_repo = self._make_repository()
-
         # Update the url
-        result = Repository.update({
+        Repository.update({
             u'id': new_repo['id'],
             u'url': url,
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Fetch it again
         result = Repository.info({'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertNotEqual(result.stdout['url'], new_repo['url'])
-        self.assertEqual(result.stdout['url'], url)
+        self.assertNotEqual(result['url'], new_repo['url'])
+        self.assertEqual(result['url'], url)
 
     @run_only_on('sat')
     @stubbed()
@@ -504,30 +479,21 @@ class TestRepository(CLITestCase):
 
         """
         content_type = u'yum'
-        repository = self._make_repository({
-            u'content-type': content_type,
-        })
-
+        repository = self._make_repository({u'content-type': content_type})
         self.assertEqual(repository['content-type'], content_type)
         self.assertEqual(repository['checksum-type'], '')
-
         # Update the url
-        result = Repository.update({
-            u'id': repository['id'],
+        Repository.update({
             u'checksum-type': checksum_type,
+            u'id': repository['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
         # Fetch it again
         result = Repository.info({'id': repository['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
         self.assertNotEqual(
-            result.stdout['checksum-type'],
+            result['checksum-type'],
             repository['checksum-type'],
         )
-        self.assertEqual(result.stdout['checksum-type'], checksum_type)
+        self.assertEqual(result['checksum-type'], checksum_type)
 
     @run_only_on('sat')
     @data(
@@ -546,22 +512,14 @@ class TestRepository(CLITestCase):
         @Assert: Repository is created and then deleted
 
         """
-
         new_repo = self._make_repository({u'name': name})
         # Assert that name matches data passed
         self.assertEqual(new_repo['name'], name)
-
         # Delete it
-        result = Repository.delete({u'id': new_repo['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Repository.delete({u'id': new_repo['id']})
         # Fetch it
-        result = Repository.info({
-            u'id': new_repo['id'],
-        })
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            Repository.info({u'id': new_repo['id']})
 
     def test_upload_content(self):
         """@Test: Create repository and upload content
@@ -571,23 +529,16 @@ class TestRepository(CLITestCase):
         @Assert: upload content is successful
 
         """
-        name = gen_string('alpha', 15)
-        try:
-            new_repo = self._make_repository({'name': name})
-        except CLIFactoryError as err:
-            self.fail(err)
-
+        new_repo = self._make_repository({'name': gen_string('alpha', 15)})
         ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD),
                         remote_file="/tmp/{0}".format(RPM_TO_UPLOAD))
         result = Repository.upload_content({
             'name': new_repo['name'],
+            'organization': new_repo['organization'],
             'path': "/tmp/{0}".format(RPM_TO_UPLOAD),
             'product-id': new_repo['product']['id'],
-            'organization': new_repo['organization'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
         self.assertIn(
             "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD),
-            result.stdout[0]['message']
+            result[0]['message'],
         )

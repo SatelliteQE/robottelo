@@ -62,8 +62,11 @@ class ContentView(Base):
         # Publishing can take a while so try to wait a bit longer
         if timeout is None:
             timeout = 120
-        return cls._remove_task_status(
-            cls.execute(cls._construct_command(options), timeout=timeout))
+        return cls.execute(
+            cls._construct_command(options),
+            ignore_stderr=True,
+            timeout=timeout,
+        )
 
     @classmethod
     def version_info(cls, options):
@@ -73,9 +76,7 @@ class ContentView(Base):
         if options is None:
             options = {}
 
-        result = cls.execute(cls._construct_command(options))
-        result.stdout = hammer.parse_info(result.stdout)
-        return result
+        return hammer.parse_info(cls.execute(cls._construct_command(options)))
 
     @classmethod
     def version_incremental_update(cls, options):
@@ -103,9 +104,7 @@ class ContentView(Base):
         if options is None:
             options = {}
 
-        result = cls.execute(cls._construct_command(options))
-        result.stdout = hammer.parse_info(result.stdout)
-        return result
+        return hammer.parse_info(cls.execute(cls._construct_command(options)))
 
     @classmethod
     def filter_info(cls, options):
@@ -116,9 +115,7 @@ class ContentView(Base):
         if options is None:
             options = {}
 
-        result = cls.execute(cls._construct_command(options))
-        result.stdout = hammer.parse_info(result.stdout)
-        return result
+        return hammer.parse_info(cls.execute(cls._construct_command(options)))
 
     @classmethod
     def filter_create(cls, options):
@@ -241,22 +238,28 @@ class ContentView(Base):
     def version_promote(cls, options):
         """Promotes content-view version to next env."""
         cls.command_sub = 'version promote'
-        return cls._remove_task_status(
-            cls.execute(cls._construct_command(options)))
+        return cls.execute(
+            cls._construct_command(options),
+            ignore_stderr=True,
+        )
 
     @classmethod
     def version_delete(cls, options):
         """Removes content-view version."""
         cls.command_sub = 'version delete'
-        return cls._remove_task_status(
-            cls.execute(cls._construct_command(options)))
+        return cls.execute(
+            cls._construct_command(options),
+            ignore_stderr=True,
+        )
 
     @classmethod
     def remove_from_environment(cls, options=None):
-        """Remove content-view from an enviornment"""
+        """Remove content-view from an environment"""
         cls.command_sub = 'remove-from-environment'
-        return cls._remove_task_status(
-            cls.execute(cls._construct_command(options)))
+        return cls.execute(
+            cls._construct_command(options),
+            ignore_stderr=True,
+        )
 
     @classmethod
     def remove(cls, options=None):
@@ -265,5 +268,7 @@ class ContentView(Base):
 
         """
         cls.command_sub = 'remove'
-        return cls._remove_task_status(
-            cls.execute(cls._construct_command(options)))
+        return cls.execute(
+            cls._construct_command(options),
+            ignore_stderr=True,
+        )

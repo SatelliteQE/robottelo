@@ -2,7 +2,6 @@ import unittest2
 
 from robottelo.cli.base import Base
 from robottelo.config import conf
-from robottelo.ssh import SSHCommandResult
 
 
 class CLIClass(Base):
@@ -69,23 +68,3 @@ class BaseCliTestCase(unittest2.TestCase):
         self.assertEqual(new_class.foreman_admin_username, 'auser')
         self.assertEqual(new_class.foreman_admin_password, 'apass')
         self.assertIn(Base, new_class.__bases__)
-
-    def test_remove_task_status(self):
-        """Check if ``_remove_task_status`` method cleans the expected task
-        status messages.
-
-        """
-        data = (
-            u'Task 3af6fec3-2b7d-4e8a-93a4-082509e203fc running: 0.005/1, 0%, '
-            '0.0/s, elapsed: 00:00:02, ETA: 00:07:34\nTask '
-            '3af6fec3-2b7d-4e8a-93a4-082509e203fc success: 1.0/1, 100%, '
-            '0.1/s, elapsed: 00:00:11\nTask '
-            '3af6fec3-2b7d-4e8a-93a4-082509e203fc success: 1.0/1, 100%, '
-            '0.1/s, elapsed: 00:00:11\nTask '
-            '6ba9d82a-ea55-4934-8aab-0e057102ee11 running: 0.005/1, 0%, '
-            '0.0/s, elapsed: 00:00:02, ETA: 00:06:55\nTask '
-            '6ba9d82a-ea55-4934-8aab-0e057102ee11 running: 0.005/1, 0%, '
-            '0.0/s, elapsed: 00:00:02, ETA: 00:06:55\n\n'
-        )
-        result = SSHCommandResult(stderr=data, return_code=0)
-        self.assertEqual(Base._remove_task_status(result).stderr, '')

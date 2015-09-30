@@ -4,6 +4,7 @@ import time
 
 from ddt import ddt
 from fauxfactory import gen_string
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     CLIFactoryError,
     make_gpg_key,
@@ -24,7 +25,7 @@ class TestProduct(CLITestCase):
 
     org = None
 
-    def setUp(self):  # noqa
+    def setUp(self):
         """Tests for Lifecycle Environment via Hammer CLI"""
 
         super(TestProduct, self).setUp()
@@ -81,8 +82,8 @@ class TestProduct(CLITestCase):
 
         """
         product = make_product({
-            u'name': test_data['name'],
             u'label': test_data['label'],
+            u'name': test_data['name'],
             u'organization-id': self.org['id']
         })
 
@@ -113,9 +114,9 @@ class TestProduct(CLITestCase):
 
         """
         product = make_product({
-            u'name': test_data['name'],
             u'description': test_data['description'],
-            u'organization-id': self.org['id']
+            u'name': test_data['name'],
+            u'organization-id': self.org['id'],
         })
 
         self.assertEqual(product['name'], test_data['name'])
@@ -138,13 +139,11 @@ class TestProduct(CLITestCase):
         @Assert: Product is created and has gpg key
 
         """
-        gpg_key = make_gpg_key(
-            {u'organization-id': self.org['id']}
-        )
+        gpg_key = make_gpg_key({u'organization-id': self.org['id']})
         product = make_product({
-            u'name': test_data['name'],
             u'gpg-key-id': gpg_key['id'],
-            u'organization-id': self.org['id']
+            u'name': test_data['name'],
+            u'organization-id': self.org['id'],
         })
 
         self.assertEqual(product['name'], test_data['name'])
@@ -194,14 +193,11 @@ class TestProduct(CLITestCase):
         @Assert: Product is not created
 
         """
-
         with self.assertRaises(CLIFactoryError):
-            make_product(
-                {
-                    u'name': test_name['name'],
-                    u'organization-id': self.org['id']
-                }
-            )
+            make_product({
+                u'name': test_name['name'],
+                u'organization-id': self.org['id'],
+            })
 
     @run_only_on('sat')
     @data(
@@ -220,15 +216,12 @@ class TestProduct(CLITestCase):
         @Assert: Product is not created
 
         """
-
         with self.assertRaises(CLIFactoryError):
-            make_product(
-                {
-                    u'name': test_name['name'],
-                    u'label': test_name['label'],
-                    u'organization-id': self.org['id']
-                }
-            )
+            make_product({
+                u'label': test_name['label'],
+                u'name': test_name['name'],
+                u'organization-id': self.org['id'],
+            })
 
     @run_only_on('sat')
     @data(
@@ -247,27 +240,19 @@ class TestProduct(CLITestCase):
         @Assert: Product description is updated
 
         """
-        product = make_product({
-            u'organization-id': self.org['id'],
-        })
-
+        product = make_product({u'organization-id': self.org['id']})
         # Update the Descriptions
-        result = Product.update({
-            u'id': product['id'],
+        Product.update({
             u'description': test_data['description'],
+            u'id': product['id'],
         })
-
         # Fetch it
         result = Product.info({
             u'id': product['id'],
             u'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['description'], test_data['description'])
-        self.assertNotEqual(
-            product['description'], result.stdout['description'])
+        self.assertEqual(result['description'], test_data['description'])
+        self.assertNotEqual(product['description'], result['description'])
 
     @run_only_on('sat')
     def test_positive_update_2(self):
@@ -278,38 +263,24 @@ class TestProduct(CLITestCase):
         @Assert: Product gpg key is updated
 
         """
-        first_gpg_key = make_gpg_key(
-            {u'organization-id': self.org['id']}
-        )
-        second_gpg_key = make_gpg_key(
-            {u'organization-id': self.org['id']}
-        )
+        first_gpg_key = make_gpg_key({u'organization-id': self.org['id']})
+        second_gpg_key = make_gpg_key({u'organization-id': self.org['id']})
         product = make_product({
-            u'organization-id': self.org['id'],
             u'gpg-key-id': first_gpg_key['id'],
+            u'organization-id': self.org['id'],
         })
-
         # Update the Descriptions
-        result = Product.update({
-            u'id': product['id'],
+        Product.update({
             u'gpg-key-id': second_gpg_key['id'],
+            u'id': product['id'],
         })
-
         # Fetch it
-        result = Product.info({
+        product = Product.info({
             u'id': product['id'],
             u'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['gpg']['gpg-key-id'],
-            second_gpg_key['id'],
-        )
-        self.assertNotEqual(
-            result.stdout['gpg']['gpg-key-id'],
-            first_gpg_key['id'],
-        )
+        self.assertEqual(product['gpg']['gpg-key-id'], second_gpg_key['id'])
+        self.assertNotEqual(product['gpg']['gpg-key-id'], first_gpg_key['id'])
 
     @run_only_on('sat')
     def test_positive_update_3(self):
@@ -320,38 +291,24 @@ class TestProduct(CLITestCase):
         @Assert: Product sync plan is updated
 
         """
-        first_sync_plan = make_sync_plan({
-            u'organization-id': self.org['id'],
-        })
-        second_sync_plan = make_sync_plan({
-            u'organization-id': self.org['id'],
-        })
+        first_sync_plan = make_sync_plan({u'organization-id': self.org['id']})
+        second_sync_plan = make_sync_plan({u'organization-id': self.org['id']})
         product = make_product({
             u'organization-id': self.org['id'],
             u'sync-plan-id': first_sync_plan['id'],
         })
-
         # Update the Descriptions
-        result = Product.update({
+        Product.update({
             u'id': product['id'],
             u'sync-plan-id': second_sync_plan['id'],
         })
-
         # Fetch it
-        result = Product.info({
+        product = Product.info({
             u'id': product['id'],
             u'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(
-            result.stdout['sync-plan-id'],
-            second_sync_plan['id'],
-        )
-        self.assertNotEqual(
-            result.stdout['sync-plan-id'],
-            first_sync_plan['id'],
-        )
+        self.assertEqual(product['sync-plan-id'], second_sync_plan['id'])
+        self.assertNotEqual(product['sync-plan-id'], first_sync_plan['id'])
 
     @run_only_on('sat')
     @data(*generate_strings_list())
@@ -374,26 +331,22 @@ class TestProduct(CLITestCase):
             u'name': new_prod_name,
         })
         # Verify Updated
-        result = Product.info({
+        prod = Product.info({
             u'id': prod['id'],
             u'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(result.stdout['name'], new_prod_name)
+        self.assertEqual(prod['name'], new_prod_name)
         # Now, Rename product to original
         Product.update({
             u'id': prod['id'],
             u'name': prod_name,
         })
-        result = Product.info({
+        prod = Product.info({
             u'id': prod['id'],
             u'organization-id': self.org['id'],
         })
         # Verify renamed back to Original name.
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(result.stdout['name'], prod_name)
+        self.assertEqual(prod['name'], prod_name)
 
     @run_only_on('sat')
     def test_positive_delete_1(self):
@@ -404,32 +357,22 @@ class TestProduct(CLITestCase):
         @Assert: Product is deleted
 
         """
-        new_product = make_product({
-            u'organization-id': self.org['id']
-        })
-
+        new_product = make_product({u'organization-id': self.org['id']})
         # Delete it
-        result = Product.delete({u'id': new_product['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Product.delete({u'id': new_product['id']})
         # Fetch it
-        result = Product.info({
-            u'id': new_product['id'],
-            u'organization-id': self.org['id'],
-        })
-        if bz_bug_is_open(1219490):
-            for _ in range(5):
-                if result.return_code == 0:
+        with self.assertRaises(CLIReturnCodeError):
+            Product.info({
+                u'id': new_product['id'],
+                u'organization-id': self.org['id'],
+            })
+            if bz_bug_is_open(1219490):
+                for _ in range(5):
                     time.sleep(5)
-                    result = Product.info({
+                    Product.info({
                         u'id': new_product['id'],
                         u'organization-id': self.org['id'],
                     })
-                else:
-                    break
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
 
     def test_add_syncplan_1(self):
         """@Test: Check if product can be assigned a syncplan
@@ -439,27 +382,17 @@ class TestProduct(CLITestCase):
         @Assert: Product has syncplan
 
         """
-        try:
-            new_product = make_product({
-                u'organization-id': self.org['id']
-            })
-            sync_plan = make_sync_plan({'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        result = Product.set_sync_plan({
-            'sync-plan-id': sync_plan['id'],
+        new_product = make_product({u'organization-id': self.org['id']})
+        sync_plan = make_sync_plan({'organization-id': self.org['id']})
+        Product.set_sync_plan({
             'id': new_product['id'],
+            'sync-plan-id': sync_plan['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        result = Product.info({
+        new_product = Product.info({
             'id': new_product['id'],
             'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(result.stdout['sync-plan-id'], sync_plan['id'])
+        self.assertEqual(new_product['sync-plan-id'], sync_plan['id'])
 
     def test_remove_syncplan_1(self):
         """@Test: Check if product can be assigned a syncplan
@@ -469,37 +402,23 @@ class TestProduct(CLITestCase):
         @Assert: Product has syncplan
 
         """
-        try:
-            product = make_product({u'organization-id': self.org['id']})
-            sync_plan = make_sync_plan({'organization-id': self.org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        result = Product.set_sync_plan({
+        product = make_product({u'organization-id': self.org['id']})
+        sync_plan = make_sync_plan({'organization-id': self.org['id']})
+        Product.set_sync_plan({
+            'id': product['id'],
             'sync-plan-id': sync_plan['id'],
-            'id': product['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        result = Product.info({
+        product = Product.info({
             'id': product['id'],
             'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(result.stdout['sync-plan-id'], sync_plan['id'])
-        result = Product.remove_sync_plan({
-            'id': product['id'],
-        })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        result = Product.info({
+        self.assertEqual(product['sync-plan-id'], sync_plan['id'])
+        Product.remove_sync_plan({'id': product['id']})
+        product = Product.info({
             'id': product['id'],
             'organization-id': self.org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(len(result.stdout['sync-plan-id']), 0)
+        self.assertEqual(len(product['sync-plan-id']), 0)
 
     def test_product_synchronize_by_id(self):
         """@Test: Check if product can be synchronized.
@@ -510,25 +429,18 @@ class TestProduct(CLITestCase):
         @Assert: Product was synchronized
 
         """
-        try:
-            org = make_org()
-            product = make_product({'organization-id': org['id']})
-            make_repository({'product-id': product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        result = Product.synchronize({
+        org = make_org()
+        product = make_product({'organization-id': org['id']})
+        make_repository({'product-id': product['id']})
+        Product.synchronize({
             'id': product['id'],
             'organization-id': org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-
-        result = Product.info({
+        product = Product.info({
             'id': product['id'],
             'organization-id': org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(u'Syncing Complete.', result.stdout['sync-state'])
+        self.assertEqual(u'Syncing Complete.', product['sync-state'])
 
     def test_product_synchronize_by_name(self):
         """@Test: Check if product can be synchronized.
@@ -539,25 +451,18 @@ class TestProduct(CLITestCase):
         @Assert: Product was synchronized
 
         """
-        try:
-            org = make_org()
-            product = make_product({'organization-id': org['id']})
-            make_repository({'product-id': product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        result = Product.synchronize({
+        org = make_org()
+        product = make_product({'organization-id': org['id']})
+        make_repository({'product-id': product['id']})
+        Product.synchronize({
             'name': product['name'],
             'organization': org['name'],
         })
-        self.assertEqual(result.return_code, 0)
-
-        result = Product.info({
+        product = Product.info({
             'id': product['id'],
             'organization-id': org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(u'Syncing Complete.', result.stdout['sync-state'])
+        self.assertEqual(u'Syncing Complete.', product['sync-state'])
 
     def test_product_synchronize_by_label(self):
         """@Test: Check if product can be synchronized.
@@ -568,22 +473,15 @@ class TestProduct(CLITestCase):
         @Assert: Product was synchronized
 
         """
-        try:
-            org = make_org()
-            product = make_product({'organization-id': org['id']})
-            make_repository({'product-id': product['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-
-        result = Product.synchronize({
+        org = make_org()
+        product = make_product({'organization-id': org['id']})
+        make_repository({'product-id': product['id']})
+        Product.synchronize({
             'id': product['id'],
             'organization-label': org['label'],
         })
-        self.assertEqual(result.return_code, 0)
-
-        result = Product.info({
+        product = Product.info({
             'id': product['id'],
             'organization-id': org['id'],
         })
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(u'Syncing Complete.', result.stdout['sync-state'])
+        self.assertEqual(u'Syncing Complete.', product['sync-state'])

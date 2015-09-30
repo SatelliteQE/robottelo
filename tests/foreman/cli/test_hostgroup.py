@@ -5,7 +5,6 @@ from fauxfactory import gen_string
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.factory import (
-    CLIFactoryError,
     make_environment,
     make_hostgroup,
     make_location,
@@ -23,25 +22,25 @@ class TestHostGroup(MetaCLITestCase):
     factory_obj = HostGroup
 
     POSITIVE_UPDATE_DATA = (
-        ({'id': gen_string("latin1", 10)},
-         {'name': gen_string("latin1", 10)}),
-        ({'id': gen_string("utf8", 10)},
-         {'name': gen_string("utf8", 10)}),
-        ({'id': gen_string("alpha", 10)},
-         {'name': gen_string("alpha", 10)}),
-        ({'id': gen_string("alphanumeric", 10)},
-         {'name': gen_string("alphanumeric", 10)}),
-        ({'id': gen_string("numeric", 10)},
-         {'name': gen_string("numeric", 10)}),
-        ({'id': gen_string("utf8", 10)},
-         {'name': gen_string("html", 6)}),
+        ({'id': gen_string('latin1', 10)},
+         {'name': gen_string('latin1', 10)}),
+        ({'id': gen_string('utf8', 10)},
+         {'name': gen_string('utf8', 10)}),
+        ({'id': gen_string('alpha', 10)},
+         {'name': gen_string('alpha', 10)}),
+        ({'id': gen_string('alphanumeric', 10)},
+         {'name': gen_string('alphanumeric', 10)}),
+        ({'id': gen_string('numeric', 10)},
+         {'name': gen_string('numeric', 10)}),
+        ({'id': gen_string('utf8', 10)},
+         {'name': gen_string('html', 6)}),
     )
 
     NEGATIVE_UPDATE_DATA = (
-        ({'id': gen_string("utf8", 10)},
-         {'name': gen_string("utf8", 300)}),
-        ({'id': gen_string("utf8", 10)},
-         {'name': ""}),
+        ({'id': gen_string('utf8', 10)},
+         {'name': gen_string('utf8', 300)}),
+        ({'id': gen_string('utf8', 10)},
+         {'name': ''}),
     )
 
     def test_create_hostgroup_with_environment(self):
@@ -52,11 +51,8 @@ class TestHostGroup(MetaCLITestCase):
         @Assert: Hostgroup is created and has new environment assigned
 
         """
-        try:
-            environment = make_environment()
-            hostgroup = make_hostgroup({'environment-id': environment['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
+        environment = make_environment()
+        hostgroup = make_hostgroup({'environment-id': environment['id']})
         self.assertEqual(environment['name'], hostgroup['environment'])
 
     def test_create_hostgroup_with_location(self):
@@ -67,11 +63,8 @@ class TestHostGroup(MetaCLITestCase):
         @Assert: Hostgroup is created and has new location assigned
 
         """
-        try:
-            location = make_location()
-            hostgroup = make_hostgroup({'location-ids': location['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
+        location = make_location()
+        hostgroup = make_hostgroup({'location-ids': location['id']})
         self.assertIn(location['name'], hostgroup['locations'])
 
     def test_create_hostgroup_with_operating_system(self):
@@ -82,11 +75,8 @@ class TestHostGroup(MetaCLITestCase):
         @Assert: Hostgroup is created and has operating system assigned
 
         """
-        try:
-            os = make_os()
-            hostgroup = make_hostgroup({'operatingsystem-id': os['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
+        os = make_os()
+        hostgroup = make_hostgroup({'operatingsystem-id': os['id']})
         self.assertEqual(hostgroup['operating-system'], os['title'])
 
     def test_create_hostgroup_with_organization(self):
@@ -97,11 +87,8 @@ class TestHostGroup(MetaCLITestCase):
         @Assert: Hostgroup is created and has new organization assigned
 
         """
-        try:
-            org = make_org()
-            hostgroup = make_hostgroup({'organization-ids': org['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
+        org = make_org()
+        hostgroup = make_hostgroup({'organization-ids': org['id']})
         self.assertIn(org['name'], hostgroup['organizations'])
 
     def test_create_hostgroup_with_puppet_ca_proxy(self):
@@ -112,19 +99,9 @@ class TestHostGroup(MetaCLITestCase):
         @Assert: Hostgroup is created and has puppet CA proxy server assigned
 
         """
-        proxy_list = Proxy.list()
-        self.assertEqual(proxy_list.return_code, 0)
-        puppet_proxy = proxy_list.stdout[0]
-
-        try:
-            hostgroup = make_hostgroup(
-                {'puppet-ca-proxy': puppet_proxy['name']})
-        except CLIFactoryError as err:
-            self.fail(err)
-        self.assertEqual(
-            puppet_proxy['id'],
-            hostgroup['puppet-ca-proxy-id'],
-        )
+        puppet_proxy = Proxy.list()[0]
+        hostgroup = make_hostgroup({'puppet-ca-proxy': puppet_proxy['name']})
+        self.assertEqual(puppet_proxy['id'], hostgroup['puppet-ca-proxy-id'])
 
     def test_create_hostgroup_with_puppet_proxy(self):
         """@Test: Check if hostgroup with puppet proxy server can be created
@@ -134,15 +111,8 @@ class TestHostGroup(MetaCLITestCase):
         @Assert: Hostgroup is created and has puppet proxy server assigned
 
         """
-        proxy_list = Proxy.list()
-        self.assertEqual(proxy_list.return_code, 0)
-        puppet_proxy = proxy_list.stdout[0]
-
-        try:
-            hostgroup = make_hostgroup(
-                {'puppet-proxy': puppet_proxy['name']})
-        except CLIFactoryError as err:
-            self.fail(err)
+        puppet_proxy = Proxy.list()[0]
+        hostgroup = make_hostgroup({'puppet-proxy': puppet_proxy['name']})
         self.assertEqual(
             puppet_proxy['id'],
             hostgroup['puppet-master-proxy-id'],

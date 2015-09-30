@@ -19,16 +19,13 @@ class TestGlobalParameter(CLITestCase):
         @Assert: Global Param is set
 
         """
-        name = "opt-%s" % gen_string("alpha", 10)
-        val_part1 = gen_string("alpha", 10)
-        val_part2 = gen_string("alpha", 10)
-        value = "val-%s %s" % (val_part1, val_part2)
-        result = GlobalParameter().set({
+        name = 'opt-%s' % gen_string('alpha', 10)
+        value = 'val-%s %s' % (
+            gen_string('alpha', 10), gen_string('alpha', 10))
+        GlobalParameter().set({
             'name': name,
-            'value': value})
-        self.assertEquals(result.return_code, 0,
-                          "GlobalParameter set - exit code %d" %
-                          result.return_code)
+            'value': value,
+        })
 
     def test_list(self):
         """@Test: Test Global Param List
@@ -38,24 +35,16 @@ class TestGlobalParameter(CLITestCase):
         @Assert: Global Param List is displayed
 
         """
-        name = "opt-%s" % gen_string("alpha", 10)
-        val_part1 = gen_string("alpha", 10)
-        val_part2 = gen_string("alpha", 10)
-        value = "val-%s %s" % (val_part1, val_part2)
-        result = GlobalParameter().set({
+        name = 'opt-%s' % gen_string('alpha', 10)
+        value = 'val-%s %s' % (
+            gen_string('alpha', 10), gen_string('alpha', 10))
+        GlobalParameter().set({
             'name': name,
-            'value': value})
-        self.assertEquals(result.return_code, 0,
-                          "GlobalParameter set - exit code %d" %
-                          result.return_code)
+            'value': value,
+        })
         result = GlobalParameter().list({'search': name})
-        self.assertEquals(result.return_code, 0,
-                          "GlobalParameter list - exit code %d" %
-                          result.return_code)
-        self.assertEquals(len(result.stdout), 1,
-                          "GlobalParameter list - stdout has one record")
-        self.assertEquals(result.stdout[0]['value'], value,
-                          "GlobalParameter list - value matches")
+        self.assertEqual(len(result), 1)
+        self.assertEqual(result[0]['value'], value)
 
     def test_delete(self):
         """@Test: Check if Global Param can be deleted
@@ -65,20 +54,13 @@ class TestGlobalParameter(CLITestCase):
         @Assert: Global Param is deleted
 
         """
-        name = "opt-%s" % gen_string("alpha", 10)
-        val_part1 = gen_string("alpha", 10)
-        val_part2 = gen_string("alpha", 10)
-        value = "val-%s %s" % (val_part1, val_part2)
-        result = GlobalParameter().set({
+        name = 'opt-%s' % gen_string('alpha', 10)
+        value = 'val-%s %s' % (
+            gen_string('alpha', 10), gen_string('alpha', 10))
+        GlobalParameter().set({
             'name': name,
-            'value': value})
-        self.assertEquals(result.return_code, 0,
-                          "GlobalParameter set - exit code %d" %
-                          result.return_code)
-        result = GlobalParameter().delete({'name': name})
-        self.assertEquals(result.return_code, 0,
-                          "GlobalParameter delete - exit code %d" %
-                          result.return_code)
+            'value': value,
+        })
+        GlobalParameter().delete({'name': name})
         result = GlobalParameter().list({'search': name})
-        self.assertTrue(len(result.stdout) == 0,
-                        "GlobalParameter list - deleted item is not listed")
+        self.assertEqual(len(result), 0)

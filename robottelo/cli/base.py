@@ -1,26 +1,32 @@
 # -*- encoding: utf-8 -*-
 """Generic base class for cli hammer commands."""
 import logging
-import re
 
 from robottelo import ssh
 from robottelo.cli import hammer
 from robottelo.config import conf
 
 
-# Task status message have two formats:
-#   * "Task b18d3363-f4b8-44eb-871c-760e51444d22 success: 1.0/1, 100%,
-#     elapsed: 00:00:02\n"
-#   * "Task 6ba9d82a-ea55-4934-8aab-0e057102ee11 running: 0.005/1, 0%, 0.0/s,
-#     elapsed: 00:00:02, ETA: 00:06:55\n"
-TASK_STATUS_REGEX = re.compile(
-    r'Task [\w-]+ \w+: [\d./]+, \d+%,( [\d./s]+,)? elapsed: [\d:]+'
-    '(, ETA: [\d:]+)?\n\n?'
-)
-
-
 class CLIError(Exception):
     """Indicates that a CLI command could not be run."""
+
+
+class CLIReturnCodeError(Exception):
+    """Indicates that a CLI command has finished with return code, different
+    from zero.
+
+    :param return_code: CLI command return code
+    :param stderr: contents of the ``stderr``
+    :param msg: explanation of the error
+
+    """
+    def __init__(self, return_code, stderr, msg):
+        self.return_code = return_code
+        self.stderr = stderr
+        self.msg = msg
+
+    def __str__(self):
+        return self.msg
 
 
 class Base(object):
@@ -86,6 +92,40 @@ class Base(object):
     logger = logging.getLogger('robottelo')
 
     @classmethod
+    def _handle_response(cls, response, ignore_stderr=None):
+        """Verify ``return_code`` of the CLI command.
+
+        Check for a non-zero return code or any stderr contents.
+
+        :param response: a ``SSHCommandResult`` object, returned by
+            :mod:`robottelo.ssh.command`.
+        :param ignore_stderr: indicates whether to throw a warning in logs if
+            ``stderr`` is not empty.
+        :returns: contents of ``stdout``.
+        :raises robottelo.cli.base.CLIReturnCodeError: If return code is
+            different from zero.
+        """
+        if response.return_code != 0:
+            raise CLIReturnCodeError(
+                response.return_code,
+                response.stderr,
+                "Command '{0} {1}' finished with return_code {2}\n"
+                "stderr contains following message:\n{3}"
+                .format(
+                    cls.command_base,
+                    cls.command_sub,
+                    response.return_code,
+                    response.stderr,
+                )
+            )
+        if len(response.stderr) != 0 and not ignore_stderr:
+            cls.logger.warning(
+                'stderr contains following message:\n{0}'
+                .format(response.stderr)
+            )
+        return response.stdout
+
+    @classmethod
     def add_operating_system(cls, options=None):
         """
         Adds OS to record.
@@ -112,8 +152,8 @@ class Base(object):
             cls._construct_command(options), output_format='csv')
 
         # Extract new object ID if it was successfully created
-        if len(result.stdout) > 0 and 'id' in result.stdout[0]:
-            obj_id = result.stdout[0]['id']
+        if len(result) > 0 and 'id' in result[0]:
+            obj_id = result[0]['id']
 
             # Fetch new object
             # Some Katello obj require the organization-id for subcommands
@@ -128,8 +168,8 @@ class Base(object):
 
             new_obj = cls.info(info_options)
             # stdout should be a dictionary containing the object
-            if len(new_obj.stdout) > 0:
-                result.stdout = new_obj.stdout
+            if len(new_obj) > 0:
+                result = new_obj
 
         return result
 
@@ -137,8 +177,10 @@ class Base(object):
     def delete(cls, options=None):
         """Deletes existing record."""
         cls.command_sub = 'delete'
-        return cls._remove_task_status(
-            cls.execute(cls._construct_command(options)))
+        return cls.execute(
+            cls._construct_command(options),
+            ignore_stderr=True,
+        )
 
     @classmethod
     def delete_parameter(cls, options=None):
@@ -192,7 +234,7 @@ class Base(object):
 
     @classmethod
     def execute(cls, command, user=None, password=None, output_format=None,
-                timeout=None):
+                timeout=None, ignore_stderr=None, return_raw_response=None):
         """Executes the cli ``command`` on the server via ssh"""
         user, password = cls._get_username_password(user, password)
 
@@ -206,9 +248,18 @@ class Base(object):
             u'--output={0}'.format(output_format) if output_format else u'',
             command,
         )
-
-        return ssh.command(
-            cmd.encode('utf-8'), output_format=output_format, timeout=timeout)
+        response = ssh.command(
+            cmd.encode('utf-8'),
+            output_format=output_format,
+            timeout=timeout,
+        )
+        if return_raw_response:
+            return response
+        else:
+            return cls._handle_response(
+                response,
+                ignore_stderr=ignore_stderr,
+            )
 
     @classmethod
     def exists(cls, options=None, search=None):
@@ -231,8 +282,8 @@ class Base(object):
 
         result = cls.list(options)
 
-        if result.stdout:
-            result.stdout = result.stdout[0]
+        if result:
+            result = result[0]
 
         return result
 
@@ -255,7 +306,7 @@ class Base(object):
             output_format=output_format
         )
         if output_format != 'json':
-            result.stdout = hammer.parse_info(result.stdout)
+            result = hammer.parse_info(result)
         return result
 
     @classmethod
@@ -392,13 +443,3 @@ class Base(object):
         )
 
         return cmd
-
-    @classmethod
-    def _remove_task_status(cls, result):
-        """Remove all task status entries from the stderr if command return
-        code is 0.
-
-        """
-        if result.return_code == 0:
-            result.stderr = TASK_STATUS_REGEX.sub('', result.stderr)
-        return result

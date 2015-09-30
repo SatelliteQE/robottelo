@@ -4,6 +4,7 @@
 import random
 
 from fauxfactory import gen_string
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     make_domain, make_hostgroup, make_lifecycle_environment,
     make_medium, make_org, make_proxy, make_subnet, make_template, make_user,
@@ -184,12 +185,10 @@ class TestOrg(CLITestCase):
         """
         for test_data in valid_names():
             with self.subTest(test_data):
-                new_obj = make_org(test_data)
+                org = make_org(test_data)
                 # Can we find the new object?
-                result = Org.exists(search=('name', new_obj['name']))
-                self.assertEqual(result.return_code, 0)
-                self.assertEqual(len(result.stderr), 0)
-                self.assertEqual(new_obj['name'], result.stdout['name'])
+                result = Org.exists(search=('name', org['name']))
+                self.assertEqual(org['name'], result['name'])
 
     @run_only_on('sat')
     def test_remove_domain(self):
@@ -200,14 +199,16 @@ class TestOrg(CLITestCase):
         @Assert: Domain is removed from the org
 
         """
-        org_result = make_org()
-        domain_result = make_domain()
-        Org.add_domain(
-            {'name': org_result['name'], 'domain': domain_result['name']})
-        return_value = Org.remove_domain(
-            {'name': org_result['name'], 'domain': domain_result['name']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+        org = make_org()
+        domain = make_domain()
+        Org.add_domain({
+            'domain': domain['name'],
+            'name': org['name'],
+        })
+        Org.remove_domain({
+            'domain': domain['name'],
+            'name': org['name'],
+        })
 
     def test_bugzilla_1079587(self):
         """@test: Search for an organization by label
@@ -219,12 +220,10 @@ class TestOrg(CLITestCase):
         """
         for test_data in valid_names():
             with self.subTest(test_data):
-                new_obj = make_org(test_data)
+                org = make_org(test_data)
                 # Can we find the new object?
-                result = Org.exists(search=('label', new_obj['label']))
-                self.assertEqual(result.return_code, 0)
-                self.assertEqual(len(result.stderr), 0)
-                self.assertEqual(new_obj['name'], result.stdout['name'])
+                result = Org.exists(search=('label', org['label']))
+                self.assertEqual(org['name'], result['name'])
 
     def test_bugzilla_1076568_1(self):
         """@test: Delete organization by name
@@ -235,16 +234,10 @@ class TestOrg(CLITestCase):
 
         """
         org = make_org()
-
-        result = Org.delete({'name': org['name']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Org.delete({'name': org['name']})
         # Can we find the object?
-        result = Org.info({'id': org['id']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
-        self.assertEqual(len(result.stdout), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            Org.info({'id': org['id']})
 
     def test_bugzilla_1076568_2(self):
         """@test: Delete organization by ID
@@ -255,16 +248,10 @@ class TestOrg(CLITestCase):
 
         """
         org = make_org()
-
-        result = Org.delete({'id': org['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Org.delete({'id': org['id']})
         # Can we find the object?
-        result = Org.info({'id': org['id']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
-        self.assertEqual(len(result.stdout), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            Org.info({'id': org['id']})
 
     def test_bugzilla_1076568_3(self):
         """@test: Delete organization by label
@@ -275,16 +262,10 @@ class TestOrg(CLITestCase):
 
         """
         org = make_org()
-
-        result = Org.delete({'label': org['label']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Org.delete({'label': org['label']})
         # Can we find the object?
-        result = Org.info({'id': org['id']})
-        self.assertNotEqual(result.return_code, 0)
-        self.assertGreater(len(result.stderr), 0)
-        self.assertEqual(len(result.stdout), 0)
+        with self.assertRaises(CLIReturnCodeError):
+            Org.info({'id': org['id']})
 
     def test_bugzilla_1076541(self):
         """@test: Cannot update organization name via CLI
@@ -294,20 +275,16 @@ class TestOrg(CLITestCase):
         @assert: Organization name is updated
 
         """
-        new_obj = make_org()
-
+        org = make_org()
         # Update the org name
         new_name = gen_string('utf8', 15)
-        result = Org.update({'id': new_obj['id'], 'new-name': new_name})
-
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-
+        Org.update({
+            'id': org['id'],
+            'new-name': new_name,
+        })
         # Fetch the org again
-        result = Org.info({'id': new_obj['id']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(result.stdout['name'], new_name)
+        org = Org.info({'id': org['id']})
+        self.assertEqual(org['name'], new_name)
 
     def test_bugzilla_1075163(self):
         """@Test: Add --label as a valid argument to organization info command
@@ -320,9 +297,7 @@ class TestOrg(CLITestCase):
         """
         org = make_org()
         result = Org.info({'label': org['label']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(org['id'], result.stdout['id'])
+        self.assertEqual(org['id'], result['id'])
 
     def test_bugzilla_1075156(self):
         """@Test: Cannot use CLI info for organizations by name
@@ -335,9 +310,7 @@ class TestOrg(CLITestCase):
         """
         org = make_org()
         result = Org.info({'name': org['name']})
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stderr), 0)
-        self.assertEqual(org['id'], result.stdout['id'])
+        self.assertEqual(org['id'], result['id'])
 
     @run_only_on('sat')
     def test_bugzilla_1062295_1(self):
@@ -348,13 +321,12 @@ class TestOrg(CLITestCase):
         @Assert: Config Template is added to the org
 
         """
-        org_result = make_org()
-        template_result = make_template()
-        return_value = Org.add_config_template({
-            'name': org_result['name'],
-            'config-template': template_result['name']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+        org = make_org()
+        template = make_template()
+        Org.add_config_template({
+            'config-template': template['name'],
+            'name': org['name'],
+        })
 
     @run_only_on('sat')
     def test_bugzilla_1062295_2(self):
@@ -365,16 +337,16 @@ class TestOrg(CLITestCase):
         @Assert: ConfigTemplate is removed from the org
 
         """
-        org_result = make_org()
-        template_result = make_template()
+        org = make_org()
+        template = make_template()
         Org.add_config_template({
-            'name': org_result['name'],
-            'config-template': template_result['name']})
-        return_value = Org.remove_config_template({
-            'name': org_result['name'],
-            'config-template': template_result['name']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+            'config-template': template['name'],
+            'name': org['name'],
+        })
+        Org.remove_config_template({
+            'config-template': template['name'],
+            'name': org['name'],
+        })
 
     def test_bugzilla_1023125(self):
         """@Test: hammer-cli: trying to create duplicate org throws unhandled
@@ -387,7 +359,6 @@ class TestOrg(CLITestCase):
 
         """
         org = make_org()
-
         # Create new org with the same name as before
         # should yield an exception
         with self.assertRaises(CLIFactoryError):
@@ -406,14 +377,14 @@ class TestOrg(CLITestCase):
         # org list --help:
         result = Org.list({'help': True})
         # get list of lines and check they all are unique
-        lines = [line['message'] for line in result.stdout]
+        lines = [line['message'] for line in result]
         self.assertEqual(len(set(lines)), len(lines))
 
         # org info --help:info returns more lines (obviously), ignore exception
         result = Org.info({'help': True})
 
         # get list of lines and check they all are unique
-        lines = [line for line in result.stdout['options']]
+        lines = [line for line in result['options']]
         self.assertEqual(len(set(lines)), len(lines))
 
     # CRUD
@@ -505,9 +476,7 @@ class TestOrg(CLITestCase):
         @Assert: Org is listed
 
         """
-        return_value = Org.list()
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+        Org.list()
 
     @run_only_on('sat')
     def test_add_subnet(self):
@@ -518,12 +487,12 @@ class TestOrg(CLITestCase):
         @Assert: Subnet is added to the org
 
         """
-        org_result = make_org()
-        subnet_result = make_subnet()
-        return_value = Org.add_subnet(
-            {'name': org_result['name'], 'subnet': subnet_result['name']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+        org = make_org()
+        subnet = make_subnet()
+        Org.add_subnet({
+            'name': org['name'],
+            'subnet': subnet['name'],
+        })
 
     @run_only_on('sat')
     def test_remove_subnet(self):
@@ -534,14 +503,16 @@ class TestOrg(CLITestCase):
         @Assert: Subnet is removed from the org
 
         """
-        org_result = make_org()
-        subnet_result = make_subnet()
-        Org.add_subnet(
-            {'name': org_result['name'], 'subnet': subnet_result['name']})
-        return_value = Org.remove_subnet(
-            {'name': org_result['name'], 'subnet': subnet_result['name']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+        org = make_org()
+        subnet = make_subnet()
+        Org.add_subnet({
+            'name': org['name'],
+            'subnet': subnet['name'],
+        })
+        Org.remove_subnet({
+            'name': org['name'],
+            'subnet': subnet['name'],
+        })
 
     def test_add_user(self):
         """@Test: Check if a User can be added to an Org
@@ -551,12 +522,12 @@ class TestOrg(CLITestCase):
         @Assert: User is added to the org
 
         """
-        org_result = make_org()
-        user_result = make_user()
-        return_value = Org.add_user(
-            {'name': org_result['name'], 'user-id': user_result['id']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+        org = make_org()
+        user = make_user()
+        Org.add_user({
+            'name': org['name'],
+            'user-id': user['id'],
+        })
 
     def test_remove_user(self):
         """@Test: Check if a User can be removed from an Org
@@ -566,31 +537,32 @@ class TestOrg(CLITestCase):
         @Assert: User is removed from the org
 
         """
-        org_result = make_org()
-        user_result = make_user()
-        Org.add_user(
-            {'name': org_result['name'], 'user-id': user_result['login']})
-        return_value = Org.remove_user(
-            {'name': org_result['name'], 'user-id': user_result['login']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+        org = make_org()
+        user = make_user()
+        Org.add_user({
+            'name': org['name'],
+            'user-id': user['id'],
+        })
+        Org.remove_user({
+            'name': org['name'],
+            'user-id': user['id'],
+        })
 
     @run_only_on('sat')
     def test_add_hostgroup(self):
         """@Test: Check if a hostgroup can be added to an Org
 
-        @Feature: Org - Hostrgroup
+        @Feature: Org - Hostgroup
 
         @Assert: Hostgroup is added to the org
 
         """
-        org_result = make_org()
-        hostgroup_result = make_hostgroup()
-        return_value = Org.add_hostgroup({
-            'name': org_result['name'],
-            'hostgroup': hostgroup_result['name']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+        org = make_org()
+        hostgroup = make_hostgroup()
+        Org.add_hostgroup({
+            'hostgroup': hostgroup['name'],
+            'name': org['name'],
+        })
 
     @run_only_on('sat')
     def test_remove_hostgroup(self):
@@ -601,16 +573,16 @@ class TestOrg(CLITestCase):
         @Assert: Hostgroup is removed from the org
 
         """
-        org_result = make_org()
-        hostgroup_result = make_hostgroup()
+        org = make_org()
+        hostgroup = make_hostgroup()
         Org.add_hostgroup({
-            'name': org_result['name'],
-            'hostgroup': hostgroup_result['name']})
-        return_value = Org.remove_hostgroup({
-            'name': org_result['name'],
-            'hostgroup': hostgroup_result['name']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+            'hostgroup': hostgroup['name'],
+            'name': org['name'],
+        })
+        Org.remove_hostgroup({
+            'hostgroup': hostgroup['name'],
+            'name': org['name'],
+        })
 
     @run_only_on('sat')
     def test_add_computeresource(self):
@@ -621,24 +593,19 @@ class TestOrg(CLITestCase):
         @Assert: Compute Resource is added to the org
 
         """
-        try:
-            org = make_org()
-            compute_res = make_compute_resource({
-                'provider': FOREMAN_PROVIDERS['libvirt'],
-                'url': "qemu+tcp://%s:16509/system" % conf.properties[
-                    'main.server.hostname'
-                ]
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
-        return_value = Org.add_compute_resource({
+        org = make_org()
+        compute_res = make_compute_resource({
+            'provider': FOREMAN_PROVIDERS['libvirt'],
+            'url': "qemu+tcp://%s:16509/system" % conf.properties[
+                'main.server.hostname'
+            ]
+        })
+        Org.add_compute_resource({
+            'compute-resource': compute_res['name'],
             'name': org['name'],
-            'compute-resource': compute_res['name']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
-        result = Org.info({'id': org['id']})
-        self.assertEqual(
-            result.stdout['compute-resources'][0], compute_res['name'])
+        })
+        org = Org.info({'id': org['id']})
+        self.assertEqual(org['compute-resources'][0], compute_res['name'])
 
     def test_add_compute_resource_by_id(self):
         """@Test: Check that new organization with compute resource associated
@@ -649,12 +616,9 @@ class TestOrg(CLITestCase):
         @Assert: Organization with compute resource created successfully
 
         """
-        try:
-            compute_res = make_compute_resource()
-            org = make_org({'compute-resource-ids': compute_res['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
-        self.assertEqual(1, len(org['compute-resources']))
+        compute_res = make_compute_resource()
+        org = make_org({'compute-resource-ids': compute_res['id']})
+        self.assertEqual(len(org['compute-resources']), 1)
         self.assertEqual(org['compute-resources'][0], compute_res['name'])
 
     def test_add_compute_resources(self):
@@ -666,15 +630,12 @@ class TestOrg(CLITestCase):
         @Assert: Organization with compute resources created successfully
 
         """
-        try:
-            cr_amount = random.randint(3, 5)
-            resources = [make_compute_resource() for _ in range(cr_amount)]
-            org = make_org({
-                'compute-resource-ids':
-                    [resource['id'] for resource in resources],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        cr_amount = random.randint(3, 5)
+        resources = [make_compute_resource() for _ in range(cr_amount)]
+        org = make_org({
+            'compute-resource-ids':
+                [resource['id'] for resource in resources],
+        })
         self.assertEqual(len(org['compute-resources']), cr_amount)
         for resource in resources:
             self.assertIn(resource['name'], org['compute-resources'])
@@ -702,13 +663,14 @@ class TestOrg(CLITestCase):
         @Assert: Medium is added to the org
 
         """
-        org_result = make_org()
-        medium_result = make_medium()
-        return_value = Org.add_medium({
-            'name': org_result['name'],
-            'medium': medium_result['name']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+        org = make_org()
+        medium = make_medium()
+        Org.add_medium({
+            'name': org['name'],
+            'medium': medium['name'],
+        })
+        org = Org.info({'id': org['id']})
+        self.assertIn(medium['name'], org['installation-media'])
 
     @run_only_on('sat')
     def test_remove_medium(self):
@@ -719,16 +681,18 @@ class TestOrg(CLITestCase):
         @Assert: Medium is removed from the org
 
         """
-        org_result = make_org()
-        medium_result = make_medium()
+        org = make_org()
+        medium = make_medium()
         Org.add_medium({
-            'name': org_result['name'],
-            'medium': medium_result['name']})
-        return_value = Org.remove_medium({
-            'name': org_result['name'],
-            'medium': medium_result['name']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+            'name': org['name'],
+            'medium': medium['name']
+        })
+        Org.remove_medium({
+            'name': org['name'],
+            'medium': medium['name']
+        })
+        org = Org.info({'id': org['id']})
+        self.assertNotIn(medium['name'], org['installation-media'])
 
     @run_only_on('sat')
     def test_add_configtemplate(self):
@@ -739,26 +703,21 @@ class TestOrg(CLITestCase):
         @Assert: Config Template is added to the org
 
         """
-        for data in valid_names_simple_all():
-            with self.subTest(data):
-                try:
-                    org = make_org()
-                    template = make_template({
-                        'name': data,
-                        'content': gen_string('alpha'),
-                    })
-                except CLIFactoryError as err:
-                    self.fail(err)
-                result = Org.add_config_template({
-                    'name': org['name'],
-                    'config-template': template['name']
+        for name in valid_names_simple_all():
+            with self.subTest(name):
+                org = make_org()
+                template = make_template({
+                    'content': gen_string('alpha'),
+                    'name': name,
                 })
-                self.assertEqual(result.return_code, 0)
-                self.assertEqual(len(result.stderr), 0)
-                result = Org.info({'id': org['id']})
+                Org.add_config_template({
+                    'config-template': template['name'],
+                    'name': org['name'],
+                })
+                org = Org.info({'id': org['id']})
                 self.assertIn(
                     u'{0} ({1})'. format(template['name'], template['type']),
-                    result.stdout['templates']
+                    org['templates']
                 )
 
     def test_add_configtemplate_by_id(self):
@@ -770,11 +729,8 @@ class TestOrg(CLITestCase):
         @Assert: Organization with config template created successfully
 
         """
-        try:
-            conf_templ = make_template()
-            org = make_org({'config-template-ids': conf_templ['id']})
-        except CLIFactoryError as err:
-            self.fail(err)
+        conf_templ = make_template()
+        org = make_org({'config-template-ids': conf_templ['id']})
         self.assertIn(
             u'{0} ({1})'.format(conf_templ['name'], conf_templ['type']),
             org['templates']
@@ -789,15 +745,12 @@ class TestOrg(CLITestCase):
         @Assert: Organization with config templates created successfully
 
         """
-        try:
-            templates_amount = random.randint(3, 5)
-            templates = [make_template() for _ in range(templates_amount)]
-            org = make_org({
-                'config-template-ids':
-                    [template['id'] for template in templates],
-            })
-        except CLIFactoryError as err:
-            self.fail(err)
+        templates_amount = random.randint(3, 5)
+        templates = [make_template() for _ in range(templates_amount)]
+        org = make_org({
+            'config-template-ids':
+                [template['id'] for template in templates],
+        })
         self.assertGreaterEqual(len(org['templates']), templates_amount)
         for template in templates:
             self.assertIn(
@@ -814,41 +767,32 @@ class TestOrg(CLITestCase):
         @Assert: ConfigTemplate is removed from the org
 
         """
-        for data in valid_names_simple_all():
-            with self.subTest(data):
-                try:
-                    org = make_org()
-                    tmplt = make_template({
-                        'name': data,
-                        'content': gen_string('alpha')
-                    })
-                except CLIFactoryError as err:
-                    self.fail(err)
-
-                # Add config-template
-                result = Org.add_config_template({
-                    'name': org['name'],
-                    'config-template': tmplt['name']
+        for name in valid_names_simple_all():
+            with self.subTest(name):
+                org = make_org()
+                template = make_template({
+                    'content': gen_string('alpha'),
+                    'name': name,
                 })
-                self.assertEqual(result.return_code, 0)
-                self.assertEqual(len(result.stderr), 0)
+                # Add config-template
+                Org.add_config_template({
+                    'name': org['name'],
+                    'config-template': template['name']
+                })
                 result = Org.info({'id': org['id']})
                 self.assertIn(
-                    u'{0} ({1})'. format(tmplt['name'], tmplt['type']),
-                    result.stdout['templates']
+                    u'{0} ({1})'. format(template['name'], template['type']),
+                    result['templates'],
                 )
-
                 # Remove config-template
-                result = Org.remove_config_template({
+                Org.remove_config_template({
+                    'config-template': template['name'],
                     'name': org['name'],
-                    'config-template': tmplt['name']
                 })
-                self.assertEqual(result.return_code, 0)
-                self.assertEqual(len(result.stderr), 0)
                 result = Org.info({'id': org['id']})
                 self.assertNotIn(
-                    u'{0} ({1})'. format(tmplt['name'], tmplt['type']),
-                    result.stdout['templates']
+                    u'{0} ({1})'. format(template['name'], template['type']),
+                    result['templates'],
                 )
 
     @run_only_on('sat')
@@ -864,15 +808,13 @@ class TestOrg(CLITestCase):
         org_id = make_org()['id']
         lc_env_name = make_lifecycle_environment(
             {'organization-id': org_id})['name']
-
         # Read back information about the lifecycle environment. Verify the
         # sanity of that information.
         response = LifecycleEnvironment.list({
             'name': lc_env_name,
             'organization-id': org_id,
         })
-        self.assertEqual(response.return_code, 0)
-        self.assertEqual(response.stdout[0]['name'], lc_env_name)
+        self.assertEqual(response[0]['name'], lc_env_name)
 
     @run_only_on('sat')
     def test_remove_environment(self):
@@ -891,21 +833,15 @@ class TestOrg(CLITestCase):
             'name': lc_env_name,
             'organization-id': org_id,
         }
-
         # Read back information about the lifecycle environment. Verify the
         # sanity of that information.
         response = LifecycleEnvironment.list(lc_env_attrs)
-        self.assertEqual(response.return_code, 0)
-        self.assertEqual(response.stdout[0]['name'], lc_env_name)
-
+        self.assertEqual(response[0]['name'], lc_env_name)
         # Delete it.
-        response = LifecycleEnvironment.delete(lc_env_attrs)
-        self.assertEqual(response.return_code, 0)
-
+        LifecycleEnvironment.delete(lc_env_attrs)
         # We should get a zero-length response when searcing for the LC env.
         response = LifecycleEnvironment.list(lc_env_attrs)
-        self.assertEqual(response.return_code, 0)
-        self.assertEqual(len(response.stdout), 0)
+        self.assertEqual(len(response), 0)
 
     @run_only_on('sat')
     @stubbed("Needs to be re-worked!")
@@ -917,13 +853,12 @@ class TestOrg(CLITestCase):
         @Assert: Smartproxy is added to the org
 
         """
-        org_result = make_org()
-        proxy_result = make_proxy()
-        return_value = Org.add_smart_proxy({
-            'name': org_result['name'],
-            'smart-proxy': proxy_result['name']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+        org = make_org()
+        proxy = make_proxy()
+        Org.add_smart_proxy({
+            'name': org['name'],
+            'smart-proxy': proxy['name'],
+        })
 
     @run_only_on('sat')
     @stubbed("Needs to be re-worked!")
@@ -935,16 +870,16 @@ class TestOrg(CLITestCase):
         @Assert: Smartproxy is removed from the org
 
         """
-        org_result = make_org()
-        proxy_result = make_proxy()
+        org = make_org()
+        proxy = make_proxy()
         Org.add_smart_proxy({
-            'name': org_result['name'],
-            'smart-proxy': proxy_result['name']})
-        return_value = Org.remove_smart_proxy({
-            'name': org_result['name'],
-            'smart-proxy': proxy_result['name']})
-        self.assertEqual(return_value.return_code, 0)
-        self.assertEqual(len(return_value.stderr), 0)
+            'name': org['name'],
+            'smart-proxy': proxy['name'],
+        })
+        Org.remove_smart_proxy({
+            'name': org['name'],
+            'smart-proxy': proxy['name'],
+        })
 
     # Negative Create
 
@@ -959,13 +894,12 @@ class TestOrg(CLITestCase):
         """
         for test_data in invalid_name_label():
             with self.subTest(test_data):
-                result = Org.create({
-                    'description': test_data['label'],
-                    'label': test_data['label'],
-                    'name': test_data['name'],
-                })
-                self.assertGreater(len(result.stderr), 0)
-                self.assertNotEqual(result.return_code, 0)
+                with self.assertRaises(CLIReturnCodeError):
+                    Org.create({
+                        'description': test_data['label'],
+                        'label': test_data['label'],
+                        'name': test_data['name'],
+                    })
 
     def test_negative_create_1(self):
         """@test: Create organization with valid label and description, name is
@@ -978,13 +912,12 @@ class TestOrg(CLITestCase):
         """
         for test_data in valid_names_simple():
             with self.subTest(test_data):
-                result = Org.create({
-                    'description': test_data,
-                    'label': test_data,
-                    'name': '',
-                })
-                self.assertTrue(result.stderr)
-                self.assertNotEqual(result.return_code, 0)
+                with self.assertRaises(CLIReturnCodeError):
+                    Org.create({
+                        'description': test_data,
+                        'label': test_data,
+                        'name': '',
+                    })
 
     def test_negative_create_2(self):
         """@test: Create organization with valid label and description, name is
@@ -997,13 +930,12 @@ class TestOrg(CLITestCase):
         """
         for test_data in valid_names_simple():
             with self.subTest(test_data):
-                result = Org.create({
-                    'label': test_data,
-                    'description': test_data,
-                    'name': ' \t',
-                })
-                self.assertGreater(len(result.stderr), 0)
-                self.assertNotEqual(result.return_code, 0)
+                with self.assertRaises(CLIReturnCodeError):
+                    Org.create({
+                        'description': test_data,
+                        'label': test_data,
+                        'name': ' \t',
+                    })
 
     def test_negative_create_3(self):
         """@test: Create organization with valid values, then create a new one
@@ -1016,20 +948,17 @@ class TestOrg(CLITestCase):
         """
         for test_data in valid_names_simple():
             with self.subTest(test_data):
-                result = Org.create({
+                Org.create({
                     'description': test_data,
                     'label': test_data,
                     'name': test_data,
                 })
-                self.assertFalse(result.stderr)
-                self.assertEqual(result.return_code, 0)
-                result = Org.create({
-                    'description': test_data,
-                    'label': test_data,
-                    'name': test_data,
-                })
-        self.assertGreater(len(result.stderr), 0)
-        self.assertNotEqual(result.return_code, 0)
+                with self.assertRaises(CLIReturnCodeError):
+                    Org.create({
+                        'description': test_data,
+                        'label': test_data,
+                        'name': test_data,
+                    })
 
     # Positive Delete
 
@@ -1045,16 +974,10 @@ class TestOrg(CLITestCase):
         for test_data in valid_name_desc_label():
             with self.subTest(test_data):
                 org = make_org(test_data)
-
-                result = Org.delete({'id': org['id']})
-                self.assertEqual(result.return_code, 0)
-                self.assertEqual(len(result.stderr), 0)
-
+                Org.delete({'id': org['id']})
                 # Can we find the object?
-                result = Org.info({'id': org['id']})
-                self.assertNotEqual(result.return_code, 0)
-                self.assertGreater(len(result.stderr), 0)
-                self.assertEqual(len(result.stdout), 0)
+                with self.assertRaises(CLIReturnCodeError):
+                    Org.info({'id': org['id']})
 
     def test_positive_delete_2(self):
         """@test: Create organization with valid values then delete it
@@ -1068,15 +991,10 @@ class TestOrg(CLITestCase):
         for test_data in valid_name_desc_label():
             with self.subTest(test_data):
                 org = make_org(test_data)
-                return_value = Org.delete({'label': org['label']})
-                self.assertEqual(return_value.return_code, 0)
-                self.assertEqual(len(return_value.stderr), 0)
-
+                Org.delete({'label': org['label']})
                 # Can we find the object?
-                result = Org.info({'id': org['id']})
-                self.assertNotEqual(result.return_code, 0)
-                self.assertGreater(len(result.stderr), 0)
-                self.assertEqual(len(result.stdout), 0)
+                with self.assertRaises(CLIReturnCodeError):
+                    Org.info({'id': org['id']})
 
     def test_positive_delete_3(self):
         """@test: Create organization with valid values then delete it
@@ -1090,15 +1008,10 @@ class TestOrg(CLITestCase):
         for test_data in valid_name_desc_label():
             with self.subTest(test_data):
                 org = make_org(test_data)
-                return_value = Org.delete({'name': org['name']})
-                self.assertEqual(return_value.return_code, 0)
-                self.assertEqual(len(return_value.stderr), 0)
-
+                Org.delete({'name': org['name']})
                 # Can we find the object?
-                result = Org.info({'id': org['id']})
-                self.assertNotEqual(result.return_code, 0)
-                self.assertGreater(len(result.stderr), 0)
-                self.assertEqual(len(result.stdout), 0)
+                with self.assertRaises(CLIReturnCodeError):
+                    Org.info({'id': org['id']})
 
     def test_positive_update_1(self):
         """@test: Create organization with valid values then update its name
@@ -1111,20 +1024,14 @@ class TestOrg(CLITestCase):
         for test_data in valid_names():
             with self.subTest(test_data):
                 org = make_org()
-
                 # Update the org name
-                result = Org.update({
+                Org.update({
                     'id': org['id'],
                     'new-name': test_data['name'],
                 })
-                self.assertEqual(result.return_code, 0)
-                self.assertEqual(len(result.stderr), 0)
-
                 # Fetch the org again
-                result = Org.info({'id': org['id']})
-                self.assertEqual(result.return_code, 0)
-                self.assertEqual(len(result.stderr), 0)
-                self.assertEqual(result.stdout['name'], test_data['name'])
+                org = Org.info({'id': org['id']})
+                self.assertEqual(org['name'], test_data['name'])
 
     def test_positive_update_3(self):
         """@test: Create organization with valid values then update its
@@ -1138,23 +1045,14 @@ class TestOrg(CLITestCase):
         for test_data in positive_desc_data():
             with self.subTest(test_data):
                 org = make_org()
-
                 # Update the org name
-                result = Org.update({
-                    'id': org['id'],
+                Org.update({
                     'description': test_data['description'],
+                    'id': org['id'],
                 })
-                self.assertEqual(result.return_code, 0)
-                self.assertEqual(len(result.stderr), 0)
-
                 # Fetch the org again
-                result = Org.info({'id': org['id']})
-                self.assertEqual(result.return_code, 0)
-                self.assertEqual(len(result.stderr), 0)
-                self.assertEqual(
-                    result.stdout['description'],
-                    test_data['description']
-                )
+                org = Org.info({'id': org['id']})
+                self.assertEqual(org['description'], test_data['description'])
 
     def test_positive_update_4(self):
         """@test: Create organization with valid values then update all values
@@ -1167,25 +1065,16 @@ class TestOrg(CLITestCase):
         for test_data in valid_name_desc():
             with self.subTest(test_data):
                 org = make_org()
-
                 # Update the org name
-                result = Org.update({
+                Org.update({
+                    'description': test_data['description'],
                     'id': org['id'],
                     'new-name': test_data['name'],
-                    'description': test_data['description'],
                 })
-                self.assertEqual(result.return_code, 0)
-                self.assertEqual(len(result.stderr), 0)
-
                 # Fetch the org again
-                result = Org.info({'id': org['id']})
-                self.assertEqual(result.return_code, 0)
-                self.assertEqual(len(result.stderr), 0)
-                self.assertEqual(
-                    result.stdout['description'],
-                    test_data['description']
-                )
-                self.assertEqual(result.stdout['name'], test_data['name'])
+                org = Org.info({'id': org['id']})
+                self.assertEqual(org['description'], test_data['description'])
+                self.assertEqual(org['name'], test_data['name'])
 
     # Negative Update
 
@@ -1201,14 +1090,12 @@ class TestOrg(CLITestCase):
         for test_data in invalid_name_data():
             with self.subTest(test_data):
                 org = make_org()
-
                 # Update the org name
-                result = Org.update({
-                    'id': org['id'],
-                    'new-name': test_data['name'],
-                })
-                self.assertNotEqual(result.return_code, 0)
-                self.assertGreater(len(result.stderr), 0)
+                with self.assertRaises(CLIReturnCodeError):
+                    Org.update({
+                        'id': org['id'],
+                        'new-name': test_data['name'],
+                    })
 
     # Miscelaneous
 
@@ -1502,20 +1389,14 @@ class TestOrg(CLITestCase):
                      gen_string('alphanumeric'), gen_string('utf8'),
                      gen_string('latin1')):
             with self.subTest(name):
-                try:
-                    org = make_org()
-                    new_subnet = make_subnet({'name': name})
-                except CLIFactoryError as err:
-                    self.fail(err)
-
-                result = Org.add_subnet({
+                org = make_org()
+                new_subnet = make_subnet({'name': name})
+                Org.add_subnet({
                     'name': org['name'],
                     'subnet': new_subnet['name'],
                 })
-                self.assertEqual(result.return_code, 0)
-
-                result = Org.info({'id': org['id']})
-                self.assertIn(name, result.stdout['subnets'][0])
+                org = Org.info({'id': org['id']})
+                self.assertIn(name, org['subnets'][0])
 
     @run_only_on('sat')
     @stubbed()
