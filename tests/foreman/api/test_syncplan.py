@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 """Unit tests for the ``sync_plans`` paths.
 
 A full API reference for sync plans can be found here:
@@ -88,7 +87,7 @@ class SyncPlanCreateTestCase(APITestCase):
         cls.org = entities.Organization().create()
         super(SyncPlanCreateTestCase, cls).setUpClass()
 
-    def test_create_enabled_disabled_sync_plan(self):
+    def test_create_enabled_disabled(self):
         """@Test: Create sync plan with different 'enabled' field values.
 
         @Assert: A sync plan is created, 'enabled' field has correct value.
@@ -104,7 +103,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 ).create()
                 self.assertEqual(sync_plan.enabled, enabled)
 
-    def test_create_sync_plan_with_random_name(self, name):
+    def test_create_random_name(self, name):
         """@Test: Create a sync plan with a random name.
 
         @Assert: A sync plan is created with the specified name.
@@ -120,7 +119,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 ).create()
                 self.assertEqual(syncplan.name, name)
 
-    def test_create_sync_plan_with_random_description(self):
+    def test_create_random_description(self):
         """@Test: Create a sync plan with a random description.
 
         @Assert: A sync plan is created with the specified description.
@@ -136,7 +135,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 ).create()
                 self.assertEqual(sync_plan.description, description)
 
-    def test_create_sync_plan_with_random_interval(self):
+    def test_create_random_interval(self):
         """@Test: Create a sync plan with a random interval.
 
         @Assert: A sync plan is created with the specified interval.
@@ -152,7 +151,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 ).create()
                 self.assertEqual(sync_plan.interval, interval)
 
-    def test_create_sync_plan_with_random_sync_date(self):
+    def test_create_random_sync_date(self):
         """@Test: Create a sync plan and update its sync date.
 
         @Assert: A sync plan can be created with a random sync date.
@@ -171,7 +170,7 @@ class SyncPlanCreateTestCase(APITestCase):
                     sync_plan.sync_date
                 )
 
-    def test_create_sync_plan_with_invalid_name_negative(self, name):
+    def test_create_invalid_name(self, name):
         """@Test: Create a sync plan with an invalid name.
 
         @Assert: A sync plan can not be created with the specified name.
@@ -187,7 +186,7 @@ class SyncPlanCreateTestCase(APITestCase):
                         organization=self.org
                     ).create()
 
-    def test_create_sync_plan_with_invalid_interval_negative(self, interval):
+    def test_create_invalid_interval(self, interval):
         """@Test: Create a sync plan with invalid interval specified.
 
         @Assert: A sync plan can not be created with invalid interval specified
@@ -203,7 +202,7 @@ class SyncPlanCreateTestCase(APITestCase):
                         organization=self.org,
                     ).create()
 
-    def test_create_sync_plan_with_empty_interval_negative(self):
+    def test_create_empty_interval(self):
         """@Test: Create a sync plan with no interval specified.
 
         @Assert: A sync plan can not be created with no interval specified.
@@ -228,7 +227,7 @@ class SyncPlanUpdateTestCase(APITestCase):
         cls.org = entities.Organization().create()
         super(SyncPlanUpdateTestCase, cls).setUpClass()
 
-    def test_update_enabled_disabled_sync_plan(self):
+    def test_update_enabled_disabled(self):
         """@Test: Create sync plan and update it with opposite 'enabled' value.
 
         @Assert: Sync plan is updated with different 'enabled' value.
@@ -248,7 +247,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                     enabled
                 )
 
-    def test_update_sync_plan_with_random_name(self):
+    def test_update_random_name(self):
         """@Test: Create a sync plan and update its name.
 
         @Assert: A sync plan is created and its name can be updated with the
@@ -263,7 +262,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                 sync_plan.name = name
                 self.assertEqual(sync_plan.update(['name']).name, name)
 
-    def test_update_sync_plan_with_random_description(self):
+    def test_update_random_description(self):
         """@Test: Create a sync plan and update its description.
 
         @Assert: A sync plan is created and its description can be updated with
@@ -284,7 +283,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                     description
                 )
 
-    def test_update_sync_plan_with_random_interval(self):
+    def test_update_random_interval(self):
         """@Test: Create a sync plan and update its interval.
 
         @Assert: A sync plan is created and its interval can be updated with
@@ -308,7 +307,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                     interval
                 )
 
-    def test_update_sync_plan_with_random_sync_date(self):
+    def test_update_random_sync_date(self):
         """@Test: Updated sync plan's sync date.
 
         @Assert: Sync date is updated with the specified sync date.
@@ -328,7 +327,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                     sync_plan.update(['sync_date']).sync_date
                 )
 
-    def test_update_sync_plan_with_invalid_name_negative(self):
+    def test_update_invalid_name(self):
         """@Test: Try to update a sync plan with an invalid name.
 
         @Assert: A sync plan can not be updated with the specified name.
@@ -343,7 +342,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     sync_plan.update(['name'])
 
-    def test_update_sync_plan_with_invalid_interval_negative(self, interval):
+    def test_update_invalid_interval(self, interval):
         """@Test: Try to update a sync plan with invalid interval.
 
         @Assert: A sync plan can not be updated with empty interval specified.
@@ -496,7 +495,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_synchronize_sync_plan_with_one_product(self):
+    def test_synchronize_one_product(self):
         """@Test: Create a sync plan with one product and sync it.
 
         @Assert: A sync plan is created with one product and product can be
@@ -508,7 +507,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_synchronize_sync_plan_with_two_products(self):
+    def test_synchronize_two_products(self):
         """@Test: Create a sync plan with two products and sync them.
 
         @Assert: A sync plan is created with one product and products can be
@@ -529,7 +528,7 @@ class SyncPlanDeleteTestCase(APITestCase):
         cls.org = entities.Organization().create()
         super(SyncPlanDeleteTestCase, cls).setUpClass()
 
-    def test_delete_sync_plan_with_one_product(self):
+    def test_delete_one_product(self):
         """@Test: Create a sync plan with one product and delete it.
 
         @Assert: A sync plan is created with one product and sync plan can be
@@ -545,7 +544,7 @@ class SyncPlanDeleteTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             sync_plan.read()
 
-    def test_delete_sync_plan_with_two_products(self):
+    def test_delete_two_products(self):
         """@Test: Create a sync plan with two products and delete them.
 
         @Assert: A sync plan is created with one product and sync plan can be
@@ -565,7 +564,7 @@ class SyncPlanDeleteTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             sync_plan.read()
 
-    def test_delete_sync_plan_with_one_synced_product(self):
+    def test_delete_one_synced_product(self):
         """@Test: Create a sync plan with one synced product and delete it.
 
         @Assert: A sync plan is created with one synced product and sync plan
