@@ -28,6 +28,7 @@ remote=0
 smoke=0
 # Update upstream=0 for downstream run
 upstream=1
+cdn=1
 
 # For testing with fake manifests, zipfile containing valid manifest is required,
 # as well as key/cert pair. All of these settings are urls.
@@ -60,6 +61,10 @@ image_dir=/opt/robottelo/images
 # Specify the *.repo link to an internal repo for tests to execute properly
 rhel6_repo=http://example.com/yum/repo_files/rhel6-updates.repo
 rhel7_repo=http://example.com/yum/repo_files/rhel7-updates.repo
+
+# Should get updated for downstream, downstream-iso and zstream jobs
+capsule_repo=http://capsule/repo
+sattools_repo=http://sattools/repo
 
 [docker]
 # External docker URL in the format http[s]://<server>:<port>. The
