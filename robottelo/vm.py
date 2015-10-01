@@ -141,7 +141,7 @@ class VirtualMachine(object):
         time.sleep(60)
 
         result = ssh.command(
-            u'ping -c 1 {}.local'.format(self._target_image),
+            u'ping -c 1 {0}.local'.format(self._target_image),
             self.provisioning_server
         )
         if result.return_code != 0:
@@ -224,7 +224,7 @@ class VirtualMachine(object):
 
         """
         result = self.run(
-            u'rpm -Uvh {}'.format(get_server_cert_rpm_url())
+            u'rpm -Uvh {0}'.format(get_server_cert_rpm_url())
         )
         if result.return_code != 0:
             raise VirtualMachineError(
@@ -251,7 +251,7 @@ class VirtualMachine(object):
             .format(activation_key, org)
         )
         if releasever is not None:
-            cmd += u' --release {}'.format(releasever)
+            cmd += u' --release {0}'.format(releasever)
         cmd = cmd + u' --force'
         result = self.run(cmd)
         if result.return_code == 0:

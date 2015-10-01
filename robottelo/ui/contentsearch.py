@@ -50,7 +50,7 @@ class ContentSearch(Base):
         if filter_type == 'Repositories':
             self.click(locators['contentsearch.repositories_auto_radio'])
         self.field_update(
-            'contentsearch.{}'.format(self.ft_locator),
+            'contentsearch.{0}'.format(self.ft_locator),
             filter_value
         )
         strategy, value = locators['contentsearch.autocomplete_field']
@@ -59,7 +59,7 @@ class ContentSearch(Base):
             self.click((strategy, value % auto_complete))
         self.wait_for_ajax()
         add_button = self.wait_until_element_is_clickable(
-            locators['contentsearch.add_{}_filter'.format(self.ft_locator)]
+            locators['contentsearch.add_{0}_filter'.format(self.ft_locator)]
         )
         if add_button is None:
             raise UIError(
@@ -79,7 +79,7 @@ class ContentSearch(Base):
         if filter_type == 'Repositories':
             self.click(locators['contentsearch.repositories_search_radio'])
         self.field_update(
-            'contentsearch.{}_search'.format(self.ft_locator),
+            'contentsearch.{0}_search'.format(self.ft_locator),
             filter_value
         )
 

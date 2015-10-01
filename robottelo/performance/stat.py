@@ -25,7 +25,7 @@ def generate_stat_for_concurrent_thread(
     with open(stat_file_name, 'a') as handler:
         writer = csv.writer(handler)
         writer.writerow([])
-        writer.writerow(['{}'.format(thread_name)])
+        writer.writerow(['{0}'.format(thread_name)])
         writer.writerow([
             'bucket',
             'min',
@@ -76,7 +76,7 @@ def generate_stat_for_pulp_sync(index, time_list, stat_file_name):
         sync_std = numpy.std(time_list)
 
         writer.writerow([
-            'test-{}-threads'.format(index),
+            'test-{0}-threads'.format(index),
             sync_min,
             sync_median,
             sync_max,

@@ -75,13 +75,13 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
         # determine all targeting repositories to be synced
         self.repo_names_list = self._get_target_repo_from_config()
         self.logger.debug(
-            'Target Repositories to be synced: {}'
+            'Target Repositories to be synced: {0}'
             .format(self.repo_names_list)
         )
 
         self.max_num_tests = len(self.repo_names_list)
         self.logger.debug(
-            'Max number of repositories to sync: {}'
+            'Max number of repositories to sync: {0}'
             .format(self.max_num_tests)
         )
 
@@ -127,14 +127,14 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
         for current_num_threads in range(2, self.max_num_tests + 1):
             # kick off N-repo sync test case
             self.logger.debug(
-                'Kick off {}-repo test case:'.format(current_num_threads)
+                'Kick off {0}-repo test case:'.format(current_num_threads)
             )
             total_max_timing[current_num_threads] = []
 
             # if resync test, sequentially sync all repos for first time
             if not self.is_initial_sync:
                 self.logger.debug(
-                    'Initial sync prior to {}-repo Resync test case:'
+                    'Initial sync prior to {0}-repo Resync test case:'
                     .format(current_num_threads)
                 )
                 Pulp.repositories_sequential_sync(
@@ -143,7 +143,7 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
                     1
                 )
                 self.logger.debug(
-                    'Initial sync prior to {}-repo Resync test finished.'
+                    'Initial sync prior to {0}-repo Resync test finished.'
                     .format(current_num_threads)
                 )
 
@@ -157,18 +157,18 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
                 self.raw_file_name,
                 subtest_dict,
                 current_num_threads,
-                'raw-sync-{}-clients'.format(current_num_threads)
+                'raw-sync-{0}-clients'.format(current_num_threads)
             )
 
             # get max for each iteration
             for iteration in range(self.sync_iterations):
                 total_max_timing[current_num_threads].append(max([
-                    subtest_dict.get('thread-{}'.format(thread))[iteration]
+                    subtest_dict.get('thread-{0}'.format(thread))[iteration]
                     for thread in range(current_num_threads)
                 ]))
 
         self.logger.debug(
-            'Total Results for all tests from 2 threads to 10 threads: {}'
+            'Total Results for all tests from 2 threads to 10 threads: {0}'
             .format(total_max_timing)
         )
         self._write_stat_pulp_concurrent(total_max_timing)
@@ -181,7 +181,7 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
             test_case_name):
         """Write csv and chart for raw data of Pulp Test sync/resync"""
         self.logger.debug(
-            'Timing result is: {}'.format(time_result_dict)
+            'Timing result is: {0}'.format(time_result_dict)
         )
 
         with open(raw_file_name, 'a') as handler:
@@ -190,7 +190,7 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
 
             # for each thread, write its head and data
             for i in range(len(time_result_dict)):
-                writer.writerow(time_result_dict.get('thread-{}'.format(i)))
+                writer.writerow(time_result_dict.get('thread-{0}'.format(i)))
             writer.writerow([])
 
         # generate line chart of raw data
@@ -267,7 +267,7 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
 
         stat_dict = {}
         for i in range(len(time_result_dict)):
-            time_list = time_result_dict.get('thread-{}'.format(i))
+            time_list = time_result_dict.get('thread-{0}'.format(i))
             stat_tuple = generate_stat_for_pulp_sync(
                 i,
                 time_list,

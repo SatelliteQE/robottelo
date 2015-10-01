@@ -41,9 +41,9 @@ def generate_stacked_line_chart_raw(time_result_dict, head, filename):
     stackedline_chart.y_title = 'Time (s)'
     # for each client, add time list into chart
     for thread in range(len(time_result_dict)):
-        key = 'thread-{}'.format(thread)
+        key = 'thread-{0}'.format(thread)
         time_list = time_result_dict.get(key)
-        stackedline_chart.add('client-{}'.format(thread), time_list)
+        stackedline_chart.add('client-{0}'.format(thread), time_list)
     stackedline_chart.render_to_file(filename)
 
 
@@ -74,9 +74,9 @@ def generate_line_chart_raw(time_result_dict, head, filename, line_chart):
     line_chart.y_title = 'Time (s)'
     # for each client, add time list into chart
     for thread in range(len(time_result_dict)):
-        key = 'thread-{}'.format(thread)
+        key = 'thread-{0}'.format(thread)
         time_list = time_result_dict.get(key)
-        line_chart.add('client-{}'.format(thread), time_list)
+        line_chart.add('client-{0}'.format(thread), time_list)
     line_chart.render_to_file(filename)
 
 
@@ -164,7 +164,7 @@ def generate_line_chart_stat_pulp(stat_dict, head, filename, max_num_tests):
     line_chart = pygal.Line()
     line_chart.title = head
     line_chart.x_labels = [
-        '{}'.format(x) for x in range(2, max_num_tests + 1)
+        '{0}'.format(x) for x in range(2, max_num_tests + 1)
     ]
     line_chart.x_title = '# of Repos Synced'
     line_chart.y_title = 'Time (s)'

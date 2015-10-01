@@ -57,9 +57,9 @@ class Candlepin(object):
         )
 
         if result.return_code != 0:
-            LOGGER.error('Fail to subscribe {} by ak!'.format(vm_ip))
+            LOGGER.error('Fail to subscribe {0} by ak!'.format(vm_ip))
         else:
-            LOGGER.info('Subscribe client {} successfully'.format(vm_ip))
+            LOGGER.info('Subscribe client {0} successfully'.format(vm_ip))
         return cls.get_real_time(result.stderr)
 
     @classmethod
@@ -87,24 +87,24 @@ class Candlepin(object):
 
         if result.return_code != 0:
             LOGGER.error(
-                'Fail to register client {} by sub-mgr!'.format(vm_ip)
+                'Fail to register client {0} by sub-mgr!'.format(vm_ip)
             )
         else:
-            LOGGER.info('Register client {} successfully'.format(vm_ip))
+            LOGGER.info('Register client {0} successfully'.format(vm_ip))
         return cls.get_real_time(result.stderr)
 
     @classmethod
     def sub_mgr_attach(cls, pool_id, vm_ip):
         """subscription-manager attach --pool=pool_id"""
         result = ssh.command(
-            'time -p subscription-manager attach --pool={}'.format(pool_id),
+            'time -p subscription-manager attach --pool={0}'.format(pool_id),
             hostname=vm_ip
         )
 
         if result.return_code != 0:
-            LOGGER.error('Fail to attach client {}'.format(vm_ip))
+            LOGGER.error('Fail to attach client {0}'.format(vm_ip))
         else:
-            LOGGER.info('Attach client {} successfully'.format(vm_ip))
+            LOGGER.info('Attach client {0} successfully'.format(vm_ip))
         return cls.get_real_time(result.stderr)
 
     @classmethod
@@ -127,5 +127,5 @@ class Candlepin(object):
                 "Delete {0} on thread-{1} successful!".format(uuid, thread_id)
             )
         end = time.time()
-        LOGGER.info('real  {}s'.format(end-start))
+        LOGGER.info('real  {0}s'.format(end-start))
         return end - start

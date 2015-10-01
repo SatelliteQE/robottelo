@@ -89,7 +89,7 @@ def invalid_update_data():
         {u'url': ''},
     )
 
-LIBVIRT_URL = 'qemu+tcp://{}:16509/system'.format(
+LIBVIRT_URL = 'qemu+tcp://{0}:16509/system'.format(
     conf.properties['main.server.hostname']
 )
 

@@ -471,7 +471,7 @@ class Base(object):
         element = self.wait_until_element(locator, timeout=waiter_timeout)
         if element is None:
             raise UINoSuchElementError(
-                '{}: element with locator {} not found while trying to click.'
+                '{0}: element with locator {1} not found while trying to click'
                 .format(type(self).__name__, locator)
             )
         element.click()
@@ -493,8 +493,8 @@ class Base(object):
         element = self.wait_until_element(locator)
         if element is None:
             raise UINoSuchElementError(
-                '{}: element with locator {} not found while trying to select.'
-                .format(type(self).__name__, locator)
+                '{0}: element with locator {1} not found while trying to '
+                'select'.format(type(self).__name__, locator)
             )
         Select(element).select_by_visible_text(value)
         if wait_for_ajax:
@@ -512,7 +512,7 @@ class Base(object):
         element = self.wait_until_element(locator)
         if element is None:
             raise UINoSuchElementError(
-                'Cannot move cursor to {}: element with locator {}'
+                'Cannot move cursor to {0}: element with locator {1}'
                 .format(type(self).__name__, locator)
             )
         ActionChains(self.browser).move_to_element(element).perform()

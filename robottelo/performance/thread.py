@@ -34,7 +34,7 @@ class DeleteThread(PerformanceThread):
 
     def run(self):
         time.sleep(5)
-        self.logger.debug('Start timing in thread {}'.format(self.thread_id))
+        self.logger.debug('Start timing in thread {0}'.format(self.thread_id))
         for idx, uuid in enumerate(self.sublist):
             if uuid != '':
                 self.logger.debug(

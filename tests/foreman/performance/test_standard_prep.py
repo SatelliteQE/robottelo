@@ -77,13 +77,13 @@ class StandardPrepTestCase(TestCase):
         if savepoint == '':
             self.logger.warning('No savepoint while continuing test!')
             return
-        self.logger.info('Reset db from /home/backup/{}'.format(savepoint))
-        ssh.command('./reset-db.sh /home/backup/{}'.format(savepoint))
+        self.logger.info('Reset db from /home/backup/{0}'.format(savepoint))
+        ssh.command('./reset-db.sh /home/backup/{0}'.format(savepoint))
 
     def _download_manifest(self):
         """Utility function to download manifest from given URL"""
         self.logger.info(
-            'Start downloading manifest: {}'.format(MANIFEST_FILE_NAME))
+            'Start downloading manifest: {0}'.format(MANIFEST_FILE_NAME))
 
         result = ssh.command(
             'rm -f {0}; curl {1} -o /root/{0}'
@@ -96,11 +96,11 @@ class StandardPrepTestCase(TestCase):
 
     def _upload_manifest(self):
         """Utility function to upload manifest"""
-        self.logger.debug('org-id is {}'.format(self.org_id))
+        self.logger.debug('org-id is {0}'.format(self.org_id))
 
         try:
             Subscription.upload({
-                'file': '/root/{}'.format(MANIFEST_FILE_NAME),
+                'file': '/root/{0}'.format(MANIFEST_FILE_NAME),
                 'organization-id': self.org_id,
             })
         except CLIReturnCodeError:
@@ -111,7 +111,7 @@ class StandardPrepTestCase(TestCase):
         # after uploading manifest, get all default parameters
         self.pid = self._get_production_id()
         (self.sub_id, self.sub_name) = self._get_subscription_id()
-        self.logger.debug('product id is {}'.format(self.pid))
+        self.logger.debug('product id is {0}'.format(self.pid))
 
     def _get_organization_id(self):
         """Get organization id"""
@@ -172,7 +172,7 @@ class StandardPrepTestCase(TestCase):
             self.logger.error('Fail to update CDN address!')
             return
         self.logger.info(
-            'RH CDN URL: {}'
+            'RH CDN URL: {0}'
             .format(result['red-hat-repository-url']))
 
     def _enable_repositories(self):

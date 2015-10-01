@@ -81,7 +81,7 @@ class Pulp(object):
             )
         except CLIReturnCodeError:
             raise RuntimeError(
-                'No enabled repository found in organization {}!'
+                'No enabled repository found in organization {0}!'
                 .format(org_id)
             )
         # map repository name with id
@@ -111,7 +111,7 @@ class Pulp(object):
         # repeat sequential sync X times
         for i in range(sync_iterations):
             # note: name key by thread to adapt to graph module
-            key = 'thread-{}'.format(i)
+            key = 'thread-{0}'.format(i)
             time_result_dict_sync[key] = []
 
             # Sync each repo one-by-one and collect timing data
@@ -144,5 +144,5 @@ class Pulp(object):
         if savepoint == '':
             LOGGER.warning('No savepoint while continuing test!')
             return
-        LOGGER.info('Reset db from /home/backup/{}'.format(savepoint))
-        ssh.command('./reset-db.sh /home/backup/{}'.format(savepoint))
+        LOGGER.info('Reset db from /home/backup/{0}'.format(savepoint))
+        ssh.command('./reset-db.sh /home/backup/{0}'.format(savepoint))
