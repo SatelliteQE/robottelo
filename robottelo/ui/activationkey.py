@@ -222,7 +222,7 @@ class ActivationKey(Base):
             self.click(tab_locators['ak.host_collections.add.add_selected'])
         else:
             raise UINoSuchElementError(
-                "Couldn't find activation key '{}'".format(name))
+                "Couldn't find activation key '{0}'".format(name))
 
     def fetch_associated_content_host(self, name):
         """Fetch associated content host from selected activation key."""

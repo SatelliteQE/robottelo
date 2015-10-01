@@ -391,7 +391,7 @@ class TestImport(CLITestCase):
     @classmethod
     def tearDownClass(cls):
         super(TestImport, cls).tearDownClass()
-        ssh.command(u'rm -r {}'.format(cls.default_dataset[0]))
+        ssh.command(u'rm -r {0}'.format(cls.default_dataset[0]))
 
     def tearDown(self):
         # remove the dataset
@@ -601,7 +601,7 @@ class TestImport(CLITestCase):
                 'csv-file': files['users'],
                 'new-passwords': pwdfile,
             }).return_code, 0)
-        ssh.command(u'rm -rf {}'.format(pwdfile))
+        ssh.command(u'rm -rf {0}'.format(pwdfile))
         users_before = set(user['login'] for user in User.list())
         self.assertEqual(
             Import.user({
@@ -707,7 +707,7 @@ class TestImport(CLITestCase):
             User.info({'id': record['sat6']})
 
         # do the cleanup
-        ssh.command(u'rm -rf {}'.format(' '.join(pwdfiles)))
+        ssh.command(u'rm -rf {0}'.format(' '.join(pwdfiles)))
 
     @data(*gen_import_hostcol_data())
     def test_import_host_collections_default(self, test_data):
@@ -1233,7 +1233,7 @@ class TestImport(CLITestCase):
             u'file_id': u'8',
             u'revision': u'1',
             u'is_binary': u'N',
-            u'contents': u'{}\n'.format(csv_contents),
+            u'contents': u'{0}\n'.format(csv_contents),
             u'delim_start': u'{|',
             u'delim_end': u'|}',
             u'username': u'root',

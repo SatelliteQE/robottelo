@@ -426,8 +426,8 @@ class ConcurrentTestCase(TestCase):
         if savepoint == '':
             self.logger.warning('No savepoint while continuing test!')
             return
-        self.logger.info('Reset db from /home/backup/{}'.format(savepoint))
-        ssh.command('./reset-db.sh /home/backup/{}'.format(savepoint))
+        self.logger.info('Reset db from /home/backup/{0}'.format(savepoint))
+        ssh.command('./reset-db.sh /home/backup/{0}'.format(savepoint))
 
     def _get_subscription_id(self):
         """Get subscription id"""
@@ -521,7 +521,7 @@ class ConcurrentTestCase(TestCase):
 
         """
         self.logger.debug(
-            'Timing result is: {}'.format(time_result_dict))
+            'Timing result is: {0}'.format(time_result_dict))
 
         with open(raw_file_name, 'a') as handler:
             writer = csv.writer(handler)
@@ -529,7 +529,7 @@ class ConcurrentTestCase(TestCase):
 
             # for each thread, write its head and data
             for i in range(current_num_threads):
-                writer.writerow(time_result_dict.get('thread-{}'.format(i)))
+                writer.writerow(time_result_dict.get('thread-{0}'.format(i)))
             writer.writerow([])
 
         # generate line chart of raw data
@@ -626,8 +626,8 @@ class ConcurrentTestCase(TestCase):
         test_category = self._get_output_filename(stat_file_name)
 
         for i in range(current_num_threads):
-            time_list = time_result_dict.get('thread-{}'.format(i))
-            thread_name = 'client-{}'.format(i)
+            time_list = time_result_dict.get('thread-{0}'.format(i))
+            thread_name = 'client-{0}'.format(i)
             stat_dict = generate_stat_for_concurrent_thread(
                 thread_name,
                 time_list,
@@ -679,7 +679,7 @@ class ConcurrentTestCase(TestCase):
         for i in range(self.num_buckets):
             chunks_bucket_i = []
             for j in range(len(time_result_dict)):
-                time_list = time_result_dict.get('thread-{}'.format(j))
+                time_list = time_result_dict.get('thread-{0}'.format(j))
                 # slice out bucket-size from each client's result and merge
                 chunks_bucket_i += time_list[
                     i * self.bucket_size: (i + 1) * self.bucket_size
@@ -687,7 +687,7 @@ class ConcurrentTestCase(TestCase):
 
             # for each chunk i, compute and output its stat
             return_stat = generate_stat_for_concurrent_thread(
-                'bucket-{}'.format(i),
+                'bucket-{0}'.format(i),
                 chunks_bucket_i,
                 stat_file_name,
                 len(chunks_bucket_i),
@@ -726,8 +726,8 @@ class ConcurrentTestCase(TestCase):
         test_category = self._get_output_filename(stat_file_name)
 
         for i in range(current_num_threads):
-            time_list = time_result_dict.get('thread-{}'.format(i))
-            thread_name = 'client-{}'.format(i)
+            time_list = time_result_dict.get('thread-{0}'.format(i))
+            thread_name = 'client-{0}'.format(i)
 
             # for each client i, compute and output its stat
             return_stat = generate_stat_for_concurrent_thread(
@@ -763,11 +763,11 @@ class ConcurrentTestCase(TestCase):
         test_category = self._get_output_filename(stat_file_name)
 
         for i in range(len(time_result_dict)):
-            time_list = time_result_dict.get('thread-{}'.format(i))
+            time_list = time_result_dict.get('thread-{0}'.format(i))
             full_list += time_list
 
         stat_dict = generate_stat_for_concurrent_thread(
-            'test-{}'.format(len(time_result_dict)),
+            'test-{0}'.format(len(time_result_dict)),
             full_list,
             stat_file_name,
             len(full_list),
@@ -806,7 +806,7 @@ class ConcurrentTestCase(TestCase):
 
         # Create new threads and start each thread mapped with a vm
         for i in range(current_num_threads):
-            thread_name = 'thread-{}'.format(i)
+            thread_name = 'thread-{0}'.format(i)
             time_result_dict_ak[thread_name] = []
             thread = SubscribeAKThread(
                 i,
@@ -828,7 +828,7 @@ class ConcurrentTestCase(TestCase):
             self.raw_file_name,
             time_result_dict_ak,
             current_num_threads,
-            'raw-ak-{}-clients'.format(current_num_threads)
+            'raw-ak-{0}-clients'.format(current_num_threads)
         )
 
         # write stat result of ak and generate charts
@@ -836,7 +836,7 @@ class ConcurrentTestCase(TestCase):
             self.stat_file_name,
             time_result_dict_ak,
             current_num_threads,
-            'stat-ak-{}-clients'.format(current_num_threads)
+            'stat-ak-{0}-clients'.format(current_num_threads)
         )
 
     def kick_off_att_test(self, current_num_threads, total_iterations):
@@ -863,7 +863,7 @@ class ConcurrentTestCase(TestCase):
 
         # Create new threads and start each thread mapped with a vm
         for i in range(current_num_threads):
-            thread_name = 'thread-{}'.format(i)
+            thread_name = 'thread-{0}'.format(i)
             time_result_dict_register[thread_name] = []
             time_result_dict_attach[thread_name] = []
 
@@ -890,7 +890,7 @@ class ConcurrentTestCase(TestCase):
             self.reg_raw_file_name,
             time_result_dict_register,
             current_num_threads,
-            'raw-reg-{}-clients'.format(current_num_threads)
+            'raw-reg-{0}-clients'.format(current_num_threads)
         )
 
         # write raw result of attach
@@ -898,7 +898,7 @@ class ConcurrentTestCase(TestCase):
             self.raw_file_name,
             time_result_dict_attach,
             current_num_threads,
-            'raw-att-{}-clients'.format(current_num_threads)
+            'raw-att-{0}-clients'.format(current_num_threads)
         )
 
         # write stat result of register and generate charts
@@ -906,7 +906,7 @@ class ConcurrentTestCase(TestCase):
             self.reg_stat_file_name,
             time_result_dict_register,
             current_num_threads,
-            'stat-reg-{}-clients'.format(current_num_threads)
+            'stat-reg-{0}-clients'.format(current_num_threads)
         )
 
         # write stat result of attach and generate charts
@@ -914,7 +914,7 @@ class ConcurrentTestCase(TestCase):
             self.stat_file_name,
             time_result_dict_attach,
             current_num_threads,
-            'stat-att-{}-clients'.format(current_num_threads)
+            'stat-att-{0}-clients'.format(current_num_threads)
         )
 
     def kick_off_del_test(self, current_num_threads):
@@ -941,10 +941,10 @@ class ConcurrentTestCase(TestCase):
 
         # Create new threads and start the thread which has sublist of uuids
         for i in range(current_num_threads):
-            time_result_dict_del['thread-{}'.format(i)] = []
+            time_result_dict_del['thread-{0}'.format(i)] = []
             thread = DeleteThread(
                 i,
-                'thread-{}'.format(i),
+                'thread-{0}'.format(i),
                 uuid_list[
                     self.num_iterations * i: self.num_iterations * (i + 1)
                 ],
@@ -961,7 +961,7 @@ class ConcurrentTestCase(TestCase):
             self.raw_file_name,
             time_result_dict_del,
             current_num_threads,
-            'raw-del-{}-clients'.format(current_num_threads)
+            'raw-del-{0}-clients'.format(current_num_threads)
         )
 
         # write stat result of del
@@ -969,7 +969,7 @@ class ConcurrentTestCase(TestCase):
             self.stat_file_name,
             time_result_dict_del,
             current_num_threads,
-            'stat-del-{}-clients'.format(current_num_threads)
+            'stat-del-{0}-clients'.format(current_num_threads)
         )
 
     def kick_off_concurrent_sync_test(
@@ -984,14 +984,14 @@ class ConcurrentTestCase(TestCase):
 
         """
         self.logger.debug(
-            'Concurrent Synchronize by {} threads'
+            'Concurrent Synchronize by {0} threads'
             .format(current_num_threads)
         )
         # determine the target repositories' names by configuration
         # sync only a sublist of target repos for each test case
         repo_names_list = self.repo_names_list[:current_num_threads]
         self.logger.debug(
-            'Targeting repositories to sync: {}'
+            'Targeting repositories to sync: {0}'
             .format(repo_names_list)
         )
 
@@ -1000,7 +1000,7 @@ class ConcurrentTestCase(TestCase):
         # Create a dictionary to store all timing results from each thread
         time_result_dict = {}
         for thread_id in range(current_num_threads):
-            time_result_dict['thread-{}'.format(thread_id)] = []
+            time_result_dict['thread-{0}'.format(thread_id)] = []
 
         # sync all specified repositories and repeate X times
         for iteration in range(self.sync_iterations):
@@ -1026,7 +1026,7 @@ class ConcurrentTestCase(TestCase):
 
                 thread = SyncThread(
                     tid,
-                    "thread-{}".format(tid),
+                    "thread-{0}".format(tid),
                     time_result_dict,
                     repo_id,
                     repo_name,

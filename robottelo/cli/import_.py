@@ -313,7 +313,7 @@ class Import(Base):
         options.update({'upload-manifests-from': man_dir})
 
         result = cls.organization(options)
-        ssh.command(u'rm -rf {}'.format(man_dir))
+        ssh.command(u'rm -rf {0}'.format(man_dir))
         transition_data = []
         if result.return_code == 0:
             transition_data = cls.read_transition_csv(
