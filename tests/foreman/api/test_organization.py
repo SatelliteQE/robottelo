@@ -5,8 +5,6 @@ tested can be found here:
 http://theforeman.org/api/apidoc/v2/organizations.html
 
 """
-import httplib
-
 from fauxfactory import gen_alphanumeric, gen_string
 from nailgun import client, entities
 from random import randint
@@ -16,6 +14,7 @@ from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import skip_if_bug_open
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
+from six.moves import http_client
 
 
 def valid_org_data_list():
@@ -57,7 +56,8 @@ class OrganizationTestCase(APITestCase):
             headers={'content-type': 'text/plain'},
             verify=False,
         )
-        self.assertEqual(httplib.UNSUPPORTED_MEDIA_TYPE, response.status_code)
+        self.assertEqual(
+            http_client.UNSUPPORTED_MEDIA_TYPE, response.status_code)
 
     def test_positive_create_1(self):
         """@Test: Create an organization and provide a name.

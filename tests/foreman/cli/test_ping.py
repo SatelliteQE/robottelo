@@ -1,8 +1,8 @@
 """Test Class for hammer ping"""
-from itertools import izip
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.test import CLITestCase
+from six.moves import zip
 
 
 class PingTestCase(CLITestCase):
@@ -32,7 +32,7 @@ class PingTestCase(CLITestCase):
         # iterate over the lines grouping every 3 lines
         # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
         # only the status line is relevant for this test
-        for _, status, _ in izip(*[iter(result.stdout)] * 3):
+        for _, status, _ in zip(*[iter(result.stdout)] * 3):
             status_count += 1
 
             if status.split(':')[1].strip().lower() == 'ok':

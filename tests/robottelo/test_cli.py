@@ -1,7 +1,12 @@
-import mock
+import six
 import unittest2
 
 from robottelo.cli.base import Base
+
+if six.PY2:
+    import mock
+else:
+    from unittest import mock
 
 
 class CLIClass(Base):

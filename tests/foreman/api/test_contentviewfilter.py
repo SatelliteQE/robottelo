@@ -4,8 +4,6 @@ A full API reference for content views can be found here:
 http://www.katello.org/docs/api/apidoc/content_view_filters.html
 
 """
-import httplib
-
 from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from random import randint
@@ -15,6 +13,7 @@ from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.test import APITestCase
+from six.moves import http_client
 
 
 class ContentViewFilterTestCase(APITestCase):
@@ -56,7 +55,7 @@ class ContentViewFilterTestCase(APITestCase):
         )
         self.assertIn(
             response.status_code,
-            (httplib.BAD_REQUEST, httplib.UNPROCESSABLE_ENTITY)
+            (http_client.BAD_REQUEST, http_client.UNPROCESSABLE_ENTITY)
         )
 
     @run_only_on('sat')
@@ -78,7 +77,7 @@ class ContentViewFilterTestCase(APITestCase):
         )
         self.assertIn(
             response.status_code,
-            (httplib.BAD_REQUEST, httplib.UNPROCESSABLE_ENTITY)
+            (http_client.BAD_REQUEST, http_client.UNPROCESSABLE_ENTITY)
         )
 
     @run_only_on('sat')

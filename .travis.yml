@@ -1,13 +1,15 @@
 sudo: false
 language: python
+env:
+    - TOXENV=py27
+    - TOXENV=py34
 install:
-    - pip install -r requirements.txt
-    - pip install -r requirements-optional.txt
+    - pip install flake8 sphinx testimony tox
 script:
     - flake8 .
     - make test-docstrings
-    - make test-robottelo
     - make docs
+    - tox
     # The `test-foreman-*` recipes require the presence of a Foreman
     # deployment, and they are lengthy. Don't run them on Travis.
 notifications:

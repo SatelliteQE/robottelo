@@ -11,7 +11,7 @@ import time
 
 from robottelo import ssh
 from robottelo.config import settings
-from urlparse import urljoin
+from six.moves.urllib.parse import urljoin
 
 LOGGER = logging.getLogger(__name__)
 

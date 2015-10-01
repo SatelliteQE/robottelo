@@ -1,12 +1,12 @@
 """Smoke tests to check installation health"""
 import re
 
-from itertools import izip
 from robottelo import ssh
 from robottelo.config import settings
 from robottelo.helpers import get_host_info
 from robottelo.log import LogFile
 from robottelo.test import TestCase
+from six.moves import zip
 
 
 class SELinuxTestCase(TestCase):
@@ -88,7 +88,7 @@ class SELinuxTestCase(TestCase):
 
         # iterate over the lines grouping every 3 lines
         # example [1, 2, 3, 4, 5, 6] will return [(1, 2, 3), (4, 5, 6)]
-        for service, status, server_response in izip(
+        for service, status, server_response in zip(
                 *[iter(result.stdout)] * 3):
             service = service.replace(':', '').strip()
             status = status.split(':')[1].strip().lower()

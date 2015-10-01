@@ -1,7 +1,12 @@
 """Tests for module ``robottelo.helpers``."""
 # (Too many public methods) pylint: disable=R0904
-import mock
+import six
 import unittest2
+
+if six.PY2:
+    import mock
+else:
+    from unittest import mock
 
 from robottelo.helpers import (
     HostInfoError,
@@ -67,7 +72,7 @@ class GetHostInfoTestCase(unittest2.TestCase):
         with self.assertRaises(HostInfoError) as context:
             get_host_info()
         self.assertEqual(
-            context.exception.message,
+            str(context.exception),
             'Not able to cat /etc/redhat-release "stderr"'
         )
 
@@ -76,8 +81,11 @@ class GetHostInfoTestCase(unittest2.TestCase):
         ssh.command = mock.MagicMock(return_value=FakeSSHResult([''], 0))
         with self.assertRaises(HostInfoError) as context:
             get_host_info()
-        self.assertEqual(
-            context.exception.message, 'Not able to parse release string ""')
+        if six.PY2:
+            message = context.exception.message
+        else:
+            message = str(context.exception)
+        self.assertEqual(message, 'Not able to parse release string ""')
 
 
 class FakeSSHResult(object):
@@ -90,7 +98,7 @@ class FakeSSHResult(object):
 class EscapeSearchTestCase(unittest2.TestCase):
     def test_return_type(self):
         """Tests if escape search returns a unicode string"""
-        self.assertIsInstance(escape_search('search term'), unicode)
+        self.assertIsInstance(escape_search('search term'), six.text_type)
 
     def test_escapes_double_quotes(self):
         """Tests if escape search escapes double quotes"""
