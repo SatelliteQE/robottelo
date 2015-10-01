@@ -1,23 +1,17 @@
-# -*- encoding: utf-8 -*-
 """Test class for Fact  CLI"""
 
-from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.fact import Fact
-from robottelo.decorators import data, run_only_on, stubbed
+from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import CLITestCase
 
 
 @run_only_on('sat')
-@ddt
 class TestFact(CLITestCase):
     """Fact related tests."""
 
     @stubbed('Need to create facts before we can check them.')
-    @data(
-        'uptime', 'uptime_days', 'uptime_seconds', 'memoryfree', 'ipaddress',
-    )
-    def test_list_success(self, fact):
+    def test_list_success(self):
         """@Test: Test Fact List
 
         @Feature: Fact - List Positive
@@ -25,22 +19,14 @@ class TestFact(CLITestCase):
         @Assert: Fact List is displayed
 
         """
+        for fact in ('uptime', 'uptime_days', 'uptime_seconds', 'memoryfree',
+                     'ipaddress'):
+            with self.subTest(fact):
+                args = {'search': "fact='%s'" % fact}
+                facts = Fact().list(args)
+                self.assertEqual(facts[0]['fact'], fact)
 
-        args = {
-            'search': "fact='%s'" % fact,
-        }
-
-        facts = Fact().list(args)
-
-        self.assertEqual(facts[0]['fact'], fact)
-
-    @data(
-        gen_string('alpha', 10),
-        gen_string('alpha', 10),
-        gen_string('alpha', 10),
-        gen_string('alpha', 10),
-    )
-    def test_list_fail(self, fact):
+    def test_list_fail(self):
         """@Test: Test Fact List failure
 
         @Feature: Fact - List Negative
@@ -48,9 +34,7 @@ class TestFact(CLITestCase):
         @Assert: Fact List is not displayed
 
         """
-
-        args = {
-            'search': "fact='%s'" % fact,
-        }
+        fact = gen_string('alpha')
+        args = {'search': "fact='%s'" % fact}
         self.assertEqual(
             Fact().list(args), [], 'No records should be returned')

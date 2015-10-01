@@ -1,9 +1,7 @@
-# -*- encoding: utf-8 -*-
+# pylint: disable=too-many-public-methods, too-many-lines
 """Test class for Content Views"""
 import random
-import unittest2
 
-from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
@@ -23,18 +21,8 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.subscription import Subscription
-from robottelo.constants import (
-    DEFAULT_CV,
-    ENVIRONMENT,
-    FAKE_0_PUPPET_REPO,
-    NOT_IMPLEMENTED,
-)
-from robottelo.decorators import (
-    data,
-    run_only_on,
-    skip_if_bug_open,
-    stubbed,
-)
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT, FAKE_0_PUPPET_REPO
+from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -67,7 +55,6 @@ def negative_create_data():
 
 
 @run_only_on('sat')
-@ddt
 class TestContentView(CLITestCase):
     """Content View CLI tests"""
 
@@ -91,6 +78,7 @@ class TestContentView(CLITestCase):
     rhel_product_name = 'Red Hat Enterprise Linux Workstation'
 
     def create_rhel_content(self):
+        """Enable/Synchronize rhel content"""
         if TestContentView.rhel_content_org is not None:
             return
 
@@ -130,10 +118,11 @@ class TestContentView(CLITestCase):
                 'organization-id': TestContentView.rhel_content_org['id'],
                 'product': TestContentView.rhel_product_name,
             })
-        except CLIReturnCodeError as e:
+        except CLIReturnCodeError as exception:
             TestContentView.rhel_content_org = None
-            self.fail("Couldn't synchronize repo\n{0}".format(e.msg))
+            self.fail("Couldn't synchronize repo\n{0}".format(exception.msg))
 
+    # pylint: disable=unexpected-keyword-arg
     def setUp(self):
         """Tests for content-view via Hammer CLI"""
 
@@ -153,10 +142,8 @@ class TestContentView(CLITestCase):
                 {u'organization-id': TestContentView.org['id']},
                 cached=True)
 
-    @data(*positive_create_data())
-    def test_cv_create_cli(self, test_data):
-        # variations (subject to change):
-        # ascii string, alphanumeric, latin-1, utf8, etc.
+    # pylint: disable=unexpected-keyword-arg
+    def test_create_valid_names(self):
         """@test: create content views (positive)
 
         @feature: Content Views
@@ -164,15 +151,14 @@ class TestContentView(CLITestCase):
         @assert: content views are created
 
         """
-        test_data['organization-id'] = make_org(cached=True)['id']
-        content_view = make_content_view(test_data)
+        for test_data in positive_create_data():
+            with self.subTest(test_data):
+                test_data['organization-id'] = make_org(cached=True)['id']
+                content_view = make_content_view(test_data)
+                self.assertEqual(content_view['name'], test_data['name'])
 
-        self.assertEqual(content_view['name'], test_data['name'])
-
-    @data(*negative_create_data())
-    def test_cv_create_cli_negative(self, test_data):
-        # variations (subject to change):
-        # zero length, symbols, html, etc.
+    # pylint: disable=unexpected-keyword-arg
+    def test_create_invalid_names(self):
         """@test: create content views (negative)
 
         @feature: Content Views
@@ -181,11 +167,13 @@ class TestContentView(CLITestCase):
         system handles it gracefully
 
         """
-        test_data['organization-id'] = make_org(cached=True)['id']
-        with self.assertRaises(CLIFactoryError):
-            make_content_view(test_data)
+        for test_data in negative_create_data():
+            with self.subTest(test_data):
+                test_data['organization-id'] = make_org(cached=True)['id']
+                with self.assertRaises(CLIFactoryError):
+                    make_content_view(test_data)
 
-    def test_cv_create_cli_badorg_negative(self):
+    def test_create_invalid_org(self):
         # Use an invalid org name
         """@test: create content views (negative)
 
@@ -198,6 +186,7 @@ class TestContentView(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ContentView.create({'organization-id': gen_string('alpha')})
 
+    # pylint: disable=unexpected-keyword-arg
     def test_cv_edit(self):
         """@test: edit content views - name, description, etc.
 
@@ -219,8 +208,8 @@ class TestContentView(CLITestCase):
         con_view = ContentView.info({'id': con_view['id']})
         self.assertEqual(con_view['name'], new_name)
 
-    @unittest2.skip(NOT_IMPLEMENTED)
-    def test_cv_edit_rh_custom_spin(self):
+    @stubbed
+    def test_edit_rh_custom_spin(self):
         # Variations might be:
         #   * A filter on errata date (only content that matches date
         # in filter)
@@ -238,6 +227,7 @@ class TestContentView(CLITestCase):
 
         """
 
+    # pylint: disable=unexpected-keyword-arg
     def test_cv_delete(self):
         """@test: delete content views
 
@@ -265,23 +255,23 @@ class TestContentView(CLITestCase):
         @assert: Content view version deleted successfully
 
         """
-        cv = make_content_view({u'organization-id': self.org['id']})
-        ContentView.publish({u'id': cv['id']})
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(len(cv['versions']), 1)
-        cvv = cv['versions'][0]
-        env_id = cv['lifecycle-environments'][0]['id']
+        content_view = make_content_view({u'organization-id': self.org['id']})
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(len(content_view['versions']), 1)
+        cvv = content_view['versions'][0]
+        env_id = content_view['lifecycle-environments'][0]['id']
         ContentView.remove_from_environment({
-            u'id': cv['id'],
+            u'id': content_view['id'],
             u'lifecycle-environment-id': env_id,
         })
         ContentView.version_delete({
-            u'content-view': cv['name'],
+            u'content-view': content_view['name'],
             u'organization': self.org['name'],
             u'version': cvv['version'],
         })
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(len(cv['versions']), 0)
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(len(content_view['versions']), 0)
 
     def test_delete_cv_version_id(self):
         """@test: Create content view and publish it. After that try to
@@ -337,17 +327,17 @@ class TestContentView(CLITestCase):
         @assert: Content view version is not deleted
 
         """
-        cv = make_content_view({u'organization-id': self.org['id']})
-        ContentView.publish({u'id': cv['id']})
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(len(cv['versions']), 1)
-        cvv = cv['versions'][0]
+        content_view = make_content_view({u'organization-id': self.org['id']})
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(len(content_view['versions']), 1)
+        cvv = content_view['versions'][0]
         # Try to delete content view version while it is in environment Library
         with self.assertRaises(CLIReturnCodeError):
             ContentView.version_delete({u'id': cvv['id']})
         # Check that version was not actually removed from the cv
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(len(cv['versions']), 1)
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(len(content_view['versions']), 1)
 
     def test_remove_cv_environment(self):
         """@Test: Remove content view from lifecycle environment assignment
@@ -370,7 +360,7 @@ class TestContentView(CLITestCase):
         new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(len(new_cv['lifecycle-environments']), 0)
 
-    def test_remove_cv_env_and_reassign_key(self):
+    def test_remove_cv_and_reassign_ak(self):
         """Test: Remove content view environment and re-assign activation key
         to another environment and content view
 
@@ -425,7 +415,7 @@ class TestContentView(CLITestCase):
         destination_cv = ContentView.info({u'id': destination_cv['id']})
         self.assertEqual(destination_cv['activation-keys'][0], ac_key['name'])
 
-    def test_remove_cv_env_and_reassign_content_host(self):
+    def test_remove_cv_reassign_ch(self):
         """Test: Remove content view environment and re-assign content host
         to another environment and content view
 
@@ -596,7 +586,7 @@ class TestContentView(CLITestCase):
             'Repo was not associated to CV',
         )
 
-    def test_associate_view_rh_custom_spin(self):
+    def test_associate_rh_content(self):
         """@test: associate Red Hat content in a view
 
         @feature: Content Views
@@ -638,7 +628,7 @@ class TestContentView(CLITestCase):
             'name': 'walgrind',
         })
 
-    def test_associate_view_custom_content(self):
+    def test_associate_custom_content(self):
         """@test: associate Red Hat content in a view
 
         @feature: Content Views
@@ -692,7 +682,7 @@ class TestContentView(CLITestCase):
             'Repo was not associated to CV',
         )
 
-    def test_cv_associate_puppet_repo_negative(self):
+    def test_invalid_puppet_repo(self):
         # Again, individual modules should be ok.
         """@test: attempt to associate puppet repos within a custom content
         view
@@ -716,7 +706,7 @@ class TestContentView(CLITestCase):
                 u'repository-id': new_repo['id'],
             })
 
-    def test_cv_associate_components_composite_negative(self):
+    def test_associate_comp_negative(self):
         """@test: attempt to associate components in a non-composite
         content view
 
@@ -749,7 +739,7 @@ class TestContentView(CLITestCase):
                 u'organization-id': self.org['id'],
             })
 
-    def test_cv_associate_composite_dupe_repos_negative(self):
+    def test_add_dupe_repo(self):
         """@test: attempt to associate the same repo multiple times within a
         content view
 
@@ -788,7 +778,7 @@ class TestContentView(CLITestCase):
         )
 
     @skip_if_bug_open('bugzilla', 1222118)
-    def test_cv_associate_composite_dupe_modules_negative(self):
+    def test_add_dupe_puppet_module(self):
         """@test: attempt to associate duplicate puppet module(s) within a
         content view
 
@@ -873,8 +863,8 @@ class TestContentView(CLITestCase):
         }
         self.assertIn(environment, new_cv['lifecycle-environments'])
 
-    @unittest2.skip(NOT_IMPLEMENTED)
-    def test_cv_promote_rh_custom_spin(self):
+    @stubbed
+    def test_promote_rh_custom_spin(self):
         """@test: attempt to promote a content view containing a custom RH
         spin - i.e., contains filters.
 
@@ -888,7 +878,7 @@ class TestContentView(CLITestCase):
 
         """
 
-    def test_cv_promote_custom_content(self):
+    def test_promote_custom_content(self):
         """@test: attempt to promote a content view containing custom content
 
         @feature: Content Views
@@ -923,7 +913,7 @@ class TestContentView(CLITestCase):
             new_cv['lifecycle-environments'],
         )
 
-    def test_cv_promote_composite(self):
+    def test_promote_composite(self):
         # Variations:
         # RHEL, custom content (i.e., google repos), puppet modules
         # Custom content (i.e., fedora), puppet modules
@@ -980,7 +970,7 @@ class TestContentView(CLITestCase):
             con_view['lifecycle-environments'],
         )
 
-    def test_cv_promote_defaultcv_negative(self):
+    def test_promote_defaultcv_negative(self):
         """@test: attempt to promote the default content views
 
         @feature: Content Views
@@ -1003,8 +993,9 @@ class TestContentView(CLITestCase):
                 u'to-lifecycle-environment-id': self.env1['id'],
             })
 
-    def test_cv_promote_badenvironment_negative(self):
-        """@test: attempt to promote a content view using an invalid environment
+    def test_promote_invalid_env(self):
+        """@test: attempt to promote a content view using an invalid
+        environment
 
         @feature: Content Views
 
@@ -1070,7 +1061,7 @@ class TestContentView(CLITestCase):
             'Publishing new version of CV was not successful'
         )
 
-    @unittest2.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_publish_rh_custom_spin(self):
         """@test: attempt to publish  a content view containing a custom RH
         spin - i.e., contains filters.
@@ -1182,7 +1173,7 @@ class TestContentView(CLITestCase):
             'Publishing new version of CV was not successful'
         )
 
-    def test_cv_publish_version_changes_in_target_env(self):
+    def test_version_update_1(self):
         # Dev notes:
         # If Dev has version x, then when I promote version y into
         # Dev, version x goes away (ie when I promote version 1 to Dev,
@@ -1199,7 +1190,7 @@ class TestContentView(CLITestCase):
         1. publish a view to an environment noting the CV version
         2. edit and republish a new version of a CV
 
-        @assert: Content view version is updated intarget environment.
+        @assert: Content view version is updated in target environment.
 
         """
         # Create REPO
@@ -1267,7 +1258,7 @@ class TestContentView(CLITestCase):
             'Promotion of version2 not successful to the env',
         )
 
-    def test_cv_publish_version_changes_in_source_env(self):
+    def test_version_update_2(self):
         # Dev notes:
         # Similarly when I publish version y, version x goes away from
         # Library (ie when I publish version 2, version 1 disappears)
@@ -1369,26 +1360,26 @@ class TestContentView(CLITestCase):
         """
         new_org = make_org()
         env = make_lifecycle_environment({u'organization-id': new_org['id']})
-        cv = make_content_view({u'organization-id': new_org['id']})
-        ContentView.publish({u'id': cv['id']})
-        cv = ContentView.info({u'id': cv['id']})
-        cvv = cv['versions'][0]
+        content_view = make_content_view({u'organization-id': new_org['id']})
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        cvv = content_view['versions'][0]
         ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env['id'],
         })
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(cv['content-host-count'], '0')
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(content_view['content-host-count'], '0')
         make_content_host({
-            u'content-view-id': cv['id'],
+            u'content-view-id': content_view['id'],
             u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': new_org['id'],
         })
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(cv['content-host-count'], '1')
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(content_view['content-host-count'], '1')
 
-    def test_cv_subscribe_system_rh(self):
+    def test_cv_subscribe_rh1(self):
         """@test: Attempt to subscribe content host to content view that has
         Red Hat repository assigned to it
 
@@ -1402,38 +1393,38 @@ class TestContentView(CLITestCase):
         env = make_lifecycle_environment({
             u'organization-id': self.rhel_content_org['id'],
         })
-        cv = make_content_view({
+        content_view = make_content_view({
             u'organization-id': self.rhel_content_org['id'],
         })
         ContentView.add_repository({
-            u'id': cv['id'],
+            u'id': content_view['id'],
             u'organization-id': TestContentView.rhel_content_org['id'],
             u'repository-id': TestContentView.rhel_repo['id'],
         })
-        cv = ContentView.info({u'id': cv['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(
-            cv['yum-repositories'][0]['name'],
+            content_view['yum-repositories'][0]['name'],
             self.rhel_repo_name,
         )
-        ContentView.publish({u'id': cv['id']})
-        cv = ContentView.info({u'id': cv['id']})
-        cvv = cv['versions'][0]
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        cvv = content_view['versions'][0]
         ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env['id'],
         })
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(cv['content-host-count'], '0')
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(content_view['content-host-count'], '0')
         make_content_host({
-            u'content-view-id': cv['id'],
+            u'content-view-id': content_view['id'],
             u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': self.rhel_content_org['id'],
         })
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(cv['content-host-count'], '1')
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(content_view['content-host-count'], '1')
 
-    def test_cv_subscribe_system_rh_spin(self):
+    def test_cv_subscribe_rh2(self):
         """@test: Attempt to subscribe content host to filtered content view
         that has Red Hat repository assigned to it
 
@@ -1447,23 +1438,23 @@ class TestContentView(CLITestCase):
         env = make_lifecycle_environment({
             u'organization-id': self.rhel_content_org['id'],
         })
-        cv = make_content_view({
+        content_view = make_content_view({
             u'organization-id': self.rhel_content_org['id'],
         })
         ContentView.add_repository({
-            u'id': cv['id'],
+            u'id': content_view['id'],
             u'organization-id': TestContentView.rhel_content_org['id'],
             u'repository-id': TestContentView.rhel_repo['id'],
         })
-        cv = ContentView.info({u'id': cv['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(
-            cv['yum-repositories'][0]['name'],
+            content_view['yum-repositories'][0]['name'],
             self.rhel_repo_name,
         )
 
         name = gen_string('utf8')
         ContentView.filter_create({
-            'content-view-id': cv['id'],
+            'content-view-id': content_view['id'],
             'inclusion': 'true',
             'name': name,
             'type': 'rpm',
@@ -1471,29 +1462,29 @@ class TestContentView(CLITestCase):
 
         ContentView.filter_rule_create({
             'content-view-filter': name,
-            'content-view-id': cv['id'],
+            'content-view-id': content_view['id'],
             'name': gen_string('utf8'),
         })
 
-        ContentView.publish({u'id': cv['id']})
-        cv = ContentView.info({u'id': cv['id']})
-        cvv = cv['versions'][0]
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        cvv = content_view['versions'][0]
         ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env['id'],
         })
 
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(cv['content-host-count'], '0')
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(content_view['content-host-count'], '0')
 
         make_content_host({
-            u'content-view-id': cv['id'],
+            u'content-view-id': content_view['id'],
             u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': self.rhel_content_org['id'],
         })
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(cv['content-host-count'], '1')
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(content_view['content-host-count'], '1')
 
     def test_cv_subscribe_system_custom(self):
         """@test: Attempt to subscribe content host to content view that has
@@ -1510,34 +1501,34 @@ class TestContentView(CLITestCase):
         new_repo = make_repository({u'product-id': new_product['id']})
         env = make_lifecycle_environment({u'organization-id': new_org['id']})
         Repository.synchronize({'id': new_repo['id']})
-        cv = make_content_view({u'organization-id': new_org['id']})
+        content_view = make_content_view({u'organization-id': new_org['id']})
         ContentView.add_repository({
-            u'id': cv['id'],
+            u'id': content_view['id'],
             u'organization-id': new_org['id'],
             u'repository-id': new_repo['id'],
         })
 
-        ContentView.publish({u'id': cv['id']})
-        cv = ContentView.info({u'id': cv['id']})
-        cvv = cv['versions'][0]
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        cvv = content_view['versions'][0]
         ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env['id'],
         })
 
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(cv['content-host-count'], '0')
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(content_view['content-host-count'], '0')
 
         make_content_host({
-            u'content-view-id': cv['id'],
+            u'content-view-id': content_view['id'],
             u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': new_org['id'],
         })
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(cv['content-host-count'], '1')
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(content_view['content-host-count'], '1')
 
-    def test_cv_subscribe_system_composite(self):
+    def test_subscribe_system_ccv(self):
         """@test: Attempt to subscribe content host to composite content view
 
         @feature: Content Views
@@ -1547,29 +1538,29 @@ class TestContentView(CLITestCase):
         """
         new_org = make_org()
         env = make_lifecycle_environment({u'organization-id': new_org['id']})
-        cv = make_content_view({
+        content_view = make_content_view({
             'composite': True,
             'organization-id': new_org['id'],
         })
-        ContentView.publish({u'id': cv['id']})
-        cv = ContentView.info({u'id': cv['id']})
-        cvv = cv['versions'][0]
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        cvv = content_view['versions'][0]
         ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env['id'],
         })
 
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(cv['content-host-count'], '0')
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(content_view['content-host-count'], '0')
 
         make_content_host({
-            u'content-view-id': cv['id'],
+            u'content-view-id': content_view['id'],
             u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': new_org['id'],
         })
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(cv['content-host-count'], '1')
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(content_view['content-host-count'], '1')
 
     @skip_if_bug_open('bugzilla', 1222118)
     def test_cv_subscribe_system_puppet(self):
@@ -1594,7 +1585,7 @@ class TestContentView(CLITestCase):
         })
         Repository.synchronize({'id': repository['id']})
 
-        cv = make_content_view({u'organization-id': new_org['id']})
+        content_view = make_content_view({u'organization-id': new_org['id']})
 
         puppet_result = PuppetModule.list({
             u'repository-id': repository['id'],
@@ -1604,33 +1595,33 @@ class TestContentView(CLITestCase):
         for puppet_module in puppet_result:
             # Associate puppet module to CV
             ContentView.puppet_module_add({
-                u'content-view-id': cv['id'],
+                u'content-view-id': content_view['id'],
                 u'name': puppet_module['name'],
             })
 
         env = make_lifecycle_environment({u'organization-id': new_org['id']})
 
-        ContentView.publish({u'id': cv['id']})
-        cv = ContentView.info({u'id': cv['id']})
-        cvv = cv['versions'][0]
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        cvv = content_view['versions'][0]
         ContentView.version_promote({
             u'id': cvv['id'],
             u'to-lifecycle-environment-id': env['id'],
         })
 
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(cv['content-host-count'], '0')
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(content_view['content-host-count'], '0')
 
         make_content_host({
-            u'content-view-id': cv['id'],
+            u'content-view-id': content_view['id'],
             u'lifecycle-environment-id': env['id'],
             u'name': gen_alphanumeric(),
             u'organization-id': new_org['id'],
         })
-        cv = ContentView.info({u'id': cv['id']})
-        self.assertEqual(cv['content-host-count'], '1')
+        content_view = ContentView.info({u'id': content_view['id']})
+        self.assertEqual(content_view['content-host-count'], '1')
 
-    @unittest2.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_clone_within_same_env(self):
         # Dev note: "not implemented yet"
         """@test: attempt to create new content view based on existing
@@ -1643,7 +1634,7 @@ class TestContentView(CLITestCase):
 
         """
 
-    @unittest2.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_clone_within_diff_env(self):
         # Dev note: "not implemented yet"
         """@test: attempt to create new content view based on existing
@@ -1657,20 +1648,7 @@ class TestContentView(CLITestCase):
 
         """
 
-    @unittest2.skip(NOT_IMPLEMENTED)
-    def test_cv_refresh_errata_to_new_view_in_same_env(self):
-        """@test: attempt to refresh errata in a new view, based on
-        an existing view, from within the same  environment
-
-        @feature: Content Views
-
-        @assert: Content view can be published
-
-        @status: Manual
-
-        """
-
-    @unittest2.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_dynflow_restart_promote(self):
         """@test: attempt to restart a promotion
 
@@ -1686,7 +1664,7 @@ class TestContentView(CLITestCase):
 
         """
 
-    @unittest2.skip(NOT_IMPLEMENTED)
+    @stubbed
     def test_cv_dynflow_restart_publish(self):
         """@test: attempt to restart a publish
 
@@ -1705,8 +1683,8 @@ class TestContentView(CLITestCase):
     # ROLES TESTING
     # All this stuff is speculative at best.
 
-    @data(*positive_create_data())
-    def test_cv_roles_admin_user_negative(self, test_data):
+    # pylint: disable=unexpected-keyword-arg
+    def test_cv_admin_user_negative(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
         # but these tests require creating a user with admin permissions
@@ -1730,23 +1708,26 @@ class TestContentView(CLITestCase):
         password = gen_alphanumeric()
         no_rights_user = make_user({'password': password})
         no_rights_user['password'] = password
-        test_data['organization-id'] = make_org(cached=True)['id']
-        # test that user can't create
-        with self.assertRaises(CLIReturnCodeError):
-            ContentView.with_user(
-                no_rights_user['login'],
-                no_rights_user['password'],
-            ).create(test_data)
-        # test that user can't read
-        con_view = make_content_view(test_data)
-        with self.assertRaises(CLIReturnCodeError):
-            ContentView.with_user(
-                no_rights_user['login'],
-                no_rights_user['password'],
-            ).info({'id': con_view['id']})
+        org_id = make_org(cached=True)['id']
+        for test_data in positive_create_data():
+            with self.subTest(test_data):
+                test_data['organization-id'] = org_id
+                # test that user can't create
+                with self.assertRaises(CLIReturnCodeError):
+                    ContentView.with_user(
+                        no_rights_user['login'],
+                        no_rights_user['password'],
+                    ).create(test_data)
+                # test that user can't read
+                con_view = make_content_view(test_data)
+                with self.assertRaises(CLIReturnCodeError):
+                    ContentView.with_user(
+                        no_rights_user['login'],
+                        no_rights_user['password'],
+                    ).info({'id': con_view['id']})
 
     @stubbed()
-    def test_cv_roles_readonly_user(self):
+    def test_cv_readonly_user_1(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
         # but these tests require creating a user with read-only permissions
@@ -1770,7 +1751,7 @@ class TestContentView(CLITestCase):
         """
 
     @stubbed()
-    def test_cv_roles_readonly_user_negative(self):
+    def test_cv_readonly_user_2(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
         # but these tests require creating a user withOUT read-only permissions
