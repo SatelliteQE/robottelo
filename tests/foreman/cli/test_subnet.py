@@ -57,9 +57,9 @@ class TestSubnet(CLITestCase):
         """
         pool.sort()
         mask = '255.255.255.0'
-        network = gen_ipaddr()       # generate pool range from network address
-        from_ip = re.sub('\d+$', str(pool[0]), network)
-        to_ip = re.sub('\d+$', str(pool[1]), network)
+        network = gen_ipaddr()  # generate pool range from network address
+        from_ip = re.sub(r'\d+$', str(pool[0]), network)
+        to_ip = re.sub(r'\d+$', str(pool[1]), network)
         subnet = make_subnet({
             u'from': from_ip,
             u'mask': mask,
@@ -81,7 +81,7 @@ class TestSubnet(CLITestCase):
         subnet = make_subnet({'domain-ids': domain['id']})
         self.assertIn(domain['name'], subnet['domains'])
 
-    def test_create_subnet_with_multiple_domains(self):
+    def test_create_subnet_with_domains(self):
         """@Test: Check if subnet with different amount of domains can be
         created in the system
 
@@ -169,7 +169,7 @@ class TestSubnet(CLITestCase):
         opts = {u'mask': mask, u'network': network}
         # generate pool range from network address
         for key, val in pool.iteritems():
-            opts[key] = re.sub('\d+$', str(val), network)
+            opts[key] = re.sub(r'\d+$', str(val), network)
         with self.assertRaises(CLIFactoryError):
             make_subnet(opts)
 
@@ -255,8 +255,8 @@ class TestSubnet(CLITestCase):
         pool.sort()
         subnet = make_subnet({u'mask': '255.255.255.0'})
         # generate pool range from network address
-        ip_from = re.sub('\d+$', str(pool[0]), subnet['network'])
-        ip_to = re.sub('\d+$', str(pool[1]), subnet['network'])
+        ip_from = re.sub(r'\d+$', str(pool[0]), subnet['network'])
+        ip_to = re.sub(r'\d+$', str(pool[1]), subnet['network'])
         Subnet.update({
             u'from': ip_from,
             u'id': subnet['id'],
@@ -311,7 +311,7 @@ class TestSubnet(CLITestCase):
         opts = {u'id': subnet['id']}
         # generate pool range from network address
         for key, val in options.iteritems():
-            opts[key] = re.sub('\d+$', str(val), subnet['network'])
+            opts[key] = re.sub(r'\d+$', str(val), subnet['network'])
         with self.assertRaises(CLIReturnCodeError):
             Subnet.update(opts)
         # check - subnet is not updated

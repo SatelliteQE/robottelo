@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Model CLI"""
+"""Test for Model CLI"""
 
 from fauxfactory import gen_string
 from robottelo.cli.model import Model
@@ -10,10 +10,11 @@ from robottelo.test import MetaCLITestCase
 
 @run_only_on('sat')
 class TestModel(MetaCLITestCase):
-
+    """Test class for Model CLI"""
     factory = make_model
     factory_obj = Model
 
+    # pylint: disable=no-self-use
     def test_create_model_1(self):
         """@Test: Check if Model can be created
 
@@ -44,8 +45,8 @@ class TestModel(MetaCLITestCase):
         @Assert: Model is updated
 
         """
-
         name = gen_string('alpha')
+        # pylint: disable=too-many-function-args
         model = self.factory({'name': name})
         self.assertEqual(name, model['name'])
         new_name = gen_string('alpha')

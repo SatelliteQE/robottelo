@@ -18,6 +18,7 @@ class HammerCommandsTestCase(CLITestCase):
         super(HammerCommandsTestCase, self).__init__(*args, **kwargs)
         self.differences = {}
 
+    # pylint: disable=no-self-use
     def _fetch_command_info(self, command):
         """Fetch command info from expected commands info dictionary."""
         info = HAMMER_COMMANDS

@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=too-many-public-methods, too-many-lines
 """Test class for Users CLI
 
 When testing email validation [1] and [2] should be taken into consideration.
@@ -219,7 +220,7 @@ class User(CLITestCase):
         user = make_user({'admin': '1'})
         self.__assert_exists(user)
 
-    def test_create_user_with_default_location(self):
+    def test_create_user_default_loc(self):
         """@Test: Check if user with default location can be created
 
         @Feature: User - Positive create
@@ -235,7 +236,7 @@ class User(CLITestCase):
         self.assertIn(location['name'], user['locations'])
         self.assertEqual(location['name'], user['default-location'])
 
-    def test_create_user_with_defaut_org(self):
+    def test_create_user_defaut_org(self):
         """@Test: Check if user with default organization can be created
 
         @Feature: User - Positive create
@@ -1851,9 +1852,9 @@ class User(CLITestCase):
         """
         users = [make_user() for _ in range(4)]
         # non-existing user info
-        with self.assertRaises(CLIReturnCodeError) as e:
+        with self.assertRaises(CLIReturnCodeError) as exe:
             UserObj.info({'id': 0})
-        self.assertNotRegexpMatches(e.exception.stderr, 'undefined method')
+        self.assertNotRegexpMatches(exe.exception.stderr, 'undefined method')
         # list users
         result = UserObj.list()
         for user in users:

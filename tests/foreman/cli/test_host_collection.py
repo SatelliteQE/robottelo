@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name
 """Test class for Host Collection CLI"""
 
 from ddt import ddt
@@ -26,6 +27,7 @@ class TestHostCollection(CLITestCase):
     library = None
     default_cv = None
 
+    # pylint: disable=unexpected-keyword-arg
     def setUp(self):
         """Tests for Host Collections via Hammer CLI"""
         super(TestHostCollection, self).setUp()

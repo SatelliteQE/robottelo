@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Environment  CLI"""
+# pylint: disable=invalid-name
+"""Test for Environment  CLI"""
 
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
@@ -12,7 +13,7 @@ from robottelo.test import MetaCLITestCase
 
 @run_only_on('sat')
 class TestEnvironment(MetaCLITestCase):
-
+    """Test class for Environment CLI"""
     factory = make_environment
     factory_obj = Environment
 

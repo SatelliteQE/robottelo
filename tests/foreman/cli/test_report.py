@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=no-self-use
 """Test class for Reports CLI."""
 
 import random

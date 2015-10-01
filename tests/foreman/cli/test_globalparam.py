@@ -11,6 +11,7 @@ from robottelo.test import CLITestCase
 class TestGlobalParameter(CLITestCase):
     """GlobalParameter related CLI tests."""
 
+    # pylint: disable=no-self-use
     def test_set(self):
         """@Test: Check if Global Param can be set
 

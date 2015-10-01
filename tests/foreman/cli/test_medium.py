@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Medium  CLI"""
+# pylint: disable=invalid-name
+"""Test for Medium  CLI"""
 
 from ddt import ddt
 from fauxfactory import gen_string, gen_alphanumeric
@@ -24,7 +25,7 @@ OSES = [
 @run_only_on('sat')
 @ddt
 class TestMedium(CLITestCase):
-
+    """Test class for Medium CLI"""
     @data({'name': gen_string("latin1")},
           {'name': gen_string("utf8")},
           {'name': gen_string("alpha")},
@@ -85,6 +86,7 @@ class TestMedium(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Medium.info({'id': medium['id']})
 
+    # pylint: disable=no-self-use
     def test_add_operatingsystem_medium(self):
         """@Test: Check if Medium can be associated with operating system
 

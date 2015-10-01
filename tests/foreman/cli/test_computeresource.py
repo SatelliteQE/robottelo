@@ -98,6 +98,7 @@ LIBVIRT_URL = 'qemu+tcp://{0}:16509/system'.format(
 class TestComputeResource(CLITestCase):
     """ComputeResource CLI tests."""
 
+    # pylint: disable=no-self-use
     def test_create(self):
         """@Test: Create Compute Resource
 

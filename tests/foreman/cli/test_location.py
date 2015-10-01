@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=too-many-public-methods, invalid-name
 """Test class for Location CLI"""
 
 from ddt import ddt

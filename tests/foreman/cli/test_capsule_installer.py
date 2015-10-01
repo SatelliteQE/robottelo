@@ -1,10 +1,11 @@
 # -*- encoding: utf-8 -*-
-"""Test class for capsule installer CLI"""
+# pylint: disable=invalid-name
+"""Test for capsule installer CLI"""
 from robottelo.test import CLITestCase
 
 
 class TestCapsuleInstaller(CLITestCase):
-
+    """Test class for capsule installer CLI"""
     def capsule_installer_basic_test(self):
         """@Test: perform a basic install of capsule.
 

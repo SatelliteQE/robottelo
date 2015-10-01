@@ -1,3 +1,5 @@
+# pylint: disable=too-many-public-methods, too-many-lines
+# pylint: disable=invalid-name, attribute-defined-outside-init
 """Unit tests for the Docker feature."""
 from fauxfactory import gen_alpha, gen_choice, gen_string, gen_url
 from nailgun import entities
@@ -27,7 +29,6 @@ from robottelo.helpers import (
     valid_data_list,
 )
 from robottelo.test import CLITestCase
-# (too-many-public-methods) pylint:disable=R0904
 
 EXTERNAL_DOCKER_URL = get_external_docker_url()
 INTERNAL_DOCKER_URL = get_internal_docker_url()

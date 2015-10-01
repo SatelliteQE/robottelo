@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name
 """Test class for Host CLI"""
 
 from ddt import ddt

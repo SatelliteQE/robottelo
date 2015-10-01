@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=too-many-public-methods, invalid-name
 """Test class for Repository CLI"""
 
 from ddt import ddt
@@ -44,6 +45,7 @@ class TestRepository(CLITestCase):
     org = None
     product = None
 
+    # pylint: disable=unexpected-keyword-arg
     def setUp(self):
         """Tests for Repository via Hammer CLI"""
 
