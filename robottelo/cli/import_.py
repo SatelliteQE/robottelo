@@ -128,7 +128,6 @@ class Import(Base):
         return cls.execute(
             cls._construct_command(options),
             output_format='csv',
-            return_raw_response=True,
         )
 
     @classmethod
@@ -138,7 +137,6 @@ class Import(Base):
         return cls.execute(
             cls._construct_command(options),
             output_format='',
-            return_raw_response=True,
         )
 
     @classmethod
@@ -148,7 +146,6 @@ class Import(Base):
         return cls.execute(
             cls._construct_command(options),
             output_format='',
-            return_raw_response=True,
         )
 
     @classmethod
@@ -158,7 +155,6 @@ class Import(Base):
         return cls.execute(
             cls._construct_command(options),
             output_format='',
-            return_raw_response=True,
         )
 
     @classmethod
@@ -171,7 +167,6 @@ class Import(Base):
         return cls.execute(
             cls._construct_command(options),
             output_format='',
-            return_raw_response=True,
         )
 
     @classmethod
@@ -181,7 +176,6 @@ class Import(Base):
         return cls.execute(
             cls._construct_command(options),
             output_format='',
-            return_raw_response=True,
         )
 
     @classmethod
@@ -194,7 +188,6 @@ class Import(Base):
         return cls.execute(
             cls._construct_command(options),
             output_format='',
-            return_raw_response=True,
         )
 
     @classmethod
@@ -204,7 +197,6 @@ class Import(Base):
         return cls.execute(
             cls._construct_command(options),
             output_format='',
-            return_raw_response=True,
         )
 
     @classmethod
@@ -217,7 +209,6 @@ class Import(Base):
         return cls.execute(
             cls._construct_command(options),
             output_format='',
-            return_raw_response=True,
         )
 
     @classmethod
@@ -230,7 +221,6 @@ class Import(Base):
         return cls.execute(
             cls._construct_command(options),
             output_format='',
-            return_raw_response=True,
         )
 
     @classmethod
@@ -243,7 +233,6 @@ class Import(Base):
         return cls.execute(
             cls._construct_command(options),
             output_format='',
-            return_raw_response=True,
         )
 
     @classmethod
@@ -253,20 +242,15 @@ class Import(Base):
 
         :returns: A tuple of SSHCommandResult and a Dictionary containing the
             transition data of the Import
-        :raises: AssertionError if a non-zero return code is encountered.
 
         """
         result = cls.activation_key(options)
-        transition_data = []
-        if result.return_code == 0:
-            transition_data = cls.read_transition_csv(
-                ssh.command(
-                    u'ls -v ${HOME}/.transition_data/activation_keys*'
-                ).stdout[:-1],
-                'org_id'
-            )
-        else:
-            raise AssertionError(result.stderr)
+        transition_data = cls.read_transition_csv(
+            ssh.command(
+                u'ls -v ${HOME}/.transition_data/activation_keys*'
+            ).stdout[:-1],
+            'org_id'
+        )
         return (result, transition_data)
 
     @classmethod
@@ -275,19 +259,14 @@ class Import(Base):
 
         :returns: A tuple of SSHCommandResult and a Dictionary containing the
             transition data of the Import
-        :raises: AssertionError if a non-zero return code is encountered.
 
         """
         result = cls.organization(options)
-        transition_data = []
-        if result.return_code == 0:
-            transition_data = cls.read_transition_csv(
-                ssh.command(
-                    u'ls -v ${HOME}/.transition_data/organizations*'
-                ).stdout[:-1]
-            )
-        else:
-            raise AssertionError(result.stderr)
+        transition_data = cls.read_transition_csv(
+            ssh.command(
+                u'ls -v ${HOME}/.transition_data/organizations*'
+            ).stdout[:-1]
+        )
         return (result, transition_data)
 
     @classmethod
@@ -296,7 +275,6 @@ class Import(Base):
 
         :returns: A tuple of SSHCommandResult and a Dictionary containing
             the transition data of the Import
-        :raises: AssertionError if a non-zero return code is encountered.
 
         """
         # prepare manifests for every organization
@@ -314,15 +292,11 @@ class Import(Base):
 
         result = cls.organization(options)
         ssh.command(u'rm -rf {0}'.format(man_dir))
-        transition_data = []
-        if result.return_code == 0:
-            transition_data = cls.read_transition_csv(
-                ssh.command(
-                    u'ls -v ${HOME}/.transition_data/organizations*'
-                ).stdout[:-1]
-            )
-        else:
-            raise AssertionError(result.stderr)
+        transition_data = cls.read_transition_csv(
+            ssh.command(
+                u'ls -v ${HOME}/.transition_data/organizations*'
+            ).stdout[:-1]
+        )
         return (result, transition_data)
 
     @classmethod
@@ -331,19 +305,14 @@ class Import(Base):
 
         :returns: A tuple of SSHCommandResult and a Dictionary containing the
             transition data of the Import
-        :raises: AssertionError if a non-zero return code is encountered.
 
         """
         result = cls.user(options)
-        transition_data = []
-        if result.return_code == 0:
-            transition_data = cls.read_transition_csv(
-                ssh.command(
-                    u'ls -v ${HOME}/.transition_data/users*'
-                ).stdout[:-1]
-            )
-        else:
-            raise AssertionError(result.stderr)
+        transition_data = cls.read_transition_csv(
+            ssh.command(
+                u'ls -v ${HOME}/.transition_data/users*'
+            ).stdout[:-1]
+        )
         return (result, transition_data)
 
     @classmethod
@@ -352,19 +321,14 @@ class Import(Base):
 
         :returns: A tuple of SSHCommandResult and a Dictionary containing the
             transition data of the Import
-        :raises: AssertionError if a non-zero return code is encountered.
 
         """
         result = cls.host_collection(options)
-        transition_data = []
-        if result.return_code == 0:
-            transition_data = cls.read_transition_csv(
-                ssh.command(
-                    u'ls -v ${HOME}/.transition_data/host_collections*'
-                ).stdout[:-1]
-            )
-        else:
-            raise AssertionError(result.stderr)
+        transition_data = cls.read_transition_csv(
+            ssh.command(
+                u'ls -v ${HOME}/.transition_data/host_collections*'
+            ).stdout[:-1]
+        )
         return (result, transition_data)
 
     @classmethod
@@ -374,25 +338,20 @@ class Import(Base):
 
         :returns: A tuple of SSHCommandResult and a List containing the
             transition data of the Import
-        :raises: AssertionError if a non-zero return code is encountered.
 
         """
         result = cls.config_file(options)
-        transition_data = []
-        if result.return_code == 0:
-            transition_data = [
-                cls.read_transition_csv(ssh.command(cmd).stdout[:-1], key)
-                for cmd, key
-                in (
-                    (u'ls -v ${HOME}/.transition_data/products*', u'sat5'),
-                    (
-                        u'ls -v ${HOME}/.transition_data/puppet_repositories*',
-                        u'org_id'
-                    ),
-                )
-            ]
-        else:
-            raise AssertionError(result.stderr)
+        transition_data = [
+            cls.read_transition_csv(ssh.command(cmd).stdout[:-1], key)
+            for cmd, key
+            in (
+                (u'ls -v ${HOME}/.transition_data/products*', u'sat5'),
+                (
+                    u'ls -v ${HOME}/.transition_data/puppet_repositories*',
+                    u'org_id'
+                ),
+            )
+        ]
         return (result, transition_data)
 
     @classmethod
@@ -402,19 +361,14 @@ class Import(Base):
 
         :returns: A tuple of SSHCommandResult and a Dictionary containing the
             transition data of the Import
-        :raises: AssertionError if a non-zero return code is encountered.
 
         """
         result = cls.content_view(options)
-        transition_data = []
-        if result.return_code == 0:
-            transition_data = cls.read_transition_csv(
-                ssh.command(
-                    u'ls -v ${HOME}/.transition_data/content_views*'
-                ).stdout[:-1]
-            )
-        else:
-            raise AssertionError(result.stderr)
+        transition_data = cls.read_transition_csv(
+            ssh.command(
+                u'ls -v ${HOME}/.transition_data/content_views*'
+            ).stdout[:-1]
+        )
         return (result, transition_data)
 
     @classmethod
@@ -423,25 +377,20 @@ class Import(Base):
 
         :returns: A tuple of SSHCommandResult and a Dictionary containing the
             transition data of the Import
-        :raises: AssertionError if a non-zero return code is encountered.
 
         """
         result = cls.content_host(options)
-        transition_data = []
-        if result.return_code == 0:
-            transition_data = [
-                cls.read_transition_csv(
-                    ssh.command(cmd).stdout[:-1], key
-                )
-                for cmd, key
-                in (
-                    (u'ls -v ${HOME}/.transition_data/system_content_views*',
-                        u'ch_seq'),
-                    (u'ls -v ${HOME}/.transition_data/systems*', u'sat5'),
-                )
-            ]
-        else:
-            raise AssertionError(result.stderr)
+        transition_data = [
+            cls.read_transition_csv(
+                ssh.command(cmd).stdout[:-1], key
+            )
+            for cmd, key
+            in (
+                (u'ls -v ${HOME}/.transition_data/system_content_views*',
+                    u'ch_seq'),
+                (u'ls -v ${HOME}/.transition_data/systems*', u'sat5'),
+            )
+        ]
         return (result, transition_data)
 
     @classmethod
@@ -450,24 +399,19 @@ class Import(Base):
 
         :returns: A tuple of SSHCommandResult and a List containing the
             transition data of the Import
-        :raises: AssertionError if a non-zero return code is encountered.
 
         """
         result = cls.repository(options)
-        transition_data = []
-        if result.return_code == 0:
-            transition_data = [
-                cls.read_transition_csv(
-                    ssh.command(cmd).stdout[:-1], key
-                )
-                for cmd, key
-                in (
-                    (u'ls -v ${HOME}/.transition_data/products*', u'org_id'),
-                    (u'ls -v ${HOME}/.transition_data/repositories*', u'sat5'),
-                )
-            ]
-        else:
-            raise AssertionError(result.stderr)
+        transition_data = [
+            cls.read_transition_csv(
+                ssh.command(cmd).stdout[:-1], key
+            )
+            for cmd, key
+            in (
+                (u'ls -v ${HOME}/.transition_data/products*', u'org_id'),
+                (u'ls -v ${HOME}/.transition_data/repositories*', u'sat5'),
+            )
+        ]
         return (result, transition_data)
 
     @classmethod
@@ -480,25 +424,23 @@ class Import(Base):
 
         """
         result = cls.repository_enable(options)
-        transition_data = []
-        if result.return_code == 0:
-            transition_data = [
-                cls.read_transition_csv(
-                    ssh.command(cmd).stdout[:-1], key
-                )
-                for cmd, key
-                in (
-                    (
-                        u'ls -v ${HOME}/.transition_data/redhat_content_view*',
-                        u'org_id'
-                    ),
-                    (
-                        u'ls -v ${HOME}/.transition_data/redhat_repositories*',
-                        u'org_id'
-                    ),
-                )
-            ]
-        return(result, transition_data)
+        transition_data = [
+            cls.read_transition_csv(
+                ssh.command(cmd).stdout[:-1], key
+            )
+            for cmd, key
+            in (
+                (
+                    u'ls -v ${HOME}/.transition_data/redhat_content_view*',
+                    u'org_id'
+                ),
+                (
+                    u'ls -v ${HOME}/.transition_data/redhat_repositories*',
+                    u'org_id'
+                ),
+            )
+        ]
+        return (result, transition_data)
 
     @classmethod
     def template_snippet_with_tr_data(cls, options=None):
@@ -506,7 +448,6 @@ class Import(Base):
 
         :returns: A tuple of SSHCommandResult and a List containing the
             transition data of the Import
-        :raises: AssertionError if a non-zero return code is encountered.
 
         """
         result = cls.template_snippet(options)
