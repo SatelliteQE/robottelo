@@ -1,6 +1,6 @@
 """Test class for Active Directory Feature"""
 from ddt import ddt
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.decorators import data
 from robottelo.helpers import generate_strings_list
@@ -14,11 +14,11 @@ class LDAPAuthSource(UITestCase):
     """Implements Active Directory feature tests in UI."""
 
     # TODO: handle when the ldap config is not available
-    ldap_user_name = conf.properties.get('main.ldap.username')
-    ldap_user_passwd = conf.properties.get('main.ldap.passwd')
-    base_dn = conf.properties.get('main.ldap.basedn')
-    group_base_dn = conf.properties.get('main.ldap.grpbasedn')
-    ldap_hostname = conf.properties.get('main.ldap.hostname')
+    ldap_user_name = settings.ldap.username
+    ldap_user_passwd = settings.ldap.passwd
+    base_dn = settings.ldap.basedn
+    group_base_dn = settings.ldap.grpbasedn
+    ldap_hostname = settings.ldap.hostname
 
     @data(*generate_strings_list())
     def test_create_ldap_authsource_withad(self, server_name):

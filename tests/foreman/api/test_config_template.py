@@ -5,8 +5,8 @@ http://theforeman.org/api/apidoc/v2/config_templates.html
 
 """
 from nailgun import client, entities
+from robottelo.config import settings
 from robottelo.decorators import skip_if_bug_open
-from robottelo.helpers import get_server_credentials
 from robottelo.test import APITestCase
 
 
@@ -24,7 +24,7 @@ class ConfigTemplateTestCase(APITestCase):
         """
         response = client.get(
             entities.ConfigTemplate().path('build_pxe_default'),
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             verify=False,
         )
         response.raise_for_status()

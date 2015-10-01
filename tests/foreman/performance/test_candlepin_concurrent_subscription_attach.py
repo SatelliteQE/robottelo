@@ -19,7 +19,7 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
         # parameters for concurrent register and attach test
         # note: may need to change savepoint name
         cls._set_testcase_parameters(
-            'performance.test.savepoint2_enabled_repos',
+            'enabled_repos',
             RAW_ATT_FILE_NAME,
             STAT_ATT_FILE_NAME,
             raw_reg=RAW_REG_FILE_NAME,

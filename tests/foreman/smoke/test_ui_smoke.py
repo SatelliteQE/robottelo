@@ -3,7 +3,7 @@
 from ddt import ddt
 from fauxfactory import gen_string, gen_ipaddr
 from robottelo import manifests
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
     DEFAULT_LOC,
@@ -236,7 +236,7 @@ class TestSmoke(UITestCase):
                 ))
             # Create a new libvirt compute resource
             url = (
-                LIBVIRT_RESOURCE_URL % conf.properties['main.server.hostname']
+                LIBVIRT_RESOURCE_URL % settings.server.hostname
             )
             make_resource(
                 session,
@@ -388,7 +388,7 @@ class TestSmoke(UITestCase):
         puppet_repository_name = gen_string('alpha')
         repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
         rhel_prd = DEFAULT_SUBSCRIPTION_NAME
-        rhel6_repo = conf.properties['clients.rhel6_repo']
+        rhel6_repo = settings.rhel6_repo
         upload_file(cloned_manifest_path)
         with Session(self.browser) as session:
             # Create New organization

@@ -3,13 +3,11 @@
 
 import bugzilla
 import logging
-import random
 import requests
 import unittest2
 
-from ddt import data as ddt_data
 from functools import wraps
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import BZ_OPEN_STATUSES, NOT_IMPLEMENTED
 from xml.parsers.expat import ExpatError, errors
 from xmlrpclib import Fault
@@ -31,21 +29,6 @@ _redmine = {
     'closed_statuses': None,
     'issues': {},
 }
-
-
-def data(*values):
-    """
-    Overrides ddt.data decorator to return only one value when doing smoke
-    tests
-    """
-    def wrapper(func):
-        """Perform smoke test attribute check"""
-        smoke = conf.properties.get('main.smoke', '0') == '1'
-        if smoke:
-            return ddt_data(random.choice(values))(func)
-        else:
-            return ddt_data(*values)(func)
-    return wrapper
 
 
 def stubbed(reason=None):
@@ -92,8 +75,7 @@ def run_only_on(project):
 
     * does not use this decorator - test will be run for sat/sam modes
 
-    Note: The server mode is identified by ``main.project`` in
-    ``robottelo.properties``
+    Note: The server mode is identified by ``settings.project``.
 
     Usage:
 
@@ -127,6 +109,7 @@ def run_only_on(project):
 
     # Validate project value
     project = project.lower()
+    settings_project = settings.project.lower()
     if project not in allowed_project_modes:
         raise ProjectModeError(
             '"{0}" is not a project mode. The allowed project modes are: {1}'
@@ -134,30 +117,18 @@ def run_only_on(project):
         )
 
     # If robottelo.properties not present or does not specify a project use sat
-    robottelo_mode = conf.properties.get('main.project', 'sat').lower()
-
-    if robottelo_mode not in allowed_project_modes:
+    if settings_project not in allowed_project_modes:
         raise ProjectModeError(
-            '"{0}" is not an acceptable "main.project" value in '
+            '"{0}" is not an acceptable "[robottelo] project" value in '
             'robottelo.properties file. The allowed project modes are: {1}'
-            .format(robottelo_mode, allowed_project_modes)
+            .format(settings.project, allowed_project_modes)
         )
 
     # Preconditions PASS.  Now skip the test if modes does not match
     return unittest2.skipIf(
-        project != robottelo_mode,
+        project != settings.project,
         'Server runs in "{0}" mode and this test will run '
-        'only on "{1}" mode.'.format(robottelo_mode, project))
-
-
-def skipRemote(func):  # noqa
-    """Decorator to skip tests based on whether server is remote,
-    Remote in the sense whether it is Sauce Labs"""
-
-    remote = int(conf.properties['main.remote'])
-    return unittest2.skipIf(
-        remote == 1,
-        "Skipping as setup related to sauce labs is missing")(func)
+        'only on "{1}" mode.'.format(settings.project, project))
 
 
 class BugFetchError(Exception):
@@ -273,7 +244,6 @@ def bz_bug_is_open(bug_id):
     :rtype: bool
 
     """
-    upstream_mode = conf.properties.get('main.upstream', '1') == '1'
     bug = None
     try:
         bug = _get_bugzilla_bug(bug_id)
@@ -283,7 +253,7 @@ def bz_bug_is_open(bug_id):
     if bug is None or bug.status not in BZ_OPEN_STATUSES:
         # if not upstream mode, verify whiteboard field for the presence of
         # 'verified in upstream' text
-        if (not upstream_mode and bug.whiteboard and
+        if (not settings.upstream and bug.whiteboard and
                 'verified in upstream' in bug.whiteboard.lower()):
             return True
         return False

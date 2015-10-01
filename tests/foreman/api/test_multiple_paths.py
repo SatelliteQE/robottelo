@@ -1,23 +1,16 @@
+# pylint: disable=too-many-public-methods
 """Data-driven unit tests for multiple paths."""
 import httplib
 import logging
 
-from ddt import data, ddt
 from nailgun import client, entities, entity_fields
 from requests.exceptions import HTTPError
-from robottelo.config import conf
-from robottelo.decorators import (
-    bz_bug_is_open,
-    run_only_on,
-    skip_if_bug_open,
-)
-from robottelo.helpers import get_nailgun_config, get_server_credentials
+from robottelo.config import settings
+from robottelo.decorators import bz_bug_is_open, run_only_on, skip_if_bug_open
+from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
-# (too-many-public-methods) pylint:disable=R0904
-
 
 logger = logging.getLogger(__name__)  # pylint:disable=invalid-name
-
 
 BZ_1118015_ENTITIES = (
     entities.ActivationKey, entities.Architecture, entities.ConfigTemplate,
@@ -30,6 +23,41 @@ BZ_1118015_ENTITIES = (
 )
 BZ_1154156_ENTITIES = (entities.ConfigTemplate, entities.Host, entities.User)
 BZ_1187366_ENTITIES = (entities.LifecycleEnvironment, entities.Organization)
+
+
+def valid_entities():
+    """Returns a tuple of all valid entities."""
+    return(
+        entities.ActivationKey,
+        entities.Architecture,
+        entities.AuthSourceLDAP,
+        entities.ComputeProfile,
+        entities.ConfigTemplate,
+        entities.ContentView,
+        entities.DiscoveryRule,
+        entities.DockerComputeResource,
+        entities.Domain,
+        entities.Environment,
+        entities.GPGKey,
+        entities.Host,
+        entities.HostCollection,
+        entities.LibvirtComputeResource,
+        entities.HostGroup,
+        entities.LifecycleEnvironment,
+        entities.Media,
+        entities.Model,
+        entities.OperatingSystem,
+        entities.Organization,
+        entities.Product,
+        entities.PuppetClass,
+        entities.Repository,
+        entities.Role,
+        entities.Subnet,
+        entities.System,
+        entities.TemplateKind,
+        entities.User,
+        entities.UserGroup,
+    )
 
 
 def _get_readable_attributes(entity):
@@ -86,7 +114,7 @@ def skip_if_sam(self, entity):
 
     The above code snippet skips the test when:
 
-    * ``robottelo.properties`` is defined with ``main.project=sam``, and
+    * ``robottelo.properties`` is defined with ``[robottelo] project=sam``, and
     * the corresponding entity's definition in module ``nailgun.entities`` does
       not specify sam in server_modes. For example: ``server_modes = ('sat')``.
 
@@ -94,7 +122,7 @@ def skip_if_sam(self, entity):
     :returns: Either ``self.skipTest`` or ``None``.
 
     """
-    robottelo_mode = conf.properties.get('main.project', '').lower()
+    robottelo_mode = settings.project
     server_modes = [
         server_mode.lower()
         for server_mode
@@ -110,42 +138,10 @@ def skip_if_sam(self, entity):
     # else just return - do nothing!
 
 
-@ddt
 class EntityTestCase(APITestCase):
     """Issue HTTP requests to various ``entity/`` paths."""
 
-    @data(
-        # entities.ActivationKey,  # need organization_id or environment_id
-        entities.Architecture,
-        entities.AuthSourceLDAP,
-        entities.ComputeProfile,
-        entities.ConfigTemplate,
-        # entities.ContentView,  # need organization_id
-        entities.DiscoveryRule,
-        entities.DockerComputeResource,
-        entities.Domain,
-        entities.Environment,
-        # entities.GPGKey,  # need organization_id
-        entities.Host,
-        # entities.HostCollection,  # need organization_id
-        entities.LibvirtComputeResource,
-        entities.HostGroup,
-        # entities.LifecycleEnvironment,  # need organization_id
-        entities.Media,
-        entities.Model,
-        entities.OperatingSystem,
-        entities.Organization,
-        # entities.Product,  # need organization_id
-        entities.PuppetClass,
-        # entities.Repository,  # need organization_id
-        entities.Role,
-        entities.Subnet,
-        # entities.System,  # need organization_id
-        entities.TemplateKind,
-        entities.User,
-        entities.UserGroup,
-    )
-    def test_get_status_code(self, entity_cls):
+    def test_get_status_code(self):
         """@Test: GET an entity-dependent path.
 
         @Feature: Test multiple API paths
@@ -153,49 +149,33 @@ class EntityTestCase(APITestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        logger.debug('test_get_status_code arg: %s', entity_cls)
-        skip_if_sam(self, entity_cls)
-        response = client.get(
-            entity_cls().path(),
-            auth=get_server_credentials(),
-            verify=False,
+        exclude_list = (
+            entities.ActivationKey,  # need organization_id or environment_id
+            entities.ContentView,  # need organization_id
+            entities.GPGKey,  # need organization_id
+            entities.HostCollection,  # need organization_id
+            entities.LifecycleEnvironment,  # need organization_id
+            entities.Product,  # need organization_id
+            entities.Repository,  # need organization_id
+            entities.System,  # need organization_id
         )
-        response.raise_for_status()
-        self.assertEqual(httplib.OK, response.status_code)
-        self.assertIn('application/json', response.headers['content-type'])
+        for entity_cls in set(valid_entities()) - set(exclude_list):
+            with self.subTest(entity_cls):
+                logger.debug('test_get_status_code arg: %s', entity_cls)
+                skip_if_sam(self, entity_cls)
+                response = client.get(
+                    entity_cls().path(),
+                    auth=settings.server.get_credentials(),
+                    verify=False,
+                )
+                response.raise_for_status()
+                self.assertEqual(httplib.OK, response.status_code)
+                self.assertIn(
+                    'application/json',
+                    response.headers['content-type']
+                )
 
-    @data(
-        # entities.ActivationKey,  # need organization id or environment id
-        entities.Architecture,
-        entities.AuthSourceLDAP,
-        entities.ComputeProfile,
-        entities.ConfigTemplate,
-        entities.ContentView,
-        entities.DiscoveryRule,
-        entities.DockerComputeResource,
-        entities.Domain,
-        entities.Environment,
-        entities.GPGKey,
-        entities.Host,
-        entities.HostCollection,
-        entities.LibvirtComputeResource,
-        entities.HostGroup,
-        entities.LifecycleEnvironment,
-        entities.Media,
-        entities.Model,
-        entities.OperatingSystem,
-        entities.Organization,
-        entities.Product,
-        entities.PuppetClass,
-        entities.Repository,
-        entities.Role,
-        entities.Subnet,
-        entities.System,
-        entities.TemplateKind,
-        entities.User,
-        entities.UserGroup,
-    )
-    def test_get_unauthorized(self, entity_cls):
+    def test_get_unauthorized(self):
         """@Test: GET an entity-dependent path without credentials.
 
         @Feature: Test multiple API paths
@@ -203,43 +183,21 @@ class EntityTestCase(APITestCase):
         @Assert: HTTP 401 is returned
 
         """
-        logger.debug('test_get_unauthorized arg: %s', entity_cls)
-        skip_if_sam(self, entity_cls)
-        response = client.get(entity_cls().path(), auth=(), verify=False)
-        self.assertEqual(httplib.UNAUTHORIZED, response.status_code)
+        exclude_list = (
+            entities.ActivationKey,  # need organization_id or environment_id
+        )
+        for entity_cls in set(valid_entities()) - set(exclude_list):
+            with self.subTest(entity_cls):
+                logger.debug('test_get_unauthorized arg: %s', entity_cls)
+                skip_if_sam(self, entity_cls)
+                response = client.get(
+                    entity_cls().path(),
+                    auth=(),
+                    verify=False
+                )
+                self.assertEqual(httplib.UNAUTHORIZED, response.status_code)
 
-    @data(
-        entities.ActivationKey,
-        entities.Architecture,
-        entities.AuthSourceLDAP,
-        entities.ComputeProfile,
-        entities.ConfigTemplate,
-        entities.ContentView,
-        entities.DiscoveryRule,
-        entities.DockerComputeResource,
-        entities.Domain,
-        entities.Environment,
-        entities.GPGKey,
-        entities.Host,
-        entities.HostCollection,
-        entities.LibvirtComputeResource,
-        entities.HostGroup,
-        entities.LifecycleEnvironment,
-        entities.Media,
-        entities.Model,
-        entities.OperatingSystem,
-        entities.Organization,
-        entities.Product,
-        entities.PuppetClass,
-        entities.Repository,
-        entities.Role,
-        entities.Subnet,
-        entities.System,
-        # entities.TemplateKind,  # see comments in class definition
-        entities.User,
-        entities.UserGroup,
-    )
-    def test_post_status_code(self, entity_cls):
+    def test_post_status_code(self):
         """@Test: Issue a POST request and check the returned status code.
 
         @Feature: Test multiple API paths
@@ -247,52 +205,31 @@ class EntityTestCase(APITestCase):
         @Assert: HTTP 201 is returned with an ``application/json`` content-type
 
         """
-        logger.debug('test_post_status_code arg: %s', entity_cls)
-        skip_if_sam(self, entity_cls)
+        exclude_list = (
+            entities.TemplateKind,  # see comments in class definition
+        )
+        for entity_cls in set(valid_entities()) - set(exclude_list):
+            with self.subTest(entity_cls):
+                logger.debug('test_post_status_code arg: %s', entity_cls)
+                skip_if_sam(self, entity_cls)
 
-        # Libvirt compute resources suffer from BZ 1118015. However, partials
-        # cannot be compared for class identity and the class hierarchy needs
-        # fixing (SatelliteQE/nailgun#42), so we just comment it out above.
-        if entity_cls in BZ_1118015_ENTITIES and bz_bug_is_open(1118015):
-            self.skipTest('Bugzilla bug 1118015 is open.')
+                # Libvirt compute resources suffer from BZ 1118015. However,
+                # partials cannot be compared for class identity and the class
+                # hierarchy needs fixing (SatelliteQE/nailgun#42), so we just
+                # comment it out above.
+                if (entity_cls in BZ_1118015_ENTITIES and
+                        bz_bug_is_open(1118015)):
+                    self.skipTest('Bugzilla bug 1118015 is open.')
 
-        response = entity_cls().create_raw()
-        self.assertEqual(httplib.CREATED, response.status_code)
-        self.assertIn('application/json', response.headers['content-type'])
+                response = entity_cls().create_raw()
+                self.assertEqual(httplib.CREATED, response.status_code)
+                self.assertIn(
+                    'application/json',
+                    response.headers['content-type']
+                )
 
-    @data(
-        entities.ActivationKey,
-        entities.Architecture,
-        entities.AuthSourceLDAP,
-        entities.ComputeProfile,
-        entities.ConfigTemplate,
-        entities.ContentView,
-        entities.DiscoveryRule,
-        entities.DockerComputeResource,
-        entities.Domain,
-        entities.Environment,
-        entities.GPGKey,
-        entities.Host,
-        entities.HostCollection,
-        entities.LibvirtComputeResource,
-        entities.HostGroup,
-        entities.LifecycleEnvironment,
-        entities.Media,
-        entities.Model,
-        entities.OperatingSystem,
-        entities.Organization,
-        entities.Product,
-        entities.PuppetClass,
-        entities.Repository,
-        entities.Role,
-        entities.Subnet,
-        entities.System,
-        entities.TemplateKind,
-        entities.User,
-        entities.UserGroup,
-    )
     @skip_if_bug_open('bugzilla', 1122257)
-    def test_post_unauthorized(self, entity_cls):
+    def test_post_unauthorized(self):
         """@Test: POST to an entity-dependent path without credentials.
 
         @Feature: Test multiple API paths
@@ -300,52 +237,22 @@ class EntityTestCase(APITestCase):
         @Assert: HTTP 401 is returned
 
         """
-        logger.debug('test_post_unauthorized arg: %s', entity_cls)
-        skip_if_sam(self, entity_cls)
-        server_cfg = get_nailgun_config()
-        server_cfg.auth = ()
-        self.assertEqual(
-            httplib.UNAUTHORIZED,
-            entity_cls(server_cfg).create_raw(create_missing=False).status_code
-        )
+        for entity_cls in valid_entities():
+            with self.subTest(entity_cls):
+                logger.debug('test_post_unauthorized arg: %s', entity_cls)
+                skip_if_sam(self, entity_cls)
+                server_cfg = get_nailgun_config()
+                server_cfg.auth = ()
+                return_code = entity_cls(server_cfg).create_raw(
+                    create_missing=False
+                ).status_code
+                self.assertEqual(httplib.UNAUTHORIZED, return_code)
 
 
-@ddt
 class EntityIdTestCase(APITestCase):
     """Issue HTTP requests to various ``entity/:id`` paths."""
 
-    @data(
-        entities.ActivationKey,
-        entities.Architecture,
-        entities.AuthSourceLDAP,
-        entities.ComputeProfile,
-        entities.ConfigTemplate,
-        entities.ContentView,
-        entities.DiscoveryRule,
-        entities.DockerComputeResource,
-        entities.Domain,
-        entities.Environment,
-        entities.GPGKey,
-        entities.Host,
-        entities.HostCollection,
-        entities.LibvirtComputeResource,
-        entities.HostGroup,
-        entities.LifecycleEnvironment,
-        entities.Media,
-        entities.Model,
-        entities.OperatingSystem,
-        entities.Organization,
-        entities.Product,
-        entities.PuppetClass,
-        entities.Repository,
-        entities.Role,
-        entities.Subnet,
-        entities.System,
-        # entities.TemplateKind,  # see comments in class definition
-        entities.User,
-        entities.UserGroup,
-    )
-    def test_get_status_code(self, entity_cls):
+    def test_get_status_code(self):
         """@Test: Create an entity and GET it.
 
         @Feature: Test multiple API paths
@@ -353,48 +260,25 @@ class EntityIdTestCase(APITestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        logger.debug('test_get_status_code arg: %s', entity_cls)
-        skip_if_sam(self, entity_cls)
-        try:
-            entity = entity_cls(id=entity_cls().create_json()['id'])
-        except HTTPError as err:
-            self.fail(err)
-        response = entity.read_raw()
-        self.assertEqual(httplib.OK, response.status_code)
-        self.assertIn('application/json', response.headers['content-type'])
+        exclude_list = (
+            entities.TemplateKind,  # see comments in class definition
+        )
+        for entity_cls in set(valid_entities()) - set(exclude_list):
+            with self.subTest(entity_cls):
+                logger.debug('test_get_status_code arg: %s', entity_cls)
+                skip_if_sam(self, entity_cls)
+                try:
+                    entity = entity_cls(id=entity_cls().create_json()['id'])
+                except HTTPError as err:
+                    self.fail(err)
+                response = entity.read_raw()
+                self.assertEqual(httplib.OK, response.status_code)
+                self.assertIn(
+                    'application/json',
+                    response.headers['content-type']
+                )
 
-    @data(
-        entities.ActivationKey,
-        entities.Architecture,
-        entities.AuthSourceLDAP,
-        entities.ComputeProfile,
-        entities.ConfigTemplate,
-        entities.ContentView,
-        entities.DiscoveryRule,
-        entities.DockerComputeResource,
-        entities.Domain,
-        entities.Environment,
-        entities.GPGKey,
-        entities.Host,
-        entities.HostCollection,
-        entities.LibvirtComputeResource,
-        entities.HostGroup,
-        entities.LifecycleEnvironment,
-        entities.Media,
-        entities.Model,
-        entities.OperatingSystem,
-        entities.Organization,
-        entities.Product,
-        entities.PuppetClass,
-        entities.Repository,
-        entities.Role,
-        entities.Subnet,
-        entities.System,
-        # entities.TemplateKind,  # see comments in class definition
-        entities.User,
-        entities.UserGroup,
-    )
-    def test_put_status_code(self, entity_cls):
+    def test_put_status_code(self):
         """@Test Issue a PUT request and check the returned status code.
 
         @Feature: Test multiple API paths
@@ -402,58 +286,37 @@ class EntityIdTestCase(APITestCase):
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
         """
-        logger.debug('test_put_status_code arg: %s', entity_cls)
-        skip_if_sam(self, entity_cls)
-        if entity_cls in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
-            self.skipTest("Bugzilla bug 1154156 is open.")
-
-        # Create an entity
-        entity_id = entity_cls().create_json()['id']
-
-        # Update that entity.
-        entity = entity_cls()
-        entity.create_missing()
-        response = client.put(
-            entity_cls(id=entity_id).path(),
-            entity.create_payload(),  # FIXME: use entity.update_payload()
-            auth=get_server_credentials(),
-            verify=False,
+        exclude_list = (
+            entities.TemplateKind,  # see comments in class definition
         )
-        self.assertEqual(httplib.OK, response.status_code)
-        self.assertIn('application/json', response.headers['content-type'])
+        for entity_cls in set(valid_entities()) - set(exclude_list):
+            with self.subTest(entity_cls):
+                logger.debug('test_put_status_code arg: %s', entity_cls)
+                skip_if_sam(self, entity_cls)
+                if (entity_cls in BZ_1154156_ENTITIES and
+                        bz_bug_is_open(1154156)):
+                    self.skipTest("Bugzilla bug 1154156 is open.")
 
-    @data(
-        entities.ActivationKey,
-        entities.Architecture,
-        entities.AuthSourceLDAP,
-        entities.ComputeProfile,
-        entities.ConfigTemplate,
-        entities.ContentView,
-        entities.DiscoveryRule,
-        entities.DockerComputeResource,
-        entities.Domain,
-        entities.Environment,
-        entities.GPGKey,
-        entities.Host,
-        entities.HostCollection,
-        entities.LibvirtComputeResource,
-        entities.HostGroup,
-        entities.LifecycleEnvironment,
-        entities.Media,
-        entities.Model,
-        entities.OperatingSystem,
-        entities.Organization,
-        entities.Product,
-        entities.PuppetClass,
-        entities.Repository,
-        entities.Role,
-        entities.Subnet,
-        entities.System,
-        # entities.TemplateKind,  # see comments in class definition
-        entities.User,
-        entities.UserGroup,
-    )
-    def test_delete_status_code(self, entity_cls):
+                # Create an entity
+                entity_id = entity_cls().create_json()['id']
+
+                # Update that entity.
+                entity = entity_cls()
+                entity.create_missing()
+                response = client.put(
+                    entity_cls(id=entity_id).path(),
+                    # FIXME: use entity.update_payload()
+                    entity.create_payload(),
+                    auth=settings.server.get_credentials(),
+                    verify=False,
+                )
+                self.assertEqual(httplib.OK, response.status_code)
+                self.assertIn(
+                    'application/json',
+                    response.headers['content-type']
+                )
+
+    def test_delete_status_code(self):
         """@Test Issue an HTTP DELETE request and check the returned status
         code.
 
@@ -463,30 +326,39 @@ class EntityIdTestCase(APITestCase):
         content-type.
 
         """
-        logger.debug('test_delete_status_code arg: %s', entity_cls)
-        skip_if_sam(self, entity_cls)
-        if entity_cls == entities.ConfigTemplate and bz_bug_is_open(1096333):
-            self.skipTest('Cannot delete config templates.')
-        try:
-            entity = entity_cls(id=entity_cls().create_json()['id'])
-        except HTTPError as err:
-            self.fail(err)
-        response = entity.delete_raw()
-        if entity_cls in BZ_1187366_ENTITIES and bz_bug_is_open(1187366):
-            self.skipTest('BZ 1187366 is open.')
-        self.assertIn(
-            response.status_code,
-            (httplib.NO_CONTENT, httplib.OK, httplib.ACCEPTED)
+        exclude_list = (
+            entities.TemplateKind,  # see comments in class definition
         )
+        for entity_cls in set(valid_entities()) - set(exclude_list):
+            with self.subTest(entity_cls):
+                logger.debug('test_delete_status_code arg: %s', entity_cls)
+                skip_if_sam(self, entity_cls)
+                if (entity_cls == entities.ConfigTemplate and
+                        bz_bug_is_open(1096333)):
+                    self.skipTest('Cannot delete config templates.')
+                try:
+                    entity = entity_cls(id=entity_cls().create_json()['id'])
+                except HTTPError as err:
+                    self.fail(err)
+                response = entity.delete_raw()
+                if (entity_cls in BZ_1187366_ENTITIES and
+                        bz_bug_is_open(1187366)):
+                    self.skipTest('BZ 1187366 is open.')
+                self.assertIn(
+                    response.status_code,
+                    (httplib.NO_CONTENT, httplib.OK, httplib.ACCEPTED)
+                )
 
-        # According to RFC 2616, HTTP 204 responses "MUST NOT include a
-        # message-body". If a message does not have a body, there is no need to
-        # set the content-type of the message.
-        if response.status_code is not httplib.NO_CONTENT:
-            self.assertIn('application/json', response.headers['content-type'])
+                # According to RFC 2616, HTTP 204 responses "MUST NOT include a
+                # message-body". If a message does not have a body, there is no
+                # need to set the content-type of the message.
+                if response.status_code is not httplib.NO_CONTENT:
+                    self.assertIn(
+                        'application/json',
+                        response.headers['content-type']
+                    )
 
 
-@ddt
 class DoubleCheckTestCase(APITestCase):
     """Perform in-depth tests on URLs.
 
@@ -497,38 +369,7 @@ class DoubleCheckTestCase(APITestCase):
     """
     longMessage = True
 
-    @data(
-        entities.ActivationKey,
-        entities.Architecture,
-        entities.AuthSourceLDAP,
-        entities.ComputeProfile,
-        entities.ConfigTemplate,
-        entities.ContentView,
-        entities.DiscoveryRule,
-        entities.DockerComputeResource,
-        entities.Domain,
-        entities.Environment,
-        entities.GPGKey,
-        entities.Host,
-        entities.HostCollection,
-        entities.LibvirtComputeResource,
-        entities.HostGroup,
-        entities.LifecycleEnvironment,
-        entities.Media,
-        entities.Model,
-        entities.OperatingSystem,
-        entities.Organization,
-        entities.Product,
-        entities.PuppetClass,
-        entities.Repository,
-        entities.Role,
-        entities.Subnet,
-        entities.System,
-        # entities.TemplateKind,  # see comments in class definition
-        entities.User,
-        entities.UserGroup,
-    )
-    def test_put_and_get(self, entity_cls):
+    def test_put_and_get(self):
         """@Test: Update an entity, then read it back.
 
         @Feature: Test multiple API paths
@@ -536,64 +377,41 @@ class DoubleCheckTestCase(APITestCase):
         @Assert: The entity is updated with the given attributes.
 
         """
-        logger.debug('test_put_and_get arg: %s', entity_cls)
-        skip_if_sam(self, entity_cls)
-        if entity_cls in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
-            self.skipTest("Bugzilla bug 1154156 is open.")
-
-        # Create an entity.
-        entity_id = entity_cls().create_json()['id']
-
-        # Update that entity. FIXME: This whole procedure is a hack.
-        entity = entity_cls()
-        entity.create_missing()  # Generate randomized instance attributes
-        response = client.put(
-            entity_cls(id=entity_id).path(),
-            entity.create_payload(),
-            auth=get_server_credentials(),
-            verify=False,
+        exclude_list = (
+            entities.TemplateKind,  # see comments in class definition
         )
-        response.raise_for_status()
+        for entity_cls in set(valid_entities()) - set(exclude_list):
+            with self.subTest(entity_cls):
+                logger.debug('test_put_and_get arg: %s', entity_cls)
+                skip_if_sam(self, entity_cls)
+                if (entity_cls in BZ_1154156_ENTITIES and
+                        bz_bug_is_open(1154156)):
+                    self.skipTest("Bugzilla bug 1154156 is open.")
 
-        # Compare `payload` against entity information returned by the server.
-        payload = _get_readable_attributes(entity)
-        entity_attrs = entity_cls(id=entity_id).read_json()
-        for key, value in payload.items():
-            self.assertIn(key, entity_attrs.keys())
-            self.assertEqual(value, entity_attrs[key], key)
+                # Create an entity.
+                entity_id = entity_cls().create_json()['id']
 
-    @data(
-        entities.ActivationKey,
-        entities.Architecture,
-        entities.AuthSourceLDAP,
-        entities.ComputeProfile,
-        entities.ConfigTemplate,
-        entities.ContentView,
-        entities.DiscoveryRule,
-        entities.DockerComputeResource,
-        entities.Domain,
-        entities.Environment,
-        entities.GPGKey,
-        entities.Host,
-        entities.HostCollection,
-        entities.LibvirtComputeResource,
-        entities.HostGroup,
-        entities.LifecycleEnvironment,
-        entities.Media,
-        entities.Model,
-        entities.OperatingSystem,
-        entities.Organization,
-        entities.Product,
-        entities.PuppetClass,
-        entities.Repository,
-        entities.Role,
-        entities.Subnet,
-        entities.System,
-        # entities.TemplateKind,  # see comments in class definition
-        entities.User,
-        entities.UserGroup,
-    )
-    def test_post_and_get(self, entity_cls):
+                # Update that entity. FIXME: This whole procedure is a hack.
+                entity = entity_cls()
+                # Generate randomized instance attributes
+                entity.create_missing()
+                response = client.put(
+                    entity_cls(id=entity_id).path(),
+                    entity.create_payload(),
+                    auth=settings.server.get_credentials(),
+                    verify=False,
+                )
+                response.raise_for_status()
+
+                # Compare `payload` against entity information returned by the
+                # server.
+                payload = _get_readable_attributes(entity)
+                entity_attrs = entity_cls(id=entity_id).read_json()
+                for key, value in payload.items():
+                    self.assertIn(key, entity_attrs.keys())
+                    self.assertEqual(value, entity_attrs[key], key)
+
+    def test_post_and_get(self):
         """@Test: Create an entity, then read it back.
 
         @Feature: Test multiple API paths
@@ -601,53 +419,29 @@ class DoubleCheckTestCase(APITestCase):
         @Assert: The entity is created with the given attributes.
 
         """
-        logger.debug('test_post_and_get arg: %s', entity_cls)
-        skip_if_sam(self, entity_cls)
-        if entity_cls in BZ_1154156_ENTITIES and bz_bug_is_open(1154156):
-            self.skipTest('Bugzilla bug 1154156 is open.')
+        exclude_list = (
+            entities.TemplateKind,  # see comments in class definition
+        )
+        for entity_cls in set(valid_entities()) - set(exclude_list):
+            with self.subTest(entity_cls):
+                logger.debug('test_post_and_get arg: %s', entity_cls)
+                skip_if_sam(self, entity_cls)
+                if (entity_cls in BZ_1154156_ENTITIES and
+                        bz_bug_is_open(1154156)):
+                    self.skipTest('Bugzilla bug 1154156 is open.')
 
-        entity = entity_cls()
-        entity_id = entity.create_json()['id']
+                entity = entity_cls()
+                entity_id = entity.create_json()['id']
 
-        # Compare `payload` against entity information returned by the server.
-        payload = _get_readable_attributes(entity)
-        entity_attrs = entity_cls(id=entity_id).read_json()
-        for key, value in payload.items():
-            self.assertIn(key, entity_attrs.keys())
-            self.assertEqual(value, entity_attrs[key], key)
+                # Compare `payload` against entity information returned by the
+                # server.
+                payload = _get_readable_attributes(entity)
+                entity_attrs = entity_cls(id=entity_id).read_json()
+                for key, value in payload.items():
+                    self.assertIn(key, entity_attrs.keys())
+                    self.assertEqual(value, entity_attrs[key], key)
 
-    @data(
-        entities.ActivationKey,
-        entities.Architecture,
-        entities.AuthSourceLDAP,
-        entities.ComputeProfile,
-        entities.ConfigTemplate,
-        entities.ContentView,
-        entities.DiscoveryRule,
-        entities.DockerComputeResource,
-        entities.Domain,
-        entities.Environment,
-        entities.GPGKey,
-        entities.Host,
-        entities.HostCollection,
-        entities.LibvirtComputeResource,
-        entities.HostGroup,
-        entities.LifecycleEnvironment,
-        entities.Media,
-        entities.Model,
-        entities.OperatingSystem,
-        entities.Organization,
-        entities.Product,
-        entities.PuppetClass,
-        entities.Repository,
-        entities.Role,
-        entities.Subnet,
-        entities.System,
-        # entities.TemplateKind,  # see comments in class definition
-        entities.User,
-        entities.UserGroup,
-    )
-    def test_delete_and_get(self, entity_cls):
+    def test_delete_and_get(self):
         """@Test: Issue an HTTP DELETE request and GET the deleted entity.
 
         @Feature: Test multiple API paths
@@ -655,64 +449,42 @@ class DoubleCheckTestCase(APITestCase):
         @Assert: An HTTP 404 is returned when fetching the missing entity.
 
         """
-        logger.debug('test_delete_and_get arg: %s', entity_cls)
-        skip_if_sam(self, entity_cls)
-        if entity_cls is entities.ConfigTemplate and bz_bug_is_open(1096333):
-            self.skipTest('BZ 1096333: Cannot delete config templates.')
-        if entity_cls in BZ_1187366_ENTITIES and bz_bug_is_open(1187366):
-            self.skipTest('BZ 1187366: Cannot delete orgs or environments.')
-        if entity_cls == entities.System and bz_bug_is_open(1133071):
-            self.skipTest('BZ 1133071: Receive HTTP 400s instead of 404s.')
+        exclude_list = (
+            entities.TemplateKind,  # see comments in class definition
+        )
+        for entity_cls in set(valid_entities()) - set(exclude_list):
+            with self.subTest(entity_cls):
+                logger.debug('test_delete_and_get arg: %s', entity_cls)
+                skip_if_sam(self, entity_cls)
+                if (entity_cls is entities.ConfigTemplate and
+                        bz_bug_is_open(1096333)):
+                    self.skipTest('BZ 1096333: Cannot delete config templates')
+                if (entity_cls in BZ_1187366_ENTITIES and
+                        bz_bug_is_open(1187366)):
+                    self.skipTest('BZ 1187366: Cannot delete orgs or envs.')
+                if entity_cls == entities.System and bz_bug_is_open(1133071):
+                    self.skipTest(
+                        'BZ 1133071: Receive HTTP 400s instead of 404s.'
+                    )
 
-        # Create an entity, delete it and get it.
-        try:
-            entity = entity_cls(id=entity_cls().create_json()['id'])
-        except HTTPError as err:
-            self.fail(err)
-        entity.delete()
-        self.assertEqual(httplib.NOT_FOUND, entity.read_raw().status_code)
+                # Create an entity, delete it and get it.
+                try:
+                    entity = entity_cls(id=entity_cls().create_json()['id'])
+                except HTTPError as err:
+                    self.fail(err)
+                entity.delete()
+                self.assertEqual(
+                    httplib.NOT_FOUND,
+                    entity.read_raw().status_code
+                )
 
 
-@ddt
 class EntityReadTestCase(APITestCase):
     """
     Check that classes inheriting from
     ``nailgun.entity_mixins.EntityReadMixin`` function correctly.
     """
-
-    @data(
-        entities.ActivationKey,
-        # entities.Architecture,  # see test_architecture_read
-        entities.AuthSourceLDAP,
-        entities.ComputeProfile,
-        entities.ConfigTemplate,
-        entities.ContentView,
-        entities.DiscoveryRule,
-        entities.DockerComputeResource,
-        entities.Domain,
-        entities.Environment,
-        entities.GPGKey,
-        entities.Host,
-        entities.HostCollection,
-        entities.LibvirtComputeResource,
-        entities.HostGroup,
-        entities.LifecycleEnvironment,
-        entities.Media,
-        entities.Model,
-        entities.OperatingSystem,
-        # entities.OperatingSystemParameter,  # see test_osparameter_read
-        entities.Organization,
-        entities.Product,
-        entities.PuppetClass,
-        entities.Repository,
-        entities.Role,
-        entities.Subnet,
-        entities.System,
-        # entities.TemplateKind,  # see comments in class definition
-        entities.User,
-        entities.UserGroup,
-    )
-    def test_entity_read(self, entity_cls):
+    def test_entity_read(self):
         """@Test: Create an entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
@@ -721,12 +493,22 @@ class EntityReadTestCase(APITestCase):
         @Assert: The just-read entity is an instance of the correct class.
 
         """
-        logger.debug('test_entity_read arg: %s', entity_cls)
-        skip_if_sam(self, entity_cls)
-        if entity_cls == entities.System and bz_bug_is_open(1223494):
-            self.skipTest('Cannot read all system attributes.')
-        entity_id = entity_cls().create_json()['id']
-        self.assertIsInstance(entity_cls(id=entity_id).read(), entity_cls)
+        exclude_list = (
+            entities.Architecture,  # see test_architecture_read
+            entities.OperatingSystemParameter,  # see test_osparameter_read
+            entities.TemplateKind,  # see comments in class definition
+        )
+        for entity_cls in set(valid_entities()) - set(exclude_list):
+            with self.subTest(entity_cls):
+                logger.debug('test_entity_read arg: %s', entity_cls)
+                skip_if_sam(self, entity_cls)
+                if entity_cls == entities.System and bz_bug_is_open(1223494):
+                    self.skipTest('Cannot read all system attributes.')
+                entity_id = entity_cls().create_json()['id']
+                self.assertIsInstance(
+                    entity_cls(id=entity_id).read(),
+                    entity_cls
+                )
 
     def test_architecture_read(self):
         """@Test: Create an arch that points to an OS, and read the arch.

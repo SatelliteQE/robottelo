@@ -10,13 +10,10 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from random import randint
 from requests.exceptions import HTTPError
+from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.decorators import run_only_on, skip_if_bug_open
-from robottelo.helpers import (
-    get_server_credentials,
-    invalid_names_list,
-    valid_data_list,
-)
+from robottelo.helpers import invalid_names_list, valid_data_list
 from robottelo.test import APITestCase
 
 
@@ -58,7 +55,7 @@ class ContentViewFilterTestCase(APITestCase):
         """
         response = client.get(
             entities.AbstractContentViewFilter().path(),
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             verify=False,
         )
         self.assertIn(
@@ -79,7 +76,7 @@ class ContentViewFilterTestCase(APITestCase):
         """
         response = client.get(
             entities.AbstractContentViewFilter().path(),
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             verify=False,
             data={'foo': 'bar'},
         )

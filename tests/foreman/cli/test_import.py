@@ -10,6 +10,7 @@ from fauxfactory import gen_string
 from itertools import product
 from random import sample
 from robottelo import ssh
+from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import make_org
 from robottelo.cli.hostcollection import HostCollection
@@ -18,7 +19,7 @@ from robottelo.cli.org import Org
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.user import User
-from robottelo.decorators import bz_bug_is_open, data
+from robottelo.decorators import bz_bug_is_open, skip_if_bug_open, data
 from robottelo.helpers import prepare_import_data
 from robottelo.test import CLITestCase
 
@@ -47,6 +48,42 @@ def build_csv_file(rows=None, dirname=None):
     ssh.upload_file(file_name, remote_file)
     os.remove(file_name)
     return remote_file
+
+
+def import_content_hosts(files, tmp_dir):
+    """Import all Content Hosts from the Sat5 export csv file including all
+    the required entities.
+
+    :param files: A dictionary of CSV file names and paths
+    :param tmp_dir: A path to the dataset
+    :returns: A dictionary of Import objects for every entity
+
+    """
+    import_org = Import.organization_with_tr_data(
+        {'csv-file': files['users']}
+    )
+    import_repo = Import.repository_with_tr_data({
+        'csv-file': files['repositories'],
+        'synchronize': True,
+        'wait': True,
+    })
+    import_cv = Import.content_view_with_tr_data({
+        u'csv-file': files['content-views'],
+        u'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
+        u'verbose': True
+    })
+    # proceed with importing the content hosts
+    import_chosts = Import.content_host_with_tr_data({
+        u'csv-file': files['system-profiles'],
+        u'export-directory': tmp_dir,
+        u'verbose': True
+    })
+    return {
+        u'organizations': import_org,
+        u'repositories': import_repo,
+        u'content_views': import_cv,
+        u'content_hosts': import_chosts,
+    }
 
 
 def update_csv_values(files, new_data, dirname=None):
@@ -269,7 +306,7 @@ def gen_import_cv_data():
 
 
 def gen_import_rh_repo_data():
-    """Random data for Organization Import tests"""
+    """Random data for RH Repos Import tests"""
     org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
     # wipe all channel names and labels excepting channel id 106
     return (
@@ -285,12 +322,48 @@ def gen_import_rh_repo_data():
                 u'key_id': type(u'')(i),
                 u'channel_label': u'',
                 u'channel_name': gen_string('alphanumeric'),
-            } for i in set(range(101, 113)) - set(range(106, 107))] + [
+            } for i in set(range(101, 113)) - {106}] + [
                 {
                     u'key': u'org_id',
                     u'key_id': type(u'')(i + 1),
                     u'org_id': org_ids[i],
                 } for i in range(len(org_ids))
+            ],
+        },
+    )
+
+
+def gen_import_chost_data():
+    """Random data for Content Host Import tests"""
+    org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
+    return (
+        {
+            u'users': [{
+                u'key': u'organization_id',
+                u'key_id': type(u'')(i + 1),
+                u'organization': gen_string('alphanumeric'),
+            } for i in range(len(org_ids))],
+            u'content-views': [{
+                u'key': u'org_id',
+                u'key_id': type(u'')(i + 1),
+                u'channel_name': gen_string('alphanumeric'),
+                u'channel_label': gen_string('alphanumeric')}
+                for i in range(len(org_ids))
+            ],
+            # wipe all channel labels to make hammer skip the sync
+            u'channels': [{
+                u'key': u'channel_id',
+                u'key_id': type(u'')(i),
+                u'channel_label': u'',
+                u'channel_name': gen_string('alphanumeric')}
+                for i in set(range(101, 113))
+            ],
+            u'system-profiles': [{
+                u'key': u'server_id',
+                u'key_id': type(u'')(1000010000 + i),
+                u'base_channel_id': u'110',
+                u'child_channel_id': u'None;111'}
+                for i in set(range(8, 11))
             ],
         },
     )
@@ -310,6 +383,10 @@ class TestImport(CLITestCase):
         super(TestImport, cls).setUpClass()
         # prepare the default dataset
         cls.default_dataset = prepare_import_data()
+        cls.default_dataset[1]['content-views'] = os.path.join(
+            cls.default_dataset[0],
+            'exports/CHANNELS/export.csv',
+        )
 
     @classmethod
     def tearDownClass(cls):
@@ -941,10 +1018,6 @@ class TestImport(CLITestCase):
         # randomize the values for orgs and repos
         tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
-        files['content-views'] = os.path.join(
-            tmp_dir,
-            'exports/CHANNELS/export.csv',
-        )
         files = update_csv_values(files, test_data, tmp_dir)
         # import the prerequisities
         import_org = Import.organization_with_tr_data({
@@ -988,9 +1061,6 @@ class TestImport(CLITestCase):
         # randomize the values for orgs and repos
         tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
-        files['content-views'] = os.path.join(
-            tmp_dir, 'exports/CHANNELS/export.csv'
-        )
         files = update_csv_values(files, test_data, tmp_dir)
         # import the prerequisities
         import_org = Import.organization_with_tr_data({
@@ -1046,10 +1116,6 @@ class TestImport(CLITestCase):
         # prepare the data
         tmp_dir = self.default_dataset[0]
         files = dict(self.default_dataset[1])
-        files['content-views'] = os.path.join(
-            tmp_dir,
-            'exports/CHANNELS/export.csv',
-        )
         files = update_csv_values(files, test_data, tmp_dir)
         # import the prerequisities
         import_org = Import.organization_with_tr_data({
@@ -1318,3 +1384,99 @@ class TestImport(CLITestCase):
                 ssh_import_org[1], files['channels']
             )
         )
+
+    def test_import_content_hosts_default(self):
+        """@test: Import all content hosts from
+        the predefined dataset
+
+        @feature: Import Content-host
+
+        @assert: Profiles for all Content Hosts created
+
+        """
+        for test_data in gen_import_chost_data():
+            with self.subTest(test_data):
+                tmp_dir = self.default_dataset[0]
+                files = dict(self.default_dataset[1])
+                files = update_csv_values(files, test_data, tmp_dir)
+                # import the prerequisities and content hosts
+                imports = import_content_hosts(files, tmp_dir)
+                # get the sat6 mapping of the imported organizations
+                imp_orgs = get_sat6_id(
+                    Import.csv_to_dataset([files['users']]),
+                    imports['organizations'][1]
+                )
+                # now to check whether all cont. hosts appeared insatellite
+                for imp_org in imp_orgs:
+                    self.assertNotEqual(
+                        ContentHost.list({'organization-id': imp_org['sat6']}),
+                        []
+                    )
+
+    def test_reimport_content_hosts_negative(self):
+        """@test: Repetitive Import of all content hosts from
+        the predefined dataset
+
+        @feature: Repetitive Import Content-host
+
+        @assert: Profiles for all Content Hosts created only once
+
+        """
+        for test_data in gen_import_chost_data():
+            with self.subTest(test_data):
+                tmp_dir = self.default_dataset[0]
+                files = dict(self.default_dataset[1])
+                files = update_csv_values(files, test_data, tmp_dir)
+                # import the prerequisities and content hosts
+                imports = import_content_hosts(files, tmp_dir)
+                # get the sat6 mapping of the imported organizations
+                imp_orgs = get_sat6_id(
+                    Import.csv_to_dataset([files['users']]),
+                    imports['organizations'][1]
+                )
+                chosts_before = [
+                    ContentHost.list({'organization-id': imp_org['sat6']})
+                    for imp_org in imp_orgs
+                ]
+                Import.content_host_with_tr_data({
+                    u'csv-file': files['system-profiles'],
+                    u'export-directory': tmp_dir,
+                    u'verbose': True
+                })
+                self.assertEqual(
+                    [
+                        ContentHost.list({'organization-id': imp_org['sat6']})
+                        for imp_org in imp_orgs
+                    ],
+                    chosts_before
+                )
+
+    @skip_if_bug_open('bugzilla', 1267224)
+    def test_import_content_hosts_recovery_negative(self):
+        """@test: Try to invoke usage of a recovery strategy
+
+        @feature: Import Content Hosts Recover
+
+        @assert: No such option exists, error is shown
+
+        """
+        for test_data in gen_import_chost_data():
+            with self.subTest(test_data):
+                # prepare the data
+                tmp_dir = self.default_dataset[0]
+                files = dict(self.default_dataset[1])
+                files = update_csv_values(files, test_data, tmp_dir)
+                import_content_hosts(files, tmp_dir)
+                # clear the .transition_data to clear the transition mapping
+                ssh.command(
+                    'rm -rf "${{HOME}}"/.transition_data/system*'
+                    '{0}/SOURCES {0}/SPECS'
+                    .format(tmp_dir)
+                )
+                # use the rename strategy
+                with self.assertRaises(AssertionError):
+                    Import.content_host_with_tr_data({
+                        u'csv-file': files['system-profiles'],
+                        u'export-directory': tmp_dir,
+                        u'recover': u'rename',
+                    })

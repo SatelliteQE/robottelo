@@ -2,7 +2,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import (
     LDAP_SERVER_TYPE, LDAP_ATTR, PERMISSIONS, ANY_CONTEXT)
 from robottelo.decorators import stubbed, skip_if_bug_open
@@ -19,11 +19,11 @@ class ADUserGroups(UITestCase):
     """Implements Active Directory feature tests in UI."""
 
     # TODO: handle when the ldap config is not available
-    ldap_user_name = conf.properties.get('main.ldap.username')
-    ldap_user_passwd = conf.properties.get('main.ldap.passwd')
-    base_dn = conf.properties.get('main.ldap.basedn')
-    group_base_dn = conf.properties.get('main.ldap.grpbasedn')
-    ldap_hostname = conf.properties.get('main.ldap.hostname')
+    ldap_user_name = settings.ldap.username
+    ldap_user_passwd = settings.ldap.passwd
+    base_dn = settings.ldap.basedn
+    group_base_dn = settings.ldap.grpbasedn
+    ldap_hostname = settings.ldap.hostname
     usergroup_name = gen_string('alpha')
     usergroup_name2 = gen_string('alpha')
 
@@ -41,7 +41,7 @@ class ADUserGroups(UITestCase):
             server_type=LDAP_SERVER_TYPE['API']['ad'],
             attr_mail=LDAP_ATTR['mail'],
             name=gen_string('alpha'),
-            host=conf.properties['main.ldap.hostname'],
+            host=cls.ldap_hostname,
             tls=False,
             port='389',
         ).create()

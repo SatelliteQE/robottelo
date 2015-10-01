@@ -4,7 +4,7 @@
 from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import (
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
@@ -492,7 +492,7 @@ class GPGKey(UITestCase):
             # Download and Install rpm
             result = vm.run(
                 "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
-                .format(conf.properties['main.server.hostname'])
+                .format(settings.server.hostname)
             )
             self.assertEqual(result.return_code, 0)
             result = vm.run(

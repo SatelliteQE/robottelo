@@ -3,7 +3,7 @@
 
 import requests
 
-from robottelo.helpers import get_server_url
+from robottelo.config import settings
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
@@ -45,7 +45,7 @@ class Login(Base):
             for cookie in self.browser.get_cookies()
         )
         # construct the link to the Dashboard web page
-        url_root = get_server_url() + '/dashboard'
+        url_root = settings.server.get_url() + '/dashboard'
 
         response = requests.get(
             url_root,

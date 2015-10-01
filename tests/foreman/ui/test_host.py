@@ -2,7 +2,7 @@
 from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
 from robottelo.api.utils import promote
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import ENVIRONMENT
 from robottelo.decorators import run_only_on
 from robottelo.test import UITestCase
@@ -65,7 +65,7 @@ class Host(UITestCase, Base):
         cls.repo = entities.Repository(
             name=gen_string('alpha'),
             product=cls.product,
-            url=conf.properties['clients.rhel6_repo']
+            url=settings.rhel6_repo
         ).create()
 
         # Increased timeout value for repo sync
@@ -95,7 +95,7 @@ class Host(UITestCase, Base):
         cls.proxy = entities.SmartProxy().search(
             query={
                 u'search': u'name={0}'.format(
-                    conf.properties['main.server.hostname']
+                    settings.server.hostname
                 )
             }
         )[0]
@@ -158,7 +158,7 @@ class Host(UITestCase, Base):
         # If so, just update its relevant fields otherwise,
         # Create new compute-resource with 'libvirt' provider.
         resource_url = u'qemu+tcp://{0}:16509/system'.format(
-            conf.properties['main.server.hostname']
+            settings.server.hostname
         )
         cls.computeresource = entities.LibvirtComputeResource(
             provider='libvirt',

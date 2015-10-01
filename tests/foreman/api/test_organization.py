@@ -5,18 +5,21 @@ tested can be found here:
 http://theforeman.org/api/apidoc/v2/organizations.html
 
 """
-import ddt
 import httplib
 
 from fauxfactory import gen_alphanumeric, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
+from robottelo.config import settings
 from robottelo.decorators import skip_if_bug_open
-from robottelo.helpers import get_nailgun_config, get_server_credentials
+from robottelo.helpers import (
+    get_nailgun_config,
+    invalid_values_list,
+    valid_data_list,
+)
 from robottelo.test import APITestCase
 
 
-@ddt.ddt
 class OrganizationTestCase(APITestCase):
     """Tests for the ``organizations`` path."""
 
@@ -33,7 +36,7 @@ class OrganizationTestCase(APITestCase):
         response = client.post(
             organization.path(),
             organization.create_payload(),
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             headers={'content-type': 'text/plain'},
             verify=False,
         )
@@ -84,23 +87,7 @@ class OrganizationTestCase(APITestCase):
         self.assertEqual(name, org.name)
         self.assertEqual(label, org.label)
 
-    @ddt.data(
-        # two-tuples of data
-        (gen_string(str_type='alpha'),
-         gen_string(str_type='alpha')),
-        (gen_string(str_type='alphanumeric'),
-         gen_string(str_type='alphanumeric')),
-        (gen_string(str_type='cjk'),
-         gen_string(str_type='cjk')),
-        (gen_string(str_type='latin1'),
-         gen_string(str_type='latin1')),
-        (gen_string(str_type='numeric'),
-         gen_string(str_type='numeric')),
-        (gen_string(str_type='utf8'),
-         gen_string(str_type='utf8')),
-    )
-    @ddt.unpack
-    def test_positive_create_4(self, name, description):
+    def test_positive_create_4(self):
         """@Test: Create an organization and provide a name and description.
 
         @Assert: The organization has the provided attributes and an
@@ -109,17 +96,19 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organization
 
         """
-        org = entities.Organization(
-            name=name,
-            description=description,
-        ).create()
-        self.assertEqual(org.name, name)
-        self.assertEqual(org.description, description)
+        for name in valid_data_list():
+            with self.subTest(name):
+                org = entities.Organization(
+                    name=name,
+                    description=name,
+                ).create()
+                self.assertEqual(org.name, name)
+                self.assertEqual(org.description, name)
 
-        # Was a label auto-generated?
-        self.assertTrue(hasattr(org, 'label'))
-        self.assertIsInstance(org.label, type(u''))
-        self.assertGreater(len(org.label), 0)
+                # Was a label auto-generated?
+                self.assertTrue(hasattr(org, 'label'))
+                self.assertIsInstance(org.label, type(u''))
+                self.assertGreater(len(org.label), 0)
 
     def test_positive_create_5(self):
         """@Test: Create an org and provide a name, label and description.
@@ -138,12 +127,7 @@ class OrganizationTestCase(APITestCase):
         self.assertEqual(org.label, label)
         self.assertEqual(org.description, desc)
 
-    @ddt.data(
-        gen_string('utf8', length=256),  # longer than 255
-        '',
-        ' ',
-    )
-    def test_negative_create_name(self, name):
+    def test_negative_create_name(self):
         """@Test: Create an org with an incorrect name.
 
         @Assert: The organization cannot be created.
@@ -151,8 +135,10 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organization
 
         """
-        with self.assertRaises(HTTPError):
-            entities.Organization(name=name).create()
+        for name in invalid_values_list():
+            with self.subTest(name):
+                with self.assertRaises(HTTPError):
+                    entities.Organization(name=name).create()
 
     def test_negative_create_duplicate(self):
         """@Test: Create two organizations with identical names.
@@ -183,7 +169,6 @@ class OrganizationTestCase(APITestCase):
         self.assertEqual(orgs[0].name, org.name)
 
 
-@ddt.ddt
 class OrganizationUpdateTestCase(APITestCase):
     """Tests for the ``organizations`` path."""
 
@@ -192,38 +177,49 @@ class OrganizationUpdateTestCase(APITestCase):
         """Create an organization."""
         cls.organization = entities.Organization().create()
 
-    @ddt.data(
-        {'description': gen_string(str_type='alpha')},
-        {'description': gen_string(str_type='alphanumeric')},
-        {'description': gen_string(str_type='cjk')},
-        {'description': gen_string(str_type='latin1')},
-        {'description': gen_string(str_type='numeric')},
-        {'description': gen_string(str_type='utf8')},
-        {'name': gen_string(str_type='alpha')},
-        {'name': gen_string(str_type='alphanumeric')},
-        {'name': gen_string(str_type='cjk')},
-        {'name': gen_string(str_type='latin1')},
-        {'name': gen_string(str_type='numeric')},
-        {'name': gen_string(str_type='utf8')},
-        # Can we update two attrs at once?
-        {'description': gen_string('alpha'), 'name': gen_string('alpha')},
-    )
-    def test_positive_update(self, attrs):
-        """@Test: Update an organization's attributes with valid values.
+    def test_update_name(self):
+        """@Test: Update an organization's name with valid values.
 
-        @Assert: The organization's attributes are updated.
+        @Assert: The organization's name is updated.
 
         @Feature: Organization
 
         """
-        for field_name, field_value in attrs.items():
-            setattr(self.organization, field_name, field_value)
-        self.organization = self.organization.update(attrs.keys())
-        for field_name, field_value in attrs.items():
-            self.assertEqual(
-                getattr(self.organization, field_name),
-                field_value,
-            )
+        for name in valid_data_list():
+            with self.subTest(name):
+                setattr(self.organization, 'name', name)
+                self.organization = self.organization.update(['name'])
+                self.assertEqual(self.organization.name, name)
+
+    def test_update_desc(self):
+        """@Test: Update an organization's description with valid values.
+
+        @Assert: The organization's description is updated.
+
+        @Feature: Organization
+
+        """
+        for desc in valid_data_list():
+            with self.subTest(desc):
+                setattr(self.organization, 'description', desc)
+                self.organization = self.organization.update(['description'])
+                self.assertEqual(self.organization.description, desc)
+
+    def test_update_name_desc(self):
+        """@Test: Update an organization with new name and description.
+
+        @Assert: The organization's name and description are updated.
+
+        @Feature: Organization
+
+        """
+        name = gen_string('alpha')
+        desc = gen_string('alpha')
+        self.organization.name = name
+        self.organization.description = desc
+        self.organization = self.organization.update(['name', 'description'])
+        self.assertEqual(self.organization.name, name)
+        self.assertEqual(self.organization.description, desc)
 
     def test_associate_with_user(self):
         """@Test: Update an organization, associate user with it.
@@ -268,11 +264,7 @@ class OrganizationUpdateTestCase(APITestCase):
         self.assertEqual(len(self.organization.media), 1)
         self.assertEqual(self.organization.media[0].id, media.id)
 
-    @ddt.data(
-        {'name': gen_string(str_type='utf8', length=256)},
-        {'label': gen_string(str_type='utf8')},  # Immutable. See BZ 1089996.
-    )
-    def test_negative_update(self, attrs):
+    def test_negative_update(self):
         """@Test: Update an organization's attributes with invalid values.
 
         @Assert: The organization's attributes are not updated.
@@ -280,11 +272,18 @@ class OrganizationUpdateTestCase(APITestCase):
         @Feature: Organization
 
         """
-        with self.assertRaises(HTTPError):
-            entities.Organization(
-                id=self.organization.id,
-                **attrs
-            ).update(attrs.keys())
+        dataset = (
+            {'name': gen_string(str_type='utf8', length=256)},
+            # Immutable. See BZ 1089996.
+            {'label': gen_string(str_type='utf8')},
+        )
+        for attrs in dataset:
+            with self.subTest(attrs):
+                with self.assertRaises(HTTPError):
+                    entities.Organization(
+                        id=self.organization.id,
+                        **attrs
+                    ).update(attrs.keys())
 
     @skip_if_bug_open('bugzilla', 1103157)
     def test_bugzilla_1103157(self):
