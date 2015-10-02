@@ -345,7 +345,7 @@ class Import(Base):
             cls.read_transition_csv(ssh.command(cmd).stdout[:-1], key)
             for cmd, key
             in (
-                (u'ls -v ${HOME}/.transition_data/products*', u'sat5'),
+                (u'ls -v ${HOME}/.transition_data/products*', u'label'),
                 (
                     u'ls -v ${HOME}/.transition_data/puppet_repositories*',
                     u'org_id'
