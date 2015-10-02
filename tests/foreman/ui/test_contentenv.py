@@ -19,7 +19,6 @@ class ContentEnvironment(UITestCase):
     @classmethod
     def setUpClass(cls):
         cls.org_name = entities.Organization().create().name
-        super(ContentEnvironment, cls).setUpClass()
 
     def test_positive_create_content_environment_basic(self):
         """@Test: Create content environment with minimal input parameters

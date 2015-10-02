@@ -1,11 +1,11 @@
 """Test class for Custom Sync UI"""
 
-from ddt import ddt
+from ddt import ddt, data
 from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import FAKE_1_YUM_REPO
-from robottelo.decorators import data, run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session

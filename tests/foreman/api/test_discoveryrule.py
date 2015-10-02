@@ -14,6 +14,7 @@ class DiscoveryRule(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create a hostgroup which can be re-used in tests."""
+        super(DiscoveryRule, cls).setUpClass()
         cls.hostgroup = entities.HostGroup().create()
 
     def setUp(self):

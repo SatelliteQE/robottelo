@@ -5,6 +5,7 @@ from random import randint
 from requests.exceptions import HTTPError
 from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
 from robottelo import manifests
+from robottelo.config import settings
 from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     FAKE_0_PUPPET_REPO,
@@ -23,7 +24,6 @@ from robottelo.decorators import (
 )
 from robottelo.helpers import (
     get_data_file,
-    get_server_credentials,
     read_data_file,
 )
 from robottelo.test import APITestCase
@@ -64,6 +64,7 @@ class RepositoryTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         """Create an organization and product which can be re-used in tests."""
+        super(RepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
 
@@ -210,6 +211,7 @@ class RepositoryUpdateTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         """Create a repository which can be repeatedly updated."""
+        super(RepositoryUpdateTestCase, cls).setUpClass()
         cls.repository = entities.Repository().create()
 
     @run_only_on('sat')
@@ -226,7 +228,7 @@ class RepositoryUpdateTestCase(APITestCase):
                 client.put(
                     self.repository.path(),
                     attrs,
-                    auth=get_server_credentials(),
+                    auth=settings.server.get_credentials(),
                     verify=False,
                 ).raise_for_status()
                 real_attrs = self.repository.read_json()
@@ -275,6 +277,7 @@ class DockerRepositoryTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         """Create an organization and product which can be re-used in tests."""
+        super(DockerRepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
     @run_only_on('sat')

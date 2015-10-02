@@ -15,8 +15,8 @@ from robottelo.api.utils import (
 from robottelo.cli.contentview import ContentView as ContentViewCLI
 from robottelo.constants import PRD_SETS
 from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
-from unittest2 import TestCase
 
 
 @run_only_on('sat')
@@ -26,6 +26,7 @@ class TestIncrementalUpdate(TestCase):
     @classmethod
     def setUpClass(cls):
         """Creates all the pre-requisites for the Incremental updates test"""
+        super(TestIncrementalUpdate, cls).setUpClass()
         # Step 1 - Create a new Organization
         cls.org = Organization(name=gen_alpha()).create()
 

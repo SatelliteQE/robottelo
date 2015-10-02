@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 """Test class for GPG Key UI"""
 
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import (
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
@@ -14,7 +14,6 @@ from robottelo.constants import (
     ZOO_CUSTOM_GPG_KEY,
 )
 from robottelo.decorators import (
-    data,
     run_only_on,
     skip_if_bug_open,
     stubbed,
@@ -41,10 +40,10 @@ class GPGKey(UITestCase):
 
     @classmethod
     def setUpClass(cls):
+        super(GPGKey, cls).setUpClass()
         cls.key_content = read_data_file(VALID_GPG_KEY_FILE)
         cls.key_path = get_data_file(VALID_GPG_KEY_FILE)
         cls.organization = entities.Organization().create()
-        super(GPGKey, cls).setUpClass()
 
     # Positive Create
 
@@ -492,7 +491,7 @@ class GPGKey(UITestCase):
             # Download and Install rpm
             result = vm.run(
                 "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
-                .format(conf.properties['main.server.hostname'])
+                .format(settings.server.hostname)
             )
             self.assertEqual(result.return_code, 0)
             result = vm.run(
@@ -661,10 +660,10 @@ class GPGKeyProductAssociate(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
+        super(GPGKeyProductAssociate, cls).setUpClass()
         cls.key_content = read_data_file(VALID_GPG_KEY_FILE)
         cls.key_path = get_data_file(VALID_GPG_KEY_FILE)
         cls.organization = entities.Organization().create()
-        super(GPGKeyProductAssociate, cls).setUpClass()
 
     @data(*generate_strings_list(remove_str='numeric', bug_id=1184480))
     def test_key_associate_1(self, name):

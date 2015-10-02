@@ -16,6 +16,7 @@ class RHAITestCase(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
+        super(RHAITestCase, cls).setUpClass()
         # Create a new organization with prefix 'insights'
         org = entities.Organization(
             name='insights_{0}'.format(gen_string('alpha', 6))
@@ -51,8 +52,6 @@ class RHAITestCase(UITestCase):
         cls.org_label = org.label
         cls.ak_name = activation_key.name
         cls.org_name = org.name
-
-        super(RHAITestCase, cls).setUpClass()
 
     def test_client_registration_to_rhai(self):
         """@Test: Check for client registration to redhat-access-insights

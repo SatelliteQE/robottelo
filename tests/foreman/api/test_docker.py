@@ -5,18 +5,15 @@ from nailgun import entities
 from random import randint, shuffle
 from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
+from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
-from robottelo.helpers import (
-    get_external_docker_url,
-    get_internal_docker_url,
-    valid_data_list,
-)
+from robottelo.helpers import valid_data_list
 from robottelo.test import APITestCase
 
 DOCKER_PROVIDER = 'Docker'
-EXTERNAL_DOCKER_URL = get_external_docker_url()
-INTERNAL_DOCKER_URL = get_internal_docker_url()
+EXTERNAL_DOCKER_URL = settings.docker.external_url
+INTERNAL_DOCKER_URL = settings.docker.get_unix_socket_url()
 STRING_TYPES = ['alpha', 'alphanumeric', 'cjk', 'utf8', 'latin1']
 
 

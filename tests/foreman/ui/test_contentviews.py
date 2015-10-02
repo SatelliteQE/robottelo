@@ -5,7 +5,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 """
 
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
@@ -23,8 +23,7 @@ from robottelo.constants import (
     REPO_TYPE,
     ZOO_CUSTOM_GPG_KEY,
 )
-from robottelo.decorators import (
-    data, run_only_on, skip_if_bug_open, stubbed)
+from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
 from robottelo.helpers import (
     invalid_names_list, read_data_file, valid_data_list)
 from robottelo.ui.base import UIError
@@ -41,9 +40,8 @@ class TestContentViewsUI(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        cls.organization = entities.Organization().create()
-
         super(TestContentViewsUI, cls).setUpClass()
+        cls.organization = entities.Organization().create()
 
     def setup_to_create_cv(self, repo_name=None, repo_url=None, repo_type=None,
                            rh_repo=None, org_id=None):

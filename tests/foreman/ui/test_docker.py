@@ -4,17 +4,14 @@ from fauxfactory import gen_string, gen_url
 from nailgun import entities
 from random import randint, shuffle
 from robottelo.api.utils import promote
+from robottelo.config import settings
 from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     FOREMAN_PROVIDERS,
     REPO_TYPE,
 )
 from robottelo.decorators import run_only_on, stubbed
-from robottelo.helpers import (
-    get_external_docker_url,
-    get_internal_docker_url,
-    valid_data_list,
-)
+from robottelo.helpers import valid_data_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_activationkey,
@@ -26,8 +23,8 @@ from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 # (too-many-public-methods) pylint:disable=R0904
 
-EXTERNAL_DOCKER_URL = get_external_docker_url()
-INTERNAL_DOCKER_URL = get_internal_docker_url()
+EXTERNAL_DOCKER_URL = settings.docker.external_url
+INTERNAL_DOCKER_URL = settings.docker.get_unix_socket_url()
 
 VALID_DOCKER_UPSTREAM_NAMES = (
     # boundaries

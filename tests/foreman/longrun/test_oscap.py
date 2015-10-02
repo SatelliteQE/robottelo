@@ -7,6 +7,7 @@ from robottelo.api.utils import (
     promote,
     upload_manifest,
 )
+from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
     DEFAULT_SUBSCRIPTION_NAME,
@@ -18,7 +19,6 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.config import conf
 from robottelo.decorators import run_only_on
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context, make_hostgroup, make_oscappolicy
@@ -44,6 +44,7 @@ class OpenScap(UITestCase):
         8. Add product to activation-key
 
         """
+        super(OpenScap, cls).setUpClass()
         repo_values = [
             {'repo': REPOS['rhst6']['name'], 'reposet': REPOSET['rhst6']},
             {'repo': REPOS['rhst7']['name'], 'reposet': REPOSET['rhst7']},
@@ -117,8 +118,6 @@ class OpenScap(UITestCase):
                 u'value': u'1',
             }})
 
-        super(OpenScap, cls).setUpClass()
-
     def test_oscap_reports(self):
         """@Test: Perform end to end oscap test.
 
@@ -128,11 +127,11 @@ class OpenScap(UITestCase):
         uploaded to satellite6 and be searchable.
 
         """
-        rhel6_repo = conf.properties['clients.rhel6_repo']
-        rhel7_repo = conf.properties['clients.rhel7_repo']
+        rhel6_repo = settings.rhel6_repo
+        rhel7_repo = settings.rhel7_repo
         rhel6_content = OSCAP_DEFAULT_CONTENT['rhel6_content']
         rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']
-        sat6_hostname = conf.properties['main.server.hostname']
+        sat6_hostname = settings.server.hostname
         hgrp6_name = gen_string('alpha')
         hgrp7_name = gen_string('alpha')
         policy_values = [

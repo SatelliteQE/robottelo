@@ -3,14 +3,10 @@
 """Test for Compute Resource UI"""
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.decorators import run_only_on
-from robottelo.helpers import (
-    get_external_docker_url,
-    invalid_names_list,
-    valid_data_list,
-)
+from robottelo.helpers import invalid_names_list, valid_data_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
 from robottelo.ui.locators import common_locators
@@ -21,8 +17,11 @@ from robottelo.ui.session import Session
 class ComputeResource(UITestCase):
     """Implements Compute Resource tests in UI"""
 
-    current_libvirt_url = (LIBVIRT_RESOURCE_URL
-                           % conf.properties['main.server.hostname'])
+    @classmethod
+    def setUpClass(cls):
+        cls.current_libvirt_url = (
+            LIBVIRT_RESOURCE_URL % settings.server.hostname
+        )
 
     def test_create_libvirt_resource_different_names(self):
         """@Test: Create a new libvirt Compute Resource using different value
@@ -261,7 +260,9 @@ class ComputeResource(UITestCase):
                 session,
                 name=name,
                 provider_type=FOREMAN_PROVIDERS['docker'],
-                parameter_list=[['URL', get_external_docker_url(), 'field']],
+                parameter_list=[[
+                    'URL', settings.docker.external_url, 'field'
+                ]],
             )
             self.assertIsNotNone(
                 self.compute_profile.select_resource('1-Small', name, 'Docker')

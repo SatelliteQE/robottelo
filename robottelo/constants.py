@@ -16,7 +16,6 @@ BZ_CLOSED_STATUSES = [
     'RELEASE_PENDING',
     'CLOSED'
 ]
-ROBOTTELO_PROPERTIES = "robottelo.properties"
 
 FOREMAN_PROVIDERS = {
     'libvirt': 'Libvirt',

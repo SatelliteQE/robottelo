@@ -4,7 +4,7 @@ import logging
 
 from robottelo import ssh
 from robottelo.cli import hammer
-from robottelo.config import conf
+from robottelo.config import settings
 
 
 class CLIError(Exception):
@@ -223,12 +223,12 @@ class Base(object):
             try:
                 username = getattr(cls, 'foreman_admin_username')
             except AttributeError:
-                username = conf.properties['foreman.admin.username']
+                username = settings.server.admin_username
         if password is None:
             try:
                 password = getattr(cls, 'foreman_admin_password')
             except AttributeError:
-                password = conf.properties['foreman.admin.password']
+                password = settings.server.admin_password
 
         return (username, password)
 
@@ -237,12 +237,14 @@ class Base(object):
                 timeout=None, ignore_stderr=None, return_raw_response=None):
         """Executes the cli ``command`` on the server via ssh"""
         user, password = cls._get_username_password(user, password)
+        time_hammer = False
+        if settings.performance:
+            time_hammer = settings.performance.time_hammer
 
         # add time to measure hammer performance
-        perf_test = conf.properties.get('performance.test.foreman.perf', '0')
         cmd = u'LANG={0} {1} hammer -v -u {2} -p {3} {4} {5}'.format(
-            conf.properties['main.locale'],
-            u'time -p' if perf_test == '1' else '',
+            settings.locale,
+            u'time -p' if time_hammer else '',
             user,
             password,
             u'--output={0}'.format(output_format) if output_format else u'',
@@ -402,9 +404,9 @@ class Base(object):
     def with_user(cls, username=None, password=None):
         """Context Manager for credentials"""
         if username is None:
-            username = conf.properties['foreman.admin.username']
+            username = settings.server.ssh_username
         if password is None:
-            password = conf.properties['foreman.admin.password']
+            password = settings.server.ssh_password
 
         class Wrapper(cls):
             """Wrapper class which defines the foreman admin username and

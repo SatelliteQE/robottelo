@@ -1,13 +1,13 @@
 # -*- encoding: utf-8 -*-
 # pylint: disable=invalid-name
 """Test class for Domain  CLI"""
-
+from ddt import data
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.domain import Domain
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_domain, make_location, make_org
-from robottelo.decorators import data, run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.test import MetaCLITestCase
 
 

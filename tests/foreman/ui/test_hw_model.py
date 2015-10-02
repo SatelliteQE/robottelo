@@ -1,8 +1,8 @@
 """Test class for Config Groups UI"""
 
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
-from robottelo.decorators import bz_bug_is_open, data, run_only_on
+from robottelo.decorators import bz_bug_is_open, run_only_on
 from robottelo.helpers import generate_strings_list, valid_data_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hw_model

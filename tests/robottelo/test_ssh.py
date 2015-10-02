@@ -1,9 +1,9 @@
 """Tests for module ``robottelo.ssh``."""
 # (too-many-public-methods) pylint: disable=R0904
+import mock
 import os
 
 from robottelo import ssh
-from robottelo.config import conf, get_app_root
 from unittest2 import TestCase
 
 
@@ -56,7 +56,8 @@ class MockSSHClient(object):
 
 class SSHTestCase(TestCase):
     """Tests for module ``robottelo.ssh``."""
-    def test__get_connection(self):
+    @mock.patch('robottelo.ssh.settings')
+    def test_get_connection(self, settings):
         """Test method ``_get_connection``.
 
         Mock up ``paramiko.SSHClient`` (by overriding method
@@ -67,14 +68,13 @@ class SSHTestCase(TestCase):
 
         """
         ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
-        backup = conf.properties
 
         key_filename = os.path.join(
-            get_app_root(), 'tests', 'robottelo', 'data', 'test_dsa.key'
+            os.path.abspath(__name__), 'data', 'test_dsa.key'
         )
-        conf.properties['main.server.hostname'] = 'example.com'
-        conf.properties['main.server.ssh.username'] = 'nobody'
-        conf.properties['main.server.ssh.key_private'] = key_filename
+        settings.server.hostname = 'example.com'
+        settings.server.ssh_username = 'nobody'
+        settings.server.ssh_key = key_filename
         with ssh._get_connection() as connection:  # pylint:disable=W0212
             self.assertEqual(connection.set_missing_host_key_policy_, 1)
             self.assertEqual(connection.connect_, 1)
@@ -85,5 +85,3 @@ class SSHTestCase(TestCase):
         self.assertEqual(connection.set_missing_host_key_policy_, 1)
         self.assertEqual(connection.connect_, 1)
         self.assertEqual(connection.close_, 1)
-
-        conf.properties = backup

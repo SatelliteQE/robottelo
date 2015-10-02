@@ -81,6 +81,7 @@ class MissingAttrTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an ``Environment``."""
+        super(MissingAttrTestCase, cls).setUpClass()
         env = entities.Environment().create()
         cls.env_attrs = set(env.update_json([]).keys())
 

@@ -2,7 +2,7 @@
 """Test class for Foreman Discovery"""
 from fauxfactory import gen_string, gen_mac
 from nailgun import entities
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.decorators import stubbed
 from robottelo import ssh
 from robottelo.test import UITestCase
@@ -19,7 +19,7 @@ class Discovery(UITestCase):
     def _pxe_boot_host(self, mac):
         """PXE boot a unknown host"""
         libvirt_server = 'qemu+tcp://{0}:16509/system'.format(
-            conf.properties['main.server.hostname'])
+            settings.server.hostname)
         ssh.command('virt-install --hvm --network=bridge:virbr1, --mac={0} '
                     '--pxe --name {1} --ram=1024 --vcpus=1 --os-type=linux '
                     '--os-variant=rhel7 --disk path={2},size=10 --connect {3} '
@@ -34,10 +34,12 @@ class Discovery(UITestCase):
         1. Build PXE default template
         2. Create Organization/Location
         3. Update Global parameters to set default org and location for
-        discovered hosts.
-        4. Enable auto_provision flag to perform discovery via discovery rules.
+           discovered hosts.
+        4. Enable auto_provision flag to perform discovery via discovery
+           rules.
 
         """
+        super(Discovery, cls).setUpClass()
         # Build PXE default template to get default PXE file
         entities.ConfigTemplate().build_pxe_default()
 
@@ -65,8 +67,6 @@ class Discovery(UITestCase):
         cls.default_discovery_auto = str(cls.discovery_auto.value)
         cls.discovery_auto.value = 'True'
         cls.discovery_auto.update({'value'})
-
-        super(Discovery, cls).setUpClass()
 
     @classmethod
     def tearDownClass(cls):

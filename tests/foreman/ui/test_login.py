@@ -1,8 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Test class for Login UI"""
 
-from ddt import ddt
-from robottelo.decorators import data
+from ddt import ddt, data
 from robottelo.helpers import gen_string
 from robottelo.test import UITestCase
 

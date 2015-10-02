@@ -1,22 +1,15 @@
 # -*- encoding: utf-8 -*-
 """Several helper methods and functions."""
 import logging
-from random import randint
-from urlparse import urljoin, urlunsplit
-
 import os
 import re
-from os.path import join
 
 from fauxfactory import gen_string, gen_integer
-
-from nailgun import entities, entity_mixins
-
 from nailgun.config import ServerConfig
-
+from os.path import join
+from random import randint
 from robottelo import ssh
-from robottelo.config import conf
-from robottelo.constants import VALID_GPG_KEY_FILE
+from robottelo.config import settings
 from robottelo.decorators import bz_bug_is_open
 
 LOGGER = logging.getLogger(__name__)
@@ -34,19 +27,6 @@ class InvalidArgumentError(Exception):
     """Indicates an error when an invalid argument is received."""
 
 
-def get_server_credentials():
-    """Return credentials for interacting with a Foreman deployment API.
-
-    :return: A username-password pair.
-    :rtype: tuple
-
-    """
-    return (
-        conf.properties['foreman.admin.username'],
-        conf.properties['foreman.admin.password']
-    )
-
-
 def get_server_software():
     """Figure out which product distribution is installed on the server.
 
@@ -58,76 +38,6 @@ def get_server_software():
         '[ -f /usr/share/foreman/lib/satellite/version.rb ]'
     ).return_code
     return 'downstream' if return_code == 0 else 'upstream'
-
-
-def get_server_url():
-    """Return the base URL of the Foreman deployment being tested.
-
-    The following values from the config file are used to build the URL:
-
-    * ``main.server.scheme`` (default: https)
-    * ``main.server.hostname`` (required)
-    * ``main.server.port`` (default: none)
-
-    Setting ``port`` to 80 does *not* imply that ``scheme`` is 'https'. If
-    ``port`` is 80 and ``scheme`` is unset, ``scheme`` will still default to
-    'https'.
-
-    :return: A URL.
-    :rtype: str
-
-    """
-    # If the config file contains an unset property (e.g. `server.scheme=`),
-    # then `conf.properties['main.server.scheme']` will return an empty string.
-    # If the config file is missing a property, then fetching that property
-    # will throw a KeyError exception. Let's deal with both cases by getting a
-    # default value of ''.
-    scheme = conf.properties.get('main.server.scheme', '')
-    hostname = conf.properties['main.server.hostname']
-    port = conf.properties.get('main.server.port', '')
-
-    # As promised in the docstring, we must provide a default scheme.
-    if scheme == '':
-        scheme = 'https'
-
-    # All anticipated error cases have been handled at this point.
-    if port == '':
-        return urlunsplit((scheme, hostname, '', '', ''))
-    else:
-        return urlunsplit((
-            scheme, '{0}:{1}'.format(hostname, port), '', '', ''
-        ))
-
-
-def get_server_pub_url():
-    """Return the pub URL of the server being tested.
-
-    The following values from the config file are used to build the URL:
-
-    * ``main.server.hostname`` (required)
-
-    :return: The pub directory URL.
-    :rtype: str
-
-    """
-    return urlunsplit(
-        ('http', conf.properties['main.server.hostname'], 'pub/', '', '')
-    )
-
-
-def get_server_cert_rpm_url():
-    """Return the Katello cert RPM URL of the server being tested.
-
-    The following values from the config file are used to build the URL:
-
-    * ``main.server.hostname`` (required)
-
-    :return: The Katello cert RPM URL.
-    :rtype: str
-
-    """
-    return urljoin(
-        get_server_pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
 
 
 def get_host_info(hostname=None):
@@ -163,38 +73,14 @@ def get_nailgun_config():
     """Return a NailGun configuration file constructed from default values.
 
     :return: A ``nailgun.config.ServerConfig`` object, populated with values
-        from :data:`robottelo.config.conf`.
+        from ``robottelo.config.settings``.
 
     """
     return ServerConfig(
-        get_server_url(),
-        get_server_credentials(),
+        settings.server.get_url(),
+        settings.server.get_credentials(),
         verify=False,
     )
-
-
-def get_internal_docker_url():
-    """Use the unix socket connection to the local docker daemon. Make sure
-    that your Satellite server's docker is configured to allow foreman user
-    accessing it. This can be done by::
-
-        $ groupadd docker
-        $ usermod -aG docker foreman
-        # Add -G docker to the options for the docker daemon
-        $ systemctl restart docker
-        $ katello-service restart
-
-    """
-    return 'unix:///var/run/docker.sock'
-
-
-def get_external_docker_url():
-    """Returns the docker external server url config"""
-    external_url = conf.properties.get('docker.external_url')
-    if external_url is not None:
-        external_url = external_url.format(
-            server_hostname=conf.properties['main.server.hostname'])
-    return external_url
 
 
 def valid_names_list():
@@ -359,72 +245,12 @@ def read_data_file(filename):
         return file_contents.read()
 
 
-def configure_entities():
-    """Configure NailGun's entity classes.
-
-    Do the following:
-
-    * Set ``entity_mixins.CREATE_MISSING`` to ``True``. This causes method
-      ``EntityCreateMixin.create_raw`` to generate values for empty and
-      required fields.
-    * Set ``nailgun.entity_mixins.DEFAULT_SERVER_CONFIG`` to whatever is
-      returned by :meth:`robottelo.helpers.get_nailgun_config`. See
-      ``robottelo.entity_mixins.Entity`` for more information on the effects of
-      this.
-    * Set a default value for ``nailgun.entities.GPGKey.content``.
-    * Set the default value for ``nailgun.entities.DockerComputeResource.url``
-      if either ``docker.internal_url`` or ``docker.external_url`` is set in
-      the configuration file.
-
-    Emit a warning and do not set anything if no ``robottelo.properties``
-    configuration file is available.
-
-    """
-    entity_mixins.CREATE_MISSING = True
-    try:
-        entity_mixins.DEFAULT_SERVER_CONFIG = get_nailgun_config()
-    except KeyError:
-        LOGGER.warn(
-            'No `robottelo.properties` configuration file is present. Class '
-            '`nailgun.entity_mixins.Entity` (and, therefore, its subclasses) '
-            'will not be given a default NailGun server configuration. You '
-            'can go ahead and use the entity classes anyway if you pass in a '
-            '`server_config` each time you instantiate an entity, you set '
-            '`nailgun.entity_mixins.DEFAULT_SERVER_CONFIG`, or you create a '
-            'NailGun configuration profile labeled "default".'
-        )
-
-    gpgkey_init = entities.GPGKey.__init__
-
-    def patched_gpgkey_init(self, server_config=None, **kwargs):
-        """Set a default value on the ``content`` field."""
-        gpgkey_init(self, server_config, **kwargs)
-        self._fields['content'].default = read_data_file(VALID_GPG_KEY_FILE)
-    entities.GPGKey.__init__ = patched_gpgkey_init
-
-    # NailGun provides a default value for ComputeResource.url. We override
-    # that value if `docker.internal_url` or `docker.external_url` is set.
-    docker_url = None
-    if conf.properties.get('docker.internal_url', '') != '':
-        docker_url = get_internal_docker_url()
-    elif conf.properties.get('docker.external_url', '') != '':
-        docker_url = get_external_docker_url()
-    if docker_url is not None:
-        dockercr_init = entities.DockerComputeResource.__init__
-
-        def patched_dockercr_init(self, server_config=None, **kwargs):
-            """Set a default value on the ``docker_url`` field."""
-            dockercr_init(self, server_config, **kwargs)
-            self._fields['url'].default = docker_url
-        entities.DockerComputeResource.__init__ = patched_dockercr_init
-
-
 def prepare_import_data(tar_path=None):
     """Fetch and uncompress the CSV files from the source."""
     tmpdir = ssh.command('mktemp -d').stdout[0]
     # if path to tar file not specified, download the default one
     if tar_path is None:
-        tar_remote_path = conf.properties['transitions.export_tar.url']
+        tar_remote_path = settings.transition.exported_data
         cmd = u'wget {0} -O - | tar -xzvC {1}'.format(tar_remote_path, tmpdir)
     else:
         cmd = u'tar -xzvf {0} -C {1}'.format(tar_path, tmpdir)

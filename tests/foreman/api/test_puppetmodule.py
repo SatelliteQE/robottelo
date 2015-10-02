@@ -12,6 +12,7 @@ class RepositorySearchTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create a product. Make it available as ``cls.product``."""
+        super(RepositorySearchTestCase, cls).setUpClass()
         cls.product = entities.Product().create()
 
     def setUp(self):
@@ -58,6 +59,7 @@ class CVVSearchTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create a product. Make it available as ``cls.product``."""
+        super(CVVSearchTestCase, cls).setUpClass()
         cls.product = entities.Product().create()
         repository = entities.Repository(
             content_type='puppet',

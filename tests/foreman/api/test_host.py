@@ -9,8 +9,8 @@ import httplib
 
 from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
+from robottelo.config import settings
 from robottelo.decorators import bz_bug_is_open, run_only_on
-from robottelo.helpers import get_server_credentials
 from robottelo.test import APITestCase
 
 
@@ -29,7 +29,7 @@ class HostsTestCase(APITestCase):
         query = gen_string('utf8', gen_integer(1, 100))
         response = client.get(
             entities.Host().path(),
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             data={u'search': query},
             verify=False,
         )
@@ -47,7 +47,7 @@ class HostsTestCase(APITestCase):
         per_page = gen_integer(1, 1000)
         response = client.get(
             entities.Host().path(),
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             data={u'per_page': per_page},
             verify=False,
         )

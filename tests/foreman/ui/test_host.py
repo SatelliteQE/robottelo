@@ -2,7 +2,7 @@
 from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
 from robottelo.api.utils import promote
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import ENVIRONMENT
 from robottelo.decorators import run_only_on
 from robottelo.test import UITestCase
@@ -30,11 +30,12 @@ class Host(UITestCase, Base):
         7. Search for smart-proxy and associate location.
         8. Search for domain and associate org, location and dns proxy.
         9. Search for '192.168.100.0' network and associate org, location,
-        dns/dhcp/tftp proxy, and if its not there then creates new.
+           dns/dhcp/tftp proxy, and if its not there then creates new.
         10. Search for existing compute-resource with 'libvirt' provider and
-        associate org.location, and if its not there then creates new.
+            associate org.location, and if its not there then creates
+            new.
         11. Search 'Kickstart default' partition table and rhel67 OS along with
-        provisioning/PXE templates.
+            provisioning/PXE templates.
         12. Associates org, location and OS with provisioning and PXE templates
         13. Search for x86_64 architecture
         14. Associate arch, partition table, provisioning/PXE templates with OS
@@ -42,6 +43,7 @@ class Host(UITestCase, Base):
         16. Create new host group with all required entities
 
         """
+        super(Host, cls).setUpClass()
         # Create a new Organization and Location
         cls.org = entities.Organization(name=gen_string('alpha')).create()
         cls.org_name = cls.org.name
@@ -65,7 +67,7 @@ class Host(UITestCase, Base):
         cls.repo = entities.Repository(
             name=gen_string('alpha'),
             product=cls.product,
-            url=conf.properties['clients.rhel6_repo']
+            url=settings.rhel6_repo
         ).create()
 
         # Increased timeout value for repo sync
@@ -95,7 +97,7 @@ class Host(UITestCase, Base):
         cls.proxy = entities.SmartProxy().search(
             query={
                 u'search': u'name={0}'.format(
-                    conf.properties['main.server.hostname']
+                    settings.server.hostname
                 )
             }
         )[0]
@@ -158,7 +160,7 @@ class Host(UITestCase, Base):
         # If so, just update its relevant fields otherwise,
         # Create new compute-resource with 'libvirt' provider.
         resource_url = u'qemu+tcp://{0}:16509/system'.format(
-            conf.properties['main.server.hostname']
+            settings.server.hostname
         )
         cls.computeresource = entities.LibvirtComputeResource(
             provider='libvirt',
@@ -259,7 +261,6 @@ class Host(UITestCase, Base):
             organization=[cls.org.id],
             ptable=cls.ptable.id,
         ).create()
-        super(Host, cls).setUpClass()
 
     def tearDown(self):
         """Delete the host to free the resources"""

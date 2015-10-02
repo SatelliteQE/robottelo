@@ -10,8 +10,7 @@ import requests
 import time
 
 from robottelo import ssh
-from robottelo.config import conf
-from robottelo.helpers import get_server_credentials, get_server_url
+from robottelo.config import settings
 from urlparse import urljoin
 
 LOGGER = logging.getLogger(__name__)
@@ -21,14 +20,7 @@ class Candlepin(object):
     """Measures performance of RH Satellite 6
 
     Candlepin Subscription functionality
-
     """
-
-    # parameters for Candlepin Authentication
-    username = conf.properties['foreman.admin.username']
-    password = conf.properties['foreman.admin.password']
-    serverhost = conf.properties['main.server.hostname']
-
     @staticmethod
     def get_real_time(result):
         """Parse stderr and extract out real time value
@@ -81,7 +73,12 @@ class Candlepin(object):
             '--password={1} '
             '--org={2} '
             '--environment={3}'
-            .format(cls.username, cls.password, default_org, environment),
+            .format(
+                settings.server.admin_username,
+                settings.server.admin_password,
+                default_org,
+                environment
+            ),
             hostname=vm_ip
         )
 
@@ -112,8 +109,11 @@ class Candlepin(object):
         """Delete system from subscription"""
         start = time.time()
         response = requests.delete(
-            urljoin(get_server_url(), '/katello/api/systems/{0}'.format(uuid)),
-            auth=get_server_credentials(),
+            urljoin(
+                settings.server.get_url(),
+                '/katello/api/systems/{0}'.format(uuid)
+            ),
+            auth=settings.server.get_credentials(),
             verify=False
         )
 

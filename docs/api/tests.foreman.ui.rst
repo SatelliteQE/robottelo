@@ -48,10 +48,10 @@
 
 .. automodule:: tests.foreman.ui.test_contentviews
 
-:mod:`tests.foreman.ui.test_discovery`
---------------------------------------
+:mod:`tests.foreman.ui.test_discoveredhosts`
+--------------------------------------------
 
-.. automodule:: tests.foreman.ui.test_discovery
+.. automodule:: tests.foreman.ui.test_discoveredhosts
 
 :mod:`tests.foreman.ui.test_discoveryrule`
 ------------------------------------------
@@ -112,7 +112,7 @@
 ----------------------------------------
 
 .. automodule:: tests.foreman.ui.test_isodownload
-   
+
 :mod:`tests.foreman.ui.test_ldap_auth`
 --------------------------------------
 

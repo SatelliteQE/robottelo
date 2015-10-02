@@ -1,12 +1,11 @@
 # -*- encoding: utf-8 -*-
 """Test class for Users UI"""
 
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import LANGUAGES
-from robottelo.decorators import (
-    data, run_only_on, skip_if_bug_open, stubbed)
+from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
 from robottelo.helpers import invalid_names_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_user

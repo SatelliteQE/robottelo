@@ -1,12 +1,12 @@
 # -*- encoding: utf-8 -*-
 """Test class for Operating System UI"""
 
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import (
     INSTALL_MEDIUM_URL, PARTITION_SCRIPT_DATA_FILE)
-from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.helpers import (
     get_data_file, invalid_names_list, valid_data_list)
 from robottelo.test import UITestCase
@@ -23,8 +23,8 @@ class OperatingSys(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        cls.organization = entities.Organization().create()
         super(OperatingSys, cls).setUpClass()
+        cls.organization = entities.Organization().create()
 
     @data(*valid_data_list())
     def test_create_os_with_different_names(self, name):

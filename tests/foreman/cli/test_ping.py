@@ -1,7 +1,7 @@
 """Test Class for hammer ping"""
 from itertools import izip
 from robottelo import ssh
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.test import CLITestCase
 
 
@@ -21,8 +21,8 @@ class PingTestCase(CLITestCase):
 
         """
         result = ssh.command('hammer -u {0} -p {1} ping'.format(
-            conf.properties['foreman.admin.username'],
-            conf.properties['foreman.admin.password']
+            settings.server.admin_username,
+            settings.server.admin_password
         ))
         self.assertEqual(len(result.stderr), 0)
 

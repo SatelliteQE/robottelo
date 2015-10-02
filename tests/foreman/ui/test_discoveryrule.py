@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 """Test class for Foreman Discovery Rules"""
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import data, run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_discoveryrule
@@ -19,6 +19,7 @@ class DiscoveryRules(UITestCase):
     @classmethod
     def setUpClass(cls):
         """Display all the discovery rules on the same page"""
+        super(DiscoveryRules, cls).setUpClass()
         cls.per_page = entities.Setting().search(
             query={'search': 'name="entries_per_page"'})[0]
         cls.saved_per_page = str(cls.per_page.value)
@@ -26,8 +27,6 @@ class DiscoveryRules(UITestCase):
         cls.per_page.update({'value'})
 
         cls.host_group = entities.HostGroup().create()
-
-        super(DiscoveryRules, cls).setUpClass()
 
     @classmethod
     def tearDownClass(cls):

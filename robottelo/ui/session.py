@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.ui.login import Login
 from robottelo.ui.navigator import Navigator
 
@@ -9,19 +9,17 @@ class Session(object):
     """A session context manager that manages login and logout"""
 
     def __init__(self, browser, user=None, password=None):
-        self.browser = browser
         self._login = Login(browser)
+        self.browser = browser
         self.nav = Navigator(browser)
+        self.password = password
+        self.user = user
 
-        if user is None:
-            self.user = conf.properties['foreman.admin.username']
-        else:
-            self.user = user
+        if self.user is None:
+            self.user = settings.server.admin_username
 
-        if password is None:
-            self.password = conf.properties['foreman.admin.password']
-        else:
-            self.password = password
+        if self.password is None:
+            self.password = settings.server.admin_password
 
     def __enter__(self):
         self.login()

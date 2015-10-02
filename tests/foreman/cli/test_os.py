@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 # pylint: disable=invalid-name
 """Test class for Operating System CLI"""
-
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.operatingsys import OperatingSys

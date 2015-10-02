@@ -1,9 +1,9 @@
 """Test class for Products UI"""
 
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_product
@@ -17,10 +17,9 @@ class Products(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
+        super(Products, cls).setUpClass()
         cls.organization = entities.Organization().create()
         cls.loc = entities.Location().create()
-
-        super(Products, cls).setUpClass()
 
     @run_only_on('sat')
     @data(*generate_strings_list())

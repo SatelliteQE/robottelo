@@ -2,7 +2,7 @@
 from nailgun import entities
 from robottelo.cli.host import Host
 from robottelo.cli.proxy import Proxy
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.test import CLITestCase
 
 
@@ -59,7 +59,7 @@ class HostTestCase(CLITestCase):
         """
         compute_resource = entities.LibvirtComputeResource(
             url='qemu+tcp://{0}:16509/system'.format(
-                conf.properties['main.server.hostname']
+                settings.server.hostname
             ),
         ).create()
         host = entities.Host()

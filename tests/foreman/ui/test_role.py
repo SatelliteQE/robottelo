@@ -1,10 +1,9 @@
 # -*- encoding: utf-8 -*-
 """Test class for Roles UI"""
 
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import data
 from robottelo.helpers import generate_strings_list, invalid_names_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_role
