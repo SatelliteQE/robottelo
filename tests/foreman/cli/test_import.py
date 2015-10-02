@@ -18,6 +18,7 @@ from robottelo.cli.import_ import Import
 from robottelo.cli.org import Org
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
+from robottelo.cli.template import Template
 from robottelo.cli.user import User
 from robottelo.decorators import bz_bug_is_open, skip_if_bug_open, data
 from robottelo.helpers import prepare_import_data
@@ -367,6 +368,29 @@ def gen_import_chost_data():
             ],
         },
     )
+
+
+def gen_import_snippet_data():
+    """Random data for Repository Import tests"""
+    org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
+    random_data = {'users': [], 'kickstart-scripts': []}
+    for i in range(len(org_ids)):
+        random_data['users'].append({
+            u'key': 'organization_id',
+            u'key_id': type(u'')(i + 1),
+            u'organization_id': org_ids[i],
+            u'organization': gen_string('alphanumeric'),
+        })
+        random_data['kickstart-scripts'].append({
+            u'key': 'org_id',
+            u'key_id': type(u'')(i + 1),
+            u'org_id': org_ids[i],
+            u'script_name': gen_string('utf8'),
+            u'kickstart_label': gen_string('utf8'),
+            u'script_type': sample([u'pre', u'post'], 1).pop(),
+            u'chroot': sample([u'Y', u'N'], 1).pop(),
+        })
+    return (random_data,)
 
 
 @ddt
@@ -1480,3 +1504,39 @@ class TestImport(CLITestCase):
                         u'export-directory': tmp_dir,
                         u'recover': u'rename',
                     })
+
+    def test_import_snippets_default(self):
+        """@test: Import template snippets from the default data set
+        (predefined source)
+
+        @feature: Import Template Snippets
+
+        @assert: All Snippets imported
+
+        """
+        for test_data in gen_import_snippet_data():
+            with self.subTest(test_data):
+                tmp_dir = self.default_dataset[0]
+                files = dict(self.default_dataset[1])
+                # randomize the values for orgs and snippets
+                files = update_csv_values(files, test_data, tmp_dir)
+                # import the prerequisities
+                Import.organization_with_tr_data({'csv-file': files['users']})
+                # list and save templates before import
+                before = Template.list()
+                # now proceed with importing the template snippets
+                import_snippet = Import.template_snippet_with_tr_data({
+                    'csv-file': files['kickstart-scripts'],
+                    'verbose': True,
+                })
+                # list and save templates after import
+                after = Template.list()
+                # difference between before and after import
+                diff = [d for d in after if d not in before]
+                diff_ids = [d[u'id'] for d in diff]
+                mapping = import_snippet[1][0]
+                # check that snippets have been properly imported
+                for row in mapping:
+                    template = Template.info({u'id': row[u'sat6']})
+                    self.assertTrue(template[u'id'] in diff_ids)
+                    self.assertTrue(template[u'type'] == u'snippet')
