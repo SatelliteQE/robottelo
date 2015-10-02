@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Host/System Unification"""
+# pylint: disable=invalid-name
+"""Test for Host/System Unification"""
 
 from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import CLITestCase
@@ -7,6 +8,7 @@ from robottelo.test import CLITestCase
 
 @run_only_on('sat')
 class TestHostSystemUnificationCLI(CLITestCase):
+    """Test Class for Host/System Unification CLI"""
     # Testing notes for host/system unification in katello/foreman:
     # Basically assuring that hosts in foreman/katello bits are joined
     # and information can be associated across both parts of product.
@@ -37,7 +39,7 @@ class TestHostSystemUnificationCLI(CLITestCase):
         pass
 
     @stubbed()
-    def all_hosts_appear_in_katello(self):
+    def test_all_hosts_appear_in_katello(self):
         """@test: Hosts provisioned in foreman via appear in katello
 
         @feature: Host/System Unification

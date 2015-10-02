@@ -1,3 +1,4 @@
+"""Test Class for hammer ping"""
 from itertools import izip
 from robottelo import ssh
 from robottelo.config import conf

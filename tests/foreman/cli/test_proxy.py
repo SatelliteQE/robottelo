@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=no-self-use, invalid-name
 """proxy class for Smart proxy CLI"""
 
 import random
@@ -15,6 +16,7 @@ from robottelo.test import CLITestCase
 @run_only_on('sat')
 @ddt
 class TestProxy(CLITestCase):
+    """Proxy cli tests"""
 
     def setUp(self):
         """Skipping tests until we can create ssh tunnels"""
@@ -106,7 +108,7 @@ class TestProxy(CLITestCase):
         proxy = Proxy.info({u'id': proxy['id']})
         self.assertEqual(proxy['name'], test_data['update'])
 
-    def test_proxy_refresh_features_by_id(self):
+    def test_refresh_refresh_features_by_id(self):
         """@Test: Refresh smart proxy features, search for proxy by id
 
         @Feature: Smart Proxy

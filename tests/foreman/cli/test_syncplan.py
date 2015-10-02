@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name
 """Test class for Product CLI"""
 
 from datetime import datetime, timedelta
@@ -17,6 +18,7 @@ class TestSyncPlan(CLITestCase):
 
     org = None
 
+    # pylint: disable=unexpected-keyword-arg
     def setUp(self):
         """Tests for Sync Plans via Hammer CLI"""
 

@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 # pylint: disable=too-many-public-methods, too-many-lines
-# pylint: disable=unexpected-keyword-arg
+# pylint: disable=unexpected-keyword-arg, invalid-name
 """Test class for Activation key CLI"""
 
 from fauxfactory import gen_string
@@ -1188,14 +1188,14 @@ class TestActivationKey(CLITestCase):
             {u'organization-id': self.org['id']},
             cached=True,
         )['name']
-        with self.assertRaises(CLIReturnCodeError) as e:
+        with self.assertRaises(CLIReturnCodeError) as exe:
             ActivationKey.copy({
                 u'name': parent_name,
                 u'new-name': parent_name,
                 u'organization-id': self.org['id'],
             })
-        self.assertEqual(e.exception.return_code, 65)
-        self.assertIn(u'Name has already been taken', e.exception.stderr)
+        self.assertEqual(exe.exception.return_code, 65)
+        self.assertIn(u'Name has already been taken', exe.exception.stderr)
 
     def test_positive_copy_subscription(self):
         """@Test: Copy Activation key and verify contents
@@ -1325,14 +1325,14 @@ class TestActivationKey(CLITestCase):
             {u'organization-id': org_id},
             cached=True,
         )['id']
-        with self.assertRaises(CLIReturnCodeError) as e:
+        with self.assertRaises(CLIReturnCodeError) as exe:
             ActivationKey.update({
                 u'auto-attach': gen_string('utf8'),
                 u'id': key_id,
                 u'organization-id': org_id,
             })
         self.assertIn(
-            u"'--auto-attach': value must be one of", e.exception.stderr)
+            u"'--auto-attach': value must be one of", exe.exception.stderr)
 
     def test_positive_content_override(self):
         """@Test: Positive content override

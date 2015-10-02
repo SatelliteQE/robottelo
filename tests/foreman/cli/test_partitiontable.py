@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name
 """Test class for Partition table CLI"""
 from fauxfactory import gen_string, gen_alphanumeric
 from robottelo.cli.factory import make_os, make_partition_table
@@ -79,6 +80,7 @@ class TestPartitionTableDelete(CLITestCase):
         PartitionTable().delete({'id': ptable['id']})
         self.assertFalse(PartitionTable().exists(search=('name', name)))
 
+    # pylint: disable=no-self-use
     def test_addoperatingsystem_ptable(self):
         """@Test: Check if Partition Table can be associated
                   with operating system
@@ -96,7 +98,7 @@ class TestPartitionTableDelete(CLITestCase):
             'operatingsystem-id': os_list[0]['id']
         })
 
-    def test_removeoperatingsystem_ptable(self):
+    def test_remove_os_ptable(self):
         """@Test: Check if associated operating system can be removed
 
         @Feature: Partition Table - Add operating system

@@ -6,6 +6,7 @@ from robottelo.test import CLITestCase
 
 
 class TestSSOCLI(CLITestCase):
+    """Test Class for SSO CLI"""
 
     # Notes for SSO testing:
     # Of interest... In some testcases I've placed a few comments prefaced with

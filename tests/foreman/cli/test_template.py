@@ -48,7 +48,7 @@ class TestTemplate(CLITestCase):
         template = Template.info({'id': template['id']})
         self.assertEqual(updated_name, template['name'])
 
-    def test_create_template_with_location(self):
+    def test_create_template_with_loc(self):
         """@Test: Check if Template with Location can be created
 
         @Feature: Template - Create
@@ -74,7 +74,7 @@ class TestTemplate(CLITestCase):
                 'name': gen_string('alpha'),
             })
 
-    def test_create_template_with_organization(self):
+    def test_create_template_with_org(self):
         """@Test: Check if Template with Organization can be created
 
         @Feature: Template - Create

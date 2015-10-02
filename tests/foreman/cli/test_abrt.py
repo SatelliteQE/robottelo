@@ -1,3 +1,4 @@
+"""Test for abrt report"""
 from robottelo.test import CLITestCase
 
 

@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Roles CLI"""
+"""Test for Roles CLI"""
 from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
@@ -12,6 +12,7 @@ from robottelo.test import CLITestCase
 
 @ddt
 class TestRole(CLITestCase):
+    """Test class for Roles CLI"""
 
     @skip_if_bug_open('bugzilla', 1138553)
     @data(

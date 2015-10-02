@@ -21,6 +21,7 @@ class TestSubscription(CLITestCase):
         self.org = make_org()
         self.manifest = manifests.clone()
 
+    # pylint: disable=no-self-use
     def _upload_manifest(self, manifest, org_id):
         """Uploads a manifest file and import it into an organization"""
         upload_file(manifest, remote_file=manifest)
@@ -64,7 +65,7 @@ class TestSubscription(CLITestCase):
             per_page=False,
         )
 
-    def test_enable_manifest_repository_set(self):
+    def test_enable_manifest_reposet(self):
         """@Test: enable repository set (positive)
 
         @Feature: Subscriptions/Repository Sets

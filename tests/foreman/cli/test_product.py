@@ -25,6 +25,7 @@ class TestProduct(CLITestCase):
 
     org = None
 
+    # pylint: disable=unexpected-keyword-arg
     def setUp(self):
         """Tests for Lifecycle Environment via Hammer CLI"""
 
@@ -420,7 +421,7 @@ class TestProduct(CLITestCase):
         })
         self.assertEqual(len(product['sync-plan-id']), 0)
 
-    def test_product_synchronize_by_id(self):
+    def test_product_sync_by_id(self):
         """@Test: Check if product can be synchronized.
         Searches for product and organization by their IDs
 
@@ -442,7 +443,7 @@ class TestProduct(CLITestCase):
         })
         self.assertEqual(u'Syncing Complete.', product['sync-state'])
 
-    def test_product_synchronize_by_name(self):
+    def test_product_sync_by_name(self):
         """@Test: Check if product can be synchronized.
         Searches for product and organization by their Names
 
@@ -464,7 +465,7 @@ class TestProduct(CLITestCase):
         })
         self.assertEqual(u'Syncing Complete.', product['sync-state'])
 
-    def test_product_synchronize_by_label(self):
+    def test_product_sync_by_label(self):
         """@Test: Check if product can be synchronized.
         Searches for organization by its label
 

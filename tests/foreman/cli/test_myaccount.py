@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name
 """Test class for Users CLI"""
 
 from robottelo.decorators import stubbed

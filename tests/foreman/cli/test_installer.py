@@ -1,11 +1,13 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name
+"""Tests for Installer"""
 from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import CLITestCase
 
 
 @run_only_on('sat')
 class TestSSOCLI(CLITestCase):
-
+    """Test class for installer"""
     # Notes for installer testing:
     # Perhaps there is a convenient log analyzer library out there
     # that can parse logs? It would be better (and possibly less

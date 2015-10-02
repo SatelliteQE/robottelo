@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name
 """Test class for :class:`robottelo.cli.hostgroup.HostGroup` CLI."""
 
 from fauxfactory import gen_string
@@ -17,7 +18,7 @@ from robottelo.test import MetaCLITestCase
 
 @run_only_on('sat')
 class TestHostGroup(MetaCLITestCase):
-
+    """Test class for Host Group CLI"""
     factory = make_hostgroup
     factory_obj = HostGroup
 
