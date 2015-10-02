@@ -1,8 +1,8 @@
 # -*- encoding: utf-8 -*-
 # pylint: disable=invalid-name
 """Test class for Operating System CLI"""
-from ddt import ddt
-from fauxfactory import gen_string
+
+from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.factory import (
@@ -13,67 +13,9 @@ from robottelo.cli.factory import (
     make_partition_table,
     make_template,
 )
-from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.helpers import valid_data_list, invalid_values_list
 from robottelo.test import CLITestCase
-
-POSITIVE_CREATE_DATA = (
-    {'name': gen_string("latin1")},
-    {'name': gen_string("utf8")},
-    {'name': gen_string("alpha")},
-    {'name': gen_string("alphanumeric")},
-    {'name': gen_string("numeric")},
-    {'name': gen_string("html")},
-)
-
-NEGATIVE_CREATE_DATA = (
-    {'name': gen_string("latin1", 300)},
-    {'name': gen_string("utf8", 300)},
-    {'name': gen_string("alpha", 300)},
-    {'name': gen_string("alphanumeric", 300)},
-    {'name': gen_string("numeric", 300)},
-    {'name': gen_string("alphanumeric", 300)},
-    {'name': " "},
-)
-
-POSITIVE_UPDATE_DATA = (
-    ({'name': gen_string("latin1")},
-     {'name': gen_string("latin1")}),
-    ({'name': gen_string("utf8")},
-     {'name': gen_string("utf8")}),
-    ({'name': gen_string("alpha")},
-     {'name': gen_string("alpha")}),
-    ({'name': gen_string("alphanumeric")},
-     {'name': gen_string("alphanumeric")}),
-    ({'name': gen_string("numeric")},
-     {'name': gen_string("numeric")}),
-    ({'name': gen_string("utf8")},
-     {'name': gen_string("html", 6)}),
-)
-
-NEGATIVE_UPDATE_DATA = (
-    ({'name': gen_string("latin1")},
-     {'name': gen_string("latin1", 300)}),
-    ({'name': gen_string("utf8")},
-     {'name': gen_string("utf8", 300)}),
-    ({'name': gen_string("alpha")},
-     {'name': gen_string("alpha", 300)}),
-    ({'name': gen_string("alphanumeric")},
-     {'name': gen_string("alphanumeric", 300)}),
-    ({'name': gen_string("numeric")},
-     {'name': gen_string("numeric", 300)}),
-    ({'name': gen_string("utf8")},
-     {'name': " "}),
-    ({'name': gen_string("utf8")},
-     {'name': gen_string("html", 300)}),
-)
-
-POSITIVE_DELETE_DATA = (
-    {'name': gen_string("latin1")},
-    {'name': gen_string("utf8")},
-    {'name': gen_string("alpha")},
-    {'name': gen_string("alphanumeric")},
-    {'name': gen_string("numeric")},
-)
 
 NEGATIVE_DELETE_DATA = (
     {'id': gen_string("alpha")},
@@ -85,7 +27,6 @@ NEGATIVE_DELETE_DATA = (
 
 
 @run_only_on('sat')
-@ddt
 class TestOperatingSystem(CLITestCase):
     """Test class for Operating System CLI."""
 
@@ -190,8 +131,7 @@ class TestOperatingSystem(CLITestCase):
         self.assertEqual(str(os['major-version']), os_info['major-version'])
         self.assertEqual(str(os['minor-version']), os_info['minor-version'])
 
-    @data(*POSITIVE_CREATE_DATA)
-    def test_positive_create_1(self, test_data):
+    def test_positive_create_1(self):
         """@test: Create Operating System for all variations of name
 
         @feature: Operating System - Positive Create
@@ -199,12 +139,12 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is created and can be found
 
         """
-        # Create a new object using factory method
-        os = make_os(test_data)
-        self.assertEqual(os['name'], test_data['name'])
+        for name in valid_data_list():
+            with self.subTest(name):
+                os = make_os({'name': name})
+                self.assertEqual(os['name'], name)
 
-    @data(*NEGATIVE_CREATE_DATA)
-    def test_negative_create_1(self, test_data):
+    def test_negative_create_1(self):
         """@test: Create Operating System using invalid names
 
         @feature: Operating System - Negative Create
@@ -212,11 +152,12 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is not created
 
         """
-        with self.assertRaises(CLIFactoryError):
-            make_os(test_data)
+        for name in invalid_values_list():
+            with self.subTest(name):
+                with self.assertRaises(CLIFactoryError):
+                    make_os({'name': name})
 
-    @data(*POSITIVE_UPDATE_DATA)
-    def test_positive_update_1(self, test_data):
+    def test_positive_update_1(self):
         """@test: Positive update of system name
 
         @feature: Operating System - Positive Update
@@ -224,24 +165,18 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is updated and can be found
 
         """
-        # "Unpacks" values from tuple
-        orig_dict, updates_dict = test_data
-        # Create a new object passing @test_data to factory method
-        os = make_os(orig_dict)
-        # Update original test_data with new values
-        updates_dict['id'] = os['id']
-        orig_dict.update(updates_dict)
-        # Now update the Foreman object
-        OperatingSys.update(orig_dict)
-        result = OperatingSys.info({'id': os['id']})
-        # Verify that standard values are correct
-        self.assertEqual(os['id'], result['id'])
-        self.assertNotEqual(result['name'], os['name'])
-        # There should be some attributes changed now
-        self.assertNotEqual(os, result)
+        os = make_os({'name': gen_alphanumeric()})
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                OperatingSys.update({
+                    'id': os['id'],
+                    'name': new_name,
+                })
+                result = OperatingSys.info({'id': os['id']})
+                self.assertEqual(result['id'], os['id'], )
+                self.assertNotEqual(result['name'], os['name'])
 
-    @data(*NEGATIVE_UPDATE_DATA)
-    def test_negative_update_1(self, test_data):
+    def test_negative_update_1(self):
         """@test: Negative update of system name
 
         @feature: Operating System - Negative Update
@@ -249,22 +184,18 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is not updated
 
         """
-        # "Unpacks" values from tuple
-        orig_dict, updates_dict = test_data
-        # Create a new object passing @test_data to factory method
-        os = make_os(orig_dict)
-        # Update original data with new values
-        updates_dict['id'] = os['id']
-        orig_dict.update(updates_dict)
-        # Now update the Foreman object
-        with self.assertRaises(CLIReturnCodeError):
-            OperatingSys.update(orig_dict)
-        # OS should not have changed
-        result = OperatingSys.info({'id': os['id']})
-        self.assertEqual(os['name'], result['name'])
+        os = make_os({'name': gen_alphanumeric()})
+        for new_name in invalid_values_list():
+            with self.subTest(new_name):
+                with self.assertRaises(CLIReturnCodeError):
+                    OperatingSys.update({
+                        'id': os['id'],
+                        'name': new_name,
+                    })
+                result = OperatingSys.info({'id': os['id']})
+                self.assertEqual(result['name'], os['name'])
 
-    @data(*POSITIVE_DELETE_DATA)
-    def test_positive_delete_1(self, test_data):
+    def test_positive_delete_1(self):
         """@test: Successfully deletes Operating System
 
         @feature: Operating System - Positive Delete
@@ -272,16 +203,14 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is deleted
 
         """
-        # Create a new object passing @test_data to factory method
-        os = make_os(test_data)
-        # Now delete it...
-        OperatingSys.delete({'id': os['id']})
-        # ... and make sure it does not exist anymore
-        with self.assertRaises(CLIReturnCodeError):
-            OperatingSys.info({'id': os['id']})
+        for name in valid_data_list():
+            with self.subTest(name):
+                os = make_os({'name': name})
+                OperatingSys.delete({'id': os['id']})
+                with self.assertRaises(CLIReturnCodeError):
+                    OperatingSys.info({'id': os['id']})
 
-    @data(*NEGATIVE_DELETE_DATA)
-    def test_negative_delete_1(self, test_data):
+    def test_negative_delete_1(self):
         """@test: Not delete Operating System for invalid data
 
         @feature: Operating System - Negative Delete
@@ -289,15 +218,16 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is not deleted
 
         """
-        # Create a new object using default values
-        os = make_os()
-        # The delete method requires the ID which we will not pass
-        with self.assertRaises(CLIReturnCodeError):
-            OperatingSys.delete(test_data)
-        # Now make sure that it still exists
-        result = OperatingSys.info({'id': os['id']})
-        self.assertEqual(os['id'], result['id'])
-        self.assertEqual(os['name'], result['name'])
+        for test_data in NEGATIVE_DELETE_DATA:
+            with self.subTest(test_data):
+                os = make_os()
+                # The delete method requires the ID which we will not pass
+                with self.assertRaises(CLIReturnCodeError):
+                    OperatingSys.delete(test_data)
+                # Now make sure that it still exists
+                result = OperatingSys.info({'id': os['id']})
+                self.assertEqual(os['id'], result['id'])
+                self.assertEqual(os['name'], result['name'])
 
     def test_add_architecture(self):
         """@test: Add Architecture to os
