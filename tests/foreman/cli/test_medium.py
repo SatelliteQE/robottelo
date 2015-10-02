@@ -2,13 +2,13 @@
 # pylint: disable=invalid-name
 """Test for Medium  CLI"""
 
-from ddt import ddt
-from fauxfactory import gen_string, gen_alphanumeric
+from fauxfactory import gen_alphanumeric
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.test import CLITestCase
-from robottelo.decorators import data, run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.cli.factory import make_location, make_medium, make_org, make_os
 from robottelo.cli.medium import Medium
+from robottelo.helpers import valid_data_list
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
 OSES = [
@@ -23,16 +23,9 @@ OSES = [
 
 
 @run_only_on('sat')
-@ddt
 class TestMedium(CLITestCase):
     """Test class for Medium CLI"""
-    @data({'name': gen_string("latin1")},
-          {'name': gen_string("utf8")},
-          {'name': gen_string("alpha")},
-          {'name': gen_string("alphanumeric")},
-          {'name': gen_string("numeric")},
-          {'name': gen_string("html")})
-    def test_positive_create_1(self, test_data):
+    def test_positive_create_1(self):
         """@Test: Check if Medium can be created
 
         @Feature: Medium - Positive Create
@@ -40,8 +33,10 @@ class TestMedium(CLITestCase):
         @Assert: Medium is created
 
         """
-        medium = make_medium(test_data)
-        self.assertEqual(medium['name'], test_data['name'])
+        for name in valid_data_list():
+            with self.subTest(name):
+                medium = make_medium({'name': name})
+                self.assertEqual(medium['name'], name)
 
     def test_create_medium_with_location(self):
         """@Test: Check if medium with location can be created
@@ -67,13 +62,7 @@ class TestMedium(CLITestCase):
         medium = make_medium({'organization-ids': org['id']})
         self.assertIn(org['name'], medium['organizations'])
 
-    @data({'name': gen_string("latin1")},
-          {'name': gen_string("utf8")},
-          {'name': gen_string("alpha")},
-          {'name': gen_string("alphanumeric")},
-          {'name': gen_string("numeric")},
-          {'name': gen_string("html")})
-    def test_positive_delete_1(self, test_data):
+    def test_positive_delete_1(self):
         """@Test: Check if Medium can be deleted
 
         @Feature: Medium - Positive Delete
@@ -81,10 +70,12 @@ class TestMedium(CLITestCase):
         @Assert: Medium is deleted
 
         """
-        medium = make_medium(test_data)
-        Medium.delete({'id': medium['id']})
-        with self.assertRaises(CLIReturnCodeError):
-            Medium.info({'id': medium['id']})
+        for name in valid_data_list():
+            with self.subTest(name):
+                medium = make_medium({'name': name})
+                Medium.delete({'id': medium['id']})
+                with self.assertRaises(CLIReturnCodeError):
+                    Medium.info({'id': medium['id']})
 
     # pylint: disable=no-self-use
     def test_add_operatingsystem_medium(self):
