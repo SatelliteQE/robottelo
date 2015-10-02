@@ -1,5 +1,4 @@
 """Test class for Subscriptions"""
-from ddt import ddt
 from robottelo import manifests
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_org
@@ -11,7 +10,6 @@ from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
 
-@ddt
 class TestSubscription(CLITestCase):
     """Manifest CLI tests"""
 
