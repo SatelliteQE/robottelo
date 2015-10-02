@@ -500,10 +500,6 @@ class TestContentViewsUI(UITestCase):
             self.content_views.add_remove_repos(cv_name2, [rh_repo['name']])
             self.content_views.publish(cv_name2)
             self.content_views.create(composite_name, is_composite=True)
-        # UI doesn't populate the created content-view name to add it into
-        # existing composite-view until we logout and navigate again to
-        # puppet-module tab
-        with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
             session.nav.go_to_content_views()
             self.content_views.add_remove_cv(

@@ -426,48 +426,6 @@ class ActivationKey(UITestCase):
                 self.activationkey.delete(name)
                 self.assertIsNone(self.activationkey.search_key(name))
 
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1117753)
-    def test_positive_delete_activation_key_with_associated_cv(self):
-        """@Test: Delete a Content View associated to an Activation Key
-
-        @Feature: Activation key - Positive Delete
-
-        @Steps:
-        1. Create an Activation key with a Content View
-        2. Delete the Content View
-
-        @Assert: Activation key should not be deleted
-
-        @BZ: 1117753
-
-        """
-        name = gen_string('alpha')
-        env_name = gen_string('alpha')
-        cv_name = gen_string('alpha')
-        # Helper function to create and promote CV to next environment
-        repo_id = self.create_sync_custom_repo()
-        self.cv_publish_promote(cv_name, env_name, repo_id)
-        with Session(self.browser) as session:
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=name,
-                env=env_name,
-                content_view=cv_name,
-            )
-            self.assertIsNotNone(self.activationkey.search_key(name))
-            session.nav.go_to_content_views()
-            self.content_views.delete_version(
-                cv_name,
-                is_affected_comps=True,
-                env=ENVIRONMENT,
-                cv=DEFAULT_CV
-            )
-            self.content_views.delete(name)
-            self.assertIsNone(self.content_views.search(name))
-            self.assertIsNotNone(self.activationkey.search_key(name))
-
     def test_negative_delete_activation_key(self):
         """@Test: [UI ONLY] Attempt to delete an Activation Key and cancel it
 

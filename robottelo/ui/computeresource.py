@@ -51,8 +51,8 @@ class ComputeResource(Base):
             ))
             self.wait_until_element(locators[param_locator])
             if parameter_type == 'field':
-                self.find_element(
-                    locators[param_locator]).send_keys(parameter_value)
+                self.text_field_update(
+                    locators[param_locator], parameter_value)
             elif parameter_type == 'select':
                 Select(
                     self.find_element(locators[param_locator])

@@ -711,7 +711,6 @@ class DockerContentViewTestCase(APITestCase):
         @Feature: Docker
 
         """
-
         repo = _create_repository(
             entities.Product(organization=self.org).create())
 

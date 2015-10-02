@@ -490,16 +490,20 @@ tab_locators = LocatorDict({
     "contentviews.tab_puppet_modules": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'puppet_modules')]"),
+    "contentviews.tab_docker_content": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@href, 'docker')]"),
     "contentviews.tab_history": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href, 'history')]"),
     "contentviews.tab_tasks": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href, 'tasks')]"),
     "contentviews.tab_repo_add": (
         By.XPATH,
-        "//a[contains(@ui-sref, 'repositories.yum.available')]"),
+        "//a[contains(@href, 'repositories') and "
+        "contains(@ui-sref, 'available')]"),
     "contentviews.tab_repo_remove": (
         By.XPATH,
-        ("//a[contains(@ui-sref, 'repositories.yum.list')]"
+        ("//a[contains(@href, 'repositories') and contains(@ui-sref, 'list')]"
          "/span[@class='ng-scope' and contains(., 'List/Remove')]")),
     "contentviews.tab_cv_add": (
         By.XPATH,
@@ -1270,6 +1274,11 @@ locators = LocatorDict({
         "//select[@ng-model='createRepoChoices.product.gpg_key_id']"),
     "repo.new_discover_name": (
         By.XPATH, "//input[@ng-model='repo.name']"),
+    "repo.name_edit": (
+        By.XPATH, ("//form[@bst-edit-text='repository.name']"
+                   "//i[contains(@class,'fa-edit')]")),
+    "repo.name_update": (
+        By.XPATH, "//form[@bst-edit-text='repository.name']/div/input"),
     "repo.url_edit": (
         By.XPATH, ("//form[@bst-edit-text='repository.url']"
                    "//i[contains(@class,'fa-edit')]")),
@@ -1292,7 +1301,13 @@ locators = LocatorDict({
         By.XPATH, ("//form[@selector='repository.checksum_type']"
                    "/div/div/span/i[contains(@class,'fa-edit')]")),
     "repo.checksum_update": (
-        By.XPATH, ("//form[@selector='repository.checksum_type']/div/select")),
+        By.XPATH, "//form[@selector='repository.checksum_type']/div/select"),
+    "repo.upstream_edit": (
+        By.XPATH, ("//form[@bst-edit-text='repository.docker_upstream_name']"
+                   "//i[contains(@class,'fa-edit')]")),
+    "repo.upstream_update": (
+        By.XPATH, ("//form[@bst-edit-text='repository.docker_upstream_name']"
+                   "/div/input")),
     "repo.fetch_url": (
         By.XPATH, ("//form[@bst-edit-text='repository.url']"
                    "/div[@class='bst-edit']"
@@ -1303,6 +1318,9 @@ locators = LocatorDict({
     "repo.fetch_checksum": (
         By.XPATH, ("//form[@selector='repository.checksum_type']"
                    "/div/div/span[contains(@class,'value')]")),
+    "repo.fetch_upstream": (
+        By.XPATH, ("//form[@bst-edit-text='repository.docker_upstream_name']"
+                   "/div[@class='bst-edit']/div/span[2]")),
     "repo.result_spinner": (
         By.XPATH,
         "//i[@ng-show='task.pending' and contains(@class, 'icon-spinner')]"),
@@ -1661,9 +1679,12 @@ locators = LocatorDict({
          "/input[@type='checkbox']")),
     "contentviews.add_repo": (
         By.XPATH,
-        "//button[contains(@ng-show, 'repositories.yum.available')]"),
+        "//button[contains(@ng-show, 'available') and "
+        "contains(@ng-click, 'addRepositories')]"),
     "contentviews.remove_repo": (
-        By.XPATH, "//button[contains(@ng-show, 'repositories.yum.list')]"),
+        By.XPATH,
+        "//button[contains(@ng-show, 'list') and "
+        "contains(@ng-click, 'removeRepositories')]"),
     "contentviews.repo_search": (
         By.XPATH, "//input[@ng-model='repositorySearch']"),
     "contentviews.promote_button": (
@@ -1693,7 +1714,8 @@ locators = LocatorDict({
         By.XPATH, "//div[@data-block='table']//td[contains(., '%s')]"),
     "contentviews.select_cv": (
         By.XPATH,
-        ("//div[@bst-table='detailsTable']//tr[@row-select='contentView']"
+        ("//div[@bst-table='detailsTable']"
+         "//tr[contains(@row-select, 'contentView')]"
          "//td[contains(normalize-space(.), '%s')]"
          "/preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),
