@@ -4,17 +4,16 @@
 
 import random
 
-from ddt import ddt
-from fauxfactory import gen_string
+from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError, make_proxy
 from robottelo.cli.proxy import Proxy, default_url_on_new_port
-from robottelo.decorators import data, run_only_on
+from robottelo.decorators import run_only_on
+from robottelo.helpers import valid_data_list
 from robottelo.test import CLITestCase
 
 
 @run_only_on('sat')
-@ddt
 class TestProxy(CLITestCase):
     """Proxy cli tests"""
 
@@ -38,14 +37,7 @@ class TestProxy(CLITestCase):
                     gen_string('numeric', 4)),
             })
 
-    @data(
-        {u'name': gen_string('alpha', 15)},
-        {u'name': gen_string('alphanumeric', 15)},
-        {u'name': gen_string('numeric', 15)},
-        {u'name': gen_string('latin1', 15)},
-        {u'name': gen_string('utf8', 15)},
-    )
-    def test_proxy_create(self, test_data):
+    def test_proxy_create(self):
         """@Test: Proxy creation with the home proxy
 
         @Feature: Smart Proxy
@@ -53,17 +45,12 @@ class TestProxy(CLITestCase):
         @Assert: Proxy is created
 
         """
-        proxy = make_proxy({u'name': test_data['name']})
-        self.assertEquals(proxy['name'], test_data['name'])
+        for name in valid_data_list():
+            with self.subTest(name):
+                proxy = make_proxy({u'name': name})
+                self.assertEquals(proxy['name'], name)
 
-    @data(
-        {u'name': gen_string('alpha', 15)},
-        {u'name': gen_string('alphanumeric', 15)},
-        {u'name': gen_string('numeric', 15)},
-        {u'name': gen_string('latin1', 15)},
-        {u'name': gen_string('utf8', 15)},
-    )
-    def test_proxy_delete(self, test_data):
+    def test_proxy_delete(self):
         """@Test: Proxy deletion with the home proxy
 
         @Feature: Smart Proxy
@@ -71,25 +58,14 @@ class TestProxy(CLITestCase):
         @Assert: Proxy is deleted
 
         """
-        proxy = make_proxy({u'name': test_data['name']})
-        self.assertEquals(proxy['name'], test_data['name'])
-        Proxy.delete({u'id': proxy['id']})
-        with self.assertRaises(CLIReturnCodeError):
-            Proxy.info({u'id': proxy['id']})
+        for name in valid_data_list():
+            with self.subTest(name):
+                proxy = make_proxy({u'name': name})
+                Proxy.delete({u'id': proxy['id']})
+                with self.assertRaises(CLIReturnCodeError):
+                    Proxy.info({u'id': proxy['id']})
 
-    @data(
-        {u'name': gen_string('alpha', 15),
-         u'update': gen_string('alpha', 15)},
-        {u'name': gen_string('alphanumeric', 15),
-         u'update': gen_string('alpha', 15)},
-        {u'name': gen_string('numeric', 15),
-         u'update': gen_string('alpha', 15)},
-        {u'name': gen_string('latin1', 15),
-         u'update': gen_string('alpha', 15)},
-        {u'name': gen_string('utf8', 15),
-         u'update': gen_string('alpha', 15)},
-    )
-    def test_proxy_update(self, test_data):
+    def test_proxy_update(self):
         """@Test: Proxy name update with the home proxy
 
         @Feature: Smart Proxy
@@ -97,16 +73,18 @@ class TestProxy(CLITestCase):
         @Assert: Proxy has the name updated
 
         """
-        proxy = make_proxy({u'name': test_data['name']})
-        self.assertEquals(proxy['name'], test_data['name'])
-        with default_url_on_new_port(9090, random.randint(9091, 49090)) as url:
-            Proxy.update({
-                u'id': proxy['id'],
-                u'name': test_data['update'],
-                u'url': url,
-            })
-        proxy = Proxy.info({u'id': proxy['id']})
-        self.assertEqual(proxy['name'], test_data['update'])
+        proxy = make_proxy({u'name': gen_alphanumeric()})
+        newport = random.randint(9091, 49090)
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                with default_url_on_new_port(9090, newport) as url:
+                    Proxy.update({
+                        u'id': proxy['id'],
+                        u'name': new_name,
+                        u'url': url,
+                    })
+                    proxy = Proxy.info({u'id': proxy['id']})
+                    self.assertEqual(proxy['name'], new_name)
 
     def test_refresh_refresh_features_by_id(self):
         """@Test: Refresh smart proxy features, search for proxy by id

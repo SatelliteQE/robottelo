@@ -2,8 +2,7 @@
 """Test class for Product CLI"""
 import time
 
-from ddt import ddt
-from fauxfactory import gen_string
+from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -14,12 +13,17 @@ from robottelo.cli.factory import (
     make_sync_plan,
 )
 from robottelo.cli.product import Product
-from robottelo.decorators import data, run_only_on
-from robottelo.helpers import bz_bug_is_open, generate_strings_list
+from robottelo.decorators import run_only_on
+from robottelo.helpers import (
+    bz_bug_is_open,
+    generate_strings_list,
+    valid_data_list,
+    valid_labels_list,
+    invalid_values_list,
+)
 from robottelo.test import CLITestCase
 
 
-@ddt
 class TestProduct(CLITestCase):
     """Product CLI tests."""
 
@@ -35,15 +39,7 @@ class TestProduct(CLITestCase):
             TestProduct.org = make_org(cached=True)
 
     @run_only_on('sat')
-    @data(
-        {u'name': gen_string('alpha', 15)},
-        {u'name': gen_string('alphanumeric', 15)},
-        {u'name': gen_string('numeric', 15)},
-        {u'name': gen_string('latin1', 15)},
-        {u'name': gen_string('utf8', 15)},
-        {u'name': gen_string('html', 15)},
-    )
-    def test_positive_create_1(self, test_name):
+    def test_positive_create_1(self):
         """@Test: Check if product can be created with random names
 
         @Feature: Product
@@ -51,30 +47,17 @@ class TestProduct(CLITestCase):
         @Assert: Product is created and has random name
 
         """
-        product = make_product({
-            u'name': test_name['name'],
-            u'organization-id': self.org['id']
-        })
-
-        self.assertEqual(product['name'], test_name['name'])
-        self.assertGreater(len(product['label']), 0)
+        for name in valid_data_list():
+            with self.subTest(name):
+                product = make_product({
+                    u'name': name,
+                    u'organization-id': self.org['id'],
+                })
+                self.assertEqual(product['name'], name)
+                self.assertGreater(len(product['label']), 0)
 
     @run_only_on('sat')
-    @data(
-        {u'name': gen_string('alpha', 15),
-         u'label': gen_string('alpha', 15)},
-        {u'name': gen_string('alphanumeric', 15),
-         u'label': gen_string('alphanumeric', 15)},
-        {u'name': gen_string('numeric', 15),
-         u'label': gen_string('numeric', 15)},
-        {u'name': gen_string('latin1', 15),
-         u'label': gen_string('alpha', 15)},
-        {u'name': gen_string('utf8', 15),
-         u'label': gen_string('alphanumeric', 15)},
-        {u'name': gen_string('html', 15),
-         u'label': gen_string('numeric', 15)},
-    )
-    def test_positive_create_2(self, test_data):
+    def test_positive_create_2(self):
         """@Test: Check if product can be created with random labels
 
         @Feature: Product
@@ -82,31 +65,19 @@ class TestProduct(CLITestCase):
         @Assert: Product is created and has random label
 
         """
-        product = make_product({
-            u'label': test_data['label'],
-            u'name': test_data['name'],
-            u'organization-id': self.org['id']
-        })
-
-        self.assertEqual(product['name'], test_data['name'])
-        self.assertEqual(product['label'], test_data['label'])
+        for label in valid_labels_list():
+            with self.subTest(label):
+                product_name = gen_alphanumeric()
+                product = make_product({
+                    u'label': label,
+                    u'name': product_name,
+                    u'organization-id': self.org['id'],
+                })
+                self.assertEqual(product['name'], product_name)
+                self.assertEqual(product['label'], label)
 
     @run_only_on('sat')
-    @data(
-        {u'name': gen_string('alpha', 15),
-         u'description': gen_string('alpha', 15)},
-        {u'name': gen_string('alphanumeric', 15),
-         u'description': gen_string('alphanumeric', 15)},
-        {u'name': gen_string('numeric', 15),
-         u'description': gen_string('numeric', 15)},
-        {u'name': gen_string('latin1', 15),
-         u'description': gen_string('latin1', 15)},
-        {u'name': gen_string('utf8', 15),
-         u'description': gen_string('utf8', 15)},
-        {u'name': gen_string('html', 15),
-         u'description': gen_string('html', 15)},
-    )
-    def test_positive_create_3(self, test_data):
+    def test_positive_create_3(self):
         """@Test: Check if product can be created with random description
 
         @Feature: Product
@@ -114,25 +85,18 @@ class TestProduct(CLITestCase):
         @Assert: Product is created and has random description
 
         """
-        product = make_product({
-            u'description': test_data['description'],
-            u'name': test_data['name'],
-            u'organization-id': self.org['id'],
-        })
+        for desc in valid_labels_list():
+            with self.subTest(desc):
+                product_name = gen_alphanumeric()
+                product = make_product({
+                    u'description': desc,
+                    u'name': product_name,
+                    u'organization-id': self.org['id'],
+                })
+                self.assertEqual(product['name'], product_name)
+                self.assertEqual(product['description'], desc)
 
-        self.assertEqual(product['name'], test_data['name'])
-        self.assertEqual(product['description'], test_data['description'])
-
-    @run_only_on('sat')
-    @data(
-        {u'name': gen_string('alpha', 15)},
-        {u'name': gen_string('alphanumeric', 15)},
-        {u'name': gen_string('numeric', 15)},
-        {u'name': gen_string('latin1', 15)},
-        {u'name': gen_string('utf8', 15)},
-        {u'name': gen_string('html', 15)},
-    )
-    def test_positive_create_4(self, test_data):
+    def test_positive_create_4(self):
         """@Test: Check if product can be created with gpg key
 
         @Feature: Product
@@ -141,25 +105,17 @@ class TestProduct(CLITestCase):
 
         """
         gpg_key = make_gpg_key({u'organization-id': self.org['id']})
-        product = make_product({
-            u'gpg-key-id': gpg_key['id'],
-            u'name': test_data['name'],
-            u'organization-id': self.org['id'],
-        })
+        for name in valid_data_list():
+            with self.subTest(name):
+                product = make_product({
+                    u'gpg-key-id': gpg_key['id'],
+                    u'name': name,
+                    u'organization-id': self.org['id'],
+                })
+                self.assertEqual(product['name'], name)
+                self.assertEqual(product['gpg']['gpg-key-id'], gpg_key['id'])
 
-        self.assertEqual(product['name'], test_data['name'])
-        self.assertEqual(product['gpg']['gpg-key-id'], gpg_key['id'])
-
-    @run_only_on('sat')
-    @data(
-        {u'name': gen_string('alpha', 15)},
-        {u'name': gen_string('alphanumeric', 15)},
-        {u'name': gen_string('numeric', 15)},
-        {u'name': gen_string('latin1', 15)},
-        {u'name': gen_string('utf8', 15)},
-        {u'name': gen_string('html', 15)},
-    )
-    def test_positive_create_5(self, test_data):
+    def test_positive_create_5(self):
         """@Test: Check if product can be created with sync plan
 
         @Feature: Product
@@ -167,26 +123,20 @@ class TestProduct(CLITestCase):
         @Assert: Product is created and has random sync plan
 
         """
-        sync_plan = make_sync_plan({u'organization-id': self.org['id']})
-        product = make_product({
-            u'name': test_data['name'],
-            u'organization-id': self.org['id'],
-            u'sync-plan-id': sync_plan['id'],
+        sync_plan = make_sync_plan({
+            u'organization-id': self.org['id']
         })
+        for name in valid_data_list():
+            with self.subTest(name):
+                product = make_product({
+                    u'name': name,
+                    u'organization-id': self.org['id'],
+                    u'sync-plan-id': sync_plan['id'],
+                })
+                self.assertEqual(product['name'], name)
+                self.assertEqual(product['sync-plan-id'], sync_plan['id'])
 
-        self.assertEqual(product['name'], test_data['name'])
-        self.assertEqual(product['sync-plan-id'], sync_plan['id'])
-
-    @run_only_on('sat')
-    @data(
-        {u'name': gen_string('alpha', 300)},
-        {u'name': gen_string('alphanumeric', 300)},
-        {u'name': gen_string('numeric', 300)},
-        {u'name': gen_string('latin1', 300)},
-        {u'name': gen_string('utf8', 300)},
-        {u'name': gen_string('html', 300)},
-    )
-    def test_negative_create_1(self, test_name):
+    def test_negative_create_1(self):
         """@Test: Check that only valid names can be used
 
         @Feature: Product
@@ -194,22 +144,15 @@ class TestProduct(CLITestCase):
         @Assert: Product is not created
 
         """
-        with self.assertRaises(CLIFactoryError):
-            make_product({
-                u'name': test_name['name'],
-                u'organization-id': self.org['id'],
-            })
+        for invalid_name in invalid_values_list():
+            with self.subTest(invalid_name):
+                with self.assertRaises(CLIFactoryError):
+                    make_product({
+                        u'name': invalid_name,
+                        u'organization-id': self.org['id'],
+                    })
 
-    @run_only_on('sat')
-    @data(
-        {u'name': gen_string('latin1', 15),
-         u'label': gen_string('latin1', 15)},
-        {u'name': gen_string('utf8', 15),
-         u'label': gen_string('utf8', 15)},
-        {u'name': gen_string('html', 15),
-         u'label': gen_string('html', 15)},
-    )
-    def test_negative_create_2(self, test_name):
+    def test_negative_create_2(self):
         """@Test: Check that only valid labels can be used
 
         @Feature: Product
@@ -217,23 +160,18 @@ class TestProduct(CLITestCase):
         @Assert: Product is not created
 
         """
-        with self.assertRaises(CLIFactoryError):
-            make_product({
-                u'label': test_name['label'],
-                u'name': test_name['name'],
-                u'organization-id': self.org['id'],
-            })
+        product_name = gen_alphanumeric()
+        for invalid_label in (gen_string('latin1', 15), gen_string('utf8', 15),
+                              gen_string('html', 15)):
+            with self.subTest(invalid_label):
+                with self.assertRaises(CLIFactoryError):
+                    make_product({
+                        u'label': invalid_label,
+                        u'name': product_name,
+                        u'organization-id': self.org['id'],
+                    })
 
-    @run_only_on('sat')
-    @data(
-        {u'description': gen_string('alpha', 15)},
-        {u'description': gen_string('alphanumeric', 15)},
-        {u'description': gen_string('numeric', 15)},
-        {u'description': gen_string('latin1', 15)},
-        {u'description': gen_string('utf8', 15)},
-        {u'description': gen_string('html', 15)},
-    )
-    def test_positive_update_1(self, test_data):
+    def test_positive_update_1(self):
         """@Test: Update the description of a product
 
         @Feature: Product
@@ -242,18 +180,17 @@ class TestProduct(CLITestCase):
 
         """
         product = make_product({u'organization-id': self.org['id']})
-        # Update the Descriptions
-        Product.update({
-            u'description': test_data['description'],
-            u'id': product['id'],
-        })
-        # Fetch it
-        result = Product.info({
-            u'id': product['id'],
-            u'organization-id': self.org['id'],
-        })
-        self.assertEqual(result['description'], test_data['description'])
-        self.assertNotEqual(product['description'], result['description'])
+        for desc in valid_data_list():
+            with self.subTest(desc):
+                Product.update({
+                    u'description': desc,
+                    u'id': product['id'],
+                })
+                result = Product.info({
+                    u'id': product['id'],
+                    u'organization-id': self.org['id'],
+                })
+                self.assertEqual(result['description'], desc)
 
     @run_only_on('sat')
     def test_positive_update_2(self):
@@ -312,8 +249,7 @@ class TestProduct(CLITestCase):
         self.assertNotEqual(product['sync-plan-id'], first_sync_plan['id'])
 
     @run_only_on('sat')
-    @data(*generate_strings_list())
-    def test_positive_update_4(self, prod_name):
+    def test_positive_update_4(self):
         """@Test: Rename Product back to original name
 
         @Feature: Product
@@ -321,33 +257,35 @@ class TestProduct(CLITestCase):
         @Assert: Product Renamed to original
 
         """
-        prod = make_product({
-            u'name': prod_name,
-            u'organization-id': self.org['id'],
-        })
-        new_prod_name = gen_string('alpha', 8)
-        # Update the product name
-        Product.update({
-            u'id': prod['id'],
-            u'name': new_prod_name,
-        })
-        # Verify Updated
-        prod = Product.info({
-            u'id': prod['id'],
-            u'organization-id': self.org['id'],
-        })
-        self.assertEqual(prod['name'], new_prod_name)
-        # Now, Rename product to original
-        Product.update({
-            u'id': prod['id'],
-            u'name': prod_name,
-        })
-        prod = Product.info({
-            u'id': prod['id'],
-            u'organization-id': self.org['id'],
-        })
-        # Verify renamed back to Original name.
-        self.assertEqual(prod['name'], prod_name)
+        for prod_name in generate_strings_list():
+            with self.subTest(prod_name):
+                prod = make_product({
+                    u'name': prod_name,
+                    u'organization-id': self.org['id'],
+                })
+                new_prod_name = gen_string('alpha', 8)
+                # Update the product name
+                Product.update({
+                    u'id': prod['id'],
+                    u'name': new_prod_name,
+                })
+                # Verify Updated
+                prod = Product.info({
+                    u'id': prod['id'],
+                    u'organization-id': self.org['id'],
+                })
+                self.assertEqual(prod['name'], new_prod_name)
+                # Now, Rename product to original
+                Product.update({
+                    u'id': prod['id'],
+                    u'name': prod_name,
+                })
+                prod = Product.info({
+                    u'id': prod['id'],
+                    u'organization-id': self.org['id'],
+                })
+                # Verify renamed back to Original name.
+                self.assertEqual(prod['name'], prod_name)
 
     @run_only_on('sat')
     def test_positive_delete_1(self):
@@ -359,9 +297,7 @@ class TestProduct(CLITestCase):
 
         """
         new_product = make_product({u'organization-id': self.org['id']})
-        # Delete it
         Product.delete({u'id': new_product['id']})
-        # Fetch it
         with self.assertRaises(CLIReturnCodeError):
             Product.info({
                 u'id': new_product['id'],

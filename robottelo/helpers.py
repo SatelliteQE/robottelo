@@ -217,9 +217,7 @@ def valid_names_list():
 
 
 def valid_data_list():
-    """
-    List of valid data for input testing.
-    """
+    """List of valid data for input testing."""
     return [
         gen_string('alphanumeric', randint(1, 255)),
         gen_string('alpha', randint(1, 255)),
@@ -228,6 +226,14 @@ def valid_data_list():
         gen_string('numeric', randint(1, 255)),
         gen_string('utf8', randint(1, 85)),
         gen_string('html', randint(1, 85)),
+    ]
+
+
+def valid_labels_list():
+    """List of valid labels for input testing."""
+    return [
+        gen_string('alphanumeric', randint(1, 255)),
+        gen_string('alpha', randint(1, 255)),
     ]
 
 
@@ -400,18 +406,11 @@ def prepare_import_data(tar_path=None):
         cmd = u'tar -xzvf {0} -C {1}'.format(tar_path, tmpdir)
 
     files = {}
-    for file in ssh.command(cmd).stdout:
-        for key in (
-            'activation-keys',
-            'channels',
-            'config-files-latest',
-            'kickstart-scripts',
-            'repositories',
-            'system-groups',
-            'system-profiles',
-            'users'
-        ):
-            if file.endswith(key + '.csv'):
-                files[key] = join(tmpdir, file)
+    for filename in ssh.command(cmd).stdout:
+        for key in ('activation-keys', 'channels', 'config-files-latest',
+                    'kickstart-scripts', 'repositories', 'system-groups',
+                    'system-profiles', 'users'):
+            if filename.endswith(key + '.csv'):
+                files[key] = join(tmpdir, filename)
                 break
     return tmpdir, files
