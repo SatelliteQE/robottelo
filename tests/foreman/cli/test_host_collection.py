@@ -2,7 +2,6 @@
 # pylint: disable=invalid-name
 """Test class for Host Collection CLI"""
 
-from ddt import ddt
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
@@ -12,11 +11,11 @@ from robottelo.cli.factory import (
     make_lifecycle_environment, make_content_host)
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.constants import DEFAULT_CV, ENVIRONMENT
-from robottelo.decorators import data, skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open
+from robottelo.helpers import valid_data_list, invalid_values_list
 from robottelo.test import CLITestCase
 
 
-@ddt
 class TestHostCollection(CLITestCase):
     """Host Collection CLI tests."""
 
@@ -75,15 +74,7 @@ class TestHostCollection(CLITestCase):
 
         return make_host_collection(options)
 
-    @data(
-        {'name': gen_string('alpha', 15)},
-        {'name': gen_string('alphanumeric', 15)},
-        {'name': gen_string('numeric', 15)},
-        {'name': gen_string('latin1', 15)},
-        {'name': gen_string('utf8', 15)},
-        {'name': gen_string('html', 15)},
-    )
-    def test_positive_create_1(self, test_data):
+    def test_positive_create_1(self):
         """@Test: Check if host collection can be created with random names
 
         @Feature: Host Collection
@@ -91,34 +82,26 @@ class TestHostCollection(CLITestCase):
         @Assert: Host collection is created and has random name
 
         """
-        new_host_col = self._new_host_collection({'name': test_data['name']})
-        # Assert that name matches data passed
-        self.assertEqual(new_host_col['name'], test_data['name'])
+        for name in valid_data_list():
+            with self.subTest(name):
+                new_host_col = self._new_host_collection({'name': name})
+                self.assertEqual(new_host_col['name'], name)
 
-    @data(
-        {'description': gen_string('alpha', 15)},
-        {'description': gen_string('alphanumeric', 15)},
-        {'description': gen_string('numeric', 15)},
-        {'description': gen_string('latin1', 15)},
-        {'description': gen_string('utf8', 15)},
-        {'description': gen_string('html', 15)},
-    )
-    def test_positive_create_2(self, test_data):
-        """@Test: Check if host collection can be created with random description
+    def test_positive_create_2(self):
+        """@Test: Check if host collection can be created with random
+        description
 
         @Feature: Host Collection
 
         @Assert: Host collection is created and has random description
 
         """
-        new_host_col = self._new_host_collection({
-            'description': test_data['description'],
-        })
-        # Assert that description matches data passed
-        self.assertEqual(new_host_col['description'], test_data['description'])
+        for desc in valid_data_list():
+            with self.subTest(desc):
+                new_host_col = self._new_host_collection({'description': desc})
+                self.assertEqual(new_host_col['description'], desc)
 
-    @data('1', '3', '5', '10', '20')
-    def test_positive_create_3(self, test_data):
+    def test_positive_create_3(self):
         """@Test: Check if host collection can be created with random limits
 
         @Feature: Host Collection
@@ -126,15 +109,14 @@ class TestHostCollection(CLITestCase):
         @Assert: Host collection is created and has random limits
 
         """
-        new_host_col = self._new_host_collection({
-            'max-content-hosts': test_data,
-        })
-        # Assert that limit matches data passed
-        self.assertEqual(new_host_col['limit'], str(test_data))
+        for limit in ('1', '3', '5', '10', '20'):
+            with self.subTest(limit):
+                new_host_col = self._new_host_collection(
+                    {'max-content-hosts': limit})
+                self.assertEqual(new_host_col['limit'], str(limit))
 
     @skip_if_bug_open('bugzilla', 1214675)
-    @data(u'True', u'Yes', 1, u'False', u'No', 0)
-    def test_create_hc_with_unlimited_content_hosts(self, unlimited):
+    def test_create_hc_with_unlimited_content_hosts(self):
         """@Test: Create Host Collection with different values of
         unlimited-content-hosts parameter
 
@@ -146,30 +128,24 @@ class TestHostCollection(CLITestCase):
         @BZ: 1214675
 
         """
-        host_collection = make_host_collection({
-            u'organization-id': self.org['id'],
-            u'unlimited-content-hosts': unlimited,
-        })
-        result = HostCollection.info({
-            u'id': host_collection['id'],
-            u'organization-id': self.org['id'],
-        })
-        if unlimited in (u'True', u'Yes', 1):
-            self.assertEqual(
-                result['unlimited-content-hosts'], u'true')
-        else:
-            self.assertEqual(
-                result['unlimited-content-hosts'], u'false')
+        for unlimited in (u'True', u'Yes', 1, u'False', u'No', 0):
+            with self.subTest(unlimited):
+                host_collection = make_host_collection({
+                    u'organization-id': self.org['id'],
+                    u'unlimited-content-hosts': unlimited,
+                })
+                result = HostCollection.info({
+                    u'id': host_collection['id'],
+                    u'organization-id': self.org['id'],
+                })
+                if unlimited in (u'True', u'Yes', 1):
+                    self.assertEqual(
+                        result['unlimited-content-hosts'], u'true')
+                else:
+                    self.assertEqual(
+                        result['unlimited-content-hosts'], u'false')
 
-    @data(
-        {'name': gen_string('alpha', 300)},
-        {'name': gen_string('alphanumeric', 300)},
-        {'name': gen_string('numeric', 300)},
-        {'name': gen_string('latin1', 300)},
-        {'name': gen_string('utf8', 300)},
-        {'name': gen_string('html', 300)},
-    )
-    def test_negative_create_1(self, test_data):
+    def test_negative_create_1(self):
         """@Test: Check if host collection can be created with random names
 
         @Feature: Host Collection
@@ -177,18 +153,12 @@ class TestHostCollection(CLITestCase):
         @Assert: Host collection is created and has random name
 
         """
-        with self.assertRaises(CLIFactoryError):
-            self._new_host_collection({'name': test_data['name']})
+        for name in invalid_values_list():
+            with self.subTest(name):
+                with self.assertRaises(CLIFactoryError):
+                    self._new_host_collection({'name': name})
 
-    @data(
-        {'name': gen_string('alpha', 15)},
-        {'name': gen_string('alphanumeric', 15)},
-        {'name': gen_string('numeric', 15)},
-        {'name': gen_string('latin1', 15)},
-        {'name': gen_string('utf8', 15)},
-        {'name': gen_string('html', 15)},
-    )
-    def test_positive_update_1(self, test_data):
+    def test_positive_update_1(self):
         """@Test: Check if host collection name can be updated
 
         @Feature: Host Collection
@@ -197,30 +167,17 @@ class TestHostCollection(CLITestCase):
 
         """
         new_host_col = self._new_host_collection()
-        # Assert that name does not matches data passed
-        self.assertNotEqual(new_host_col['name'], test_data['name'])
-        # Update host collection
-        HostCollection.update({
-            'id': new_host_col['id'],
-            'name': test_data['name'],
-            'organization-id': self.org['id'],
-        })
-        # Fetch it
-        result = HostCollection.info({'id': new_host_col['id']})
-        # Assert that name matches new value
-        self.assertEqual(result['name'], test_data['name'])
-        # Assert that name does not match original value
-        self.assertNotEqual(new_host_col['name'], result['name'])
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                HostCollection.update({
+                    'id': new_host_col['id'],
+                    'name': new_name,
+                    'organization-id': self.org['id'],
+                })
+                result = HostCollection.info({'id': new_host_col['id']})
+                self.assertEqual(result['name'], new_name)
 
-    @data(
-        {'description': gen_string('alpha', 15)},
-        {'description': gen_string('alphanumeric', 15)},
-        {'description': gen_string('numeric', 15)},
-        {'description': gen_string('latin1', 15)},
-        {'description': gen_string('utf8', 15)},
-        {'description': gen_string('html', 15)},
-    )
-    def test_positive_update_2(self, test_data):
+    def test_positive_update_2(self):
         """@Test: Check if host collection description can be updated
 
         @Feature: Host Collection
@@ -229,25 +186,18 @@ class TestHostCollection(CLITestCase):
 
         """
         new_host_col = self._new_host_collection()
-        # Assert that description does not match data passed
-        self.assertNotEqual(
-            new_host_col['description'], test_data['description'])
-        # Update sync plan
-        HostCollection.update({
-            'description': test_data['description'],
-            'id': new_host_col['id'],
-            'organization-id': self.org['id'],
-        })
-        # Fetch it
-        result = HostCollection.info({'id': new_host_col['id']})
-        # Assert that description matches new value
-        self.assertEqual(result['description'], test_data['description'])
-        # Assert that description does not matches original value
-        self.assertNotEqual(new_host_col['description'], result['description'])
+        for desc in valid_data_list():
+            with self.subTest(desc):
+                HostCollection.update({
+                    'description': desc,
+                    'id': new_host_col['id'],
+                    'organization-id': self.org['id'],
+                })
+                result = HostCollection.info({'id': new_host_col['id']})
+                self.assertEqual(result['description'], desc)
 
     @skip_if_bug_open('bugzilla', 1245334)
-    @data('3', '6', '9', '12', '15', '17', '19')
-    def test_positive_update_3(self, test_data):
+    def test_positive_update_3(self):
         """@Test: Check if host collection limits be updated
 
         @Feature: Host Collection
@@ -258,27 +208,17 @@ class TestHostCollection(CLITestCase):
 
         """
         new_host_col = self._new_host_collection()
-        # Update sync interval
-        HostCollection.update({
-            'id': new_host_col['id'],
-            'max-content-hosts': test_data,
-            'organization-id': self.org['id'],
-        })
-        # Fetch it
-        result = HostCollection.info({'id': new_host_col['id']})
-        # Assert that limit was updated
-        self.assertEqual(result['limit'], test_data)
-        self.assertNotEqual(new_host_col['limit'], result['limit'])
+        for limit in ('3', '6', '9', '12', '15', '17', '19'):
+            with self.subTest(limit):
+                HostCollection.update({
+                    'id': new_host_col['id'],
+                    'max-content-hosts': limit,
+                    'organization-id': self.org['id'],
+                })
+                result = HostCollection.info({'id': new_host_col['id']})
+                self.assertEqual(result['limit'], limit)
 
-    @data(
-        {'name': gen_string('alpha', 15)},
-        {'name': gen_string('alphanumeric', 15)},
-        {'name': gen_string('numeric', 15)},
-        {'name': gen_string('latin1', 15)},
-        {'name': gen_string('utf8', 15)},
-        {'name': gen_string('html', 15)},
-    )
-    def test_positive_delete_1(self, test_data):
+    def test_positive_delete_1(self):
         """@Test: Check if host collection can be created and deleted
 
         @Feature: Host Collection
@@ -286,17 +226,15 @@ class TestHostCollection(CLITestCase):
         @Assert: Host collection is created and then deleted
 
         """
-        new_host_col = self._new_host_collection({'name': test_data['name']})
-        # Assert that name matches data passed
-        self.assertEqual(new_host_col['name'], test_data['name'])
-        # Delete it
-        HostCollection.delete({
-            'id': new_host_col['id'],
-            'organization-id': self.org['id'],
-        })
-        # Fetch it
-        with self.assertRaises(CLIReturnCodeError):
-            HostCollection.info({'id': new_host_col['id']})
+        for name in valid_data_list():
+            with self.subTest(name):
+                new_host_col = self._new_host_collection({'name': name})
+                HostCollection.delete({
+                    'id': new_host_col['id'],
+                    'organization-id': self.org['id'],
+                })
+                with self.assertRaises(CLIReturnCodeError):
+                    HostCollection.info({'id': new_host_col['id']})
 
     def test_add_content_host(self):
         """@Test: Check if content host can be added to host collection

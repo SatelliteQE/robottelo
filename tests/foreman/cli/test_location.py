@@ -2,7 +2,6 @@
 # pylint: disable=too-many-public-methods, invalid-name
 """Test class for Location CLI"""
 
-from ddt import ddt
 from fauxfactory import gen_string
 from random import randint
 from robottelo.cli.base import CLIReturnCodeError
@@ -19,25 +18,16 @@ from robottelo.cli.factory import (
     make_user,
 )
 from robottelo.cli.location import Location
-from robottelo.decorators import data, skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open
+from robottelo.helpers import valid_data_list, invalid_values_list
 from robottelo.test import CLITestCase
 
 
-@ddt
 class TestLocation(CLITestCase):
     """Tests for Location via Hammer CLI"""
     # TODO Add coverage for smart_proxy and realm once we can create ssh tunnel
 
-    @data(
-        gen_string('alphanumeric', randint(1, 246)),
-        gen_string('alpha', randint(1, 246)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 246)),
-        gen_string('numeric', randint(1, 246)),
-        gen_string('utf8', randint(1, 85)),
-        gen_string('html', randint(1, 85)),
-    )
-    def test_create_location_with_different_names_positive(self, name):
+    def test_create_location_with_different_names_positive(self):
         """@Test: Try to create location using different value types as a name
 
         @Feature: Location
@@ -45,8 +35,10 @@ class TestLocation(CLITestCase):
         @Assert: Location is created successfully and has proper name
 
         """
-        loc = make_location({'name': name})
-        self.assertEqual(loc['name'], name)
+        for name in valid_data_list():
+            with self.subTest(name):
+                loc = make_location({'name': name})
+                self.assertEqual(loc['name'], name)
 
     @skip_if_bug_open('bugzilla', 1233612)
     def test_create_location_with_description(self):
@@ -321,18 +313,7 @@ class TestLocation(CLITestCase):
         for domain in domains:
             self.assertIn(domain['name'], loc['domains'])
 
-    @data(
-        '',
-        ' ',
-        gen_string('alphanumeric', 300),
-        gen_string('alpha', 300),
-        gen_string('cjk', 300),
-        gen_string('latin1', 300),
-        gen_string('numeric', 300),
-        gen_string('utf8', 300),
-        gen_string('html', 300),
-    )
-    def test_create_location_with_different_names_negative(self, name):
+    def test_create_location_with_different_names_negative(self):
         """@Test: Try to create location using invalid names only
 
         @Feature: Location
@@ -340,8 +321,10 @@ class TestLocation(CLITestCase):
         @Assert: Location is not created
 
         """
-        with self.assertRaises(CLIFactoryError):
-            make_location({'name': name})
+        for invalid_name in invalid_values_list():
+            with self.subTest(invalid_name):
+                with self.assertRaises(CLIFactoryError):
+                    make_location({'name': invalid_name})
 
     def test_create_location_with_same_names_negative(self):
         """@Test: Try to create location using same name twice
@@ -381,16 +364,7 @@ class TestLocation(CLITestCase):
         with self.assertRaises(CLIFactoryError):
             make_location({'users': gen_string('utf8', 80)})
 
-    @data(
-        gen_string('alphanumeric', randint(1, 246)),
-        gen_string('alpha', randint(1, 246)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 246)),
-        gen_string('numeric', randint(1, 246)),
-        gen_string('utf8', randint(1, 85)),
-        gen_string('html', randint(1, 85)),
-    )
-    def test_update_location_with_different_names(self, name):
+    def test_update_location_with_different_names(self):
         """@Test: Try to update location using different value types as a name
 
         @Feature: Location
@@ -400,13 +374,14 @@ class TestLocation(CLITestCase):
 
         """
         loc = make_location()
-        self.assertNotEqual(loc['name'], name)
-        Location.update({
-            'id': loc['id'],
-            'new-name': name,
-        })
-        loc = Location.info({'id': loc['id']})
-        self.assertEqual(loc['name'], name)
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                Location.update({
+                    'id': loc['id'],
+                    'new-name': new_name,
+                })
+                loc = Location.info({'id': loc['id']})
+                self.assertEqual(loc['name'], new_name)
 
     def test_update_location_with_user_by_id(self):
         """@Test: Create new location with assigned user to it. Try to update
@@ -511,18 +486,7 @@ class TestLocation(CLITestCase):
         for host_group in new_host_groups:
             self.assertIn(host_group['name'], loc['hostgroups'])
 
-    @data(
-        '',
-        ' ',
-        gen_string('alphanumeric', 300),
-        gen_string('alpha', 300),
-        gen_string('cjk', 300),
-        gen_string('latin1', 300),
-        gen_string('numeric', 300),
-        gen_string('utf8', 300),
-        gen_string('html', 300),
-    )
-    def test_update_location_with_different_names_negative(self, name):
+    def test_update_location_with_different_names_negative(self):
         """@Test: Try to update location using invalid names only
 
         @Feature: Location
@@ -530,12 +494,14 @@ class TestLocation(CLITestCase):
         @Assert: Location is not updated
 
         """
-        loc = make_location()
-        with self.assertRaises(CLIReturnCodeError):
-            Location.update({
-                'id': loc['id'],
-                'new-name': name,
-            })
+        for invalid_name in invalid_values_list():
+            with self.subTest(invalid_name):
+                loc = make_location()
+                with self.assertRaises(CLIReturnCodeError):
+                    Location.update({
+                        'id': loc['id'],
+                        'new-name': invalid_name,
+                    })
 
     def test_update_location_with_domain_by_id_negative(self):
         """@Test: Try to update existing location with incorrect domain. Use
@@ -569,16 +535,7 @@ class TestLocation(CLITestCase):
                 'id': loc['id'],
             })
 
-    @data(
-        gen_string('alphanumeric', randint(1, 246)),
-        gen_string('alpha', randint(1, 246)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 246)),
-        gen_string('numeric', randint(1, 246)),
-        gen_string('utf8', randint(1, 85)),
-        gen_string('html', randint(1, 85)),
-    )
-    def test_delete_location_by_name(self, name):
+    def test_delete_location_by_name(self):
         """@Test: Try to delete location using name of that location as a
         parameter. Use different value types for testing.
 
@@ -587,11 +544,13 @@ class TestLocation(CLITestCase):
         @Assert: Location is deleted successfully
 
         """
-        loc = make_location({'name': name})
-        self.assertEqual(loc['name'], name)
-        Location.delete({'name': loc['name']})
-        with self.assertRaises(CLIReturnCodeError):
-            Location.info({'id': loc['id']})
+        for name in valid_data_list():
+            with self.subTest(name):
+                loc = make_location({'name': name})
+                self.assertEqual(loc['name'], name)
+                Location.delete({'name': loc['name']})
+                with self.assertRaises(CLIReturnCodeError):
+                    Location.info({'id': loc['id']})
 
     def test_delete_location_by_id(self):
         """@Test: Try to delete location using id of that location as a
