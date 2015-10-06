@@ -41,8 +41,8 @@ class Repos(Base):
         else:
             raise UIError('Unable to find the product "{0}"'.format(name))
 
-    def update(self, name, new_url=None, new_repo_checksum=None,
-               new_gpg_key=None, http=False):
+    def update(self, name, new_name=None, new_url=None, new_repo_checksum=None,
+               new_gpg_key=None, http=False, new_upstream_name=None):
         """Updates repositories from UI."""
         repo_element = self.search(name)
         if repo_element is None:
@@ -51,6 +51,10 @@ class Repos(Base):
             )
         repo_element.click()
         self.wait_for_ajax()
+        if new_name:
+            self.click(locators['repo.name_edit'])
+            self.text_field_update(locators['repo.name_update'], new_name)
+            self.click(common_locators['save'])
         if new_url:
             self.click(locators['repo.url_edit'])
             self.text_field_update(locators['repo.url_update'], new_url)
@@ -69,6 +73,11 @@ class Repos(Base):
         if http:
             self.click(locators['repo.via_http_edit'])
             self.click(locators['repo.via_http_update'])
+            self.click(common_locators['save'])
+        if new_upstream_name:
+            self.click(locators['repo.upstream_edit'])
+            self.text_field_update(
+                locators['repo.upstream_update'], new_upstream_name)
             self.click(common_locators['save'])
 
     def delete(self, repo, really=True):
@@ -124,3 +133,17 @@ class Repos(Base):
                 self.find_element(locators['repo.select_exist_product'])
             ).select_by_visible_text(product)
         self.click(locators['repo.create'])
+
+    def validate_field(self, name, field_name, expected_field_value):
+        """Check that repository field has expected value"""
+        repo_element = self.search(name)
+        if repo_element is None:
+            raise UIError(
+                'Unable to find the repo "{0}" for validation.'.format(name)
+            )
+        repo_element.click()
+        self.wait_for_ajax()
+        if field_name in ['url', 'gpgkey', 'checksum', 'upstream']:
+            return (self.wait_until_element(locators[
+                'repo.fetch_' + field_name]).text == expected_field_value)
+        return False

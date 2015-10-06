@@ -153,7 +153,8 @@ class ContentViews(Base):
                 locators['contentviews.save_description']
             )
 
-    def add_remove_repos(self, cv_name, repo_names, add_repo=True):
+    def add_remove_repos(
+            self, cv_name, repo_names, add_repo=True, repo_type='yum'):
         """Add or Remove repository to/from selected content-view.
 
         When 'add_repo' Flag is set then add_repository will be performed,
@@ -168,8 +169,11 @@ class ContentViews(Base):
 
         element.click()
         self.wait_for_ajax()
-        self.click(tab_locators['contentviews.tab_content'])
-        self.click(locators['contentviews.content_repo'])
+        if repo_type == 'yum':
+            self.click(tab_locators['contentviews.tab_content'])
+            self.click(locators['contentviews.content_repo'])
+        elif repo_type == 'docker':
+            self.click(tab_locators['contentviews.tab_docker_content'])
         strategy, value = locators['contentviews.select_repo']
         for repo_name in repo_names:
             if add_repo:
@@ -313,17 +317,29 @@ class ContentViews(Base):
         element.click()
         self.wait_for_ajax()
         self.click(tab_locators['contentviews.tab_content_views'])
-        if is_add:
-            self.click(tab_locators['contentviews.tab_cv_add'])
-        else:
-            self.click(tab_locators['contentviews.tab_cv_remove'])
-        strategy, value = locators['contentviews.select_cv']
         for cv_name in cv_names:
+            if is_add:
+                self.click(tab_locators['contentviews.tab_cv_add'])
+            else:
+                self.click(tab_locators['contentviews.tab_cv_remove'])
+            strategy, value = locators['contentviews.select_cv']
             self.click((strategy, value % cv_name))
             if is_add:
                 self.click(locators['contentviews.add_cv'])
+                self.click(tab_locators['contentviews.tab_cv_remove'])
+                element = self.wait_until_element(
+                    (strategy, value % cv_name))
+                if element is None:
+                    raise UINoSuchElementError(
+                        "Adding CV {0} failed".format(cv_name))
             else:
                 self.click(locators['contentviews.remove_cv'])
+                self.click(tab_locators['contentviews.tab_cv_add'])
+                element = self.wait_until_element(
+                    (strategy, value % cv_name))
+                if element is None:
+                    raise UINoSuchElementError(
+                        "Removing CV {0} fails".format(cv_name))
 
     def add_filter(self, cv_name, filter_name,
                    content_type, filter_type, description=None):
@@ -517,7 +533,7 @@ class ContentViews(Base):
             raise UIError('Could not copy the Content View %s .', name)
 
     def fetch_yum_content_repo_name(self, cv_name):
-        """Fetch associated content host from selected activation key."""
+        """Fetch associated yum repository info from selected content view."""
         # find content_view
         cv = self.search(cv_name)
         if cv is None:

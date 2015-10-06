@@ -121,59 +121,6 @@ class Repos(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
-    def test_create_repo_deocker(self):
-        """@Test: Create a Docker-based repository
-
-        @Feature: Content Repos - Positive Create
-
-        @Assert: Docker-based repo is created.
-
-        """
-        repo_name = gen_string('alpha', 8)
-        # Creates new product
-        product = entities.Product(organization=self.organization).create()
-        with Session(self.browser) as session:
-            make_repository(
-                session,
-                org=self.organization.name,
-                name=repo_name,
-                product=product.name,
-                repo_type=REPO_TYPE['docker'],
-                url=DOCKER_REGISTRY_HUB,
-                upstream_repo_name=u'busybox',
-            )
-            self.assertIsNotNone(self.repository.search(repo_name))
-
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1167837)
-    def test_create_repo_docker_and_sync(self):
-        """@Test: Create and sync a Docker-based repository
-
-        @Feature: Content Repos - Positive Create
-
-        @Assert: Docker-based repo is created and synchronized.
-
-        """
-        # Creates new product
-        repo_name = gen_string('alpha', 8)
-        product = entities.Product(organization=self.organization).create()
-        with Session(self.browser) as session:
-            make_repository(
-                session,
-                org=self.organization.name,
-                name=repo_name,
-                product=product.name,
-                repo_type=REPO_TYPE['docker'],
-                url=DOCKER_REGISTRY_HUB,
-                upstream_repo_name=u'busybox'
-            )
-            self.assertIsNotNone(self.repository.search(repo_name))
-            # Synchronize it
-            self.navigator.go_to_sync_status()
-            synced = self.sync.sync_custom_repos(product.name, [repo_name])
-            self.assertTrue(synced)
-
-    @run_only_on('sat')
     @data(*generate_strings_list())
     def test_create_repo_with_checksum(self, repo_name):
         """@Test: Create repository with checksum type as sha256.
@@ -183,7 +130,6 @@ class Repos(UITestCase):
         @Assert: Repos is created with checksum type as sha256.
 
         """
-        locator = locators['repo.fetch_checksum']
         checksum = CHECKSUM_TYPE[u'sha256']
         # Creates new product
         product = entities.Product(organization=self.organization).create()
@@ -196,10 +142,8 @@ class Repos(UITestCase):
                 url=FAKE_1_YUM_REPO,
                 repo_checksum=checksum,
             )
-            self.repository.search(repo_name).click()
-            self.repository.wait_for_ajax()
-            checksum_text = session.nav.wait_until_element(locator).text
-            self.assertEqual(checksum_text, checksum)
+            self.assertTrue(self.repository.validate_field(
+                repo_name, 'checksum', checksum))
 
     @run_only_on('sat')
     @data('', '   ')
@@ -289,7 +233,6 @@ class Repos(UITestCase):
         @Assert: Repo is updated with new url
 
         """
-        locator = locators['repo.fetch_url']
         product = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
             make_repository(
@@ -300,15 +243,15 @@ class Repos(UITestCase):
                 url=FAKE_1_YUM_REPO,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.repository.search(repo_name).click()
-            self.repository.wait_for_ajax()
-            url_text = self.repository.wait_until_element(locator).text
-            self.assertEqual(url_text, FAKE_1_YUM_REPO)
+            self.assertTrue(self.repository.validate_field(
+                repo_name, 'url', FAKE_1_YUM_REPO))
             self.navigator.go_to_products()
             self.products.search(product.name).click()
             self.repository.update(repo_name, new_url=FAKE_2_YUM_REPO)
-            url_text = self.repository.wait_until_element(locator).text
-            self.assertEqual(url_text, FAKE_2_YUM_REPO)
+            self.navigator.go_to_products()
+            self.products.search(product.name).click()
+            self.assertTrue(self.repository.validate_field(
+                repo_name, 'url', FAKE_2_YUM_REPO))
 
     @run_only_on('sat')
     @data(*generate_strings_list())
@@ -322,8 +265,6 @@ class Repos(UITestCase):
         """
         key_1_content = read_data_file(VALID_GPG_KEY_FILE)
         key_2_content = read_data_file(VALID_GPG_KEY_BETA_FILE)
-        locator = locators['repo.fetch_gpgkey']
-
         # Create two new GPGKey's
         gpgkey_1 = entities.GPGKey(
             content=key_1_content,
@@ -345,15 +286,15 @@ class Repos(UITestCase):
                 gpg_key=gpgkey_1.name,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.repository.search(repo_name).click()
-            self.repository.wait_for_ajax()
-            gpgkey_1_text = self.repository.wait_until_element(locator).text
-            self.assertEqual(gpgkey_1_text, gpgkey_1.name)
+            self.assertTrue(self.repository.validate_field(
+                repo_name, 'gpgkey', gpgkey_1.name))
             self.navigator.go_to_products()
             self.products.search(product.name).click()
             self.repository.update(repo_name, new_gpg_key=gpgkey_2.name)
-            gpgkey_2_text = self.repository.wait_until_element(locator).text
-            self.assertEqual(gpgkey_2_text, gpgkey_2.name)
+            self.navigator.go_to_products()
+            self.products.search(product.name).click()
+            self.assertTrue(self.repository.validate_field(
+                repo_name, 'gpgkey', gpgkey_2.name))
 
     @run_only_on('sat')
     @data(*generate_strings_list())
@@ -365,7 +306,6 @@ class Repos(UITestCase):
         @Assert: Repo is updated with new checksum type.
 
         """
-        locator = locators['repo.fetch_checksum']
         checksum_default = CHECKSUM_TYPE['default']
         checksum_update = CHECKSUM_TYPE['sha1']
 
@@ -379,16 +319,16 @@ class Repos(UITestCase):
                 url=FAKE_1_YUM_REPO,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.repository.search(repo_name).click()
-            self.repository.wait_for_ajax()
-            checksum_text = self.repository.wait_until_element(locator).text
-            self.assertEqual(checksum_text, checksum_default)
+            self.assertTrue(self.repository.validate_field(
+                repo_name, 'checksum', checksum_default))
             self.navigator.go_to_products()
             self.products.search(product.name).click()
             self.repository.update(
                 repo_name, new_repo_checksum=checksum_update)
-            checksum_text = self.repository.wait_until_element(locator).text
-            self.assertEqual(checksum_text, checksum_update)
+            self.navigator.go_to_products()
+            self.products.search(product.name).click()
+            self.assertTrue(self.repository.validate_field(
+                repo_name, 'checksum', checksum_update))
 
     @run_only_on('sat')
     @data(*generate_strings_list())
