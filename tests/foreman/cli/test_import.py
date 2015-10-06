@@ -25,6 +25,12 @@ from robottelo.helpers import prepare_import_data
 from robottelo.test import CLITestCase
 
 
+def clean_transdata():
+    """Remove transition dataset
+    """
+    ssh.command(u'rm -rf "${HOME}"/.transition_data "${HOME}"/puppet_work_dir')
+
+
 def build_csv_file(rows=None, dirname=None):
     """Generate a csv file, feed it by the provided data
     (a list of dictionary objects) and return a path to it
@@ -413,14 +419,8 @@ class TestImport(CLITestCase):
 
     @classmethod
     def tearDownClass(cls):
-        super(TestImport, cls).tearDownClass()
         ssh.command(u'rm -r {0}'.format(cls.default_dataset[0]))
-
-    def tearDown(self):
-        # remove the dataset
-        ssh.command(
-            u'rm -rf "${HOME}"/.transition_data "${HOME}"/puppet_work_dir'
-        )
+        super(TestImport, cls).tearDownClass()
 
     def test_import_orgs_default(self):
         """@test: Import all organizations from the default data set
@@ -440,6 +440,7 @@ class TestImport(CLITestCase):
                 # now to check whether the orgs from csv appeared in satellite
                 for org in Import.csv_to_dataset([files['users']]):
                     Org.info({'name': org['organization']})
+                clean_transdata()
 
     def test_import_orgs_manifests(self):
         """@test: Import all organizations from the default data set
@@ -470,6 +471,7 @@ class TestImport(CLITestCase):
                         'organization': org,
                     })[3]
                     self.assertIn('SUCCESS', manifest_history)
+                clean_transdata()
 
     def test_reimport_orgs_default_negative(self):
         """@test: Try to Import all organizations from the predefined source
@@ -489,6 +491,7 @@ class TestImport(CLITestCase):
                 orgs_before = Org.list()
                 Import.organization({'csv-file': files['users']})
                 self.assertEqual(orgs_before, Org.list())
+                clean_transdata()
 
     def test_import_orgs_recovery(self):
         """@test: Try to Import organizations with the same name to invoke
@@ -537,6 +540,7 @@ class TestImport(CLITestCase):
                 Import.organization({
                     'csv-file': files['users'], 'delete': True
                 })
+                clean_transdata()
 
     def test_merge_orgs(self):
         """@test: Try to Import all organizations and their users from CSV
@@ -573,6 +577,7 @@ class TestImport(CLITestCase):
                     for user in Import.csv_to_dataset([files['users']])
                 )
                 self.assertTrue(all((user in logins for user in imp_users)))
+                clean_transdata()
 
     def test_import_users_default(self):
         """@test: Import all 3 users from the default data set (predefined
@@ -601,6 +606,7 @@ class TestImport(CLITestCase):
                     for user in Import.csv_to_dataset([files['users']])
                 )
                 self.assertTrue(imp_users.issubset(logins))
+                clean_transdata()
 
     def test_reimport_users_default_negative(self):
         """@test: Try to Import all users from the
@@ -629,6 +635,7 @@ class TestImport(CLITestCase):
                 })
                 users_after = set(user['login'] for user in User.list())
                 self.assertTrue(users_after.issubset(users_before))
+                clean_transdata()
 
     def test_import_users_merge(self):
         """@test: Try to Merge users with the same name using 'merge-users'
@@ -666,6 +673,7 @@ class TestImport(CLITestCase):
                 })
                 for record in import_merge[1]:
                     self.assertNotEqual(User.info({'id': record['sat6']}), '')
+                clean_transdata()
 
     def test_import_users_recovery(self):
         """@test: Try to Import users with the same name to invoke
@@ -726,6 +734,7 @@ class TestImport(CLITestCase):
 
                 # do the cleanup
                 ssh.command(u'rm -rf {0}'.format(' '.join(pwdfiles)))
+                clean_transdata()
 
     def test_import_host_collections_default(self):
         """@test: Import all System Groups from the default data set
@@ -760,6 +769,7 @@ class TestImport(CLITestCase):
                         ),
                         []
                     )
+                clean_transdata()
 
     def test_reimport_host_collections_default_negative(self):
         """@test: Try to re-import all System Groups from the default data set
@@ -791,6 +801,7 @@ class TestImport(CLITestCase):
                     for tr in import_org[1]
                 ]
                 self.assertEqual(hcollections_before, hcollections_after)
+                clean_transdata()
 
     def test_import_host_collections_recovery(self):
         """@test: Try to Import Collections with the same name to invoke
@@ -852,6 +863,7 @@ class TestImport(CLITestCase):
                 })
                 for record in import_hc_map[1]:
                     HostCollection.info({'id': record['sat6']})
+                clean_transdata()
 
     def test_import_repo_default(self):
         """@test: Import and enable all Repositories from the default data set
@@ -889,6 +901,7 @@ class TestImport(CLITestCase):
                         Repository.list({'organization-id': imp_org['sat6']}),
                         [],
                     )
+                clean_transdata()
 
     def test_reimport_repo_negative(self):
         """@test: Import and enable all Repositories from the default data set
@@ -938,6 +951,7 @@ class TestImport(CLITestCase):
                         for imp_org in imp_orgs
                     ]
                 )
+                clean_transdata()
 
     def test_import_repo_recovery(self):
         """@test: Try to Import Repos with the same name to invoke
@@ -999,6 +1013,7 @@ class TestImport(CLITestCase):
                 })
                 for record in import_repo_map[1][1]:
                     Repository.info({'id': record['sat6']})
+                clean_transdata()
 
     def test_import_cv_default(self):
         """@test: Import and enable all Content Views from the default data set
@@ -1041,6 +1056,7 @@ class TestImport(CLITestCase):
                         ContentView.list({'organization-id': imp_org['sat6']}),
                         []
                     )
+                clean_transdata()
 
     def test_reimport_cv_negative(self):
         """@test: Import and enable all Content Views from the default data set
@@ -1093,6 +1109,7 @@ class TestImport(CLITestCase):
                         for imp_org in imp_orgs
                     ]
                 )
+                clean_transdata()
 
     def test_import_cv_recovery(self):
         """@test: Try to Import Content Views with the same name to invoke
@@ -1164,6 +1181,7 @@ class TestImport(CLITestCase):
                 })
                 for record in import_cvs_map[1]:
                     ContentView.info({'id': record['sat6']})
+                clean_transdata()
 
     def test_bz1160847_translate_macros(self):
         """@test: Check whether all supported Sat5 macros are being properly
@@ -1276,6 +1294,7 @@ class TestImport(CLITestCase):
             cat_cmd.stdout[:-1],
             [fact['name'] + '=' + fact['fact'] for fact in test_data],
         )
+        clean_transdata()
 
     def test_import_enable_rh_repos(self):
         """@test: Import and enable all red hat repositories from predefined
@@ -1323,6 +1342,7 @@ class TestImport(CLITestCase):
                         }),
                         []
                     )
+                clean_transdata()
 
     def test_reimport_enable_rh_repos_negative(self):
         """@test: Repetitive Import and enable of all red hat repositories from
@@ -1366,6 +1386,7 @@ class TestImport(CLITestCase):
                         import_org[1], files['channels']
                     )
                 )
+                clean_transdata()
 
     def test_import_content_hosts_default(self):
         """@test: Import all content hosts from
@@ -1394,6 +1415,7 @@ class TestImport(CLITestCase):
                         ContentHost.list({'organization-id': imp_org['sat6']}),
                         []
                     )
+                clean_transdata()
 
     def test_reimport_content_hosts_negative(self):
         """@test: Repetitive Import of all content hosts from
@@ -1432,6 +1454,7 @@ class TestImport(CLITestCase):
                     ],
                     chosts_before
                 )
+                clean_transdata()
 
     @skip_if_bug_open('bugzilla', 1267224)
     def test_import_content_hosts_recovery_negative(self):
@@ -1462,6 +1485,7 @@ class TestImport(CLITestCase):
                         u'export-directory': tmp_dir,
                         u'recover': u'rename',
                     })
+                clean_transdata()
 
     def test_import_snippets_default(self):
         """@test: Import template snippets from the default data set
@@ -1498,3 +1522,4 @@ class TestImport(CLITestCase):
                     template = Template.info({u'id': row[u'sat6']})
                     self.assertTrue(template[u'id'] in diff_ids)
                     self.assertTrue(template[u'type'] == u'snippet')
+                clean_transdata()
