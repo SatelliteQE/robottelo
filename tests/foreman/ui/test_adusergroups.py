@@ -1,5 +1,5 @@
+# pylint: disable=invalid-name
 """Test class for Active Directory Feature"""
-from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import conf
@@ -14,7 +14,6 @@ from robottelo.ui.session import Session
 from selenium.webdriver.common.action_chains import ActionChains
 
 
-@ddt
 class ADUserGroups(UITestCase):
     """Implements Active Directory feature tests in UI."""
 
