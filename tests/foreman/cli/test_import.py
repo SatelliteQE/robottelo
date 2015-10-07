@@ -10,6 +10,7 @@ from itertools import product
 from random import sample
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import make_org
@@ -419,6 +420,35 @@ def gen_import_config_files_data():
             u'org_id': org_ids[i],
         })
     return (random_data,)
+
+
+def gen_import_ak_data():
+    """Random data for AK Import tests"""
+    return ({
+        u'users': [{
+            u'key': 'organization_id',
+            u'key_id': type(u'')(i + 1),
+            u'organization': gen_string('alphanumeric'),
+        } for i in range(3)],
+        u'content-views': [{
+            u'key': u'org_id',
+            u'key_id': type(u'')(i + 1),
+            u'channel_name': gen_string('alphanumeric'),
+            u'channel_label': gen_string('alphanumeric'),
+        } for i in range(3)],
+        u'system-groups': [{
+            u'key': u'org_id',
+            u'key_id': type(u'')(i + 1),
+            u'name': gen_string('alphanumeric'),
+        } for i in range(3)],
+        u'activation-keys': [{
+            u'key': u'org_id',
+            u'key_id': type(u'')(i + 1),
+            u'token': type(u'')(i + 1) + '-' + gen_string('utf8'),
+            u'base_channel_id': u'110',
+            u'child_channel_id': u'None;111',
+        } for i in range(3)],
+    },)
 
 
 class TestImport(CLITestCase):
@@ -1624,4 +1654,71 @@ class TestImport(CLITestCase):
                     for rec in imp_configs
                 ]
                 self.assertEqual(cf_before, cf_after)
+                clean_transdata()
+
+    def test_import_ak_default(self):
+        """@test: Import AKs from the default data set
+        (predefined source)
+
+        @feature: Import AK
+
+        @assert: 3 AKs imported
+
+        """
+        for test_data in gen_import_ak_data():
+            with self.subTest(test_data):
+                # randomize the values for orgs and repos
+                tmp_dir = self.default_dataset[0]
+                files = dict(self.default_dataset[1])
+                files = update_csv_values(files, test_data, tmp_dir)
+                # import the prerequisities
+                import_org = Import.organization_with_tr_data({
+                    'csv-file': files['users'],
+                })
+                map_orgs = import_org[1]
+                Import.host_collection_with_tr_data({
+                    'csv-file': files['system-groups'],
+                    'verbose': True,
+                })
+                Import.repository_with_tr_data({
+                    'csv-file': files['repositories'],
+                    'verbose': True,
+                    'synchronize': True,
+                    'wait': True,
+                })
+                Import.content_view_with_tr_data({
+                    'csv-file': files['content-views'],
+                    'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
+                    'verbose': True,
+                })
+                # list and save AKs before import
+                aks_before = [
+                    ak for row in map_orgs
+                    for ak in ActivationKey.list(
+                        {'organization-id': row[u'sat6']})
+                ]
+                # now proceed with AK import
+                import_ak = Import.activation_key_with_tr_data({
+                    'csv-file': files['activation-keys'],
+                    'verbose': True,
+                })
+                map_aks = import_ak[1]
+                # list and save AKs after import
+                aks_after = [
+                    ak for row in map_orgs
+                    for ak in ActivationKey.list(
+                        {'organization-id': row[u'sat6']})
+                ]
+                # difference between before and after import
+                aks_diff = [d for d in aks_after if d not in aks_before]
+                diff_ids = [d[u'id'] for d in aks_diff]
+                # now check whether all AKs from csv are imported
+                for row in map_aks:
+                    ak = ActivationKey.info({u'id': row[u'sat6']})
+                    self.assertTrue(ak[u'id'] in diff_ids)
+                for row in map_orgs:
+                    self.assertNotEqual(
+                        ActivationKey.list({'organization-id': row['sat6']}),
+                        []
+                    )
                 clean_transdata()
