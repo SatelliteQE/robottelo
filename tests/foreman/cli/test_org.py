@@ -4,6 +4,7 @@
 import random
 
 from fauxfactory import gen_string
+from random import randint
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     make_domain, make_hostgroup, make_lifecycle_environment,
@@ -18,13 +19,19 @@ from robottelo.test import CLITestCase
 
 
 def valid_names():
-    """Random data for positive creation"""
+    """Random data for positive creation
+
+    Note: The maximum allowed length of org name is 242 only. This is an
+    intended behavior (Also note that 255 is the standard across other
+    entities.)
+
+    """
     return (
         {'name': gen_string("latin1")},
         {'name': gen_string("utf8")},
-        {'name': gen_string("alpha")},
-        {'name': gen_string("alphanumeric")},
-        {'name': gen_string("numeric")},
+        {'name': gen_string("alpha", randint(1, 242))},
+        {'name': gen_string("alphanumeric", randint(1, 242))},
+        {'name': gen_string("numeric", randint(1, 242))},
         {'name': gen_string("html")},
     )
 
@@ -49,20 +56,32 @@ def valid_name_label_combo():
 
 
 def valid_names_simple():
-    """Random data for alpha, numeric and alphanumeric"""
+    """Random data for alpha, numeric and alphanumeric
+
+    Note: The maximum allowed length of org name is 242 only. This is an
+    intended behavior (Also note that 255 is the standard across other
+    entities.)
+
+    """
     return(
-        gen_string('alpha'),
-        gen_string('numeric'),
-        gen_string('alphanumeric')
+        gen_string('alpha', randint(1, 242)),
+        gen_string('numeric', randint(1, 242)),
+        gen_string('alphanumeric', randint(1, 242))
     )
 
 
 def valid_names_simple_all():
-    """Random data for alpha, numeric and alphanumeric"""
+    """Random data for alpha, numeric and alphanumeric
+
+    Note: The maximum allowed length of org name is 242 only. This is an
+    intended behavior (Also note that 255 is the standard across other
+    entities.)
+
+    """
     return(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
+        gen_string('alpha', randint(1, 242)),
+        gen_string('alphanumeric', randint(1, 242)),
+        gen_string('numeric', randint(1, 242)),
         gen_string('latin1', 15),
         gen_string('utf8', 15),
         )
@@ -73,17 +92,21 @@ def valid_name_label():
 
     Label cannot contain characters other than ascii alpha numerals, '_', '-'.
 
+    Note: The maximum allowed length of org name is 242 only. This is an
+    intended behavior (Also note that 255 is the standard across other
+    entities.)
+
     """
     return (
         {'name': gen_string("latin1"),
          'label': gen_string("alpha")},
         {'name': gen_string("utf8"),
          'label': gen_string("alpha")},
-        {'name': gen_string("alpha"),
+        {'name': gen_string("alpha", randint(1, 242)),
          'label': gen_string("alpha")},
-        {'name': gen_string("alphanumeric"),
+        {'name': gen_string("alphanumeric", randint(1, 242)),
          'label': gen_string("alpha")},
-        {'name': gen_string("numeric"),
+        {'name': gen_string("numeric", randint(1, 242)),
          'label': gen_string("alpha")},
         {'name': gen_string("html"),
          'label': gen_string("alpha")},
@@ -91,17 +114,23 @@ def valid_name_label():
 
 
 def valid_name_desc():
-    """Random data for Descriptions tests"""
+    """Random data for Descriptions tests
+
+    Note: The maximum allowed length of org name is 242 only. This is an
+    intended behavior (Also note that 255 is the standard across other
+    entities.)
+
+    """
     return (
         {'name': gen_string("latin1"),
          'description': gen_string("latin1")},
         {'name': gen_string("utf8"),
          'description': gen_string("utf8")},
-        {'name': gen_string("alpha"),
+        {'name': gen_string("alpha", randint(1, 242)),
          'description': gen_string("alpha")},
-        {'name': gen_string("alphanumeric"),
+        {'name': gen_string("alphanumeric", randint(1, 242)),
          'description': gen_string("alphanumeric")},
-        {'name': gen_string("numeric"),
+        {'name': gen_string("numeric", randint(1, 242)),
          'description': gen_string("numeric")},
         {'name': gen_string("html"),
          'description': gen_string("html")},
@@ -109,15 +138,21 @@ def valid_name_desc():
 
 
 def valid_name_desc_label():
-    """Random data for Labels and Description"""
+    """Random data for Labels and Description
+
+    Note: The maximum allowed length of org name is 242 only. This is an
+    intended behavior (Also note that 255 is the standard across other
+    entities.)
+
+    """
     return (
-        {'name': gen_string("alpha"),
+        {'name': gen_string("alpha", randint(1, 242)),
          'description': gen_string("alpha"),
          'label': gen_string("alpha")},
-        {'name': gen_string("alphanumeric"),
+        {'name': gen_string("alphanumeric", randint(1, 242)),
          'description': gen_string("alphanumeric"),
          'label': gen_string("alpha")},
-        {'name': gen_string("numeric"),
+        {'name': gen_string("numeric", randint(1, 242)),
          'description': gen_string("numeric"),
          'label': gen_string("alpha")},
         {'name': gen_string("html"),
