@@ -52,6 +52,9 @@ API_PATHS = {
         u'/api/architectures/:id',
         u'/api/architectures/:id',
     ),
+    u'arf_reports': (
+        u'/api/arf/:cname/:policy_id/:date',
+    ),
     u'audits': (
         u'/api/audits',
         u'/api/audits/:id',
@@ -482,6 +485,13 @@ API_PATHS = {
         u'/api/realms/:id',
         u'/api/realms/:id',
     ),
+    u'registries': (
+        u'/docker/api/v2/registries',
+        u'/docker/api/v2/registries',
+        u'/docker/api/v2/registries/:id',
+        u'/docker/api/v2/registries/:id',
+        u'/docker/api/v2/registries/:id',
+    ),
     u'reports': (
         u'/api/hosts/:host_id/reports/last',
         u'/api/reports',
@@ -519,6 +529,9 @@ API_PATHS = {
         u'/api/roles/:id',
     ),
     u'root': (),
+    u'scaptimony_policies': (
+        u'/api/v2/compliance/policies/:id/content',
+    ),
     u'settings': (
         u'/api/settings',
         u'/api/settings/:id',
