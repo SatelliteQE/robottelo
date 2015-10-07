@@ -109,8 +109,8 @@ class Base(object):
             raise CLIReturnCodeError(
                 response.return_code,
                 response.stderr,
-                "Command '{0} {1}' finished with return_code {2}\n"
-                "stderr contains following message:\n{3}"
+                u'Command "{0} {1}" finished with return_code {2}\n'
+                'stderr contains following message:\n{3}'
                 .format(
                     cls.command_base,
                     cls.command_sub,
@@ -120,7 +120,7 @@ class Base(object):
             )
         if len(response.stderr) != 0 and not ignore_stderr:
             cls.logger.warning(
-                'stderr contains following message:\n{0}'
+                u'stderr contains following message:\n{0}'
                 .format(response.stderr)
             )
         return response.stdout
