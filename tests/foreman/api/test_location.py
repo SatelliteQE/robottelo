@@ -9,8 +9,27 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
-from robottelo.helpers import valid_data_list, invalid_values_list
+from robottelo.helpers import invalid_values_list
 from robottelo.test import APITestCase
+
+
+def valid_loc_data_list():
+    """List of valid data for input testing.
+
+    Note: The maximum allowed length of location name is 246 only. This is an
+    intended behavior (Also note that 255 is the standard across other
+    entities.)
+
+    """
+    return [
+        gen_string('alphanumeric', randint(1, 246)),
+        gen_string('alpha', randint(1, 246)),
+        gen_string('cjk', randint(1, 85)),
+        gen_string('latin1', randint(1, 246)),
+        gen_string('numeric', randint(1, 246)),
+        gen_string('utf8', randint(1, 85)),
+        gen_string('html', randint(1, 85)),
+    ]
 
 
 class LocationTestCase(APITestCase):
@@ -26,7 +45,7 @@ class LocationTestCase(APITestCase):
         @Feature: Location
 
         """
-        for name in valid_data_list():
+        for name in valid_loc_data_list():
             with self.subTest(name):
                 location = entities.Location(name=name).create()
                 self.assertEqual(location.name, name)
@@ -215,7 +234,7 @@ class LocationTestCase(APITestCase):
         @Feature: Location - Update
 
         """
-        for new_name in valid_data_list():
+        for new_name in valid_loc_data_list():
             with self.subTest(new_name):
                 location = entities.Location().create()
                 location.name = new_name
@@ -229,7 +248,7 @@ class LocationTestCase(APITestCase):
         @Feature: Location - Update
 
         """
-        for new_description in valid_data_list():
+        for new_description in valid_loc_data_list():
             with self.subTest(new_description):
                 location = entities.Location().create()
                 location.description = new_description
