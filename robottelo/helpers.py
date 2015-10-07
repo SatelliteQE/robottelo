@@ -217,7 +217,17 @@ def valid_names_list():
 
 
 def valid_data_list():
-    """List of valid data for input testing."""
+    """List of valid data for input testing.
+
+    Note:
+    Although this helper is widely used for different attributes for several
+    entities, the following are known behaviors and are handled specifically in
+    the corresponding test modules::
+
+        Org - name max length is 242
+        Loc - name max length is 246
+
+    """
     return [
         gen_string('alphanumeric', randint(1, 255)),
         gen_string('alpha', randint(1, 255)),
