@@ -103,7 +103,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 ).create()
                 self.assertEqual(sync_plan.enabled, enabled)
 
-    def test_create_random_name(self, name):
+    def test_create_random_name(self):
         """@Test: Create a sync plan with a random name.
 
         @Assert: A sync plan is created with the specified name.
@@ -143,7 +143,7 @@ class SyncPlanCreateTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
-        for interval in valid_sync_interval:
+        for interval in valid_sync_interval():
             with self.subTest(interval):
                 sync_plan = entities.SyncPlan(
                     interval=interval,
@@ -170,7 +170,7 @@ class SyncPlanCreateTestCase(APITestCase):
                     sync_plan.sync_date
                 )
 
-    def test_create_invalid_name(self, name):
+    def test_create_invalid_name(self):
         """@Test: Create a sync plan with an invalid name.
 
         @Assert: A sync plan can not be created with the specified name.
@@ -186,7 +186,7 @@ class SyncPlanCreateTestCase(APITestCase):
                         organization=self.org
                     ).create()
 
-    def test_create_invalid_interval(self, interval):
+    def test_create_invalid_interval(self):
         """@Test: Create a sync plan with invalid interval specified.
 
         @Assert: A sync plan can not be created with invalid interval specified
@@ -292,7 +292,7 @@ class SyncPlanUpdateTestCase(APITestCase):
         @Feature: SyncPlan
 
         """
-        for interval in valid_sync_interval:
+        for interval in valid_sync_interval():
             with self.subTest(interval):
                 sync_plan = entities.SyncPlan(organization=self.org)
                 result = sync_plan.get_fields()['interval']
@@ -342,7 +342,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     sync_plan.update(['name'])
 
-    def test_update_invalid_interval(self, interval):
+    def test_update_invalid_interval(self):
         """@Test: Try to update a sync plan with invalid interval.
 
         @Assert: A sync plan can not be updated with empty interval specified.
