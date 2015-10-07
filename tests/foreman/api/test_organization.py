@@ -9,15 +9,34 @@ import httplib
 
 from fauxfactory import gen_alphanumeric, gen_string
 from nailgun import client, entities
+from random import randint
 from requests.exceptions import HTTPError
 from robottelo.decorators import skip_if_bug_open
 from robottelo.helpers import (
     get_nailgun_config,
     get_server_credentials,
-    invalid_values_list,
-    valid_data_list,
+    invalid_values_list
 )
 from robottelo.test import APITestCase
+
+
+def valid_org_data_list():
+    """List of valid data for input testing.
+
+    Note: The maximum allowed length of org name is 242 only. This is an
+    intended behavior (Also note that 255 is the standard across other
+    entities.)
+
+    """
+    return [
+        gen_string('alphanumeric', randint(1, 242)),
+        gen_string('alpha', randint(1, 242)),
+        gen_string('cjk', randint(1, 85)),
+        gen_string('latin1', randint(1, 242)),
+        gen_string('numeric', randint(1, 242)),
+        gen_string('utf8', randint(1, 85)),
+        gen_string('html', randint(1, 85)),
+    ]
 
 
 class OrganizationTestCase(APITestCase):
@@ -96,7 +115,7 @@ class OrganizationTestCase(APITestCase):
         @Feature: Organization
 
         """
-        for name in valid_data_list():
+        for name in valid_org_data_list():
             with self.subTest(name):
                 org = entities.Organization(
                     name=name,
@@ -185,7 +204,7 @@ class OrganizationUpdateTestCase(APITestCase):
         @Feature: Organization
 
         """
-        for name in valid_data_list():
+        for name in valid_org_data_list():
             with self.subTest(name):
                 setattr(self.organization, 'name', name)
                 self.organization = self.organization.update(['name'])
@@ -199,7 +218,7 @@ class OrganizationUpdateTestCase(APITestCase):
         @Feature: Organization
 
         """
-        for desc in valid_data_list():
+        for desc in valid_org_data_list():
             with self.subTest(desc):
                 setattr(self.organization, 'description', desc)
                 self.organization = self.organization.update(['description'])
