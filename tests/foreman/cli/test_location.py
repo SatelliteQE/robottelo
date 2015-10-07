@@ -19,8 +19,27 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.location import Location
 from robottelo.decorators import skip_if_bug_open
-from robottelo.helpers import valid_data_list, invalid_values_list
+from robottelo.helpers import invalid_values_list
 from robottelo.test import CLITestCase
+
+
+def valid_loc_data_list():
+    """List of valid data for input testing.
+
+    Note: The maximum allowed length of location name is 246 only.  This is an
+    intended behavior (Also note that 255 is the standard across other
+    entities.)
+
+    """
+    return [
+        gen_string('alphanumeric', randint(1, 246)),
+        gen_string('alpha', randint(1, 246)),
+        gen_string('cjk', randint(1, 85)),
+        gen_string('latin1', randint(1, 246)),
+        gen_string('numeric', randint(1, 246)),
+        gen_string('utf8', randint(1, 85)),
+        gen_string('html', randint(1, 85)),
+    ]
 
 
 class TestLocation(CLITestCase):
@@ -35,7 +54,7 @@ class TestLocation(CLITestCase):
         @Assert: Location is created successfully and has proper name
 
         """
-        for name in valid_data_list():
+        for name in valid_loc_data_list():
             with self.subTest(name):
                 loc = make_location({'name': name})
                 self.assertEqual(loc['name'], name)
@@ -374,7 +393,7 @@ class TestLocation(CLITestCase):
 
         """
         loc = make_location()
-        for new_name in valid_data_list():
+        for new_name in valid_loc_data_list():
             with self.subTest(new_name):
                 Location.update({
                     'id': loc['id'],
@@ -544,7 +563,7 @@ class TestLocation(CLITestCase):
         @Assert: Location is deleted successfully
 
         """
-        for name in valid_data_list():
+        for name in valid_loc_data_list():
             with self.subTest(name):
                 loc = make_location({'name': name})
                 self.assertEqual(loc['name'], name)
