@@ -173,20 +173,23 @@ def verify_rh_repos(tr_data, channels_file):
     return repo_list, cv_list
 
 
-def get_sat6_id(entity_dict, transition_dict, key='sat5'):
+def get_sat6_id(
+    entity_dict, transition_dict, tr_key='sat5', ent_key='organization_id'
+):
     """Updates the dictionary of the import entity with 'sat6' key/value pairs
     for keeping the Satellite 6 referrence to the imported entity
-
     :param entity_dict: A dictionary holding the info for an entity to be
         imported (typically a product of csv_to_dataset())
     :param transition_dict: A dictionary holding the transition data for the
         imported entity (typically a product of Import.*_with_tr_data())
-    :param key: A string identifying a key field to identify an entity id
+    :param tr_key: A string identifying a transition key field to identify
+        an entity id
+    :param ent_key: A string identifying entity key field to identify
+        an entity id
     :returns: entity_dict updated by 'sat6' key/value pair
-
     """
     for entity, tr_record in product(entity_dict, transition_dict):
-        if tr_record[key] == entity['organization_id']:
+        if tr_record[tr_key] == entity[ent_key]:
             entity.update({'sat6': tr_record['sat6']})
     return entity_dict
 
@@ -395,6 +398,25 @@ def gen_import_snippet_data():
             u'kickstart_label': gen_string('utf8'),
             u'script_type': sample([u'pre', u'post'], 1).pop(),
             u'chroot': sample([u'Y', u'N'], 1).pop(),
+        })
+    return (random_data,)
+
+
+def gen_import_config_files_data():
+    """Random data for Config File Import tests"""
+    org_ids = [type(u'')(org_id) for org_id in sample(range(1, 1000), 3)]
+    random_data = {'users': [], 'config-files-latest': []}
+    for i in range(len(org_ids)):
+        random_data['users'].append({
+            u'key': 'organization_id',
+            u'key_id': type(u'')(i + 1),
+            u'organization_id': org_ids[i],
+            u'organization': gen_string('alphanumeric'),
+        })
+        random_data['config-files-latest'].append({
+            u'key': 'org_id',
+            u'key_id': type(u'')(i + 1),
+            u'org_id': org_ids[i],
         })
     return (random_data,)
 
@@ -1522,4 +1544,84 @@ class TestImport(CLITestCase):
                     template = Template.info({u'id': row[u'sat6']})
                     self.assertTrue(template[u'id'] in diff_ids)
                     self.assertTrue(template[u'type'] == u'snippet')
+                clean_transdata()
+
+    def test_import_config_files_default(self):
+        """@test: Import all Config Files from the default data set
+        (predefined source)
+
+        @feature: Import Config Files
+
+        @assert: All Config Files are imported
+
+        """
+        for test_data in gen_import_config_files_data():
+            with self.subTest(test_data):
+                # randomize the values for orgs and repos
+                tmp_dir = self.default_dataset[0]
+                files = dict(self.default_dataset[1])
+                files = update_csv_values(files, test_data, tmp_dir)
+                # import the prerequisities
+                Import.organization_with_tr_data(
+                    {'csv-file': files['users']}
+                )
+                # now proceed with Config Files import
+                import_cf = Import.config_file_with_tr_data({
+                    'csv-file': files['config-files-latest'],
+                    'verbose': True,
+                })
+                configs = Import.csv_to_dataset([files['config-files-latest']])
+                imp_configs = get_sat6_id(
+                    configs,
+                    import_cf[1][1],
+                    'channel_id',
+                    'channel_id'
+                )
+                for rec in imp_configs:
+                    self.assertEqual(
+                        rec['channel'],
+                        Repository.info({'id': rec['sat6']})['name']
+                    )
+                clean_transdata()
+
+    def test_reimport_config_files_negative(self):
+        """@test: Repetitive Import of all Config Files from the default
+        data set (predefined source)
+
+        @feature: Repetitive Import Config Files
+
+        @assert: All Config Files are imported only once
+
+        """
+        for test_data in gen_import_config_files_data():
+            with self.subTest(test_data):
+                # randomize the values for orgs and repos
+                tmp_dir = self.default_dataset[0]
+                files = dict(self.default_dataset[1])
+                files = update_csv_values(files, test_data, tmp_dir)
+                # import the prerequisities
+                Import.organization_with_tr_data(
+                    {'csv-file': files['users']}
+                )
+                # initial import
+                import_cf = Import.config_file_with_tr_data({
+                    'csv-file': files['config-files-latest'],
+                    'verbose': True,
+                })
+                configs = Import.csv_to_dataset([files['config-files-latest']])
+                imp_configs = get_sat6_id(
+                    configs,
+                    import_cf[1][1],
+                    'channel_id',
+                    'channel_id'
+                )
+                cf_before = [
+                    Repository.info({'id': rec['sat6']})
+                    for rec in imp_configs
+                ]
+                cf_after = [
+                    Repository.info({'id': rec['sat6']})
+                    for rec in imp_configs
+                ]
+                self.assertEqual(cf_before, cf_after)
                 clean_transdata()
