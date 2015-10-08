@@ -9,21 +9,59 @@ When testing email validation [1] and [2] should be taken into consideration.
 
 """
 
-from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.factory import (
-    make_location,
-    make_org,
-    make_role,
-    make_user,
-)
+from robottelo.cli.factory import make_location, make_org, make_role, make_user
 from robottelo.cli.user import User as UserObj
-from robottelo.decorators import data, stubbed, skip_if_bug_open
+from robottelo.decorators import stubbed, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 
-@ddt
+def valid_data_user():
+    """Returns a list of valid data for user tests.
+
+    Note: utf8 data is being rejected by the satellite server so it is not
+    included
+
+    """
+    return [
+        gen_string("latin1"),
+        gen_string("alpha"),
+        gen_string("alphanumeric"),
+        gen_string("numeric"),
+    ]
+
+
+def valid_email_list():
+    """Returns a tuple of valid emails."""
+    return (
+        u'{0}@example.com'.format(gen_string('alpha')),
+        u'{0}@example.com'.format(gen_string('alphanumeric')),
+        u'{0}@example.com'.format(gen_string('numeric')),
+        u'{0}@example.com'.format(gen_string('alphanumeric', 48)),
+        u'{0}+{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
+        u'{0}.{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
+        u'"():;"@example.com',
+        r'!#$%&*+-/=?^`{|}~@example.com',
+    )
+
+
+def invalid_email_list():
+    """Returns a tuple of invalid emails."""
+    return (
+        'foreman@',
+        '@foreman',
+        '@',
+        'Abc.example.com',
+        'A@b@c@example.com',
+        'email@example..c',
+        '{0}@example.com'.format(gen_string('alpha', 49)),  # total length 61
+        '{0}@example.com'.format(gen_string('html')),
+        's p a c e s@example.com',
+        'dot..dot@example.com'
+    )
+
+
 class User(CLITestCase):
     """Implements Users tests in CLI
 
@@ -90,16 +128,7 @@ class User(CLITestCase):
             UserObj.info({'login': user['login']})
 
     # CRUD
-
-    @data(
-        {'login': gen_string("latin1")},
-        {'login': gen_string("utf8")},
-        {'login': gen_string("alpha")},
-        {'login': gen_string("alphanumeric")},
-        {'login': gen_string("numeric")},
-        {'login': gen_string("alphanumeric", 100)}
-    )
-    def test_positive_create_user_1(self, test_data):
+    def test_positive_create_user_1(self):
         """@Test: Create User for all variations of Username
 
         @Feature: User - Positive Create
@@ -111,18 +140,13 @@ class User(CLITestCase):
         @Assert: User is created
 
         """
-        user = make_user(test_data)
-        self.__assert_exists(user)
+        include_list = [gen_string("alphanumeric", 100)]
+        for login in valid_data_user() + include_list:
+            with self.subTest(login):
+                user = make_user({'login': login})
+                self.__assert_exists(user)
 
-    @data(
-        {'firstname': gen_string("latin1")},
-        {'firstname': gen_string("utf8")},
-        {'firstname': gen_string("alpha")},
-        {'firstname': gen_string("alphanumeric")},
-        {'firstname': gen_string("numeric")},
-        {'firstname': gen_string("alphanumeric", 50)}
-    )
-    def test_positive_create_user_2(self, test_data):
+    def test_positive_create_user_2(self):
         """@Test: Create User for all variations of First Name
 
         @Feature: User - Positive Create
@@ -134,18 +158,13 @@ class User(CLITestCase):
         @Assert: User is created
 
         """
-        user = make_user(test_data)
-        self.__assert_exists(user)
+        include_list = [gen_string("alphanumeric", 50)]
+        for firstname in valid_data_user() + include_list:
+            with self.subTest(firstname):
+                user = make_user({'firstname': firstname})
+                self.__assert_exists(user)
 
-    @data(
-        {'lastname': gen_string("latin1")},
-        {'lastname': gen_string("utf8")},
-        {'lastname': gen_string("alpha")},
-        {'lastname': gen_string("alphanumeric")},
-        {'lastname': gen_string("numeric")},
-        {'lastname': gen_string("alphanumeric", 50)}
-    )
-    def test_positive_create_user_3(self, test_data):
+    def test_positive_create_user_3(self):
         """@Test: Create User for all variations of Surname
 
         @Feature: User - Positive Create
@@ -157,20 +176,13 @@ class User(CLITestCase):
         @Assert: User is created
 
         """
-        user = make_user(test_data)
-        self.__assert_exists(user)
+        include_list = [gen_string("alphanumeric", 50)]
+        for lastname in valid_data_user() + include_list:
+            with self.subTest(lastname):
+                user = make_user({'lastname': lastname})
+                self.__assert_exists(user)
 
-    @data(
-        u'{0}@example.com'.format(gen_string('alpha')),
-        u'{0}@example.com'.format(gen_string('alphanumeric')),
-        u'{0}@example.com'.format(gen_string('numeric')),
-        u'{0}@example.com'.format(gen_string('alphanumeric', 48)),
-        u'{0}+{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
-        u'{0}.{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
-        u'"():;"@example.com',
-        r'!#$%&*+-/=?^`{|}~@example.com',
-    )
-    def test_positive_create_user_4(self, email):
+    def test_positive_create_user_4(self):
         """@Test: Create User for all variations of Email Address
 
         @Feature: User - Positive Create
@@ -182,19 +194,15 @@ class User(CLITestCase):
         @Assert: User is created
 
         """
-        # The email must be escaped because some characters to not fail the
-        # parsing of the generated shell command
-        escaped_email = email.replace('"', r'\"').replace('`', r'\`')
-        user = make_user({'mail': escaped_email})
-        self.assertEqual(user['email'], email)
+        for email in valid_email_list():
+            with self.subTest(email):
+                # The email must be escaped because some characters to not fail
+                # the parsing of the generated shell command
+                escaped_email = email.replace('"', r'\"').replace('`', r'\`')
+                user = make_user({'mail': escaped_email})
+                self.assertEqual(user['email'], email)
 
-    @data({'password': gen_string("latin1")},
-          {'password': gen_string("utf8")},
-          {'password': gen_string("alpha")},
-          {'password': gen_string("alphanumeric")},
-          {'password': gen_string("numeric")},
-          {'password': gen_string("alphanumeric", 3000)})
-    def test_positive_create_user_5(self, test_data):
+    def test_positive_create_user_5(self):
         """@Test: Create User for all variations of Password
 
         @Feature: User - Positive Create
@@ -206,8 +214,11 @@ class User(CLITestCase):
         @Assert: User is created
 
         """
-        user = make_user(test_data)
-        self.__assert_exists(user)
+        include_list = [gen_string("alphanumeric", 3000)]
+        for password in valid_data_user() + include_list:
+            with self.subTest(password):
+                user = make_user({'password': password})
+                self.__assert_exists(user)
 
     def test_positive_create_user_6(self):
         """@Test: Create an Admin user
@@ -564,11 +575,7 @@ class User(CLITestCase):
         """
         pass
 
-    @data({'login': ''},
-          {'login': 'space {0}'.format(gen_string('alpha'))},
-          {'login': gen_string('alpha', 101)},
-          {'login': gen_string('html')})
-    def test_negative_create_user_1(self, opts):
+    def test_negative_create_user_1(self):
         """@Test: Create User with invalid Username
 
         @Feature: User - Negative Create
@@ -580,19 +587,22 @@ class User(CLITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        options = {
-            'auth-source-id': 1,
-            'login': opts['login'],
-            'mail': 'root@localhost',
-            'password': gen_string('alpha'),
-        }
-        self.logger.debug(str(options))
-        with self.assertRaises(CLIReturnCodeError):
-            UserObj.create(options)
+        for invalid_name in ('',
+                             'space {0}'.format(gen_string('alpha')),
+                             gen_string('alpha', 101),
+                             gen_string('html')):
+            with self.subTest(invalid_name):
+                options = {
+                    'auth-source-id': 1,
+                    'login': invalid_name,
+                    'mail': 'root@localhost',
+                    'password': gen_string('alpha'),
+                }
+                self.logger.debug(str(options))
+                with self.assertRaises(CLIReturnCodeError):
+                    UserObj.create(options)
 
-    @data({'firstname': gen_string("alpha", 51)},
-          {'firstname': gen_string("html")})
-    def test_negative_create_user_2(self, opts):
+    def test_negative_create_user_2(self):
         """@Test: Create User with invalid Firstname
 
         @Feature: User - Negative Create
@@ -604,51 +614,43 @@ class User(CLITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        with self.assertRaises(CLIReturnCodeError):
-            UserObj.create({
-                'auth-source-id': 1,
-                'login': gen_string('alpha'),
-                'firstname': opts['firstname'],
-                'mail': 'root@localhost',
-                'password': gen_string('alpha'),
-            })
+        for invalid_firstname in (gen_string("alpha", 51),
+                                  gen_string("html")):
+            with self.subTest(invalid_firstname):
+                with self.assertRaises(CLIReturnCodeError):
+                    UserObj.create({
+                        'auth-source-id': 1,
+                        'login': gen_string('alpha'),
+                        'firstname': invalid_firstname,
+                        'mail': 'root@localhost',
+                        'password': gen_string('alpha'),
+                    })
 
-    @data({'lastname': gen_string("alpha", 51)},
-          {'lastname': gen_string("html")})
-    def test_negative_create_user_3(self, opts):
-        """@Test: Create User with invalid Surname
+    def test_negative_create_user_3(self):
+        """@Test: Create User with invalid lastname
 
         @Feature: User - Negative Create
 
         @Steps:
-        1. Create User for all invalid Surname in [2]
+        1. Create User for all invalid lastname in [2]
         using valid Username, First Name Email Address, Language, authorized by
 
         @Assert: User is not created. Appropriate error shown.
 
         """
-        with self.assertRaises(CLIReturnCodeError):
-            UserObj.create({
-                'auth-source-id': 1,
-                'login': gen_string('alpha'),
-                'lastname': opts['lastname'],
-                'mail': 'root@localhost',
-                'password': gen_string('alpha'),
-            })
+        for invalid_lastname in (gen_string("alpha", 51),
+                                 gen_string("html")):
+            with self.subTest(invalid_lastname):
+                with self.assertRaises(CLIReturnCodeError):
+                    UserObj.create({
+                        'auth-source-id': 1,
+                        'login': gen_string('alpha'),
+                        'lastname': invalid_lastname,
+                        'mail': 'root@localhost',
+                        'password': gen_string('alpha'),
+                    })
 
-    @data(
-        'foreman@',
-        '@foreman',
-        '@',
-        'Abc.example.com',
-        'A@b@c@example.com',
-        'email@example..c',
-        '{0}@example.com'.format(gen_string('alpha', 49)),  # total length 61
-        '{0}@example.com'.format(gen_string('html')),
-        's p a c e s@example.com',
-        'dot..dot@example.com'
-    )
-    def test_negative_create_user_4(self, email):
+    def test_negative_create_user_4(self):
         """@Test: Create User with invalid Email Address
 
         @Feature: User - Negative Create
@@ -660,15 +662,17 @@ class User(CLITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        with self.assertRaises(CLIReturnCodeError):
-            UserObj.create({
-                'auth-source-id': 1,
-                'firstname': gen_string('alpha'),
-                'lastname': gen_string('alpha'),
-                'login': gen_string('alpha'),
-                'mail': email,
-                'password': gen_string('alpha'),
-            })
+        for email in invalid_email_list():
+            with self.subTest(email):
+                with self.assertRaises(CLIReturnCodeError):
+                    UserObj.create({
+                        'auth-source-id': 1,
+                        'firstname': gen_string('alpha'),
+                        'lastname': gen_string('alpha'),
+                        'login': gen_string('alpha'),
+                        'mail': email,
+                        'password': gen_string('alpha'),
+                    })
 
     @skip_if_bug_open('bugzilla', 1204686)
     def test_bugzilla_1204686(self):
@@ -735,45 +739,30 @@ class User(CLITestCase):
                 'password': gen_string('alpha'),
             })
 
-    @data(
-        {'firstname': gen_string("latin1")},
-        {'firstname': gen_string("utf8")},
-        {'firstname': gen_string("alpha")},
-        {'firstname': gen_string("alphanumeric")},
-        {'firstname': gen_string("numeric")},
-    )
-    def test_positive_update_user_1(self, test_data):
-        """@Test: Update Username in User
+    def test_positive_update_user_1(self):
+        """@Test: Update firstname in User
 
         @Feature: User - Positive Update
 
         @Steps:
         1. Create User
-        2. Update User name for all variations in [1]
+        2. Update first name for all variations in [1]
 
         @Assert: User is updated
 
         """
         user = make_user()
-        # Update the user name
-        UserObj.update({
-            'firstname': test_data['firstname'],
-            'id': user['id'],
-        })
-        # Fetch the user again
-        result = UserObj.info({'id': user['id']})
-        user_name = result['name'].split(' ')
-        self.assertEqual(user_name[0], test_data['firstname'])
+        for new_firstname in valid_data_user():
+            with self.subTest(new_firstname):
+                UserObj.update({
+                    'firstname': new_firstname,
+                    'id': user['id'],
+                })
+                result = UserObj.info({'id': user['id']})
+                user_name = result['name'].split(' ')
+                self.assertEqual(user_name[0], new_firstname)
 
-    @data(
-        {'login': gen_string("latin1")},
-        {'login': gen_string("utf8")},
-        {'login': gen_string("alpha")},
-        {'login': gen_string("alphanumeric")},
-        {'login': gen_string("numeric")},
-        {'login': gen_string("alphanumeric", 100)}
-    )
-    def test_positive_update_user_2(self, test_data):
+    def test_positive_update_user_2(self):
         """@Test: Update Login in User
 
         @Feature: User
@@ -786,56 +775,40 @@ class User(CLITestCase):
 
         """
         user = make_user()
-        # Update the user login
-        UserObj.update({
-            'id': user['id'],
-            'login': test_data['login'],
-        })
-        # Fetch the user again
-        user = UserObj.info({'id': user['id']})
-        self.assertEqual(user['login'], test_data['login'])
+        include_list = [gen_string("alphanumeric", 100)]
+        for new_login in valid_data_user() + include_list:
+            with self.subTest(new_login):
+                UserObj.update({
+                    'id': user['id'],
+                    'login': new_login,
+                })
+                user = UserObj.info({'id': user['id']})
+                self.assertEqual(user['login'], new_login)
 
-    @data(
-        {'lastname': gen_string("latin1")},
-        {'lastname': gen_string("utf8")},
-        {'lastname': gen_string("alpha")},
-        {'lastname': gen_string("alphanumeric")},
-        {'lastname': gen_string("numeric")},
-    )
-    def test_positive_update_user_3(self, test_data):
-        """@Test: Update Surname in User
+    def test_positive_update_user_3(self):
+        """@Test: Update Lastname in User
 
         @Feature: User - Positive Update
 
         @Steps:
         1. Create User
-        2. Update Surname for all variations in [1]
+        2. Update Lastname for all variations in [1]
 
         @Assert: User is updated
 
         """
         user = make_user()
-        last_name_before = user['name'].split(' ')
-        # Update the last name
-        UserObj.update({
-            'id': user['id'],
-            'lastname': test_data['lastname'],
-        })
-        # Fetch the user again
-        user = UserObj.info({'id': user['id']})
-        last_name_after = user['name'].split(' ')
-        self.assertNotEqual(last_name_after[1], last_name_before[1])
-        self.assertEqual(last_name_after[1], test_data['lastname'])
+        for new_lastname in valid_data_user():
+            with self.subTest(new_lastname):
+                UserObj.update({
+                    'id': user['id'],
+                    'lastname': new_lastname,
+                })
+                user = UserObj.info({'id': user['id']})
+                last_name_after = user['name'].split(' ')
+                self.assertEqual(last_name_after[1], new_lastname)
 
-    @data(
-        gen_string("alpha"),
-        gen_string("alphanumeric"),
-        gen_string("numeric"),
-        '{0}+{1}'.format(gen_alphanumeric(), gen_alphanumeric()),
-        '{0}.{1}'.format(gen_alphanumeric(), gen_alphanumeric()),
-        r"!#$%&*+-/=?^`{|}~",
-    )
-    def test_positive_update_user_4(self, test_data):
+    def test_positive_update_user_4(self):
         """@Test: Update Email Address in User
 
         @Feature: User - Positive Update
@@ -848,17 +821,21 @@ class User(CLITestCase):
 
         """
         user = make_user()
-        # Update the mail
-        email = '{0}@example.com'.format(test_data)
-        UserObj.update({
-            'id': user['id'],
-            # escape ` to avoid bash syntax error
-            'mail': email.replace('`', r'\`'),
-        })
-        # Fetch the user again
-        result = UserObj.info({'id': user['id']})
-        self.assertNotEqual(result['email'], user['email'])
-        self.assertEqual(result['email'], email)
+        for data in (gen_string("alpha"),
+                     gen_string("alphanumeric"),
+                     gen_string("numeric"),
+                     '{0}+{1}'.format(gen_alphanumeric(), gen_alphanumeric()),
+                     '{0}.{1}'.format(gen_alphanumeric(), gen_alphanumeric()),
+                     r"!#$%&*+-/=?^`{|}~"):
+            with self.subTest(data):
+                email = '{0}@example.com'.format(data)
+                UserObj.update({
+                    'id': user['id'],
+                    # escape ` to avoid bash syntax error
+                    'mail': email.replace('`', r'\`'),
+                })
+                result = UserObj.info({'id': user['id']})
+                self.assertEqual(result['email'], email)
 
     @stubbed()
     def test_positive_update_user_5(self):
@@ -1267,9 +1244,7 @@ class User(CLITestCase):
         """
         pass
 
-    @data({'firstname': gen_string("alpha", 51)},
-          {'firstname': gen_string("html")})
-    def test_negative_update_user_2(self, opts):
+    def test_negative_update_user_2(self):
         """@Test: Update invalid Firstname in an User
 
         @Feature: User - Negative Update
@@ -1282,20 +1257,20 @@ class User(CLITestCase):
 
         """
         new_user = make_user()
-        with self.assertRaises(CLIReturnCodeError):
-            UserObj.update({
-                'firstname': opts['firstname'],
-                'login': new_user['login'],
-            })
-        # check name have not changed
-        updated_user = UserObj.exists(
-            search=('login', new_user['login']))
-        self.assertEqual(updated_user['name'], new_user['name'])
+        for invalid_firstname in (gen_string("alpha", 51),
+                                  gen_string("html")):
+            with self.subTest(invalid_firstname):
+                with self.assertRaises(CLIReturnCodeError):
+                    UserObj.update({
+                        'firstname': invalid_firstname,
+                        'login': new_user['login'],
+                    })
+                    updated_user = UserObj.exists(
+                        search=('login', new_user['login']))
+                    self.assertEqual(updated_user['name'], new_user['name'])
 
-    @data({'lastname': gen_string("alpha", 51)},
-          {'lastname': gen_string("html")})
-    def test_negative_update_user_3(self, opts):
-        """@Test: Update invalid Surname in an User
+    def test_negative_update_user_3(self):
+        """@Test: Update invalid lastname in an User
 
         @Feature: User - Negative Update
 
@@ -1307,30 +1282,19 @@ class User(CLITestCase):
 
         """
         new_user = make_user()
-        with self.assertRaises(CLIReturnCodeError):
-            UserObj.update({
-                'lastname': opts['lastname'],
-                'login': new_user['login'],
-            })
-        # check name have not changed
-        updated_user = UserObj.exists(
-            search=('login', new_user['login']))
-        self.assertEqual(updated_user['name'], new_user['name'])
+        for invalid_lastname in (gen_string("alpha", 51),
+                                 gen_string("html")):
+            with self.subTest(invalid_lastname):
+                with self.assertRaises(CLIReturnCodeError):
+                    UserObj.update({
+                        'lastname': invalid_lastname,
+                        'login': new_user['login'],
+                    })
+                    updated_user = UserObj.exists(
+                        search=('login', new_user['login']))
+                    self.assertEqual(updated_user['name'], new_user['name'])
 
-    @data(
-        'foreman@',
-        '@foreman',
-        '@',
-        'Abc.example.com',
-        'A@b@c@example.com',
-        '{0}@example.com'.format(gen_string(
-            'alpha', 49)),  # total length 61
-        '',
-        '{0}@example.com'.format(gen_string('html')),
-        's p a c e s@example.com',
-        'dot..dot@example.com'
-    )
-    def test_negative_update_user_4(self, mail):
+    def test_negative_update_user_4(self):
         """@Test: Update invalid Email Address in an User
 
         @Feature: User - Negative Update
@@ -1343,25 +1307,18 @@ class User(CLITestCase):
 
         """
         new_user = make_user()
-        with self.assertRaises(CLIReturnCodeError):
-            UserObj.update({
-                'login': new_user['login'],
-                'mail': mail,
-            })
-        # check name have not changed
-        updated_user = UserObj.exists(
-            search=('login', new_user['login']))
-        self.assertEqual(updated_user['email'], new_user['email'])
+        for email in invalid_email_list():
+            with self.subTest(email):
+                with self.assertRaises(CLIReturnCodeError):
+                    UserObj.update({
+                        'login': new_user['login'],
+                        'mail': email,
+                    })
+                    updated_user = UserObj.exists(
+                        search=('login', new_user['login']))
+                    self.assertEqual(updated_user['email'], new_user['email'])
 
-    @data(
-        {'login': gen_string("latin1")},
-        {'login': gen_string("utf8")},
-        {'login': gen_string("alpha")},
-        {'login': gen_string("alphanumeric")},
-        {'login': gen_string("numeric")},
-        {'login': gen_string("alphanumeric")}
-    )
-    def test_positive_delete_user_1(self, test_data):
+    def test_positive_delete_user_1(self):
         """@Test: Delete a user
 
         @Feature: User - Positive Delete
@@ -1373,22 +1330,15 @@ class User(CLITestCase):
         @Assert: User is deleted
 
         """
-        user = make_user(test_data)
-        self.__assert_exists(user)
-        UserObj.delete({'login': user['login']})
-        # make sure user was removed
-        with self.assertRaises(CLIReturnCodeError):
-            UserObj.info({'login': user['login']})
+        for login in valid_data_user():
+            with self.subTest(login):
+                user = make_user({"login": login})
+                self.__assert_exists(user)
+                UserObj.delete({'login': user['login']})
+                with self.assertRaises(CLIReturnCodeError):
+                    UserObj.info({'login': user['login']})
 
-    @data(
-        {'login': gen_string("latin1")},
-        {'login': gen_string("utf8")},
-        {'login': gen_string("alpha")},
-        {'login': gen_string("alphanumeric")},
-        {'login': gen_string("numeric")},
-        {'login': gen_string("alphanumeric")}
-    )
-    def test_positive_delete_user_2(self, test_data):
+    def test_positive_delete_user_2(self):
         """@Test: Delete an admin user
 
         @Feature: User - Positive Delete
@@ -1400,17 +1350,15 @@ class User(CLITestCase):
         @Assert: User is deleted
 
         """
-        test_data.update({'admin': 'true'})
-        user = make_user(test_data)
-        self.__assert_exists(user)
-        UserObj.delete({'login': user['login']})
-        # make sure user was removed
-        with self.assertRaises(CLIReturnCodeError):
-            UserObj.info({'login': user['login']})
+        for login in valid_data_user():
+            with self.subTest(login):
+                user = make_user({"login": login, "admin": 'true'})
+                self.__assert_exists(user)
+                UserObj.delete({'login': user['login']})
+                with self.assertRaises(CLIReturnCodeError):
+                    UserObj.info({'login': user['login']})
 
-    @data({'admin': 'true'},
-          {'login': 'admin', 'password': 'changeme'})
-    def test_negative_delete_user_1(self, opts):
+    def test_negative_delete_user_1(self):
         """@Test: Attempt to delete internal admin user
 
         @Feature: User - Negative Delete
@@ -1421,27 +1369,21 @@ class User(CLITestCase):
         @Assert: User is not deleted
 
         """
-        login = opts.get('login')
-        if login is None:
-            login = make_user(opts)['login']
+        for opts in ({'admin': 'true'},
+                     {'login': 'admin', 'password': 'changeme'}):
+            with self.subTest(opts):
+                login = opts.get('login')
+                if login is None:
+                    login = make_user(opts)['login']
+                user = UserObj
+                user.katello_user = login
+                user.katello_passwd = opts.get('password', gen_alphanumeric())
+                with self.assertRaises(CLIReturnCodeError):
+                    user.delete({'login': 'admin'})
+                    result = UserObj.exists(search=('login', 'admin'))
+                    self.assertTrue(result)
 
-        user = UserObj
-        user.katello_user = login
-        user.katello_passwd = opts.get('password', gen_alphanumeric())
-        with self.assertRaises(CLIReturnCodeError):
-            user.delete({'login': 'admin'})
-        result = UserObj.exists(search=('login', 'admin'))
-        self.assertTrue(result)
-
-    @data(
-        {'login': gen_string("alpha")},
-        {'login': gen_string("alphanumeric")},
-        {'login': gen_string("numeric")},
-        {'login': gen_string("latin1")},
-        {'login': gen_string("utf8")},
-        {'login': gen_string("alphanumeric", 100)}
-    )
-    def test_list_user_1(self, test_data):
+    def test_list_user_1(self):
         """@Test: List User for all variations of Username
 
         @Feature: User - list
@@ -1454,32 +1396,24 @@ class User(CLITestCase):
         @Assert: User is listed
 
         """
-        user = make_user(test_data)
-        self.__assert_exists(user)
-        result = UserObj.list({
-            u'search': u'login = {0}'.format(test_data['login']),
-        })
-        self.assertEqual(len(result), 1)
-        # make sure user is in list result
-        self.assertEqual(
-            {
-                'email': user['email'],
-                'id': user['id'],
-                'login': user['login'],
-                'name': user['name'],
-            },
-            result[0],
-        )
+        include_list = [gen_string("alphanumeric", 100)]
+        for login in valid_data_user() + include_list:
+            with self.subTest(login):
+                user = make_user({'login': login})
+                self.__assert_exists(user)
+                result = UserObj.list({
+                    u'search': u'login = {0}'.format(login),
+                })
+                self.assertEqual(len(result), 1)
+                # make sure user is in list result
+                self.assertEqual({
+                    'email': user['email'],
+                    'id': user['id'],
+                    'login': user['login'],
+                    'name': user['name'],
+                }, result[0])
 
-    @data(
-        {'firstname': gen_string("latin1")},
-        {'firstname': gen_string("utf8")},
-        {'firstname': gen_string("alpha")},
-        {'firstname': gen_string("alphanumeric")},
-        {'firstname': gen_string("numeric")},
-        {'firstname': gen_string("alphanumeric", 50)}
-    )
-    def test_list_user_2(self, test_data):
+    def test_list_user_2(self):
         """@Test: List User for all variations of Firstname
 
         @Feature: User - list
@@ -1492,31 +1426,23 @@ class User(CLITestCase):
         @Assert: User is listed
 
         """
-        user = make_user(test_data)
-        self.__assert_exists(user)
-        result = UserObj.list({
-            u'search': u'firstname = {0}'.format(test_data['firstname']),
-        })
-        # make sure user is in list result
-        self.assertIn(
-            {
-                'email': user['email'],
-                'id': user['id'],
-                'login': user['login'],
-                'name': user['name'],
-            },
-            result,
-        )
+        include_list = [gen_string("alphanumeric", 50)]
+        for firstname in valid_data_user() + include_list:
+            with self.subTest(firstname):
+                user = make_user({'firstname': firstname})
+                self.__assert_exists(user)
+                result = UserObj.list({
+                    u'search': u'firstname = {0}'.format(firstname),
+                })
+                # make sure user is in list result
+                self.assertIn({
+                    'email': user['email'],
+                    'id': user['id'],
+                    'login': user['login'],
+                    'name': user['name'],
+                }, result)
 
-    @data(
-        {'lastname': gen_string("latin1")},
-        {'lastname': gen_string("utf8")},
-        {'lastname': gen_string("alpha")},
-        {'lastname': gen_string("alphanumeric")},
-        {'lastname': gen_string("numeric")},
-        {'lastname': gen_string("alphanumeric", 50)}
-    )
-    def test_list_user_3(self, test_data):
+    def test_list_user_3(self):
         """@Test: List User for all variations of Surname
 
         @Feature: User - list
@@ -1529,31 +1455,23 @@ class User(CLITestCase):
         @Assert: User is listed
 
         """
-        user = make_user(test_data)
-        self.__assert_exists(user)
-        result = UserObj.list({
-            u'search': u'lastname = {0}'.format(test_data['lastname']),
-        })
-        # make sure user is in list result
-        self.assertIn(
-            {
-                'email': user['email'],
-                'id': user['id'],
-                'login': user['login'],
-                'name': user['name'],
-            },
-            result,
-        )
+        include_list = [gen_string("alphanumeric", 50)]
+        for lastname in valid_data_user() + include_list:
+            with self.subTest(lastname):
+                user = make_user({'lastname': lastname})
+                self.__assert_exists(user)
+                result = UserObj.list({
+                    u'search': u'lastname = {0}'.format(lastname),
+                })
+                # make sure user is in list result
+                self.assertIn({
+                    'email': user['email'],
+                    'id': user['id'],
+                    'login': user['login'],
+                    'name': user['name'],
+                }, result)
 
-    @data(
-        {'mail': gen_string("alpha") + "@somemail.com"},
-        {'mail': gen_string(
-            "alphanumeric", 10) + "@somemail.com"},
-        {'mail': gen_string("numeric") + "@somemail.com"},
-        {'mail': gen_string(
-            "alphanumeric", 50) + "@somem.com"}
-    )
-    def test_list_user_4(self, test_data):
+    def test_list_user_4(self):
         """@Test: List User for all variations of Email Address
 
         @Feature: User - list
@@ -1566,28 +1484,26 @@ class User(CLITestCase):
         @Assert: User is listed
 
         """
-        user = make_user(test_data)
-        self.__assert_exists(user)
-        result = UserObj.list({
-            u'search': u'mail = {0}'.format(test_data['mail']),
-        })
-        # make sure user is in list result
-        self.assertIn(
-            {
-                'email': user['email'],
-                'id': user['id'],
-                'login': user['login'],
-                'name': user['name'],
-            },
-            result,
-        )
+        for mail in (gen_string("alpha") + "@somemail.com",
+                     gen_string("alphanumeric", 10) + "@somemail.com",
+                     gen_string("numeric") + "@somemail.com",
+                     gen_string("alphanumeric", 50) + "@somem.com"):
+            with self.subTest(mail):
+                user = make_user({'mail': mail})
+                self.__assert_exists(user)
+                result = UserObj.list({
+                    u'search': u'mail = {0}'.format(mail),
+                })
+                # make sure user is in list result
+                self.assertIn({
+                    'email': user['email'],
+                    'id': user['id'],
+                    'login': user['login'],
+                    'name': user['name'],
+                }, result)
 
     @skip_if_bug_open('bugzilla', 1204667)
-    @data(
-        {'mail': gen_string("latin1") + "@somemail.com"},
-        {'mail': gen_string("utf8") + "@somemail.com"}
-    )
-    def test_bugzilla_1204667(self, test_data):
+    def test_bugzilla_1204667(self):
         """@Test: List User for utf-8,latin variations of Email Address
 
         @Feature: User - list
@@ -1602,21 +1518,21 @@ class User(CLITestCase):
         @BZ: 1204667
 
         """
-        user = make_user(test_data)
-        self.__assert_exists(user)
-        result = UserObj.list({
-            u'search': u'mail = {0}'.format(test_data['mail']),
-        })
-        # make sure user is in list result
-        self.assertIn(
-            {
-                'email': user['email'],
-                'id': user['id'],
-                'login': user['login'],
-                'name': user['name'],
-            },
-            result,
-        )
+        for mail in (gen_string("latin1") + "@somemail.com",
+                     gen_string("utf8") + "@somemail.com"):
+            with self.subTest(mail):
+                user = make_user({'mail': mail})
+                self.__assert_exists(user)
+                result = UserObj.list({
+                    u'search': u'mail = {0}'.format(mail),
+                })
+                # make sure user is in list result
+                self.assertIn({
+                    'email': user['email'],
+                    'id': user['id'],
+                    'login': user['login'],
+                    'name': user['name'],
+                }, result)
 
     @stubbed()
     def test_search_user_1(self):
@@ -1861,15 +1777,7 @@ class User(CLITestCase):
             self.assertNotEqual(str(result).find(user['login']), -1)
 
     @skip_if_bug_open('bugzilla', 1138553)
-    @data(
-        {'name': gen_string("latin1")},
-        {'name': gen_string("utf8")},
-        {'name': gen_string("alpha")},
-        {'name': gen_string("alphanumeric")},
-        {'name': gen_string("numeric")},
-        {'name': gen_string("alphanumeric", 100)},
-    )
-    def test_user_add_role_1(self, test_data):
+    def test_user_add_role_1(self):
         """@Test: Add role to User for all variations of role names
 
         @Feature: User - Add role
@@ -1883,25 +1791,20 @@ class User(CLITestCase):
 
         """
         user = make_user()
-        role = make_role(test_data)
-        self.__assert_exists(user)
-        UserObj.add_role({
-            'login': user['login'],
-            'role': role['name'],
-        })
-        user = UserObj.info({'id': user['id']})
-        self.assertIn(role['name'], user['roles'])
+        include_list = [gen_string("alphanumeric", 100)]
+        for role_name in valid_data_user() + include_list:
+            with self.subTest(role_name):
+                make_role({'name': role_name})
+                self.__assert_exists(user)
+                UserObj.add_role({
+                    'login': user['login'],
+                    'role': role_name,
+                })
+                user = UserObj.info({'id': user['id']})
+                self.assertIn(role_name, user['roles'])
 
     @skip_if_bug_open('bugzilla', 1138553)
-    @data(
-        {'name': gen_string("latin1")},
-        {'name': gen_string("utf8")},
-        {'name': gen_string("alpha")},
-        {'name': gen_string("alphanumeric")},
-        {'name': gen_string("numeric")},
-        {'name': gen_string("alphanumeric", 100)},
-    )
-    def test_user_remove_role_1(self, test_data):
+    def test_user_remove_role_1(self):
         """@Test: Remove role to User for all variations of role names
 
         @Feature: User - Remove role
@@ -1915,17 +1818,20 @@ class User(CLITestCase):
 
         """
         user = make_user()
-        role = make_role(test_data)
-        self.__assert_exists(user)
-        UserObj.add_role({
-            'login': user['login'],
-            'role': role['name'],
-        })
-        user = UserObj.info({'id': user['id']})
-        self.assertIn(role['name'], user['roles'])
-        UserObj.remove_role({
-            'login': user['login'],
-            'role': role['name'],
-        })
-        user = UserObj.info({'id': user['id']})
-        self.assertNotIn(role['name'], user['roles'])
+        include_list = [gen_string("alphanumeric", 100)]
+        for role_name in valid_data_user() + include_list:
+            with self.subTest(role_name):
+                make_role({'name': role_name})
+                self.__assert_exists(user)
+                UserObj.add_role({
+                    'login': user['login'],
+                    'role': role_name,
+                })
+                user = UserObj.info({'id': user['id']})
+                self.assertIn(role_name, user['roles'])
+                UserObj.remove_role({
+                    'login': user['login'],
+                    'role': role_name,
+                })
+                user = UserObj.info({'id': user['id']})
+                self.assertNotIn(role_name, user['roles'])
