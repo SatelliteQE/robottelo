@@ -9,6 +9,7 @@ from robottelo.test import UITestCase
 from robottelo.ui.locators import locators
 from robottelo.ui.navigator import Navigator
 from robottelo.ui.session import Session
+from robottelo.vm import VirtualMachine
 
 
 class RHAITestCase(UITestCase):
@@ -64,24 +65,17 @@ class RHAITestCase(UITestCase):
 
         """
         # Register a VM to Access Insights Service
-        try:
-            self.rhai.register_client_to_rhai(
-                self.ak_name,
-                self.org_label,
-                'rhel67',
-            )
+        with VirtualMachine(distro='rhel67') as vm:
+            vm.configure_rhai_client(self.ak_name, self.org_label, 'rhel67')
+
             with Session(self.browser) as session:
                 # view clients registered to Red Hat Access Insights
                 session.nav.go_to_select_org(self.org_name)
                 Navigator(self.browser).go_to_insights_systems()
                 result = self.rhai.view_registered_systems()
                 self.assertIn("1", result, 'Registered clients are not listed')
-                self.rhai.vm.get(
-                    '/var/log/redhat-access-insights/redhat-access'
-                    '-insights.log', './insights_client_registration.log')
-        finally:
-
-            self.rhai.vm.destroy()
+            vm.get('/var/log/redhat-access-insights/redhat-access'
+                   '-insights.log', './insights_client_registration.log')
 
     def test_org_selection_for_rhai(self):
         """@Test: Verify that user attempting to access RHAI is directed to
@@ -117,12 +111,9 @@ class RHAITestCase(UITestCase):
 
         """
         # Register a VM to Access Insights Service
-        try:
-            self.rhai.register_client_to_rhai(
-                self.ak_name,
-                self.org_label,
-                'rhel71',
-            )
+        with VirtualMachine(distro='rhel71') as vm:
+            vm.configure_rhai_client(self.ak_name, self.org_label, 'rhel71')
+
             with Session(self.browser) as session:
                 session.nav.go_to_select_org(self.org_name)
                 Navigator(self.browser).go_to_insights_systems()
@@ -140,13 +131,8 @@ class RHAITestCase(UITestCase):
                 session.nav.click(
                     locators['insights.unregister_button']
                 )
-            result = self.rhai.vm.run('redhat-access-insights')
+            result = vm.run('redhat-access-insights')
             self.assertEqual(result.return_code, 1,
                              "System has not been unregistered")
-            self.rhai.vm.get('/var/log/redhat-access-insights/redhat-access'
-                             '-insights.log',
-                             './insights_unregister.log')
-
-        finally:
-            # Destroy the VM
-            self.rhai.vm.destroy()
+            vm.get('/var/log/redhat-access-insights/'
+                   'redhat-access-insights.log', './insights_unregister.log')

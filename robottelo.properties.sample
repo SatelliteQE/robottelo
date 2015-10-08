@@ -84,8 +84,8 @@ admin.password=changeme
 driver=firefox
 
 [insights]
-# Provide link to el6/el7 repo to fetch the redhat-access-insights client rpm
-# (if required)
+# Provide link to el6/el7 repo to fetch the latest redhat-access-insights client
+# rpm
 # insights_el6repo=https://www.example.com/insights-client/repo/insights-client-6.repo
 # insights_el7repo=https://www.example.com/insights-client/repo/insights-client-7.repo
 
