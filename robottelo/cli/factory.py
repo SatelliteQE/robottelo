@@ -10,8 +10,13 @@ import os
 import random
 
 from fauxfactory import (
-    gen_alphanumeric, gen_integer, gen_ipaddr,
-    gen_mac, gen_netmask, gen_string
+    gen_alphanumeric,
+    gen_integer,
+    gen_ipaddr,
+    gen_mac,
+    gen_netmask,
+    gen_string,
+    gen_url,
 )
 from os import chmod
 from robottelo import manifests, ssh
@@ -21,7 +26,7 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.docker import DockerContainer
+from robottelo.cli.docker import DockerContainer, DockerRegistry
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
 from robottelo.cli.gpgkey import GPGKey
@@ -219,7 +224,7 @@ def make_container(options=None):
                                                   1/0.
 
     """
-    # Organization ID is a required field.
+    # Compute resource ID is a required field.
     if (not options or (
             u'compute-resource' not in options and
             u'compute-resource-id' not in options
@@ -583,6 +588,33 @@ def make_proxy(options=None):
                 'Failed to create ssh tunnel: {0}'.format(err))
 
     return create_object(Proxy, args, options)
+
+
+def make_registry(options=None):
+    """Creates a docker registry
+
+        Usage::
+
+            hammer docker registry create [OPTIONS]
+
+        Options::
+
+            --description DESCRIPTION
+            --name NAME
+            --password PASSWORD
+            --url URL
+            --username USERNAME
+
+    """
+    args = {
+        u'description': None,
+        u'name': gen_string('alphanumeric'),
+        u'password': None,
+        u'url': gen_url(subdomain=gen_string('alpha')),
+        u'username': None,
+    }
+
+    return create_object(DockerRegistry, args, options)
 
 
 @cacheable

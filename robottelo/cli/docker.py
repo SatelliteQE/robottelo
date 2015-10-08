@@ -303,6 +303,120 @@ class DockerImage(Base):
         return super(DockerImage, cls).list(options, per_page)
 
 
+class DockerRegistry(Base):
+    """Manipulates Docker registries
+
+    Usage::
+
+        hammer docker registry [OPTIONS] SUBCOMMAND [ARG] ...
+
+    Parameters::
+
+        SUBCOMMAND                    subcommand
+        [ARG] ...                     subcommand arguments
+
+    Subcommands::
+
+        create                        Create a docker registry
+        delete                        Delete a docker registry
+        info                          Show a docker registry
+        list                          List all docker registries
+        update                        Update a docker registry
+
+    """
+    command_base = 'docker registry'
+
+    @classmethod
+    def create(cls, options=None):
+        """Creates a docker registry
+
+        Usage::
+
+            hammer docker registry create [OPTIONS]
+
+        Options::
+
+            --description DESCRIPTION
+            --name NAME
+            --password PASSWORD
+            --url URL
+            --username USERNAME
+
+        """
+        return super(DockerRegistry, cls).create(options)
+
+    @classmethod
+    def delete(cls, options=None):
+        """Deletes a docker registry
+
+        Usage::
+
+            hammer docker registry delete [OPTIONS]
+
+        Options::
+
+            --id ID
+            --name NAME                               Name to search by
+
+        """
+        return super(DockerRegistry, cls).delete(options)
+
+    @classmethod
+    def info(cls, options=None):
+        """Gets information about docker registry
+
+        Usage::
+
+            hammer docker registry info [OPTIONS]
+
+        Options::
+
+            --id ID
+            --name NAME                   Name to search by
+
+        """
+        return super(DockerRegistry, cls).info(options)
+
+    @classmethod
+    def list(cls, options=None, per_page=True):
+        """List docker registries
+
+        Usage::
+
+            hammer docker registry list [OPTIONS]
+
+        Options::
+
+            --order ORDER                 sort results
+            --page PAGE                   paginate results
+            --per-page PER_PAGE           number of entries per request
+            --search SEARCH               filter results
+
+        """
+        return super(DockerRegistry, cls).list(options, per_page)
+
+    @classmethod
+    def update(cls, options=None):
+        """Updates a docker registry
+
+        Usage::
+
+            hammer docker registry update [OPTIONS]
+
+        Options::
+
+            --description DESCRIPTION
+            --id ID
+            --name NAME                               Name to search by
+            --new-name NEW_NAME
+            --password PASSWORD
+            --url URL
+            --username USERNAME
+
+        """
+        return super(DockerRegistry, cls).update(options)
+
+
 class DockerTag(Base):
     """Manipulates Docker tags
 
@@ -412,4 +526,5 @@ class Docker(Base):
     # class, import the Docker class and use it like this: Docker.image.list()
     container = DockerContainer
     image = DockerImage
+    registry = DockerRegistry
     tag = DockerTag
