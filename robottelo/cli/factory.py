@@ -89,7 +89,7 @@ def create_object(cli_object, options, values):
     except CLIReturnCodeError as err:
         # If the object is not created, raise exception, stop the show.
         raise CLIFactoryError(
-            'Failed to create {0} with data:\n{1}\n{2}'.format(
+            u'Failed to create {0} with data:\n{1}\n{2}'.format(
                 cli_object.__name__,
                 json.dumps(options, indent=2, sort_keys=True),
                 err.msg,
@@ -1658,7 +1658,7 @@ def activationkey_add_subscription_to_repo(options=None):
                 })
             except CLIReturnCodeError as err:
                 raise CLIFactoryError(
-                    'Failed to add subscription to activation key\n{0}'
+                    u'Failed to add subscription to activation key\n{0}'
                     .format(err.msg)
                 )
 
@@ -1716,7 +1716,7 @@ def setup_org_for_a_custom_repo(options=None):
         Repository.synchronize({'id': custom_repo['id']})
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            'Failed to synchronize repository\n{0}'.format(err.msg))
+            u'Failed to synchronize repository\n{0}'.format(err.msg))
     # Create CV if needed and associate repo with it
     if options.get('content-view-id') is None:
         cv_id = make_content_view({u'organization-id': org_id})['id']
@@ -1730,13 +1730,13 @@ def setup_org_for_a_custom_repo(options=None):
         })
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            'Failed to add repository to content view\n{0}'.format(err.msg))
+            u'Failed to add repository to content view\n{0}'.format(err.msg))
     # Publish a new version of CV
     try:
         ContentView.publish({u'id': cv_id})
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            'Failed to publish new version of content view\n{0}'
+            u'Failed to publish new version of content view\n{0}'
             .format(err.msg)
         )
     # Get the version id
@@ -1750,7 +1750,7 @@ def setup_org_for_a_custom_repo(options=None):
         })
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            'Failed to promote version to next environment\n{0}'
+            u'Failed to promote version to next environment\n{0}'
             .format(err.msg)
         )
     # Create activation key if needed and associate content view with it
@@ -1772,7 +1772,7 @@ def setup_org_for_a_custom_repo(options=None):
             })
         except CLIReturnCodeError as err:
             raise CLIFactoryError(
-                'Failed to associate activation-key with CV\n{0}'
+                u'Failed to associate activation-key with CV\n{0}'
                 .format(err.msg)
             )
     # Add subscription to activation-key
@@ -1841,7 +1841,8 @@ def setup_org_for_a_rh_repo(options=None):
             u'organization-id': org_id,
         })
     except CLIReturnCodeError as err:
-        raise CLIFactoryError('Failed to upload manifest\n{0}'.format(err.msg))
+        raise CLIFactoryError(
+            u'Failed to upload manifest\n{0}'.format(err.msg))
     # Enable repo from Repository Set
     try:
         RepositorySet.enable({
@@ -1853,7 +1854,7 @@ def setup_org_for_a_rh_repo(options=None):
         })
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            'Failed to enable repository set\n{0}'.format(err.msg))
+            u'Failed to enable repository set\n{0}'.format(err.msg))
     # Fetch repository info
     try:
         rhel_repo = Repository.info({
@@ -1863,7 +1864,7 @@ def setup_org_for_a_rh_repo(options=None):
         })
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            'Failed to fetch repository info\n{0}'.format(err.msg))
+            u'Failed to fetch repository info\n{0}'.format(err.msg))
     # Synchronize the RH repository
     try:
         Repository.synchronize({
@@ -1873,7 +1874,7 @@ def setup_org_for_a_rh_repo(options=None):
         })
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            'Failed to synchronize repository\n{0}'.format(err.msg))
+            u'Failed to synchronize repository\n{0}'.format(err.msg))
     # Create CV if needed and associate repo with it
     if options.get('content-view-id') is None:
         cv_id = make_content_view({u'organization-id': org_id})['id']
@@ -1887,13 +1888,13 @@ def setup_org_for_a_rh_repo(options=None):
         })
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            'Failed to add repository to content view\n{0}'.format(err.msg))
+            u'Failed to add repository to content view\n{0}'.format(err.msg))
     # Publish a new version of CV
     try:
         ContentView.publish({u'id': cv_id})
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            'Failed to publish new version of content view\n{0}'
+            u'Failed to publish new version of content view\n{0}'
             .format(err.msg)
         )
     # Get the version id
@@ -1901,7 +1902,7 @@ def setup_org_for_a_rh_repo(options=None):
         cvv = ContentView.info({u'id': cv_id})['versions'][-1]
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            'Failed to fetch content view info\n{0}'.format(err.msg))
+            u'Failed to fetch content view info\n{0}'.format(err.msg))
     # Promote version1 to next env
     try:
         ContentView.version_promote({
@@ -1911,7 +1912,7 @@ def setup_org_for_a_rh_repo(options=None):
         })
     except CLIReturnCodeError as err:
         raise CLIFactoryError(
-            'Failed to promote version to next environment\n{0}'
+            u'Failed to promote version to next environment\n{0}'
             .format(err.msg)
         )
     # Create activation key if needed and associate content view with it
@@ -1933,7 +1934,7 @@ def setup_org_for_a_rh_repo(options=None):
             })
         except CLIReturnCodeError as err:
             raise CLIFactoryError(
-                'Failed to associate activation-key with CV\n{0}'
+                u'Failed to associate activation-key with CV\n{0}'
                 .format(err.msg)
             )
     # Add subscription to activation-key
