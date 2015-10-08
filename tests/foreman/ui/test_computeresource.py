@@ -1,13 +1,11 @@
 # -*- encoding: utf-8 -*-
-from ddt import ddt
+# pylint: disable=invalid-name
+"""Test for Compute Resource UI"""
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import conf
-from robottelo.constants import (
-    FOREMAN_PROVIDERS,
-    LIBVIRT_RESOURCE_URL,
-)
-from robottelo.decorators import data, run_only_on
+from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
+from robottelo.decorators import run_only_on
 from robottelo.helpers import (
     get_external_docker_url,
     invalid_names_list,
@@ -20,15 +18,13 @@ from robottelo.ui.session import Session
 
 
 @run_only_on('sat')
-@ddt
 class ComputeResource(UITestCase):
     """Implements Compute Resource tests in UI"""
 
     current_libvirt_url = (LIBVIRT_RESOURCE_URL
                            % conf.properties['main.server.hostname'])
 
-    @data(*valid_data_list())
-    def test_create_libvirt_resource_different_names(self, name):
+    def test_create_libvirt_resource_different_names(self):
         """@Test: Create a new libvirt Compute Resource using different value
         types as a name
 
@@ -38,17 +34,20 @@ class ComputeResource(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['libvirt'],
-                parameter_list=[['URL', self.current_libvirt_url, 'field']],
-            )
-            search = self.compute_resource.search(name)
-            self.assertIsNotNone(search)
+            for name in valid_data_list():
+                with self.subTest(name):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['libvirt'],
+                        parameter_list=[
+                            ['URL', self.current_libvirt_url, 'field']
+                        ],
+                    )
+                    search = self.compute_resource.search(name)
+                    self.assertIsNotNone(search)
 
-    @data(*valid_data_list())
-    def test_create_libvirt_resource_description(self, description):
+    def test_create_libvirt_resource_description(self):
         """@Test: Create libvirt Compute Resource with description.
 
         @Feature: Compute Resource - Create
@@ -56,22 +55,23 @@ class ComputeResource(UITestCase):
         @Assert: A libvirt Compute Resource is created successfully
 
         """
-        name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['libvirt'],
-                parameter_list=[
-                    ['URL', self.current_libvirt_url, 'field'],
-                    ['Description', description, 'field']
-                ],
-            )
-            search = self.compute_resource.search(name)
-            self.assertIsNotNone(search)
+            for description in valid_data_list():
+                with self.subTest(description):
+                    name = gen_string('alpha')
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['libvirt'],
+                        parameter_list=[
+                            ['URL', self.current_libvirt_url, 'field'],
+                            ['Description', description, 'field']
+                        ],
+                    )
+                    search = self.compute_resource.search(name)
+                    self.assertIsNotNone(search)
 
-    @data('VNC', 'SPICE')
-    def test_create_libvirt_resource_display_type(self, display_type):
+    def test_create_libvirt_resource_display_type(self):
         """@Test: Create libvirt Compute Resource with different display types.
 
         @Feature: Compute Resource - Create
@@ -79,22 +79,23 @@ class ComputeResource(UITestCase):
         @Assert: A libvirt Compute Resource is created successfully
 
         """
-        name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['libvirt'],
-                parameter_list=[
-                    ['URL', self.current_libvirt_url, 'field'],
-                    ['Display Type', display_type, 'select']
-                ],
-            )
-            search = self.compute_resource.search(name)
-            self.assertIsNotNone(search)
+            for display_type in 'VNC', 'SPICE':
+                with self.subTest(display_type):
+                    name = gen_string('alpha')
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['libvirt'],
+                        parameter_list=[
+                            ['URL', self.current_libvirt_url, 'field'],
+                            ['Display Type', display_type, 'select']
+                        ],
+                    )
+                    search = self.compute_resource.search(name)
+                    self.assertIsNotNone(search)
 
-    @data(True, False)
-    def test_create_libvirt_resource_console_pass(self, console_password):
+    def test_create_libvirt_resource_console_pass(self):
         """@Test: Create libvirt Compute Resource with checked/unchecked
         console password checkbox
 
@@ -103,22 +104,23 @@ class ComputeResource(UITestCase):
         @Assert: A libvirt Compute Resource is created successfully
 
         """
-        name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['libvirt'],
-                parameter_list=[
-                    ['URL', self.current_libvirt_url, 'field'],
-                    ['Console Passwords', console_password, 'checkbox']
-                ],
-            )
-            search = self.compute_resource.search(name)
-            self.assertIsNotNone(search)
+            for console_password in True, False:
+                with self.subTest(console_password):
+                    name = gen_string('alpha')
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['libvirt'],
+                        parameter_list=[
+                            ['URL', self.current_libvirt_url, 'field'],
+                            ['Console Passwords', console_password, 'checkbox']
+                        ],
+                    )
+                    search = self.compute_resource.search(name)
+                    self.assertIsNotNone(search)
 
-    @data(' ', *invalid_names_list())
-    def test_create_libvirt_resource_different_names_negative(self, name):
+    def test_create_libvirt_resource_different_names_negative(self):
         """@Test: Create a new libvirt Compute Resource with incorrect values
         only
 
@@ -127,19 +129,25 @@ class ComputeResource(UITestCase):
         @Assert: A libvirt Compute Resource is not created
 
         """
+        include_list = [' ']
         with Session(self.browser) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['libvirt'],
-                parameter_list=[['URL', self.current_libvirt_url, 'field']],
-            )
-            self.assertIsNotNone(self.compute_resource.wait_until_element(
-                common_locators["name_haserror"]
-            ))
+            for name in invalid_names_list() + include_list:
+                with self.subTest(name):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['libvirt'],
+                        parameter_list=[
+                            ['URL', self.current_libvirt_url, 'field']
+                        ],
+                    )
+                    self.assertIsNotNone(
+                        self.compute_resource.wait_until_element(
+                            common_locators["name_haserror"]
+                        )
+                    )
 
-    @data(*invalid_names_list())
-    def test_create_libvirt_resource_description_negative(self, description):
+    def test_create_libvirt_resource_description_negative(self):
         """@Test: Create libvirt Compute Resource with incorrect description.
 
         @Feature: Compute Resource - Create with long description.
@@ -148,21 +156,22 @@ class ComputeResource(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_resource(
-                session,
-                name=gen_string('alpha'),
-                provider_type=FOREMAN_PROVIDERS['libvirt'],
-                parameter_list=[
-                    ['URL', self.current_libvirt_url, 'field'],
-                    ['Description', description, 'field']
-                ],
-            )
-            error_element = session.nav.wait_until_element(
-                common_locators["haserror"])
-            self.assertIsNotNone(error_element)
+            for description in invalid_names_list():
+                with self.subTest(description):
+                    make_resource(
+                        session,
+                        name=gen_string('alpha'),
+                        provider_type=FOREMAN_PROVIDERS['libvirt'],
+                        parameter_list=[
+                            ['URL', self.current_libvirt_url, 'field'],
+                            ['Description', description, 'field']
+                        ],
+                    )
+                    error_element = session.nav.wait_until_element(
+                        common_locators["haserror"])
+                    self.assertIsNotNone(error_element)
 
-    @data(*valid_data_list())
-    def test_update_libvirt_resource_different_name(self, newname):
+    def test_update_libvirt_resource_different_name(self):
         """@Test: Update a libvirt Compute Resource name
 
         @Feature: Compute Resource - Update
@@ -170,20 +179,23 @@ class ComputeResource(UITestCase):
         @Assert: The libvirt Compute Resource is updated
 
         """
-        name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['libvirt'],
-                parameter_list=[
-                    ['URL', self.current_libvirt_url, 'field']],
-            )
-            search = self.compute_resource.search(name)
-            self.assertIsNotNone(search)
-            self.compute_resource.update(name=name, newname=newname)
-            search = self.compute_resource.search(newname)
-            self.assertIsNotNone(search)
+            for newname in valid_data_list():
+                with self.subTest(newname):
+                    name = gen_string('alpha')
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['libvirt'],
+                        parameter_list=[
+                            ['URL', self.current_libvirt_url, 'field']
+                        ],
+                    )
+                    search = self.compute_resource.search(name)
+                    self.assertIsNotNone(search)
+                    self.compute_resource.update(name=name, newname=newname)
+                    search = self.compute_resource.search(newname)
+                    self.assertIsNotNone(search)
 
     def test_update_libvirt_resource_organization(self):
         """@Test: Update a libvirt Compute Resource organization
@@ -212,8 +224,7 @@ class ComputeResource(UITestCase):
                 org_select=True
             )
 
-    @data(*valid_data_list())
-    def test_remove_resource(self, name):
+    def test_remove_resource(self):
         """@Test: Delete a Compute Resource
 
         @Feature: Compute Resource - Delete
@@ -222,14 +233,18 @@ class ComputeResource(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_resource(
-                session,
-                name=name,
-                provider_type=FOREMAN_PROVIDERS['libvirt'],
-                parameter_list=[['URL', self.current_libvirt_url, 'field']],
-            )
-            self.assertIsNotNone(self.compute_resource.search(name))
-            self.compute_resource.delete(name)
+            for name in valid_data_list():
+                with self.subTest(name):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['libvirt'],
+                        parameter_list=[
+                            ['URL', self.current_libvirt_url, 'field']
+                        ],
+                    )
+                    self.assertIsNotNone(self.compute_resource.search(name))
+                    self.compute_resource.delete(name)
 
     def test_access_docker_resource_via_compute_profile(self):
         """@Test: Try to access docker compute resource via compute profile
@@ -248,5 +263,6 @@ class ComputeResource(UITestCase):
                 provider_type=FOREMAN_PROVIDERS['docker'],
                 parameter_list=[['URL', get_external_docker_url(), 'field']],
             )
-            self.assertIsNotNone(self.compute_profile.select_resource(
-                '1-Small', name, 'Docker'))
+            self.assertIsNotNone(
+                self.compute_profile.select_resource('1-Small', name, 'Docker')
+            )
