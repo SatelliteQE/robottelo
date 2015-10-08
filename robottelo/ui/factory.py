@@ -25,6 +25,7 @@ from robottelo.ui.oscappolicy import OpenScapPolicy
 from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.products import Products
 from robottelo.ui.puppetclasses import PuppetClasses
+from robottelo.ui.registry import Registry
 from robottelo.ui.repository import Repos
 from robottelo.ui.role import Role
 from robottelo.ui.settings import Settings
@@ -663,3 +664,22 @@ def make_oscappolicy(session, **kwargs):
     page = session.nav.go_to_oscap_policy
     core_factory(create_args, kwargs, session, page)
     OpenScapPolicy(session.browser).create(**create_args)
+
+
+def make_registry(session, org=None, loc=None, force_context=True, **kwargs):
+    """Creates a Registry"""
+    create_args = {
+        u'name': None,
+        u'url': None,
+        u'description': None,
+        u'username': None,
+        u'password': None,
+        u'orgs': None,
+        u'org_select': False,
+        u'locs': None,
+        u'loc_select': False,
+    }
+    page = session.nav.go_to_registries
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc, force_context=force_context)
+    Registry(session.browser).create(**create_args)
