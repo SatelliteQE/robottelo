@@ -372,6 +372,59 @@ class VirtualMachine(object):
             raise VirtualMachineError(
                 'Failed to execute foreman_scap_client run.')
 
+    def configure_rhai_client(self, activation_key, org, rhel_distro):
+        """ Configures a Red Hat Access Insights service on the system by
+        installing the redhat-access-insights package and registering to the
+        service.
+
+        :param activation_key: Activation key to be used to register the
+        system to satellite
+        :param org: The org to which the system is required to be registered
+        :param rhel_distro: rhel distribution for
+        :return: None
+        """
+        # Download and Install ketello-ca rpm
+        self.install_katello_cert()
+        self.register_contenthost(activation_key, org)
+
+        # Red Hat Access Insights requires RHEL 6/7 repo and it is not
+        # possible to sync the repo during the tests, Adding repo file.
+        if rhel_distro == 'rhel67':
+            rhel_repo = conf.properties['clients.rhel6_repo']
+            insights_repo = conf.properties['insights.insights_el6repo']
+        if rhel_distro == 'rhel71':
+            rhel_repo = conf.properties['clients.rhel7_repo']
+            insights_repo = conf.properties['insights.insights_el7repo']
+
+        self.configure_rhel_repo(rhel_repo)
+
+        self.run('wget -O /etc/yum.repos.d/insights.repo {0}'.
+                 format(insights_repo))
+
+        # Install redhat-access-insights package
+        package_name = 'redhat-access-insights'
+        result = self.run('yum install -y {0}'.format(package_name))
+        if result.return_code != 0:
+            raise VirtualMachineError(
+                'Unable to install redhat-access-insights package'
+            )
+
+        # Verify if package is installed by query it
+        result = self.run('rpm -qi {0}'.format(package_name))
+        logger.info('Insights client rpm version: {0}'.format(
+            result.stdout))
+        if result.return_code != 0:
+            raise VirtualMachineError(
+                'Unable to install redhat-access-insights package'
+            )
+
+        # Register client with Red Hat Access Insights
+        result = self.run('redhat-access-insights --register')
+        if result.return_code != 0:
+            raise VirtualMachineError(
+                'Unable to register client to Access Insights through '
+                'Satellite')
+
     def __enter__(self):
         self.create()
         return self
