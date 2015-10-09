@@ -129,14 +129,24 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
          "//a[@id='menu_item_content_search']")),
-    "menu.changeset_management": (
+
+    # Containers Menu
+    "menu.containers": (
         By.XPATH,
-        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
-         "//a[@id='menu_item_changeset_management']")),
-    "menu.changeset_history": (
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='containers_menu']")),
+    "menu.all_containers": (
         By.XPATH,
-        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
-         "//a[@id='menu_item_changeset_history']")),
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='menu_item_containers']")),
+    "menu.new_container": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='menu_item_new_container']")),
+    "menu.registries": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='menu_item_registries']")),
 
     # Hosts Menu
     "menu.hosts": (
@@ -2131,4 +2141,17 @@ locators = LocatorDict({
     "oscap.report_select": (
         By.XPATH, "//span[contains(@data-original-title, '%s')]"),
 
+    # Registries
+    "registry.new": (By.XPATH, "//a[contains(@href, '/registries/new')]"),
+    "registry.name": (By.ID, "docker_registry_name"),
+    "registry.url": (By.ID, "docker_registry_url"),
+    "registry.description": (By.ID, "docker_registry_description"),
+    "registry.username": (By.ID, "docker_registry_username"),
+    "registry.password": (By.ID, "docker_registry_password"),
+    "registry.delete": (
+        By.XPATH,
+        "//a[contains(@data-confirm, '%s') and @class='delete']"),
+    "registry.select_name": (
+        By.XPATH, ("//a[contains(@href, 'registries')"
+                   " and contains(.,'%s')]")),
 })

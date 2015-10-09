@@ -106,6 +106,8 @@ FILTER = {
     'policy_loc': 'policy_location',
     'policy_org': 'policy_organization',
     'policy_hgrp': 'policy_hostgroup',
+    'reg_loc': 'docker_registry_location',
+    'reg_org': 'docker_registry_organization',
     'role_org': 'filter_organization',
     'role_permission': 'filter_permission',
     'sub_domain': 'subnet_domain',

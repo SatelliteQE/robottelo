@@ -126,16 +126,10 @@ class Navigator(Base):
             menu_locators['menu.content_search'],
         )
 
-    def go_to_changeset_management(self):
+    def go_to_registries(self):
         self.menu_click(
-            menu_locators['menu.content'],
-            menu_locators['menu.changeset_management'],
-        )
-
-    def go_to_changeset_history(self):
-        self.menu_click(
-            menu_locators['menu.content'],
-            menu_locators['menu.changeset_history'],
+            menu_locators['menu.containers'],
+            menu_locators['menu.registries'],
         )
 
     def go_to_hosts(self):

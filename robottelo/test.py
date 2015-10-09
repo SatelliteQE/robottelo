@@ -64,6 +64,7 @@ from robottelo.ui.oscapreports import OpenScapReports
 from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.products import Products
 from robottelo.ui.puppetclasses import PuppetClasses
+from robottelo.ui.registry import Registry
 from robottelo.ui.repository import Repos
 from robottelo.ui.rhai import RHAI
 from robottelo.ui.role import Role
@@ -233,6 +234,7 @@ class UITestCase(TestCase):
         self.partitiontable = PartitionTable(self.browser)
         self.puppetclasses = PuppetClasses(self.browser)
         self.products = Products(self.browser)
+        self.registry = Registry(self.browser)
         self.repository = Repos(self.browser)
         self.rhai = RHAI(self.browser)
         self.role = Role(self.browser)

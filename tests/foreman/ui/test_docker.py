@@ -18,10 +18,11 @@ from robottelo.helpers import (
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_activationkey,
+    make_registry,
     make_repository,
     make_resource,
 )
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 # (too-many-public-methods) pylint:disable=R0904
 
@@ -1277,7 +1278,6 @@ class DockerRegistriesTestCase(UITestCase):
 
     """
 
-    @stubbed()
     @run_only_on('sat')
     def test_create_registry(self):
         """@Test: Create an external docker registry
@@ -1286,11 +1286,18 @@ class DockerRegistriesTestCase(UITestCase):
 
         @Assert: the external registry is created
 
-        @Status: Manual
-
         """
+        with Session(self.browser) as session:
+            for name in valid_data_list():
+                with self.subTest(name):
+                    make_registry(
+                        session,
+                        name=name,
+                        url=gen_url(subdomain=gen_string('alpha')),
+                        description=gen_string('utf8'),
+                    )
+                    self.assertIsNotNone(self.registry.search(name))
 
-    @stubbed()
     @run_only_on('sat')
     def test_update_registry_name(self):
         """@Test: Create an external docker registry and update its name
@@ -1299,11 +1306,22 @@ class DockerRegistriesTestCase(UITestCase):
 
         @Assert: the external registry is updated with the new name
 
-        @Status: Manual
-
         """
+        with Session(self.browser) as session:
+            name = gen_string('utf8')
+            make_registry(
+                session,
+                name=name,
+                url=gen_url(subdomain=gen_string('alpha')),
+                description=gen_string('utf8'),
+            )
+            self.assertIsNotNone(self.registry.search(name))
+            for new_name in valid_data_list():
+                with self.subTest(new_name):
+                    self.registry.update(name, new_name=new_name)
+                    self.assertIsNotNone(self.registry.search(new_name))
+                    name = new_name
 
-    @stubbed()
     @run_only_on('sat')
     def test_update_registry_url(self):
         """@Test: Create an external docker registry and update its URL
@@ -1312,11 +1330,22 @@ class DockerRegistriesTestCase(UITestCase):
 
         @Assert: the external registry is updated with the new URL
 
-        @Status: Manual
-
         """
+        with Session(self.browser) as session:
+            name = gen_string('utf8')
+            make_registry(
+                session,
+                name=name,
+                url=gen_url(subdomain=gen_string('alpha')),
+            )
+            self.assertIsNotNone(self.registry.search(name))
 
-    @stubbed()
+            new_url = gen_url(subdomain=gen_string('alpha'))
+            self.registry.update(name, new_url=new_url)
+            self.registry.search(name).click()
+            self.assertIsNotNone(self.registry.wait_until_element(
+                locators['registry.url']).text, new_url)
+
     @run_only_on('sat')
     def test_update_registry_description(self):
         """@Test: Create an external docker registry and update its description
@@ -1325,11 +1354,23 @@ class DockerRegistriesTestCase(UITestCase):
 
         @Assert: the external registry is updated with the new description
 
-        @Status: Manual
-
         """
+        with Session(self.browser) as session:
+            name = gen_string('utf8')
+            make_registry(
+                session,
+                name=name,
+                url=gen_url(subdomain=gen_string('alpha')),
+                description=gen_string('alphanumeric'),
+            )
+            self.assertIsNotNone(self.registry.search(name))
 
-    @stubbed()
+            new_description = gen_string('utf8')
+            self.registry.update(name, new_desc=new_description)
+            self.registry.search(name).click()
+            self.assertIsNotNone(self.registry.wait_until_element(
+                locators['registry.description']).text, new_description)
+
     @run_only_on('sat')
     def test_update_registry_username(self):
         """@Test: Create an external docker registry and update its username
@@ -1338,19 +1379,39 @@ class DockerRegistriesTestCase(UITestCase):
 
         @Assert: the external registry is updated with the new username
 
-        @Status: Manual
-
         """
+        with Session(self.browser) as session:
+            name = gen_string('utf8')
+            make_registry(
+                session,
+                name=name,
+                url=gen_url(subdomain=gen_string('alpha')),
+                username=gen_string('alphanumeric'),
+            )
+            self.assertIsNotNone(self.registry.search(name))
 
-    @stubbed()
+            new_username = gen_string('utf8')
+            self.registry.update(name, new_username=new_username)
+            self.registry.search(name).click()
+            self.assertIsNotNone(self.registry.wait_until_element(
+                locators['registry.username']).text, new_username)
+
     @run_only_on('sat')
     def test_delete_registry(self):
-        """@Test: Create an external docker registry
+        """@Test: Create an external docker registry and then delete it
 
         @Feature: Docker
 
-        @Assert: the external registry is created
-
-        @Status: Manual
+        @Assert: The external registry is deleted successfully
 
         """
+        with Session(self.browser) as session:
+            for name in valid_data_list():
+                with self.subTest(name):
+                    make_registry(
+                        session,
+                        name=name,
+                        url=gen_url(subdomain=gen_string('alpha')),
+                        description=gen_string('utf8'),
+                    )
+                    self.registry.delete(name)
