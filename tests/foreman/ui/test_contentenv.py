@@ -1,10 +1,10 @@
+# pylint: disable=invalid-name
 # -*- encoding: utf-8 -*-
 """Test class for Life cycle environments UI"""
 
-from ddt import ddt
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import data, run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_lifecycle_environment
@@ -13,17 +13,15 @@ from robottelo.ui.session import Session
 
 
 @run_only_on('sat')
-@ddt
 class ContentEnvironment(UITestCase):
     """Implements Life cycle content environment tests in UI"""
 
     @classmethod
-    def setUpClass(cls):  # noqa
+    def setUpClass(cls):
         cls.org_name = entities.Organization().create().name
         super(ContentEnvironment, cls).setUpClass()
 
-    @data(*generate_strings_list())
-    def test_positive_create_content_environment_basic(self, name):
+    def test_positive_create_content_environment_basic(self):
         """@Test: Create content environment with minimal input parameters
 
         @Feature: Content Environment - Positive Create
@@ -33,14 +31,16 @@ class ContentEnvironment(UITestCase):
         """
         strategy, value = locators['content_env.select_name']
         with Session(self.browser) as session:
-            make_lifecycle_environment(
-                session,
-                org=self.org_name,
-                name=name,
-                description=gen_string('alpha')
-            )
-            self.assertIsNotNone(self.contentenv.wait_until_element
-                                 ((strategy, value % name)))
+            for name in generate_strings_list():
+                with self.subTest(name):
+                    make_lifecycle_environment(
+                        session,
+                        org=self.org_name,
+                        name=name,
+                        description=gen_string('alpha')
+                    )
+                    self.assertIsNotNone(self.contentenv.wait_until_element((
+                        strategy, value % name)))
 
     def test_positive_create_content_environment_chain(self):
         """@Test: Create Content Environment in a chain
