@@ -2,10 +2,9 @@
 # pylint: disable=invalid-name, attribute-defined-outside-init
 """Unit tests for the Docker feature."""
 from fauxfactory import gen_alpha, gen_choice, gen_string, gen_url
-from nailgun import entities
 from random import choice, randint
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.docker import Docker, DockerContainer
+from robottelo.cli.docker import Docker
 from robottelo.cli.factory import (
     make_activation_key,
     make_compute_resource,
@@ -14,6 +13,7 @@ from robottelo.cli.factory import (
     make_lifecycle_environment,
     make_org,
     make_product,
+    make_registry,
     make_repository,
 )
 from robottelo.cli.activationkey import ActivationKey
@@ -22,7 +22,7 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.constants import DOCKER_REGISTRY_HUB
-from robottelo.decorators import run_only_on, stubbed
+from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
 from robottelo.helpers import (
     get_external_docker_url,
     get_internal_docker_url,
@@ -156,7 +156,8 @@ class DockerRepositoryTestCase(CLITestCase):
         )
 
     def test_create_multiple_docker_repo_multiple_products(self):
-        """@Test: Create multiple Docker-type repositories on multiple products.
+        """@Test: Create multiple Docker-type repositories on multiple
+        products.
 
         @Assert: Multiple docker repositories are created with a Docker image
         and they all belong to their respective products.
@@ -1149,7 +1150,7 @@ class DockerComputeResourceTestCase(CLITestCase):
                     'url': url,
                 })
                 self.assertEqual(compute_resource['url'], url)
-                result = DockerContainer.list({
+                result = Docker.container.list({
                     'compute-resource-id': compute_resource['id'],
                 })
                 self.assertEqual(len(result), 0)
@@ -1157,7 +1158,7 @@ class DockerComputeResourceTestCase(CLITestCase):
                     'compute-resource-id': compute_resource['id'],
                     'organization-ids': [self.org['id']],
                 })
-                result = DockerContainer.list({
+                result = Docker.container.list({
                     'compute-resource-id': compute_resource['id'],
                 })
                 self.assertEqual(len(result), 1)
@@ -1204,6 +1205,7 @@ class DockerComputeResourceTestCase(CLITestCase):
                     ComputeResource.info({'id': compute_resource['id']})
 
 
+@run_only_on('sat')
 class DockerContainersTestCase(CLITestCase):
     """Tests specific to using ``Containers`` in local and external Docker
     Compute Resources
@@ -1214,98 +1216,90 @@ class DockerContainersTestCase(CLITestCase):
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerContainersTestCase, cls).setUpClass()
-        cls.org_id = entities.Organization().create_json()['id']
-        # TODO: create Docker-based compute resources (internal/external)
+        cls.org = make_org()
+        cls.cr_internal = make_compute_resource({
+            'organization-ids': [cls.org['id']],
+            'provider': DOCKER_PROVIDER,
+            'url': INTERNAL_DOCKER_URL,
+        })
+        cls.cr_external = make_compute_resource({
+            'organization-ids': [cls.org['id']],
+            'provider': DOCKER_PROVIDER,
+            'url': EXTERNAL_DOCKER_URL,
+        })
 
-    @stubbed()
-    @run_only_on('sat')
-    def test_create_container_local_compute_resource(self):
-        """@Test: Create a container in a local compute resource
+    def test_create_container(self):
+        """@Test: Create containers for local and external compute resources
 
         @Feature: Docker
 
-        @Assert: The docker container is created in the local compute resource
-
-        @Status: Manual
+        @Assert: The docker container is created for each compute resource
 
         """
+        for compute_resource in (self.cr_internal, self.cr_external):
+            with self.subTest(compute_resource['url']):
+                container = make_container({
+                    'compute-resource-id': compute_resource['id'],
+                    'organization-ids': [self.org['id']],
+                })
+                self.assertEqual(
+                    container['compute-resource'], compute_resource['name'])
 
-    @stubbed()
-    @run_only_on('sat')
-    def test_create_container_external_compute_resource(self):
-        """@Test: Create a container in an external compute resource
-
-        @Feature: Docker
-
-        @Assert: The docker container is created in the external compute
-        resource
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_create_container_local_compute_resource_power(self):
-        """@Test: Create a container in a local compute resource, then power it
-        on and finally power it off
+    @skip_if_bug_open('bugzilla', 1230915)
+    @skip_if_bug_open('bugzilla', 1269196)
+    def test_container_power(self):
+        """@Test: Create containers for local and external compute resource,
+        then power them on and finally power them off
 
         @Feature: Docker
 
-        @Assert: The docker container is created in the local compute resource
+        @Assert: The docker container is created for each compute resource
         and the power status is showing properly
 
-        @Status: Manual
+        @BZ: 1230915, 1269196
 
         """
+        # testing the text status may fail i18n tests but for now there is
+        # nothing else to assert
+        not_running_msg = 'Running: no'
+        running_msg = 'Running: yes'
+        for compute_resource in (self.cr_internal, self.cr_external):
+            with self.subTest(compute_resource['url']):
+                container = make_container({
+                    'compute-resource-id': compute_resource['id'],
+                    'organization-ids': [self.org['id']],
+                })
+                status = Docker.container.status({'id': container['id']})
+                self.assertEqual(status[0], running_msg)
+                Docker.container.stop({'id': container['id']})
+                status = Docker.container.status({'id': container['id']})
+                self.assertEqual(status[0], not_running_msg)
 
-    @stubbed()
-    @run_only_on('sat')
-    def test_create_container_external_compute_resource_power(self):
-        """@Test: Create a container in an external compute resource, then
-        power it on and finally power it off
+    @skip_if_bug_open('bugzilla', 1230915)
+    @skip_if_bug_open('bugzilla', 1269208)
+    def test_container_read_log(self):
+        """@Test: Create containers for local and external compute resource and
+        read their logs
 
         @Feature: Docker
 
-        @Assert: The docker container is created in the external compute
-        resource and the power status is showing properly
+        @Assert: The docker container is created for each compute resource and
+        its log can be read
 
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_create_container_local_compute_resource_read_log(self):
-        """@Test: Create a container in a local compute resource and read its
-        log
-
-        @Feature: Docker
-
-        @Assert: The docker container is created in the local compute resource
-        and its log can be read
-
-        @Status: Manual
+        @BZ: 1230915, 1269208
 
         """
+        for compute_resource in (self.cr_internal, self.cr_external):
+            with self.subTest(compute_resource['url']):
+                container = make_container({
+                    'command': 'date',
+                    'compute-resource-id': compute_resource['id'],
+                    'organization-ids': [self.org['id']],
+                })
+                logs = Docker.container.logs({'id': container['id']})
+                self.assertTrue(logs['logs'])
 
     @stubbed()
-    @run_only_on('sat')
-    def test_create_container_external_compute_resource_read_log(self):
-        """@Test: Create a container in an external compute resource and read
-        its log
-
-        @Feature: Docker
-
-        @Assert: The docker container is created in the external compute
-        resource and its log can be read
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
     def test_create_container_external_registry(self):
         """@Test: Create a container pulling an image from a custom external
         registry
@@ -1319,41 +1313,37 @@ class DockerContainersTestCase(CLITestCase):
 
         """
 
-    @stubbed()
-    @run_only_on('sat')
-    def test_delete_container_local_compute_resource(self):
-        """@Test: Delete a container in a local compute resource
+    @skip_if_bug_open('bugzilla', 1230915)
+    def test_delete_container(self):
+        """@Test: Delete containers in local and external compute resources
 
         @Feature: Docker
 
-        @Assert: The docker container is deleted in the local compute resource
+        @Assert: The docker containers are deleted in local and external
+        compute resources
 
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_delete_container_external_compute_resource(self):
-        """@Test: Delete a container in an external compute resource
-
-        @Feature: Docker
-
-        @Assert: The docker container is deleted in the local compute resource
-
-        @Status: Manual
+        @BZ: 1230915
 
         """
+        for compute_resource in (self.cr_internal, self.cr_external):
+            with self.subTest(compute_resource['url']):
+                container = make_container({
+                    'compute-resource-id': compute_resource['id'],
+                    'organization-ids': [self.org['id']],
+                })
+                Docker.container.delete({'id': container['id']})
+                with self.assertRaises(CLIReturnCodeError):
+                    Docker.container.info({'id': container['id']})
 
 
+@run_only_on('sat')
 class DockerRegistriesTestCase(CLITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
 
     """
 
-    @stubbed()
-    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1259498)
     def test_create_registry(self):
         """@Test: Create an external docker registry
 
@@ -1361,71 +1351,219 @@ class DockerRegistriesTestCase(CLITestCase):
 
         @Assert: the external registry is created
 
-        @Status: Manual
+        @BZ: 1259498
 
         """
+        for name in valid_data_list():
+            with self.subTest(name):
+                url = gen_url(subdomain=gen_string('alpha'))
+                description = gen_string('alphanumeric')
+                registry = make_registry({
+                    'description': description,
+                    'name': name,
+                    'url': url,
+                })
+                self.assertEqual(registry['name'], name)
+                self.assertEqual(registry['description'], description)
+                self.assertEqual(registry['url'], url)
 
-    @stubbed()
-    @run_only_on('sat')
-    def test_update_registry_name(self):
-        """@Test: Create an external docker registry and update its name
+    @skip_if_bug_open('bugzilla', 1259498)
+    def test_update_registry_name_by_id(self):
+        """@Test: Create an external docker registry and update its name. Use
+        registry ID to search by
 
         @Feature: Docker
 
         @Assert: the external registry is updated with the new name
 
-        @Status: Manual
+        @BZ: 1259498
 
         """
+        registry = make_registry()
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                Docker.registry.update({
+                    'id': registry['id'],
+                    'new-name': new_name,
+                })
+                registry = Docker.registry.info({'id': registry['id']})
+                self.assertEqual(registry['name'], new_name)
 
-    @stubbed()
-    @run_only_on('sat')
-    def test_update_registry_url(self):
-        """@Test: Create an external docker registry and update its URL
+    def test_update_registry_name_by_name(self):
+        """@Test: Create an external docker registry and update its name. Use
+        registry name to search by
+
+        @Feature: Docker
+
+        @Assert: the external registry is updated with the new name
+
+        """
+        registry = make_registry()
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                Docker.registry.update({
+                    'name': registry['name'],
+                    'new-name': new_name,
+                })
+                registry = Docker.registry.info({'name': new_name})
+                self.assertEqual(registry['name'], new_name)
+
+    @skip_if_bug_open('bugzilla', 1259498)
+    def test_update_registry_url_by_id(self):
+        """@Test: Create an external docker registry and update its URL. Use
+        registry ID to search by
 
         @Feature: Docker
 
         @Assert: the external registry is updated with the new URL
 
-        @Status: Manual
+        @BZ: 1259498
 
         """
+        registry = make_registry()
+        new_url = gen_url(subdomain=gen_string('alpha'))
+        Docker.registry.update({
+            'id': registry['id'],
+            'url': new_url,
+        })
+        registry = Docker.registry.info({'id': registry['id']})
+        self.assertEqual(registry['url'], new_url)
 
-    @stubbed()
-    @run_only_on('sat')
-    def test_update_registry_description(self):
-        """@Test: Create an external docker registry and update its description
+    def test_update_registry_url_by_name(self):
+        """@Test: Create an external docker registry and update its URL. Use
+        registry name to search by
+
+        @Feature: Docker
+
+        @Assert: the external registry is updated with the new URL
+
+        """
+        registry = make_registry()
+        new_url = gen_url(subdomain=gen_string('alpha'))
+        Docker.registry.update({
+            'name': registry['name'],
+            'url': new_url,
+        })
+        registry = Docker.registry.info({'name': registry['name']})
+        self.assertEqual(registry['url'], new_url)
+
+    @skip_if_bug_open('bugzilla', 1259498)
+    def test_update_registry_description_by_id(self):
+        """@Test: Create an external docker registry and update its
+        description. Use registry ID to search by
 
         @Feature: Docker
 
         @Assert: the external registry is updated with the new description
 
-        @Status: Manual
+        @BZ: 1259498
 
         """
+        registry = make_registry({'description': gen_string('alpha')})
+        for new_desc in valid_data_list():
+            with self.subTest(new_desc):
+                Docker.registry.update({
+                    'description': new_desc,
+                    'id': registry['id'],
+                })
+                registry = Docker.registry.info({'id': registry['id']})
+                self.assertEqual(registry['description'], new_desc)
 
-    @stubbed()
-    @run_only_on('sat')
-    def test_update_registry_username(self):
-        """@Test: Create an external docker registry and update its username
+    @skip_if_bug_open('bugzilla', 1259498)
+    def test_update_registry_description_by_name(self):
+        """@Test: Create an external docker registry and update its
+        description. Use registry name to search by
+
+        @Feature: Docker
+
+        @Assert: the external registry is updated with the new description
+
+        @BZ: 1259498
+
+        """
+        registry = make_registry({'description': gen_string('alpha')})
+        for new_desc in valid_data_list():
+            with self.subTest(new_desc):
+                Docker.registry.update({
+                    'description': new_desc,
+                    'name': registry['name'],
+                })
+                registry = Docker.registry.info({'name': registry['name']})
+                self.assertEqual(registry['description'], new_desc)
+
+    @skip_if_bug_open('bugzilla', 1259498)
+    def test_update_registry_username_by_id(self):
+        """@Test: Create an external docker registry and update its username.
+        Use registry ID to search by
 
         @Feature: Docker
 
         @Assert: the external registry is updated with the new username
 
-        @Status: Manual
+        @BZ: 1259498
 
         """
+        registry = make_registry({'username': gen_string('alpha')})
+        for new_user in valid_data_list():
+            with self.subTest(new_user):
+                Docker.registry.update({
+                    'id': registry['id'],
+                    'username': new_user,
+                })
+                registry = Docker.registry.info({'id': registry['id']})
+                self.assertEqual(registry['username'], new_user)
 
-    @stubbed()
-    @run_only_on('sat')
-    def test_delete_registry(self):
-        """@Test: Create an external docker registry
+    @skip_if_bug_open('bugzilla', 1259498)
+    def test_update_registry_username_by_name(self):
+        """@Test: Create an external docker registry and update its username.
+        Use registry name to search by
+
+        @Feature: Docker
+
+        @Assert: the external registry is updated with the new username
+
+        @BZ: 1259498
+
+        """
+        registry = make_registry({'username': gen_string('alpha')})
+        for new_user in valid_data_list():
+            with self.subTest(new_user):
+                Docker.registry.update({
+                    'name': registry['name'],
+                    'username': new_user,
+                })
+                registry = Docker.registry.info({'name': registry['name']})
+                self.assertEqual(registry['username'], new_user)
+
+    @skip_if_bug_open('bugzilla', 1259498)
+    def test_delete_registry_by_id(self):
+        """@Test: Create an external docker registry. Use registry ID to search
+        by
 
         @Feature: Docker
 
         @Assert: the external registry is created
 
-        @Status: Manual
+        @BZ: 1259498
 
         """
+        registry = make_registry()
+        Docker.registry.delete({'id': registry['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Docker.registry.info({'id': registry['id']})
+
+    def test_delete_registry_by_name(self):
+        """@Test: Create an external docker registry. Use registry name to
+        search by
+
+        @Feature: Docker
+
+        @Assert: the external registry is created
+
+        """
+        for name in valid_data_list():
+            with self.subTest(name):
+                registry = make_registry({'name': name})
+                Docker.registry.delete({'name': registry['name']})
+                with self.assertRaises(CLIReturnCodeError):
+                    Docker.registry.info({'name': registry['name']})
