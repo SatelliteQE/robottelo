@@ -12,6 +12,8 @@ from robottelo.helpers import (
     get_server_credentials,
     get_server_url,
     invalid_names_list,
+    invalid_values_list,
+    InvalidArgumentError,
     valid_data_list,
     valid_names_list,
 )
@@ -186,6 +188,25 @@ class InvalidNamesListTestCase(unittest2.TestCase):
         """Tests if invalid names list returns a unicode string"""
         for name in invalid_names_list():
             self.assertIsInstance(name, unicode)
+
+
+class InvalidValuesListTestCase(unittest2.TestCase):
+    def test_return_type(self):
+        """Tests if invalid values list returns right values based on input"""
+        # Test valid values
+        for value in 'api', 'cli', 'ui', None:
+            return_value = invalid_values_list(value)
+            self.assertIsInstance(return_value, list)
+            if value == 'ui':
+                self.assertEqual(len(return_value), 9)
+            else:
+                self.assertEqual(len(return_value), 10)
+        # Test invalid values
+        self.assertRaises(InvalidArgumentError, invalid_values_list, ' ')
+        self.assertRaises(InvalidArgumentError, invalid_values_list, 'UI')
+        self.assertRaises(InvalidArgumentError, invalid_values_list, 'CLI')
+        self.assertRaises(InvalidArgumentError, invalid_values_list, 'API')
+        self.assertRaises(InvalidArgumentError, invalid_values_list, 'invalid')
 
 
 class GenerateStringListTestCase(unittest2.TestCase):

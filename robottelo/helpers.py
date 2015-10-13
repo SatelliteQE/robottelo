@@ -30,6 +30,10 @@ class HostInfoError(Exception):
     """Indicates any issue when getting host info."""
 
 
+class InvalidArgumentError(Exception):
+    """Indicates an error when an invalid argument is received."""
+
+
 def get_server_credentials():
     """Return credentials for interacting with a Foreman deployment API.
 
@@ -262,16 +266,26 @@ def invalid_names_list():
     ]
 
 
-def invalid_values_list():
-    """List of invalid values for input testing which consists from invalid names
-    and few empty string examples. That method should be useful for CLI and API
-    tests primarily as we can pass such parameters to a server, but not in UI.
-    As we do not verify error messages, it is recommended to use current method
-    instead 'invalid_names_list' to have better coverage and prevent redundant
-    code.
+def invalid_values_list(interface=None):
+    """List of invalid values for input testing.
+
+    This returns invalid values from invalid_names_list() and some interface
+    (api/cli/ui) specific empty string values.
+
+    :param str interface: Interface name (one of api/cli/ui).
+    :return: Returns the invalid values list
+    :rtype: list
+    :raises: :meth:`InvalidArgumentError`: If an invalid interface is received.
 
     """
-    return ['', ' ', '\t'] + invalid_names_list()
+    if interface not in ['api', 'cli', 'ui', None]:
+        raise InvalidArgumentError(
+            'Valid interface values are {0}'.format('api, cli, ui only')
+        )
+    if interface == 'ui':
+        return ['', ' '] + invalid_names_list()
+    else:  # interface = api or cli or None
+        return ['', ' ', '\t'] + invalid_names_list()
 
 
 def generate_strings_list(len1=None, remove_str=None, bug_id=None):
