@@ -11,8 +11,9 @@ from random import randint
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import PRDS, REPOSET, VALID_GPG_KEY_FILE
+from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import run_only_on
-from robottelo.helpers import read_data_file, generate_strings_list
+from robottelo.helpers import read_data_file
 from robottelo.test import APITestCase
 
 

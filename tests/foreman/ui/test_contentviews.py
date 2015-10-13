@@ -23,12 +23,9 @@ from robottelo.constants import (
     REPO_TYPE,
     ZOO_CUSTOM_GPG_KEY,
 )
+from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
-from robottelo.helpers import (
-    invalid_names_list,
-    read_data_file,
-    valid_data_list,
-)
+from robottelo.helpers import read_data_file
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
 from robottelo.ui.locators import common_locators, locators

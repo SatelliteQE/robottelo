@@ -14,8 +14,9 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import bz_bug_is_open, run_only_on, stubbed
-from robottelo.helpers import get_data_file, valid_data_list
+from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
 

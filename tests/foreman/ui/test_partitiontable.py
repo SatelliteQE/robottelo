@@ -3,12 +3,9 @@
 """Test class for Partition Table UI"""
 from fauxfactory import gen_string
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
+from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import bz_bug_is_open, run_only_on
-from robottelo.helpers import (
-    generate_strings_list,
-    invalid_values_list,
-    read_data_file
-)
+from robottelo.helpers import read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_partitiontable
 from robottelo.ui.locators import common_locators

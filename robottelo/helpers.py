@@ -4,12 +4,9 @@ import logging
 import os
 import re
 
-from fauxfactory import gen_string, gen_integer
 from nailgun.config import ServerConfig
-from random import randint
 from robottelo import ssh
 from robottelo.config import settings
-from robottelo.decorators import bz_bug_is_open
 
 LOGGER = logging.getLogger(__name__)
 
@@ -80,131 +77,6 @@ def get_nailgun_config():
         settings.server.get_credentials(),
         verify=False,
     )
-
-
-def valid_names_list():
-    """
-    List of valid names for input testing.
-    """
-    return [
-        gen_string('utf8', 5),
-        gen_string('utf8', 255),
-        u"{0}-{1}".format(gen_string('utf8', 4), gen_string('utf8', 4)),
-        u"{0}.{1}".format(gen_string('utf8', 4), gen_string('utf8', 4)),
-        u"նոր օգտվող-{0}".format(gen_string('utf8', 2)),
-        u"新用戶-{0}".format(gen_string('utf8', 2)),
-        u"नए उपयोगकर्ता-{0}".format(gen_string('utf8', 2)),
-        u"нового пользователя-{0}".format(gen_string('utf8', 2)),
-        u"uusi käyttäjä-{0}".format(gen_string('utf8', 2)),
-        u"νέος χρήστης-{0}".format(gen_string('utf8', 2)),
-        u"foo@!#$^&*( ) {0}".format(gen_string('utf8')),
-        u"<blink>{0}</blink>".format(gen_string('utf8')),
-        u"bar+{{}}|\"?hi {0}".format(gen_string('utf8')),
-        u' {0}'.format(gen_string('utf8')),
-        u'{0} '.format(gen_string('utf8')),
-    ]
-
-
-def valid_data_list():
-    """List of valid data for input testing.
-
-    Note:
-    Although this helper is widely used for different attributes for several
-    entities, the following are known behaviors and are handled specifically in
-    the corresponding test modules::
-
-        Org - name max length is 242
-        Loc - name max length is 246
-
-    """
-    return [
-        gen_string('alphanumeric', randint(1, 255)),
-        gen_string('alpha', randint(1, 255)),
-        gen_string('cjk', randint(1, 85)),
-        gen_string('latin1', randint(1, 255)),
-        gen_string('numeric', randint(1, 255)),
-        gen_string('utf8', randint(1, 85)),
-        gen_string('html', randint(1, 85)),
-    ]
-
-
-def valid_labels_list():
-    """List of valid labels for input testing."""
-    return [
-        gen_string('alphanumeric', randint(1, 128)),
-        gen_string('alpha', randint(1, 128)),
-    ]
-
-
-def invalid_names_list():
-    """
-    List of invalid names for input testing.
-    """
-    return [
-        gen_string('alphanumeric', 300),
-        gen_string('alpha', 300),
-        gen_string('cjk', 300),
-        gen_string('latin1', 300),
-        gen_string('numeric', 300),
-        gen_string('utf8', 300),
-        gen_string('html', 300),
-    ]
-
-
-def invalid_values_list(interface=None):
-    """List of invalid values for input testing.
-
-    This returns invalid values from invalid_names_list() and some interface
-    (api/cli/ui) specific empty string values.
-
-    :param str interface: Interface name (one of api/cli/ui).
-    :return: Returns the invalid values list
-    :rtype: list
-    :raises: :meth:`InvalidArgumentError`: If an invalid interface is received.
-
-    """
-    if interface not in ['api', 'cli', 'ui', None]:
-        raise InvalidArgumentError(
-            'Valid interface values are {0}'.format('api, cli, ui only')
-        )
-    if interface == 'ui':
-        return ['', ' '] + invalid_names_list()
-    else:  # interface = api or cli or None
-        return ['', ' ', '\t'] + invalid_names_list()
-
-
-def generate_strings_list(len1=None, remove_str=None, bug_id=None):
-    """Generates a list of all the input strings.
-
-    :param int len1: Specifies the length of the strings to be
-        be generated. If the len1 is None then the list is
-        returned with string types of random length.
-    :returns: A list of various string types.
-
-    """
-    if len1 is None:
-        len1 = gen_integer(3, 30)
-    strings = {
-        str_type: gen_string(str_type, len1)
-        for str_type
-        in (u'alpha', u'numeric', u'alphanumeric',
-            u'latin1', u'utf8', u'cjk', u'html')
-    }
-    # Handle No bug_id, If some entity doesn't support a str_type.
-    # Remove str_type from dictionary only if bug is open.
-    if remove_str and (bug_id is None or bz_bug_is_open(bug_id)):
-        del strings[remove_str]
-    return list(strings.values())
-
-
-def invalid_id_list():
-    """Generate a list of invalid IDs."""
-    return [
-        {'id': gen_string('alpha')},
-        {'id': None},
-        {'id': ''},
-        {'id': -1},
-    ]
 
 
 def escape_search(term):

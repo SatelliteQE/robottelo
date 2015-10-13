@@ -33,7 +33,8 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.config import settings
-from robottelo.helpers import generate_strings_list, get_server_software
+from robottelo.datafactory import generate_strings_list
+from robottelo.helpers import get_server_software
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 # (too many public methods) pylint: disable=R0904

@@ -1,12 +1,12 @@
 """Test class for Config Groups UI"""
 
 from fauxfactory import gen_string
-from robottelo.decorators import run_only_on
-from robottelo.helpers import (
+from robottelo.datafactory import (
     generate_strings_list,
     invalid_values_list,
     valid_data_list,
 )
+from robottelo.decorators import run_only_on
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_config_groups
 from robottelo.ui.locators import common_locators

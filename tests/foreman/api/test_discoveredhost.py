@@ -2,8 +2,8 @@
 """API Tests for foreman discovery feature"""
 from fauxfactory import gen_string, gen_ipaddr, gen_mac
 from nailgun import entities
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_only_on, stubbed
-from robottelo.helpers import valid_data_list
 from robottelo.test import APITestCase
 
 

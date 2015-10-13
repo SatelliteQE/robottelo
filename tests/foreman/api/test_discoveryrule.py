@@ -3,8 +3,8 @@
 from fauxfactory import gen_choice, gen_integer, gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_only_on
-from robottelo.helpers import valid_data_list
 from robottelo.test import APITestCase
 
 

@@ -10,6 +10,11 @@ Submodules:
 
 .. automodule:: tests.robottelo.test_cli
 
+:mod:`tests.robottelo.test_datafactory`
+---------------------------------------
+
+.. automodule:: tests.robottelo.test_datafactory
+
 :mod:`tests.robottelo.test_decorators`
 --------------------------------------
 

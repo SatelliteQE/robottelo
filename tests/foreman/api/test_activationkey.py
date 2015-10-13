@@ -5,8 +5,8 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
 from robottelo.config import settings
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import rm_bug_is_open, skip_if_bug_open
-from robottelo.helpers import valid_data_list
 from robottelo.test import APITestCase
 
 

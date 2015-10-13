@@ -16,6 +16,11 @@ Submodules:
 
 .. automodule:: robottelo.constants
 
+:mod:`robottelo.datafactory`
+----------------------------------
+
+.. automodule:: robottelo.datafactory
+
 :mod:`robottelo.decorators`
 ----------------------------------
 

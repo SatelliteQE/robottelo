@@ -6,8 +6,8 @@ from fauxfactory import gen_alphanumeric
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_location, make_medium, make_org, make_os
 from robottelo.cli.medium import Medium
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_only_on
-from robottelo.helpers import valid_data_list
 from robottelo.test import CLITestCase
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"

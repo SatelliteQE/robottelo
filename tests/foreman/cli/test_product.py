@@ -13,14 +13,13 @@ from robottelo.cli.factory import (
     make_sync_plan,
 )
 from robottelo.cli.product import Product
-from robottelo.decorators import run_only_on
-from robottelo.helpers import (
-    bz_bug_is_open,
+from robottelo.datafactory import (
     generate_strings_list,
     valid_data_list,
     valid_labels_list,
     invalid_values_list,
 )
+from robottelo.decorators import bz_bug_is_open, run_only_on
 from robottelo.test import CLITestCase
 
 

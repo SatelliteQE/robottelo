@@ -41,6 +41,8 @@ ssh_key=
 # Selenium webdriver to use
 # webdriver=firefox
 # cdn=true
+# Run one datapoint or multiple datapoints for tests
+# run_one_datapoint=false
 
 # Virtual display controls if PyVirtualDisplay should be used to run UI tests
 # when setting it to true then make sure to install required dependencies

@@ -8,8 +8,8 @@ from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.api.utils import one_to_many_names
+from robottelo.datafactory import invalid_names_list
 from robottelo.decorators import run_only_on, skip_if_bug_open
-from robottelo.helpers import invalid_names_list
 from robottelo.test import APITestCase
 
 

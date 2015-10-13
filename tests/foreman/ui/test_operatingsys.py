@@ -6,9 +6,9 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import (
     INSTALL_MEDIUM_URL, PARTITION_SCRIPT_DATA_FILE)
+from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import run_only_on
-from robottelo.helpers import (
-    get_data_file, invalid_values_list, valid_data_list)
+from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_os

@@ -19,13 +19,13 @@ from robottelo.cli.factory import (
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
     bz_bug_is_open,
     run_only_on,
     skip_if_bug_open,
     stubbed
 )
-from robottelo.helpers import valid_data_list
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 

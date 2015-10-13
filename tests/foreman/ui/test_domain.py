@@ -3,9 +3,9 @@
 """Test class for Domain UI"""
 from fauxfactory import gen_string
 from robottelo.constants import DOMAIN
+from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import (
     bz_bug_is_open, run_only_on, skip_if_bug_open)
-from robottelo.helpers import generate_strings_list, invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_domain

@@ -8,8 +8,8 @@ from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError, make_proxy
 from robottelo.cli.proxy import Proxy, default_url_on_new_port
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_only_on
-from robottelo.helpers import valid_data_list
 from robottelo.test import CLITestCase
 
 

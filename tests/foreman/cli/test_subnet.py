@@ -9,8 +9,8 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_domain, make_subnet, CLIFactoryError
 from robottelo.cli.subnet import Subnet
 from robottelo.constants import SUBNET_IPAM_TYPES
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_only_on, skip_if_bug_open
-from robottelo.helpers import valid_data_list
 from robottelo.test import CLITestCase
 
 

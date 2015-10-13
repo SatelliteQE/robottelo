@@ -30,8 +30,8 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
+from robottelo.datafactory import invalid_values_list, generate_strings_list
 from robottelo.decorators import run_only_on, skip_if_bug_open
-from robottelo.helpers import invalid_values_list, generate_strings_list
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 

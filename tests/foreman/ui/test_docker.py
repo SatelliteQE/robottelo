@@ -10,8 +10,8 @@ from robottelo.constants import (
     FOREMAN_PROVIDERS,
     REPO_TYPE,
 )
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
-from robottelo.helpers import valid_data_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_activationkey,

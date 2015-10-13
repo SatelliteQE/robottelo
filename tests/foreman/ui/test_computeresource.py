@@ -5,8 +5,8 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
+from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import run_only_on
-from robottelo.helpers import invalid_names_list, valid_data_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
 from robottelo.ui.locators import common_locators

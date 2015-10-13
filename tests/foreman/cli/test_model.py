@@ -5,12 +5,12 @@ from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_model
 from robottelo.cli.model import Model
-from robottelo.decorators import run_only_on
-from robottelo.helpers import (
+from robottelo.datafactory import (
     invalid_id_list,
     invalid_values_list,
     valid_data_list,
 )
+from robottelo.decorators import run_only_on
 from robottelo.test import CLITestCase
 
 

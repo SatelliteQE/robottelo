@@ -6,13 +6,7 @@ import unittest2
 from robottelo.helpers import (
     HostInfoError,
     escape_search,
-    generate_strings_list,
     get_host_info,
-    invalid_names_list,
-    invalid_values_list,
-    InvalidArgumentError,
-    valid_data_list,
-    valid_names_list,
 )
 
 
@@ -63,53 +57,6 @@ class FakeSSHResult(object):
         self.stdout = stdout
         self.stderr = stderr
         self.return_code = return_code
-
-
-class ValidNamesListTestCase(unittest2.TestCase):
-    def test_return_type(self):
-        """Tests if valid names list returns a unicode string"""
-        for name in valid_names_list():
-            self.assertIsInstance(name, unicode)
-
-
-class ValidDataListTestCase(unittest2.TestCase):
-    def test_return_type(self):
-        """Tests if valid data list returns a unicode string"""
-        for data in valid_data_list():
-            self.assertIsInstance(data, unicode)
-
-
-class InvalidNamesListTestCase(unittest2.TestCase):
-    def test_return_type(self):
-        """Tests if invalid names list returns a unicode string"""
-        for name in invalid_names_list():
-            self.assertIsInstance(name, unicode)
-
-
-class InvalidValuesListTestCase(unittest2.TestCase):
-    def test_return_type(self):
-        """Tests if invalid values list returns right values based on input"""
-        # Test valid values
-        for value in 'api', 'cli', 'ui', None:
-            return_value = invalid_values_list(value)
-            self.assertIsInstance(return_value, list)
-            if value == 'ui':
-                self.assertEqual(len(return_value), 9)
-            else:
-                self.assertEqual(len(return_value), 10)
-        # Test invalid values
-        self.assertRaises(InvalidArgumentError, invalid_values_list, ' ')
-        self.assertRaises(InvalidArgumentError, invalid_values_list, 'UI')
-        self.assertRaises(InvalidArgumentError, invalid_values_list, 'CLI')
-        self.assertRaises(InvalidArgumentError, invalid_values_list, 'API')
-        self.assertRaises(InvalidArgumentError, invalid_values_list, 'invalid')
-
-
-class GenerateStringListTestCase(unittest2.TestCase):
-    def test_return_type(self):
-        """Tests if generate string list returns a unicode string"""
-        for string in generate_strings_list():
-            self.assertIsInstance(string, unicode)
 
 
 class EscapeSearchTestCase(unittest2.TestCase):

@@ -2,8 +2,8 @@
 """Test class for Puppet Classes UI"""
 
 from nailgun import entities
+from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import run_only_on
-from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
