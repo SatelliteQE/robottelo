@@ -479,6 +479,7 @@ class ActivationKey(UITestCase):
                     self.activationkey.update(name, new_name)
                     self.assertIsNotNone(
                         self.activationkey.search_key(new_name))
+                    name = new_name
 
     def test_positive_update_activation_key_with_description(self):
         """@Test: Update Description in an Activation key
