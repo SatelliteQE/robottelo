@@ -9119,6 +9119,12 @@
               "value": "NAME"
             },
             {
+              "help": "sort results",
+              "name": "order",
+              "shortname": null,
+              "value": "ORDER"
+            },
+            {
               "help": "paginate results",
               "name": "page",
               "shortname": null,
@@ -9135,6 +9141,12 @@
               "name": "resource-type",
               "shortname": null,
               "value": "RESOURCE_TYPE"
+            },
+            {
+              "help": "filter results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
             },
             {
               "help": "print help",
