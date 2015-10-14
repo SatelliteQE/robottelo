@@ -163,8 +163,15 @@ class CVVersionTestCase(APITestCase):
         ).create()
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             puppet_repo.upload_content(files={'content': handle})
+        # Extract all the available puppet modules.
+        puppet_modules = content_view.available_puppet_modules()['results']
+        # Make sure that we have results. Uploading content does not
+        # seem to create a task so we cannot pool it for status. We
+        # should then check that we have some results back before
+        # proceeding.
+        self.assertGreater(len(puppet_modules), 0)
         puppet_module = entities.PuppetModule(
-            id=content_view.available_puppet_modules()['results'][0]['id']
+            id=puppet_modules[0]['id']
         )
 
         # Incrementally update the CVV with the puppet module.
