@@ -246,8 +246,8 @@ def valid_data_list():
 def valid_labels_list():
     """List of valid labels for input testing."""
     return [
-        gen_string('alphanumeric', randint(1, 255)),
-        gen_string('alpha', randint(1, 255)),
+        gen_string('alphanumeric', randint(1, 128)),
+        gen_string('alpha', randint(1, 128)),
     ]
 
 

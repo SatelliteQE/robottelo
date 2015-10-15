@@ -85,7 +85,7 @@ class TestProduct(CLITestCase):
         @Assert: Product is created and has random description
 
         """
-        for desc in valid_labels_list():
+        for desc in valid_data_list():
             with self.subTest(desc):
                 product_name = gen_alphanumeric()
                 product = make_product({
