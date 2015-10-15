@@ -1,11 +1,10 @@
 # -*- encoding: utf-8 -*-
 """Test class for Subnet UI"""
 
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_ipaddr, gen_netmask, gen_string
 from nailgun import entities
-from robottelo.decorators import (
-    bz_bug_is_open, data, run_only_on)
+from robottelo.decorators import bz_bug_is_open, run_only_on
 from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_subnet
@@ -20,8 +19,8 @@ class Subnet(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        cls.organization = entities.Organization().create()
         super(Subnet, cls).setUpClass()
+        cls.organization = entities.Organization().create()
 
     @data(*generate_strings_list(len1=8))
     def test_create_subnet_with_different_names(self, name):

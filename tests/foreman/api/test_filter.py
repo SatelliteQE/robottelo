@@ -15,6 +15,7 @@ class FilterTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Search for config template permissions. Set ``cls.ct_perms``."""
+        super(FilterTestCase, cls).setUpClass()
         cls.ct_perms = (
             entities.Permission(resource_type='ConfigTemplate').search()
         )

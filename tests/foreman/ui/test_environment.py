@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 """Test class for Environment UI"""
 
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
-from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.helpers import invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_env

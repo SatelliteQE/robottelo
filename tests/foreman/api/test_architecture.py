@@ -1,8 +1,8 @@
 """Unit tests for the ``architectures`` paths."""
 from fauxfactory import gen_utf8
 from nailgun import client, entities
+from robottelo.config import settings
 from robottelo.decorators import skip_if_bug_open
-from robottelo.helpers import get_server_credentials
 from robottelo.test import APITestCase
 
 
@@ -24,7 +24,7 @@ class ArchitectureTestCase(APITestCase):
         response = client.post(
             entities.Architecture().path(),
             {u'name': name, u'operatingsystem_ids': [os_id]},
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             verify=False,
         )
         response.raise_for_status()

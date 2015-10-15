@@ -83,6 +83,7 @@ class ProductUpdateTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         """Create a product."""
+        super(ProductUpdateTestCase, cls).setUpClass()
         cls.product = entities.Product().create()
 
     def test_positive_update_1(self):

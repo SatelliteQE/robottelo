@@ -1,27 +1,21 @@
 """Test class for Subscriptions/Manifests UI"""
-
-from ddt import ddt
 from nailgun import entities
 from robottelo import manifests
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.decorators import skipRemote
 from robottelo.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
 
-@ddt
 class SubscriptionTestCase(UITestCase):
     """Implements subscriptions/manifests tests in UI"""
 
     @classmethod
     def setUpClass(cls):  # noqa
+        super(SubscriptionTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
-        super(SubscriptionTestCase, cls).setUpClass()
-
-    @skipRemote
     def test_positive_upload_basic(self):
         """@Test: Upload a manifest with minimal input parameters
 
@@ -40,7 +34,6 @@ class SubscriptionTestCase(UITestCase):
             self.assertTrue(self.subscriptions.wait_until_element(
                 common_locators['alert.success']))
 
-    @skipRemote
     def test_positive_delete(self):
         """@Test: Upload a manifest and then delete it
 
@@ -60,7 +53,6 @@ class SubscriptionTestCase(UITestCase):
             self.assertTrue(self.subscriptions.wait_until_element(
                 common_locators['alert.success']))
 
-    @skipRemote
     def test_assert_delete_button(self):
         """@Test: Upload and delete a manifest
 

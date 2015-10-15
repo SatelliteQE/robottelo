@@ -28,10 +28,12 @@ from robottelo.constants import (
     DEFAULT_ORG,
     DEFAULT_SUBSCRIPTION_NAME,
     FAKE_0_PUPPET_REPO,
-    GOOGLE_CHROME_REPO
+    GOOGLE_CHROME_REPO,
+    PRDS,
+    REPOS,
+    REPOSET,
 )
-from robottelo.config import conf
-from robottelo.constants import PRDS, REPOS, REPOSET
+from robottelo.config import settings
 from robottelo.helpers import generate_strings_list, get_server_software
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -284,7 +286,7 @@ class TestSmoke(CLITestCase):
                 u'name': gen_alphanumeric(),
                 u'provider': u'Libvirt',
                 u'url': u'qemu+tcp://{0}:16509/system'.format(
-                    conf.properties['main.server.hostname']),
+                    settings.server.hostname),
             }
         )
 
@@ -492,7 +494,7 @@ class TestSmoke(CLITestCase):
         })
         # Create VM
         package_name = "python-kitchen"
-        server_name = conf.properties['main.server.hostname']
+        server_name = settings.server.hostname
         with VirtualMachine(distro='rhel66') as vm:
             # Download and Install rpm
             result = vm.run(

@@ -17,8 +17,7 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.metatest import MetaCLITest
 from robottelo.cli.org import Org as OrgCli
 from robottelo.cli.subscription import Subscription
-from robottelo.config import conf
-from robottelo.helpers import get_server_url
+from robottelo.config import settings
 from robottelo.performance.constants import(
     DEFAULT_ORG,
     NUM_THREADS,
@@ -79,7 +78,6 @@ from robottelo.ui.trend import Trend
 from robottelo.ui.usergroup import UserGroup
 from robottelo.ui.user import User
 from selenium import webdriver
-from selenium_factory.SeleniumFactory import SeleniumFactory
 
 SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
 
@@ -90,6 +88,8 @@ class TestCase(unittest2.TestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         super(TestCase, cls).setUpClass()
+        if not settings.configured:
+            settings.configure()
         cls.logger = logging.getLogger('robottelo')
         # NOTE: longMessage defaults to True in Python 3.1 and above
         cls.longMessage = True
@@ -108,13 +108,12 @@ class CLITestCase(TestCase):
     def setUpClass(cls):  # noqa
         """Make sure that we only read configuration values once."""
         super(CLITestCase, cls).setUpClass()
-        cls.hostname = conf.properties['main.server.hostname']
-        cls.katello_user = conf.properties['foreman.admin.username']
-        cls.katello_passwd = conf.properties['foreman.admin.password']
-        cls.key_filename = conf.properties['main.server.ssh.key_private']
-        cls.root = conf.properties['main.server.ssh.username']
-        cls.locale = conf.properties['main.locale']
-        cls.verbosity = int(conf.properties['main.verbosity'])
+        cls.hostname = settings.server.hostname
+        cls.katello_user = settings.server.admin_username
+        cls.katello_passwd = settings.server.admin_password
+        cls.key_filename = settings.server.ssh_key
+        cls.root = settings.server.ssh_username
+        cls.locale = settings.locale
 
     def setUp(self):  # noqa
         """Log test class and method name before each test."""
@@ -137,16 +136,14 @@ class UITestCase(TestCase):
     def setUpClass(cls):  # noqa
         """Make sure that we only read configuration values once."""
         super(UITestCase, cls).setUpClass()
-        cls.katello_user = conf.properties['foreman.admin.username']
-        cls.katello_passwd = conf.properties['foreman.admin.password']
-        cls.driver_name = conf.properties['saucelabs.driver']
-        cls.locale = conf.properties['main.locale']
-        cls.verbosity = int(conf.properties['main.verbosity'])
-        cls.remote = int(conf.properties['main.remote'])
-        cls.server_name = conf.properties.get('main.server.hostname')
-        cls.screenshots_dir = conf.properties.get('main.screenshots.base_path')
+        cls.katello_user = settings.server.admin_username
+        cls.katello_passwd = settings.server.admin_password
+        cls.driver_name = settings.webdriver
+        cls.locale = settings.locale
+        cls.server_name = settings.server.hostname
+        cls.screenshots_dir = settings.screenshots_path
 
-        if int(conf.properties.get('main.virtual_display', '0')):
+        if settings.virtual_display and settings.window_manager_command:
             # Import from optional requirements
             from pyvirtualdisplay import Display
             from easyprocess import EasyProcess, EasyProcessError
@@ -158,11 +155,9 @@ class UITestCase(TestCase):
                 cls.display.display
             )
 
-            window_manager_cmd = conf.properties.get(
-                'main.window_manager_command', '')
-
             try:
-                cls.window_manager = EasyProcess(window_manager_cmd)
+                cls.window_manager = EasyProcess(
+                    settings.window_manager_command)
                 cls.window_manager.start()
                 cls.logger.debug(
                     'Window manager started (pid=%d, cmd="%s")',
@@ -174,7 +169,7 @@ class UITestCase(TestCase):
                 cls.logger.warning(
                     'Window manager could not be started. '
                     'Command: "%s". Error: %s',
-                    window_manager_cmd,
+                    settings.window_manager_command,
                     err
                 )
         else:
@@ -182,26 +177,22 @@ class UITestCase(TestCase):
 
     def setUp(self):  # noqa
         """We do want a new browser instance for every test."""
-        if not self.remote:
-            if self.driver_name.lower() == 'firefox':
-                self.browser = webdriver.Firefox()
-            elif self.driver_name.lower() == 'chrome':
-                self.browser = webdriver.Chrome()
-            elif self.driver_name.lower() == 'ie':
-                self.browser = webdriver.Ie()
-            elif self.driver_name.lower() == 'phantomjs':
-                service_args = ['--ignore-ssl-errors=true']
-                self.browser = webdriver.PhantomJS(
-                    service_args=service_args
-                )
-            else:
-                self.browser = webdriver.Remote()
+        if self.driver_name.lower() == 'firefox':
+            self.browser = webdriver.Firefox()
+        elif self.driver_name.lower() == 'chrome':
+            self.browser = webdriver.Chrome()
+        elif self.driver_name.lower() == 'ie':
+            self.browser = webdriver.Ie()
+        elif self.driver_name.lower() == 'phantomjs':
+            service_args = ['--ignore-ssl-errors=true']
+            self.browser = webdriver.PhantomJS(
+                service_args=service_args
+            )
         else:
-            self.browser = SeleniumFactory().createWebDriver(
-                job_name=self.id(), show_session_id=True)
+            self.browser = webdriver.Remote()
 
         self.browser.maximize_window()
-        self.browser.get(get_server_url())
+        self.browser.get(settings.server.get_url())
 
         # Library methods
         self.activationkey = ActivationKey(self.browser)
@@ -344,15 +335,14 @@ class ConcurrentTestCase(TestCase):
 
         # general running parameters
         cls.num_threads = NUM_THREADS
-        cls.num_buckets = conf.properties['performance.csv.num_buckets']
-        cls.vm_list = []
+        cls.num_buckets = settings.performance.csv_buckets_count
+        cls.vm_list = settings.performance.virtual_machines
         cls.org_id = cls._get_organization_id()  # get organization-id
         cls.sub_id = ''
         cls.num_iterations = 0     # depend on # of threads or clients
         cls.bucket_size = 0        # depend on # of iterations on each thread
 
         cls._convert_to_numbers()  # read in string type, convert to numbers
-        cls._get_vm_list()         # read in list of virtual machines
 
         # read default organization from constant module
         cls.default_org = DEFAULT_ORG
@@ -362,13 +352,6 @@ class ConcurrentTestCase(TestCase):
         """read in string type series, convert to numbers"""
         cls.num_threads = [int(x) for x in cls.num_threads.split(',')]
         cls.num_buckets = int(cls.num_buckets)
-
-    @classmethod
-    def _get_vm_list(cls):
-        """read in a list of virtual machines ip address"""
-        vm_list_string = conf.properties[
-            'performance.test.virtual_machines_list']
-        cls.vm_list = vm_list_string.split(',')
 
     @classmethod
     def _set_testcase_parameters(
@@ -398,7 +381,12 @@ class ConcurrentTestCase(TestCase):
 
         """
         # note: set savepoint empty to continue test without restore
-        cls.savepoint = conf.properties.get(savepoint_name, '')
+        if savepoint_name == 'enabled_repos':
+            cls.savepoint = settings.performance.enabled_repos_savepoint
+        elif savepoint_name == 'fresh_install':
+            cls.savepoint = settings.performance.fresh_install_savepoint
+        else:
+            cls.savepoint = ''
         cls.raw_file_name = raw_file_name
         cls.stat_file_name = stat_file_name
 

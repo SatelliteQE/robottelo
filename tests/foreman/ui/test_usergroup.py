@@ -1,10 +1,9 @@
 # -*- encoding: utf-8 -*-
 """Test class for UserGroup UI"""
-
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import data, skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open
 from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_usergroup
@@ -18,8 +17,8 @@ class UserGroup(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        cls.organization = entities.Organization().create()
         super(UserGroup, cls).setUpClass()
+        cls.organization = entities.Organization().create()
 
     @skip_if_bug_open('bugzilla', 1142588)
     @data(*generate_strings_list())

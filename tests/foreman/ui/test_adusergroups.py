@@ -2,7 +2,7 @@
 """Test class for Active Directory Feature"""
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import (
     LDAP_SERVER_TYPE, LDAP_ATTR, PERMISSIONS, ANY_CONTEXT)
 from robottelo.decorators import stubbed, skip_if_bug_open
@@ -17,17 +17,18 @@ from selenium.webdriver.common.action_chains import ActionChains
 class ADUserGroups(UITestCase):
     """Implements Active Directory feature tests in UI."""
 
-    # TODO: handle when the ldap config is not available
-    ldap_user_name = conf.properties.get('main.ldap.username')
-    ldap_user_passwd = conf.properties.get('main.ldap.passwd')
-    base_dn = conf.properties.get('main.ldap.basedn')
-    group_base_dn = conf.properties.get('main.ldap.grpbasedn')
-    ldap_hostname = conf.properties.get('main.ldap.hostname')
-    usergroup_name = gen_string('alpha')
-    usergroup_name2 = gen_string('alpha')
-
     @classmethod
     def setUpClass(cls):  # noqa
+        super(ADUserGroups, cls).setUpClass()
+        # TODO: handle when the ldap config is not available
+        cls.ldap_user_name = settings.ldap.username
+        cls.ldap_user_passwd = settings.ldap.passwd
+        cls.base_dn = settings.ldap.basedn
+        cls.group_base_dn = settings.ldap.grpbasedn
+        cls.ldap_hostname = settings.ldap.hostname
+        cls.usergroup_name = gen_string('alpha')
+        cls.usergroup_name2 = gen_string('alpha')
+
         authsource_attrs = entities.AuthSourceLDAP(
             onthefly_register=True,
             account=cls.ldap_user_name,
@@ -40,12 +41,11 @@ class ADUserGroups(UITestCase):
             server_type=LDAP_SERVER_TYPE['API']['ad'],
             attr_mail=LDAP_ATTR['mail'],
             name=gen_string('alpha'),
-            host=conf.properties['main.ldap.hostname'],
+            host=cls.ldap_hostname,
             tls=False,
             port='389',
         ).create()
         cls.ldap_server_name = authsource_attrs.name
-        super(ADUserGroups, cls).setUpClass()
 
     def tearDown(self):
         with Session(self.browser) as session:

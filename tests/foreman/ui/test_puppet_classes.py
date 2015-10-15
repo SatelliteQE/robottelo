@@ -1,8 +1,8 @@
 """Test class for Puppet Classes UI"""
 
-from ddt import ddt
+from ddt import ddt, data
 from nailgun import entities
-from robottelo.decorators import data, run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session

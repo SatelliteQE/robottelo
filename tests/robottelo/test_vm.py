@@ -3,7 +3,6 @@ import unittest2
 
 from mock import call, patch
 from robottelo import ssh
-from robottelo.config import conf
 from robottelo.vm import VirtualMachine, VirtualMachineError
 
 
@@ -14,19 +13,19 @@ class VirtualMachineTestCase(unittest2.TestCase):
 
     def setUp(self):
         super(VirtualMachineTestCase, self).setUp()
-        self.properties_backup = conf.properties.copy()
-        conf.properties['clients.provisioning_server'] = None
+        self.settings_patcher = patch('robottelo.vm.settings', spec=True)
+        self.settings = self.settings_patcher.start()
+        self.settings.clients.provisioning_server = None
 
     def tearDown(self):
         super(VirtualMachineTestCase, self).tearDown()
-        conf.properties = self.properties_backup
+        self.settings_patcher.stop()
 
     def configure_provisoning_server(self):
         """Helper for configuring the provisioning server on robottelo config.
 
         """
-        key = 'clients.provisioning_server'
-        conf.properties[key] = self.provisioning_server
+        self.settings.clients.provisioning_server = self.provisioning_server
 
     @patch('time.sleep')
     @patch('robottelo.ssh.command', side_effect=[

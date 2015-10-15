@@ -774,6 +774,7 @@ class ContentViewUpdateTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         """Create a content view."""
+        super(ContentViewUpdateTestCase, cls).setUpClass()
         cls.content_view = entities.ContentView().create()
 
     def test_positive_update(self):

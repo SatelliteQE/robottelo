@@ -24,7 +24,7 @@ import logging
 
 from robottelo import ssh
 from robottelo.cli.base import Base
-from robottelo.config import conf
+from robottelo.config import settings
 
 
 class SSHTunnelError(Exception):
@@ -43,9 +43,9 @@ def default_url_on_new_port(oldport, newport):
 
     """
     logger = logging.getLogger('robottelo')
-    domain = conf.properties['main.server.hostname']
-    user = conf.properties['main.server.ssh.username']
-    key = conf.properties['main.server.ssh.key_private']
+    domain = settings.server.hostname
+    user = settings.server.ssh_username
+    key = settings.server.ssh_key
     ssh.upload_file(key, '/tmp/dsa_{0}'.format(newport))
     ssh.command('chmod 700 /tmp/dsa_{0}'.format(newport))
 

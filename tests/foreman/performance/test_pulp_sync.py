@@ -3,7 +3,7 @@
 
 import csv
 
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.performance.constants import (
     RAW_SYNC_FILE_NAME,
     STAT_SYNC_FILE_NAME
@@ -47,7 +47,7 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
 
         # note: may need to change savepoint in config file
         cls._set_testcase_parameters(
-            'performance.test.savepoint2_enabled_repos',
+            'enabled_repos',
             RAW_SYNC_FILE_NAME,
             STAT_SYNC_FILE_NAME,
         )
@@ -57,23 +57,17 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
         cls.logger.debug(cls.map_repo_name_id)
 
         # get number of iterations of syncs that each thread would do
-        cls.sync_iterations = int(conf.properties.get(
-            'performance.test.num_syncs',
-            '3'
-        ))
+        cls.sync_iterations = settings.performance.sync_count
 
         # get whether start initial sync or resync test
-        sync_parameter = conf.properties.get(
-            'performance.test.sync_type',
-            'sync'
-        )
+        sync_parameter = settings.performance.sync_type
         cls.is_initial_sync = True if sync_parameter == 'sync' else False
 
     def setUp(self):
         super(ConcurrentSyncTestCase, self).setUp()
 
         # determine all targeting repositories to be synced
-        self.repo_names_list = self._get_target_repo_from_config()
+        self.repo_names_list = settings.performance.repos
         self.logger.debug(
             'Target Repositories to be synced: {0}'
             .format(self.repo_names_list)
@@ -84,22 +78,6 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
             'Max number of repositories to sync: {0}'
             .format(self.max_num_tests)
         )
-
-    def _get_target_repo_from_config(self):
-        """Read targeting repository names from config file
-
-        note: Targeting repository should be enabled at first
-
-        """
-        repos_str = conf.properties.get('performance.test.target_repos', '')
-        if repos_str == '':
-            raise RuntimeError('Invalid configuration of repositories')
-        repo_names_list = [
-            repo
-            for repo in repos_str.split(',')
-            if repo in self.map_repo_name_id
-        ]
-        return repo_names_list
 
     def test_concurrent_synchronization(self):
         """

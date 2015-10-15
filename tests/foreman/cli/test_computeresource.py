@@ -24,10 +24,12 @@ from fauxfactory import gen_string, gen_url
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.factory import make_location, make_compute_resource
-from robottelo.config import conf
+from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
+
+LIBVIRT_URL = 'qemu+tcp://{}:16509/system'.format(settings.server.hostname)
 
 
 def valid_name_desc_data():
@@ -88,10 +90,6 @@ def invalid_update_data():
         {u'url': 'invalid url'},
         {u'url': ''},
     )
-
-LIBVIRT_URL = 'qemu+tcp://{0}:16509/system'.format(
-    conf.properties['main.server.hostname']
-)
 
 
 @run_only_on('sat')

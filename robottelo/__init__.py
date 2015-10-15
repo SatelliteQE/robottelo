@@ -7,6 +7,3 @@ code in :mod:`tests` calls code in :mod:`robottelo`, but not the other way
 around.
 
 """
-from robottelo.helpers import configure_entities
-
-configure_entities()

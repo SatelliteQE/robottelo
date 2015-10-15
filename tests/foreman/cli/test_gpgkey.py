@@ -72,7 +72,7 @@ class TestGPGKey(CLITestCase):
         hundreds of organizations
 
         """
-        CLITestCase.setUpClass()
+        super(TestGPGKey, cls).setUpClass()
         # pylint: disable=unexpected-keyword-arg
         cls.org = make_org(cached=True)
 

@@ -1,39 +1,11 @@
 """Unit tests for :mod:`robottelo.decorators`."""
-from ddt import DATA_ATTR
+import mock
+
 from fauxfactory import gen_integer
 from robottelo import decorators
-from robottelo.config import conf
 from robottelo.constants import BZ_CLOSED_STATUSES, BZ_OPEN_STATUSES
 from unittest2 import TestCase
 # (Too many public methods) pylint: disable=R0904
-
-
-class DataTestCase(TestCase):
-    """Tests for :func:`robottelo.decorators.data`."""
-    def setUp(self):  # noqa pylint:disable=C0103
-        self.test_data = ('one', 'two', 'three')
-
-        def function():
-            """An empty function."""
-        self.function = function
-
-    def test_smoke(self):
-        """Test for smoke attribute on"""
-        conf.properties['main.smoke'] = '1'
-        decorated = decorators.data(*self.test_data)(self.function)
-        data_attr = getattr(decorated, DATA_ATTR)
-
-        self.assertEqual(len(data_attr), 1)
-        self.assertIn(data_attr[0], self.test_data)
-
-    def test_not_smoke(self):
-        """Test for smoke attribute off"""
-        conf.properties['main.smoke'] = '0'
-        decorated = decorators.data(*self.test_data)(self.function)
-        data_attr = getattr(decorated, DATA_ATTR)
-
-        self.assertEqual(len(data_attr), len(self.test_data))
-        self.assertEqual(getattr(decorated, DATA_ATTR), self.test_data)
 
 
 class BzBugIsOpenTestCase(TestCase):
@@ -44,7 +16,6 @@ class BzBugIsOpenTestCase(TestCase):
         """Back up objects and generate common values."""
         self.backup = decorators._get_bugzilla_bug
         self.bug_id = gen_integer()
-        self.upstream_backup = conf.properties.get('main.upstream')
 
         self.valid_whiteboard_data = [
             'VERIFIED IN UPSTREAM',
@@ -62,7 +33,6 @@ class BzBugIsOpenTestCase(TestCase):
     def tearDown(self):
         """Restore backed-up objects."""
         decorators._get_bugzilla_bug = self.backup
-        conf.properties['main.upstream'] = self.upstream_backup
 
     def test_bug_is_open(self):
         """Assert ``True`` is returned if the bug is 'NEW' or 'ASSIGNED'."""
@@ -96,13 +66,14 @@ class BzBugIsOpenTestCase(TestCase):
         decorators._get_bugzilla_bug = bomb
         self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
 
-    def test_upstream_with_whiteboard(self):
+    @mock.patch('robottelo.decorators.settings')
+    def test_upstream_with_whiteboard(self, dec_settings):
         """Assert that upstream bug is not affected by whiteboard texts"""
         class MockBug(object):  # pylint:disable=R0903
             """A mock bug"""
             status = None
             whiteboard = None
-        conf.properties['main.upstream'] = '1'  # upstream mode
+        dec_settings.upstream = True
         decorators._get_bugzilla_bug = lambda bug_id: MockBug()
         # Assert bug is really closed with valid/invalid whiteboard texts
         for MockBug.status in BZ_CLOSED_STATUSES:
@@ -116,7 +87,8 @@ class BzBugIsOpenTestCase(TestCase):
                                        self.invalid_whiteboard_data):
                 self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
 
-    def test_downstream_valid_whiteboard(self):
+    @mock.patch('robottelo.decorators.settings')
+    def test_downstream_valid_whiteboard(self, dec_settings):
         """Assert ``True`` is returned if
         - bug is in any status
         - bug has a valid Whiteboard text
@@ -127,13 +99,14 @@ class BzBugIsOpenTestCase(TestCase):
             """A mock bug with a closed status."""
             status = None
             whiteboard = None
-        conf.properties['main.upstream'] = '0'  # downstream mode
+        dec_settings.upstream = False
         decorators._get_bugzilla_bug = lambda bug_id: MockBug()
         for MockBug.status in BZ_OPEN_STATUSES + BZ_CLOSED_STATUSES:
             for MockBug.whiteboard in self.valid_whiteboard_data:
                 self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
 
-    def test_downstream_closedbug_invalid_whiteboard(self):
+    @mock.patch('robottelo.decorators.settings')
+    def test_downstream_closedbug_invalid_whiteboard(self, dec_settings):
         """Assert ``False`` is returned if
         - bug is in closed status
         - bug has an invalid Whiteboard text
@@ -144,13 +117,14 @@ class BzBugIsOpenTestCase(TestCase):
             """A mock bug with a closed status."""
             status = None
             whiteboard = None
-        conf.properties['main.upstream'] = '0'  # downstream mode
+        dec_settings.upstream = False
         decorators._get_bugzilla_bug = lambda bug_id: MockBug()
         for MockBug.status in BZ_CLOSED_STATUSES:
             for MockBug.whiteboard in self.invalid_whiteboard_data:
                 self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
 
-    def test_downstream_openbug_whiteboard(self):
+    @mock.patch('robottelo.decorators.settings')
+    def test_downstream_openbug_whiteboard(self, dec_settings):
         """Assert ``True`` is returned if
         - bug is in open status
         - bug has a valid/invalid Whiteboard text
@@ -161,7 +135,7 @@ class BzBugIsOpenTestCase(TestCase):
             """A mock bug"""
             status = None
             whiteboard = None
-        conf.properties['main.upstream'] = '0'  # downstream mode
+        dec_settings.upstream = False
         decorators._get_bugzilla_bug = lambda bug_id: MockBug()
         for MockBug.status in BZ_OPEN_STATUSES:
             for MockBug.whiteboard in (self.valid_whiteboard_data +
@@ -209,39 +183,34 @@ class RmBugIsOpenTestCase(TestCase):
 
 class RunOnlyOnTestCase(TestCase):
     """Tests for :func:`robottelo.decorators.run_only_on`."""
-    def setUp(self):  # noqa
-        """Backup object."""
-        self.project_backup = conf.properties.get('main.project')
-
-    def tearDown(self):  # noqa
-        """Restore backed-up object."""
-        conf.properties['main.project'] = self.project_backup
-
-    def test_project_mode_different_cases(self):  # pylint:disable=C0103
+    @mock.patch('robottelo.decorators.settings')
+    def test_project_mode_different_cases(self, settings):
         """Assert ``True`` for different cases of accepted input values
            for project / robottelo modes."""
         accepted_values = ('SAT', 'SAt', 'SaT', 'Sat', 'sat', 'sAt',
                            'SAM', 'SAm', 'SaM', 'Sam', 'sam', 'sAm')
 
         # Test different project values
-        conf.properties['main.project'] = 'sam'
+        settings.project = 'sam'
         for project in accepted_values:
             self.assertTrue(decorators.run_only_on(project))
 
         # Test different mode values
         for mode in accepted_values:
-            conf.properties['main.project'] = mode
+            settings.project = mode
             self.assertTrue(decorators.run_only_on('SAT'))
 
-    def test_invalid_project(self):
+    @mock.patch('robottelo.decorators.settings')
+    def test_invalid_project(self, dec_settings):
         """Assert error is thrown when project has invalid value."""
-        conf.properties['main.project'] = 'sam'
+        dec_settings.project = 'sam'
         with self.assertRaises(decorators.ProjectModeError):
             decorators.run_only_on('satddfddffdf')
 
-    def test_invalid_mode(self):
+    @mock.patch('robottelo.decorators.settings')
+    def test_invalid_mode(self, dec_settings):
         """Assert error is thrown when mode has invalid value."""
         # Invalid value for robottelo mode
-        conf.properties['main.project'] = 'samtdd'
+        dec_settings.project = 'samtdd'
         with self.assertRaises(decorators.ProjectModeError):
             decorators.run_only_on('sat')

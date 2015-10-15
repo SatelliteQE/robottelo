@@ -3,9 +3,10 @@
 from fauxfactory import gen_string
 from nailgun import client, entities, entity_fields
 from robottelo.api.utils import promote, one_to_one_names
+from robottelo.config import settings
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.decorators import skip_if_bug_open, stubbed
-from robottelo.helpers import get_data_file, get_server_credentials
+from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
 
@@ -112,7 +113,7 @@ class HostGroupTestCase(APITestCase):
         # Get puppet class id for ntp module
         response = client.get(
             environment.path('self') + '/puppetclasses',
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             verify=False,
         )
         response.raise_for_status()
@@ -123,7 +124,7 @@ class HostGroupTestCase(APITestCase):
         client.post(
             host_group.path('self') + '/puppetclass_ids',
             data={u'puppetclass_id': puppet_class_id},
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             verify=False
         ).raise_for_status()
         host_group_attrs = host_group.read_json()
@@ -162,6 +163,7 @@ class MissingAttrTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create a ``HostGroup``."""
+        super(MissingAttrTestCase, cls).setUpClass()
         host_group = entities.HostGroup().create()
         cls.host_group_attrs = set(host_group.read_json().keys())
 

@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 """Test class for Partition Table UI"""
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
-from robottelo.decorators import bz_bug_is_open, data, run_only_on
+from robottelo.decorators import bz_bug_is_open, run_only_on
 from robottelo.helpers import generate_strings_list, read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_partitiontable

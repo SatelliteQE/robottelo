@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 """Test class for Template UI"""
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
-from robottelo.decorators import data, run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.helpers import generate_strings_list, get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -20,8 +20,8 @@ class Template(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        cls.organization = entities.Organization().create()
         super(Template, cls).setUpClass()
+        cls.organization = entities.Organization().create()
 
     @data(*generate_strings_list(len1=8))
     def test_positive_create_template(self, name):

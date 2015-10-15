@@ -3,9 +3,8 @@
 import itertools
 import types
 
-from ddt import ddt
+from ddt import ddt, data
 from robottelo.cli.metatest import default_data, template_methods
-from robottelo.decorators import data
 
 
 # Possible permutations of CRUD tests:

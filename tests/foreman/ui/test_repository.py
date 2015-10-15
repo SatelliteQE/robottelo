@@ -2,7 +2,7 @@
 
 import time
 
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import (
@@ -16,7 +16,7 @@ from robottelo.constants import (
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
 )
-from robottelo.decorators import data, run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.helpers import generate_strings_list, read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_repository
@@ -30,10 +30,9 @@ class Repos(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
+        super(Repos, cls).setUpClass()
         cls.organization = entities.Organization().create()
         cls.loc = entities.Location().create()
-
-        super(Repos, cls).setUpClass()
 
     def setup_navigate_syncnow(self, session, prd_name, repo_name):
         """Helps with Navigation for syncing via the repos page."""

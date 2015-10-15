@@ -93,6 +93,7 @@ class UserRoleTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create two roles and fetch the 'Anonymous' role."""
+        super(UserRoleTestCase, cls).setUpClass()
         cls.roles = [entities.Role().create() for _ in range(2)]
         roles = entities.Role().search(query={'search': 'name="Anonymous"'})
         cls.anon_role = roles[0]

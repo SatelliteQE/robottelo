@@ -10,6 +10,7 @@ class HostCollectionTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create systems that can be shared by tests."""
+        super(HostCollectionTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.systems = [
             entities.System(organization=cls.org).create()

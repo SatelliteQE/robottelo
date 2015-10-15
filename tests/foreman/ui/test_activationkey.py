@@ -33,13 +33,12 @@ class ActivationKey(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
+        super(ActivationKey, cls).setUpClass()
         cls.organization = entities.Organization().create()
         cls.base_key_name = entities.ActivationKey(
             organization=cls.organization
         ).create().name
         cls.vm_distro = 'rhel65'
-
-        super(ActivationKey, cls).setUpClass()
 
     # pylint: disable=too-many-arguments
     def create_sync_custom_repo(self, product_name=None, repo_name=None,

@@ -3,7 +3,8 @@ import re
 
 from itertools import izip
 from robottelo import ssh
-from robottelo.helpers import get_host_info, get_server_credentials
+from robottelo.config import settings
+from robottelo.helpers import get_host_info
 from robottelo.log import LogFile
 from robottelo.test import TestCase
 
@@ -82,7 +83,7 @@ class SELinuxTestCase(TestCase):
 
         # check status reported by hammer ping command
         result = ssh.command(u'hammer -u {0[0]} -p {0[1]} ping'.format(
-            get_server_credentials()
+            settings.server.get_credentials()
         ))
 
         # iterate over the lines grouping every 3 lines

@@ -1,11 +1,11 @@
 """Test class for Sync Plan UI"""
 
 from datetime import datetime, timedelta
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import SYNC_INTERVAL
-from robottelo.decorators import data, skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open
 from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_syncplan
@@ -19,9 +19,8 @@ class Syncplan(UITestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
-        cls.organization = entities.Organization().create()
-
         super(Syncplan, cls).setUpClass()
+        cls.organization = entities.Organization().create()
 
     @data(
         {

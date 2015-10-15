@@ -11,12 +11,9 @@ from fauxfactory import gen_alphanumeric, gen_string
 from nailgun import client, entities
 from random import randint
 from requests.exceptions import HTTPError
+from robottelo.config import settings
 from robottelo.decorators import skip_if_bug_open
-from robottelo.helpers import (
-    get_nailgun_config,
-    get_server_credentials,
-    invalid_values_list
-)
+from robottelo.helpers import get_nailgun_config, invalid_values_list
 from robottelo.test import APITestCase
 
 
@@ -55,7 +52,7 @@ class OrganizationTestCase(APITestCase):
         response = client.post(
             organization.path(),
             organization.create_payload(),
-            auth=get_server_credentials(),
+            auth=settings.server.get_credentials(),
             headers={'content-type': 'text/plain'},
             verify=False,
         )
@@ -194,6 +191,7 @@ class OrganizationUpdateTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         """Create an organization."""
+        super(OrganizationUpdateTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
     def test_update_name(self):

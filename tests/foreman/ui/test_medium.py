@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 """Test class for Medium UI"""
 
-from ddt import ddt
+from ddt import ddt, data
 from fauxfactory import gen_string
 from robottelo.constants import INSTALL_MEDIUM_URL
-from robottelo.decorators import data, run_only_on
+from robottelo.decorators import run_only_on
 from robottelo.helpers import valid_data_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_media

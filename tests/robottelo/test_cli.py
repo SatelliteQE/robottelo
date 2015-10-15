@@ -1,7 +1,7 @@
+import mock
 import unittest2
 
 from robottelo.cli.base import Base
-from robottelo.config import conf
 
 
 class CLIClass(Base):
@@ -12,15 +12,6 @@ class CLIClass(Base):
 
 class BaseCliTestCase(unittest2.TestCase):
     """Tests for the Base cli class"""
-    def setUp(self):  # noqa
-        super(BaseCliTestCase, self).setUp()
-        self.old_properties = conf.properties.copy()
-        conf.properties['foreman.admin.username'] = 'configusername'
-        conf.properties['foreman.admin.password'] = 'configpassword'
-
-    def tearDown(self):  # noqa
-        super(BaseCliTestCase, self).tearDown()
-        conf.properties = self.old_properties
 
     def test_construct_command(self):
         """_construct_command builds a command using flags and arguments"""
@@ -54,12 +45,15 @@ class BaseCliTestCase(unittest2.TestCase):
         self.assertEqual(username, CLIClass.foreman_admin_username)
         self.assertEqual(password, CLIClass.foreman_admin_password)
 
-    def test_username_password_config_lookup(self):
+    @mock.patch('robottelo.cli.base.settings')
+    def test_username_password_config_lookup(self, settings):
         """Username and password returned are from configuration"""
+        settings.server.admin_username = 'alice'
+        settings.server.admin_password = 'hackme'
         username, password = Base._get_username_password()
 
-        self.assertEqual(username, conf.properties['foreman.admin.username'])
-        self.assertEqual(password, conf.properties['foreman.admin.password'])
+        self.assertEqual(username, settings.server.admin_username)
+        self.assertEqual(password, settings.server.admin_password)
 
     def test_with_user(self):
         """Check if ``with_user`` method returns a right wrapper class"""
