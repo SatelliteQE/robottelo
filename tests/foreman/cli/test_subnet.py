@@ -172,9 +172,9 @@ class TestSubnet(CLITestCase):
         """
         mask = '255.255.255.0'
         network = gen_ipaddr()
-        opts = {u'mask': mask, u'network': network}
         for pool in invalid_addr_pools():
             with self.subTest(pool):
+                opts = {u'mask': mask, u'network': network}
                 # generate pool range from network address
                 for key, val in pool.iteritems():
                     opts[key] = re.sub(r'\d+$', str(val), network)
