@@ -530,11 +530,11 @@ class Settings(object):
         self.verbosity = self.reader.get(
             'robottelo',
             'verbosity',
-            'debug',
+            INIReader.cast_logging_level('debug'),
             INIReader.cast_logging_level
         )
         self.virtual_display = self.reader.get(
-            'robottelo', 'virtual_display', False)
+            'robottelo', 'virtual_display', False, bool)
         self.webdriver = self.reader.get(
             'robottelo', 'webdriver', 'firefox')
         self.window_manager_command = self.reader.get(
