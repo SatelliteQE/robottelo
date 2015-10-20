@@ -453,6 +453,23 @@ class Base(object):
         self.wait_for_ajax()
         return element.is_displayed()
 
+    def element_type(self, locator):
+        """Determine UI element type using locator tag
+
+        :param locator: The locator of the element
+        :return: Returns element type value
+        :rtype: str
+
+        """
+        element_type = None
+        element = self.wait_until_element(locator)
+        if element is not None:
+            element_type = element.tag_name.lower()
+            if (element_type == 'input' and
+                    element.get_attribute('type') == 'checkbox'):
+                element_type = 'checkbox'
+        return element_type
+
     def click(self, locator, wait_for_ajax=True,
               ajax_timeout=30, waiter_timeout=12):
         """Locate the element described by the ``locator`` and click on it.
@@ -516,3 +533,26 @@ class Base(object):
                 .format(type(self).__name__, locator)
             )
         ActionChains(self.browser).move_to_element(element).perform()
+
+    def assign_value(self, locator, value):
+        """Assign provided value to page element depending on the type of that
+        element
+
+        :param locator: The locator that describes the element.
+        :param value: Value that needs to be assigned to the element
+        :raise: ValueError if the element type is unknown to our code.
+
+        """
+        if self.element_type(locator) == 'input':
+            self.text_field_update(locator, value)
+        elif self.element_type(locator) == 'select':
+            self.select(locator, value)
+        elif self.element_type(locator) == 'checkbox':
+            state = self.wait_until_element(locator).is_selected()
+            if value != state:
+                self.click(locator)
+        else:
+            raise ValueError(
+                'Provided locator {0} is not supported by framework'
+                .format(locator)
+            )

@@ -28,6 +28,11 @@
 
 .. automodule:: robottelo.ui.configgroups
 
+:mod:`robottelo.ui.container`
+------------------------------
+
+.. automodule:: robottelo.ui.container
+
 :mod:`robottelo.ui.contentenv`
 ------------------------------
 

@@ -126,6 +126,18 @@ class Navigator(Base):
             menu_locators['menu.content_search'],
         )
 
+    def go_to_all_containers(self):
+        self.menu_click(
+            menu_locators['menu.containers'],
+            menu_locators['menu.all_containers'],
+        )
+
+    def go_to_new_container(self):
+        self.menu_click(
+            menu_locators['menu.containers'],
+            menu_locators['menu.new_container'],
+        )
+
     def go_to_registries(self):
         self.menu_click(
             menu_locators['menu.containers'],

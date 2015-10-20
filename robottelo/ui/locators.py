@@ -2154,4 +2154,69 @@ locators = LocatorDict({
     "registry.select_name": (
         By.XPATH, ("//a[contains(@href, 'registries')"
                    " and contains(.,'%s')]")),
+    # Containers
+    "container.new": (By.XPATH, "//a[contains(@href, '/containers/new')]"),
+    "container.resource_name": (
+        By.XPATH,
+        "//select[contains(@id, 'preliminary_compute_resource_id')]"),
+    "container.next_section": (By.ID, "next"),
+    "container.content_view_tab": (By.ID, "katello_tab"),
+    "container.content_view_tab_next": (By.ID, "next_katello"),
+    "container.docker_hub_tab": (By.ID, "hub_tab"),
+    "container.docker_hub_tab_next": (By.ID, "next_hub"),
+    "container.external_registry_tab": (By.ID, "registry_tab"),
+    "container.external_registry_tab_next": (By.ID, "next_registry"),
+    "container.lifecycle_environment": (
+        By.XPATH, "//select[@id='kt_environment_id']"),
+    "container.content_view": (By.XPATH, "//select[@id='content_view_id']"),
+    "container.repository": (By.XPATH, "//select[@id='repository_id']"),
+    "container.tag": (By.XPATH, "//select[@id='tag_id']"),
+    "container.capsule": (By.XPATH, "//select[@id='capsule_id']"),
+    "container.docker_hub_tag": (
+        By.ID, "hub_docker_container_wizard_states_image_tag"),
+    "container.name": (
+        By.ID, "docker_container_wizard_states_configuration_name"),
+    "container.command": (
+        By.ID, "docker_container_wizard_states_configuration_command"),
+    "container.entrypoint": (
+        By.ID, "docker_container_wizard_states_configuration_entrypoint"),
+    "container.cpu_sets": (
+        By.ID, "docker_container_wizard_states_configuration_cpu_set"),
+    "container.cpu_shares": (
+        By.ID, "docker_container_wizard_states_configuration_cpu_shares"),
+    "container.memory": (
+        By.ID, "docker_container_wizard_states_configuration_memory"),
+    "container.tty": (
+        By.ID, "docker_container_wizard_states_environment_tty"),
+    "container.attach_stdin": (
+        By.ID, "docker_container_wizard_states_environment_attach_stdin"),
+    "container.attach_stdout": (
+        By.ID, "docker_container_wizard_states_environment_attach_stdout"),
+    "container.attach_stderr": (
+        By.ID, "docker_container_wizard_states_environment_attach_stderr"),
+    "container.run": (By.ID, "start_on_create"),
+    "container.created_container_name": (
+        By.XPATH, "//table[@id='properties_table']//td[contains(., '%s')]"),
+    "container.resource_search_tab": (By.XPATH, "//a[contains(., '%s')]"),
+    "container.search_filter": (
+        By.XPATH,
+        "//div[@class='tab-content']/div[contains(@class, 'active')]//"
+        "input[contains(@aria-controls, 'DataTables_Table')]"),
+    "container.search_entity": (
+        By.XPATH,
+        "//div[@class='tab-content']/div[contains(@class, 'active')]//"
+        "td[@id='%s']/a"),
+    "container.delete": (By.XPATH, "//a[contains(@class, 'delete')]"),
+    "container.power_on": (
+        By.XPATH,
+        "//div[@class='tab-content']/div[contains(@class, 'active')]//"
+        "td[@id='%s']/../td/div/a[contains(., 'Power  On')]"),
+    "container.power_off": (
+        By.XPATH,
+        "//div[@class='tab-content']/div[contains(@class, 'active')]//"
+        "td[@id='%s']/../td/div/a[contains(., 'Power  Off')]"),
+    "container.power_status": (
+        By.XPATH,
+        "//div[@class='tab-content']/div[contains(@class, 'active')]//"
+        "td[@id='%s']/../td/span[contains(@class, 'label-')]"),
 })
