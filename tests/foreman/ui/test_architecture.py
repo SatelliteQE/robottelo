@@ -11,7 +11,6 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 @ddt
 class Architecture(UITestCase):
     """Implements Architecture tests from UI"""
@@ -24,6 +23,7 @@ class Architecture(UITestCase):
            u'os_name': gen_string('utf8')},
           {u'name': gen_string('alphanumeric'),
            u'os_name': gen_string('alphanumeric')})
+    @run_only_on('sat')
     def test_positive_create_arch_with_os(self, test_data):
         """@Test: Create a new Architecture with OS
 
@@ -39,6 +39,7 @@ class Architecture(UITestCase):
             self.assertIsNotNone(self.architecture.search(test_data['name']))
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_positive_create_arch_with_different_names(self, name):
         """@Test: Create a new Architecture with different data
 
@@ -52,6 +53,7 @@ class Architecture(UITestCase):
             self.assertIsNotNone(self.architecture.search(name))
 
     @data(*invalid_values_list())
+    @run_only_on('sat')
     def test_negative_create_arch(self, name):
         """@Test: Try to create architecture and use whitespace, blank, tab
         symbol or too long string of different types as its name value
@@ -67,6 +69,7 @@ class Architecture(UITestCase):
                                  (common_locators['name_haserror']))
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_negative_create_arch_with_same_name(self, name):
         """@Test: Create a new Architecture with same name
 
@@ -83,6 +86,7 @@ class Architecture(UITestCase):
                                  (common_locators['name_haserror']))
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_remove_architecture(self, name):
         """@Test: Delete an existing Architecture
 
@@ -98,6 +102,7 @@ class Architecture(UITestCase):
             self.architecture.delete(name)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_update_arch(self, name):
         """@Test: Update Architecture with new name and OS
 

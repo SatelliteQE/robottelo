@@ -13,7 +13,6 @@ from robottelo.helpers import valid_data_list
 from robottelo.test import CLITestCase
 
 
-@run_only_on('sat')
 class TestProxy(CLITestCase):
     """Proxy cli tests"""
 
@@ -21,6 +20,7 @@ class TestProxy(CLITestCase):
         """Skipping tests until we can create ssh tunnels"""
         self.skipTest('Skipping tests until we can create ssh tunnels')
 
+    @run_only_on('sat')
     def test_redmine_3875(self):
         """@Test: Proxy creation with random URL
 
@@ -37,6 +37,7 @@ class TestProxy(CLITestCase):
                     gen_string('numeric', 4)),
             })
 
+    @run_only_on('sat')
     def test_proxy_create(self):
         """@Test: Proxy creation with the home proxy
 
@@ -50,6 +51,7 @@ class TestProxy(CLITestCase):
                 proxy = make_proxy({u'name': name})
                 self.assertEquals(proxy['name'], name)
 
+    @run_only_on('sat')
     def test_proxy_delete(self):
         """@Test: Proxy deletion with the home proxy
 
@@ -65,6 +67,7 @@ class TestProxy(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Proxy.info({u'id': proxy['id']})
 
+    @run_only_on('sat')
     def test_proxy_update(self):
         """@Test: Proxy name update with the home proxy
 
@@ -86,6 +89,7 @@ class TestProxy(CLITestCase):
                     proxy = Proxy.info({u'id': proxy['id']})
                     self.assertEqual(proxy['name'], new_name)
 
+    @run_only_on('sat')
     def test_refresh_refresh_features_by_id(self):
         """@Test: Refresh smart proxy features, search for proxy by id
 
@@ -97,6 +101,7 @@ class TestProxy(CLITestCase):
         proxy = make_proxy()
         Proxy.refresh_features({u'id': proxy['id']})
 
+    @run_only_on('sat')
     def test_proxy_refresh_features_by_name(self):
         """@Test: Refresh smart proxy features, search for proxy by name
 

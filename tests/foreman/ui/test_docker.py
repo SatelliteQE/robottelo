@@ -23,9 +23,6 @@ from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 # (too-many-public-methods) pylint:disable=R0904
 
-EXTERNAL_DOCKER_URL = settings.docker.external_url
-INTERNAL_DOCKER_URL = settings.docker.get_unix_socket_url()
-
 VALID_DOCKER_UPSTREAM_NAMES = (
     # boundaries
     gen_string('alphanumeric', 3).lower(),
@@ -993,7 +990,11 @@ class DockerComputeResourceTestCase(UITestCase):
                         session,
                         name=comp_name,
                         provider_type=FOREMAN_PROVIDERS['docker'],
-                        parameter_list=[['URL', INTERNAL_DOCKER_URL, 'field']],
+                        parameter_list=[[
+                            'URL',
+                            settings.docker.get_unix_socket_url(),
+                            'field'
+                        ]],
                     )
                     self.assertIsNotNone(
                         self.compute_resource.search(comp_name))
@@ -1015,7 +1016,11 @@ class DockerComputeResourceTestCase(UITestCase):
                 session,
                 name=comp_name,
                 provider_type=FOREMAN_PROVIDERS['docker'],
-                parameter_list=[['URL', INTERNAL_DOCKER_URL, 'field']],
+                parameter_list=[[
+                    'URL',
+                    settings.docker.get_unix_socket_url(),
+                    'field'
+                ]],
             )
             self.compute_resource.update(
                 name=comp_name,
@@ -1056,7 +1061,11 @@ class DockerComputeResourceTestCase(UITestCase):
                         session,
                         name=comp_name,
                         provider_type=FOREMAN_PROVIDERS['docker'],
-                        parameter_list=[['URL', EXTERNAL_DOCKER_URL, 'field']],
+                        parameter_list=[[
+                            'URL',
+                            settings.docker.external_url,
+                            'field'
+                        ]],
                     )
                     self.assertIsNotNone(
                         self.compute_resource.search(comp_name))
@@ -1078,7 +1087,11 @@ class DockerComputeResourceTestCase(UITestCase):
                 session,
                 name=comp_name,
                 provider_type=FOREMAN_PROVIDERS['docker'],
-                parameter_list=[['URL', EXTERNAL_DOCKER_URL, 'field']],
+                parameter_list=[[
+                    'URL',
+                    settings.docker.external_url,
+                    'field'
+                ]],
             )
             self.compute_resource.update(
                 name=comp_name,
@@ -1114,7 +1127,8 @@ class DockerComputeResourceTestCase(UITestCase):
         """
         comp_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            for url in (EXTERNAL_DOCKER_URL, INTERNAL_DOCKER_URL):
+            for url in (settings.docker.external_url,
+                        settings.docker.get_unix_socket_url()):
                 with self.subTest(url):
                     make_resource(
                         session,

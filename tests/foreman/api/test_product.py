@@ -76,7 +76,6 @@ class ProductsTestCase(APITestCase):
         self.assertEqual(product.gpg_key.id, gpg_key.id)
 
 
-@run_only_on('sat')
 class ProductUpdateTestCase(APITestCase):
     """Tests for updating a product."""
 
@@ -86,6 +85,7 @@ class ProductUpdateTestCase(APITestCase):
         super(ProductUpdateTestCase, cls).setUpClass()
         cls.product = entities.Product().create()
 
+    @run_only_on('sat')
     def test_positive_update_1(self):
         """@Test: Update a product with a new name or description.
 
@@ -103,6 +103,7 @@ class ProductUpdateTestCase(APITestCase):
                     attrs.values()[0]
                 )
 
+    @run_only_on('sat')
     def test_positive_update_2(self):
         """@Test: Rename Product back to original name
 
@@ -128,10 +129,10 @@ class ProductUpdateTestCase(APITestCase):
                 )
 
 
-@run_only_on('sat')
 class RepositorySetsTestCase(APITestCase):
     """Tests for ``katello/api/v2/products/<product_id>/repository_sets``."""
 
+    @run_only_on('sat')
     def test_repositoryset_enable(self):
         """@Test: Enable repo from reposet
 
@@ -161,6 +162,7 @@ class RepositorySetsTestCase(APITestCase):
                 repo['substitutions']['releasever'] == '6Server')
         ][0])
 
+    @run_only_on('sat')
     def test_repositoryset_disable(self):
         """@Test: Disable repo from reposet
 

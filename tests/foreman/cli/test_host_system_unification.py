@@ -6,7 +6,6 @@ from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import CLITestCase
 
 
-@run_only_on('sat')
 class TestHostSystemUnificationCLI(CLITestCase):
     """Test Class for Host/System Unification CLI"""
     # Testing notes for host/system unification in katello/foreman:
@@ -21,6 +20,7 @@ class TestHostSystemUnificationCLI(CLITestCase):
     # fuzzy like hostname"
 
     @stubbed()
+    @run_only_on('sat')
     def test_all_hosts_appear_in_foreman(self):
         """@test: Hosts registered to Katello via rhsm appear in foreman
 
@@ -39,6 +39,7 @@ class TestHostSystemUnificationCLI(CLITestCase):
         pass
 
     @stubbed()
+    @run_only_on('sat')
     def test_all_hosts_appear_in_katello(self):
         """@test: Hosts provisioned in foreman via appear in katello
 

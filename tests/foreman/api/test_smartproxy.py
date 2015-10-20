@@ -61,7 +61,6 @@ class MissingAttrTestCase(APITestCase):
         )
 
 
-@run_only_on('sat')
 class SmartProxyTestCaseStub(APITestCase):
     """Incomplete tests for smart proxies.
 
@@ -79,6 +78,7 @@ class SmartProxyTestCaseStub(APITestCase):
 
     """
 
+    @run_only_on('sat')
     @stubbed()
     def test_add_smartproxy_1(self, test_data):
         """
@@ -88,6 +88,7 @@ class SmartProxyTestCaseStub(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_add_smartproxy_2(self, test_data):
         """
@@ -97,6 +98,7 @@ class SmartProxyTestCaseStub(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_add_smartproxy_3(self, test_data):
         """
@@ -106,6 +108,7 @@ class SmartProxyTestCaseStub(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_add_smartproxy_4(self, test_data):
         """
@@ -115,6 +118,7 @@ class SmartProxyTestCaseStub(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_remove_smartproxy_1(self, test_data):
         """
@@ -124,6 +128,7 @@ class SmartProxyTestCaseStub(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_remove_smartproxy_2(self, test_data):
         """
@@ -133,6 +138,7 @@ class SmartProxyTestCaseStub(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_remove_smartproxy_3(self, test_data):
         """
@@ -142,6 +148,7 @@ class SmartProxyTestCaseStub(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_remove_smartproxy_4(self, test_data):
         """

@@ -16,7 +16,6 @@ from robottelo.decorators import run_only_on
 from robottelo.test import MetaCLITestCase
 
 
-@run_only_on('sat')
 class TestHostGroup(MetaCLITestCase):
     """Test class for Host Group CLI"""
     factory = make_hostgroup
@@ -44,6 +43,7 @@ class TestHostGroup(MetaCLITestCase):
          {'name': ''}),
     )
 
+    @run_only_on('sat')
     def test_create_hostgroup_with_environment(self):
         """@Test: Check if hostgroup with environment can be created
 
@@ -56,6 +56,7 @@ class TestHostGroup(MetaCLITestCase):
         hostgroup = make_hostgroup({'environment-id': environment['id']})
         self.assertEqual(environment['name'], hostgroup['environment'])
 
+    @run_only_on('sat')
     def test_create_hostgroup_with_location(self):
         """@Test: Check if hostgroup with location can be created
 
@@ -68,6 +69,7 @@ class TestHostGroup(MetaCLITestCase):
         hostgroup = make_hostgroup({'location-ids': location['id']})
         self.assertIn(location['name'], hostgroup['locations'])
 
+    @run_only_on('sat')
     def test_create_hostgroup_with_operating_system(self):
         """@Test: Check if hostgroup with operating system can be created
 
@@ -80,6 +82,7 @@ class TestHostGroup(MetaCLITestCase):
         hostgroup = make_hostgroup({'operatingsystem-id': os['id']})
         self.assertEqual(hostgroup['operating-system'], os['title'])
 
+    @run_only_on('sat')
     def test_create_hostgroup_with_organization(self):
         """@Test: Check if hostgroup with organization can be created
 
@@ -92,6 +95,7 @@ class TestHostGroup(MetaCLITestCase):
         hostgroup = make_hostgroup({'organization-ids': org['id']})
         self.assertIn(org['name'], hostgroup['organizations'])
 
+    @run_only_on('sat')
     def test_create_hostgroup_with_puppet_ca_proxy(self):
         """@Test: Check if hostgroup with puppet CA proxy server can be created
 
@@ -104,6 +108,7 @@ class TestHostGroup(MetaCLITestCase):
         hostgroup = make_hostgroup({'puppet-ca-proxy': puppet_proxy['name']})
         self.assertEqual(puppet_proxy['id'], hostgroup['puppet-ca-proxy-id'])
 
+    @run_only_on('sat')
     def test_create_hostgroup_with_puppet_proxy(self):
         """@Test: Check if hostgroup with puppet proxy server can be created
 

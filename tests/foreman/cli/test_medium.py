@@ -22,9 +22,9 @@ OSES = [
 ]
 
 
-@run_only_on('sat')
 class TestMedium(CLITestCase):
     """Test class for Medium CLI"""
+    @run_only_on('sat')
     def test_positive_create_1(self):
         """@Test: Check if Medium can be created
 
@@ -38,6 +38,7 @@ class TestMedium(CLITestCase):
                 medium = make_medium({'name': name})
                 self.assertEqual(medium['name'], name)
 
+    @run_only_on('sat')
     def test_create_medium_with_location(self):
         """@Test: Check if medium with location can be created
 
@@ -50,6 +51,7 @@ class TestMedium(CLITestCase):
         medium = make_medium({'location-ids': location['id']})
         self.assertIn(location['name'], medium['locations'])
 
+    @run_only_on('sat')
     def test_create_medium_with_organization(self):
         """@Test: Check if medium with organization can be created
 
@@ -62,6 +64,7 @@ class TestMedium(CLITestCase):
         medium = make_medium({'organization-ids': org['id']})
         self.assertIn(org['name'], medium['organizations'])
 
+    @run_only_on('sat')
     def test_positive_delete_1(self):
         """@Test: Check if Medium can be deleted
 
@@ -78,6 +81,7 @@ class TestMedium(CLITestCase):
                     Medium.info({'id': medium['id']})
 
     # pylint: disable=no-self-use
+    @run_only_on('sat')
     def test_add_operatingsystem_medium(self):
         """@Test: Check if Medium can be associated with operating system
 
@@ -93,6 +97,7 @@ class TestMedium(CLITestCase):
             'operatingsystem-id': os['id'],
         })
 
+    @run_only_on('sat')
     def test_removeoperatingsystem_medium(self):
         """@Test: Check if operating system can be removed from media
 
@@ -116,6 +121,7 @@ class TestMedium(CLITestCase):
         medium = Medium.info({'id': medium['id']})
         self.assertNotIn(os['name'], medium['operating-systems'])
 
+    @run_only_on('sat')
     def test_medium_update(self):
         """@Test: Check if medium can be updated
 

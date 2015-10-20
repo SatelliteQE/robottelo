@@ -6,11 +6,11 @@ from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import CLITestCase
 
 
-@run_only_on('sat')
 class TestFact(CLITestCase):
     """Fact related tests."""
 
     @stubbed('Need to create facts before we can check them.')
+    @run_only_on('sat')
     def test_list_success(self):
         """@Test: Test Fact List
 
@@ -26,6 +26,7 @@ class TestFact(CLITestCase):
                 facts = Fact().list(args)
                 self.assertEqual(facts[0]['fact'], fact)
 
+    @run_only_on('sat')
     def test_list_fail(self):
         """@Test: Test Fact List failure
 

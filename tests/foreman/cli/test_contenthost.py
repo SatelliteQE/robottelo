@@ -379,7 +379,6 @@ class TestContentHost(CLITestCase):
             })
 
 
-@run_only_on('sat')
 class TestCHKatelloAgent(CLITestCase):
     """Content-host tests, which require VM with installed katello-agent."""
 
@@ -447,6 +446,7 @@ class TestCHKatelloAgent(CLITestCase):
         self.client.destroy()
         super(TestCHKatelloAgent, self).tearDown()
 
+    @run_only_on('sat')
     def test_ch_get_errata_info(self):
         """@Test: Get errata info
 
@@ -467,6 +467,7 @@ class TestCHKatelloAgent(CLITestCase):
         self.assertEqual(result[0]['errata-id'], FAKE_0_ERRATA_ID)
         self.assertEqual(result[0]['packages'], FAKE_0_CUSTOM_PACKAGE)
 
+    @run_only_on('sat')
     def test_ch_apply_errata(self):
         """@Test: Apply errata to content host
 
@@ -485,6 +486,7 @@ class TestCHKatelloAgent(CLITestCase):
             u'organization-id': TestCHKatelloAgent.org['id'],
         })
 
+    @run_only_on('sat')
     def test_ch_package_install(self):
         """@Test: Install package to content host remotely
 
@@ -503,6 +505,7 @@ class TestCHKatelloAgent(CLITestCase):
         )
         self.assertEqual(result.return_code, 0)
 
+    @run_only_on('sat')
     def test_ch_package_remove(self):
         """@Test: Remove package from content host remotely
 
@@ -525,6 +528,7 @@ class TestCHKatelloAgent(CLITestCase):
         )
         self.assertNotEqual(result.return_code, 0)
 
+    @run_only_on('sat')
     def test_ch_package_upgrade(self):
         """@Test: Upgrade content host package remotely
 
@@ -542,6 +546,7 @@ class TestCHKatelloAgent(CLITestCase):
         result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
         self.assertEqual(result.return_code, 0)
 
+    @run_only_on('sat')
     def test_ch_package_upgrade_all(self):
         """@Test: Upgrade all the content host packages remotely
 
@@ -559,6 +564,7 @@ class TestCHKatelloAgent(CLITestCase):
         result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
         self.assertEqual(result.return_code, 0)
 
+    @run_only_on('sat')
     def test_ch_package_group_install(self):
         """@Test: Install package group to content host remotely
 
@@ -576,6 +582,7 @@ class TestCHKatelloAgent(CLITestCase):
             result = self.client.run('rpm -q {0}'.format(package))
             self.assertEqual(result.return_code, 0)
 
+    @run_only_on('sat')
     def test_ch_package_group_remove(self):
         """@Test: Remove package group from content host remotely
 

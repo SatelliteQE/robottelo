@@ -9,10 +9,10 @@ from robottelo.decorators import run_only_on
 from robottelo.test import APITestCase
 
 
-@run_only_on('sat')
 class LifecycleEnvironmentTestCase(APITestCase):
     """Tests for ``katello/api/v2/environments``."""
 
+    @run_only_on('sat')
     def test_get_all(self):
         """@Test: Search for a lifecycle environment and specify an org ID.
 

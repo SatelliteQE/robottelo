@@ -17,7 +17,6 @@ from robottelo.helpers import invalid_names_list, valid_data_list
 from robottelo.test import APITestCase
 
 
-@run_only_on('sat')
 class ContentViewFilterTestCase(APITestCase):
     """Tests for content view filters."""
 
@@ -42,6 +41,7 @@ class ContentViewFilterTestCase(APITestCase):
     # Test method names are long for descriptive purposes.
     # pylint:disable=invalid-name
 
+    @run_only_on('sat')
     def test_get_with_no_args(self):
         """@Test: Issue an HTTP GET to the base content view filters path.
 
@@ -63,6 +63,7 @@ class ContentViewFilterTestCase(APITestCase):
             (httplib.BAD_REQUEST, httplib.UNPROCESSABLE_ENTITY)
         )
 
+    @run_only_on('sat')
     def test_get_with_bad_args(self):
         """@Test: Issue an HTTP GET to the base content view filters path.
 
@@ -85,6 +86,7 @@ class ContentViewFilterTestCase(APITestCase):
             (httplib.BAD_REQUEST, httplib.UNPROCESSABLE_ENTITY)
         )
 
+    @run_only_on('sat')
     def test_create_erratum_cvf_with_different_names(self):
         """Test: Create new erratum content filter using different inputs as
         a name
@@ -104,6 +106,7 @@ class ContentViewFilterTestCase(APITestCase):
                 self.assertEqual(cvf.name, name)
                 self.assertEqual(cvf.type, 'erratum')
 
+    @run_only_on('sat')
     def test_create_pck_group_cvf_with_different_names(self):
         """Test: Create new package group content filter using different inputs
         as a name
@@ -123,6 +126,7 @@ class ContentViewFilterTestCase(APITestCase):
                 self.assertEqual(cvf.name, name)
                 self.assertEqual(cvf.type, 'package_group')
 
+    @run_only_on('sat')
     def test_create_rpm_cvf_with_different_names(self):
         """Test: Create new RPM content filter using different inputs as
         a name
@@ -142,6 +146,7 @@ class ContentViewFilterTestCase(APITestCase):
                 self.assertEqual(cvf.name, name)
                 self.assertEqual(cvf.type, 'rpm')
 
+    @run_only_on('sat')
     def test_create_cvf_with_inclusion(self):
         """Test: Create new content view filter with different inclusion values
 
@@ -159,6 +164,7 @@ class ContentViewFilterTestCase(APITestCase):
                 ).create()
                 self.assertEqual(cvf.inclusion, inclusion)
 
+    @run_only_on('sat')
     def test_create_cvf_with_description(self):
         """Test: Create new content filter using different inputs as a
         description
@@ -177,6 +183,7 @@ class ContentViewFilterTestCase(APITestCase):
                 ).create()
                 self.assertEqual(cvf.description, description)
 
+    @run_only_on('sat')
     def test_create_cvf_with_repo(self):
         """Test: Create new content filter with repository assigned
 
@@ -193,6 +200,7 @@ class ContentViewFilterTestCase(APITestCase):
         ).create()
         self.assertEqual(cvf.repository[0].id, self.repo.id)
 
+    @run_only_on('sat')
     def test_create_cvf_with_original_packages(self):
         """Test: Create new content view filter with different 'original
         packages' option values
@@ -213,6 +221,7 @@ class ContentViewFilterTestCase(APITestCase):
                 ).create()
                 self.assertEqual(cvf.original_packages, original_packages)
 
+    @run_only_on('sat')
     def test_create_cvf_with_multiple_repos_with_docker(self):
         """Test: Create new docker repository and add to content view that has
         yum repo already assigned to it. Create new content view filter and
@@ -241,6 +250,7 @@ class ContentViewFilterTestCase(APITestCase):
         for repo in cvf.repository:
             self.assertIn(repo.id, [self.repo.id, docker_repository.id])
 
+    @run_only_on('sat')
     def test_create_cvf_with_different_names_negative(self):
         """@Test: Try to create content view filter using invalid names only
 
@@ -257,6 +267,7 @@ class ContentViewFilterTestCase(APITestCase):
                         name=name,
                     ).create()
 
+    @run_only_on('sat')
     def test_create_cvf_with_same_names_negative(self):
         """@Test: Try to create content view filter using same name twice
 
@@ -273,6 +284,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.RPMContentViewFilter(**kwargs).create()
 
+    @run_only_on('sat')
     def test_create_cvf_without_cv_negative(self):
         """@Test: Try to create content view filter without providing content
         view
@@ -285,6 +297,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.RPMContentViewFilter(content_view=None).create()
 
+    @run_only_on('sat')
     def test_create_cvf_with_repo_by_id_negative(self):
         """@Test: Try to create content view filter using incorrect repository
         id
@@ -300,6 +313,7 @@ class ContentViewFilterTestCase(APITestCase):
                 repository=[gen_integer(10000, 99999)],
             ).create()
 
+    @run_only_on('sat')
     def test_delete_cvf_by_id(self):
         """@Test: Delete content view filter
 
@@ -315,6 +329,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             cvf.read()
 
+    @run_only_on('sat')
     def test_update_cvf_with_new_name(self):
         """@Test: Update content view filter with new name
 
@@ -331,6 +346,7 @@ class ContentViewFilterTestCase(APITestCase):
                 cvf.name = name
                 self.assertEqual(cvf.update(['name']).name, name)
 
+    @run_only_on('sat')
     def test_update_cvf_with_new_description(self):
         """@Test: Update content view filter with new description
 
@@ -348,6 +364,7 @@ class ContentViewFilterTestCase(APITestCase):
                 cvf.description = desc
                 self.assertEqual(cvf.update(['description']).description, desc)
 
+    @run_only_on('sat')
     def test_update_cvf_with_new_inclusion(self):
         """Test: Update content view filter with new inclusion value
 
@@ -366,6 +383,7 @@ class ContentViewFilterTestCase(APITestCase):
                 cvf = cvf.update(['inclusion'])
                 self.assertEqual(cvf.inclusion, inclusion)
 
+    @run_only_on('sat')
     def test_update_cvf_with_new_repo(self):
         """Test: Update content view filter with new repository
 
@@ -389,6 +407,7 @@ class ContentViewFilterTestCase(APITestCase):
         self.assertEqual(len(cvf.repository), 1)
         self.assertEqual(cvf.repository[0].id, new_repo.id)
 
+    @run_only_on('sat')
     def test_update_cvf_with_multiple_repos(self):
         """Test: Update content view filter with multiple repositories
 
@@ -419,6 +438,7 @@ class ContentViewFilterTestCase(APITestCase):
             set([repo.id for repo in repos])
         )
 
+    @run_only_on('sat')
     def test_update_cvf_original_packages(self):
         """Test: Update content view filter with new 'original packages' option
         value
@@ -440,6 +460,7 @@ class ContentViewFilterTestCase(APITestCase):
                 cvf = cvf.update(['original_packages'])
                 self.assertEqual(cvf.original_packages, original_packages)
 
+    @run_only_on('sat')
     def test_update_cvf_with_repo_with_docker(self):
         """Test: Update existing content view filter which has yum repository
         assigned with new docker repository
@@ -469,6 +490,7 @@ class ContentViewFilterTestCase(APITestCase):
         for repo in cvf.repository:
             self.assertIn(repo.id, [self.repo.id, docker_repository.id])
 
+    @run_only_on('sat')
     def test_update_cvf_with_different_names_negative(self):
         """@Test: Try to update content view filter using invalid names only
 
@@ -486,6 +508,7 @@ class ContentViewFilterTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     cvf.update(['name'])
 
+    @run_only_on('sat')
     def test_update_cvf_with_already_used_name_negative(self):
         """@Test: Try to update content view filter's name to already used one
 
@@ -506,6 +529,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             cvf.update(['name'])
 
+    @run_only_on('sat')
     def test_update_cvf_with_cv_by_id_negative(self):
         """@Test: Try to update content view filter using incorrect content
         view ID
@@ -522,6 +546,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             cvf.update(['content_view'])
 
+    @run_only_on('sat')
     def test_update_cvf_with_repo_by_id_negative(self):
         """@Test: Try to update content view filter using incorrect repository
         ID
@@ -539,6 +564,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             cvf.update(['repository'])
 
+    @run_only_on('sat')
     def test_update_cvf_with_new_repo_negative(self):
         """Test: Try to update content view filter with new repository which
         doesn't belong to filter's content view

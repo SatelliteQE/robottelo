@@ -73,7 +73,6 @@ class SyncPlanTestCase(APITestCase):
         )
 
 
-@run_only_on('sat')
 class SyncPlanCreateTestCase(APITestCase):
     """Tests specific to creating new sync plans."""
 
@@ -83,6 +82,7 @@ class SyncPlanCreateTestCase(APITestCase):
         super(SyncPlanCreateTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
+    @run_only_on('sat')
     def test_create_enabled_disabled(self):
         """@Test: Create sync plan with different 'enabled' field values.
 
@@ -99,6 +99,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 ).create()
                 self.assertEqual(sync_plan.enabled, enabled)
 
+    @run_only_on('sat')
     def test_create_random_name(self):
         """@Test: Create a sync plan with a random name.
 
@@ -115,6 +116,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 ).create()
                 self.assertEqual(syncplan.name, name)
 
+    @run_only_on('sat')
     def test_create_random_description(self):
         """@Test: Create a sync plan with a random description.
 
@@ -131,6 +133,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 ).create()
                 self.assertEqual(sync_plan.description, description)
 
+    @run_only_on('sat')
     def test_create_random_interval(self):
         """@Test: Create a sync plan with a random interval.
 
@@ -147,6 +150,7 @@ class SyncPlanCreateTestCase(APITestCase):
                 ).create()
                 self.assertEqual(sync_plan.interval, interval)
 
+    @run_only_on('sat')
     def test_create_random_sync_date(self):
         """@Test: Create a sync plan and update its sync date.
 
@@ -166,6 +170,7 @@ class SyncPlanCreateTestCase(APITestCase):
                     sync_plan.sync_date
                 )
 
+    @run_only_on('sat')
     def test_create_invalid_name(self):
         """@Test: Create a sync plan with an invalid name.
 
@@ -182,6 +187,7 @@ class SyncPlanCreateTestCase(APITestCase):
                         organization=self.org
                     ).create()
 
+    @run_only_on('sat')
     def test_create_invalid_interval(self):
         """@Test: Create a sync plan with invalid interval specified.
 
@@ -198,6 +204,7 @@ class SyncPlanCreateTestCase(APITestCase):
                         organization=self.org,
                     ).create()
 
+    @run_only_on('sat')
     def test_create_empty_interval(self):
         """@Test: Create a sync plan with no interval specified.
 
@@ -213,7 +220,6 @@ class SyncPlanCreateTestCase(APITestCase):
             sync_plan.create(False)
 
 
-@run_only_on('sat')
 class SyncPlanUpdateTestCase(APITestCase):
     """Tests specific to updating a sync plan."""
 
@@ -223,6 +229,7 @@ class SyncPlanUpdateTestCase(APITestCase):
         super(SyncPlanUpdateTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
+    @run_only_on('sat')
     def test_update_enabled_disabled(self):
         """@Test: Create sync plan and update it with opposite 'enabled' value.
 
@@ -243,6 +250,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                     enabled
                 )
 
+    @run_only_on('sat')
     def test_update_random_name(self):
         """@Test: Create a sync plan and update its name.
 
@@ -258,6 +266,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                 sync_plan.name = name
                 self.assertEqual(sync_plan.update(['name']).name, name)
 
+    @run_only_on('sat')
     def test_update_random_description(self):
         """@Test: Create a sync plan and update its description.
 
@@ -279,6 +288,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                     description
                 )
 
+    @run_only_on('sat')
     def test_update_random_interval(self):
         """@Test: Create a sync plan and update its interval.
 
@@ -303,6 +313,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                     interval
                 )
 
+    @run_only_on('sat')
     def test_update_random_sync_date(self):
         """@Test: Updated sync plan's sync date.
 
@@ -323,6 +334,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                     sync_plan.update(['sync_date']).sync_date
                 )
 
+    @run_only_on('sat')
     def test_update_invalid_name(self):
         """@Test: Try to update a sync plan with an invalid name.
 
@@ -338,6 +350,7 @@ class SyncPlanUpdateTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     sync_plan.update(['name'])
 
+    @run_only_on('sat')
     def test_update_invalid_interval(self):
         """@Test: Try to update a sync plan with invalid interval.
 
@@ -514,7 +527,6 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         """
 
 
-@run_only_on('sat')
 class SyncPlanDeleteTestCase(APITestCase):
     """Tests specific to deleting sync plans."""
 
@@ -524,6 +536,7 @@ class SyncPlanDeleteTestCase(APITestCase):
         super(SyncPlanDeleteTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
+    @run_only_on('sat')
     def test_delete_one_product(self):
         """@Test: Create a sync plan with one product and delete it.
 
@@ -540,6 +553,7 @@ class SyncPlanDeleteTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             sync_plan.read()
 
+    @run_only_on('sat')
     def test_delete_two_products(self):
         """@Test: Create a sync plan with two products and delete them.
 
@@ -560,6 +574,7 @@ class SyncPlanDeleteTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             sync_plan.read()
 
+    @run_only_on('sat')
     def test_delete_one_synced_product(self):
         """@Test: Create a sync plan with one synced product and delete it.
 

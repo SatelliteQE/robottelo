@@ -11,12 +11,12 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 @ddt
 class PartitionTable(UITestCase):
     """Implements the partition table tests from UI"""
 
     @data(*generate_strings_list(len1=10))
+    @run_only_on('sat')
     def test_positive_create_partition_table(self, name):
         """@Test: Create a new partition table
 
@@ -35,6 +35,7 @@ class PartitionTable(UITestCase):
             self.assertIsNotNone(self.partitiontable.search(name))
 
     @data(*generate_strings_list(len1=256))
+    @run_only_on('sat')
     def test_negative_create_partition_table_with_long_names(self, name):
         """@Test: Create a new partition table with 256 characters in name
 
@@ -55,6 +56,7 @@ class PartitionTable(UITestCase):
             self.assertIsNone(self.partitiontable.search(name))
 
     @data('', '  ')
+    @run_only_on('sat')
     def test_negative_create_partition_table_with_empty_name(self, name):
         """@Test: Create partition table with blank and whitespace in name
 
@@ -73,6 +75,7 @@ class PartitionTable(UITestCase):
             self.assertIsNotNone(self.partitiontable.wait_until_element
                                  (common_locators['name_haserror']))
 
+    @run_only_on('sat')
     def test_negative_create_partition_table_with_same_name(self):
         """@Test: Create a new partition table with same name
 
@@ -93,6 +96,7 @@ class PartitionTable(UITestCase):
             self.assertIsNotNone(self.partitiontable.wait_until_element
                                  (common_locators['name_haserror']))
 
+    @run_only_on('sat')
     def test_negative_create_partition_table_empty_layout(self):
         """@Test: Create a new partition table with empty layout
 
@@ -117,6 +121,7 @@ class PartitionTable(UITestCase):
         {u'name': gen_string('latin1')},
         {u'name': gen_string('utf8')})
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_remove_partition_table(self, test_data):
         """@Test: Delete a partition table
 
@@ -145,6 +150,7 @@ class PartitionTable(UITestCase):
            u'new_name': gen_string('utf8')},
           {u'name': gen_string('alphanumeric'),
            u'new_name': gen_string('alphanumeric')})
+    @run_only_on('sat')
     def test_update_partition_table(self, test_data):
         """@Test: Update partition table with its name, layout and OS family
 

@@ -9,13 +9,13 @@ from robottelo.helpers import invalid_values_list, valid_data_list
 from robottelo.test import MetaCLITestCase
 
 
-@run_only_on('sat')
 class TestArchitecture(MetaCLITestCase):
     """Architecture CLI related tests. """
 
     factory = make_architecture
     factory_obj = Architecture
 
+    @run_only_on('sat')
     def test_negative_update(self):
         """@test: Create architecture then fail to update
         its name
@@ -35,6 +35,7 @@ class TestArchitecture(MetaCLITestCase):
                         'new-name': new_name,
                     })
 
+    @run_only_on('sat')
     def test_positive_delete(self):
         """@test: Create architecture with valid values then delete it
         by ID

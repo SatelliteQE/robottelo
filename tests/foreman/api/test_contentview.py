@@ -25,10 +25,10 @@ from robottelo.test import APITestCase
 REPEAT = 3
 
 
-@run_only_on('sat')
 class ContentViewTestCase(APITestCase):
     """Tests for content views."""
 
+    @run_only_on('sat')
     def test_subscribe_system_to_cv(self):
         """@Test: Subscribe a system to a content view.
 
@@ -70,6 +70,7 @@ class ContentViewTestCase(APITestCase):
         if not bz_bug_is_open(1223494):
             self.assertEqual(system.organization.id, org.id)
 
+    @run_only_on('sat')
     def test_cv_clone_within_same_env(self):
         """@Test: attempt to create, publish and promote new content view
         based on existing view within the same environment as the
@@ -93,6 +94,7 @@ class ContentViewTestCase(APITestCase):
         cloned_cv.publish()
         promote(cloned_cv.read().version[0], lc_env.id)
 
+    @run_only_on('sat')
     def test_cv_clone_within_diff_env(self):
         """@Test: attempt to create, publish and promote new content
         view based on existing view but promoted to a
@@ -116,6 +118,7 @@ class ContentViewTestCase(APITestCase):
         cloned_cv.publish()
         promote(cloned_cv.read().version[0], le_clone.id)
 
+    @run_only_on('sat')
     def test_cv_associate_custom_content(self):
         """@Test: Associate custom content in a view
 
@@ -135,6 +138,7 @@ class ContentViewTestCase(APITestCase):
         self.assertEqual(len(content_view.repository), 1)
         self.assertEqual(content_view.repository[0].read().name, yum_repo.name)
 
+    @run_only_on('sat')
     def test_cv_associate_puppet_repo_negative(self):
         """@Test: Attempt to associate puppet repos within a custom
         content view directly
@@ -159,6 +163,7 @@ class ContentViewTestCase(APITestCase):
                 repository=[puppet_repo.id],
             ).create()
 
+    @run_only_on('sat')
     def test_cv_associate_composite_dupe_repos_negative(self):
         """@Test: Attempt to associate the same repo multiple times within a
         content view
@@ -180,6 +185,7 @@ class ContentViewTestCase(APITestCase):
             content_view.update(['repository'])
         self.assertEqual(len(content_view.read().repository), 0)
 
+    @run_only_on('sat')
     def test_cv_associate_composite_dupe_modules_negative(self):
         """@Test: Attempt to associate duplicate puppet modules within a
         content view
@@ -884,7 +890,6 @@ class CVRedHatContent(APITestCase):
         self.assertEqual(cv_filter.id, cv_filter_rule.content_view_filter.id)
 
 
-@run_only_on('sat')
 class ContentViewTestCaseStub(APITestCase):
     """Incomplete tests for content views."""
     # Each of these tests should be given a better name when they're

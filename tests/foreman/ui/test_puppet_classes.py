@@ -8,12 +8,12 @@ from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 @ddt
 class PuppetClasses(UITestCase):
     """Implements puppet classes tests in UI."""
 
     @data(*generate_strings_list(len1=8))
+    @run_only_on('sat')
     def test_update_positive(self, description):
         """@Test: Create new puppet-class
 
@@ -43,6 +43,7 @@ class PuppetClasses(UITestCase):
             )
 
     @data(*generate_strings_list(len1=8))
+    @run_only_on('sat')
     def test_delete_positive(self, name):
         """@Test: Create new puppet-class
 

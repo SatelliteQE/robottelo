@@ -10,12 +10,12 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 @ddt
 class HardwareModelTestCase(UITestCase):
     """Implements Hardware Model tests in UI."""
 
     @data(*valid_data_list())
+    @run_only_on('sat')
     def test_create_positive_different_names(self, name):
         """@test: Create new Hardware-Model
 
@@ -30,6 +30,7 @@ class HardwareModelTestCase(UITestCase):
             self.assertIsNotNone(search)
 
     @data(*generate_strings_list(len1=256))
+    @run_only_on('sat')
     def test_create_negative_with_too_long_names(self, name):
         """@test: Create new Hardware-Model with 256 chars
 
@@ -45,6 +46,7 @@ class HardwareModelTestCase(UITestCase):
             self.assertIsNotNone(error)
 
     @data('', '   ')
+    @run_only_on('sat')
     def test_create_negative_with_blank_name(self, name):
         """@test: Create new Hardware-Model with blank name
 
@@ -60,6 +62,7 @@ class HardwareModelTestCase(UITestCase):
             self.assertIsNotNone(error)
 
     @data(*valid_data_list())
+    @run_only_on('sat')
     def test_update_positive(self, new_name):
         """@test: Updates the Hardware-Model
 
@@ -84,6 +87,7 @@ class HardwareModelTestCase(UITestCase):
         {u'name': gen_string('html'), 'bugzilla': 1265150},
         {u'name': gen_string('latin1')},
         {u'name': gen_string('utf8')})
+    @run_only_on('sat')
     def test_delete_positive(self, test_data):
         """@test: Deletes the Hardware-Model
 

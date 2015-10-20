@@ -13,12 +13,12 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 @ddt
 class Domain(UITestCase):
     """Implements Domain tests in UI"""
 
     @data(*generate_strings_list(len1=4))
+    @run_only_on('sat')
     def test_create_domain_1(self, name):
         """@Test: Create a new domain
 
@@ -41,6 +41,7 @@ class Domain(UITestCase):
         gen_string('latin1', 243),
         gen_string('utf8', 243),
     )
+    @run_only_on('sat')
     def test_create_domain_2(self, name):
         """@Test: Create a new domain
 
@@ -55,6 +56,7 @@ class Domain(UITestCase):
             element = self.domain.search(description)
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     def test_remove_domain(self):
         """@Test: Delete a domain
 
@@ -80,6 +82,7 @@ class Domain(UITestCase):
            'newname': gen_string('latin1', 10)},
           {'name': gen_string('html', 10),
            'newname': gen_string('html', 10), 'bugzilla': 1220104})
+    @run_only_on('sat')
     def test_update_domain(self, testdata):
         """@Test: Update a domain with name and description
 
@@ -102,6 +105,7 @@ class Domain(UITestCase):
             self.assertIsNotNone(self.domain.search(new_description))
 
     @data(*invalid_values_list())
+    @run_only_on('sat')
     def test_negative_create_domain(self, name):
         """@Test: Try to create domain and use whitespace, blank, tab symbol or
         too long string of different types as its name value
@@ -118,6 +122,7 @@ class Domain(UITestCase):
             self.assertIsNotNone(error)
 
     @data(*generate_strings_list(len1=4))
+    @run_only_on('sat')
     def test_positive_set_domain_parameter_1(self, name):
         """@Test: Set parameter name and value for domain
 
@@ -139,6 +144,7 @@ class Domain(UITestCase):
             except UIError as err:
                 self.fail(err)
 
+    @run_only_on('sat')
     def test_positive_set_domain_parameter_2(self):
         """@Test: Set a parameter in a domain with 255 chars in name and value.
 
@@ -161,6 +167,7 @@ class Domain(UITestCase):
             except UIError as err:
                 self.fail(err)
 
+    @run_only_on('sat')
     def test_positive_set_domain_parameter_3(self):
         """@Test: Set a parameter in a domain with blank value.
 
@@ -183,6 +190,7 @@ class Domain(UITestCase):
             except UIError as err:
                 self.fail(err)
 
+    @run_only_on('sat')
     def test_set_domain_parameter_negative_1(self):
         """@Test: Set a parameter in a domain with 256 chars in name and value.
 
@@ -208,6 +216,7 @@ class Domain(UITestCase):
                 common_locators['common_param_error']))
 
     @skip_if_bug_open('bugzilla', 1123360)
+    @run_only_on('sat')
     def test_set_domain_parameter_negative_2(self):
         """@Test: Again set the same parameter for domain with name and value.
 
@@ -237,6 +246,7 @@ class Domain(UITestCase):
                 common_locators['common_param_error']))
 
     @data(*generate_strings_list(len1=4))
+    @run_only_on('sat')
     def test_remove_domain_parameter(self, name):
         """@Test: Remove a selected domain parameter
 

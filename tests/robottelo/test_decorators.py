@@ -204,13 +204,23 @@ class RunOnlyOnTestCase(TestCase):
     def test_invalid_project(self, dec_settings):
         """Assert error is thrown when project has invalid value."""
         dec_settings.project = 'sam'
+
+        @decorators.run_only_on('satddfddffdf')
+        def dummy():
+            pass
+
         with self.assertRaises(decorators.ProjectModeError):
-            decorators.run_only_on('satddfddffdf')
+            dummy()
 
     @mock.patch('robottelo.decorators.settings')
     def test_invalid_mode(self, dec_settings):
         """Assert error is thrown when mode has invalid value."""
         # Invalid value for robottelo mode
         dec_settings.project = 'samtdd'
+
+        @decorators.run_only_on('sat')
+        def dummy():
+            pass
+
         with self.assertRaises(decorators.ProjectModeError):
-            decorators.run_only_on('sat')
+            dummy()

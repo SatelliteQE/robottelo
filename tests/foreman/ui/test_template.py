@@ -13,7 +13,6 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 @ddt
 class Template(UITestCase):
     """Implements Provisioning Template tests from UI"""
@@ -24,6 +23,7 @@ class Template(UITestCase):
         cls.organization = entities.Organization().create()
 
     @data(*generate_strings_list(len1=8))
+    @run_only_on('sat')
     def test_positive_create_template(self, name):
         """@Test: Create new template
 
@@ -43,6 +43,7 @@ class Template(UITestCase):
             )
             self.assertIsNotNone(self.template.search(name))
 
+    @run_only_on('sat')
     def test_negative_create_template_with_too_long_name(self):
         """@Test: Template - Create a new template with 256 characters in name
 
@@ -63,6 +64,7 @@ class Template(UITestCase):
                                  (common_locators['name_haserror']))
 
     @data(' ', '')
+    @run_only_on('sat')
     def test_negative_create_template_with_blank_name(self, name):
         """@Test: Create a new template with blank and whitespace in name
 
@@ -82,6 +84,7 @@ class Template(UITestCase):
             self.assertIsNotNone(self.template.wait_until_element
                                  (common_locators['name_haserror']))
 
+    @run_only_on('sat')
     def test_negative_create_template_with_same_name(self):
         """@Test: Template - Create a new template with same name
 
@@ -102,6 +105,7 @@ class Template(UITestCase):
             self.assertIsNotNone(self.template.wait_until_element
                                  (common_locators['name_haserror']))
 
+    @run_only_on('sat')
     def test_negative_create_template_without_type(self):
         """@Test: Template - Create a new template without selecting its type
 
@@ -125,6 +129,7 @@ class Template(UITestCase):
                     'Could not create template "{0}" without type'.format(name)
                 )
 
+    @run_only_on('sat')
     def test_negative_create_template_without_upload(self):
         """@Test: Template - Create a new template without uploading a template
 
@@ -148,6 +153,7 @@ class Template(UITestCase):
                     'Could not create blank template "{0}"'.format(name)
                 )
 
+    @run_only_on('sat')
     def test_negative_create_template_with_too_long_audit(self):
         """@Test: Create a new template with 256 characters in audit comments
 
@@ -169,6 +175,7 @@ class Template(UITestCase):
                                  (common_locators['haserror']))
 
     @data(*generate_strings_list(len1=8))
+    @run_only_on('sat')
     def test_positive_create_snippet_template(self, name):
         """@Test: Create new template of type snippet
 
@@ -189,6 +196,7 @@ class Template(UITestCase):
             self.assertIsNotNone(self.template.search(name))
 
     @data(*generate_strings_list(len1=8))
+    @run_only_on('sat')
     def test_remove_template(self, template_name):
         """@Test: Remove a template
 
@@ -203,6 +211,7 @@ class Template(UITestCase):
             session.nav.go_to_select_org(self.organization.name)
             self.template.delete(template_name)
 
+    @run_only_on('sat')
     def test_update_template(self):
         """@Test: Update template name and template type
 
@@ -225,6 +234,7 @@ class Template(UITestCase):
             self.template.update(name, False, new_name, None, 'PXELinux')
             self.assertIsNotNone(self.template.search(new_name))
 
+    @run_only_on('sat')
     def test_update_template_os(self):
         """@Test: Creates new template, along with two OS's
         and associate list of OS's with created template
@@ -252,6 +262,7 @@ class Template(UITestCase):
             self.template.update(name, False, new_name, new_os_list=os_list)
             self.assertIsNotNone(self.template.search(new_name))
 
+    @run_only_on('sat')
     def test_clone_template(self):
         """@Test: Assure ability to clone a provisioning template
 

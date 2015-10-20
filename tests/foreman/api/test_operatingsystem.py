@@ -13,10 +13,10 @@ from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.test import APITestCase
 
 
-@run_only_on('sat')
 class OSParameterTestCase(APITestCase):
     """Tests for operating system parameters."""
 
+    @run_only_on('sat')
     def test_bz_1114640(self):
         """@Test: Create a parameter for operating system 1.
 
@@ -47,10 +47,10 @@ class OSParameterTestCase(APITestCase):
         self.assertEqual(os_param.value, value)
 
 
-@run_only_on('sat')
 class OSTestCase(APITestCase):
     """Tests for operating systems."""
 
+    @run_only_on('sat')
     def test_point_to_arch(self):
         """@Test: Create an operating system that points at an architecture.
 
@@ -65,6 +65,7 @@ class OSTestCase(APITestCase):
         self.assertEqual(len(operating_sys.architecture), 1)
         self.assertEqual(operating_sys.architecture[0].id, arch.id)
 
+    @run_only_on('sat')
     def test_point_to_ptable(self):
         """@Test: Create an operating system that points at a partition table.
 
@@ -79,6 +80,7 @@ class OSTestCase(APITestCase):
         self.assertEqual(len(operating_sys.ptable), 1)
         self.assertEqual(operating_sys.ptable[0].id, ptable.id)
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1230902)
     def test_create_with_minor(self):
         """@Test: Create an operating system with an integer minor version.

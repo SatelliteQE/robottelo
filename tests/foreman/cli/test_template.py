@@ -15,10 +15,10 @@ from robottelo.decorators import run_only_on
 from robottelo.test import CLITestCase
 
 
-@run_only_on('sat')
 class TestTemplate(CLITestCase):
     """Test class for Config Template CLI."""
 
+    @run_only_on('sat')
     def test_create_template_1(self):
         """@Test: Check if Template can be created
 
@@ -31,6 +31,7 @@ class TestTemplate(CLITestCase):
         template = make_template({'name': name})
         self.assertEqual(template['name'], name)
 
+    @run_only_on('sat')
     def test_update_template_1(self):
         """@Test: Check if Template can be updated
 
@@ -48,6 +49,7 @@ class TestTemplate(CLITestCase):
         template = Template.info({'id': template['id']})
         self.assertEqual(updated_name, template['name'])
 
+    @run_only_on('sat')
     def test_create_template_with_loc(self):
         """@Test: Check if Template with Location can be created
 
@@ -60,6 +62,7 @@ class TestTemplate(CLITestCase):
         new_template = make_template({'location-ids': new_loc['id']})
         self.assertIn(new_loc['name'], new_template['locations'])
 
+    @run_only_on('sat')
     def test_create_template_locked(self):
         """@Test: Check that locked Template cannot be created
 
@@ -74,6 +77,7 @@ class TestTemplate(CLITestCase):
                 'name': gen_string('alpha'),
             })
 
+    @run_only_on('sat')
     def test_create_template_with_org(self):
         """@Test: Check if Template with Organization can be created
 
@@ -89,6 +93,7 @@ class TestTemplate(CLITestCase):
         })
         self.assertIn(new_org['name'], new_template['organizations'])
 
+    @run_only_on('sat')
     def test_add_operating_system_1(self):
         """@Test: Check if Template can be assigned operating system
 
@@ -108,6 +113,7 @@ class TestTemplate(CLITestCase):
             new_os['name'], new_os['major-version'], new_os['minor-version'])
         self.assertIn(os_string, new_template['operating-systems'])
 
+    @run_only_on('sat')
     def test_remove_operating_system_1(self):
         """@Test: Check if OS can be removed Template
 
@@ -134,6 +140,7 @@ class TestTemplate(CLITestCase):
         template = Template.info({'id': template['id']})
         self.assertNotIn(os_string, template['operating-systems'])
 
+    @run_only_on('sat')
     def test_dump_template_1(self):
         """@Test: Check if Template can be created with specific content
 
@@ -152,6 +159,7 @@ class TestTemplate(CLITestCase):
         template_content = Template.dump({'id': template['id']})
         self.assertIn(content, template_content[0])
 
+    @run_only_on('sat')
     def test_delete_template_1(self):
         """@Test: Check if Template can be deleted
 

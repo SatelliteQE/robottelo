@@ -9,7 +9,6 @@ from robottelo.decorators import run_only_on
 from robottelo.test import CLITestCase
 
 
-@run_only_on('sat')
 class TestPartitionTableUpdateCreate(CLITestCase):
     """Test case for CLI tests."""
 
@@ -21,6 +20,7 @@ class TestPartitionTableUpdateCreate(CLITestCase):
         self.args = {'name': self.name,
                      'content': self.content}
 
+    @run_only_on('sat')
     def test_create_ptable(self):
         """@Test: Check if Partition Table can be created
 
@@ -32,6 +32,7 @@ class TestPartitionTableUpdateCreate(CLITestCase):
         ptable = make_partition_table(self.args)
         self.assertEqual(ptable['name'], self.name)
 
+    @run_only_on('sat')
     def test_update_ptable(self):
         """@Test: Check if Partition Table can be updated
 

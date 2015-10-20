@@ -3,7 +3,6 @@ from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import APITestCase
 
 
-@run_only_on('sat')
 class MediaTestCase(APITestCase):
     """Incomplete tests for media.
 
@@ -21,6 +20,7 @@ class MediaTestCase(APITestCase):
 
     """
 
+    @run_only_on('sat')
     @stubbed()
     def test_remove_medium_1(self, test_data):
         """
@@ -30,6 +30,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_remove_medium_2(self, test_data):
         """
@@ -39,6 +40,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_remove_medium_3(self, test_data):
         """
@@ -48,6 +50,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_remove_medium_4(self, test_data):
         """
@@ -57,6 +60,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_add_medium_1(self, test_data):
         """
@@ -66,6 +70,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_add_medium_2(self, test_data):
         """
@@ -75,6 +80,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_add_medium_3(self, test_data):
         """
@@ -84,6 +90,7 @@ class MediaTestCase(APITestCase):
         @status: manual
         """
 
+    @run_only_on('sat')
     @stubbed()
     def test_add_medium_4(self, test_data):
         """

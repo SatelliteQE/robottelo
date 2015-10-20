@@ -11,12 +11,12 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 @ddt
 class Hostgroup(UITestCase):
     """Implements HostGroup tests from UI"""
 
     @data(*generate_strings_list(len1=4))
+    @run_only_on('sat')
     def test_create_hostgroup(self, name):
         """@Test: Create new hostgroup
 
@@ -30,6 +30,7 @@ class Hostgroup(UITestCase):
             self.assertIsNotNone(self.hostgroup.search(name))
 
     @data(*generate_strings_list(len1=4))
+    @run_only_on('sat')
     def test_delete_hostgroup(self, name):
         """@Test: Delete a hostgroup
 
@@ -43,6 +44,7 @@ class Hostgroup(UITestCase):
             self.hostgroup.delete(name)
 
     @data(*generate_strings_list(len1=4))
+    @run_only_on('sat')
     def test_update_hostgroup(self, new_name):
         """@Test: Update hostgroup with a new name
 
@@ -59,6 +61,7 @@ class Hostgroup(UITestCase):
             self.assertIsNotNone(self.hostgroup.search(new_name))
 
     @data(*generate_strings_list(len1=256))
+    @run_only_on('sat')
     def test_negative_create_hostgroup_with_too_long_name(self, name):
         """@Test: Create new hostgroup with 256 chars in name
 
@@ -72,6 +75,7 @@ class Hostgroup(UITestCase):
             self.assertIsNotNone(self.hostgroup.wait_until_element
                                  (common_locators['name_haserror']))
 
+    @run_only_on('sat')
     def test_negative_create_hostgroup_with_same_name(self):
         """@Test: Create new hostgroup with same name
 
@@ -89,6 +93,7 @@ class Hostgroup(UITestCase):
                                  (common_locators['name_haserror']))
 
     @data('', '  ')
+    @run_only_on('sat')
     def test_negative_create_hostgroup_with_blank_name(self, name):
         """@Test: Create new hostgroup with whitespaces in name
 

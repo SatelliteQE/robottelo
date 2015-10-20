@@ -11,7 +11,6 @@ from robottelo.decorators import run_only_on
 from robottelo.test import CLITestCase
 
 
-@run_only_on('sat')
 class TestReport(CLITestCase):
     """Test class for Reports CLI. """
 
@@ -19,6 +18,7 @@ class TestReport(CLITestCase):
         super(TestReport, self).setUp()
         self.run_puppet_agent()
 
+    @run_only_on('sat')
     def run_puppet_agent(self):
         """Retrieves the client configuration from the puppet master and
         applies it to the local host. This is required to make sure
@@ -27,6 +27,7 @@ class TestReport(CLITestCase):
         """
         ssh.command('puppet agent -t')
 
+    @run_only_on('sat')
     def test_list(self):
         """@Test: Test list for Puppet report
 
@@ -37,6 +38,7 @@ class TestReport(CLITestCase):
         """
         Report.list()
 
+    @run_only_on('sat')
     def test_info(self):
         """@Test: Test Info for Puppet report
 
@@ -52,6 +54,7 @@ class TestReport(CLITestCase):
         result = Report.info({'id': report['id']})
         self.assertEqual(report['id'], result['id'])
 
+    @run_only_on('sat')
     def test_delete(self):
         """@Test: Check if Puppet Report can be deleted
 

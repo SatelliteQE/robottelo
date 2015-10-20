@@ -25,12 +25,12 @@ NEGATIVE_DELETE_DATA = (
 )
 
 
-@run_only_on('sat')
 class TestOperatingSystem(CLITestCase):
     """Test class for Operating System CLI."""
 
     # Issues
     @skip_if_bug_open('redmine', 4547)
+    @run_only_on('sat')
     def test_redmine_4547(self):
         """@test: Search for newly created OS by name
 
@@ -49,6 +49,7 @@ class TestOperatingSystem(CLITestCase):
         os_list_after = OperatingSys.list()
         self.assertGreater(len(os_list_after), len(os_list_before))
 
+    @run_only_on('sat')
     def test_bugzilla_1051557(self):
         """@test: Update an Operating System's major version.
 
@@ -69,6 +70,7 @@ class TestOperatingSystem(CLITestCase):
         })
         self.assertEqual(int(os['major-version']), major)
 
+    @run_only_on('sat')
     def test_bugzilla_1203457(self):
         """@test: Create an OS pointing to an arch, medium and partition table.
 
@@ -96,6 +98,7 @@ class TestOperatingSystem(CLITestCase):
         self.assertEqual(
             operating_system['partition-tables'][0], ptable['name'])
 
+    @run_only_on('sat')
     def test_list_1(self):
         """@test: Displays list for operating system
 
@@ -113,6 +116,7 @@ class TestOperatingSystem(CLITestCase):
         os_list_after = OperatingSys.list()
         self.assertGreater(len(os_list_after), len(os_list_before))
 
+    @run_only_on('sat')
     def test_info_1(self):
         """@test: Displays info for operating system
 
@@ -130,6 +134,7 @@ class TestOperatingSystem(CLITestCase):
         self.assertEqual(str(os['major-version']), os_info['major-version'])
         self.assertEqual(str(os['minor-version']), os_info['minor-version'])
 
+    @run_only_on('sat')
     def test_positive_create_1(self):
         """@test: Create Operating System for all variations of name
 
@@ -143,6 +148,7 @@ class TestOperatingSystem(CLITestCase):
                 os = make_os({'name': name})
                 self.assertEqual(os['name'], name)
 
+    @run_only_on('sat')
     def test_negative_create_1(self):
         """@test: Create Operating System using invalid names
 
@@ -156,6 +162,7 @@ class TestOperatingSystem(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     make_os({'name': name})
 
+    @run_only_on('sat')
     def test_positive_update_1(self):
         """@test: Positive update of system name
 
@@ -175,6 +182,7 @@ class TestOperatingSystem(CLITestCase):
                 self.assertEqual(result['id'], os['id'], )
                 self.assertNotEqual(result['name'], os['name'])
 
+    @run_only_on('sat')
     def test_negative_update_1(self):
         """@test: Negative update of system name
 
@@ -194,6 +202,7 @@ class TestOperatingSystem(CLITestCase):
                 result = OperatingSys.info({'id': os['id']})
                 self.assertEqual(result['name'], os['name'])
 
+    @run_only_on('sat')
     def test_positive_delete_1(self):
         """@test: Successfully deletes Operating System
 
@@ -209,6 +218,7 @@ class TestOperatingSystem(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     OperatingSys.info({'id': os['id']})
 
+    @run_only_on('sat')
     def test_negative_delete_1(self):
         """@test: Not delete Operating System for invalid data
 
@@ -228,6 +238,7 @@ class TestOperatingSystem(CLITestCase):
                 self.assertEqual(os['id'], result['id'])
                 self.assertEqual(os['name'], result['name'])
 
+    @run_only_on('sat')
     def test_add_architecture(self):
         """@test: Add Architecture to os
 
@@ -246,6 +257,7 @@ class TestOperatingSystem(CLITestCase):
         self.assertEqual(len(os['architectures']), 1)
         self.assertEqual(architecture['name'], os['architectures'][0])
 
+    @run_only_on('sat')
     def test_add_configtemplate(self):
         """@test: Add configtemplate to os
 
@@ -265,6 +277,7 @@ class TestOperatingSystem(CLITestCase):
         template_name = os['templates'][0]
         self.assertTrue(template_name.startswith(template['name']))
 
+    @run_only_on('sat')
     def test_add_ptable(self):
         """@test: Add ptable to os
 
