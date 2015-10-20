@@ -33,7 +33,6 @@ from robottelo.ui.session import Session
 from robottelo.test import UITestCase
 
 
-@run_only_on('sat')
 @ddt
 class TestContentViewsUI(UITestCase):
     """Implement tests for content view via UI"""
@@ -78,6 +77,7 @@ class TestContentViewsUI(UITestCase):
         entities.Repository(id=repo_id).sync()
 
     @data(*valid_data_list())
+    @run_only_on('sat')
     def test_cv_create(self, name):
         """@test: create content views (positive)
 
@@ -95,6 +95,7 @@ class TestContentViewsUI(UITestCase):
                     name, self.organization.name))
 
     @data(*invalid_names_list())
+    @run_only_on('sat')
     def test_cv_create_negative(self, name):
         # variations (subject to change):
         # zero length, symbols, html, etc.
@@ -116,6 +117,7 @@ class TestContentViewsUI(UITestCase):
                     name, self.organization.name))
             self.assertIsNone(self.content_views.search(name))
 
+    @run_only_on('sat')
     def test_cv_end_to_end(self):
         """@test: create content view with yum repo, publish it
         and promote it to Library +1 env
@@ -160,6 +162,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators['alert.success']))
 
+    @run_only_on('sat')
     def test_associate_puppet_module(self):
         """@test: create content view with puppet repository
 
@@ -196,6 +199,7 @@ class TestContentViewsUI(UITestCase):
                 cv_name, puppet_module)
             self.assertIsNotNone(module)
 
+    @run_only_on('sat')
     def test_remove_filter(self):
         """@test: create empty content views filter and remove it(positive)
 
@@ -220,6 +224,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNone(self.content_views.search_filter(
                 cv_name, filter_name))
 
+    @run_only_on('sat')
     def test_create_package_filter(self):
         """@test: create content views package filter(positive)
 
@@ -253,6 +258,7 @@ class TestContentViewsUI(UITestCase):
                 [None, None, None, '4.6'],
             )
 
+    @run_only_on('sat')
     def test_create_package_group_filter(self):
         """@test: create content views package group filter(positive)
 
@@ -285,6 +291,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success']))
 
+    @run_only_on('sat')
     def test_create_errata_filter(self):
         """@test: create content views errata filter(positive)
 
@@ -315,6 +322,7 @@ class TestContentViewsUI(UITestCase):
                 common_locators['alert.success']))
 
     @data(*valid_data_list())
+    @run_only_on('sat')
     def test_positive_cv_update_name(self, new_name):
         """@test: Positive update content views - name.
 
@@ -337,6 +345,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.search(new_name))
 
     @data(*invalid_names_list())
+    @run_only_on('sat')
     def test_negative_cv_update_name(self, new_name):
         """@test: Negative update content views - name.
 
@@ -356,6 +365,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNone(self.content_views.search(new_name))
 
     @data(*valid_data_list())
+    @run_only_on('sat')
     def test_positive_cv_update_description(self, new_description):
         """@test: Positive update content views - description.
 
@@ -379,6 +389,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success']))
 
+    @run_only_on('sat')
     def test_negative_cv_update_description(self):
         """@test: Negative update content views - description.
 
@@ -399,6 +410,7 @@ class TestContentViewsUI(UITestCase):
                 common_locators['alert.error']))
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_edit_rh_custom_spin(self):
         # Variations might be:
         #   * A filter on errata date (only content that matches date
@@ -418,6 +430,7 @@ class TestContentViewsUI(UITestCase):
         """
 
     @data(*valid_data_list())
+    @run_only_on('sat')
     def test_cv_delete(self, name):
         """@test: delete content views
 
@@ -440,6 +453,7 @@ class TestContentViewsUI(UITestCase):
                 'Content view %s from %s org was not deleted' % (
                     name, self.organization.name))
 
+    @run_only_on('sat')
     def test_cv_composite_create(self):
         # Note: puppet repos cannot/should not be used in this test
         # It shouldn't work - and that is tested in a different case.
@@ -505,6 +519,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success']))
 
+    @run_only_on('sat')
     def test_associate_view_rh(self):
         """@test: associate Red Hat content in a view
 
@@ -535,6 +550,7 @@ class TestContentViewsUI(UITestCase):
                 common_locators['alert.success']))
 
     @stubbed()
+    @run_only_on('sat')
     def test_associate_view_rh_custom_spin(self):
         # Variations might be:
         #   * A filter on errata date (only content that matches date
@@ -555,6 +571,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
+    @run_only_on('sat')
     def test_associate_view_custom_content(self):
         """@test: associate custom content in a view
 
@@ -576,6 +593,7 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success']))
 
+    @run_only_on('sat')
     def test_cv_associate_puppet_repo_negative(self):
         # Again, individual modules should be ok.
         """@test: attempt to associate puppet repos within a composite
@@ -604,6 +622,7 @@ class TestContentViewsUI(UITestCase):
                     'Could not find tab to add puppet_modules'
                 )
 
+    @run_only_on('sat')
     def test_cv_associate_components_composite_negative(self):
         """@test: attempt to associate components to a non-composite
         content view
@@ -631,6 +650,7 @@ class TestContentViewsUI(UITestCase):
                 )
 
     @skip_if_bug_open('bugzilla', 1232270)
+    @run_only_on('sat')
     def test_cv_associate_composite_dupe_repos_negative(self):
         """@test: attempt to associate the same repo multiple times within a
         content view
@@ -659,6 +679,7 @@ class TestContentViewsUI(UITestCase):
                 )
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_associate_composite_dupe_modules_negative(self):
         """@test: attempt to associate duplicate puppet module(s) within a
         content view
@@ -671,6 +692,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
+    @run_only_on('sat')
     def test_cv_promote_rh(self):
         """@test: attempt to promote a content view containing RH content
 
@@ -713,6 +735,7 @@ class TestContentViewsUI(UITestCase):
                 common_locators['alert.success']))
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_promote_rh_custom_spin(self):
         """@test: attempt to promote a content view containing a custom RH
         spin - i.e., contains filters.
@@ -727,6 +750,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
+    @run_only_on('sat')
     def test_cv_promote_custom_content(self):
         """@test: attempt to promote a content view containing custom content
 
@@ -761,6 +785,7 @@ class TestContentViewsUI(UITestCase):
                 common_locators['alert.success']))
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_promote_composite(self):
         # Variations:
         # RHEL, custom content (i.e., google repos), puppet modules
@@ -781,6 +806,7 @@ class TestContentViewsUI(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_promote_default_negative(self):
         """@test: attempt to promote a the default content views
 
@@ -792,6 +818,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
+    @run_only_on('sat')
     def test_cv_publish_rh(self):
         """@test: attempt to publish a content view containing RH content
 
@@ -825,6 +852,7 @@ class TestContentViewsUI(UITestCase):
                 common_locators['alert.success']))
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_publish_rh_custom_spin(self):
         """@test: attempt to publish  a content view containing a custom RH
         spin - i.e., contains filters.
@@ -839,6 +867,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
+    @run_only_on('sat')
     def test_cv_publish_custom_content(self):
         """@test: attempt to publish a content view containing custom content
 
@@ -870,6 +899,7 @@ class TestContentViewsUI(UITestCase):
                 common_locators['alert.success']))
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_publish_composite(self):
         # Variations:
         # RHEL, custom content (i.e., google repos), puppet modules
@@ -888,6 +918,7 @@ class TestContentViewsUI(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_publish_version_changes_in_target_env(self):
         # Dev notes:
         # If Dev has version x, then when I promote version y into
@@ -912,6 +943,7 @@ class TestContentViewsUI(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_publish_version_changes_in_source_env(self):
         # Dev notes:
         # Similarly when I publish version y, version x goes away from
@@ -934,6 +966,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
+    @run_only_on('sat')
     def test_cv_clone_within_same_env(self):
         # Dev note: "not implemented yet"
         """@test: attempt to create new content view based on existing
@@ -973,6 +1006,7 @@ class TestContentViewsUI(UITestCase):
             )
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_clone_within_diff_env(self):
         # Dev note: "not implemented yet"
         """@test: attempt to create new content view based on existing
@@ -987,6 +1021,7 @@ class TestContentViewsUI(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_refresh_errata_to_new_view_in_same_env(self):
         """@test: attempt to refresh errata in a new view, based on
         an existing view, from within the same  environment
@@ -1000,6 +1035,7 @@ class TestContentViewsUI(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_subscribe_system(self):
         # Notes:
         # this should be limited to only those content views
@@ -1022,6 +1058,7 @@ class TestContentViewsUI(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_dynflow_restart_promote(self):
         """@test: attempt to restart a promotion
 
@@ -1038,6 +1075,7 @@ class TestContentViewsUI(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_dynflow_restart_publish(self):
         """@test: attempt to restart a publish
 
@@ -1057,6 +1095,7 @@ class TestContentViewsUI(UITestCase):
     # All this stuff is speculative at best.
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_roles_admin_user(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
@@ -1080,6 +1119,7 @@ class TestContentViewsUI(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_roles_readonly_user(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
@@ -1104,6 +1144,7 @@ class TestContentViewsUI(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_roles_admin_user_negative(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
@@ -1127,6 +1168,7 @@ class TestContentViewsUI(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_cv_roles_readonly_user_negative(self):
         # Note:
         # Obviously all of this stuff should work with 'admin' user
@@ -1150,6 +1192,7 @@ class TestContentViewsUI(UITestCase):
 
         """
 
+    @run_only_on('sat')
     def test_delete_version_default(self):
         """@Test: Delete a content-view version associated to 'Library'
 
@@ -1195,6 +1238,7 @@ class TestContentViewsUI(UITestCase):
             self.content_views.check_progress_bar_status(version)
             self.content_views.validate_version_deleted(cv.name, version)
 
+    @run_only_on('sat')
     def test_delete_version_non_default(self):
         """@Test: Delete a content-view version associated to non-default
         environment
@@ -1229,6 +1273,7 @@ class TestContentViewsUI(UITestCase):
             self.content_views.check_progress_bar_status(version)
             self.content_views.validate_version_deleted(cv.name, version)
 
+    @run_only_on('sat')
     def test_delete_version_with_ak(self):
         """@Test: Delete a content-view version that had associated activation
         key to it

@@ -13,10 +13,10 @@ from robottelo.helpers import invalid_names_list
 from robottelo.test import APITestCase
 
 
-@run_only_on('sat')
 class EnvironmentTestCase(APITestCase):
     """Tests for environments."""
 
+    @run_only_on('sat')
     def test_positive_create_1(self):
         """@Test: Create an environment and provide a valid name.
 
@@ -34,6 +34,7 @@ class EnvironmentTestCase(APITestCase):
                 env = env.read()  # check sat isn't blindly handing back data
                 self.assertEqual(env.name, name)
 
+    @run_only_on('sat')
     def test_negative_create_1(self):
         """@Test: Create an environment and provide an invalid name.
 
@@ -49,6 +50,7 @@ class EnvironmentTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Environment(name=name).create()
 
+    @run_only_on('sat')
     def test_negative_create_2(self):
         """@Test: Create an environment and provide an illegal name.
 

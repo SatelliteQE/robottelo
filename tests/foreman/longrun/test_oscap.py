@@ -26,7 +26,6 @@ from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
 
-@run_only_on('sat')
 class OpenScap(UITestCase):
     """Implements Product tests in UI"""
 
@@ -118,6 +117,7 @@ class OpenScap(UITestCase):
                 u'value': u'1',
             }})
 
+    @run_only_on('sat')
     def test_oscap_reports(self):
         """@Test: Perform end to end oscap test.
 

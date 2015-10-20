@@ -92,11 +92,11 @@ def invalid_update_data():
     )
 
 
-@run_only_on('sat')
 class TestComputeResource(CLITestCase):
     """ComputeResource CLI tests."""
 
     # pylint: disable=no-self-use
+    @run_only_on('sat')
     def test_create(self):
         """@Test: Create Compute Resource
 
@@ -111,6 +111,7 @@ class TestComputeResource(CLITestCase):
             'url': LIBVIRT_URL,
         })
 
+    @run_only_on('sat')
     def test_info(self):
         """@Test: Test Compute Resource Info
 
@@ -128,6 +129,7 @@ class TestComputeResource(CLITestCase):
         # factory already runs info, just check the data
         self.assertEquals(compute_resource['name'], name)
 
+    @run_only_on('sat')
     def test_list(self):
         """@Test: Test Compute Resource List
 
@@ -147,6 +149,7 @@ class TestComputeResource(CLITestCase):
         result = ComputeResource.exists(search=('name', comp_res['name']))
         self.assertTrue(result)
 
+    @run_only_on('sat')
     def test_delete(self):
         """@Test: Test Compute Resource delete
 
@@ -166,6 +169,7 @@ class TestComputeResource(CLITestCase):
 
     # Positive create
 
+    @run_only_on('sat')
     def test_create_positive_libvirt(self):
         """@Test: Test Compute Resource create
 
@@ -183,6 +187,7 @@ class TestComputeResource(CLITestCase):
                     u'url': gen_url(),
                 })
 
+    @run_only_on('sat')
     def test_create_cr_with_location(self):
         """@Test: Create Compute Resource with location
 
@@ -196,6 +201,7 @@ class TestComputeResource(CLITestCase):
         self.assertEqual(1, len(comp_resource['locations']))
         self.assertEqual(comp_resource['locations'][0], location['name'])
 
+    @run_only_on('sat')
     def test_create_cr_with_locations(self):
         """@Test: Create Compute Resource with multiple locations
 
@@ -214,6 +220,7 @@ class TestComputeResource(CLITestCase):
         for location in locations:
             self.assertIn(location['name'], comp_resource['locations'])
 
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1214312)
     def test_create_cr_with_consolepwd(self):
         """@Test: Create Compute Resource with different values of
@@ -242,6 +249,7 @@ class TestComputeResource(CLITestCase):
 
     # Negative create
 
+    @run_only_on('sat')
     def test_create_negative_1(self):
         """@Test: Compute Resource negative create with invalid values
 
@@ -261,6 +269,7 @@ class TestComputeResource(CLITestCase):
                         u'url': options.get('url', gen_url()),
                     })
 
+    @run_only_on('sat')
     def test_create_negative_2(self):
         """@Test: Compute Resource negative create with the same name
 
@@ -279,6 +288,7 @@ class TestComputeResource(CLITestCase):
 
     # Update Positive
 
+    @run_only_on('sat')
     def test_update_positive(self):
         """@Test: Compute Resource positive update
 
@@ -314,6 +324,7 @@ class TestComputeResource(CLITestCase):
 
     # Update Negative
 
+    @run_only_on('sat')
     def test_update_negative(self):
         """@Test: Compute Resource negative update
 
@@ -335,6 +346,7 @@ class TestComputeResource(CLITestCase):
                 for key in options.keys():
                     self.assertEqual(comp_res[key], result[key])
 
+    @run_only_on('sat')
     def test_set_console_password_v1(self):
         """@Test: Create a compute resource with ``--set-console-password``.
 
@@ -354,6 +366,7 @@ class TestComputeResource(CLITestCase):
                     'url': gen_url(),
                 })
 
+    @run_only_on('sat')
     def test_set_console_password_v2(self):
         """@Test: Update a compute resource with ``--set-console-password``.
 

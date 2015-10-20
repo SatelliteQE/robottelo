@@ -24,7 +24,6 @@ from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 @ddt
 class Location(UITestCase):
     """Implements Location tests in UI"""
@@ -33,6 +32,7 @@ class Location(UITestCase):
     # Auto Search
 
     @skip_if_bug_open('bugzilla', 1177610)
+    @run_only_on('sat')
     def test_auto_search(self):
         """@test: Can auto-complete search for location by partial name
 
@@ -59,6 +59,7 @@ class Location(UITestCase):
     # Positive Create
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_positive_create_with_different_names(self, loc_name):
         """@test: Create Location with valid name only
 
@@ -72,6 +73,7 @@ class Location(UITestCase):
             self.assertIsNotNone(self.location.search(loc_name))
 
     @data(*generate_strings_list(len1=247))
+    @run_only_on('sat')
     def test_negative_create_with_too_long_names(self, loc_name):
         """@test: Create location with name as too long
 
@@ -87,6 +89,7 @@ class Location(UITestCase):
             self.assertIsNotNone(error)
 
     @data('', '  ')
+    @run_only_on('sat')
     def test_negative_create_with_blank_name(self, loc_name):
         """@test: Create location with name as blank
 
@@ -101,6 +104,7 @@ class Location(UITestCase):
                 common_locators['name_haserror'])
             self.assertIsNotNone(error)
 
+    @run_only_on('sat')
     def test_negative_create_with_same_name(self):
         """@test: Create location with valid values, then create a new one
         with same values.
@@ -131,6 +135,7 @@ class Location(UITestCase):
            'loc_name': gen_string('latin1', 10)},
           {'org_name': gen_string('html', 20),
            'loc_name': gen_string('html', 10)})
+    @run_only_on('sat')
     def test_positive_create_with_location_and_org(self, test_data):
         """@test: Select both organization and location.
 
@@ -154,6 +159,7 @@ class Location(UITestCase):
     # Positive Update
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_positive_update_with_different_names(self, new_name):
         """@test: Create Location with valid values then update its name
 
@@ -171,6 +177,7 @@ class Location(UITestCase):
 
     # Negative Update
 
+    @run_only_on('sat')
     def test_negative_update_with_too_long_name(self):
         """@test: Create Location with valid values then fail to update
         its name
@@ -191,6 +198,7 @@ class Location(UITestCase):
             self.assertIsNotNone(error)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_positive_delete(self, loc_name):
         """@test: Create location with valid values then delete it.
 
@@ -205,6 +213,7 @@ class Location(UITestCase):
             self.location.delete(loc_name)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_add_subnet(self, subnet_name):
         """@test: Add a subnet by using location name and subnet name
 
@@ -232,6 +241,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_add_domain(self, domain_name):
         """@test: Add a domain to a Location
 
@@ -261,6 +271,7 @@ class Location(UITestCase):
         gen_string('utf8'),
         gen_string('latin1')
     )
+    @run_only_on('sat')
     def test_add_user(self, user_name):
         """@test: Create user then add that user by using the location name
 
@@ -289,6 +300,7 @@ class Location(UITestCase):
                 (strategy, value % user_name))
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     def test_allvalues_hostgroup(self):
         """@test: check whether host group has the 'All values' checked.
 
@@ -311,6 +323,7 @@ class Location(UITestCase):
             self.assertIsNotNone(selected)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_add_hostgroup(self, host_grp_name):
         """@test: Add a hostgroup by using the location name and hostgroup name
 
@@ -333,6 +346,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_add_org(self, org_name):
         """@test: Add a organization by using the location name
 
@@ -360,6 +374,7 @@ class Location(UITestCase):
         gen_string('numeric'),
         gen_string('alphanumeric')
     )
+    @run_only_on('sat')
     def test_add_environment(self, env_name):
         """@test: Add environment by using location name and environment name
 
@@ -383,6 +398,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_add_computeresource(self, resource_name):
         """@test: Add compute resource using the location name and
         compute resource name
@@ -409,6 +425,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_add_medium(self, medium_name):
         """@test: Add medium by using the location name and medium name
 
@@ -435,6 +452,7 @@ class Location(UITestCase):
                 (strategy, value % medium_name))
             self.assertIsNotNone(element)
 
+    @run_only_on('sat')
     def test_allvalues_configtemplate(self):
         """@test: check whether config template has the 'All values' checked.
 
@@ -454,6 +472,7 @@ class Location(UITestCase):
             self.assertIsNotNone(selected)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_add_configtemplate(self, template):
         """@test: Add config template by using location name and config
         template name.
@@ -487,6 +506,7 @@ class Location(UITestCase):
         gen_string('numeric'),
         gen_string('alphanumeric')
     )
+    @run_only_on('sat')
     def test_remove_environment(self, env_name):
         """@test: Remove environment by using location name & environment name
 
@@ -518,6 +538,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_remove_subnet(self, subnet_name):
         """@test: Remove subnet by using location name and subnet name
 
@@ -553,6 +574,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_remove_domain(self, domain_name):
         """@test: Add a domain to an location and remove it by location name
         and domain name
@@ -591,6 +613,7 @@ class Location(UITestCase):
         gen_string('utf8'),
         gen_string('latin1')
     )
+    @run_only_on('sat')
     def test_remove_user(self, user_name):
         """@test: Create admin users then add user and remove it by using the
         location name
@@ -628,6 +651,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_remove_hostgroup(self, host_grp_name):
         """@test: Add a hostgroup and remove it by using the location name and
         hostgroup name
@@ -659,6 +683,7 @@ class Location(UITestCase):
             self.assertIsNone(element)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_remove_computeresource(self, resource_name):
         """@test: Remove compute resource by using the location name and
         compute resource name
@@ -693,6 +718,7 @@ class Location(UITestCase):
             self.assertIsNotNone(element)
 
     @data(*generate_strings_list())
+    @run_only_on('sat')
     def test_remove_medium(self, medium_name):
         """@test: Remove medium by using location name and medium name
 
@@ -734,6 +760,7 @@ class Location(UITestCase):
         {u'user_name': gen_string('utf8', 8), 'bugzilla': 1164247},
         {u'user_name': gen_string('latin1', 8)},
         {u'user_name': gen_string('html', 8)},)
+    @run_only_on('sat')
     def test_remove_configtemplate(self, testdata):
         """
         @test: Remove config template

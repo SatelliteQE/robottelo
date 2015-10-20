@@ -2,11 +2,11 @@ from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import UITestCase
 
 
-@run_only_on('sat')
 class TestISODownloads(UITestCase):
     """Test class for iso download feature"""
 
     @stubbed()
+    @run_only_on('sat')
     def test_iso_download_1(self):
         """@test: Downloading ISO from export
 
@@ -25,6 +25,7 @@ class TestISODownloads(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_iso_download_2(self):
         """@test: Uploadng the iso successfully to the sat6 system
 
@@ -42,6 +43,7 @@ class TestISODownloads(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_iso_download_3(self):
         """@test: Mounting iso to directory accessible to satellite6 works
 
@@ -60,6 +62,7 @@ class TestISODownloads(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_iso_download_4(self):
         """@test: Validate that cdn url to file:///path/to/mount works
 
@@ -78,6 +81,7 @@ class TestISODownloads(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_iso_download_5(self):
         """@test: Check if proper message is displayed after successful upload
 
@@ -96,6 +100,7 @@ class TestISODownloads(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_iso_download_6(self):
         """@test: Enable the repositories
 
@@ -116,6 +121,7 @@ class TestISODownloads(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_iso_download_7(self):
         """@test: Check if enabling the checkbox works
 
@@ -137,6 +143,7 @@ class TestISODownloads(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_iso_download_8(self):
         """@test: Sync repos to local iso's
 
@@ -157,6 +164,7 @@ class TestISODownloads(UITestCase):
         """
 
     @stubbed()
+    @run_only_on('sat')
     def test_iso_download_9(self):
         """@test: Disabling the repo works
 

@@ -12,12 +12,12 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 @ddt
 class Medium(UITestCase):
     """Implements all Installation Media tests"""
 
     @data(*valid_data_list())
+    @run_only_on('sat')
     def test_positive_create_medium(self, name):
         """@Test: Create a new media
 
@@ -31,6 +31,7 @@ class Medium(UITestCase):
             make_media(session, name=name, path=path, os_family='Red Hat')
             self.assertIsNotNone(self.medium.search(name))
 
+    @run_only_on('sat')
     def test_negative_create_medium_with_long_names(self):
         """@Test: Create a new install media with 256 characters in name
 
@@ -48,6 +49,7 @@ class Medium(UITestCase):
             self.assertIsNone(self.medium.search(name))
 
     @data('', '  ')
+    @run_only_on('sat')
     def test_negative_create_medium_with_empty_strings(self, name):
         """@Test: Create a new install media with blank and whitespace in name
 
@@ -63,6 +65,7 @@ class Medium(UITestCase):
             self.assertIsNotNone(self.medium.wait_until_element
                                  (common_locators['name_haserror']))
 
+    @run_only_on('sat')
     def test_negative_create_medium_with_same_name(self):
         """@Test: Create a new install media with same name
 
@@ -81,6 +84,7 @@ class Medium(UITestCase):
             self.assertIsNotNone(self.medium.wait_until_element
                                  (common_locators['name_haserror']))
 
+    @run_only_on('sat')
     def test_negative_create_medium_without_path(self):
         """@Test: Create a new install media without media URL
 
@@ -96,6 +100,7 @@ class Medium(UITestCase):
                                  (common_locators['haserror']))
             self.assertIsNone(self.medium.search(name))
 
+    @run_only_on('sat')
     def test_negative_create_medium_with_same_path(self):
         """@Test: Create an install media with an existing URL
 
@@ -116,6 +121,7 @@ class Medium(UITestCase):
                                  (common_locators['haserror']))
             self.assertIsNone(self.medium.search(new_name))
 
+    @run_only_on('sat')
     def test_remove_medium(self):
         """@Test: Delete a media
 
@@ -130,6 +136,7 @@ class Medium(UITestCase):
             make_media(session, name=name, path=path, os_family='Red Hat')
             self.medium.delete(name)
 
+    @run_only_on('sat')
     def test_update_medium(self):
         """@Test: Updates Install media with name, path, OS family
 

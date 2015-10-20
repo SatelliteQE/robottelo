@@ -19,7 +19,6 @@ from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
 
 
-@run_only_on('sat')
 class TestIncrementalUpdate(TestCase):
     """Tests for the Incremental Update feature"""
 
@@ -223,6 +222,7 @@ class TestIncrementalUpdate(TestCase):
             query={'errata_restrict_applicable': True}
         )
 
+    @run_only_on('sat')
     def test_api_inc_update_noapply(self):
         """@Test: Check if api incremental update can be done without
         actually applying it
@@ -269,6 +269,7 @@ class TestIncrementalUpdate(TestCase):
         )
 
     @skip_if_bug_open('bugzilla', 1259057)
+    @run_only_on('sat')
     def test_cli_inc_update_noapply(self):
         """@Test: Check if cli incremental update can be done without
         actually applying it

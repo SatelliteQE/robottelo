@@ -13,10 +13,10 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 class ConfigGroups(UITestCase):
     """Implements Config Groups tests in UI."""
 
+    @run_only_on('sat')
     def test_create_positive(self):
         """@Test: Create new Config-Group
 
@@ -32,6 +32,7 @@ class ConfigGroups(UITestCase):
                     search = self.configgroups.search(name)
                     self.assertIsNotNone(search)
 
+    @run_only_on('sat')
     def test_create_negative(self):
         """@Test: Try to create config group and use whitespace, blank, tab
         symbol or too long string of different types as its name value
@@ -51,6 +52,7 @@ class ConfigGroups(UITestCase):
                     search = self.configgroups.search(name)
                     self.assertIsNone(search)
 
+    @run_only_on('sat')
     def test_update_positive(self):
         """@Test: Update selected config-group
 
@@ -70,6 +72,7 @@ class ConfigGroups(UITestCase):
                     search = self.configgroups.search(new_name)
                     self.assertIsNotNone(search)
 
+    @run_only_on('sat')
     def test_delete_positive(self):
         """@Test: Delete selected config-groups
 

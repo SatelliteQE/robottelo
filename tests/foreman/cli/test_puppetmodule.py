@@ -9,7 +9,6 @@ from robottelo.decorators import run_only_on
 from robottelo.test import CLITestCase
 
 
-@run_only_on('sat')
 class TestPuppetModule(CLITestCase):
     """Tests for PuppetModule via Hammer CLI"""
 
@@ -28,6 +27,7 @@ class TestPuppetModule(CLITestCase):
         })
         Repository.synchronize({'id': cls.repo['id']})
 
+    @run_only_on('sat')
     def test_puppet_module_list(self):
         """@Test: Check if puppet-module list retrieves puppet-modules of
         the given org
@@ -41,6 +41,7 @@ class TestPuppetModule(CLITestCase):
         # There are 4 puppet modules in the test puppet-module url
         self.assertEqual(len(result), 4)
 
+    @run_only_on('sat')
     def test_puppet_module_info(self):
         """@Test: Check if puppet-module info retrieves info for the given
         puppet-module id

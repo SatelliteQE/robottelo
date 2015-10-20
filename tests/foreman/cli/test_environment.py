@@ -11,7 +11,6 @@ from robottelo.helpers import bz_bug_is_open, invalid_values_list
 from robottelo.test import MetaCLITestCase
 
 
-@run_only_on('sat')
 class TestEnvironment(MetaCLITestCase):
     """Test class for Environment CLI"""
     factory = make_environment
@@ -51,6 +50,7 @@ class TestEnvironment(MetaCLITestCase):
         {'name': gen_string('numeric', 10)},
     )
 
+    @run_only_on('sat')
     def test_info(self):
         """@Test: Test Environment Info
 
@@ -63,6 +63,7 @@ class TestEnvironment(MetaCLITestCase):
         env = make_environment({'name': name})
         self.assertEquals(env['name'], name)
 
+    @run_only_on('sat')
     def test_list(self):
         """@Test: Test Environment List
 
@@ -76,6 +77,7 @@ class TestEnvironment(MetaCLITestCase):
         result = Environment().list({'search': name})
         self.assertEqual(len(result), 1)
 
+    @run_only_on('sat')
     def test_create_environment_with_location(self):
         """@Test: Check if Environment with Location can be created
 
@@ -91,6 +93,7 @@ class TestEnvironment(MetaCLITestCase):
         })
         self.assertIn(new_loc['name'], new_environment['locations'])
 
+    @run_only_on('sat')
     def test_create_environment_with_organization(self):
         """@Test: Check if Environment with Organization can be created
 
@@ -106,6 +109,7 @@ class TestEnvironment(MetaCLITestCase):
         })
         self.assertIn(new_org['name'], new_environment['organizations'])
 
+    @run_only_on('sat')
     def test_delete(self):
         """@Test: Delete the environment
 
@@ -125,6 +129,7 @@ class TestEnvironment(MetaCLITestCase):
         gen_string('numeric', 10),
         gen_string('alphanumeric', 10),
     )
+    @run_only_on('sat')
     def test_update(self, new_name):
         """@Test: Update the environment
 
@@ -143,6 +148,7 @@ class TestEnvironment(MetaCLITestCase):
         self.assertEqual(env['name'], new_name)
 
     @data(*invalid_values_list())
+    @run_only_on('sat')
     def test_update_negative(self, new_name):
         """@Test: Update the environment with invalid values
 
@@ -164,6 +170,7 @@ class TestEnvironment(MetaCLITestCase):
         self.assertEqual(env['name'], name)
         self.assertNotEqual(env['name'], new_name)
 
+    @run_only_on('sat')
     def test_update_location(self):
         """@Test: Update environment location with new value
 
@@ -184,6 +191,7 @@ class TestEnvironment(MetaCLITestCase):
         self.assertIn(new_loc['name'], new_env['locations'])
         self.assertNotIn(old_loc['name'], new_env['locations'])
 
+    @run_only_on('sat')
     def test_update_organization(self):
         """@Test: Update environment organization with new value
 
@@ -209,6 +217,7 @@ class TestEnvironment(MetaCLITestCase):
         self.assertNotIn(old_org['name'], env['organizations'])
 
     @skip_if_bug_open('bugzilla', 1219934)
+    @run_only_on('sat')
     def test_sc_params_by_environment_id(self):
         """@Test: Check if environment sc-param subcommand works passing
         an environment id
@@ -228,6 +237,7 @@ class TestEnvironment(MetaCLITestCase):
             self.fail('BZ #1219934 is closed, should assert the content')
 
     @skip_if_bug_open('bugzilla', 1219934)
+    @run_only_on('sat')
     def test_sc_params_by_environment_name(self):
         """@Test: Check if environment sc-param subcommand works passing
         an environment name

@@ -47,10 +47,10 @@ def invalid_missing_attributes():
     )
 
 
-@run_only_on('sat')
 class TestSubnet(CLITestCase):
     """Subnet CLI tests."""
 
+    @run_only_on('sat')
     def test_positive_create_1(self):
         """@Test: Check if Subnet can be created with random names
 
@@ -64,6 +64,7 @@ class TestSubnet(CLITestCase):
                 subnet = make_subnet({'name': name})
                 self.assertEqual(subnet['name'], name)
 
+    @run_only_on('sat')
     def test_positive_create_2(self):
         """@Test: Create subnet with valid address pool
 
@@ -89,6 +90,7 @@ class TestSubnet(CLITestCase):
                 self.assertEqual(subnet['from'], from_ip)
                 self.assertEqual(subnet['to'], to_ip)
 
+    @run_only_on('sat')
     def test_create_subnet_with_domain(self):
         """@Test: Check if subnet with domain can be created
 
@@ -101,6 +103,7 @@ class TestSubnet(CLITestCase):
         subnet = make_subnet({'domain-ids': domain['id']})
         self.assertIn(domain['name'], subnet['domains'])
 
+    @run_only_on('sat')
     def test_create_subnet_with_domains(self):
         """@Test: Check if subnet with different amount of domains can be
         created in the system
@@ -119,6 +122,7 @@ class TestSubnet(CLITestCase):
         for domain in domains:
             self.assertIn(domain['name'], subnet['domains'])
 
+    @run_only_on('sat')
     def test_create_subnet_with_gateway(self):
         """@Test: Check if subnet with gateway can be created
 
@@ -132,6 +136,7 @@ class TestSubnet(CLITestCase):
         self.assertIn(gateway, subnet['gateway'])
 
     @skip_if_bug_open('bugzilla', 1213437)
+    @run_only_on('sat')
     def test_create_subnet_with_ipam(self):
         """@Test: Check if subnet with different ipam types can be created
 
@@ -149,6 +154,7 @@ class TestSubnet(CLITestCase):
                 subnet = make_subnet({'ipam': ipam_type})
                 self.assertIn(ipam_type, subnet['ipam'])
 
+    @run_only_on('sat')
     def test_negative_create_1(self):
         """@Test: Create subnet with invalid or missing required attributes
 
@@ -162,6 +168,7 @@ class TestSubnet(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     make_subnet(options)
 
+    @run_only_on('sat')
     def test_negative_create_2(self):
         """@Test: Create subnet with invalid address pool range
 
@@ -181,6 +188,7 @@ class TestSubnet(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     make_subnet(opts)
 
+    @run_only_on('sat')
     def test_list(self):
         """@Test: Check if Subnet can be listed
 
@@ -197,6 +205,7 @@ class TestSubnet(CLITestCase):
         subnets_after = Subnet.list()
         self.assertGreater(len(subnets_after), len(subnets_before))
 
+    @run_only_on('sat')
     def test_positive_update_1(self):
         """@Test: Check if Subnet name can be updated
 
@@ -212,6 +221,7 @@ class TestSubnet(CLITestCase):
                 result = Subnet.info({'id': new_subnet['id']})
                 self.assertEqual(result['name'], new_name)
 
+    @run_only_on('sat')
     def test_positive_update_2(self):
         """@Test: Check if Subnet network and mask can be updated
 
@@ -238,6 +248,7 @@ class TestSubnet(CLITestCase):
         self.assertEqual(subnet['network'], new_network)
         self.assertEqual(subnet['mask'], new_mask)
 
+    @run_only_on('sat')
     def test_positive_update_3(self):
         """@Test: Check if Subnet address pool can be updated
 
@@ -262,6 +273,7 @@ class TestSubnet(CLITestCase):
                 self.assertEqual(subnet['from'], ip_from)
                 self.assertEqual(subnet['to'], ip_to)
 
+    @run_only_on('sat')
     def test_negative_update_1(self):
         """@Test: Update subnet with invalid or missing required attributes
 
@@ -281,6 +293,7 @@ class TestSubnet(CLITestCase):
                     for key in options.keys():
                         self.assertEqual(subnet[key], result[key])
 
+    @run_only_on('sat')
     def test_negative_update_2(self):
         """@Test: Update subnet with invalid address pool
 
@@ -303,6 +316,7 @@ class TestSubnet(CLITestCase):
                 for key in options.keys():
                     self.assertEqual(result[key], subnet[key])
 
+    @run_only_on('sat')
     def test_positive_delete_1(self):
         """@Test: Check if Subnet can be deleted
 

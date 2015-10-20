@@ -11,7 +11,6 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 @ddt
 class Environment(UITestCase):
     """Implements environment tests in UI.
@@ -25,6 +24,7 @@ class Environment(UITestCase):
         gen_string('numeric'),
         gen_string('alphanumeric')
     )
+    @run_only_on('sat')
     def test_create_env_positive_1(self, name):
         """@Test: Create new environment
 
@@ -43,6 +43,7 @@ class Environment(UITestCase):
         gen_string('numeric', 255),
         gen_string('alphanumeric', 255)
     )
+    @run_only_on('sat')
     def test_create_env_positive_2(self, name):
         """@Test: Create new environment with 255 chars
 
@@ -57,6 +58,7 @@ class Environment(UITestCase):
             self.assertIsNotNone(search)
 
     @data(*invalid_values_list())
+    @run_only_on('sat')
     def test_create_env_negative(self, name):
         """@Test: Try to create environment and use whitespace, blank, tab
         symbol or too long string of different types as its name value
@@ -78,6 +80,7 @@ class Environment(UITestCase):
         gen_string('numeric'),
         gen_string('alphanumeric'),
     )
+    @run_only_on('sat')
     def test_update_env(self, new_name):
         """@Test: Update an environment and associated OS
 
@@ -100,6 +103,7 @@ class Environment(UITestCase):
         gen_string('numeric'),
         gen_string('alphanumeric'),
     )
+    @run_only_on('sat')
     def test_remove_env(self, name):
         """@Test: Delete an environment
 

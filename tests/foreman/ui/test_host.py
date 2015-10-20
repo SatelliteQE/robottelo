@@ -12,7 +12,6 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 class Host(UITestCase, Base):
 
     hostname = gen_string('numeric')
@@ -275,6 +274,7 @@ class Host(UITestCase, Base):
                         common_locators['notif.success']))
         super(Host, self).tearDown()
 
+    @run_only_on('sat')
     def test_create_host_on_libvirt(self):
         """@Test: Create a new Host on libvirt compute resource
 
@@ -304,6 +304,7 @@ class Host(UITestCase, Base):
             )
             self.assertIsNotNone(search)
 
+    @run_only_on('sat')
     def test_create_host(self):
         """@Test: Create a new Host
 
@@ -341,6 +342,7 @@ class Host(UITestCase, Base):
             )
             self.assertIsNotNone(search)
 
+    @run_only_on('sat')
     def test_delete_host(self):
         """@Test: Delete a Host
 

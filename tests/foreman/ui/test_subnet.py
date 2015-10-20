@@ -12,7 +12,6 @@ from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 @ddt
 class Subnet(UITestCase):
     """Implements Subnet tests in UI"""
@@ -23,6 +22,7 @@ class Subnet(UITestCase):
         cls.organization = entities.Organization().create()
 
     @data(*generate_strings_list(len1=8))
+    @run_only_on('sat')
     def test_create_subnet_with_different_names(self, name):
         """@Test: Create new subnet
 
@@ -48,6 +48,7 @@ class Subnet(UITestCase):
         {'name': gen_string('utf8', 255),
          u'bz-bug': 1180066}
     )
+    @run_only_on('sat')
     def test_create_subnet_with_long_strings(self, test_data):
         """@Test: Create new subnet with 255 characters in name
 
@@ -70,6 +71,7 @@ class Subnet(UITestCase):
             self.assertIsNotNone(
                 self.subnet.search_subnet(subnet_name=test_data['name']))
 
+    @run_only_on('sat')
     def test_create_subnet_with_domain(self):
         """@Test: Create new subnet and associate domain with it
 
@@ -111,6 +113,7 @@ class Subnet(UITestCase):
                 self.assertIsNotNone()
 
     @data(*generate_strings_list(len1=256))
+    @run_only_on('sat')
     def test_create_subnet_negative_with_too_long_name(self, name):
         """@Test: Create new subnet with 256 characters in name
 
@@ -130,6 +133,7 @@ class Subnet(UITestCase):
                 common_locators['haserror']))
 
     @data('', ' ')
+    @run_only_on('sat')
     def test_create_subnet_negative_with_blank_name(self, name):
         """@Test: Create new subnet with whitespace and blank in name.
 
@@ -148,6 +152,7 @@ class Subnet(UITestCase):
             self.assertIsNotNone(session.nav.wait_until_element(
                 common_locators['haserror']))
 
+    @run_only_on('sat')
     def test_create_subnet_negative_values(self):
         """@Test: Create new subnet with negative values
 
@@ -183,6 +188,7 @@ class Subnet(UITestCase):
             self.assertIsNotNone(secondarydns_element)
 
     @data(*generate_strings_list(len1=8))
+    @run_only_on('sat')
     def test_remove_subnet(self, name):
         """@Test: Delete a subnet
 
@@ -200,6 +206,7 @@ class Subnet(UITestCase):
             )
             self.subnet.delete(name)
 
+    @run_only_on('sat')
     def test_remove_subnet_and_cancel(self):
         """@Test: Delete subnet.
 
@@ -221,6 +228,7 @@ class Subnet(UITestCase):
             self.subnet.delete(name, False)
 
     @data(*generate_strings_list(len1=8))
+    @run_only_on('sat')
     def test_update_subnet_with_name(self, new_name):
         """@Test: Update Subnet name
 
@@ -241,6 +249,7 @@ class Subnet(UITestCase):
             result_object = self.subnet.search_subnet(new_name)
             self.assertEqual(new_name, result_object['name'])
 
+    @run_only_on('sat')
     def test_update_subnet_with_network(self):
         """@Test: Update Subnet network
 
@@ -262,6 +271,7 @@ class Subnet(UITestCase):
             result_object = self.subnet.search_subnet(name)
             self.assertEqual(new_network, result_object['network'])
 
+    @run_only_on('sat')
     def test_update_subnet_with_mask(self):
         """@Test: Update Subnet mask
 

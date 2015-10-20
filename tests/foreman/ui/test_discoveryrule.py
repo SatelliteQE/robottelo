@@ -11,7 +11,6 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 @ddt
 class DiscoveryRules(UITestCase):
     """Implements Foreman discovery Rules in UI."""
@@ -37,6 +36,7 @@ class DiscoveryRules(UITestCase):
         super(DiscoveryRules, cls).tearDownClass()
 
     @data(*generate_strings_list(len1=8))
+    @run_only_on('sat')
     def test_positive_create_discovery_rule_1(self, name):
         """@Test: Create Discovery Rule
 
@@ -50,6 +50,7 @@ class DiscoveryRules(UITestCase):
                                hostgroup=self.host_group.name)
             self.assertIsNotNone(self.discoveryrules.search(name))
 
+    @run_only_on('sat')
     def test_positive_create_discovery_rule_2(self):
         """@Test: Create Discovery Rule with 255 characters in name
 
@@ -64,6 +65,7 @@ class DiscoveryRules(UITestCase):
                                hostgroup=self.host_group.name)
             self.assertIsNotNone(self.discoveryrules.search(name))
 
+    @run_only_on('sat')
     def test_negative_create_discovery_rule_1(self):
         """@Test: Create Discovery Rule with 256 characters in name
 
@@ -82,6 +84,7 @@ class DiscoveryRules(UITestCase):
             self.assertIsNone(self.discoveryrules.search(name))
 
     @data("", "  ")
+    @run_only_on('sat')
     def test_negative_create_discovery_rule_2(self, name):
         """@Test: Create Discovery Rule with blank and whitespace in name
 
@@ -99,6 +102,7 @@ class DiscoveryRules(UITestCase):
             self.assertIsNone(self.discoveryrules.search(name))
 
     @data('-1', gen_string("alpha", 6))
+    @run_only_on('sat')
     def test_negative_create_discovery_rule_3(self, limit):
         """@Test: Create Discovery Rule with invalid host limit
 
@@ -116,6 +120,7 @@ class DiscoveryRules(UITestCase):
             ))
             self.assertIsNone(self.discoveryrules.search(name))
 
+    @run_only_on('sat')
     def test_negative_create_discovery_rule_4(self):
         """@Test: Create Discovery Rule with name that already exists
 
@@ -135,6 +140,7 @@ class DiscoveryRules(UITestCase):
                 common_locators['name_haserror']
             ))
 
+    @run_only_on('sat')
     def test_negative_create_discovery_rule_5(self):
         """@Test: Create Discovery Rule with invalid priority
 
@@ -153,6 +159,7 @@ class DiscoveryRules(UITestCase):
             ))
             self.assertIsNone(self.discoveryrules.search(name))
 
+    @run_only_on('sat')
     def test_disable_discovery_rule_1(self):
         """@Test: Disable Discovery Rule while creation
 
@@ -168,6 +175,7 @@ class DiscoveryRules(UITestCase):
             self.assertIsNotNone(self.discoveryrules.search(name))
 
     @data(*generate_strings_list(len1=8))
+    @run_only_on('sat')
     def test_delete_discovery_rule_1(self, name):
         """@Test: Delete Discovery Rule
 
@@ -184,6 +192,7 @@ class DiscoveryRules(UITestCase):
             self.assertIsNone(self.discoveryrules.search(name))
 
     @data(*generate_strings_list(len1=8))
+    @run_only_on('sat')
     def test_update_discovery_rule_1(self, new_name):
         """@Test: Update discovery rule name
 

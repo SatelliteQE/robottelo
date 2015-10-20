@@ -12,7 +12,6 @@ from robottelo.helpers import valid_data_list
 from robottelo.test import CLITestCase
 
 
-@run_only_on('sat')
 class TestLifeCycleEnvironment(CLITestCase):
     """Test class for Lifecycle Environment CLI"""
 
@@ -27,6 +26,7 @@ class TestLifeCycleEnvironment(CLITestCase):
             TestLifeCycleEnvironment.org = make_org()
 
     # Issues validation
+    @run_only_on('sat')
     def test_bugzilla_1077386(self):
         """@Test: List subcommand returns standard output
 
@@ -47,6 +47,7 @@ class TestLifeCycleEnvironment(CLITestCase):
         )
         self.assertGreater(len(result), 0)
 
+    @run_only_on('sat')
     def test_bugzilla_1077333(self):
         """@Test: Search lifecycle environment via its name containing UTF-8
         chars
@@ -68,6 +69,7 @@ class TestLifeCycleEnvironment(CLITestCase):
         self.assertEqual(result['name'], test_data['name'])
 
     # CRUD
+    @run_only_on('sat')
     def test_positive_create_1(self):
         """@Test: Create lifecycle environment with valid name, prior to
         Library
@@ -86,6 +88,7 @@ class TestLifeCycleEnvironment(CLITestCase):
                 self.assertEqual(
                     lc_env['prior-lifecycle-environment'], ENVIRONMENT)
 
+    @run_only_on('sat')
     def test_positive_create_2(self):
         """@Test: Create lifecycle environment with valid description prior to
         Library
@@ -108,6 +111,7 @@ class TestLifeCycleEnvironment(CLITestCase):
                 self.assertEqual(
                     lc_env['prior-lifecycle-environment'], ENVIRONMENT)
 
+    @run_only_on('sat')
     def test_create_lifecycle_environment_by_label(self):
         """@Test: Create lifecycle environment with valid name and label
 
@@ -126,6 +130,7 @@ class TestLifeCycleEnvironment(CLITestCase):
                 })
                 self.assertEqual(new_lce['label'], label)
 
+    @run_only_on('sat')
     def test_create_lifecycle_environment_by_organization_name(self):
         """@Test: Create lifecycle environment, specifying organization name
 
@@ -140,6 +145,7 @@ class TestLifeCycleEnvironment(CLITestCase):
         })
         self.assertEqual(new_lce['organization'], self.org['name'])
 
+    @run_only_on('sat')
     def test_create_lifecycle_environment_by_organization_label(self):
         """@Test: Create lifecycle environment, specifying organization label
 
@@ -154,6 +160,7 @@ class TestLifeCycleEnvironment(CLITestCase):
         })
         self.assertEqual(new_lce['organization'], self.org['name'])
 
+    @run_only_on('sat')
     def test_positive_delete_1(self):
         """@Test: Create lifecycle environment with valid name, prior to
         Library
@@ -176,6 +183,7 @@ class TestLifeCycleEnvironment(CLITestCase):
                         'organization-id': self.org['id'],
                     })
 
+    @run_only_on('sat')
     def test_positive_update_1(self):
         """@Test: Create lifecycle environment then update its name
 
@@ -202,6 +210,7 @@ class TestLifeCycleEnvironment(CLITestCase):
                 self.assertGreater(len(result), 0)
                 self.assertEqual(result['name'], new_name)
 
+    @run_only_on('sat')
     def test_positive_update_2(self):
         """@Test: Create lifecycle environment then update its description
 
@@ -228,6 +237,7 @@ class TestLifeCycleEnvironment(CLITestCase):
                 self.assertGreater(len(result), 0)
                 self.assertEqual(result['description'], new_desc)
 
+    @run_only_on('sat')
     def test_environment_paths(self):
         """@Test: List the environment paths under a given organization
 

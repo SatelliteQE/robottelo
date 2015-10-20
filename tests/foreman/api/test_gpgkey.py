@@ -4,10 +4,10 @@ from robottelo.decorators import run_only_on
 from robottelo.test import APITestCase
 
 
-@run_only_on('sat')
 class GPGKeyTestCase(APITestCase):
     """Tests for ``katello/api/v2/gpg_keys``."""
 
+    @run_only_on('sat')
     def test_get_all(self):
         """@Test: Search for a GPG key and specify just ``organization_id``.
 

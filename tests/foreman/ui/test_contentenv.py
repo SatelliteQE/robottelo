@@ -12,7 +12,6 @@ from robottelo.ui.locators import locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 class ContentEnvironment(UITestCase):
     """Implements Life cycle content environment tests in UI"""
 
@@ -20,6 +19,7 @@ class ContentEnvironment(UITestCase):
     def setUpClass(cls):
         cls.org_name = entities.Organization().create().name
 
+    @run_only_on('sat')
     def test_positive_create_content_environment_basic(self):
         """@Test: Create content environment with minimal input parameters
 
@@ -41,6 +41,7 @@ class ContentEnvironment(UITestCase):
                     self.assertIsNotNone(self.contentenv.wait_until_element((
                         strategy, value % name)))
 
+    @run_only_on('sat')
     def test_positive_create_content_environment_chain(self):
         """@Test: Create Content Environment in a chain
 
@@ -66,6 +67,7 @@ class ContentEnvironment(UITestCase):
             self.assertIsNotNone(self.contentenv.wait_until_element
                                  ((strategy, value % env2_name)))
 
+    @run_only_on('sat')
     def test_positive_delete_content_environment(self):
         """@Test: Create Content Environment and delete it
 
@@ -90,6 +92,7 @@ class ContentEnvironment(UITestCase):
             self.assertIsNone(self.contentenv.wait_until_element
                               ((strategy, value % name), 3))
 
+    @run_only_on('sat')
     def test_positive_update_content_environment(self):
         """@Test: Create Content Environment and update it
 

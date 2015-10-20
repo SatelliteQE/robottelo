@@ -13,7 +13,6 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@run_only_on('sat')
 class ComputeResource(UITestCase):
     """Implements Compute Resource tests in UI"""
 
@@ -23,6 +22,7 @@ class ComputeResource(UITestCase):
             LIBVIRT_RESOURCE_URL % settings.server.hostname
         )
 
+    @run_only_on('sat')
     def test_create_libvirt_resource_different_names(self):
         """@Test: Create a new libvirt Compute Resource using different value
         types as a name
@@ -46,6 +46,7 @@ class ComputeResource(UITestCase):
                     search = self.compute_resource.search(name)
                     self.assertIsNotNone(search)
 
+    @run_only_on('sat')
     def test_create_libvirt_resource_description(self):
         """@Test: Create libvirt Compute Resource with description.
 
@@ -70,6 +71,7 @@ class ComputeResource(UITestCase):
                     search = self.compute_resource.search(name)
                     self.assertIsNotNone(search)
 
+    @run_only_on('sat')
     def test_create_libvirt_resource_display_type(self):
         """@Test: Create libvirt Compute Resource with different display types.
 
@@ -94,6 +96,7 @@ class ComputeResource(UITestCase):
                     search = self.compute_resource.search(name)
                     self.assertIsNotNone(search)
 
+    @run_only_on('sat')
     def test_create_libvirt_resource_console_pass(self):
         """@Test: Create libvirt Compute Resource with checked/unchecked
         console password checkbox
@@ -119,6 +122,7 @@ class ComputeResource(UITestCase):
                     search = self.compute_resource.search(name)
                     self.assertIsNotNone(search)
 
+    @run_only_on('sat')
     def test_create_libvirt_resource_different_names_negative(self):
         """@Test: Create a new libvirt Compute Resource with incorrect values
         only
@@ -146,6 +150,7 @@ class ComputeResource(UITestCase):
                         )
                     )
 
+    @run_only_on('sat')
     def test_create_libvirt_resource_description_negative(self):
         """@Test: Create libvirt Compute Resource with incorrect description.
 
@@ -170,6 +175,7 @@ class ComputeResource(UITestCase):
                         common_locators["haserror"])
                     self.assertIsNotNone(error_element)
 
+    @run_only_on('sat')
     def test_update_libvirt_resource_different_name(self):
         """@Test: Update a libvirt Compute Resource name
 
@@ -196,6 +202,7 @@ class ComputeResource(UITestCase):
                     search = self.compute_resource.search(newname)
                     self.assertIsNotNone(search)
 
+    @run_only_on('sat')
     def test_update_libvirt_resource_organization(self):
         """@Test: Update a libvirt Compute Resource organization
 
@@ -223,6 +230,7 @@ class ComputeResource(UITestCase):
                 org_select=True
             )
 
+    @run_only_on('sat')
     def test_remove_resource(self):
         """@Test: Delete a Compute Resource
 
@@ -245,6 +253,7 @@ class ComputeResource(UITestCase):
                     self.assertIsNotNone(self.compute_resource.search(name))
                     self.compute_resource.delete(name)
 
+    @run_only_on('sat')
     def test_access_docker_resource_via_compute_profile(self):
         """@Test: Try to access docker compute resource via compute profile
         (1-Small) screen

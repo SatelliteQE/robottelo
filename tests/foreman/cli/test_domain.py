@@ -11,7 +11,6 @@ from robottelo.decorators import run_only_on
 from robottelo.test import MetaCLITestCase
 
 
-@run_only_on('sat')
 class TestDomain(MetaCLITestCase):
     """Domain CLI tests"""
 
@@ -28,6 +27,7 @@ class TestDomain(MetaCLITestCase):
         {u'name': gen_string(str_type='utf8', length=255),
          u'description': gen_string(str_type='utf8', length=255)},
     )
+    @run_only_on('sat')
     def test_positive_create(self, options):
         """@Test: Create domain with valid name and description
 
@@ -40,6 +40,7 @@ class TestDomain(MetaCLITestCase):
         self.assertEqual(domain['name'], options['name'])
         self.assertEqual(domain['description'], options['description'])
 
+    @run_only_on('sat')
     def test_create_domain_with_location(self):
         """@Test: Check if domain with location can be created
 
@@ -52,6 +53,7 @@ class TestDomain(MetaCLITestCase):
         domain = make_domain({'location-ids': location['id']})
         self.assertIn(location['name'], domain['locations'])
 
+    @run_only_on('sat')
     def test_create_domain_with_organization(self):
         """@Test: Check if domain with organization can be created
 
@@ -69,6 +71,7 @@ class TestDomain(MetaCLITestCase):
         {u'dns-id': '-1'},
         {u'name': gen_string(str_type='utf8', length=256)},
     )
+    @run_only_on('sat')
     def test_negative_create(self, options):
         """@Test: Create domain with invalid values
 
@@ -90,6 +93,7 @@ class TestDomain(MetaCLITestCase):
         {u'name': gen_string(str_type='utf8', length=255),
          u'description': gen_string(str_type='utf8', length=255)},
     )
+    @run_only_on('sat')
     def test_positive_update(self, options):
         """@Test: Update domain with valid values
 
@@ -114,6 +118,7 @@ class TestDomain(MetaCLITestCase):
         {u'description': gen_string(str_type='utf8', length=256)},
         {u'dns-id': '-1'},
     )
+    @run_only_on('sat')
     def test_negative_update(self, options):
         """@Test: Update domain with invalid values
 
@@ -141,6 +146,7 @@ class TestDomain(MetaCLITestCase):
         {'name': gen_string(str_type='utf8'),
          'value': ''},
     )
+    @run_only_on('sat')
     def test_positive_set_parameter(self, options):
         """@Test: Domain set-parameter with valid key and value
 
@@ -169,6 +175,7 @@ class TestDomain(MetaCLITestCase):
         {'name': gen_string(str_type='utf8', length=256),
          'value': gen_string(str_type='utf8')},
     )
+    @run_only_on('sat')
     def test_negative_set_parameter(self, options):
         """@Test: Domain set-parameter with invalid values
 
@@ -194,6 +201,7 @@ class TestDomain(MetaCLITestCase):
         {'name': gen_string(str_type='utf8'),
          'value': ''},
     )
+    @run_only_on('sat')
     def test_positive_delete_parameter(self, options):
         """@Test: Domain delete-parameter removes parameter
 

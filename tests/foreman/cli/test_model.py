@@ -8,13 +8,13 @@ from robottelo.decorators import run_only_on
 from robottelo.test import MetaCLITestCase
 
 
-@run_only_on('sat')
 class TestModel(MetaCLITestCase):
     """Test class for Model CLI"""
     factory = make_model
     factory_obj = Model
 
     # pylint: disable=no-self-use
+    @run_only_on('sat')
     def test_create_model_1(self):
         """@Test: Check if Model can be created
 
@@ -25,6 +25,7 @@ class TestModel(MetaCLITestCase):
         """
         make_model()
 
+    @run_only_on('sat')
     def test_create_model_2(self):
         """@Test: Check if Model can be created with specific vendor class
 
@@ -37,6 +38,7 @@ class TestModel(MetaCLITestCase):
         model = make_model({'vendor-class': vendor_class})
         self.assertEqual(model['vendor-class'], vendor_class)
 
+    @run_only_on('sat')
     def test_update_model(self):
         """@Test: Check if Model can be updated
 

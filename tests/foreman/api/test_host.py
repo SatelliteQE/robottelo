@@ -14,10 +14,10 @@ from robottelo.decorators import bz_bug_is_open, run_only_on
 from robottelo.test import APITestCase
 
 
-@run_only_on('sat')
 class HostsTestCase(APITestCase):
     """Tests for ``entities.Host().path()``."""
 
+    @run_only_on('sat')
     def test_get_search(self):
         """@Test: GET ``api/v2/hosts`` and specify the ``search`` parameter.
 
@@ -36,6 +36,7 @@ class HostsTestCase(APITestCase):
         self.assertEqual(response.status_code, httplib.OK)
         self.assertEqual(response.json()['search'], query)
 
+    @run_only_on('sat')
     def test_get_per_page(self):
         """@Test: GET ``api/v2/hosts`` and specify the ``per_page`` parameter.
 
@@ -54,6 +55,7 @@ class HostsTestCase(APITestCase):
         self.assertEqual(response.status_code, httplib.OK)
         self.assertEqual(response.json()['per_page'], per_page)
 
+    @run_only_on('sat')
     def test_create_owner_type(self):
         """@Test: Create a host and specify an ``owner_type``.
 
@@ -73,6 +75,7 @@ class HostsTestCase(APITestCase):
                 host = host.create(create_missing=False)
                 self.assertEqual(host.owner_type, owner_type)
 
+    @run_only_on('sat')
     def test_update_owner_type(self):
         """@Test: Update a host's ``owner_type``.
 
