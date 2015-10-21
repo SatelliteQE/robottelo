@@ -17,7 +17,7 @@ class LDAPAuthSource(UITestCase):
         super(LDAPAuthSource, cls).setUpClass()
         # TODO: handle when the ldap config is not available
         cls.ldap_user_name = settings.ldap.username
-        cls.ldap_user_passwd = settings.ldap.passwd
+        cls.ldap_user_passwd = settings.ldap.password
         cls.base_dn = settings.ldap.basedn
         cls.group_base_dn = settings.ldap.grpbasedn
         cls.ldap_hostname = settings.ldap.hostname
