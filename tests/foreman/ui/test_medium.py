@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name
 """Test class for Medium UI"""
 
-from ddt import ddt, data
 from fauxfactory import gen_string
 from robottelo.constants import INSTALL_MEDIUM_URL
 from robottelo.decorators import run_only_on
@@ -12,13 +12,11 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@ddt
 class Medium(UITestCase):
     """Implements all Installation Media tests"""
 
-    @data(*valid_data_list())
     @run_only_on('sat')
-    def test_positive_create_medium(self, name):
+    def test_positive_create_medium(self):
         """@Test: Create a new media
 
         @Feature:  Media - Positive Create
@@ -26,10 +24,13 @@ class Medium(UITestCase):
         @Assert: Media is created
 
         """
-        path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
         with Session(self.browser) as session:
-            make_media(session, name=name, path=path, os_family='Red Hat')
-            self.assertIsNotNone(self.medium.search(name))
+            for name in valid_data_list():
+                with self.subTest(name):
+                    path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
+                    make_media(session, name=name, path=path,
+                               os_family='Red Hat')
+                    self.assertIsNotNone(self.medium.search(name))
 
     @run_only_on('sat')
     def test_negative_create_medium_with_long_names(self):
@@ -48,9 +49,8 @@ class Medium(UITestCase):
                                  (common_locators['name_haserror']))
             self.assertIsNone(self.medium.search(name))
 
-    @data('', '  ')
     @run_only_on('sat')
-    def test_negative_create_medium_with_empty_strings(self, name):
+    def test_negative_create_medium_with_empty_strings(self):
         """@Test: Create a new install media with blank and whitespace in name
 
         @Feature:  Media - Negative Create
@@ -58,12 +58,16 @@ class Medium(UITestCase):
         @Assert: Media is not created
 
         """
-
         path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
         with Session(self.browser) as session:
-            make_media(session, name=name, path=path, os_family='Red Hat')
-            self.assertIsNotNone(self.medium.wait_until_element
-                                 (common_locators['name_haserror']))
+            for name in '', '  ':
+                with self.subTest(name):
+                    make_media(session, name=name, path=path,
+                               os_family='Red Hat')
+                    self.assertIsNotNone(
+                        self.medium.wait_until_element(
+                            common_locators['name_haserror'])
+                    )
 
     @run_only_on('sat')
     def test_negative_create_medium_with_same_name(self):
