@@ -6,7 +6,6 @@ import re
 
 from fauxfactory import gen_string, gen_integer
 from nailgun.config import ServerConfig
-from os.path import join
 from random import randint
 from robottelo import ssh
 from robottelo.config import settings
@@ -243,24 +242,3 @@ def read_data_file(filename):
     absolute_file_path = get_data_file(filename)
     with open(absolute_file_path, 'r') as file_contents:
         return file_contents.read()
-
-
-def prepare_import_data(tar_path=None):
-    """Fetch and uncompress the CSV files from the source."""
-    tmpdir = ssh.command('mktemp -d').stdout[0]
-    # if path to tar file not specified, download the default one
-    if tar_path is None:
-        tar_remote_path = settings.transition.exported_data
-        cmd = u'wget {0} -O - | tar -xzvC {1}'.format(tar_remote_path, tmpdir)
-    else:
-        cmd = u'tar -xzvf {0} -C {1}'.format(tar_path, tmpdir)
-
-    files = {}
-    for filename in ssh.command(cmd).stdout:
-        for key in ('activation-keys', 'channels', 'config-files-latest',
-                    'kickstart-scripts', 'repositories', 'system-groups',
-                    'system-profiles', 'users'):
-            if filename.endswith(key + '.csv'):
-                files[key] = join(tmpdir, filename)
-                break
-    return tmpdir, files
