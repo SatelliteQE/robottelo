@@ -1,6 +1,5 @@
 """Test class for Custom Sync UI"""
 
-from ddt import ddt, data
 from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
@@ -20,7 +19,6 @@ RHCT = [('rhel', 'rhct6', 'rhct65', 'repo_name',
         ('rhel', 'rhct6', 'rhct6S', 'repo_ver', '6Server')]
 
 
-@ddt
 class Sync(UITestCase):
     """Implements Custom Sync tests in UI"""
 
@@ -29,8 +27,7 @@ class Sync(UITestCase):
         self.organization = entities.Organization().create()
 
     @run_only_on('sat')
-    @data(*generate_strings_list())
-    def test_sync_custom_repos(self, repository_name):
+    def test_sync_custom_repos(self):
         """@Test: Create Content Custom Sync with minimal input parameters
 
         @Feature: Content Custom Sync - Positive Create
@@ -40,19 +37,22 @@ class Sync(UITestCase):
         """
         # Creates new product
         product = entities.Product(organization=self.organization).create()
-        # Creates new repository
-        entities.Repository(
-            name=repository_name,
-            url=FAKE_1_YUM_REPO,
-            product=product,
-        ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_sync_status()
-            sync = self.sync.sync_custom_repos(
-                product.name, [repository_name])
-            # syn.sync_custom_repos returns boolean values and not objects
-            self.assertTrue(sync)
+            for repository_name in generate_strings_list():
+                with self.subTest(repository_name):
+                    # Creates new repository through API
+                    entities.Repository(
+                        name=repository_name,
+                        url=FAKE_1_YUM_REPO,
+                        product=product,
+                    ).create()
+                    session.nav.go_to_select_org(self.organization.name)
+                    session.nav.go_to_sync_status()
+                    sync = self.sync.sync_custom_repos(
+                        product.name, [repository_name]
+                    )
+                    # sync.sync_custom_repos returns boolean value
+                    self.assertTrue(sync)
 
     def test_sync_rh_repos(self):
         """@Test: Create Content RedHat Sync with two repos.
