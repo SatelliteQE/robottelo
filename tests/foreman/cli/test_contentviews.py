@@ -3,6 +3,7 @@
 import random
 
 from fauxfactory import gen_alphanumeric, gen_string
+from robottelo import manifests, ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
@@ -16,7 +17,6 @@ from robottelo.cli.factory import (
     make_repository,
     make_user,
 )
-from robottelo import manifests
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.puppetmodule import PuppetModule
@@ -249,6 +249,94 @@ class TestContentView(CLITestCase):
         ContentView.delete({'id': con_view['id']})
         with self.assertRaises(CLIReturnCodeError):
             ContentView.info({'id': con_view['id']})
+
+    def test_delete_cv_files(self):
+        """@Test: Delete empty content view and verify it was actually deleted
+        from hard drive.
+
+        @Feature: Content View
+
+        @Assert: Content view was deleted and pulp folder doesn't contain
+        content view files anymore
+
+        """
+        # Create a content view and publish it
+        content_view = make_content_view({'organization-id': self.org['id']})
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        # Check content view files presence before deletion
+        result = ssh.command(
+            'find /var/lib/pulp -name "*{0}*"'.format(content_view['name']))
+        self.assertEqual(result.return_code, 0)
+        self.assertNotEqual(len(result.stdout), 0)
+        self.assertEqual(len(content_view['versions']), 1)
+        # Completely delete the content view
+        ContentView.remove_from_environment({
+            'id': content_view['id'],
+            'lifecycle-environment-id':
+                content_view['lifecycle-environments'][0]['id'],
+        })
+        ContentView.version_delete({
+            'content-view': content_view['name'],
+            'organization': self.org['name'],
+            'version': content_view['versions'][0]['version'],
+        })
+        ContentView.delete({'id': content_view['id']})
+        # Check content view files presence after deletion
+        result = ssh.command(
+            'find /var/lib/pulp -name "*{0}*"'.format(content_view['name']))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout), 0)
+
+    @skip_if_bug_open('bugzilla', 1265703)
+    def test_delete_cv_custom_repo_files(self):
+        """@Test: Delete content view containing custom repo and verify it was
+        actually deleted from hard drive.
+
+        @Feature: Content View
+
+        @Assert: Content view was deleted and pulp folder doesn't contain
+        content view files anymore
+
+        @BZ: 1265703
+
+        """
+        # Create and sync a repository
+        new_product = make_product({u'organization-id': self.org['id']})
+        new_repo = make_repository({u'product-id': new_product['id']})
+        Repository.synchronize({'id': new_repo['id']})
+        # Create a content view, add the repo and publish the content view
+        content_view = make_content_view({'organization-id': self.org['id']})
+        ContentView.add_repository({
+            u'id': content_view['id'],
+            u'organization-id': self.org['id'],
+            u'repository-id': new_repo['id'],
+        })
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        # Check content view files presence before deletion
+        result = ssh.command(
+            'find /var/lib/pulp -name "*{0}*"'.format(content_view['name']))
+        self.assertEqual(result.return_code, 0)
+        self.assertNotEqual(len(result.stdout), 0)
+        self.assertEqual(len(content_view['versions']), 1)
+        # Completely delete the content view
+        ContentView.remove_from_environment({
+            'id': content_view['id'],
+            'lifecycle-environment-id':
+                content_view['lifecycle-environments'][0]['id'],
+        })
+        ContentView.version_delete({
+            'content-view': content_view['name'],
+            'organization': self.org['name'],
+            'version': content_view['versions'][0]['version'],
+        })
+        ContentView.delete({'id': content_view['id']})
+        # Check content view files presence after deletion
+        result = ssh.command(
+            'find /var/lib/pulp -name "*{0}*"'.format(content_view['name']))
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout), 0)
 
     @run_only_on('sat')
     def test_delete_cv_version_name(self):
