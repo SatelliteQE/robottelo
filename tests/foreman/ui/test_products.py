@@ -1,29 +1,28 @@
+# -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name
 """Test class for Products UI"""
 
-from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import run_only_on, skip_if_bug_open
-from robottelo.helpers import generate_strings_list
+from robottelo.decorators import run_only_on
+from robottelo.helpers import generate_strings_list, invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_product
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@ddt
 class Products(UITestCase):
     """Implements Product tests in UI"""
 
     @classmethod
-    def setUpClass(cls):  # noqa
+    def setUpClass(cls):
         super(Products, cls).setUpClass()
         cls.organization = entities.Organization().create()
         cls.loc = entities.Location().create()
 
     @run_only_on('sat')
-    @data(*generate_strings_list())
-    def test_positive_create_basic(self, prd_name):
+    def test_positive_create_basic(self):
         """@Test: Create Content Product minimal input parameters
 
         @Feature: Content Product - Positive Create
@@ -32,18 +31,19 @@ class Products(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_product(
-                session,
-                org=self.organization.name,
-                loc=self.loc.name,
-                name=prd_name,
-                description=gen_string('alphanumeric'),
-            )
-            self.assertIsNotNone(self.products.search(prd_name))
+            for prd_name in generate_strings_list():
+                with self.subTest(prd_name):
+                    make_product(
+                        session,
+                        org=self.organization.name,
+                        loc=self.loc.name,
+                        name=prd_name,
+                        description=gen_string('alphanumeric'),
+                    )
+                    self.assertIsNotNone(self.products.search(prd_name))
 
     @run_only_on('sat')
-    @data(*generate_strings_list())
-    def test_positive_create_in_different_orgs(self, prd_name):
+    def test_positive_create_in_different_orgs(self):
         """@Test: Create Content Product with same name but in another org
 
         @Feature: Content Product - Positive Create
@@ -51,51 +51,36 @@ class Products(UITestCase):
         @Assert: Product is created successfully in both the orgs.
 
         """
-        org2 = entities.Organization().create()
-        with Session(self.browser) as session:
-            make_product(
-                session,
-                org=self.organization.name,
-                loc=self.loc.name,
-                name=prd_name,
-                description=gen_string('alphanumeric'),
-            )
-            self.assertIsNotNone(self.products.search(prd_name))
-            make_product(
-                session,
-                org=org2.name,
-                loc=self.loc.name,
-                name=prd_name,
-                description=gen_string('alphanumeric'),
-                force_context=True,
-            )
-            self.assertIsNotNone(self.products.search(prd_name))
+        for prd_name in generate_strings_list():
+            with self.subTest(prd_name):
+                # Note 1: the second org is created before logging in to
+                # browser session otherwise this new org will not show up in
+                # org dropdown
+                # Note 2: Also note that the session is logged out and logged
+                # back in for every iteration unlike other subTest()
+                # implementations mainly for re-populating the org dropdown
+                org2 = entities.Organization().create()
+                with Session(self.browser) as session:
+                    make_product(
+                        session,
+                        org=self.organization.name,
+                        loc=self.loc.name,
+                        name=prd_name,
+                        description=gen_string('alphanumeric'),
+                    )
+                    self.assertIsNotNone(self.products.search(prd_name))
+                    make_product(
+                        session,
+                        org=org2.name,
+                        loc=self.loc.name,
+                        name=prd_name,
+                        description=gen_string('alphanumeric'),
+                    )
+                    self.assertIsNotNone(self.products.search(prd_name))
 
     @run_only_on('sat')
-    @data(*generate_strings_list(len1=256))
-    def test_negative_create_too_long_name(self, prd_name):
-        """@Test: Create Content Product with too long input parameters
-
-        @Feature: Content Product - Negative Create too long
-
-        @Assert: Product is not created
-
-        """
-        with Session(self.browser) as session:
-            make_product(
-                session,
-                org=self.organization.name,
-                loc=self.loc.name,
-                name=prd_name,
-                description=gen_string('alphanumeric'),
-            )
-            self.assertIsNotNone(session.nav.wait_until_element(
-                common_locators['common_haserror']))
-
-    @run_only_on('sat')
-    @data('', '  ')
-    def test_negative_create_with_blank_name(self, name):
-        """@Test: Create Content Product without input parameter
+    def test_negative_create_with_invalid_name(self):
+        """@Test: Create Content Product with invalid names
 
         @Feature: Content Product - Negative Create zero length
 
@@ -103,19 +88,20 @@ class Products(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_product(
-                session,
-                org=self.organization.name,
-                loc=self.loc.name,
-                name=name,
-                description=gen_string('alphanumeric'),
-            )
-            self.assertIsNotNone(self.products.wait_until_element(
-                common_locators['common_invalid']))
+            for name in invalid_values_list(interface='ui'):
+                with self.subTest(name):
+                    make_product(
+                        session,
+                        org=self.organization.name,
+                        loc=self.loc.name,
+                        name=name,
+                        description=gen_string('alphanumeric'),
+                    )
+                    self.assertIsNotNone(self.products.wait_until_element(
+                        common_locators['common_invalid']))
 
     @run_only_on('sat')
-    @data(*generate_strings_list())
-    def test_negative_create_with_same_name(self, prd_name):
+    def test_negative_create_with_same_name(self):
         """@Test: Create Content Product with same name input parameter
 
         @Feature: Content Product - Negative Create with same name
@@ -123,6 +109,7 @@ class Products(UITestCase):
         @Assert: Product is not created
 
         """
+        prd_name = gen_string('alphanumeric')
         description = gen_string('alphanumeric')
         with Session(self.browser) as session:
             make_product(
@@ -138,8 +125,7 @@ class Products(UITestCase):
                 common_locators['common_haserror']))
 
     @run_only_on('sat')
-    @data(*generate_strings_list())
-    def test_positive_update_basic(self, new_prd_name):
+    def test_positive_update_basic(self):
         """@Test: Update Content Product with minimal input parameters
 
         @Feature: Content Product - Positive Update
@@ -157,12 +143,14 @@ class Products(UITestCase):
                 description=gen_string('alphanumeric'),
             )
             self.assertIsNotNone(self.products.search(prd_name))
-            self.products.update(prd_name, new_name=new_prd_name)
-            self.assertIsNotNone(self.products.search(new_prd_name))
+            for new_prd_name in generate_strings_list():
+                with self.subTest(new_prd_name):
+                    self.products.update(prd_name, new_name=new_prd_name)
+                    self.assertIsNotNone(self.products.search(new_prd_name))
+                    prd_name = new_prd_name  # for next iteration
 
     @run_only_on('sat')
-    @data(*generate_strings_list())
-    def test_positive_update_to_original_name(self, prd_name):
+    def test_positive_update_to_original_name(self):
         """@Test: Rename Product back to original name.
 
         @Feature: Content Product - Positive Update
@@ -170,7 +158,8 @@ class Products(UITestCase):
         @Assert: Product Renamed to original.
 
         """
-        new_prd_name = gen_string('alpha')
+        prd_name = gen_string('alphanumeric')
+        new_prd_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
             make_product(
                 session,
@@ -208,10 +197,8 @@ class Products(UITestCase):
             self.assertIsNotNone(self.products.wait_until_element(
                 common_locators['alert.error']))
 
-    @skip_if_bug_open('redmine', 7845)
     @run_only_on('sat')
-    @data(*generate_strings_list())
-    def test_remove_prd(self, prd_name):
+    def test_remove_prd(self):
         """@Test: Delete Content Product
 
         @Feature: Content Product - Positive Delete
@@ -220,13 +207,18 @@ class Products(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_product(
-                session,
-                org=self.organization.name,
-                loc=self.loc.name,
-                name=prd_name,
-                description=gen_string('alphanumeric'),
-            )
-            self.assertIsNotNone(self.products.search(prd_name))
-            self.products.delete(prd_name)
-            self.assertIsNone(self.products.search(prd_name))
+            for prd_name in generate_strings_list():
+                with self.subTest(prd_name):
+                    make_product(
+                        session,
+                        org=self.organization.name,
+                        loc=self.loc.name,
+                        name=prd_name,
+                        description=gen_string('alphanumeric'),
+                    )
+                    self.assertIsNotNone(self.products.search(prd_name))
+                    self.products.delete(prd_name)
+                    # Note: refresh is used here because sometimes selenium
+                    # is too fast to check the deleted object and it fails
+                    self.browser.refresh()
+                    self.assertIsNone(self.products.search(prd_name))
