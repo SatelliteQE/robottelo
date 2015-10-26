@@ -120,7 +120,7 @@ class RHAITestCase(UITestCase):
                 # registered system listed.
                 strategy, value = locators['insights.unregister_system']
                 session.nav.click(
-                    (strategy, value % self.rhai.vm.hostname),
+                    (strategy, value % vm.hostname),
                     wait_for_ajax=True,
                     ajax_timeout=40,
                 )

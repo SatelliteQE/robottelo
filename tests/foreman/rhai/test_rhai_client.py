@@ -68,4 +68,4 @@ class RHAITestCase(TestCase):
                 'redhat-access-insights --test-connection')
             self.logger.info('Return code for --test-connection {0}'.format(
                 test_connection.return_code))
-            self.assertEqual(test_connection.return_code, 1)
+            self.assertEqual(test_connection.return_code, 0)
