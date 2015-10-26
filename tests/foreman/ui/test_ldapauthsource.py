@@ -1,5 +1,5 @@
+# pylint: disable=invalid-name
 """Test class for Active Directory Feature"""
-from ddt import ddt, data
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.helpers import generate_strings_list
@@ -8,7 +8,6 @@ from robottelo.ui.factory import make_ldapauth
 from robottelo.ui.session import Session
 
 
-@ddt
 class LDAPAuthSource(UITestCase):
     """Implements Active Directory feature tests in UI."""
 
@@ -22,8 +21,7 @@ class LDAPAuthSource(UITestCase):
         cls.group_base_dn = settings.ldap.grpbasedn
         cls.ldap_hostname = settings.ldap.hostname
 
-    @data(*generate_strings_list())
-    def test_create_ldap_authsource_withad(self, server_name):
+    def test_create_ldap_authsource_withad(self):
         """@Test: Create LDAP authentication with AD
 
         @Feature: LDAP Authentication - Active Directory - create LDAP AD
@@ -37,24 +35,27 @@ class LDAPAuthSource(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_ldapauth(
-                session,
-                name=server_name,
-                server=self.ldap_hostname,
-                server_type=LDAP_SERVER_TYPE['UI']['ad'],
-                login_name=LDAP_ATTR['login_ad'],
-                first_name=LDAP_ATTR['firstname'],
-                surname=LDAP_ATTR['surname'],
-                mail=LDAP_ATTR['mail'],
-                account_user=self.ldap_user_name,
-                account_passwd=self.ldap_user_passwd,
-                account_basedn=self.base_dn,
-                account_grpbasedn=self.group_base_dn,
-            )
-            self.assertIsNotNone(self.ldapauthsource.search(server_name))
+            for server_name in generate_strings_list():
+                with self.subTest(server_name):
+                    make_ldapauth(
+                        session,
+                        name=server_name,
+                        server=self.ldap_hostname,
+                        server_type=LDAP_SERVER_TYPE['UI']['ad'],
+                        login_name=LDAP_ATTR['login_ad'],
+                        first_name=LDAP_ATTR['firstname'],
+                        surname=LDAP_ATTR['surname'],
+                        mail=LDAP_ATTR['mail'],
+                        account_user=self.ldap_user_name,
+                        account_passwd=self.ldap_user_passwd,
+                        account_basedn=self.base_dn,
+                        account_grpbasedn=self.group_base_dn,
+                    )
+                    self.assertIsNotNone(
+                        self.ldapauthsource.search(server_name)
+                    )
 
-    @data(*generate_strings_list())
-    def test_delete_ldap_auth_withad(self, server_name):
+    def test_delete_ldap_auth_withad(self):
         """@Test: Delete LDAP authentication with AD
 
         @Feature: LDAP Authentication - Active Directory - delete LDAP AD
@@ -68,19 +69,23 @@ class LDAPAuthSource(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_ldapauth(
-                session,
-                name=server_name,
-                server=self.ldap_hostname,
-                server_type=LDAP_SERVER_TYPE['UI']['ad'],
-                login_name=LDAP_ATTR['login_ad'],
-                first_name=LDAP_ATTR['firstname'],
-                surname=LDAP_ATTR['surname'],
-                mail=LDAP_ATTR['mail'],
-                account_user=self.ldap_user_name,
-                account_passwd=self.ldap_user_passwd,
-                account_basedn=self.base_dn,
-                account_grpbasedn=self.group_base_dn,
-            )
-            self.assertIsNotNone(self.ldapauthsource.search(server_name))
-            self.ldapauthsource.delete(server_name)
+            for server_name in generate_strings_list():
+                with self.subTest(server_name):
+                    make_ldapauth(
+                        session,
+                        name=server_name,
+                        server=self.ldap_hostname,
+                        server_type=LDAP_SERVER_TYPE['UI']['ad'],
+                        login_name=LDAP_ATTR['login_ad'],
+                        first_name=LDAP_ATTR['firstname'],
+                        surname=LDAP_ATTR['surname'],
+                        mail=LDAP_ATTR['mail'],
+                        account_user=self.ldap_user_name,
+                        account_passwd=self.ldap_user_passwd,
+                        account_basedn=self.base_dn,
+                        account_grpbasedn=self.group_base_dn,
+                    )
+                    self.assertIsNotNone(
+                        self.ldapauthsource.search(server_name)
+                    )
+                    self.ldapauthsource.delete(server_name)
