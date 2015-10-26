@@ -281,7 +281,12 @@ class UITestCase(TestCase):
 
     def tearDown(self):  # noqa
         """Make sure to close the browser after each test."""
-        if sys.exc_info()[0] is not None:
+        skipped = False
+        if len(self._outcome.skipped) > 0:
+            skipped = self in self._outcome.skipped[-1]
+        if sys.exc_info()[0] is not None and not skipped:
+            # Take screenshot if any exception is raised and the test method is
+            # not in the skipped tests.
             self.take_screenshot(self._testMethodName)
         self.browser.quit()
         self.browser = None
