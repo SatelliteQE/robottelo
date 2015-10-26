@@ -525,8 +525,8 @@ class Settings(object):
         self.rhel6_repo = self.reader.get('robottelo', 'rhel6_repo', None)
         self.rhel7_repo = self.reader.get('robottelo', 'rhel7_repo', None)
         self.screenshots_path = self.reader.get(
-            'robottelo', 'screenshots_path', None)
-        self.upstream = self.reader.get('robottelo', 'upstream', True)
+            'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots')
+        self.upstream = self.reader.get('robottelo', 'upstream', True, bool)
         self.verbosity = self.reader.get(
             'robottelo',
             'verbosity',
