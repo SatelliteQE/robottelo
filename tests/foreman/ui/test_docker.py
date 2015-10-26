@@ -10,11 +10,12 @@ from robottelo.constants import (
     FOREMAN_PROVIDERS,
     REPO_TYPE,
 )
-from robottelo.decorators import run_only_on, stubbed
+from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
 from robottelo.helpers import valid_data_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_activationkey,
+    make_container,
     make_registry,
     make_repository,
     make_resource,
@@ -894,6 +895,7 @@ class DockerActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search_key(ak_name))
 
     @stubbed()
+    # Return to that case once BZ 1269829 is fixed
     @run_only_on('sat')
     def test_remove_docker_repo_to_activation_key(self):
         """@Test:Add Docker-type repository to a non-composite
@@ -946,6 +948,7 @@ class DockerActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search_key(ak_name))
 
     @stubbed()
+    # Return to that case once BZ 1269829 is fixed
     @run_only_on('sat')
     def test_remove_docker_repo_composite_view_to_activation_key(self):
         """@Test:Add Docker-type repository to a non-composite
@@ -1151,95 +1154,93 @@ class DockerContainersTestCase(UITestCase):
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerContainersTestCase, cls).setUpClass()
-        cls.org_id = entities.Organization().create_json()['id']
-        # TODO: create Docker-based compute resources (internal/external)
+        cls.organization = entities.Organization().create()
+        cls.lce = entities.LifecycleEnvironment(
+            organization=cls.organization).create()
+        cls.repo = entities.Repository(
+            content_type=u'docker',
+            docker_upstream_name=u'busybox',
+            product=entities.Product(organization=cls.organization).create(),
+            url=DOCKER_REGISTRY_HUB,
+        ).create()
+        cls.repo.sync()
+        content_view = entities.ContentView(
+            composite=False,
+            organization=cls.organization,
+        ).create()
+        content_view.repository = [cls.repo]
+        cls.content_view = content_view.update(['repository'])
+        cls.content_view.publish()
+        cls.cvv = content_view.read().version[0].read()
+        promote(cls.cvv, cls.lce.id)
+        cls.cr_internal = entities.DockerComputeResource(
+            name=gen_string('alpha'),
+            organization=[cls.organization],
+            url=settings.docker.get_unix_socket_url(),
+        ).create()
+        cls.cr_external = entities.DockerComputeResource(
+            name=gen_string('alpha'),
+            organization=[cls.organization],
+            url=settings.docker.external_url,
+        ).create()
+        cls.parameter_list = [
+            {'main_tab_name': 'Image', 'sub_tab_name': 'Content View',
+             'name': 'Lifecycle Environment', 'value': cls.lce.name},
+            {'main_tab_name': 'Image', 'sub_tab_name': 'Content View',
+             'name': 'Content View', 'value': cls.content_view.name},
+            {'main_tab_name': 'Image', 'sub_tab_name': 'Content View',
+             'name': 'Repository', 'value': cls.repo.name},
+            {'main_tab_name': 'Image', 'sub_tab_name': 'Content View',
+             'name': 'Tag', 'value': 'latest'},
+        ]
 
-    @stubbed()
     @run_only_on('sat')
-    def test_create_container_local_compute_resource(self):
-        """@Test: Create a container in a local compute resource
+    def test_create_container_compute_resource(self):
+        """@Test: Create containers for local and external compute resources
 
         @Feature: Docker
 
-        @Assert: The docker container is created in the local compute resource
-
-        @Status: Manual
+        @Assert: The docker container is created for each compute resource
 
         """
+        with Session(self.browser) as session:
+            for compute_resource in (self.cr_internal, self.cr_external):
+                with self.subTest(compute_resource):
+                    make_container(
+                        session,
+                        org=self.organization.name,
+                        resource_name=compute_resource.name + ' (Docker)',
+                        name=gen_string('alphanumeric'),
+                        parameter_list=self.parameter_list,
+                    )
 
-    @stubbed()
+    @skip_if_bug_open('bugzilla', 1273958)
     @run_only_on('sat')
-    def test_create_container_external_compute_resource(self):
-        """@Test: Create a container in an external compute resource
+    def test_create_container_compute_resource_power(self):
+        """@Test: Create containers for local and external compute resource,
+        then power them on and finally power them off
 
         @Feature: Docker
 
-        @Assert: The docker container is created in the external compute
-        resource
-
-        @Status: Manual
+        @Assert: The docker container is created for each compute resource and
+        the power status is showing properly
 
         """
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_create_container_local_compute_resource_power(self):
-        """@Test: Create a container in a local compute resource, then power it
-        on and finally power it off
-
-        @Feature: Docker
-
-        @Assert: The docker container is created in the local compute resource
-        and the power status is showing properly
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_create_container_external_compute_resource_power(self):
-        """@Test: Create a container in an external compute resource, then
-        power it on and finally power it off
-
-        @Feature: Docker
-
-        @Assert: The docker container is created in the external compute
-        resource and the power status is showing properly
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_create_container_local_compute_resource_read_log(self):
-        """@Test: Create a container in a local compute resource and read its
-        log
-
-        @Feature: Docker
-
-        @Assert: The docker container is created in the local compute resource
-        and its log can be read
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_create_container_external_compute_resource_read_log(self):
-        """@Test: Create a container in an external compute resource and read
-        its log
-
-        @Feature: Docker
-
-        @Assert: The docker container is created in the external compute
-        resource and its log can be read
-
-        @Status: Manual
-
-        """
+        with Session(self.browser) as session:
+            for compute_resource in (self.cr_internal, self.cr_external):
+                with self.subTest(compute_resource):
+                    name = gen_string('alphanumeric')
+                    make_container(
+                        session,
+                        org=self.organization.name,
+                        resource_name=compute_resource.name + ' (Docker)',
+                        name=name,
+                        parameter_list=self.parameter_list,
+                    )
+                    self.assertEqual(self.container.set_power_status(
+                        compute_resource.name, name, True), u'On')
+                    self.assertEqual(self.container.set_power_status(
+                        compute_resource.name, name, False), u'Off')
 
     @stubbed()
     @run_only_on('sat')
@@ -1256,31 +1257,31 @@ class DockerContainersTestCase(UITestCase):
 
         """
 
-    @stubbed()
+    @skip_if_bug_open('bugzilla', 1273958)
     @run_only_on('sat')
-    def test_delete_container_local_compute_resource(self):
-        """@Test: Delete a container in a local compute resource
+    def test_delete_container_compute_resource(self):
+        """@Test: Delete containers in local and external compute resources
 
         @Feature: Docker
 
-        @Assert: The docker container is deleted in the local compute resource
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_delete_container_external_compute_resource(self):
-        """@Test: Delete a container in an external compute resource
-
-        @Feature: Docker
-
-        @Assert: The docker container is deleted in the local compute resource
-
-        @Status: Manual
+        @Assert: The docker containers are deleted in local and external
+        compute resources
 
         """
+        with Session(self.browser) as session:
+            for compute_resource in (self.cr_internal, self.cr_external):
+                with self.subTest(compute_resource):
+                    name = gen_string('alphanumeric')
+                    make_container(
+                        session,
+                        org=self.organization.name,
+                        resource_name=compute_resource.name + ' (Docker)',
+                        name=name,
+                        parameter_list=self.parameter_list,
+                    )
+                    self.container.delete(compute_resource.name, name)
+                    self.assertIsNone(
+                        self.container.search(compute_resource.name, name))
 
 
 class DockerRegistriesTestCase(UITestCase):

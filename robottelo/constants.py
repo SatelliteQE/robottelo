@@ -73,6 +73,8 @@ TEMPLATE_TYPES = [
 #       filter's common_locator['filter']
 FILTER = {
     'arch_os': 'architecture_operatingsystem',
+    'container_loc': 'docker_container_wizard_states_preliminary_location',
+    'container_org': 'docker_container_wizard_states_preliminary_organization',
     'cr_loc': 'compute_resource_location',
     'cr_org': 'compute_resource_organization',
     'env_org': 'environment_organization',

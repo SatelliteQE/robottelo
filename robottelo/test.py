@@ -39,6 +39,7 @@ from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeprofile import ComputeProfile
 from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.configgroups import ConfigGroups
+from robottelo.ui.container import Container
 from robottelo.ui.contentenv import ContentEnvironment
 from robottelo.ui.contentviews import ContentViews
 from robottelo.ui.contentsearch import ContentSearch
@@ -197,6 +198,7 @@ class UITestCase(TestCase):
         # Library methods
         self.activationkey = ActivationKey(self.browser)
         self.architecture = Architecture(self.browser)
+        self.container = Container(self.browser)
         self.compute_profile = ComputeProfile(self.browser)
         self.compute_resource = ComputeResource(self.browser)
         self.configgroups = ConfigGroups(self.browser)
