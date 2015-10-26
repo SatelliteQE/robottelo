@@ -1,30 +1,35 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name
 """Test class for Template UI"""
-from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.decorators import run_only_on
-from robottelo.helpers import generate_strings_list, get_data_file
+from robottelo.helpers import (
+    generate_strings_list,
+    get_data_file,
+    invalid_values_list,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_templates
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
+OS_TEMPLATE_DATA_FILE = get_data_file(OS_TEMPLATE_DATA_FILE)
+SNIPPET_DATA_FILE = get_data_file(SNIPPET_DATA_FILE)
 
-@ddt
+
 class Template(UITestCase):
     """Implements Provisioning Template tests from UI"""
 
     @classmethod
-    def setUpClass(cls):  # noqa
+    def setUpClass(cls):
         super(Template, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
-    @data(*generate_strings_list(len1=8))
     @run_only_on('sat')
-    def test_positive_create_template(self, name):
+    def test_positive_create_template(self):
         """@Test: Create new template
 
         @Feature: Template - Positive Create
@@ -34,39 +39,19 @@ class Template(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_templates(
-                session,
-                name=name,
-                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
-                custom_really=True,
-                template_type='provision',
-            )
-            self.assertIsNotNone(self.template.search(name))
+            for name in generate_strings_list(len1=8):
+                with self.subTest(name):
+                    make_templates(
+                        session,
+                        name=name,
+                        template_path=OS_TEMPLATE_DATA_FILE,
+                        custom_really=True,
+                        template_type='provision',
+                    )
+                    self.assertIsNotNone(self.template.search(name))
 
-    @run_only_on('sat')
-    def test_negative_create_template_with_too_long_name(self):
-        """@Test: Template - Create a new template with 256 characters in name
-
-        @Feature: Template - Negative Create
-
-        @Assert: Template is not created
-
-        """
-        with Session(self.browser) as session:
-            make_templates(
-                session,
-                name=gen_string('alpha', 256),
-                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
-                custom_really=True,
-                template_type='provision',
-            )
-            self.assertIsNotNone(self.template.wait_until_element
-                                 (common_locators['name_haserror']))
-
-    @data(' ', '')
-    @run_only_on('sat')
-    def test_negative_create_template_with_blank_name(self, name):
-        """@Test: Create a new template with blank and whitespace in name
+    def test_negative_create_template(self):
+        """@Test: Create a new template with invalid names
 
         @Feature: Template - Negative Create
 
@@ -74,15 +59,17 @@ class Template(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_templates(
-                session,
-                name=name,
-                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
-                custom_really=True,
-                template_type='provision',
-            )
-            self.assertIsNotNone(self.template.wait_until_element
-                                 (common_locators['name_haserror']))
+            for name in invalid_values_list(interface='ui'):
+                with self.subTest(name):
+                    make_templates(
+                        session,
+                        name=name,
+                        template_path=OS_TEMPLATE_DATA_FILE,
+                        custom_really=True,
+                        template_type='provision',
+                    )
+                    self.assertIsNotNone(self.template.wait_until_element(
+                        common_locators['name_haserror']))
 
     @run_only_on('sat')
     def test_negative_create_template_with_same_name(self):
@@ -94,16 +81,24 @@ class Template(UITestCase):
 
         """
         name = gen_string('alpha')
-        temp_type = 'provision'
-        template_path = get_data_file(OS_TEMPLATE_DATA_FILE)
         with Session(self.browser) as session:
-            make_templates(session, name=name, template_path=template_path,
-                           custom_really=True, template_type=temp_type)
+            make_templates(
+                session,
+                name=name,
+                template_path=OS_TEMPLATE_DATA_FILE,
+                custom_really=True,
+                template_type='provision',
+            )
             self.assertIsNotNone(self.template.search(name))
-            make_templates(session, name=name, template_path=template_path,
-                           custom_really=True, template_type=temp_type)
-            self.assertIsNotNone(self.template.wait_until_element
-                                 (common_locators['name_haserror']))
+            make_templates(
+                session,
+                name=name,
+                template_path=OS_TEMPLATE_DATA_FILE,
+                custom_really=True,
+                template_type='provision',
+            )
+            self.assertIsNotNone(self.template.wait_until_element(
+                common_locators['name_haserror']))
 
     @run_only_on('sat')
     def test_negative_create_template_without_type(self):
@@ -120,7 +115,7 @@ class Template(UITestCase):
                 make_templates(
                     session,
                     name=name,
-                    template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
+                    template_path=OS_TEMPLATE_DATA_FILE,
                     custom_really=True,
                     template_type='',
                 )
@@ -166,17 +161,16 @@ class Template(UITestCase):
             make_templates(
                 session,
                 name=gen_string('alpha', 16),
-                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
+                template_path=OS_TEMPLATE_DATA_FILE,
                 custom_really=True,
                 audit_comment=gen_string('alpha', 256),
-                template_type='PXELinux'
+                template_type='PXELinux',
             )
-            self.assertIsNotNone(self.template.wait_until_element
-                                 (common_locators['haserror']))
+            self.assertIsNotNone(self.template.wait_until_element(
+                common_locators['haserror']))
 
-    @data(*generate_strings_list(len1=8))
     @run_only_on('sat')
-    def test_positive_create_snippet_template(self, name):
+    def test_positive_create_snippet_template(self):
         """@Test: Create new template of type snippet
 
         @Feature: Template - Positive Create
@@ -186,18 +180,19 @@ class Template(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_templates(
-                session,
-                name=name,
-                template_path=get_data_file(SNIPPET_DATA_FILE),
-                custom_really=True,
-                snippet=True,
-            )
-            self.assertIsNotNone(self.template.search(name))
+            for name in generate_strings_list(len1=8):
+                with self.subTest(name):
+                    make_templates(
+                        session,
+                        name=name,
+                        template_path=SNIPPET_DATA_FILE,
+                        custom_really=True,
+                        snippet=True,
+                    )
+                    self.assertIsNotNone(self.template.search(name))
 
-    @data(*generate_strings_list(len1=8))
     @run_only_on('sat')
-    def test_remove_template(self, template_name):
+    def test_remove_template(self):
         """@Test: Remove a template
 
         @Feature: Template - Positive Delete
@@ -205,11 +200,15 @@ class Template(UITestCase):
         @Assert: Template removed successfully
 
         """
-        entities.ConfigTemplate(
-            name=template_name, organization=[self.organization]).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
-            self.template.delete(template_name)
+            for template_name in generate_strings_list(len1=8):
+                with self.subTest(template_name):
+                    entities.ConfigTemplate(
+                        name=template_name,
+                        organization=[self.organization],
+                    ).create()
+                    session.nav.go_to_select_org(self.organization.name)
+                    self.template.delete(template_name)
 
     @run_only_on('sat')
     def test_update_template(self):
@@ -226,7 +225,7 @@ class Template(UITestCase):
             make_templates(
                 session,
                 name=name,
-                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
+                template_path=OS_TEMPLATE_DATA_FILE,
                 custom_really=True,
                 template_type='provision',
             )
@@ -254,7 +253,7 @@ class Template(UITestCase):
             make_templates(
                 session,
                 name=name,
-                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
+                template_path=OS_TEMPLATE_DATA_FILE,
                 custom_really=True,
                 template_type='provision',
             )
@@ -284,7 +283,7 @@ class Template(UITestCase):
             make_templates(
                 session,
                 name=name,
-                template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
+                template_path=OS_TEMPLATE_DATA_FILE,
                 custom_really=True,
                 template_type='provision',
             )
