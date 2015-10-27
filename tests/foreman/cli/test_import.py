@@ -21,8 +21,8 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
+from robottelo.config import settings
 from robottelo.decorators import bz_bug_is_open, skip_if_bug_open
-from robottelo.helpers import prepare_import_data
 from robottelo.test import CLITestCase
 
 
@@ -58,6 +58,29 @@ def build_csv_file(rows=None, dirname=None):
     return remote_file
 
 
+def prepare_import_data(tar_path=None):
+    """Fetch and uncompress the CSV files from the source."""
+    tmpdir = ssh.command('mktemp -d').stdout[0]
+    # if path to tar file not specified, download the default one
+    if tar_path is None:
+        tar_remote_path = settings.transition.exported_data
+        cmd = u'wget {0} -O - | tar -xzvC {1}'.format(tar_remote_path, tmpdir)
+    else:
+        cmd = u'tar -xzvf {0} -C {1}'.format(tar_path, tmpdir)
+
+    files = {}
+    for filename in ssh.command(cmd).stdout:
+        for key in ('activation-keys', 'channels', 'config-files-latest',
+                    'kickstart-scripts', 'repositories', 'system-groups',
+                    'system-profiles', 'users', 'export'):
+            if filename.endswith(key + '.csv'):
+                if key == 'export':
+                    key = 'custom-channels'
+                files[key] = os.path.join(tmpdir, filename)
+                break
+    return tmpdir, files
+
+
 def import_content_hosts(files, tmp_dir):
     """Import all Content Hosts from the Sat5 export csv file including all
     the required entities.
@@ -76,7 +99,7 @@ def import_content_hosts(files, tmp_dir):
         'wait': True,
     })
     import_cv = Import.content_view_with_tr_data({
-        u'csv-file': files['content-views'],
+        u'csv-file': files['custom-channels'],
         u'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
         u'verbose': True
     })
@@ -306,7 +329,7 @@ def gen_import_cv_data():
             u'organization': gen_string('alphanumeric')}
             for i in range(3)
         ],
-        u'content-views': [{
+        u'custom-channels': [{
             u'key': u'org_id',
             u'key_id': type(u'')(i + 1),
             u'channel_name': gen_string('alphanumeric'),
@@ -354,7 +377,7 @@ def gen_import_chost_data():
                 u'key_id': type(u'')(i + 1),
                 u'organization': gen_string('alphanumeric'),
             } for i in range(len(org_ids))],
-            u'content-views': [{
+            u'custom-channels': [{
                 u'key': u'org_id',
                 u'key_id': type(u'')(i + 1),
                 u'channel_name': gen_string('alphanumeric'),
@@ -430,7 +453,7 @@ def gen_import_ak_data():
             u'key_id': type(u'')(i + 1),
             u'organization': gen_string('alphanumeric'),
         } for i in range(3)],
-        u'content-views': [{
+        u'custom-channels': [{
             u'key': u'org_id',
             u'key_id': type(u'')(i + 1),
             u'channel_name': gen_string('alphanumeric'),
@@ -464,10 +487,6 @@ class TestImport(CLITestCase):
         super(TestImport, cls).setUpClass()
         # prepare the default dataset
         cls.default_dataset = prepare_import_data()
-        cls.default_dataset[1]['content-views'] = os.path.join(
-            cls.default_dataset[0],
-            'exports/CHANNELS/export.csv',
-        )
 
     @classmethod
     def tearDownClass(cls):
@@ -1093,7 +1112,7 @@ class TestImport(CLITestCase):
                 })
                 # now proceed with Content View import
                 Import.content_view_with_tr_data({
-                    'csv-file': files['content-views'],
+                    'csv-file': files['custom-channels'],
                     'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
                 })
 
@@ -1137,7 +1156,7 @@ class TestImport(CLITestCase):
                     'wait': True,
                 })
                 Import.content_view_with_tr_data({
-                    'csv-file': files['content-views'],
+                    'csv-file': files['custom-channels'],
                     'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
                 })
                 # get the sat6 mapping of the imported organizations
@@ -1151,7 +1170,7 @@ class TestImport(CLITestCase):
                 ]
                 # Reimport the same content views and check for changes in sat6
                 Import.content_view({
-                    'csv-file': files['content-views'],
+                    'csv-file': files['custom-channels'],
                     'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
                 })
                 self.assertEqual(
@@ -1187,7 +1206,7 @@ class TestImport(CLITestCase):
                     'csv-file': files['repositories'],
                 })
                 Import.content_view_with_tr_data({
-                    'csv-file': files['content-views'],
+                    'csv-file': files['custom-channels'],
                     'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
                 })
                 # clear the .transition_data to clear the transition mapping
@@ -1197,14 +1216,14 @@ class TestImport(CLITestCase):
 
                 # use the default (rename) strategy
                 import_cv_rename = Import.content_view_with_tr_data({
-                    'csv-file': files['content-views'],
+                    'csv-file': files['custom-channels'],
                     'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
                     'verbose': True,
                 })
                 for record in import_cv_rename[1]:
                     ContentView.info({'id': record['sat6']})
                 Import.content_view({
-                    'csv-file': files['content-views'],
+                    'csv-file': files['custom-channels'],
                     'delete': True,
                 })
 
@@ -1214,7 +1233,7 @@ class TestImport(CLITestCase):
                     for tr in import_org[1]
                 ]
                 Import.content_view({
-                    'csv-file': files['content-views'],
+                    'csv-file': files['custom-channels'],
                     'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
                     'recover': 'none',
                 })
@@ -1226,7 +1245,7 @@ class TestImport(CLITestCase):
 
                 # use the 'map' strategy
                 import_cvs_map = Import.content_view_with_tr_data({
-                    'csv-file': files['content-views'],
+                    'csv-file': files['custom-channels'],
                     'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
                     'recover': 'map',
                     'verbose': True,
@@ -1687,7 +1706,7 @@ class TestImport(CLITestCase):
                     'wait': True,
                 })
                 Import.content_view_with_tr_data({
-                    'csv-file': files['content-views'],
+                    'csv-file': files['custom-channels'],
                     'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
                     'verbose': True,
                 })
