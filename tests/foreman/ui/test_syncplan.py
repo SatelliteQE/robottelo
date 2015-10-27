@@ -1,81 +1,38 @@
 """Test class for Sync Plan UI"""
+# pylint: disable=invalid-name
 
 from datetime import datetime, timedelta
-from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
+from random import randint
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.decorators import skip_if_bug_open
-from robottelo.helpers import generate_strings_list
+from robottelo.helpers import generate_strings_list, invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_syncplan
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
-@ddt
+def valid_sync_intervals():
+    """Returns a list of valid sync intervals"""
+    return [
+        SYNC_INTERVAL['hour'],
+        SYNC_INTERVAL['day'],
+        SYNC_INTERVAL['week'],
+    ]
+
+
 class Syncplan(UITestCase):
     """Implements Sync Plan tests in UI"""
 
     @classmethod
-    def setUpClass(cls):  # noqa
+    def setUpClass(cls):
         super(Syncplan, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
-    @data(
-        {
-            u'name': gen_string('alpha'),
-            u'desc': gen_string('alpha'),
-            u'interval': SYNC_INTERVAL['hour']
-        },
-        {
-            u'name': gen_string('numeric'),
-            u'desc': gen_string('numeric'),
-            u'interval': SYNC_INTERVAL['hour']
-        },
-        {
-            u'name': gen_string('alphanumeric'),
-            u'desc': gen_string('alphanumeric'),
-            u'interval': SYNC_INTERVAL['hour']
-        },
-        {
-            u'name': gen_string('utf8'),
-            u'desc': gen_string('utf8'),
-            u'interval': SYNC_INTERVAL['hour']
-        },
-        {
-            u'name': gen_string('html', 20),
-            u'desc': gen_string('html'),
-            u'interval': SYNC_INTERVAL['hour']
-        },
-        {
-            u'name': gen_string('alphanumeric'),
-            u'desc': gen_string('alphanumeric'),
-            u'interval': SYNC_INTERVAL['day']
-        },
-        {
-            u'name': gen_string('utf8'),
-            u'desc': gen_string('utf8'),
-            u'interval': SYNC_INTERVAL['day']
-        },
-        {
-            u'name': gen_string('alpha'),
-            u'desc': gen_string('alpha'),
-            u'interval': SYNC_INTERVAL['week']
-        },
-        {
-            u'name': gen_string('utf8'),
-            u'desc': gen_string('utf8'),
-            u'interval': SYNC_INTERVAL['week']
-        },
-        {
-            u'name': gen_string('html'),
-            u'desc': gen_string('html'),
-            u'interval': SYNC_INTERVAL['week']
-        }
-    )
-    def test_positive_create_basic(self, test_data):
-        """@Test: Create Sync Plan with minimal input parameters
+    def test_positive_create_names(self):
+        """@Test: Create Sync Plan with valid name values
 
         @Feature: Content Sync Plan - Positive Create
 
@@ -83,14 +40,58 @@ class Syncplan(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_syncplan(
-                session,
-                org=self.organization.name,
-                name=test_data['name'],
-                description=test_data['desc'],
-                sync_interval=test_data['interval'],
-            )
-            self.assertIsNotNone(self.syncplan.search(test_data['name']))
+            for name in generate_strings_list():
+                with self.subTest(name):
+                    make_syncplan(
+                        session,
+                        org=self.organization.name,
+                        name=name,
+                        description=gen_string('utf8'),
+                        sync_interval=valid_sync_intervals()[randint(0, 2)],
+                    )
+                    self.assertIsNotNone(self.syncplan.search(name))
+
+    def test_positive_create_descriptions(self):
+        """@Test: Create Sync Plan with valid desc values
+
+        @Feature: Content Sync Plan - Positive Create
+
+        @Assert: Sync Plan is created
+
+        """
+        with Session(self.browser) as session:
+            for desc in generate_strings_list():
+                with self.subTest(desc):
+                    name = gen_string('utf8')
+                    make_syncplan(
+                        session,
+                        org=self.organization.name,
+                        name=name,
+                        description=desc,
+                        sync_interval=valid_sync_intervals()[randint(0, 2)],
+                    )
+                    self.assertIsNotNone(self.syncplan.search(name))
+
+    def test_positive_create_sync_intervals(self):
+        """@Test: Create Sync Plan with valid sync intervals
+
+        @Feature: Content Sync Plan - Positive Create
+
+        @Assert: Sync Plan is created
+
+        """
+        with Session(self.browser) as session:
+            for interval in valid_sync_intervals():
+                with self.subTest(interval):
+                    name = gen_string('alphanumeric')
+                    make_syncplan(
+                        session,
+                        org=self.organization.name,
+                        name=name,
+                        description=name,
+                        sync_interval=interval,
+                    )
+                    self.assertIsNotNone(self.syncplan.search(name))
 
     def test_positive_create_with_start_time(self):
         """@Test: Create Sync plan with specified start time
@@ -160,9 +161,8 @@ class Syncplan(UITestCase):
             saved_startdate = str(startdate_text).rpartition(',')[0]
             self.assertEqual(saved_startdate, fetch_startdate)
 
-    @data('', '   ')
-    def test_negative_create_with_blank_name(self, name):
-        """@Test: Create Sync Plan with blank and whitespace in name
+    def test_negative_create_invalid_name(self):
+        """@Test: Create Sync Plan with invalid names
 
         @Feature: Content Sync Plan - Negative Create
 
@@ -170,37 +170,19 @@ class Syncplan(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_syncplan(
-                session,
-                org=self.organization.name,
-                name=name,
-                submit_validate=False,
-            )
-            self.assertIsNotNone(self.syncplan.wait_until_element(
-                common_locators['common_invalid']))
+            for name in invalid_values_list(interface='ui'):
+                with self.subTest(name):
+                    make_syncplan(
+                        session,
+                        org=self.organization.name,
+                        name=name,
+                        description='invalid name',
+                        submit_validate=False,
+                    )
+                    self.assertIsNotNone(self.syncplan.wait_until_element(
+                        common_locators['common_invalid']))
 
-    @data(*generate_strings_list(len1=256))
-    def test_negative_create_with_too_long_name(self, name):
-        """@Test: Create Sync Plan with 256 characters in name
-
-        @Feature: Content Sync Plan - Negative Create
-
-        @Assert: Sync Plan is not created with more than 255 chars
-
-        """
-        with Session(self.browser) as session:
-            make_syncplan(
-                session,
-                org=self.organization.name,
-                name=name,
-                description='more than 255 chars',
-                submit_validate=False,
-            )
-            self.assertIsNotNone(self.syncplan.wait_until_element(
-                common_locators['common_invalid']))
-
-    @data(*generate_strings_list())
-    def test_negative_create_with_same_name(self, name):
+    def test_negative_create_with_same_name(self):
         """@Test: Create Sync Plan with an existing name
 
         @Feature: Content Sync Plan - Positive Create
@@ -208,12 +190,9 @@ class Syncplan(UITestCase):
         @Assert: Sync Plan cannot be created with existing name
 
         """
+        name = gen_string('alphanumeric')
         with Session(self.browser) as session:
-            make_syncplan(
-                session,
-                org=self.organization.name,
-                name=name,
-            )
+            make_syncplan(session, org=self.organization.name, name=name)
             self.assertIsNotNone(self.syncplan.search(name))
             make_syncplan(
                 session,
@@ -225,8 +204,7 @@ class Syncplan(UITestCase):
             self.assertIsNotNone(self.syncplan.wait_until_element(
                 common_locators['common_invalid']))
 
-    @data(*generate_strings_list())
-    def test_positive_update_name(self, new_plan_name):
+    def test_positive_update_name(self):
         """@Test: Update Sync plan's name
 
         @Feature: Content Sync Plan - Positive Update name
@@ -241,17 +219,15 @@ class Syncplan(UITestCase):
             organization=self.organization,
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_sync_plans()
-            self.syncplan.update(plan_name, new_name=new_plan_name)
-            self.assertIsNotNone(self.syncplan.search(new_plan_name))
+            for new_plan_name in generate_strings_list():
+                with self.subTest(new_plan_name):
+                    session.nav.go_to_select_org(self.organization.name)
+                    session.nav.go_to_sync_plans()
+                    self.syncplan.update(plan_name, new_name=new_plan_name)
+                    self.assertIsNotNone(self.syncplan.search(new_plan_name))
+                    plan_name = new_plan_name  # for next iteration
 
-    @data(
-        SYNC_INTERVAL['hour'],
-        SYNC_INTERVAL['day'],
-        SYNC_INTERVAL['week'],
-    )
-    def test_positive_update_interval(self, new_interval):
+    def test_positive_update_interval(self):
         """@Test: Update Sync plan's interval
 
         @Feature: Content Sync Plan - Positive Update interval
@@ -267,20 +243,20 @@ class Syncplan(UITestCase):
             enabled=True,
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_sync_plans()
-            self.syncplan.update(
-                name, new_sync_interval=new_interval)
-            session.nav.go_to_sync_plans()
-            self.syncplan.search(name).click()
-            self.syncplan.wait_for_ajax()
-            # Assert updated sync interval
-            interval_text = self.syncplan.wait_until_element(
-                locators['sp.fetch_interval']).text
-            self.assertEqual(interval_text, new_interval)
+            for new_interval in valid_sync_intervals():
+                with self.subTest(new_interval):
+                    session.nav.go_to_select_org(self.organization.name)
+                    session.nav.go_to_sync_plans()
+                    self.syncplan.update(name, new_sync_interval=new_interval)
+                    session.nav.go_to_sync_plans()
+                    self.syncplan.search(name).click()
+                    # Assert updated sync interval
+                    interval_text = self.syncplan.wait_until_element(
+                        locators['sp.fetch_interval']
+                    ).text
+                    self.assertEqual(interval_text, new_interval)
 
-    @data(*generate_strings_list())
-    def test_positive_update_product(self, plan_name):
+    def test_positive_update_product(self):
         """@Test: Update Sync plan and associate products
 
         @Feature: Content Sync Plan - Positive Update add products
@@ -290,22 +266,24 @@ class Syncplan(UITestCase):
         """
         strategy, value = locators['sp.prd_select']
         product = entities.Product(organization=self.organization).create()
-        entities.SyncPlan(
-            name=plan_name,
-            interval=SYNC_INTERVAL['week'],
-            organization=self.organization,
-        ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_sync_plans()
-            self.syncplan.update(plan_name, add_products=[product.name])
-            self.syncplan.search(plan_name).click()
-            self.syncplan.wait_for_ajax()
-            # Assert product is associated with sync plan
-            self.syncplan.click(tab_locators['sp.tab_products'])
-            element = self.syncplan.wait_until_element(
-                (strategy, value % product.name))
-            self.assertIsNotNone(element)
+            for plan_name in generate_strings_list():
+                with self.subTest(plan_name):
+                    entities.SyncPlan(
+                        name=plan_name,
+                        interval=SYNC_INTERVAL['week'],
+                        organization=self.organization,
+                    ).create()
+                    session.nav.go_to_select_org(self.organization.name)
+                    session.nav.go_to_sync_plans()
+                    self.syncplan.update(
+                        plan_name, add_products=[product.name])
+                    self.syncplan.search(plan_name).click()
+                    # Assert product is associated with sync plan
+                    self.syncplan.click(tab_locators['sp.tab_products'])
+                    element = self.syncplan.wait_until_element(
+                        (strategy, value % product.name))
+                    self.assertIsNotNone(element)
 
     def test_positive_update_and_disassociate_product(self):
         """@Test: Update Sync plan and disassociate products
@@ -344,8 +322,7 @@ class Syncplan(UITestCase):
                 (strategy, value % product.name))
             self.assertIsNotNone(element)
 
-    @data(*generate_strings_list())
-    def test_positive_delete(self, plan_name):
+    def test_positive_delete(self):
         """@Test: Delete a Sync plan
 
         @Feature: Content Sync Plan - Positive Delete
@@ -353,13 +330,15 @@ class Syncplan(UITestCase):
         @Assert: Sync Plan is deleted
 
         """
-        entities.SyncPlan(
-            name=plan_name,
-            interval=SYNC_INTERVAL['day'],
-            organization=self.organization,
-        ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_sync_plans()
-            self.syncplan.delete(plan_name)
-            self.assertIsNone(self.syncplan.search(plan_name))
+            for plan_name in generate_strings_list():
+                with self.subTest(plan_name):
+                    entities.SyncPlan(
+                        name=plan_name,
+                        interval=SYNC_INTERVAL['day'],
+                        organization=self.organization,
+                    ).create()
+                    session.nav.go_to_select_org(self.organization.name)
+                    session.nav.go_to_sync_plans()
+                    self.syncplan.delete(plan_name)
+                    self.assertIsNone(self.syncplan.search(plan_name))
