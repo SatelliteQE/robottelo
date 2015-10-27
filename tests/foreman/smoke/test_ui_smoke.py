@@ -1,6 +1,5 @@
 """Smoke tests for the ``UI`` end-to-end scenario."""
 
-from ddt import ddt
 from fauxfactory import gen_string, gen_ipaddr
 from robottelo import manifests
 from robottelo.config import settings
@@ -44,7 +43,6 @@ from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
 
-@ddt
 class TestSmoke(UITestCase):
     """End-to-end tests using the ``WebUI``."""
 
