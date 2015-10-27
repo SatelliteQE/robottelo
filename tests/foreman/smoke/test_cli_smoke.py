@@ -1,7 +1,6 @@
 """Smoke tests for the ``CLI`` end-to-end scenario."""
 import random
 
-from ddt import ddt
 from fauxfactory import gen_alphanumeric, gen_ipaddr
 from robottelo import manifests, ssh
 from robottelo.cli.activationkey import ActivationKey
@@ -40,7 +39,6 @@ from robottelo.vm import VirtualMachine
 # (too many public methods) pylint: disable=R0904
 
 
-@ddt
 class TestSmoke(CLITestCase):
     """End-to-end tests using the ``CLI`` path."""
 
