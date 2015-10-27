@@ -1,29 +1,38 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name
 """Test class for Subnet UI"""
 
-from ddt import ddt, data
 from fauxfactory import gen_ipaddr, gen_netmask, gen_string
 from nailgun import entities
 from robottelo.decorators import bz_bug_is_open, run_only_on
-from robottelo.helpers import generate_strings_list
+from robottelo.helpers import generate_strings_list, invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_subnet
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
-@ddt
+def valid_long_names():
+    """Returns a list of valid long subnet names"""
+    return [
+        {'name': gen_string('alphanumeric', 255)},
+        {'name': gen_string('alpha', 255)},
+        {'name': gen_string('numeric', 255)},
+        {'name': gen_string('latin1', 255)},
+        {'name': gen_string('utf8', 255), u'bz-bug': 1180066}
+    ]
+
+
 class Subnet(UITestCase):
     """Implements Subnet tests in UI"""
 
     @classmethod
-    def setUpClass(cls):  # noqa
+    def setUpClass(cls):
         super(Subnet, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
-    @data(*generate_strings_list(len1=8))
     @run_only_on('sat')
-    def test_create_subnet_with_different_names(self, name):
+    def test_create_subnet_with_different_names(self):
         """@Test: Create new subnet
 
         @Feature: Subnet - Positive Create
@@ -32,24 +41,20 @@ class Subnet(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_subnet(
-                session,
-                subnet_name=name,
-                subnet_network=gen_ipaddr(ip3=True),
-                subnet_mask=gen_netmask(),
-            )
-            self.assertIsNotNone(self.subnet.search_subnet(subnet_name=name))
+            for name in generate_strings_list(len1=8):
+                with self.subTest(name):
+                    make_subnet(
+                        session,
+                        subnet_name=name,
+                        subnet_network=gen_ipaddr(ip3=True),
+                        subnet_mask=gen_netmask(),
+                    )
+                    self.assertIsNotNone(
+                        self.subnet.search_subnet(subnet_name=name)
+                    )
 
-    @data(
-        {'name': gen_string('alphanumeric', 255)},
-        {'name': gen_string('alpha', 255)},
-        {'name': gen_string('numeric', 255)},
-        {'name': gen_string('latin1', 255)},
-        {'name': gen_string('utf8', 255),
-         u'bz-bug': 1180066}
-    )
     @run_only_on('sat')
-    def test_create_subnet_with_long_strings(self, test_data):
+    def test_create_subnet_with_long_strings(self):
         """@Test: Create new subnet with 255 characters in name
 
         @Feature: Subnet - Positive Create
@@ -57,19 +62,24 @@ class Subnet(UITestCase):
         @Assert: Subnet is created with 255 chars
 
         """
-        bug_id = test_data.pop('bz-bug', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-
         with Session(self.browser) as session:
-            make_subnet(
-                session,
-                subnet_name=test_data['name'],
-                subnet_network=gen_ipaddr(ip3=True),
-                subnet_mask=gen_netmask(),
-            )
-            self.assertIsNotNone(
-                self.subnet.search_subnet(subnet_name=test_data['name']))
+            for test_data in valid_long_names():
+                with self.subTest(test_data):
+                    bug_id = test_data.pop('bz-bug', None)
+                    if bug_id is not None and bz_bug_is_open(bug_id):
+                        self.skipTest(
+                            'Bugzilla bug {0} is open.'.format(bug_id)
+                        )
+                    make_subnet(
+                        session,
+                        subnet_name=test_data['name'],
+                        subnet_network=gen_ipaddr(ip3=True),
+                        subnet_mask=gen_netmask(),
+                    )
+                    self.assertIsNotNone(
+                        self.subnet.search_subnet(
+                            subnet_name=test_data['name'])
+                    )
 
     @run_only_on('sat')
     def test_create_subnet_with_domain(self):
@@ -112,45 +122,26 @@ class Subnet(UITestCase):
             else:
                 self.assertIsNotNone()
 
-    @data(*generate_strings_list(len1=256))
     @run_only_on('sat')
-    def test_create_subnet_negative_with_too_long_name(self, name):
-        """@Test: Create new subnet with 256 characters in name
+    def test_create_subnet_negative_invalid_name(self):
+        """@Test: Create new subnet with invalid names
 
         @Feature: Subnet - Negative Create
 
-        @Assert: Subnet is not created with 256 chars
+        @Assert: Subnet is not created
 
         """
         with Session(self.browser) as session:
-            make_subnet(
-                session,
-                subnet_name=name,
-                subnet_network=gen_ipaddr(ip3=True),
-                subnet_mask=gen_netmask(),
-            )
-            self.assertIsNotNone(session.nav.wait_until_element(
-                common_locators['haserror']))
-
-    @data('', ' ')
-    @run_only_on('sat')
-    def test_create_subnet_negative_with_blank_name(self, name):
-        """@Test: Create new subnet with whitespace and blank in name.
-
-        @Feature: Subnet - Negative Create.
-
-        @Assert: Subnet is not created.
-
-        """
-        with Session(self.browser) as session:
-            make_subnet(
-                session,
-                subnet_name=name,
-                subnet_network=gen_ipaddr(ip3=True),
-                subnet_mask=gen_netmask(),
-            )
-            self.assertIsNotNone(session.nav.wait_until_element(
-                common_locators['haserror']))
+            for name in invalid_values_list(interface='ui'):
+                with self.subTest(name):
+                    make_subnet(
+                        session,
+                        subnet_name=name,
+                        subnet_network=gen_ipaddr(ip3=True),
+                        subnet_mask=gen_netmask(),
+                    )
+                    self.assertIsNotNone(session.nav.wait_until_element(
+                        common_locators['haserror']))
 
     @run_only_on('sat')
     def test_create_subnet_negative_values(self):
@@ -187,9 +178,8 @@ class Subnet(UITestCase):
             self.assertIsNotNone(primarydns_element)
             self.assertIsNotNone(secondarydns_element)
 
-    @data(*generate_strings_list(len1=8))
     @run_only_on('sat')
-    def test_remove_subnet(self, name):
+    def test_remove_subnet(self):
         """@Test: Delete a subnet
 
         @Feature: Subnet - Positive Delete
@@ -198,13 +188,15 @@ class Subnet(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_subnet(
-                session,
-                subnet_name=name,
-                subnet_network=gen_ipaddr(ip3=True),
-                subnet_mask=gen_netmask(),
-            )
-            self.subnet.delete(name)
+            for name in generate_strings_list(len1=8):
+                with self.subTest(name):
+                    make_subnet(
+                        session,
+                        subnet_name=name,
+                        subnet_network=gen_ipaddr(ip3=True),
+                        subnet_mask=gen_netmask(),
+                    )
+                    self.subnet.delete(name)
 
     @run_only_on('sat')
     def test_remove_subnet_and_cancel(self):
@@ -227,9 +219,8 @@ class Subnet(UITestCase):
             )
             self.subnet.delete(name, False)
 
-    @data(*generate_strings_list(len1=8))
     @run_only_on('sat')
-    def test_update_subnet_with_name(self, new_name):
+    def test_update_subnet_with_name(self):
         """@Test: Update Subnet name
 
         @Feature: Subnet - Positive Update
@@ -245,9 +236,12 @@ class Subnet(UITestCase):
                 subnet_network=gen_ipaddr(ip3=True),
                 subnet_mask=gen_netmask(),
             )
-            self.subnet.update(name, new_subnet_name=new_name)
-            result_object = self.subnet.search_subnet(new_name)
-            self.assertEqual(new_name, result_object['name'])
+            for new_name in generate_strings_list(len1=8):
+                with self.subTest(new_name):
+                    self.subnet.update(name, new_subnet_name=new_name)
+                    result_object = self.subnet.search_subnet(new_name)
+                    self.assertEqual(new_name, result_object['name'])
+                    name = new_name  # for next iteration
 
     @run_only_on('sat')
     def test_update_subnet_with_network(self):
