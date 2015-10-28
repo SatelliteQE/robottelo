@@ -1,12 +1,12 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=too-many-public-methods, too-many-lines, invalid-name
 """Test class for Users UI"""
 
-from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import LANGUAGES
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
-from robottelo.helpers import invalid_names_list
+from robottelo.helpers import invalid_names_list, invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_user
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -33,7 +33,6 @@ def valid_strings(len1=10):
 search_key = 'login'
 
 
-@ddt
 class User(UITestCase):
     """ Implements Users tests in UI
 
@@ -46,8 +45,7 @@ class User(UITestCase):
 
     """
 
-    @data(*valid_strings())
-    def test_delete_user(self, user_name):
+    def test_delete_user(self):
         """@Test: Delete a User
 
         @Feature: User - Delete
@@ -56,8 +54,10 @@ class User(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_user(session, username=user_name)
-            self.user.delete(user_name, search_key)
+            for user_name in valid_strings():
+                with self.subTest(user_name):
+                    make_user(session, username=user_name)
+                    self.user.delete(user_name, search_key)
 
     @skip_if_bug_open('bugzilla', 1139616)
     def test_update_password(self):
@@ -105,8 +105,7 @@ class User(UITestCase):
                                                      value % role_name))
             self.assertIsNotNone(element2)
 
-    @data(*valid_strings())
-    def test_positive_create_user_different_usernames(self, user_name):
+    def test_positive_create_user_different_usernames(self):
         """@Test: Create User for all variations of Username
 
         @Feature: User - Positive Create
@@ -119,11 +118,13 @@ class User(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_user(session, username=user_name)
-            self.assertIsNotNone(self.user.search(user_name, search_key))
+            for user_name in valid_strings():
+                with self.subTest(user_name):
+                    make_user(session, username=user_name)
+                    self.assertIsNotNone(
+                        self.user.search(user_name, search_key))
 
-    @data(*valid_strings())
-    def test_positive_create_user_different_first_names(self, first_name):
+    def test_positive_create_user_different_first_names(self):
         """@Test: Create User for all variations of First Name
 
         @Feature: User - Positive Create
@@ -135,21 +136,21 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_user(session, username=name, first_name=first_name)
-            element = self.user.search(name, search_key)
-            self.assertIsNotNone(element)
-            element.click()
-            self.assertEqual(
-                first_name,
-                self.user.wait_until_element(
-                    locators['users.firstname']
-                ).get_attribute('value')
-            )
+            for first_name in valid_strings():
+                with self.subTest(first_name):
+                    name = gen_string('alpha')
+                    make_user(session, username=name, first_name=first_name)
+                    element = self.user.search(name, search_key)
+                    self.assertIsNotNone(element)
+                    element.click()
+                    self.assertEqual(
+                        first_name,
+                        self.user.wait_until_element(
+                            locators['users.firstname']).get_attribute('value')
+                    )
 
-    @data(*valid_strings(50))
-    def test_positive_create_user_different_surnames(self, last_name):
+    def test_positive_create_user_different_surnames(self):
         """@Test: Create User for all variations of Surname
 
         @Feature: User - Positive Create
@@ -161,18 +162,19 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_user(session, username=name, last_name=last_name)
-            element = self.user.search(name, search_key)
-            self.assertIsNotNone(element)
-            element.click()
-            self.assertEqual(
-                last_name,
-                self.user.wait_until_element(
-                    locators['users.lastname']
-                ).get_attribute('value')
-            )
+            for last_name in valid_strings(50):
+                with self.subTest(last_name):
+                    name = gen_string('alpha')
+                    make_user(session, username=name, last_name=last_name)
+                    element = self.user.search(name, search_key)
+                    self.assertIsNotNone(element)
+                    element.click()
+                    self.assertEqual(
+                        last_name,
+                        self.user.wait_until_element(
+                            locators['users.lastname']).get_attribute('value')
+                    )
 
     @stubbed()
     def test_positive_create_user_different_emails(self):
@@ -190,8 +192,7 @@ class User(UITestCase):
 
         """
 
-    @data(*LANGUAGES)
-    def test_positive_create_user_different_languages(self, language):
+    def test_positive_create_user_different_languages(self):
         """@Test: Create User for all variations of Language
 
         @Feature: User - Positive Create
@@ -203,18 +204,20 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_user(session, username=name, locale=language)
-            element = self.user.search(name, search_key)
-            self.assertIsNotNone(element)
-            element.click()
-            self.assertEqual(
-                language,
-                self.user.wait_until_element(
-                    locators['users.selected_lang']
-                ).get_attribute('value')
-            )
+            for language in LANGUAGES:
+                with self.subTest(language):
+                    name = gen_string('alpha')
+                    make_user(session, username=name, locale=language)
+                    element = self.user.search(name, search_key)
+                    self.assertIsNotNone(element)
+                    element.click()
+                    self.assertEqual(
+                        language,
+                        self.user.wait_until_element(
+                            locators['users.selected_lang']
+                        ).get_attribute('value')
+                    )
 
     @stubbed()
     def test_positive_create_user_internal(self):
@@ -232,12 +235,7 @@ class User(UITestCase):
 
         """
 
-    @data(
-        u'foo@!#$^&*( ) {0}'.format(gen_string('alpha', 2)),
-        u'bar+{{}}|\"?hi {0}'.format(gen_string('alpha', 2)),
-        *valid_strings()
-    )
-    def test_positive_create_user_different_pass(self, password):
+    def test_positive_create_user_different_pass(self):
         """@Test: Create User for all variations of Password
 
         @Feature: User - Positive Create
@@ -249,11 +247,25 @@ class User(UITestCase):
         @Assert: User is created
 
         """
-        name = gen_string('alpha')
+        test_data = valid_strings()
+        #  List is extended to test additional password data points
+        test_data.extend([
+            x for x in (
+                u'foo@!#$^&*( ) {0}'.format(gen_string('alpha', 2)),
+                u'bar+{{}}|\"?hi {0}'.format(gen_string('alpha', 2)),
+            )
+        ])
         with Session(self.browser) as session:
-            make_user(session, username=name, password1=password,
-                      password2=password)
-            self.assertIsNotNone(self.user.search(name, search_key))
+            for password in test_data:
+                with self.subTest(password):
+                    name = gen_string('alpha')
+                    make_user(
+                        session,
+                        username=name,
+                        password1=password,
+                        password2=password,
+                    )
+                    self.assertIsNotNone(self.user.search(name, search_key))
 
     @stubbed()
     def test_positive_create_user_admin(self):
@@ -683,8 +695,7 @@ class User(UITestCase):
 
         """
 
-    @data(*invalid_names_list())
-    def test_negative_create_user_with_invalid_name(self, user_name):
+    def test_negative_create_user_with_invalid_name(self):
         """@Test: Create User with invalid User Name
 
         @Feature: User - Negative Create
@@ -697,12 +708,15 @@ class User(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_user(session, username=user_name)
-            error = self.user.wait_until_element(common_locators['haserror'])
-            self.assertIsNotNone(error)
+            for user_name in invalid_values_list(interface='ui'):
+                with self.subTest(user_name):
+                    make_user(session, username=user_name)
+                    self.assertIsNotNone(
+                        self.user.wait_until_element(
+                            common_locators['haserror'])
+                    )
 
-    @data(*invalid_names_list())
-    def test_negative_create_user_with_invalid_firstname(self, first_name):
+    def test_negative_create_user_with_invalid_firstname(self):
         """@Test: Create User with invalid FirstName
 
         @Feature: User - Negative Create
@@ -715,13 +729,21 @@ class User(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_user(
-                session, username=gen_string('alpha'), first_name=first_name)
-            error = self.user.wait_until_element(common_locators['haserror'])
-            self.assertIsNotNone(error)
+            # invalid_values_list is not used here because first name is an
+            # optional field
+            for first_name in invalid_names_list():
+                with self.subTest(first_name):
+                    make_user(
+                        session,
+                        username=gen_string('alpha'),
+                        first_name=first_name,
+                    )
+                    self.assertIsNotNone(
+                        self.user.wait_until_element(
+                            common_locators['haserror'])
+                    )
 
-    @data(*invalid_names_list())
-    def test_negative_create_user_with_invalid_surname(self, last_name):
+    def test_negative_create_user_with_invalid_surname(self):
         """@Test: Create User with invalid Surname
 
         @Feature: User - Negative Create
@@ -734,10 +756,19 @@ class User(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_user(
-                session, username=gen_string('alpha'), last_name=last_name)
-            error = self.user.wait_until_element(common_locators['haserror'])
-            self.assertIsNotNone(error)
+            # invalid_values_list is not used here because sur name is an
+            # optional field
+            for last_name in invalid_names_list():
+                with self.subTest(last_name):
+                    make_user(
+                        session,
+                        username=gen_string('alpha'),
+                        last_name=last_name,
+                    )
+                    self.assertIsNotNone(
+                        self.user.wait_until_element(
+                            common_locators['haserror'])
+                    )
 
     @stubbed()
     def test_negative_create_user_5(self):
@@ -796,8 +827,7 @@ class User(UITestCase):
             self.assertIsNotNone(error)
 
     @skip_if_bug_open('bugzilla', 1139616)
-    @data(*valid_strings())
-    def test_positive_update_user_username(self, new_username):
+    def test_positive_update_user_username(self):
         """@Test: Update Username in User
 
         @Feature: User - Positive Update
@@ -815,14 +845,23 @@ class User(UITestCase):
         password = gen_string('alpha')
         with Session(self.browser) as session:
             # Role Site meaning 'Site Manager' here
-            make_user(session, username=name, password1=password,
-                      password2=password, edit=True, roles=['Site'])
-            self.user.update(search_key, name, new_username)
-            self.assertIsNotNone(
-                self.user.search(new_username, search_key))
-            self.login.logout()
-            self.login.login(new_username, password)
-            self.assertTrue(self.login.is_logged())
+            make_user(
+                session,
+                username=name,
+                password1=password,
+                password2=password,
+                edit=True,
+                roles=['Site'],
+            )
+            for new_username in valid_strings():
+                with self.subTest(new_username):
+                    self.user.update(search_key, name, new_username)
+                    self.assertIsNotNone(
+                        self.user.search(new_username, search_key))
+                    self.login.logout()
+                    self.login.login(new_username, password)
+                    self.assertTrue(self.login.is_logged())
+                    name = new_username  # for next iteration
 
     @stubbed()
     def test_positive_update_user_firstname(self):
