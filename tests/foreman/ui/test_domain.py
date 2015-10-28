@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name
 """Test class for Domain UI"""
-from ddt import ddt, data
 from fauxfactory import gen_string
 from robottelo.constants import DOMAIN
 from robottelo.decorators import (
@@ -13,13 +13,38 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@ddt
+def valid_long_domain_names():
+    """Returns a list of valid long domain names
+
+    The length of chars is in accordance with DOMAIN global variable.
+
+    """
+    return[
+        gen_string('alphanumeric', 243),
+        gen_string('alpha', 243),
+        gen_string('numeric', 243),
+        gen_string('latin1', 243),
+        gen_string('utf8', 243),
+    ]
+
+
+def valid_domain_update_data():
+    """Returns a list of valid test data for domain update tests"""
+    return [
+        {'name': gen_string('alpha', 10)},
+        {'name': gen_string('numeric', 10)},
+        {'name': gen_string('alphanumeric', 10)},
+        {'name': gen_string('utf8', 10)},
+        {'name': gen_string('latin1', 10)},
+        {'name': gen_string('html', 10), 'bugzilla': 1220104}
+    ]
+
+
 class Domain(UITestCase):
     """Implements Domain tests in UI"""
 
-    @data(*generate_strings_list(len1=4))
     @run_only_on('sat')
-    def test_create_domain_1(self, name):
+    def test_create_domain_1(self):
         """@Test: Create a new domain
 
         @Feature: Domain - Positive Create domain
@@ -27,22 +52,17 @@ class Domain(UITestCase):
         @Assert: Domain is created
 
         """
-        domain_name = description = DOMAIN % name
         with Session(self.browser) as session:
-            make_domain(session, name=domain_name, description=description)
-            element = self.domain.search(description)
-            self.assertIsNotNone(element)
+            for name in generate_strings_list(len1=4):
+                with self.subTest(name):
+                    domain_name = description = DOMAIN % name
+                    make_domain(
+                        session, name=domain_name, description=description)
+                    element = self.domain.search(description)
+                    self.assertIsNotNone(element)
 
-    # The length of chars is in accordance with DOMAIN global variable.
-    @data(
-        gen_string('alphanumeric', 243),
-        gen_string('alpha', 243),
-        gen_string('numeric', 243),
-        gen_string('latin1', 243),
-        gen_string('utf8', 243),
-    )
     @run_only_on('sat')
-    def test_create_domain_2(self, name):
+    def test_create_domain_2(self):
         """@Test: Create a new domain
 
         @Feature: Domain - Positive Create domain with 255 chars
@@ -50,11 +70,14 @@ class Domain(UITestCase):
         @Assert: Domain is created
 
         """
-        domain_name = description = DOMAIN % name
         with Session(self.browser) as session:
-            make_domain(session, name=domain_name, description=description)
-            element = self.domain.search(description)
-            self.assertIsNotNone(element)
+            for name in valid_long_domain_names():
+                with self.subTest(name):
+                    domain_name = description = DOMAIN % name
+                    make_domain(
+                        session, name=domain_name, description=description)
+                    element = self.domain.search(description)
+                    self.assertIsNotNone(element)
 
     @run_only_on('sat')
     def test_remove_domain(self):
@@ -70,20 +93,8 @@ class Domain(UITestCase):
             make_domain(session, name=domain_name, description=description)
             self.domain.delete(domain_name)
 
-    @data({'name': gen_string('alpha', 10),
-           'newname': gen_string('alpha', 10)},
-          {'name': gen_string('numeric', 10),
-           'newname': gen_string('numeric', 10)},
-          {'name': gen_string('alphanumeric', 10),
-           'newname': gen_string('alphanumeric', 10)},
-          {'name': gen_string('utf8', 10),
-           'newname': gen_string('utf8', 10)},
-          {'name': gen_string('latin1', 10),
-           'newname': gen_string('latin1', 10)},
-          {'name': gen_string('html', 10),
-           'newname': gen_string('html', 10), 'bugzilla': 1220104})
     @run_only_on('sat')
-    def test_update_domain(self, testdata):
+    def test_update_domain(self):
         """@Test: Update a domain with name and description
 
         @Feature: Domain - Update
@@ -91,22 +102,23 @@ class Domain(UITestCase):
         @Assert: Domain is updated
 
         """
-        bug_id = testdata.pop('bugzilla', None)
-        if bug_id is not None and bz_bug_is_open(bug_id):
-            self.skipTest('Bugzilla bug {0} is open.'.format(bug_id))
-
-        domain_name = description = DOMAIN % testdata['name']
-        new_name = new_description = DOMAIN % testdata['newname']
+        domain_name = description = DOMAIN % gen_string('alpha', 10)
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
-            element = self.domain.search(description)
-            self.assertIsNotNone(element)
-            self.domain.update(domain_name, new_name, new_description)
-            self.assertIsNotNone(self.domain.search(new_description))
+            self.assertIsNotNone(self.domain.search(domain_name))
+            for testdata in valid_domain_update_data():
+                with self.subTest(testdata):
+                    bug_id = testdata.pop('bugzilla', None)
+                    if bug_id is not None and bz_bug_is_open(bug_id):
+                        self.skipTest('Bugzilla bug {0} is open.'.format(
+                            bug_id))
+                    new_name = new_description = DOMAIN % testdata['name']
+                    self.domain.update(domain_name, new_name, new_description)
+                    self.assertIsNotNone(self.domain.search(new_name))
+                    domain_name = new_name  # for next iteration
 
-    @data(*invalid_values_list())
     @run_only_on('sat')
-    def test_negative_create_domain(self, name):
+    def test_negative_create_domain(self):
         """@Test: Try to create domain and use whitespace, blank, tab symbol or
         too long string of different types as its name value
 
@@ -116,14 +128,15 @@ class Domain(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_domain(session, name=name, description=name)
-            error = session.nav.wait_until_element(
-                common_locators['name_haserror'])
-            self.assertIsNotNone(error)
+            for name in invalid_values_list(interface='ui'):
+                with self.subTest(name):
+                    make_domain(session, name=name, description=name)
+                    error = session.nav.wait_until_element(
+                        common_locators['name_haserror'])
+                    self.assertIsNotNone(error)
 
-    @data(*generate_strings_list(len1=4))
     @run_only_on('sat')
-    def test_positive_set_domain_parameter_1(self, name):
+    def test_positive_set_domain_parameter_1(self):
         """@Test: Set parameter name and value for domain
 
         @Feature: Domain - Misc
@@ -131,18 +144,20 @@ class Domain(UITestCase):
         @Assert: Domain is updated
 
         """
-        domain_name = description = DOMAIN % name
-        param_name = gen_string('alpha', 4)
-        param_value = gen_string('alpha', 3)
         with Session(self.browser) as session:
-            make_domain(session, name=domain_name, description=description)
-            element = self.domain.search(description)
-            self.assertIsNotNone(element)
-            try:
-                self.domain.set_domain_parameter(
-                    description, param_name, param_value)
-            except UIError as err:
-                self.fail(err)
+            for name in generate_strings_list(len1=4):
+                with self.subTest(name):
+                    domain_name = description = DOMAIN % name
+                    param_name = gen_string('alpha', 4)
+                    param_value = gen_string('alpha', 3)
+                    make_domain(
+                        session, name=domain_name, description=description)
+                    self.assertIsNotNone(self.domain.search(domain_name))
+                    try:
+                        self.domain.set_domain_parameter(
+                            description, param_name, param_value)
+                    except UIError as err:
+                        self.fail(err)
 
     @run_only_on('sat')
     def test_positive_set_domain_parameter_2(self):
@@ -245,9 +260,8 @@ class Domain(UITestCase):
             self.assertIsNotNone(session.nav.wait_until_element(
                 common_locators['common_param_error']))
 
-    @data(*generate_strings_list(len1=4))
     @run_only_on('sat')
-    def test_remove_domain_parameter(self, name):
+    def test_remove_domain_parameter(self):
         """@Test: Remove a selected domain parameter
 
         @Feature: Domain - Misc
@@ -255,16 +269,20 @@ class Domain(UITestCase):
         @Assert: Domain parameter is removed
 
         """
-        domain_name = description = DOMAIN % name
-        param_name = gen_string('alpha', 3)
-        param_value = gen_string('alpha', 3)
         with Session(self.browser) as session:
-            make_domain(session, name=domain_name, description=description)
-            element = self.domain.search(description)
-            self.assertIsNotNone(element)
-            try:
-                self.domain.set_domain_parameter(
-                    description, param_name, param_value)
-                self.domain.remove_domain_parameter(description, param_name)
-            except UIError as err:
-                self.fail(err)
+            for name in generate_strings_list(len1=4):
+                with self.subTest(name):
+                    domain_name = description = DOMAIN % name
+                    param_name = gen_string('alpha', 3)
+                    param_value = gen_string('alpha', 3)
+                    make_domain(
+                        session, name=domain_name, description=description)
+                    element = self.domain.search(domain_name)
+                    self.assertIsNotNone(element)
+                    try:
+                        self.domain.set_domain_parameter(
+                            description, param_name, param_value)
+                        self.domain.remove_domain_parameter(
+                            description, param_name)
+                    except UIError as err:
+                        self.fail(err)
