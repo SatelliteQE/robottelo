@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name, too-many-lines, too-many-public-methods
 """Test class for Host/System Unification
 
 Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 """
 
-from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
@@ -25,7 +25,10 @@ from robottelo.constants import (
 )
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
 from robottelo.helpers import (
-    invalid_names_list, read_data_file, valid_data_list)
+    invalid_names_list,
+    read_data_file,
+    valid_data_list,
+)
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
 from robottelo.ui.locators import common_locators, locators
@@ -33,15 +36,15 @@ from robottelo.ui.session import Session
 from robottelo.test import UITestCase
 
 
-@ddt
 class TestContentViewsUI(UITestCase):
     """Implement tests for content view via UI"""
 
     @classmethod
-    def setUpClass(cls):  # noqa
+    def setUpClass(cls):
         super(TestContentViewsUI, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
+    # pylint: disable=too-many-arguments
     def setup_to_create_cv(self, repo_name=None, repo_url=None, repo_type=None,
                            rh_repo=None, org_id=None):
         """Create product/repo and sync it"""
@@ -76,9 +79,8 @@ class TestContentViewsUI(UITestCase):
         # Sync repository
         entities.Repository(id=repo_id).sync()
 
-    @data(*valid_data_list())
     @run_only_on('sat')
-    def test_cv_create(self, name):
+    def test_cv_create(self):
         """@test: create content views (positive)
 
         @feature: Content Views
@@ -87,18 +89,17 @@ class TestContentViewsUI(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_contentview(
-                session, org=self.organization.name, name=name)
-            self.assertIsNotNone(
-                self.content_views.search(name),
-                'Failed to find content view %s from %s org' % (
-                    name, self.organization.name))
+            for name in valid_data_list():
+                with self.subTest(name):
+                    make_contentview(
+                        session, org=self.organization.name, name=name)
+                    self.assertIsNotNone(
+                        self.content_views.search(name),
+                        'Failed to find content view %s from %s org' % (
+                            name, self.organization.name)
+                    )
 
-    @data(*invalid_names_list())
-    @run_only_on('sat')
-    def test_cv_create_negative(self, name):
-        # variations (subject to change):
-        # zero length, symbols, html, etc.
+    def test_cv_create_negative(self):
         """@test: create content views (negative)
 
         @feature: Content Views
@@ -108,14 +109,18 @@ class TestContentViewsUI(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_contentview(
-                session, org=self.organization.name, name=name)
-            self.assertTrue(
-                self.content_views.wait_until_element(
-                    locators['contentviews.has_error']),
-                'No validation error found for "%s" from %s org' % (
-                    name, self.organization.name))
-            self.assertIsNone(self.content_views.search(name))
+            # invalid_names_list is used instead of invalid_values_list
+            # because save button will not be enabled if name is blank
+            for name in invalid_names_list():
+                with self.subTest(name):
+                    make_contentview(
+                        session, org=self.organization.name, name=name)
+                    self.assertTrue(
+                        self.content_views.wait_until_element(
+                            locators['contentviews.has_error']),
+                        'No validation error found for "%s" from %s org' % (
+                            name, self.organization.name))
+                    self.assertIsNone(self.content_views.search(name))
 
     @run_only_on('sat')
     def test_cv_end_to_end(self):
@@ -142,8 +147,9 @@ class TestContentViewsUI(UITestCase):
             # Create Life-cycle environment
             make_lifecycle_environment(
                 session, org=self.organization.name, name=env_name)
-            self.assertIsNotNone(session.nav.wait_until_element(
-                (strategy, value % env_name))
+            self.assertIsNotNone(
+                session.nav.wait_until_element(
+                    (strategy, value % env_name))
             )
             # Creates a CV along with product and sync'ed repository
             self.setup_to_create_cv(repo_name=repo_name)
@@ -321,9 +327,8 @@ class TestContentViewsUI(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success']))
 
-    @data(*valid_data_list())
     @run_only_on('sat')
-    def test_positive_cv_update_name(self, new_name):
+    def test_positive_cv_update_name(self):
         """@test: Positive update content views - name.
 
         @feature: Content Views
@@ -341,12 +346,14 @@ class TestContentViewsUI(UITestCase):
                 description=gen_string('alpha', 15),
             )
             self.assertIsNotNone(self.content_views.search(name))
-            self.content_views.update(name, new_name)
-            self.assertIsNotNone(self.content_views.search(new_name))
+            for new_name in valid_data_list():
+                with self.subTest(new_name):
+                    self.content_views.update(name, new_name)
+                    self.assertIsNotNone(self.content_views.search(new_name))
+                    name = new_name  # for next iteration
 
-    @data(*invalid_names_list())
     @run_only_on('sat')
-    def test_negative_cv_update_name(self, new_name):
+    def test_negative_cv_update_name(self):
         """@test: Negative update content views - name.
 
         @feature: Content Views
@@ -359,14 +366,17 @@ class TestContentViewsUI(UITestCase):
             make_contentview(
                 session, org=self.organization.name, name=name)
             self.assertIsNotNone(self.content_views.search(name))
-            self.content_views.update(name, new_name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.error']))
-            self.assertIsNone(self.content_views.search(new_name))
+            # invalid_names_list is used instead of invalid_values_list
+            # because save button will not be enabled if name is blank
+            for new_name in invalid_names_list():
+                with self.subTest(new_name):
+                    self.content_views.update(name, new_name)
+                    self.assertIsNotNone(self.content_views.wait_until_element(
+                        common_locators['alert.error']))
+                    self.assertIsNone(self.content_views.search(new_name))
 
-    @data(*valid_data_list())
     @run_only_on('sat')
-    def test_positive_cv_update_description(self, new_description):
+    def test_positive_cv_update_description(self):
         """@test: Positive update content views - description.
 
         @feature: Content Views
@@ -385,9 +395,11 @@ class TestContentViewsUI(UITestCase):
                 description=desc,
             )
             self.assertIsNotNone(self.content_views.search(name))
-            self.content_views.update(name, new_description=new_description)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+            for new_desc in valid_data_list():
+                with self.subTest(new_desc):
+                    self.content_views.update(name, new_description=new_desc)
+                    self.assertIsNotNone(self.content_views.wait_until_element(
+                        common_locators['alert.success']))
 
     @run_only_on('sat')
     def test_negative_cv_update_description(self):
@@ -429,9 +441,8 @@ class TestContentViewsUI(UITestCase):
 
         """
 
-    @data(*valid_data_list())
     @run_only_on('sat')
-    def test_cv_delete(self, name):
+    def test_cv_delete(self):
         """@test: delete content views
 
         @feature: Content Views
@@ -441,17 +452,21 @@ class TestContentViewsUI(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_contentview(
-                session, org=self.organization.name, name=name)
-            self.assertIsNotNone(
-                self.content_views.search(name),
-                'Failed to find content view %s from %s org' % (
-                    name, self.organization.name))
-            self.content_views.delete(name)
-            self.assertIsNone(
-                self.content_views.search(name),
-                'Content view %s from %s org was not deleted' % (
-                    name, self.organization.name))
+            for name in valid_data_list():
+                with self.subTest(name):
+                    make_contentview(
+                        session, org=self.organization.name, name=name)
+                    self.assertIsNotNone(
+                        self.content_views.search(name),
+                        'Failed to find content view %s from %s org' % (
+                            name, self.organization.name)
+                    )
+                    self.content_views.delete(name)
+                    self.assertIsNone(
+                        self.content_views.search(name),
+                        'Content view %s from %s org was not deleted' % (
+                            name, self.organization.name)
+                    )
 
     @run_only_on('sat')
     def test_cv_composite_create(self):
