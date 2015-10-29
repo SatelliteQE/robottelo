@@ -103,6 +103,8 @@ def import_content_hosts(files, tmp_dir):
         u'dir': os.path.join(tmp_dir, 'exports/CHANNELS'),
         u'verbose': True
     })
+    if bz_bug_is_open('1263650'):
+        wait_for_publish()
     # proceed with importing the content hosts
     import_chosts = Import.content_host_with_tr_data({
         u'csv-file': files['system-profiles'],
@@ -216,6 +218,16 @@ def get_sat6_id(
         if tr_record[tr_key] == entity[ent_key]:
             entity.update({'sat6': tr_record['sat6']})
     return entity_dict
+
+
+def wait_for_publish(delay_step=30):
+    from time import sleep
+    from robottelo.cli.task import Task
+    while [
+        t for t in Task.list({'search': 'state=running'})
+            if t['task-action'].startswith('Publish')
+    ]:
+        sleep(delay_step)
 
 
 def gen_import_org_data():
