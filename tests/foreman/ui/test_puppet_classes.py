@@ -1,6 +1,6 @@
+# -*- encoding: utf-8 -*-
 """Test class for Puppet Classes UI"""
 
-from ddt import ddt, data
 from nailgun import entities
 from robottelo.decorators import run_only_on
 from robottelo.helpers import generate_strings_list
@@ -8,13 +8,11 @@ from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
 
-@ddt
 class PuppetClasses(UITestCase):
     """Implements puppet classes tests in UI."""
 
-    @data(*generate_strings_list(len1=8))
     @run_only_on('sat')
-    def test_update_positive(self, description):
+    def test_update_positive(self):
         """@Test: Create new puppet-class
 
         @Feature: Puppet-Classes - Positive Update
@@ -25,26 +23,23 @@ class PuppetClasses(UITestCase):
         class_name = 'foreman_scap_client'
         param_name = 'ca file'
         with Session(self.browser):
-            # Importing puppet classes from puppet-foreman_scap_client
-            # module for update process
-            if self.puppetclasses.search(class_name) is None:
-                self.puppetclasses.import_scap_client_puppet_classes()
-            self.assertIsNotNone(self.puppetclasses.search(class_name))
-            self.puppetclasses.update_class_parameter_description(
-                class_name,
-                param_name,
-                description
-            )
-            self.assertEqual(
-                description,
-                self.puppetclasses.fetch_class_parameter_description(
-                    class_name,
-                    param_name)
-            )
+            for description in generate_strings_list(len1=8):
+                with self.subTest(description):
+                    # Importing puppet classes from puppet-foreman_scap_client
+                    # module for update process
+                    if self.puppetclasses.search(class_name) is None:
+                        self.puppetclasses.import_scap_client_puppet_classes()
+                    self.assertIsNotNone(self.puppetclasses.search(class_name))
+                    self.puppetclasses.update_class_parameter_description(
+                        class_name, param_name, description)
+                    self.assertEqual(
+                        description,
+                        self.puppetclasses.fetch_class_parameter_description(
+                            class_name, param_name)
+                    )
 
-    @data(*generate_strings_list(len1=8))
     @run_only_on('sat')
-    def test_delete_positive(self, name):
+    def test_delete_positive(self):
         """@Test: Create new puppet-class
 
         @Feature: Puppet-Classes - Positive delete
@@ -52,7 +47,9 @@ class PuppetClasses(UITestCase):
         @Assert: Puppet-Class is deleted
 
         """
-        entities.PuppetClass(name=name).create()
         with Session(self.browser) as session:
-            session.nav.go_to_puppet_classes()
-            self.puppetclasses.delete(name)
+            for name in generate_strings_list(len1=8):
+                with self.subTest(name):
+                    entities.PuppetClass(name=name).create()
+                    session.nav.go_to_puppet_classes()
+                    self.puppetclasses.delete(name)
