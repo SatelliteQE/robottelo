@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 # pylint: disable=invalid-name
 """Test class for Domain  CLI"""
-from ddt import data
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.domain import Domain
@@ -11,13 +10,9 @@ from robottelo.decorators import run_only_on
 from robottelo.test import MetaCLITestCase
 
 
-class TestDomain(MetaCLITestCase):
-    """Domain CLI tests"""
-
-    factory = make_domain
-    factory_obj = Domain
-
-    @data(
+def valid_create_params():
+    """Returns a list of valid domain create parameters"""
+    return [
         {u'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
          u'description': gen_string(str_type='alpha')},
         {u'name': gen_string(str_type='utf8'),
@@ -26,9 +21,88 @@ class TestDomain(MetaCLITestCase):
          u'description': gen_string(str_type='numeric')},
         {u'name': gen_string(str_type='utf8', length=255),
          u'description': gen_string(str_type='utf8', length=255)},
-    )
+    ]
+
+
+def invalid_create_params():
+    """Returns a list of invalid domain create parameters"""
+    return [
+        {u'description': gen_string(str_type='utf8', length=256)},
+        {u'dns-id': '-1'},
+        {u'name': gen_string(str_type='utf8', length=256)},
+    ]
+
+
+def valid_update_params():
+    """Returns a list of valid domain update parameters"""
+    return [
+        {u'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
+         u'description': gen_string(str_type='alpha')},
+        {u'name': gen_string(str_type='utf8'),
+         u'description': gen_string(str_type='utf8')},
+        {u'name': gen_string(str_type='numeric'),
+         u'description': gen_string(str_type='numeric')},
+        {u'name': gen_string(str_type='utf8', length=255),
+         u'description': gen_string(str_type='utf8', length=255)},
+    ]
+
+
+def invalid_update_params():
+    """Returns a list of invalid domain update parameters"""
+    return [
+        {u'name': ''},
+        {u'name': gen_string(str_type='utf8', length=256)},
+        {u'description': gen_string(str_type='utf8', length=256)},
+        {u'dns-id': '-1'},
+    ]
+
+
+def valid_set_params():
+    """Returns a list of valid domain set parameters"""
+    return [
+        {'name': gen_string(str_type='utf8'),
+         'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8', length=255),
+         'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8'),
+         'value': gen_string(str_type='utf8', length=255)},
+        {'name': gen_string(str_type='utf8'),
+         'value': ''},
+    ]
+
+
+def invalid_set_params():
+    """Returns a list of invalid domain set parameters"""
+    return [
+        {'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
+         'value': gen_string(str_type='utf8')},
+        {'name': '',
+         'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8', length=256),
+         'value': gen_string(str_type='utf8')},
+    ]
+
+
+def valid_delete_params():
+    """Returns a list of valid domain delete parameters"""
+    return [
+        {'name': gen_string(str_type='utf8'),
+         'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8', length=255),
+         'value': gen_string(str_type='utf8')},
+        {'name': gen_string(str_type='utf8'),
+         'value': ''},
+    ]
+
+
+class TestDomain(MetaCLITestCase):
+    """Domain CLI tests"""
+
+    factory = make_domain
+    factory_obj = Domain
+
     @run_only_on('sat')
-    def test_positive_create(self, options):
+    def test_positive_create(self):
         """@Test: Create domain with valid name and description
 
         @Feature: Domain positive create
@@ -36,9 +110,12 @@ class TestDomain(MetaCLITestCase):
         @Assert: Domain successfully created
 
         """
-        domain = make_domain(options)
-        self.assertEqual(domain['name'], options['name'])
-        self.assertEqual(domain['description'], options['description'])
+        for options in valid_create_params():
+            with self.subTest(options):
+                domain = make_domain(options)
+                self.assertEqual(domain['name'], options['name'])
+                self.assertEqual(
+                    domain['description'], options['description'])
 
     @run_only_on('sat')
     def test_create_domain_with_location(self):
@@ -66,13 +143,8 @@ class TestDomain(MetaCLITestCase):
         domain = make_domain({'organization-ids': org['id']})
         self.assertIn(org['name'], domain['organizations'])
 
-    @data(
-        {u'description': gen_string(str_type='utf8', length=256)},
-        {u'dns-id': '-1'},
-        {u'name': gen_string(str_type='utf8', length=256)},
-    )
     @run_only_on('sat')
-    def test_negative_create(self, options):
+    def test_negative_create(self):
         """@Test: Create domain with invalid values
 
         @Feature: Domain negative create
@@ -80,21 +152,13 @@ class TestDomain(MetaCLITestCase):
         @Assert: Domain is not created
 
         """
-        with self.assertRaises(CLIFactoryError):
-            make_domain(options)
+        for options in invalid_create_params():
+            with self.subTest(options):
+                with self.assertRaises(CLIFactoryError):
+                    make_domain(options)
 
-    @data(
-        {u'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
-         u'description': gen_string(str_type='alpha')},
-        {u'name': gen_string(str_type='utf8'),
-         u'description': gen_string(str_type='utf8')},
-        {u'name': gen_string(str_type='numeric'),
-         u'description': gen_string(str_type='numeric')},
-        {u'name': gen_string(str_type='utf8', length=255),
-         u'description': gen_string(str_type='utf8', length=255)},
-    )
     @run_only_on('sat')
-    def test_positive_update(self, options):
+    def test_positive_update(self):
         """@Test: Update domain with valid values
 
         @Feature: Domain positive update
@@ -105,21 +169,17 @@ class TestDomain(MetaCLITestCase):
         domain = make_domain({
             u'description': gen_string(str_type='utf8')
         })
-        # update description
-        Domain.update(dict(options, id=domain['id']))
-        # check - domain updated
-        domain = Domain.info({'id': domain['id']})
-        for key, val in options.iteritems():
-            self.assertEqual(domain[key], val)
+        for options in valid_update_params():
+            with self.subTest(options):
+                # update description
+                Domain.update(dict(options, id=domain['id']))
+                # check - domain updated
+                domain = Domain.info({'id': domain['id']})
+                for key, val in options.iteritems():
+                    self.assertEqual(domain[key], val)
 
-    @data(
-        {u'name': ''},
-        {u'name': gen_string(str_type='utf8', length=256)},
-        {u'description': gen_string(str_type='utf8', length=256)},
-        {u'dns-id': '-1'},
-    )
     @run_only_on('sat')
-    def test_negative_update(self, options):
+    def test_negative_update(self):
         """@Test: Update domain with invalid values
 
         @Feature: Domain negative update
@@ -128,26 +188,17 @@ class TestDomain(MetaCLITestCase):
 
         """
         domain = make_domain()
-        # update description
-        with self.assertRaises(CLIReturnCodeError):
-            Domain.update(dict(options, id=domain['id']))
-        # check - domain not updated
-        result = Domain.info({'id': domain['id']})
-        for key in options.keys():
-            self.assertEqual(result[key], domain[key])
+        for options in invalid_update_params():
+            with self.subTest(options):
+                with self.assertRaises(CLIReturnCodeError):
+                    Domain.update(dict(options, id=domain['id']))
+                # check - domain not updated
+                result = Domain.info({'id': domain['id']})
+                for key in options.keys():
+                    self.assertEqual(result[key], domain[key])
 
-    @data(
-        {'name': gen_string(str_type='utf8'),
-         'value': gen_string(str_type='utf8')},
-        {'name': gen_string(str_type='utf8', length=255),
-         'value': gen_string(str_type='utf8')},
-        {'name': gen_string(str_type='utf8'),
-         'value': gen_string(str_type='utf8', length=255)},
-        {'name': gen_string(str_type='utf8'),
-         'value': ''},
-    )
     @run_only_on('sat')
-    def test_positive_set_parameter(self, options):
+    def test_positive_set_parameter(self):
         """@Test: Domain set-parameter with valid key and value
 
         @Feature: Domain positive set-parameter
@@ -155,28 +206,20 @@ class TestDomain(MetaCLITestCase):
         @Assert: Domain parameter is set
 
         """
-        domain = make_domain()
-        options['domain-id'] = domain['id']
-        # set parameter
-        Domain.set_parameter(options)
-        # check - parameter set
-        domain = Domain.info({'id': domain['id']})
-        parameter = {
-            # Sattelite applies lower to parameter's name
-            options['name'].lower(): options['value'],
-        }
-        self.assertDictEqual(parameter, domain['parameters'])
+        for options in valid_set_params():
+            with self.subTest(options):
+                domain = make_domain()
+                options['domain-id'] = domain['id']
+                Domain.set_parameter(options)
+                domain = Domain.info({'id': domain['id']})
+                parameter = {
+                    # Satellite applies lower to parameter's name
+                    options['name'].lower(): options['value'],
+                }
+                self.assertDictEqual(parameter, domain['parameters'])
 
-    @data(
-        {'name': u'white spaces {0}'.format(gen_string(str_type='utf8')),
-         'value': gen_string(str_type='utf8')},
-        {'name': '',
-         'value': gen_string(str_type='utf8')},
-        {'name': gen_string(str_type='utf8', length=256),
-         'value': gen_string(str_type='utf8')},
-    )
     @run_only_on('sat')
-    def test_negative_set_parameter(self, options):
+    def test_negative_set_parameter(self):
         """@Test: Domain set-parameter with invalid values
 
         @Feature: Domain negative set-parameter
@@ -185,24 +228,18 @@ class TestDomain(MetaCLITestCase):
 
         """
         domain = make_domain()
-        options['domain-id'] = domain['id']
-        # set parameter
-        with self.assertRaises(CLIReturnCodeError):
-            Domain.set_parameter(options)
-        # check - parameter not set
-        domain = Domain.info({'id': domain['id']})
-        self.assertEqual(len(domain['parameters']), 0)
+        for options in invalid_set_params():
+            with self.subTest(options):
+                options['domain-id'] = domain['id']
+                # set parameter
+                with self.assertRaises(CLIReturnCodeError):
+                    Domain.set_parameter(options)
+                # check - parameter not set
+                domain = Domain.info({'id': domain['id']})
+                self.assertEqual(len(domain['parameters']), 0)
 
-    @data(
-        {'name': gen_string(str_type='utf8'),
-         'value': gen_string(str_type='utf8')},
-        {'name': gen_string(str_type='utf8', length=255),
-         'value': gen_string(str_type='utf8')},
-        {'name': gen_string(str_type='utf8'),
-         'value': ''},
-    )
     @run_only_on('sat')
-    def test_positive_delete_parameter(self, options):
+    def test_positive_delete_parameter(self):
         """@Test: Domain delete-parameter removes parameter
 
         @Feature: Domain positive delete-parameter
@@ -210,13 +247,15 @@ class TestDomain(MetaCLITestCase):
         @Assert: Domain parameter is removed
 
         """
-        domain = make_domain()
-        options['domain'] = domain['name']
-        Domain.set_parameter(options)
-        Domain.delete_parameter({
-            u'name': options['name'],
-            u'domain-id': domain['id'],
-        })
-        # check - parameter not set
-        domain = Domain.info({'name': domain['name']})
-        self.assertEqual(len(domain['parameters']), 0)
+        for options in valid_delete_params():
+            with self.subTest(options):
+                domain = make_domain()
+                options['domain'] = domain['name']
+                Domain.set_parameter(options)
+                Domain.delete_parameter({
+                    u'name': options['name'],
+                    u'domain-id': domain['id'],
+                })
+                # check - parameter not set
+                domain = Domain.info({'name': domain['name']})
+                self.assertEqual(len(domain['parameters']), 0)
