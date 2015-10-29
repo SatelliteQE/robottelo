@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 # pylint: disable=invalid-name
 """Test for Environment  CLI"""
-from ddt import data
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
@@ -9,6 +8,15 @@ from robottelo.cli.factory import make_environment, make_location, make_org
 from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.helpers import bz_bug_is_open, invalid_values_list
 from robottelo.test import MetaCLITestCase
+
+
+def valid_names():
+    """Returns a list of valid environment names"""
+    return [
+        gen_string('alpha'),
+        gen_string('numeric'),
+        gen_string('alphanumeric'),
+    ]
 
 
 class TestEnvironment(MetaCLITestCase):
@@ -124,13 +132,8 @@ class TestEnvironment(MetaCLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Environment().info({'name': name})
 
-    @data(
-        gen_string('alpha', 10),
-        gen_string('numeric', 10),
-        gen_string('alphanumeric', 10),
-    )
     @run_only_on('sat')
-    def test_update(self, new_name):
+    def test_update_positive(self):
         """@Test: Update the environment
 
         @Feature: Environment - Update
@@ -140,16 +143,18 @@ class TestEnvironment(MetaCLITestCase):
         """
         name = gen_string('alphanumeric')
         make_environment({'name': name})
-        Environment.update({
-            'name': name,
-            'new-name': new_name,
-        })
-        env = Environment.info({'name': new_name})
-        self.assertEqual(env['name'], new_name)
+        for new_name in valid_names():
+            with self.subTest(new_name):
+                Environment.update({
+                    'name': name,
+                    'new-name': new_name,
+                })
+                env = Environment.info({'name': new_name})
+                self.assertEqual(env['name'], new_name)
+                name = new_name  # for next iteration
 
-    @data(*invalid_values_list())
     @run_only_on('sat')
-    def test_update_negative(self, new_name):
+    def test_update_negative(self):
         """@Test: Update the environment with invalid values
 
         @Feature: Environment - Update
@@ -159,16 +164,15 @@ class TestEnvironment(MetaCLITestCase):
         """
         name = gen_string('alphanumeric')
         env = make_environment({'name': name})
-        with self.assertRaises(CLIReturnCodeError):
-            Environment.update({
-                'name': name,
-                'new-name': new_name,
-            })
-        env = Environment.info({'id': env['id']})
-        # Verify that value is not updated and left as it was before update
-        # command was executed
-        self.assertEqual(env['name'], name)
-        self.assertNotEqual(env['name'], new_name)
+        for new_name in invalid_values_list():
+            with self.subTest(new_name):
+                with self.assertRaises(CLIReturnCodeError):
+                    Environment.update({
+                        'name': name,
+                        'new-name': new_name,
+                    })
+                    env = Environment.info({'id': env['id']})
+                    self.assertEqual(env['name'], name)
 
     @run_only_on('sat')
     def test_update_location(self):
