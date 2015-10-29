@@ -157,8 +157,8 @@ To test The Foreman's API, CLI or UI, use the following commands respectively::
     $ nosetests tests.foreman.cli
     $ nosetests tests.foreman.ui
 
-Many of the existing tests use the `DDT module`_ to allow for a more data-driven
-methodology and in order to run a specific test you need override the way
+Many of the existing tests use `subTest`_ to allow for a more data-driven
+methodology.  In order to run a specific test you need to override the way
 ``nosetests`` discovers test names. For instance, if you wanted to run only the
 ``test_positive_create_1`` data-driven tests for the ``foreman.cli.test_org``
 module::
@@ -226,7 +226,7 @@ To check for code smells::
 The design and development for this software is led by `Og Maciel`_.
 
 .. _data driven: http://en.wikipedia.org/wiki/Data-driven_testing
-.. _DDT module: http://ddt.readthedocs.org/en/latest/
+.. _subTest: https://docs.python.org/3/library/unittest.html#unittest.TestCase.subTest
 .. _graphviz: http://graphviz.org/
 .. _nose: https://nose.readthedocs.org/en/latest/index.html
 .. _Og Maciel: http://www.ogmaciel.com
