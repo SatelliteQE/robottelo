@@ -1,14 +1,14 @@
 # -*- encoding: utf-8 -*-
+# pylint: disable=invalid-name
 """Test class for Operating System UI"""
 
-from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import (
     INSTALL_MEDIUM_URL, PARTITION_SCRIPT_DATA_FILE)
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on
 from robottelo.helpers import (
-    get_data_file, invalid_names_list, valid_data_list)
+    get_data_file, invalid_values_list, valid_data_list)
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_os
@@ -16,18 +16,42 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@ddt
+def valid_os_parameters():
+    """Returns a list of valid os parameters"""
+    return [
+        {u'name': gen_string('alpha', 10),
+         u'major_version': gen_string('numeric', 1),
+         u'minor_version': gen_string('numeric', 1),
+         u'desc': gen_string('alpha', 10),
+         u'os_family': 'Red Hat'},
+        {u'name': gen_string('html', 10),
+         u'major_version': gen_string('numeric', 4),
+         u'minor_version': gen_string('numeric', 4),
+         u'desc': gen_string('html', 10),
+         u'os_family': 'Gentoo'},
+        {u'name': gen_string('utf8', 10),
+         u'major_version': gen_string('numeric', 5),
+         u'minor_version': gen_string('numeric', 16),
+         u'desc': gen_string('utf8', 10),
+         u'os_family': 'SUSE'},
+        {u'name': gen_string('alphanumeric', 255),
+         u'major_version': gen_string('numeric', 5),
+         u'minor_version': gen_string('numeric', 1),
+         u'desc': gen_string('alphanumeric', 255),
+         u'os_family': 'SUSE'}
+    ]
+
+
 class OperatingSys(UITestCase):
     """Implements Operating system tests from UI"""
 
     @classmethod
-    def setUpClass(cls):  # noqa
+    def setUpClass(cls):
         super(OperatingSys, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
-    @data(*valid_data_list())
     @run_only_on('sat')
-    def test_create_os_with_different_names(self, name):
+    def test_create_os_with_different_names(self):
         """@Test: Create a new OS using different string types as a name
 
         @Feature: OS - Positive Create
@@ -36,86 +60,45 @@ class OperatingSys(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_os(
-                session,
-                name=name,
-                major_version=gen_string('numeric', 1),
-                minor_version=gen_string('numeric', 1),
-                os_family='Red Hat',
-                archs=['x86_64'],
-            )
-            self.assertIsNotNone(self.operatingsys.search(name))
+            for name in valid_data_list():
+                with self.subTest(name):
+                    make_os(
+                        session,
+                        name=name,
+                        major_version=gen_string('numeric', 1),
+                        minor_version=gen_string('numeric', 1),
+                        os_family='Red Hat',
+                        archs=['x86_64'],
+                    )
+                    self.assertIsNotNone(self.operatingsys.search(name))
 
-    @data({u'major_version': gen_string('numeric', 1),
-           u'minor_version': gen_string('numeric', 1),
-           u'desc': gen_string('alpha', 10),
-           u'os_family': 'Red Hat'},
-          {u'major_version': gen_string('numeric', 4),
-           u'minor_version': gen_string('numeric', 4),
-           u'desc': gen_string('html', 10),
-           u'os_family': 'Gentoo'},
-          {u'major_version': gen_string('numeric', 5),
-           u'minor_version': gen_string('numeric', 16),
-           u'desc': gen_string('utf8', 10),
-           u'os_family': 'SUSE'},
-          {u'major_version': gen_string('numeric', 5),
-           u'minor_version': gen_string('numeric', 1),
-           u'desc': gen_string('alphanumeric', 255),
-           u'os_family': 'SUSE'})
     @run_only_on('sat')
-    def test_create_os_with_random_params(self, test_data):
+    def test_create_os_with_random_params(self):
         """@Test: Create a new OS with different data values
 
         @Feature: OS - Positive Create
 
         @Assert: OS is created
 
-        @BZ: 1120568
-
-        """
-        name = gen_string('alpha')
-        with Session(self.browser) as session:
-            make_os(
-                session,
-                name=name,
-                major_version=test_data['major_version'],
-                minor_version=test_data['minor_version'],
-                description=test_data['desc'],
-                os_family=test_data['os_family'],
-                archs=['i386'],
-            )
-            self.assertIsNotNone(self.operatingsys.search
-                                 (test_data['desc'], search_key='description'))
-
-    @data(*invalid_names_list())
-    @run_only_on('sat')
-    def test_negative_create_os_with_long_names(self, name):
-        """@Test: OS - Create a new OS with too long string of different types
-        as its name value
-
-        @Feature: Create a new OS - Negative
-
-        @Assert: OS is not created
-
-        @BZ: 1120181
-
         """
         with Session(self.browser) as session:
-            make_os(
-                session,
-                name=name,
-                major_version=gen_string('numeric', 1),
-                minor_version=gen_string('numeric', 1),
-                os_family='Red Hat',
-                archs=['x86_64']
-            )
-            self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators['name_haserror']))
-            self.assertIsNone(self.operatingsys.search(name))
+            for test_data in valid_os_parameters():
+                with self.subTest(test_data):
+                    make_os(
+                        session,
+                        name=test_data['name'],
+                        major_version=test_data['major_version'],
+                        minor_version=test_data['minor_version'],
+                        description=test_data['desc'],
+                        os_family=test_data['os_family'],
+                        archs=['i386'],
+                    )
+                    self.assertIsNotNone(self.operatingsys.search(
+                        test_data['desc'], search_key='description'))
 
     @run_only_on('sat')
-    def test_negative_create_os_with_blank_name(self):
-        """@Test: OS - Create a new OS with blank name
+    def test_negative_create_os_invalid_name(self):
+        """@Test: OS - Create a new OS with invalid name
 
         @Feature: Create a new OS - Negative
 
@@ -123,16 +106,18 @@ class OperatingSys(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_os(
-                session,
-                name='',
-                major_version=gen_string('numeric', 1),
-                minor_version=gen_string('numeric', 1),
-                os_family='Red Hat',
-                archs=['x86_64']
-            )
-            self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators['name_haserror']))
+            for name in invalid_values_list(interface='ui'):
+                with self.subTest(name):
+                    make_os(
+                        session,
+                        name=name,
+                        major_version=gen_string('numeric', 1),
+                        minor_version=gen_string('numeric', 1),
+                        os_family='Red Hat',
+                        archs=['x86_64'],
+                    )
+                    self.assertIsNotNone(self.operatingsys.wait_until_element(
+                        common_locators['name_haserror']))
 
     @run_only_on('sat')
     def test_negative_create_os_with_long_desc(self):
@@ -159,11 +144,36 @@ class OperatingSys(UITestCase):
                                  (common_locators['haserror']))
             self.assertIsNone(self.operatingsys.search(name))
 
-    @data(gen_string('numeric', 6), '', '-6')
     @run_only_on('sat')
-    def test_negative_create_os_with_wrong_major_version(self, major_version):
-        """@Test: OS - Create a new OS with incorrect major version value(More than 5
-        characters, empty value, negative number)
+    def test_negative_create_os_with_wrong_major_version(self):
+        """@Test: OS - Create a new OS with incorrect major version value
+        (More than 5 characters, empty value, negative number)
+
+        @Feature: Create a new OS - Negative
+
+        @Assert: OS is not created
+
+        """
+        with Session(self.browser) as session:
+            for major_version in gen_string('numeric', 6), '', '-6':
+                with self.subTest(major_version):
+                    name = gen_string('alpha')
+                    make_os(
+                        session,
+                        name=name,
+                        major_version=major_version,
+                        minor_version=gen_string('numeric', 1),
+                        os_family='Red Hat',
+                        archs=['x86_64'],
+                    )
+                    self.assertIsNotNone(self.operatingsys.wait_until_element(
+                        common_locators['haserror']))
+                    self.assertIsNone(self.operatingsys.search(name))
+
+    @run_only_on('sat')
+    def test_negative_create_os_with_wrong_minor_version(self):
+        """@Test: OS - Create a new OS with incorrect minor version value
+        (More than 16 characters and negative number)
 
         @Feature: Create a new OS - Negative
 
@@ -172,44 +182,20 @@ class OperatingSys(UITestCase):
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
-            make_os(
-                session,
-                name=name,
-                major_version=major_version,
-                minor_version=gen_string('numeric', 1),
-                os_family='Red Hat',
-                archs=['x86_64']
-            )
-            self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators['haserror']))
-            self.assertIsNone(self.operatingsys.search(name))
+            for minor_version in gen_string('numeric', 17), '-5':
+                with self.subTest(minor_version):
+                    make_os(
+                        session,
+                        name=name,
+                        major_version=gen_string('numeric', 1),
+                        minor_version=minor_version,
+                        os_family='Red Hat',
+                        archs=['x86_64'],
+                    )
+                    self.assertIsNotNone(self.operatingsys.wait_until_element(
+                        common_locators['haserror']))
+                    self.assertIsNone(self.operatingsys.search(name))
 
-    @data(gen_string('numeric', 17), '-5')
-    @run_only_on('sat')
-    def test_negative_create_os_with_wrong_minor_version(self, minor_version):
-        """@Test: OS - Create a new OS with incorrect minor version value(More than 16
-        characters and negative number)
-
-        @Feature: Create a new OS - Negative
-
-        @Assert: OS is not created
-
-        """
-        name = gen_string('alpha')
-        with Session(self.browser) as session:
-            make_os(
-                session,
-                name=name,
-                major_version=gen_string('numeric', 1),
-                minor_version=minor_version,
-                os_family='Red Hat',
-                archs=['x86_64']
-            )
-            self.assertIsNotNone(self.operatingsys.wait_until_element
-                                 (common_locators['haserror']))
-            self.assertIsNone(self.operatingsys.search(name))
-
-    @skip_if_bug_open('bugzilla', 1120985)
     @run_only_on('sat')
     def test_negative_create_os_with_same_name_and_version(self):
         """@Test: OS - Create a new OS with same name and version
@@ -218,7 +204,6 @@ class OperatingSys(UITestCase):
 
         @Assert: OS is not created
 
-        @BZ: 1120985
 
         """
         name = gen_string('alpha')
@@ -259,26 +244,8 @@ class OperatingSys(UITestCase):
             session.nav.go_to_operating_systems()
             self.operatingsys.delete(os_name)
 
-    @data(
-        {u'new_name': gen_string('alpha', 10),
-         u'new_major_version': gen_string('numeric', 1),
-         u'new_minor_version': gen_string('numeric', 1),
-         u'new_os_family': 'Red Hat'},
-        {u'new_name': gen_string('html', 10),
-         u'new_major_version': gen_string('numeric', 4),
-         u'new_minor_version': gen_string('numeric', 4),
-         u'new_os_family': 'Gentoo'},
-        {u'new_name': gen_string('utf8', 10),
-         u'new_major_version': gen_string('numeric', 5),
-         u'new_minor_version': gen_string('numeric', 16),
-         u'new_os_family': 'SUSE'},
-        {u'new_name': gen_string('alphanumeric', 255),
-         u'new_major_version': gen_string('numeric', 5),
-         u'new_minor_version': gen_string('numeric', 1),
-         u'new_os_family': 'SUSE'}
-    )
     @run_only_on('sat')
-    def test_update_os_basic_params(self, test_data):
+    def test_update_os_basic_params(self):
         """@Test: Update OS name, major_version, minor_version, os_family
         and arch
 
@@ -287,17 +254,21 @@ class OperatingSys(UITestCase):
         @Assert: OS is updated
 
         """
+        os_name = entities.OperatingSystem().create().name
         with Session(self.browser):
-            self.operatingsys.update(
-                entities.OperatingSystem().create().name,
-                test_data['new_name'],
-                test_data['new_major_version'],
-                test_data['new_minor_version'],
-                os_family=test_data['new_os_family'],
-                new_archs=[entities.Architecture().create().name]
-            )
-            self.assertIsNotNone(self.operatingsys.search(
-                test_data['new_name']))
+            for test_data in valid_os_parameters():
+                with self.subTest(test_data):
+                    self.operatingsys.update(
+                        os_name,
+                        test_data['name'],
+                        test_data['major_version'],
+                        test_data['minor_version'],
+                        os_family=test_data['os_family'],
+                        new_archs=[entities.Architecture().create().name],
+                    )
+                    self.assertIsNotNone(self.operatingsys.search(
+                        test_data['name']))
+                    os_name = test_data['name']
 
     @run_only_on('sat')
     def test_update_os_medium(self):
@@ -353,7 +324,6 @@ class OperatingSys(UITestCase):
 
         @Assert: OS is updated
 
-        @BZ: 1129612
 
         """
         os_name = gen_string('alpha')
@@ -469,9 +439,8 @@ class OperatingSys(UITestCase):
                 common_locators['common_param_error']
             ))
 
-    @data(*invalid_names_list())
     @run_only_on('sat')
-    def test_negative_set_os_parameter_with_long_values(self, param):
+    def test_negative_set_os_parameter_with_long_values(self):
         """@Test: Set OS parameter with name and value exceeding 255 characters
 
         @Feature: OS - Negative Update
@@ -479,12 +448,14 @@ class OperatingSys(UITestCase):
         @Assert: Proper error should be raised, Name should contain a value
 
         """
+        os_name = entities.OperatingSystem().create().name
         with Session(self.browser):
-            try:
-                self.operatingsys.set_os_parameter(
-                    entities.OperatingSystem().create().name, param, param)
-            except UIError as err:
-                self.fail(err)
-            self.assertIsNotNone(self.operatingsys.wait_until_element(
-                common_locators['common_param_error']
-            ))
+            for param in invalid_values_list(interface='ui'):
+                with self.subTest(param):
+                    try:
+                        self.operatingsys.set_os_parameter(
+                            os_name, param, param)
+                    except UIError as err:
+                        self.fail(err)
+                    self.assertIsNotNone(self.operatingsys.wait_until_element(
+                        common_locators['common_param_error']))
