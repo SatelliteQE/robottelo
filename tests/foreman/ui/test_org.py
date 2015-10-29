@@ -259,6 +259,34 @@ class Org(UITestCase):
                     break
             self.assertIsNone(status)
 
+    def test_manifest_refresh_bz1259248(self):
+        """@test: Create organization with valid manifest. Download debug
+        certificate for that organization and refresh added manifest for few
+        times in a row
+
+        @feature: Organizations.
+
+        @assert: Scenario passed without any issues in application
+
+        """
+        org = entities.Organization().create()
+        sub = entities.Subscription(organization=org)
+        with open(manifests.download_manifest_template(), 'rb') as manifest:
+            upload_manifest(org.id, manifest)
+        try:
+            with Session(self.browser) as session:
+                for _ in range(3):
+                    self.assertIsNotNone(org.download_debug_certificate())
+                    session.nav.go_to_select_org(org.name)
+                    session.nav.go_to_red_hat_subscriptions()
+                    self.subscriptions.refresh()
+                    self.assertIsNone(session.nav.wait_until_element(
+                        common_locators['notif.error'], timeout=5))
+                    self.assertTrue(session.nav.wait_until_element(
+                        common_locators['alert.success'], timeout=180))
+        finally:
+            sub.delete_manifest(data={'organization_id': org.id})
+
     # Negative Delete
 
     # Positive Update

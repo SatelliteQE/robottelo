@@ -749,6 +749,7 @@ locators = LocatorDict({
     "org.parent": (By.ID, "organization_parent_id"),
     "org.label": (By.ID, "organization_label"),
     "org.desc": (By.ID, "organization_description"),
+    "org.cert": (By.ID, "download_debug_cert_key"),
     "org.proceed_to_edit": (
         By.XPATH,
         "//a[@class='btn btn-default' and contains(@href, '/edit')]"),
