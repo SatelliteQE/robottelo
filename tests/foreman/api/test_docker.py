@@ -1146,7 +1146,7 @@ class DockerContainersTestCase(APITestCase):
 
         """
         for compute_resource in (self.cr_internal, self.cr_external):
-            with self.subTest(compute_resource.url):
+            with self.subTest(compute_resource):
                 container = entities.DockerHubContainer(
                     command='top',
                     compute_resource=compute_resource,
@@ -1156,17 +1156,11 @@ class DockerContainersTestCase(APITestCase):
                     container.compute_resource.read().url,
                     compute_resource.url,
                 )
-                self.assertEqual(
-                    container.power(
-                        data={u'power_action': 'status'})['running'],
-                    True
-                )
+                self.assertTrue(container.power(
+                    data={u'power_action': 'status'})['running'])
                 container.power(data={u'power_action': 'stop'})
-                self.assertEqual(
-                    container.power(
-                        data={u'power_action': 'status'})['running'],
-                    False
-                )
+                self.assertFalse(container.power(
+                    data={u'power_action': 'status'})['running'])
 
     @run_only_on('sat')
     def test_create_container_compute_resource_read_log(self):
@@ -1180,7 +1174,7 @@ class DockerContainersTestCase(APITestCase):
 
         """
         for compute_resource in (self.cr_internal, self.cr_external):
-            with self.subTest(compute_resource.url):
+            with self.subTest(compute_resource):
                 container = entities.DockerHubContainer(
                     command='date',
                     compute_resource=compute_resource,
