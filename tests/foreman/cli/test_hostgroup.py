@@ -2,7 +2,7 @@
 # pylint: disable=invalid-name
 """Test class for :class:`robottelo.cli.hostgroup.HostGroup` CLI."""
 
-from fauxfactory import gen_string
+from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.factory import (
@@ -13,35 +13,39 @@ from robottelo.cli.factory import (
     make_os,
 )
 from robottelo.decorators import run_only_on
-from robottelo.test import MetaCLITestCase
+from robottelo.helpers import (
+    invalid_id_list,
+    invalid_values_list,
+    valid_data_list,
+)
+from robottelo.test import CLITestCase
 
 
-class TestHostGroup(MetaCLITestCase):
+class TestHostGroup(CLITestCase):
     """Test class for Host Group CLI"""
-    factory = make_hostgroup
-    factory_obj = HostGroup
+    def test_positive_create(self):
+        """@Test: Successfully creates an HostGroup.
 
-    POSITIVE_UPDATE_DATA = (
-        ({'id': gen_string('latin1', 10)},
-         {'name': gen_string('latin1', 10)}),
-        ({'id': gen_string('utf8', 10)},
-         {'name': gen_string('utf8', 10)}),
-        ({'id': gen_string('alpha', 10)},
-         {'name': gen_string('alpha', 10)}),
-        ({'id': gen_string('alphanumeric', 10)},
-         {'name': gen_string('alphanumeric', 10)}),
-        ({'id': gen_string('numeric', 10)},
-         {'name': gen_string('numeric', 10)}),
-        ({'id': gen_string('utf8', 10)},
-         {'name': gen_string('html', 6)}),
-    )
+        @Feature: HostGroup
 
-    NEGATIVE_UPDATE_DATA = (
-        ({'id': gen_string('utf8', 10)},
-         {'name': gen_string('utf8', 300)}),
-        ({'id': gen_string('utf8', 10)},
-         {'name': ''}),
-    )
+        @Assert: HostGroup is created.
+        """
+        for name in valid_data_list():
+            with self.subTest(name):
+                hostgroup = make_hostgroup({'name': name})
+                self.assertEqual(hostgroup['name'], name)
+
+    def test_negative_create(self):
+        """@Test: Don't create an HostGroup with invalid data.
+
+        @Feature: HostGroup
+
+        @Assert: HostGroup is not created.
+        """
+        for name in invalid_values_list():
+            with self.subTest(name):
+                with self.assertRaises(CLIReturnCodeError):
+                    HostGroup.create({'name': name})
 
     @run_only_on('sat')
     def test_create_hostgroup_with_environment(self):
@@ -123,3 +127,68 @@ class TestHostGroup(MetaCLITestCase):
             puppet_proxy['id'],
             hostgroup['puppet-master-proxy-id'],
         )
+
+    def test_positive_update_name(self):
+        """@Test: Successfully update an HostGroup.
+
+        @Feature: HostGroup
+
+        @Assert: HostGroup is updated.
+        """
+        hostgroup = make_hostgroup()
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                HostGroup.update({
+                    'id': hostgroup['id'],
+                    'new-name': new_name,
+                })
+                hostgroup = HostGroup.info({'id': hostgroup['id']})
+                self.assertEqual(hostgroup['name'], new_name)
+
+    @run_only_on('sat')
+    def test_negative_update(self):
+        """@test: Create HostGroup then fail to update its name
+
+        @feature: HostGroup
+
+        @assert: HostGroup name is not updated
+        """
+        hostgroup = make_hostgroup()
+        for new_name in invalid_values_list():
+            with self.subTest(new_name):
+                with self.assertRaises(CLIReturnCodeError):
+                    HostGroup.update({
+                        'id': hostgroup['id'],
+                        'new-name': new_name,
+                    })
+                result = HostGroup.info({'id': hostgroup['id']})
+                self.assertEqual(hostgroup['name'], result['name'])
+
+    @run_only_on('sat')
+    def test_positive_delete(self):
+        """@test: Create HostGroup with valid values then delete it
+        by ID
+
+        @feature: HostGroup
+
+        @assert: HostGroup is deleted
+        """
+        for name in valid_data_list():
+            with self.subTest(name):
+                hostgroup = make_hostgroup({'name': name})
+                HostGroup.delete({'id': hostgroup['id']})
+                with self.assertRaises(CLIReturnCodeError):
+                    HostGroup.info({'id': hostgroup['id']})
+
+    @run_only_on('sat')
+    def test_negative_delete(self):
+        """@test: Create HostGroup then delete it by wrong ID
+
+        @feature: HostGroup
+
+        @assert: HostGroup is not deleted
+        """
+        for entity_id in invalid_id_list():
+            with self.subTest(entity_id):
+                with self.assertRaises(CLIReturnCodeError):
+                    HostGroup.delete(entity_id)

@@ -6,8 +6,12 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_environment, make_location, make_org
 from robottelo.decorators import run_only_on, skip_if_bug_open
-from robottelo.helpers import bz_bug_is_open, invalid_values_list
-from robottelo.test import MetaCLITestCase
+from robottelo.helpers import (
+    bz_bug_is_open,
+    invalid_id_list,
+    invalid_values_list,
+)
+from robottelo.test import CLITestCase
 
 
 def valid_names():
@@ -19,71 +23,48 @@ def valid_names():
     ]
 
 
-class TestEnvironment(MetaCLITestCase):
+class TestEnvironment(CLITestCase):
     """Test class for Environment CLI"""
-    factory = make_environment
-    factory_obj = Environment
-
-    POSITIVE_CREATE_DATA = (
-        {'name': gen_string('alpha', 10)},
-        {'name': gen_string('alphanumeric', 10)},
-        {'name': gen_string('numeric', 10)},
-    )
-
-    POSITIVE_UPDATE_DATA = (
-        ({'name': gen_string('alpha', 10)},
-         {'new-name': gen_string('alpha', 10)}),
-        ({'name': gen_string('alphanumeric', 10)},
-         {'new-name': gen_string('alphanumeric', 10)}),
-        ({'name': gen_string('numeric', 10)},
-         {'new-name': gen_string('numeric', 10)}),
-    )
-
-    NEGATIVE_UPDATE_DATA = (
-        ({'name': gen_string('alphanumeric', 10)},
-         {'new-name': gen_string('alphanumeric', 300)}),
-        ({'name': gen_string('alphanumeric', 10)},
-         {'new-name': gen_string('latin1', 10)}),
-        ({'name': gen_string('alphanumeric', 10)},
-         {'new-name': gen_string('utf8', 10)}),
-        ({'name': gen_string('alphanumeric', 10)},
-         {'new-name': gen_string('html', 6)}),
-        ({'name': gen_string('alphanumeric', 10)},
-         {'new-name': ''}),
-    )
-
-    POSITIVE_DELETE_DATA = (
-        {'name': gen_string('alpha', 10)},
-        {'name': gen_string('alphanumeric', 10)},
-        {'name': gen_string('numeric', 10)},
-    )
-
     @run_only_on('sat')
-    def test_info(self):
-        """@Test: Test Environment Info
-
-        @Feature: Environment - Info
-
-        @Assert: Environment Info is displayed
-
-        """
-        name = gen_string('alpha', 10)
-        env = make_environment({'name': name})
-        self.assertEquals(env['name'], name)
-
-    @run_only_on('sat')
-    def test_list(self):
+    def test_positive_list(self):
         """@Test: Test Environment List
 
-        @Feature: Environment - List
+        @Feature: Environment
 
-        @Assert: Environment List is displayed
-
+        @Assert: Environment list is displayed
         """
-        name = gen_string('alpha', 10)
-        Environment().create({'name': name})
-        result = Environment().list({'search': name})
-        self.assertEqual(len(result), 1)
+        for name in valid_names():
+            with self.subTest(name):
+                Environment.create({'name': name})
+                result = Environment.list({
+                    'search': 'name={0}'.format(name)
+                })
+                self.assertEqual(len(result), 1)
+                self.assertEqual(result[0]['name'], name)
+
+    def test_positive_create(self):
+        """@Test: Successfully creates an Environment.
+
+        @Feature: Environment
+
+        @Assert: Environment is created.
+        """
+        for name in valid_names():
+            with self.subTest(name):
+                environment = make_environment({'name': name})
+                self.assertEqual(environment['name'], name)
+
+    def test_negative_create(self):
+        """@Test: Don't create an Environment with invalid data.
+
+        @Feature: Environment
+
+        @Assert: Environment is not created.
+        """
+        for name in invalid_values_list():
+            with self.subTest(name):
+                with self.assertRaises(CLIReturnCodeError):
+                    Environment.create({'name': name})
 
     @run_only_on('sat')
     def test_create_environment_with_location(self):
@@ -118,61 +99,83 @@ class TestEnvironment(MetaCLITestCase):
         self.assertIn(new_org['name'], new_environment['organizations'])
 
     @run_only_on('sat')
-    def test_delete(self):
-        """@Test: Delete the environment
+    def test_positive_delete(self):
+        """@test: Create Environment with valid values then delete it
+        by ID
 
-        @Feature: Environment - Delete
+        @feature: Environment
 
-        @Assert: Environment Delete is displayed
-
+        @assert: Environment is deleted
         """
-        name = gen_string('alphanumeric', 10)
-        make_environment({'name': name})
-        Environment().delete({'name': name})
-        with self.assertRaises(CLIReturnCodeError):
-            Environment().info({'name': name})
+        for name in valid_names():
+            with self.subTest(name):
+                environment = make_environment({'name': name})
+                Environment.delete({'id': environment['id']})
+                with self.assertRaises(CLIReturnCodeError):
+                    Environment.info({'id': environment['id']})
 
     @run_only_on('sat')
-    def test_update_positive(self):
+    def test_negative_delete(self):
+        """@test: Create Environment then delete it by wrong ID
+
+        @feature: Environment
+
+        @assert: Environment is not deleted
+        """
+        for entity_id in invalid_id_list():
+            with self.subTest(entity_id):
+                with self.assertRaises(CLIReturnCodeError):
+                    Environment.delete(entity_id)
+
+    @run_only_on('sat')
+    def test_positive_delete_by_name(self):
+        """@Test: Delete the environment by its name.
+
+        @Feature: Environment
+
+        @Assert: Environment is deleted.
+        """
+        environment = make_environment()
+        Environment.delete({'name': environment['name']})
+        with self.assertRaises(CLIReturnCodeError):
+            Environment.info({'name': environment['name']})
+
+    @run_only_on('sat')
+    def test_positive_update(self):
         """@Test: Update the environment
 
         @Feature: Environment - Update
 
         @Assert: Environment Update is displayed
-
         """
-        name = gen_string('alphanumeric')
-        make_environment({'name': name})
+        environment = make_environment()
         for new_name in valid_names():
             with self.subTest(new_name):
                 Environment.update({
-                    'name': name,
+                    'id': environment['id'],
                     'new-name': new_name,
                 })
-                env = Environment.info({'name': new_name})
-                self.assertEqual(env['name'], new_name)
-                name = new_name  # for next iteration
+                environment = Environment.info({'id': environment['id']})
+                self.assertEqual(environment['name'], new_name)
 
     @run_only_on('sat')
-    def test_update_negative(self):
-        """@Test: Update the environment with invalid values
+    def test_negative_update(self):
+        """@Test: Update the Environment with invalid values
 
-        @Feature: Environment - Update
+        @Feature: Environment
 
         @Assert: Environment is not updated
-
         """
-        name = gen_string('alphanumeric')
-        env = make_environment({'name': name})
+        environment = make_environment()
         for new_name in invalid_values_list():
             with self.subTest(new_name):
                 with self.assertRaises(CLIReturnCodeError):
                     Environment.update({
-                        'name': name,
+                        'id': environment['id'],
                         'new-name': new_name,
                     })
-                    env = Environment.info({'id': env['id']})
-                    self.assertEqual(env['name'], name)
+                result = Environment.info({'id': environment['id']})
+                self.assertEqual(environment['name'], result['name'])
 
     @run_only_on('sat')
     def test_update_location(self):

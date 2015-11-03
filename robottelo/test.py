@@ -14,7 +14,6 @@ import unittest2
 from datetime import datetime
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
-from robottelo.cli.metatest import MetaCLITest
 from robottelo.cli.org import Org as OrgCli
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
@@ -120,14 +119,6 @@ class CLITestCase(TestCase):
         """Log test class and method name before each test."""
         self.logger.debug(
             "Running test %s/%s", type(self).__name__, self._testMethodName)
-
-
-class MetaCLITestCase(CLITestCase):
-    """All Test modules should inherit from MetaCLI in order to obtain default
-    positive/negative CRUD tests.
-
-    """
-    __metaclass__ = MetaCLITest
 
 
 class UITestCase(TestCase):

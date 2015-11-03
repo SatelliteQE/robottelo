@@ -7,7 +7,8 @@ from robottelo.cli.domain import Domain
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_domain, make_location, make_org
 from robottelo.decorators import run_only_on
-from robottelo.test import MetaCLITestCase
+from robottelo.helpers import invalid_id_list, valid_data_list
+from robottelo.test import CLITestCase
 
 
 def valid_create_params():
@@ -95,7 +96,7 @@ def valid_delete_params():
     ]
 
 
-class TestDomain(MetaCLITestCase):
+class TestDomain(CLITestCase):
     """Domain CLI tests"""
 
     factory = make_domain
@@ -237,6 +238,35 @@ class TestDomain(MetaCLITestCase):
                 # check - parameter not set
                 domain = Domain.info({'id': domain['id']})
                 self.assertEqual(len(domain['parameters']), 0)
+
+    @run_only_on('sat')
+    def test_positive_delete(self):
+        """@test: Create Domain with valid values then delete it
+        by ID
+
+        @feature: Domain
+
+        @assert: Domain is deleted
+        """
+        for name in valid_data_list():
+            with self.subTest(name):
+                domain = make_domain({'name': name})
+                Domain.delete({'id': domain['id']})
+                with self.assertRaises(CLIReturnCodeError):
+                    Domain.info({'id': domain['id']})
+
+    @run_only_on('sat')
+    def test_negative_delete(self):
+        """@test: Create Domain then delete it by wrong ID
+
+        @feature: Domain
+
+        @assert: Domain is not deleted
+        """
+        for entity_id in invalid_id_list():
+            with self.subTest(entity_id):
+                with self.assertRaises(CLIReturnCodeError):
+                    Domain.delete(entity_id)
 
     @run_only_on('sat')
     def test_positive_delete_parameter(self):

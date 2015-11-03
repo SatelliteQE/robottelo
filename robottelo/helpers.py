@@ -197,6 +197,16 @@ def generate_strings_list(len1=None, remove_str=None, bug_id=None):
     return list(strings.values())
 
 
+def invalid_id_list():
+    """Generate a list of invalid IDs."""
+    return [
+        {'id': gen_string('alpha')},
+        {'id': None},
+        {'id': ''},
+        {'id': -1},
+    ]
+
+
 def escape_search(term):
     """Wraps a search term in " and escape term's " and \\ characters"""
     strip_term = term.strip()
