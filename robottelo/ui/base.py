@@ -64,11 +64,14 @@ class Base(object):
             )
         return None
 
-    def search_entity(self, element_name, element_locator, search_key=None,
-                      katello=None, button_timeout=15, result_timeout=15):
+    def search(self, element_name, element_locator, search_key=None,
+               katello=None, button_timeout=15, result_timeout=15):
         """Uses the search box to locate an element from a list of elements."""
+        # Provide search criteria or use default one
         search_key = search_key or 'name'
 
+        # Determine search box and search button locators depending on the type
+        # of entity
         prefix = 'kt_' if katello else ''
         searchbox = self.wait_until_element(
             common_locators[prefix + 'search'], timeout=button_timeout)
@@ -82,10 +85,15 @@ class Base(object):
                 raise UINoSuchElementError('Search box not found.')
             # ...but not for foreman
             return None
+
+        # Pass the data into search field and push the search button if
+        # applicable
         searchbox.clear()
         searchbox.send_keys(u'{0} = {1}'.format(
             search_key, escape_search(element_name)))
         self.click(search_button_locator)
+
+        # Return found element
         element = self.wait_until_element(
             (element_locator[0], element_locator[1] % element_name),
             timeout=result_timeout,
