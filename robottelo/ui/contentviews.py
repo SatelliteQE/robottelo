@@ -3,9 +3,9 @@
 
 import time
 
-from robottelo.helpers import escape_search
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
@@ -95,17 +95,18 @@ class ContentViews(Base):
         self.click(locators['contentviews.next_button'])
         self.click(locators['contentviews.confirm_remove_ver'])
 
-    def search(self, element_name):
+    def search(self, element_name, element_locator=None, search_key=None,
+               katello=True, button_timeout=15, result_timeout=15):
         """Uses the search box to locate an element from a list of elements"""
-        element = None
-        strategy, value = locators['contentviews.key_name']
-        searchbox = self.wait_until_element(common_locators['kt_search'])
-        if searchbox:
-            searchbox.clear()
-            searchbox.send_keys(escape_search(element_name))
-            self.click(common_locators['kt_search_button'])
-            element = self.wait_until_element((strategy, value % element_name))
-        return element
+        Navigator(self.browser).go_to_content_views()
+        return super(ContentViews, self).search(
+            element_name,
+            locators['contentviews.key_name'] or element_locator,
+            search_key=search_key,
+            katello=katello,
+            button_timeout=button_timeout,
+            result_timeout=result_timeout,
+        )
 
     def search_filter(self, cv_name, filter_name):
         """uses search box to locate the filters"""
