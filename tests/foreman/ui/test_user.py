@@ -57,7 +57,7 @@ class User(UITestCase):
             for user_name in valid_strings():
                 with self.subTest(user_name):
                     make_user(session, username=user_name)
-                    self.user.delete(user_name, search_key)
+                    self.user.delete(user_name, search_key=search_key)
 
     @skip_if_bug_open('bugzilla', 1139616)
     def test_update_password(self):
@@ -93,13 +93,13 @@ class User(UITestCase):
         role_name = entities.Role().create_json()['name']
         with Session(self.browser) as session:
             make_user(session, username=name)
-            self.user.search(name, search_key).click()
+            self.user.search(name, search_key=search_key).click()
             self.user.click(tab_locators['users.tab_roles'])
             element1 = self.user.wait_until_element((strategy,
                                                      value % role_name))
             self.assertIsNone(element1)
             self.user.update(search_key, name, new_roles=[role_name])
-            self.user.search(name, search_key).click()
+            self.user.search(name, search_key=search_key).click()
             self.user.click(tab_locators['users.tab_roles'])
             element2 = self.user.wait_until_element((strategy,
                                                      value % role_name))
@@ -122,7 +122,7 @@ class User(UITestCase):
                 with self.subTest(user_name):
                     make_user(session, username=user_name)
                     self.assertIsNotNone(
-                        self.user.search(user_name, search_key))
+                        self.user.search(user_name, search_key=search_key))
 
     def test_positive_create_user_different_first_names(self):
         """@Test: Create User for all variations of First Name
@@ -141,7 +141,7 @@ class User(UITestCase):
                 with self.subTest(first_name):
                     name = gen_string('alpha')
                     make_user(session, username=name, first_name=first_name)
-                    element = self.user.search(name, search_key)
+                    element = self.user.search(name, search_key=search_key)
                     self.assertIsNotNone(element)
                     element.click()
                     self.assertEqual(
@@ -167,7 +167,7 @@ class User(UITestCase):
                 with self.subTest(last_name):
                     name = gen_string('alpha')
                     make_user(session, username=name, last_name=last_name)
-                    element = self.user.search(name, search_key)
+                    element = self.user.search(name, search_key=search_key)
                     self.assertIsNotNone(element)
                     element.click()
                     self.assertEqual(
@@ -209,7 +209,7 @@ class User(UITestCase):
                 with self.subTest(language):
                     name = gen_string('alpha')
                     make_user(session, username=name, locale=language)
-                    element = self.user.search(name, search_key)
+                    element = self.user.search(name, search_key=search_key)
                     self.assertIsNotNone(element)
                     element.click()
                     self.assertEqual(
@@ -265,7 +265,8 @@ class User(UITestCase):
                         password1=password,
                         password2=password,
                     )
-                    self.assertIsNotNone(self.user.search(name, search_key))
+                    self.assertIsNotNone(
+                        self.user.search(name, search_key=search_key))
 
     @stubbed()
     def test_positive_create_user_admin(self):
@@ -295,7 +296,7 @@ class User(UITestCase):
         role = entities.Role().create()
         with Session(self.browser) as session:
             make_user(session, username=name, roles=[role.name], edit=True)
-            self.user.search(name, search_key).click()
+            self.user.search(name, search_key=search_key).click()
             self.user.click(tab_locators['users.tab_roles'])
             element = self.user.wait_until_element((strategy,
                                                     value % role.name))
@@ -321,7 +322,7 @@ class User(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name, roles=[role1, role2],
                       edit=True)
-            self.user.search(name, search_key).click()
+            self.user.search(name, search_key=search_key).click()
             self.user.wait_for_ajax()
             self.user.click(tab_locators['users.tab_roles'])
             for role in [role1, role2]:
@@ -548,7 +549,7 @@ class User(UITestCase):
         with Session(self.browser) as session:
             make_user(
                 session, username=name, organizations=[org_name], edit=True)
-            self.user.search(name, search_key).click()
+            self.user.search(name, search_key=search_key).click()
             self.user.click(tab_locators['users.tab_organizations'])
             element = self.user.wait_until_element((strategy,
                                                     value % org_name))
@@ -575,7 +576,7 @@ class User(UITestCase):
                 organizations=[org_name1, org_name2],
                 edit=True,
             )
-            self.user.search(name, search_key).click()
+            self.user.search(name, search_key=search_key).click()
             self.user.click(tab_locators['users.tab_organizations'])
             for org_name in [org_name1, org_name2]:
                 element = self.user.wait_until_element((strategy,
@@ -641,7 +642,7 @@ class User(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name, organizations=[org_name],
                       edit=True, default_org=org_name)
-            self.user.search(name, search_key).click()
+            self.user.search(name, search_key=search_key).click()
             session.nav.click(tab_locators['users.tab_organizations'])
             element = session.nav.wait_until_element((strategy,
                                                       value % org_name))
@@ -667,7 +668,7 @@ class User(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name, locations=[loc_name],
                       edit=True, default_loc=loc_name)
-            self.user.search(name, search_key).click()
+            self.user.search(name, search_key=search_key).click()
             session.nav.click(tab_locators['users.tab_locations'])
             element = session.nav.wait_until_element((strategy,
                                                       value % loc_name))
@@ -857,7 +858,7 @@ class User(UITestCase):
                 with self.subTest(new_username):
                     self.user.update(search_key, name, new_username)
                     self.assertIsNotNone(
-                        self.user.search(new_username, search_key))
+                        self.user.search(new_username, search_key=search_key))
                     self.login.logout()
                     self.login.login(new_username, password)
                     self.assertTrue(self.login.is_logged())
