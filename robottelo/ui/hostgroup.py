@@ -27,10 +27,18 @@ class Hostgroup(Base):
             self.select(locators['hostgroups.puppet_master'], puppet_master)
         self.click(common_locators['submit'])
 
-    def search(self, name):
+    def search(self, name, element_locator=None, search_key=None,
+               katello=False, button_timeout=15, result_timeout=15):
         """Searches existing hostgroup from UI."""
         Navigator(self.browser).go_to_host_groups()
-        return self.search_entity(name, locators['hostgroups.hostgroup'])
+        return super(Hostgroup, self).search(
+            name,
+            locators['hostgroups.hostgroup'] or element_locator,
+            search_key=search_key,
+            katello=katello,
+            button_timeout=button_timeout,
+            result_timeout=result_timeout,
+        )
 
     def delete(self, name, really=True):
         """Deletes existing hostgroup from UI."""

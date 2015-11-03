@@ -94,10 +94,15 @@ class Base(object):
         self.click(search_button_locator)
 
         # Return found element
+        if katello or len(element_name) <= 30:
+            strategy, value = element_locator
+        elif not katello and len(element_name) > 30:
+            strategy, value = common_locators['select_filtered_entity']
         element = self.wait_until_element(
-            (element_locator[0], element_locator[1] % element_name),
+            (strategy, value % element_name),
             timeout=result_timeout,
         )
+
         return element
 
     def handle_alert(self, really):
