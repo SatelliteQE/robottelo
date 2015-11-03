@@ -158,7 +158,7 @@ class Base(object):
     def delete_entity(self, name, really, name_locator, del_locator,
                       drop_locator=None, search_key=None):
         """Delete an added entity, handles both with and without dropdown."""
-        searched = self.search_entity(
+        searched = self.search(
             name, name_locator, search_key=search_key)
         if not searched:
             raise UIError('Could not search the entity "{0}"'.format(name))
@@ -172,7 +172,7 @@ class Base(object):
         # verify that fact few times as sometimes 1 second is not enough for
         # element to be actually deleted from DB
         for _ in range(3):
-            searched = self.search_entity(
+            searched = self.search(
                 name,
                 name_locator,
                 search_key=search_key,
@@ -412,7 +412,7 @@ class Base(object):
 
         """
         go_to_page()
-        searched = self.search_entity(entity_name, entity_locator)
+        searched = self.search(entity_name, entity_locator)
         if searched is None:
             raise UINoSuchElementError('Entity not found via search.')
         searched.click()
