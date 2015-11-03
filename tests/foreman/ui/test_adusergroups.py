@@ -56,7 +56,7 @@ class ADUserGroups(UITestCase):
                 self.usergroup.delete(self.usergroup_name2, True)
             set_context(session, org=ANY_CONTEXT['org'])
             session.nav.go_to_users()
-            if self.user.search(self.ldap_user_name, 'login'):
+            if self.user.search(self.ldap_user_name, search_key='login'):
                 self.user.delete(self.ldap_user_name, 'login', True)
         super(ADUserGroups, self).tearDown()
 

@@ -116,7 +116,7 @@ class UserGroup(UITestCase):
             )
             self.usergroup.delete(group_name)
             self.assertIsNotNone(self.user.search(
-                name=user_name, search_key='login'))
+                user_name, search_key='login'))
 
     @skip_if_bug_open('bugzilla', 1142588)
     def test_update_usergroup(self):

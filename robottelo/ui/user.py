@@ -91,11 +91,18 @@ class User(Base):
                 )
         self.click(common_locators['submit'])
 
-    def search(self, name, search_key):
+    def search(self, element_name, element_locator=None, search_key=None,
+               katello=None, button_timeout=15, result_timeout=15):
         """Searches existing user from UI."""
         Navigator(self.browser).go_to_users()
-        return self.search_entity(
-            name, locators['users.user'], search_key=search_key)
+        return super(User, self).search(
+            element_name,
+            locators['users.user'] or element_locator,
+            search_key=search_key,
+            katello=katello,
+            button_timeout=button_timeout,
+            result_timeout=result_timeout,
+        )
 
     def delete(self, name, search_key, really=True):
         """Deletes existing user from UI."""
@@ -118,7 +125,7 @@ class User(Base):
         from UI
 
         """
-        element = self.search(username, search_key)
+        element = self.search(username, search_key=search_key)
 
         if element is None:
             raise UIError(
@@ -161,7 +168,7 @@ class User(Base):
         assign it to user.
 
         """
-        element = self.search(username, search_key)
+        element = self.search(username, search_key=search_key)
 
         if element is None:
             raise UINoSuchElementError(
