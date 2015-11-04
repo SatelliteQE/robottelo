@@ -34,6 +34,11 @@ class Base(object):
 
     logger = LOGGER
 
+    search_key = None
+    is_katello = False
+    button_timeout = 15
+    result_timeout = 15
+
     def __init__(self, browser):
         """Sets up the browser object."""
         self.browser = browser
@@ -64,31 +69,56 @@ class Base(object):
             )
         return None
 
-    def search_entity(self, element_name, element_locator, search_key=None,
-                      katello=None, button_timeout=15, result_timeout=15):
-        """Uses the search box to locate an element from a list of elements."""
-        search_key = search_key or 'name'
+    def _search_locator(self):
+        """Specify element name locator which should be used in search
+        procedure
 
-        prefix = 'kt_' if katello else ''
+        """
+        raise NotImplementedError(
+            'Subclasses must return locator of element to search')
+
+    def navigate_to_entity(self):
+        """Perform navigation to main page for specific entity"""
+        raise NotImplementedError('Subclasses must implement navigator method')
+
+    def search(self, element_name):
+        """Uses the search box to locate an element from a list of elements."""
+        # Navigate to the page
+        self.navigate_to_entity()
+
+        # Provide search criterions or use default ones
+        search_key = self.search_key or 'name'
+        element_locator = self._search_locator()
+
+        # Determine search box and search button locators depending on the type
+        # of entity
+        prefix = 'kt_' if self.is_katello else ''
         searchbox = self.wait_until_element(
-            common_locators[prefix + 'search'], timeout=button_timeout)
+            common_locators[prefix + 'search'],
+            timeout=self.button_timeout
+        )
         search_button_locator = common_locators[prefix + 'search_button']
 
         # Do not proceed if searchbox is not found
         if searchbox is None:
             # For katello, search box should be always present on the page
             # no matter we have entity on the page or not...
-            if katello:
+            if self.is_katello:
                 raise UINoSuchElementError('Search box not found.')
             # ...but not for foreman
             return None
+
+        # Pass the data into search field and push the search button if
+        # applicable
         searchbox.clear()
         searchbox.send_keys(u'{0} = {1}'.format(
             search_key, escape_search(element_name)))
         self.click(search_button_locator)
+
+        # Return found element
         element = self.wait_until_element(
             (element_locator[0], element_locator[1] % element_name),
-            timeout=result_timeout,
+            timeout=self.result_timeout,
         )
         return element
 
@@ -147,11 +177,9 @@ class Base(object):
             self.select_deselect_entity(
                 filter_key, entity_locator, new_entity_list)
 
-    def delete_entity(self, name, really, name_locator, del_locator,
-                      drop_locator=None, search_key=None):
+    def delete_entity(self, name, really, del_locator, drop_locator=None):
         """Delete an added entity, handles both with and without dropdown."""
-        searched = self.search_entity(
-            name, name_locator, search_key=search_key)
+        searched = self.search(name)
         if not searched:
             raise UIError('Could not search the entity "{0}"'.format(name))
         if drop_locator:
@@ -163,21 +191,21 @@ class Base(object):
         # Make sure that element is really removed from UI. It is necessary to
         # verify that fact few times as sometimes 1 second is not enough for
         # element to be actually deleted from DB
-        for _ in range(3):
-            searched = self.search_entity(
-                name,
-                name_locator,
-                search_key=search_key,
-                button_timeout=3,
-                result_timeout=1,
-            )
-            if bool(searched) != really:
-                break
-            self.browser.refresh()
-        if bool(searched) == really:
-            raise UIError(
-                'Delete functionality works improperly for "{0}" entity'
-                .format(name))
+        self.button_timeout = 3
+        self.result_timeout = 1
+        try:
+            for _ in range(3):
+                searched = self.search(name)
+                if bool(searched) != really:
+                    break
+                self.browser.refresh()
+            if bool(searched) == really:
+                raise UIError(
+                    'Delete functionality works improperly for "{0}" entity'
+                    .format(name))
+        finally:
+            self.button_timeout = 15
+            self.result_timeout = 15
 
     def wait_until_element_exists(
             self, locator, timeout=12, poll_frequency=0.5):
@@ -404,7 +432,7 @@ class Base(object):
 
         """
         go_to_page()
-        searched = self.search_entity(entity_name, entity_locator)
+        searched = self.search(entity_name)
         if searched is None:
             raise UINoSuchElementError('Entity not found via search.')
         searched.click()
