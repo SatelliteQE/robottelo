@@ -853,8 +853,9 @@ class User(UITestCase):
                 edit=True,
                 roles=['Site'],
             )
-            for new_username in valid_strings():
-                with self.subTest(new_username):
+        for new_username in valid_strings():
+            with self.subTest(new_username):
+                with Session(self.browser):
                     self.user.update(search_key, name, new_username)
                     self.assertIsNotNone(
                         self.user.search(new_username, search_key))
