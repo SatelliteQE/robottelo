@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Implements GPG keys UI."""
 
-from robottelo.helpers import escape_search
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
@@ -10,6 +9,15 @@ from selenium.webdriver.support.select import Select
 
 class GPGKey(Base):
     """Manipulates GPG keys from UI."""
+    is_katello = True
+
+    def navigate_to_entity(self):
+        """Navigate to GPG key entity page"""
+        Navigator(self.browser).go_to_gpg_keys()
+
+    def _search_locator(self):
+        """Specify locator for GPG key entity search procedure"""
+        return locators["gpgkey.key_name"]
 
     def create(self, name, upload_key=False, key_path=None, key_content=None):
         """Creates a gpg key from UI."""
@@ -37,20 +45,6 @@ class GPGKey(Base):
             raise UIError(
                 'Could not create new gpg key "{0}"'.format(name)
             )
-
-    def search(self, element_name):
-        """Uses the search box to locate an element from a list of elements."""
-        Navigator(self.browser).go_to_gpg_keys()
-        element = None
-        strategy, value = locators["gpgkey.key_name"]
-        searchbox = self.wait_until_element(common_locators["kt_search"])
-        if searchbox:
-            searchbox.clear()
-            searchbox.send_keys(escape_search(element_name))
-            self.wait_for_ajax()
-            self.click(common_locators["kt_search_button"])
-            element = self.wait_until_element((strategy, value % element_name))
-            return element
 
     def delete(self, name, really):
         """Deletes an existing gpg key."""
@@ -115,11 +109,8 @@ class GPGKey(Base):
                 'Could not search the given gpg key "{0}"'.format(key_name)
             )
 
-    def assert_key_from_product(self, name, product, repo=None):
+    def assert_key_from_product(self, name, prd_element, repo=None):
         """Assert the key association after deletion from product tab."""
-        Navigator(self.browser).go_to_products()
-        prd_element = self.search_entity(
-            product, locators["prd.select"], katello=True)
         if prd_element:
             prd_element.click()
             self.wait_for_ajax()
@@ -152,7 +143,3 @@ class GPGKey(Base):
                         'GPG key "{0}" is still assoc with product'
                         .format(name)
                     )
-        else:
-            raise UIError(
-                'Could not find the product "{0}"'.format(product)
-            )

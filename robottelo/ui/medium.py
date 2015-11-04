@@ -10,6 +10,14 @@ from selenium.webdriver.support.select import Select
 class Medium(Base):
     """Implements the CRUD functions for Installation media."""
 
+    def navigate_to_entity(self):
+        """Navigate to Medium entity page"""
+        Navigator(self.browser).go_to_installation_media()
+
+    def _search_locator(self):
+        """Specify locator for Medium entity search procedure"""
+        return locators['medium.medium_name']
+
     def _configure_medium(self, os_family=None):
         """Configures Installation media's OS family."""
         if os_family:
@@ -36,22 +44,11 @@ class Medium(Base):
                 'Could not create new installation media "{0}"'.format(name)
             )
 
-    def search(self, name):
-        """Searches existing medium from UI."""
-        Navigator(self.browser).go_to_installation_media()
-        if len(name) <= 30:
-            element = self.search_entity(name, locators['medium.medium_name'])
-        else:
-            element = self.search_entity(
-                name, common_locators['select_filtered_entity'])
-        return element
-
     def delete(self, name, really=True):
         """Delete Installation media."""
         self.delete_entity(
             name,
             really,
-            locators['medium.medium_name'],
             locators['medium.delete'],
         )
 

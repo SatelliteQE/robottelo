@@ -184,7 +184,7 @@ class OpenScap(UITestCase):
                     name=value['policy'],
                     period=OSCAP_PERIOD['weekly'],
                     profile=OSCAP_PROFILE['rhccp'],
-                    weekday=OSCAP_WEEKDAY['friday'],
+                    period_value=OSCAP_WEEKDAY['friday'],
                 )
             # Creates two vm's each for rhel6 and rhel7, runs
             # openscap scan and uploads report to satellite6.

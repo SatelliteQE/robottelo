@@ -2,11 +2,21 @@
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
 class Products(Base):
     """Manipulates Products from UI"""
+    is_katello = True
+
+    def navigate_to_entity(self):
+        """Navigate to Product entity page"""
+        Navigator(self.browser).go_to_products()
+
+    def _search_locator(self):
+        """Specify locator for Product key entity search procedure"""
+        return locators['prd.select']
 
     def create(self, name, description=None, sync_plan=None, startdate=None,
                create_sync_plan=False, gpg_key=None, sync_interval=None):
@@ -35,8 +45,7 @@ class Products(Base):
     def update(self, name, new_name=None, new_desc=None,
                new_sync_plan=None, new_gpg_key=None):
         """Updates product from UI"""
-        prd_element = self.search_entity(
-            name, locators['prd.select'], katello=True)
+        prd_element = self.search(name)
         if prd_element:
             prd_element.click()
             self.wait_for_ajax()
@@ -70,9 +79,3 @@ class Products(Base):
             self.click(common_locators['confirm_remove'])
         else:
             self.click(common_locators['cancel'])
-
-    def search(self, name):
-        """Searches existing product from UI"""
-        element = self.search_entity(
-            name, locators['prd.select'], katello=True)
-        return element

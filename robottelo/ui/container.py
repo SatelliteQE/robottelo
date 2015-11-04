@@ -8,6 +8,14 @@ from robottelo.ui.navigator import Navigator
 class Container(Base):
     """Provides the CRUD functionality for Docker Containers."""
 
+    def navigate_to_entity(self):
+        """Navigate to All Containers page"""
+        Navigator(self.browser).go_to_all_containers()
+
+    def _search_locator(self):
+        """Specify locator for Container entity search procedure"""
+        return locators['container.search_entity']
+
     def _configure_orgs(self, orgs, org_select):
         """Provides configuration capabilities for docker container
         organization. The following format should be used::
@@ -108,13 +116,18 @@ class Container(Base):
             )
 
     def search(self, resource_name, container_name):
-        """Searches for existing container from particular compute resource"""
-        Navigator(self.browser).go_to_all_containers()
+        """Searches for existing container from particular compute resource. It
+        is necessary to use custom search here as we need to select compute
+        resource tab before searching for particular container and also, there
+        is no search button to click
+
+        """
+        self.navigate_to_entity()
         strategy, value = locators['container.resource_search_tab']
         self.click((strategy, value % resource_name))
         self.text_field_update(
             locators['container.search_filter'], container_name)
-        strategy, value = locators['container.search_entity']
+        strategy, value = self._search_locator()
         return self.wait_until_element((strategy, value % container_name))
 
     def delete(self, resource_name, container_name, really=True):

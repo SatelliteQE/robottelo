@@ -9,6 +9,14 @@ from robottelo.ui.navigator import Navigator
 class Registry(Base):
     """Provides the CRUD functionality for Registry."""
 
+    def navigate_to_entity(self):
+        """Navigate to Registry entity page"""
+        Navigator(self.browser).go_to_registries()
+
+    def _search_locator(self):
+        """Specify locator for Registry entity search procedure"""
+        return locators['registry.select_name']
+
     def create(self, name, url, description=None, username=None, password=None,
                orgs=None, org_select=True, locs=None, loc_select=True):
         """Creates the registry."""
@@ -74,27 +82,10 @@ class Registry(Base):
         )
         self.click(common_locators['submit'])
 
-    def search(self, name):
-        """Searches existing registry from UI"""
-        Navigator(self.browser).go_to_registries()
-        if len(name) <= 30:
-            element = self.search_entity(
-                name, locators['registry.select_name'])
-        else:
-            element = self.search_entity(
-                name, common_locators['select_filtered_entity'])
-        return element
-
     def delete(self, name, really=True):
         """Deletes the registry"""
-        if len(name) <= 30:
-            loc = locators['registry.select_name']
-        else:
-            loc = common_locators['select_filtered_entity']
-
         self.delete_entity(
             name,
             really,
-            loc,
             locators['registry.delete'],
         )

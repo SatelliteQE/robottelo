@@ -300,7 +300,6 @@ class Host(UITestCase, Base):
                 network_type="Virtual (NAT)",
             )
             self.scroll_page()
-            self.navigator.go_to_hosts()
             search = self.hosts.search(
                 u'{0}.{1}'.format(self.hostname, self.domain_name)
             )
@@ -337,7 +336,6 @@ class Host(UITestCase, Base):
                 root_pwd=host.root_pass,
             )
             self.navigator.go_to_dashboard()
-            self.navigator.go_to_hosts()
             # confirm the Host appears in the UI
             search = self.hosts.search(
                 u'{0}.{1}'.format(host.name, host.domain.name)

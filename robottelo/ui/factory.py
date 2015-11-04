@@ -213,7 +213,6 @@ def make_repository(session, org=None, loc=None,
 
     create_args = {
         u'name': None,
-        u'product': None,
         u'gpg_key': None,
         u'http': False,
         u'url': None,
@@ -221,7 +220,7 @@ def make_repository(session, org=None, loc=None,
         u'repo_checksum': CHECKSUM_TYPE['default'],
         u'upstream_repo_name': None,
     }
-    page = session.nav.go_to_products
+    page = Repos(session.browser).navigate_to_entity
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
     Repos(session.browser).create(**create_args)
@@ -657,7 +656,7 @@ def make_oscappolicy(session, **kwargs):
         u'content': None,
         u'profile': None,
         u'period': None,
-        u'weekday': None,
+        u'period_value': None,
         u'org': None,
         u'loc': None,
         u'host_group': None,

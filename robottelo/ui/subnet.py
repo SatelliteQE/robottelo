@@ -4,10 +4,20 @@
 from robottelo.constants import FILTER
 from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.navigator import Navigator
 
 
 class Subnet(Base):
     """Provides the CRUD functionality for Subnet."""
+
+    def navigate_to_entity(self):
+        """Navigate to Subnet entity page"""
+        Navigator(self.browser).go_to_subnets()
+
+    def _search_locator(self):
+        """Specify locator for Subnet entity search procedure"""
+        return locators['subnet.display_name']
+
     def _configure_subnet(self, subnet_network, subnet_mask, domains=None,
                           subnet_gateway=None, subnet_primarydns=None,
                           subnet_secondarydns=None):
@@ -60,19 +70,13 @@ class Subnet(Base):
         self.delete_entity(
             subnet_name,
             really,
-            locators['subnet.display_name'],
             locators['subnet.delete'],
         )
 
-    def search_subnet(self, subnet_name):
+    def search_and_validate(self, subnet_name):
         """Search Subnet name, network and mask to validate results."""
         result = None
-        if len(subnet_name) <= 30:
-            subnet_object = self.search_entity(
-                subnet_name, locators['subnet.display_name'])
-        else:
-            subnet_object = self.search_entity(
-                subnet_name, common_locators['select_filtered_entity'])
+        subnet_object = self.search(subnet_name)
         if subnet_object:
             subnet_object.click()
             if self.wait_until_element(locators['subnet.name']):
@@ -93,8 +97,7 @@ class Subnet(Base):
                new_subnet_name=None, new_subnet_network=None,
                new_subnet_mask=None):
         """Update subnet name, network and mask from UI."""
-        subnet_object = self.search_entity(
-            subnet_name, locators['subnet.display_name'])
+        subnet_object = self.search(subnet_name)
 
         if subnet_object:
             subnet_object.click()
