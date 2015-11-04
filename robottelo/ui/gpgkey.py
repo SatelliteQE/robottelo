@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements GPG keys UI."""
 
+from robottelo.helpers import escape_search
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
@@ -9,18 +10,6 @@ from selenium.webdriver.support.select import Select
 
 class GPGKey(Base):
     """Manipulates GPG keys from UI."""
-
-    def navigate_to_entity(self):
-        """Navigate to GPG key entity page"""
-        Navigator(self.browser).go_to_gpg_keys()
-
-    def _search_locator(self):
-        """Specify locator for GPG key entity search procedure"""
-        return locators["gpgkey.key_name"]
-
-    def _search_init(self):
-        """Specify that GPG key entity has katello type"""
-        return super(GPGKey, self)._search_init(is_katello=True)
 
     def create(self, name, upload_key=False, key_path=None, key_content=None):
         """Creates a gpg key from UI."""
@@ -48,6 +37,20 @@ class GPGKey(Base):
             raise UIError(
                 'Could not create new gpg key "{0}"'.format(name)
             )
+
+    def search(self, element_name):
+        """Uses the search box to locate an element from a list of elements."""
+        Navigator(self.browser).go_to_gpg_keys()
+        element = None
+        strategy, value = locators["gpgkey.key_name"]
+        searchbox = self.wait_until_element(common_locators["kt_search"])
+        if searchbox:
+            searchbox.clear()
+            searchbox.send_keys(escape_search(element_name))
+            self.wait_for_ajax()
+            self.click(common_locators["kt_search_button"])
+            element = self.wait_until_element((strategy, value % element_name))
+            return element
 
     def delete(self, name, really):
         """Deletes an existing gpg key."""
