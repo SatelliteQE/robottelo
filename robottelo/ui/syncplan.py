@@ -1,11 +1,22 @@
 """Implements Sync Plans for UI."""
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
 class Syncplan(Base):
     """Manipulates Sync Plans from UI."""
+    is_katello = True
+    result_timeout = 20
+
+    def navigate_to_entity(self):
+        """Navigate to Sync Plan entity page"""
+        Navigator(self.browser).go_to_sync_plans()
+
+    def _search_locator(self):
+        """Specify locator for Sync Plan entity search procedure"""
+        return locators['sp.select']
 
     def add_remove_products(self, products=None, tab_locator=None,
                             select_locator=None):
@@ -42,8 +53,7 @@ class Syncplan(Base):
                new_sync_interval=None, add_products=None,
                rm_products=None):
         """Updates Sync Plans from UI."""
-        sp_element = self.search_entity(
-            name, locators['sp.select'], katello=True, result_timeout=20)
+        sp_element = self.search(name)
         if sp_element is None:
             raise UIError(
                 'Unable to find the sync_plan "{0}" for update.'.format(name)
@@ -91,9 +101,3 @@ class Syncplan(Base):
             self.click(common_locators['confirm_remove'])
         else:
             self.click(common_locators['cancel'])
-
-    def search(self, name):
-        """Searches existing sync_plan from UI."""
-        element = self.search_entity(
-            name, locators['sp.select'], katello=True)
-        return element
