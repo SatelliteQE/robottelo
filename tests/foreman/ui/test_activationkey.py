@@ -118,7 +118,7 @@ class ActivationKey(UITestCase):
                         name=name,
                         env=ENVIRONMENT,
                     )
-                    self.assertIsNotNone(self.activationkey.search_key(name))
+                    self.assertIsNotNone(self.activationkey.search(name))
 
     def test_positive_create_activation_key_with_description(self):
         """@Test: Create Activation key with description
@@ -137,7 +137,7 @@ class ActivationKey(UITestCase):
                 env=ENVIRONMENT,
                 description=gen_string('utf8'),
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
 
     @run_only_on('sat')
     def test_positive_create_activation_key_with_envs(self):
@@ -164,7 +164,7 @@ class ActivationKey(UITestCase):
                         env=env_name,
                         content_view=cv_name,
                     )
-                    self.assertIsNotNone(self.activationkey.search_key(name))
+                    self.assertIsNotNone(self.activationkey.search(name))
 
     @run_only_on('sat')
     def test_positive_create_activation_key_with_cv(self):
@@ -190,7 +190,7 @@ class ActivationKey(UITestCase):
                         env=env_name,
                         content_view=cv_name,
                     )
-                    self.assertIsNotNone(self.activationkey.search_key(name))
+                    self.assertIsNotNone(self.activationkey.search(name))
 
     def test_positive_create_activation_key_with_hc(self):
         """@Test: Create Activation key with Host Collection
@@ -214,7 +214,7 @@ class ActivationKey(UITestCase):
                 name=name,
                 env=ENVIRONMENT,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             # add Host Collection
             self.activationkey.add_host_collection(name, host_col.name)
             self.assertIsNotNone(self.activationkey.find_element(
@@ -244,7 +244,7 @@ class ActivationKey(UITestCase):
                 env=ENVIRONMENT,
                 limit='6',
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
 
     def test_negative_create_activation_key_with_invalid_names(self):
         """@Test: Create Activation key with invalid Name
@@ -265,7 +265,7 @@ class ActivationKey(UITestCase):
                     )
                     self.assertIsNotNone(self.products.wait_until_element(
                         common_locators['common_invalid']))
-                    self.assertIsNone(self.activationkey.search_key(name))
+                    self.assertIsNone(self.activationkey.search(name))
 
     @skip_if_bug_open('bugzilla', 1177158)
     def test_negative_create_activation_key_with_invalid_desc(self):
@@ -290,7 +290,7 @@ class ActivationKey(UITestCase):
             )
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['common_haserror']))
-            self.assertIsNone(self.activationkey.search_key(name))
+            self.assertIsNone(self.activationkey.search(name))
 
     def test_negative_create_activation_key_with_invalid_limit(self):
         """@Test: Create Activation key with invalid Usage Limit. Both with too
@@ -314,7 +314,7 @@ class ActivationKey(UITestCase):
                     )
                     self.assertIsNotNone(self.activationkey.wait_until_element(
                         locators['ak.invalid_limit']))
-                    self.assertIsNone(self.activationkey.search_key(name))
+                    self.assertIsNone(self.activationkey.search(name))
 
     def test_positive_delete_activation_key_with_different_names(self):
         """@Test: Create Activation key and delete it for all variations of
@@ -335,9 +335,9 @@ class ActivationKey(UITestCase):
                         env=ENVIRONMENT,
                         description=gen_string('utf8'),
                     )
-                    self.assertIsNotNone(self.activationkey.search_key(name))
+                    self.assertIsNotNone(self.activationkey.search(name))
                     self.activationkey.delete(name)
-                    self.assertIsNone(self.activationkey.search_key(name))
+                    self.assertIsNone(self.activationkey.search(name))
 
     @run_only_on('sat')
     def test_positive_delete_activation_key_with_env(self):
@@ -361,9 +361,9 @@ class ActivationKey(UITestCase):
                 name=name,
                 env=env_name,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.delete(name)
-            self.assertIsNone(self.activationkey.search_key(name))
+            self.assertIsNone(self.activationkey.search(name))
 
     @run_only_on('sat')
     def test_positive_delete_activation_key_with_cv(self):
@@ -388,9 +388,9 @@ class ActivationKey(UITestCase):
                 env=env_name,
                 content_view=cv_name,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.delete(name)
-            self.assertIsNone(self.activationkey.search_key(name))
+            self.assertIsNone(self.activationkey.search(name))
 
     def test_positive_delete_activation_key_with_system(self):
         """@Test: Delete an Activation key which has registered systems
@@ -420,7 +420,7 @@ class ActivationKey(UITestCase):
                 env=env_name,
                 content_view=cv_name,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.associate_product(name, [product_name])
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success']))
@@ -429,7 +429,7 @@ class ActivationKey(UITestCase):
                 result = vm.register_contenthost(name, self.organization.label)
                 self.assertEqual(result.return_code, 0)
                 self.activationkey.delete(name)
-                self.assertIsNone(self.activationkey.search_key(name))
+                self.assertIsNone(self.activationkey.search(name))
 
     def test_negative_delete_activation_key(self):
         """@Test: [UI ONLY] Attempt to delete an Activation Key and cancel it
@@ -452,9 +452,9 @@ class ActivationKey(UITestCase):
                 name=name,
                 env=ENVIRONMENT,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.delete(name, really=False)
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
 
     def test_positive_update_ak_with_different_names(self):
         """@Test: Update Activation Key Name in an Activation key
@@ -472,12 +472,12 @@ class ActivationKey(UITestCase):
                 name=name,
                 env=ENVIRONMENT,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             for new_name in valid_data_list():
                 with self.subTest(new_name):
                     self.activationkey.update(name, new_name)
                     self.assertIsNotNone(
-                        self.activationkey.search_key(new_name))
+                        self.activationkey.search(new_name))
                     name = new_name
 
     def test_positive_update_activation_key_with_description(self):
@@ -498,7 +498,7 @@ class ActivationKey(UITestCase):
                 env=ENVIRONMENT,
                 description=description,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             for new_desc in valid_data_list():
                 with self.subTest(new_desc):
                     self.activationkey.update(name, description=new_desc)
@@ -527,7 +527,7 @@ class ActivationKey(UITestCase):
                 name=name,
                 env=ENVIRONMENT,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             env_locator = locators['ak.selected_env']
             selected_env = self.activationkey.get_attribute(name, env_locator)
             self.assertEqual(ENVIRONMENT, selected_env)
@@ -571,7 +571,7 @@ class ActivationKey(UITestCase):
                 env=env1_name,
                 content_view=cv1_name
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             cv_locator = locators['ak.selected_cv']
             selected_cv = self.activationkey.get_attribute(name, cv_locator)
             self.assertEqual(cv1_name, selected_cv)
@@ -638,7 +638,7 @@ class ActivationKey(UITestCase):
                 env=env1_name,
                 content_view=cv1_name,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             cv_locator = locators['ak.selected_cv']
             selected_cv = self.activationkey.get_attribute(name, cv_locator)
             self.assertEqual(cv1_name, selected_cv)
@@ -665,7 +665,7 @@ class ActivationKey(UITestCase):
                 name=name,
                 env=ENVIRONMENT,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.update(name, limit='8')
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success']))
@@ -687,7 +687,7 @@ class ActivationKey(UITestCase):
                 env=ENVIRONMENT,
                 limit='6',
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.update(name, limit='Unlimited')
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success']))
@@ -708,13 +708,13 @@ class ActivationKey(UITestCase):
                 name=name,
                 env=ENVIRONMENT,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             for new_name in invalid_names_list():
                 with self.subTest(new_name):
                     self.activationkey.update(name, new_name)
                     self.assertIsNotNone(self.products.wait_until_element(
                         common_locators['alert.error']))
-                    self.assertIsNone(self.activationkey.search_key(new_name))
+                    self.assertIsNone(self.activationkey.search(new_name))
 
     @skip_if_bug_open('bugzilla', 1177158)
     def test_negative_update_activation_key_with_description(self):
@@ -737,7 +737,7 @@ class ActivationKey(UITestCase):
                 env=ENVIRONMENT,
                 description=gen_string('alpha'),
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.update(name, description=new_description)
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.error']))
@@ -758,7 +758,7 @@ class ActivationKey(UITestCase):
                 name=name,
                 env=ENVIRONMENT,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             for limit in ' ', -1, 'text', '0':
                 with self.subTest(limit):
                     with self.assertRaises(ValueError) as context:
@@ -793,7 +793,7 @@ class ActivationKey(UITestCase):
                 name=name,
                 env=ENVIRONMENT,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.update(name, limit=host_limit)
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success']))
@@ -835,7 +835,7 @@ class ActivationKey(UITestCase):
                 name=key_name,
                 env=ENVIRONMENT,
             )
-            self.assertIsNotNone(self.activationkey.search_key(key_name))
+            self.assertIsNotNone(self.activationkey.search(key_name))
             # Creating VM
             with VirtualMachine(distro=self.vm_distro) as vm:
                 vm.install_katello_cert()
@@ -882,7 +882,7 @@ class ActivationKey(UITestCase):
                 env=env_name,
                 content_view=cv_name,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.associate_product(name, [product_subscription])
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success']))
@@ -911,7 +911,7 @@ class ActivationKey(UITestCase):
                 env=env_name,
                 content_view=cv_name,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.associate_product(name, [product_name])
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success']))
@@ -980,7 +980,7 @@ class ActivationKey(UITestCase):
                 env=ENVIRONMENT,
                 content_view=DEFAULT_CV,
             )
-            self.assertIsNotNone(self.activationkey.search_key(name))
+            self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.associate_product(
                 name, [product_subscription, custom_product_name])
             self.assertIsNotNone(self.activationkey.wait_until_element(
@@ -1071,7 +1071,7 @@ class ActivationKey(UITestCase):
                 env=env_1_name,
                 content_view=cv_1_name,
             )
-            self.assertIsNotNone(self.activationkey.search_key(key_1_name))
+            self.assertIsNotNone(self.activationkey.search(key_1_name))
             self.activationkey.associate_product(key_1_name, [product_1_name])
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success']))
@@ -1083,7 +1083,7 @@ class ActivationKey(UITestCase):
                 env=env_2_name,
                 content_view=cv_2_name,
             )
-            self.assertIsNotNone(self.activationkey.search_key(key_2_name))
+            self.assertIsNotNone(self.activationkey.search(key_2_name))
             self.activationkey.associate_product(key_2_name, [product_2_name])
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success']))
@@ -1139,10 +1139,10 @@ class ActivationKey(UITestCase):
                     set_context(session, org=self.organization.name)
                     self.navigator.go_to_activation_keys()
                     self.assertIsNotNone(
-                        self.activationkey.search_key(self.base_key_name))
+                        self.activationkey.search(self.base_key_name))
                     self.activationkey.copy(self.base_key_name, new_name)
                     self.assertIsNotNone(
-                        self.activationkey.search_key(new_name))
+                        self.activationkey.search(new_name))
 
     @run_only_on('sat')
     def test_negative_copy_activation_key(self):
@@ -1159,6 +1159,6 @@ class ActivationKey(UITestCase):
                     set_context(session, org=self.organization.name)
                     self.navigator.go_to_activation_keys()
                     self.assertIsNotNone(
-                        self.activationkey.search_key(self.base_key_name))
+                        self.activationkey.search(self.base_key_name))
                     self.activationkey.copy(self.base_key_name, new_name)
-                    self.assertIsNone(self.activationkey.search_key(new_name))
+                    self.assertIsNone(self.activationkey.search(new_name))

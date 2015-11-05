@@ -29,8 +29,7 @@ class ConfigGroups(UITestCase):
             for name in valid_data_list():
                 with self.subTest(name):
                     make_config_groups(session, name=name)
-                    search = self.configgroups.search(name)
-                    self.assertIsNotNone(search)
+                    self.assertIsNotNone(self.configgroups.search(name))
 
     @run_only_on('sat')
     def test_create_negative(self):
@@ -46,11 +45,9 @@ class ConfigGroups(UITestCase):
             for name in invalid_values_list('ui'):
                 with self.subTest(name):
                     make_config_groups(session, name=name)
-                    error = session.nav.wait_until_element(
-                        common_locators['name_haserror'])
-                    self.assertIsNotNone(error)
-                    search = self.configgroups.search(name)
-                    self.assertIsNone(search)
+                    self.assertIsNotNone(session.nav.wait_until_element(
+                        common_locators['name_haserror']))
+                    self.assertIsNone(self.configgroups.search(name))
 
     @run_only_on('sat')
     def test_update_positive(self):
@@ -66,11 +63,9 @@ class ConfigGroups(UITestCase):
             for new_name in generate_strings_list():
                 with self.subTest(new_name):
                     make_config_groups(session, name=name)
-                    search = self.configgroups.search(name)
-                    self.assertIsNotNone(search)
+                    self.assertIsNotNone(self.configgroups.search(name))
                     self.configgroups.update(name, new_name)
-                    search = self.configgroups.search(new_name)
-                    self.assertIsNotNone(search)
+                    self.assertIsNotNone(self.configgroups.search(new_name))
 
     @run_only_on('sat')
     def test_delete_positive(self):
