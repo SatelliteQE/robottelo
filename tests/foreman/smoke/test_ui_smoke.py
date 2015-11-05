@@ -84,7 +84,7 @@ class TestSmoke(UITestCase):
         """
         with Session(self.browser) as session:
             session.nav.go_to_users()
-            self.assertIsNotNone(self.user.search('admin', search_key='login'))
+            self.assertIsNotNone(self.user.search('admin'))
             self.assertTrue(self.user.admin_role_to_user('admin'))
 
     def test_smoke(self):
