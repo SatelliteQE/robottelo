@@ -7,8 +7,8 @@ from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
-from robottelo.helpers import valid_data_list
 from robottelo.test import APITestCase
 
 DOCKER_PROVIDER = 'Docker'

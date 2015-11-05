@@ -448,6 +448,7 @@ class Settings(object):
         self.rhel7_repo = None
         self.screenshots_path = None
         self.server = ServerSettings()
+        self.run_one_datapoint = None
         self.upstream = None
         self.verbosity = None
         self.virtual_display = None
@@ -526,6 +527,8 @@ class Settings(object):
         self.rhel7_repo = self.reader.get('robottelo', 'rhel7_repo', None)
         self.screenshots_path = self.reader.get(
             'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots')
+        self.run_one_datapoint = self.reader.get(
+            'robottelo', 'run_one_datapoint', False, bool)
         self.upstream = self.reader.get('robottelo', 'upstream', True, bool)
         self.verbosity = self.reader.get(
             'robottelo',

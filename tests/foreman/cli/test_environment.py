@@ -5,12 +5,8 @@ from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_environment, make_location, make_org
-from robottelo.decorators import run_only_on, skip_if_bug_open
-from robottelo.helpers import (
-    bz_bug_is_open,
-    invalid_id_list,
-    invalid_values_list,
-)
+from robottelo.datafactory import invalid_id_list, invalid_values_list
+from robottelo.decorators import bz_bug_is_open, run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
 
 

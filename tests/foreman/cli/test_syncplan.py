@@ -7,8 +7,8 @@ from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError, make_org, make_sync_plan
 from robottelo.cli.syncplan import SyncPlan
+from robottelo.datafactory import valid_data_list, invalid_values_list
 from robottelo.decorators import skip_if_bug_open
-from robottelo.helpers import valid_data_list, invalid_values_list
 from robottelo.test import CLITestCase
 
 

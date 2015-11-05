@@ -12,8 +12,8 @@ from robottelo.cli.factory import (
     make_partition_table,
     make_template,
 )
+from robottelo.datafactory import valid_data_list, invalid_values_list
 from robottelo.decorators import run_only_on, skip_if_bug_open
-from robottelo.helpers import valid_data_list, invalid_values_list
 from robottelo.test import CLITestCase
 
 NEGATIVE_DELETE_DATA = (

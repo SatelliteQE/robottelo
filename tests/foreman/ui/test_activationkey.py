@@ -19,8 +19,8 @@ from robottelo.constants import (
     FAKE_2_YUM_REPO,
     REPO_TYPE,
 )
+from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
-from robottelo.helpers import invalid_names_list, valid_data_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_activationkey, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators

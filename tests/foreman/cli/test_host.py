@@ -6,7 +6,7 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.host import Host
 from robottelo.cli.proxy import Proxy
 from robottelo.config import settings
-from robottelo.helpers import invalid_values_list, valid_data_list
+from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.test import CLITestCase
 
 

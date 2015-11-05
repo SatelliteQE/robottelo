@@ -28,11 +28,8 @@ from robottelo.constants import (
     RPM_TO_UPLOAD,
 )
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
-from robottelo.helpers import (
-    get_data_file,
-    valid_data_list,
-    invalid_values_list,
-)
+from robottelo.datafactory import valid_data_list, invalid_values_list
+from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
 
 

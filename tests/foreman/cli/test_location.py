@@ -18,8 +18,8 @@ from robottelo.cli.factory import (
     make_user,
 )
 from robottelo.cli.location import Location
+from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import skip_if_bug_open
-from robottelo.helpers import invalid_values_list
 from robottelo.test import CLITestCase
 
 

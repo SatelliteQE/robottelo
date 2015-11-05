@@ -4,12 +4,9 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
+from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import run_only_on
-from robottelo.helpers import (
-    generate_strings_list,
-    get_data_file,
-    invalid_values_list,
-)
+from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_templates

@@ -3,8 +3,8 @@
 from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
+from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import run_only_on
-from robottelo.helpers import generate_strings_list, invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_arch
 from robottelo.ui.locators import common_locators

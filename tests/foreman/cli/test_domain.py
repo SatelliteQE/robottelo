@@ -6,8 +6,8 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.domain import Domain
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_domain, make_location, make_org
+from robottelo.datafactory import invalid_id_list, valid_data_list
 from robottelo.decorators import run_only_on
-from robottelo.helpers import invalid_id_list, valid_data_list
 from robottelo.test import CLITestCase
 
 

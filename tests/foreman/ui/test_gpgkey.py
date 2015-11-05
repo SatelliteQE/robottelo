@@ -14,16 +14,13 @@ from robottelo.constants import (
     VALID_GPG_KEY_FILE,
     ZOO_CUSTOM_GPG_KEY,
 )
+from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
     stubbed,
 )
-from robottelo.helpers import (
-    generate_strings_list,
-    get_data_file,
-    read_data_file,
-)
+from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_gpgkey

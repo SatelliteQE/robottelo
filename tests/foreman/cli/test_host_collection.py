@@ -11,8 +11,8 @@ from robottelo.cli.factory import (
     make_lifecycle_environment, make_content_host)
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.constants import DEFAULT_CV, ENVIRONMENT
+from robottelo.datafactory import valid_data_list, invalid_values_list
 from robottelo.decorators import skip_if_bug_open
-from robottelo.helpers import valid_data_list, invalid_values_list
 from robottelo.test import CLITestCase
 
 

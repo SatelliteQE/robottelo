@@ -2,8 +2,8 @@
 """Test class for Environment UI"""
 
 from fauxfactory import gen_string
+from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import run_only_on, skip_if_bug_open
-from robottelo.helpers import invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_env
 from robottelo.ui.locators import common_locators

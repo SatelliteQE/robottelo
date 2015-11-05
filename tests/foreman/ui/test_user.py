@@ -5,8 +5,8 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import LANGUAGES
+from robottelo.datafactory import invalid_names_list, invalid_values_list
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
-from robottelo.helpers import invalid_names_list, invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_user
 from robottelo.ui.locators import common_locators, locators, tab_locators

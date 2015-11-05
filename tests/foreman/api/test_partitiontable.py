@@ -9,12 +9,12 @@ from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
 from robottelo.constants import OPERATING_SYSTEMS
-from robottelo.decorators import skip_if_bug_open
-from robottelo.helpers import (
+from robottelo.datafactory import (
     generate_strings_list,
     invalid_values_list,
     valid_data_list,
 )
+from robottelo.decorators import skip_if_bug_open
 from robottelo.test import APITestCase
 
 

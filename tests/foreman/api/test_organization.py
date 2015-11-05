@@ -12,8 +12,9 @@ from nailgun import client, entities
 from random import randint
 from requests.exceptions import HTTPError
 from robottelo.config import settings
+from robottelo.datafactory import invalid_values_list
 from robottelo.decorators import skip_if_bug_open
-from robottelo.helpers import get_nailgun_config, invalid_values_list
+from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 
 

@@ -23,8 +23,8 @@ from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
-from robottelo.helpers import valid_data_list
 from robottelo.test import CLITestCase
 
 STRING_TYPES = ['alpha', 'alphanumeric', 'cjk', 'utf8', 'latin1']

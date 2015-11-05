@@ -4,7 +4,7 @@ import time
 
 from inflector import Inflector
 from nailgun import entities
-from robottelo.helpers import bz_bug_is_open
+from robottelo.decorators import bz_bug_is_open
 
 
 def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,

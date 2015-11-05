@@ -3,8 +3,8 @@
 """Test class for Host Group UI"""
 
 from fauxfactory import gen_string
+from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import run_only_on
-from robottelo.helpers import generate_strings_list, invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hostgroup
 from robottelo.ui.locators import common_locators

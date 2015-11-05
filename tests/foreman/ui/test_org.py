@@ -8,7 +8,7 @@ from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
-from robottelo.helpers import (
+from robottelo.datafactory import (
     generate_strings_list,
     invalid_names_list,
     invalid_values_list,

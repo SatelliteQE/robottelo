@@ -4,12 +4,12 @@
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_architecture
-from robottelo.decorators import run_only_on
-from robottelo.helpers import (
+from robottelo.datafactory import (
     invalid_id_list,
     invalid_values_list,
     valid_data_list,
 )
+from robottelo.decorators import run_only_on
 from robottelo.test import CLITestCase
 
 

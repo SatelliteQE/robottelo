@@ -9,9 +9,9 @@ from fauxfactory import gen_string
 from nailgun import client, entities
 from random import sample
 from robottelo.config import settings
+from robottelo.datafactory import invalid_values_list, valid_data_list
 from requests.exceptions import HTTPError
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
-from robottelo.helpers import invalid_values_list, valid_data_list
 from robottelo.test import APITestCase
 
 

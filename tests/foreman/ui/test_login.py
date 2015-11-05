@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Test class for Login UI"""
 
-from robottelo.helpers import gen_string
+from fauxfactory import gen_string
 from robottelo.test import UITestCase
 
 

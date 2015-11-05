@@ -6,8 +6,8 @@ from fauxfactory import gen_string
 from nailgun import entities
 from random import randint
 from robottelo.constants import SYNC_INTERVAL
+from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import skip_if_bug_open
-from robottelo.helpers import generate_strings_list, invalid_values_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_syncplan
 from robottelo.ui.locators import common_locators, locators, tab_locators
