@@ -10,6 +10,16 @@ from selenium.webdriver.support.select import Select
 class User(Base):
     """Implements CRUD functions from UI."""
 
+    search_key = 'login'
+
+    def navigate_to_entity(self):
+        """Navigate to User entity page"""
+        Navigator(self.browser).go_to_users()
+
+    def _search_locator(self):
+        """Specify locator for User entity search procedure"""
+        return locators['users.user']
+
     def _configure_user(self, roles=None, locations=None, organizations=None,
                         new_locations=None, new_roles=None,
                         new_organizations=None, default_org=None,
@@ -91,23 +101,15 @@ class User(Base):
                 )
         self.click(common_locators['submit'])
 
-    def search(self, name, search_key):
-        """Searches existing user from UI."""
-        Navigator(self.browser).go_to_users()
-        return self.search_entity(
-            name, locators['users.user'], search_key=search_key)
-
-    def delete(self, name, search_key, really=True):
+    def delete(self, name, really=True):
         """Deletes existing user from UI."""
         self.delete_entity(
             name,
             really,
-            locators['users.user'],
             locators['users.delete'],
-            search_key=search_key,
         )
 
-    def update(self, search_key, username, new_username=None,
+    def update(self, username, new_username=None,
                email=None, password=None,
                first_name=None, last_name=None, locale=None,
                roles=None, new_roles=None, locations=None,
@@ -118,7 +120,7 @@ class User(Base):
         from UI
 
         """
-        element = self.search(username, search_key)
+        element = self.search(username)
 
         if element is None:
             raise UIError(
@@ -156,12 +158,12 @@ class User(Base):
         )
         self.click(common_locators['submit'])
 
-    def admin_role_to_user(self, username, search_key='login'):
+    def admin_role_to_user(self, username):
         """Checks if selected user has Administrator privileges otherwise
         assign it to user.
 
         """
-        element = self.search(username, search_key)
+        element = self.search(username)
 
         if element is None:
             raise UINoSuchElementError(
