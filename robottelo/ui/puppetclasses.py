@@ -8,6 +8,14 @@ from robottelo.ui.navigator import Navigator
 class PuppetClasses(Base):
     """Provides the CRUD functionality for Puppet-classes."""
 
+    def navigate_to_entity(self):
+        """Navigate to Puppet Classes entity page"""
+        Navigator(self.browser).go_to_puppet_classes()
+
+    def _search_locator(self):
+        """Specify locator for Puppet Classes entity search procedure"""
+        return locators['puppetclass.select_name']
+
     def create(self, name, environment=None):
         """Creates the Puppet-classes."""
         self.click(locators['puppetclass.new'])
@@ -31,17 +39,11 @@ class PuppetClasses(Base):
                                        new_env)
             self.click(common_locators['submit'])
 
-    def search(self, name):
-        """Searches existing puppet-classes from UI"""
-        Navigator(self.browser).go_to_puppet_classes()
-        return self.search_entity(name, locators['puppetclass.select_name'])
-
     def delete(self, name, really=True):
         """Deletes the puppet-classes."""
         self.delete_entity(
             name,
             really,
-            locators['puppetclass.select_name'],
             locators['puppetclass.delete'],
         )
 
