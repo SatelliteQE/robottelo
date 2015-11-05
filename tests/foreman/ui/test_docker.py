@@ -891,7 +891,7 @@ class DockerActivationKeyTestCase(UITestCase):
                 env=self.lce.name,
                 content_view=self.content_view.name,
             )
-            self.assertIsNotNone(self.activationkey.search_key(ak_name))
+            self.assertIsNotNone(self.activationkey.search(ak_name))
 
     @stubbed()
     # Return to that case once BZ 1269829 is fixed
@@ -944,7 +944,7 @@ class DockerActivationKeyTestCase(UITestCase):
                 env=self.lce.name,
                 content_view=composite_name,
             )
-            self.assertIsNotNone(self.activationkey.search_key(ak_name))
+            self.assertIsNotNone(self.activationkey.search(ak_name))
 
     @stubbed()
     # Return to that case once BZ 1269829 is fixed

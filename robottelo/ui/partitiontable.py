@@ -10,6 +10,14 @@ from selenium.webdriver.support.select import Select
 class PartitionTable(Base):
     """Implements the CRUD functions for partition table."""
 
+    def navigate_to_entity(self):
+        """Navigate to Partition Table entity page"""
+        Navigator(self.browser).go_to_partition_tables()
+
+    def _search_locator(self):
+        """Specify locator for Partition Table entity search procedure"""
+        return locators['ptable.ptable_name']
+
     def _configure_partition_table(self, os_family=None):
         """Configures the os family of partition table."""
         if os_family:
@@ -37,17 +45,11 @@ class PartitionTable(Base):
                 'Could not create partition table "{0}"'.format(name)
             )
 
-    def search(self, name):
-        """Searches existing partition table from UI."""
-        Navigator(self.browser).go_to_partition_tables()
-        return self.search_entity(name, locators['ptable.ptable_name'])
-
     def delete(self, name, really=True):
         """Removes existing partition table from UI."""
         self.delete_entity(
             name,
             really,
-            locators['ptable.ptable_name'],
             locators['ptable.delete'],
         )
 
