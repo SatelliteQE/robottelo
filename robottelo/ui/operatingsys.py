@@ -10,6 +10,16 @@ from selenium.webdriver.support.select import Select
 class OperatingSys(Base):
     """Manipulates Foreman's operating system from UI."""
 
+    search_key = 'description'
+
+    def navigate_to_entity(self):
+        """Navigate to OS entity page"""
+        Navigator(self.browser).go_to_operating_systems()
+
+    def _search_locator(self):
+        """Specify locator for OS entity search procedure"""
+        return locators['operatingsys.operatingsys_name']
+
     def _configure_os(self, archs, ptables, mediums, select,
                       minor_version=None, description=None, os_family=None,
                       template=None, arch_list=None, ptable_list=None,
@@ -96,23 +106,11 @@ class OperatingSys(Base):
                 'Could not create new operating system "{0}"'.format(name)
             )
 
-    def search(self, name, search_key=None):
-        """Searches existing operating system from UI."""
-        Navigator(self.browser).go_to_operating_systems()
-        if len(name) <= 30:
-            element = self.search_entity(
-                name, locators['operatingsys.operatingsys_name'], search_key)
-        else:
-            element = self.search_entity(
-                name, common_locators['select_filtered_entity'], search_key)
-        return element
-
     def delete(self, os_name, really=True):
         """Delete operating system from UI."""
         self.delete_entity(
             os_name,
             really,
-            locators['operatingsys.operatingsys_name'],
             locators['operatingsys.delete']
         )
 
@@ -201,10 +199,10 @@ class OperatingSys(Base):
         major_ver_loc = locators['operatingsys.major_version']
         minor_ver_loc = locators['operatingsys.minor_version']
         os_family_loc = locators['operatingsys.family']
-        os_object = self.search_entity(
-            os_name, locators['operatingsys.operatingsys_name'])
-        if os_object:
-            os_object.click()
+
+        element = self.search(os_name)
+        if element:
+            element.click()
             if self.wait_until_element(locators['operatingsys.name']):
                 result = dict([('name', None), ('major', None),
                                ('minor', None), ('os_family', None),
