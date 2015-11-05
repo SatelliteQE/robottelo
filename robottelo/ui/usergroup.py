@@ -3,11 +3,20 @@
 from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
 class UserGroup(Base):
     """Implements the CRUD functions for User groups."""
+
+    def navigate_to_entity(self):
+        """Navigate to Usergroup entity page"""
+        Navigator(self.browser).go_to_user_groups()
+
+    def _search_locator(self):
+        """Specify locator for Usergroup entity search procedure"""
+        return locators['usergroups.usergroup']
 
     def create(self, name, users=None, roles=None,
                ext_usergrp=None, ext_authsourceid=None):
@@ -36,16 +45,11 @@ class UserGroup(Base):
             ).select_by_visible_text(ext_authsourceid)
         self.click(common_locators['submit'])
 
-    def search(self, name):
-        """Searches existing usergroup from UI."""
-        return self.search_entity(name, locators['usergroups.usergroup'])
-
     def delete(self, name, really=True):
         """Delete existing usergroup."""
         self.delete_entity(
             name,
             really,
-            locators['usergroups.usergroup'],
             locators['usergroups.delete'],
         )
 
