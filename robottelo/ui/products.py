@@ -45,8 +45,7 @@ class Products(Base):
     def update(self, name, new_name=None, new_desc=None,
                new_sync_plan=None, new_gpg_key=None):
         """Updates product from UI"""
-        prd_element = self.search_entity(
-            name, locators['prd.select'], katello=True)
+        prd_element = self.search(name)
         if prd_element:
             prd_element.click()
             self.wait_for_ajax()
