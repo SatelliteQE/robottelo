@@ -80,7 +80,7 @@ class Domain(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_domain(self):
+    def test_delete_domain(self):
         """@Test: Delete a domain
 
         @Feature: Domain - Delete
