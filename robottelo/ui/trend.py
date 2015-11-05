@@ -10,6 +10,14 @@ from selenium.webdriver.support.select import Select
 class Trend(Base):
     """Provides the CRUD functionality for Trends."""
 
+    def navigate_to_entity(self):
+        """Navigate to Trend entity page"""
+        Navigator(self.browser).go_to_trends()
+
+    def _search_locator(self):
+        """Specify locator for Trend entity search procedure"""
+        return locators['trend.trend_name']
+
     def create(self, trend_type, trendable, name):
         """Creates the trend."""
         self.click(locators['trend.new'])
@@ -57,19 +65,15 @@ class Trend(Base):
         testing logic.
 
         """
-        Navigator(self.browser).go_to_trends()
-        strategy, value = locators['trend.trend_name']
+        self.navigate_to_entity()
+        strategy, value = self._search_locator()
         return self.wait_until_element((strategy, value % tr_type))
 
-    def delete(self, trend_name, really=True):
+    def delete(self, name, really=True):
         """Deletes the trend."""
-        element = self.search(trend_name)
-        if element is None:
-            raise UIError(
-                'Could not find necessary trend "{0}"'.format(trend_name)
-            )
-        strategy, value = locators['trend.dropdown']
-        self.click((strategy, value % trend_name))
-        strategy, value = locators['trend.delete']
-        self.click((strategy, value % trend_name), wait_for_ajax=False)
-        self.handle_alert(really)
+        self.delete_entity(
+            name,
+            really,
+            locators['trend.delete'],
+            locators['trend.dropdown'],
+        )
