@@ -18,6 +18,7 @@ class ComputeResource(UITestCase):
 
     @classmethod
     def setUpClass(cls):
+        super(ComputeResource, cls).setUpClass()
         cls.current_libvirt_url = (
             LIBVIRT_RESOURCE_URL % settings.server.hostname
         )
