@@ -152,7 +152,6 @@ class TestIncrementalUpdate(TestCase):
         assert len(subs) > 0
 
         # Add subscriptions to activation key
-        print 'Adding subscriptions to both Activation keys'
         sub_found = False
         for sub in subs:
             if sub.read_json()['product_name'] == u'Employee SKU':

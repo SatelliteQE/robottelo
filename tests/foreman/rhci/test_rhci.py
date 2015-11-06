@@ -38,7 +38,6 @@ class RHCIDeploymentTestCase(APITestCase):
     def tearDownClass(cls):
         """ Delete deployments designated during testing. """
         super(RHCIDeploymentTestCase, cls).tearDownClass()
-        print cls.to_delete
         for deployment in cls.to_delete:
             deployment.delete()
 
