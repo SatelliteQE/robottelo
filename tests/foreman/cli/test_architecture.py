@@ -103,4 +103,4 @@ class TestArchitecture(CLITestCase):
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):
                 with self.assertRaises(CLIReturnCodeError):
-                    Architecture.delete(entity_id)
+                    Architecture.delete({'id': entity_id})

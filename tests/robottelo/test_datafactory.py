@@ -73,7 +73,8 @@ class TestReturnTypes(unittest2.TestCase):
                 valid_names_list()):
             self.assertIsInstance(item, unicode)
         for item in invalid_id_list():
-            self.assertIsInstance(item, dict)
+            if not (isinstance(item, (unicode, int)) or item is None):
+                self.fail('Unexpected data type')
 
 
 class InvalidValuesListTestCase(unittest2.TestCase):

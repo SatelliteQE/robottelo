@@ -121,7 +121,7 @@ class TestEnvironment(CLITestCase):
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):
                 with self.assertRaises(CLIReturnCodeError):
-                    Environment.delete(entity_id)
+                    Environment.delete({'id': entity_id})
 
     @run_only_on('sat')
     def test_positive_delete_by_name(self):

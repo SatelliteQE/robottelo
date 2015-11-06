@@ -64,10 +64,10 @@ def generate_strings_list(length=None, remove_str=None, bug_id=None):
 def invalid_id_list():
     """Generates a list of invalid IDs."""
     return [
-        {'id': gen_string('alpha')},
-        {'id': None},
-        {'id': ''},
-        {'id': -1},
+        gen_string('alpha'),
+        None,
+        u'',
+        -1,
     ]
 
 
