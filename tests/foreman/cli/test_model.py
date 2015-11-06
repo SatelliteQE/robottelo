@@ -115,4 +115,4 @@ class TestModel(CLITestCase):
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):
                 with self.assertRaises(CLIReturnCodeError):
-                    Model.delete(entity_id)
+                    Model.delete({'id': entity_id})

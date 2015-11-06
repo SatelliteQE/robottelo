@@ -266,7 +266,7 @@ class TestDomain(CLITestCase):
         for entity_id in invalid_id_list():
             with self.subTest(entity_id):
                 with self.assertRaises(CLIReturnCodeError):
-                    Domain.delete(entity_id)
+                    Domain.delete({'id': entity_id})
 
     @run_only_on('sat')
     def test_positive_delete_parameter(self):
