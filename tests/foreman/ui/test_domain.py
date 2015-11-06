@@ -53,7 +53,7 @@ class Domain(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=4):
+            for name in generate_strings_list(length=4):
                 with self.subTest(name):
                     domain_name = description = DOMAIN % name
                     make_domain(
@@ -145,7 +145,7 @@ class Domain(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=4):
+            for name in generate_strings_list(length=4):
                 with self.subTest(name):
                     domain_name = description = DOMAIN % name
                     param_name = gen_string('alpha', 4)
@@ -270,7 +270,7 @@ class Domain(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=4):
+            for name in generate_strings_list(length=4):
                 with self.subTest(name):
                     domain_name = description = DOMAIN % name
                     param_name = gen_string('alpha', 3)

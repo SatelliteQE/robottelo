@@ -24,7 +24,7 @@ class Hostgroup(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=4):
+            for name in generate_strings_list(length=4):
                 with self.subTest(name):
                     make_hostgroup(session, name=name)
                     self.assertIsNotNone(self.hostgroup.search(name))
@@ -72,7 +72,7 @@ class Hostgroup(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=4):
+            for name in generate_strings_list(length=4):
                 with self.subTest(name):
                     make_hostgroup(session, name=name)
                     self.hostgroup.delete(name)
@@ -90,7 +90,7 @@ class Hostgroup(UITestCase):
         with Session(self.browser) as session:
             make_hostgroup(session, name=name)
             self.assertIsNotNone(self.hostgroup.search(name))
-            for new_name in generate_strings_list(len1=4):
+            for new_name in generate_strings_list(length=4):
                 with self.subTest(new_name):
                     self.hostgroup.update(name, new_name=new_name)
                     self.assertIsNotNone(self.hostgroup.search(new_name))

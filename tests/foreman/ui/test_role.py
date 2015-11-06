@@ -23,7 +23,7 @@ class Role(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=10):
+            for name in generate_strings_list(length=10):
                 with self.subTest(name):
                     make_role(session, name=name)
                     self.assertIsNotNone(self.role.search(name))
@@ -52,7 +52,7 @@ class Role(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=10):
+            for name in generate_strings_list(length=10):
                 with self.subTest(name):
                     make_role(session, name=name)
                     self.role.delete(name)
@@ -69,7 +69,7 @@ class Role(UITestCase):
         with Session(self.browser) as session:
             make_role(session, name=name)
             self.assertIsNotNone(self.role.search(name))
-            for new_name in generate_strings_list(len1=10):
+            for new_name in generate_strings_list(length=10):
                 with self.subTest(new_name):
                     self.role.update(name, new_name)
                     self.assertIsNotNone(self.role.search(new_name))
