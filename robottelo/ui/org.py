@@ -11,6 +11,14 @@ from selenium.webdriver.support.select import Select
 class Org(Base):
     """Provides the CRUD functionality for Organization."""
 
+    def navigate_to_entity(self):
+        """Navigate to org entity page"""
+        Navigator(self.browser).go_to_org()
+
+    def _search_locator(self):
+        """Specify locator for org entity search procedure"""
+        return locators['org.org_name']
+
     def _configure_org(self, users=None, proxies=None, subnets=None,
                        resources=None, medias=None, templates=None,
                        domains=None, envs=None, hostgroups=None,
@@ -101,11 +109,6 @@ class Org(Base):
                                 select=select)
             self.click(common_locators['submit'])
 
-    def search(self, name):
-        """Searches existing Organization from UI."""
-        Navigator(self.browser).go_to_org()
-        return self.search_entity(name, locators['org.org_name'])
-
     def update(self, org_name, new_parent_org=None, new_name=None, users=None,
                proxies=None, subnets=None, resources=None, medias=None,
                templates=None, domains=None, envs=None, hostgroups=None,
@@ -157,7 +160,6 @@ class Org(Base):
         self.delete_entity(
             org_name,
             really,
-            locators['org.org_name'],
             locators['org.delete'],
             drop_locator=locators['org.dropdown'],
         )
