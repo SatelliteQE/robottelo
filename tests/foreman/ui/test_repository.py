@@ -20,7 +20,7 @@ from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import run_only_on
 from robottelo.helpers import read_data_file
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_repository
+from robottelo.ui.factory import make_repository, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
@@ -87,11 +87,11 @@ class Repos(UITestCase):
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
+                    set_context(session, org=self.organization.name)
+                    self.products.search(prod.name).click()
                     make_repository(
                         session,
-                        org=self.organization.name,
                         name=repo_name,
-                        product=prod.name,
                         url=FAKE_1_YUM_REPO,
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
@@ -113,19 +113,19 @@ class Repos(UITestCase):
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
+                    set_context(session, org=self.organization.name)
+                    self.products.search(product_1.name).click()
                     make_repository(
                         session,
-                        org=self.organization.name,
                         name=repo_name,
-                        product=product_1.name,
                         url=FAKE_1_YUM_REPO,
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
+                    set_context(session, org=org_2.name)
+                    self.products.search(product_2.name).click()
                     make_repository(
                         session,
-                        org=org_2.name,
                         name=repo_name,
-                        product=product_2.name,
                         url=FAKE_1_YUM_REPO,
                         force_context=True,
                     )
@@ -146,11 +146,11 @@ class Repos(UITestCase):
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
+                    set_context(session, org=self.organization.name)
+                    self.products.search(product.name).click()
                     make_repository(
                         session,
-                        org=self.organization.name,
                         name=repo_name,
-                        product=product.name,
                         url=FAKE_1_YUM_REPO,
                         repo_checksum=checksum,
                     )
@@ -171,11 +171,11 @@ class Repos(UITestCase):
         for repo_name in invalid_values_list(interface='ui'):
             with self.subTest(repo_name):
                 with Session(self.browser) as session:
+                    set_context(session, org=self.organization.name)
+                    self.products.search(product.name).click()
                     make_repository(
                         session,
-                        org=self.organization.name,
                         name=repo_name,
-                        product=product.name,
                         url=FAKE_1_YUM_REPO,
                     )
                     invalid = self.products.wait_until_element(
@@ -194,19 +194,18 @@ class Repos(UITestCase):
         repo_name = gen_string('alphanumeric')
         product = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
+            set_context(session, org=self.organization.name)
+            self.products.search(product.name).click()
             make_repository(
                 session,
-                org=self.organization.name,
                 name=repo_name,
-                product=product.name,
                 url=FAKE_1_YUM_REPO,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
+            self.products.search(product.name).click()
             make_repository(
                 session,
-                org=self.organization.name,
                 name=repo_name,
-                product=product.name,
                 url=FAKE_1_YUM_REPO,
             )
             invalid = self.products.wait_until_element(
@@ -226,20 +225,18 @@ class Repos(UITestCase):
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
+                    set_context(session, org=self.organization.name)
+                    self.products.search(product.name).click()
                     make_repository(
                         session,
-                        org=self.organization.name,
                         name=repo_name,
-                        product=product.name,
                         url=FAKE_1_YUM_REPO,
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'url', FAKE_1_YUM_REPO))
-                    self.navigator.go_to_products()
                     self.products.search(product.name).click()
                     self.repository.update(repo_name, new_url=FAKE_2_YUM_REPO)
-                    self.navigator.go_to_products()
                     self.products.search(product.name).click()
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'url', FAKE_2_YUM_REPO))
@@ -267,21 +264,19 @@ class Repos(UITestCase):
         ).create()
         product = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
+            set_context(session, org=self.organization.name)
+            self.products.search(product.name).click()
             make_repository(
                 session,
-                org=self.organization.name,
                 name=repo_name,
-                product=product.name,
                 url=FAKE_1_YUM_REPO,
                 gpg_key=gpgkey_1.name,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'gpgkey', gpgkey_1.name))
-            self.navigator.go_to_products()
             self.products.search(product.name).click()
             self.repository.update(repo_name, new_gpg_key=gpgkey_2.name)
-            self.navigator.go_to_products()
             self.products.search(product.name).click()
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'gpgkey', gpgkey_2.name))
@@ -300,21 +295,19 @@ class Repos(UITestCase):
         checksum_update = CHECKSUM_TYPE['sha1']
         product = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
+            set_context(session, org=self.organization.name)
+            self.products.search(product.name).click()
             make_repository(
                 session,
-                org=self.organization.name,
                 name=repo_name,
-                product=product.name,
                 url=FAKE_1_YUM_REPO,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'checksum', checksum_default))
-            self.navigator.go_to_products()
             self.products.search(product.name).click()
             self.repository.update(
                 repo_name, new_repo_checksum=checksum_update)
-            self.navigator.go_to_products()
             self.products.search(product.name).click()
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'checksum', checksum_update))
@@ -332,11 +325,11 @@ class Repos(UITestCase):
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
+                    set_context(session, org=self.organization.name)
+                    self.products.search(product.name).click()
                     make_repository(
                         session,
-                        org=self.organization.name,
                         name=repo_name,
-                        product=product.name,
                         url=FAKE_1_YUM_REPO,
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
