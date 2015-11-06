@@ -47,7 +47,7 @@ class PartitionTable(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=10):
+            for name in generate_strings_list(length=10):
                 with self.subTest(name):
                     make_partitiontable(
                         session,

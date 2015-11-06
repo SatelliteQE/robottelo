@@ -82,7 +82,7 @@ class ConfigGroups(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=8):
+            for name in generate_strings_list(length=8):
                 with self.subTest(name):
                     make_config_groups(session, name=name)
                     self.configgroups.delete(name)

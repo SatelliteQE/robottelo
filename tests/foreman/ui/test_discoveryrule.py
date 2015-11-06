@@ -44,7 +44,7 @@ class DiscoveryRules(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=8):
+            for name in generate_strings_list(length=8):
                 with self.subTest(name):
                     make_discoveryrule(session, name=name,
                                        hostgroup=self.host_group.name)
@@ -170,7 +170,7 @@ class DiscoveryRules(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=8):
+            for name in generate_strings_list(length=8):
                 with self.subTest(name):
                     make_discoveryrule(session, name=name,
                                        hostgroup=self.host_group.name)
@@ -192,7 +192,7 @@ class DiscoveryRules(UITestCase):
             make_discoveryrule(session, name=name,
                                hostgroup=self.host_group.name)
             self.assertIsNotNone(self.discoveryrules.search(name))
-            for new_name in generate_strings_list(len1=8):
+            for new_name in generate_strings_list(length=8):
                 with self.subTest(new_name):
                     self.discoveryrules.update(name=name, new_name=new_name)
                     self.assertIsNotNone(self.discoveryrules.search(new_name))

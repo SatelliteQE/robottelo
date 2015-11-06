@@ -41,7 +41,7 @@ class Subnet(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=8):
+            for name in generate_strings_list(length=8):
                 with self.subTest(name):
                     make_subnet(
                         session,
@@ -188,7 +188,7 @@ class Subnet(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=8):
+            for name in generate_strings_list(length=8):
                 with self.subTest(name):
                     make_subnet(
                         session,
@@ -236,7 +236,7 @@ class Subnet(UITestCase):
                 subnet_network=gen_ipaddr(ip3=True),
                 subnet_mask=gen_netmask(),
             )
-            for new_name in generate_strings_list(len1=8):
+            for new_name in generate_strings_list(length=8):
                 with self.subTest(new_name):
                     self.subnet.update(name, new_subnet_name=new_name)
                     result_object = self.subnet.search_subnet(new_name)

@@ -23,7 +23,7 @@ class PuppetClasses(UITestCase):
         class_name = 'foreman_scap_client'
         param_name = 'ca file'
         with Session(self.browser):
-            for description in generate_strings_list(len1=8):
+            for description in generate_strings_list(length=8):
                 with self.subTest(description):
                     # Importing puppet classes from puppet-foreman_scap_client
                     # module for update process
@@ -48,7 +48,7 @@ class PuppetClasses(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(len1=8):
+            for name in generate_strings_list(length=8):
                 with self.subTest(name):
                     entities.PuppetClass(name=name).create()
                     session.nav.go_to_puppet_classes()

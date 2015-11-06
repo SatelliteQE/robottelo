@@ -31,10 +31,10 @@ def datacheck(func):
 
 
 @datacheck
-def generate_strings_list(len1=None, remove_str=None, bug_id=None):
+def generate_strings_list(length=None, remove_str=None, bug_id=None):
     """Generates a list of different input strings.
 
-    :param int len1: Specifies the length of the strings to be
+    :param int length: Specifies the length of the strings to be
         be generated. If the len1 is None then the list is
         returned with string types of random length.
     :param str remove_str: Specify any specific data point that needs to be
@@ -45,10 +45,10 @@ def generate_strings_list(len1=None, remove_str=None, bug_id=None):
     :returns: A list of various string types.
 
     """
-    if len1 is None:
-        len1 = gen_integer(3, 30)
+    if length is None:
+        length = gen_integer(3, 30)
     strings = {
-        str_type: gen_string(str_type, len1)
+        str_type: gen_string(str_type, length)
         for str_type
         in (u'alpha', u'numeric', u'alphanumeric',
             u'latin1', u'utf8', u'cjk', u'html')

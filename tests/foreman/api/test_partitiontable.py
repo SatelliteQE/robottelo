@@ -57,7 +57,7 @@ class PartitionTableTestCase(APITestCase):
         @Feature: Partition Table - Create
 
         """
-        for name in generate_strings_list(len1=gen_integer(4, 30)):
+        for name in generate_strings_list(length=gen_integer(4, 30)):
             with self.subTest(name):
                 ptable = entities.PartitionTable(name=name).create()
                 self.assertEqual(ptable.name, name)
@@ -137,7 +137,7 @@ class PartitionTableTestCase(APITestCase):
 
         """
         ptable = entities.PartitionTable().create()
-        for new_name in generate_strings_list(len1=gen_integer(4, 30)):
+        for new_name in generate_strings_list(length=gen_integer(4, 30)):
             with self.subTest(new_name):
                 ptable.name = new_name
                 self.assertEqual(ptable.update(['name']).name, new_name)

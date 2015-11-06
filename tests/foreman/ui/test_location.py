@@ -279,7 +279,9 @@ class Location(UITestCase):
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
             # User names does not accept html values
-            for user_name in generate_strings_list(len1=10, remove_str='html'):
+            for user_name in generate_strings_list(
+                    length=10,
+                    remove_str='html'):
                 with self.subTest(user_name):
                     loc_name = gen_string('alpha')
                     password = gen_string('alpha')
@@ -630,7 +632,9 @@ class Location(UITestCase):
         strategy1, value1 = common_locators['entity_deselect']
         with Session(self.browser) as session:
             # User names does not accept html values
-            for user_name in generate_strings_list(len1=10, remove_str='html'):
+            for user_name in generate_strings_list(
+                    length=10,
+                    remove_str='html'):
                 with self.subTest(user_name):
                     loc_name = gen_string('alpha')
                     user = entities.User(
@@ -783,7 +787,7 @@ class Location(UITestCase):
         """
         strategy, value = common_locators['all_values_selection']
         with Session(self.browser) as session:
-            for template_name in generate_strings_list(len1=8):
+            for template_name in generate_strings_list(length=8):
                 with self.subTest(template_name):
                     loc_name = gen_string('alpha')
                     set_context(session, org=ANY_CONTEXT['org'])
