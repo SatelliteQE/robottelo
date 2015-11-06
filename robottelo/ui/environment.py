@@ -38,22 +38,19 @@ class Environment(Base):
                                   entity_select=org_select)
             self.click(common_locators['submit'])
 
-    def search(self, name):
-        """Searches existing env from UI"""
+    def navigate_to_entity(self):
+        """Navigate to Environment entity page"""
         Navigator(self.browser).go_to_environments()
-        if len(name) <= 30:
-            element = self.search_entity(name, locators['env.env_name'])
-        else:
-            element = self.search_entity(
-                name, common_locators['select_filtered_entity'])
-        return element
+
+    def _search_locator(self):
+        """Specify locator for Environment entity search procedure"""
+        return locators['env.env_name']
 
     def delete(self, name, really=True):
         """Deletes the environment"""
         self.delete_entity(
             name,
             really,
-            locators['env.env_name'],
             locators['env.delete'],
             drop_locator=locators['env.dropdown'],
         )
