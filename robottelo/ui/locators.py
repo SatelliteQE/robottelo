@@ -1921,6 +1921,10 @@ locators = LocatorDict({
                   "//button[@ng-click='save()']"),
 
     # Manifests / subscriptions
+    "subs.select": (
+        By.XPATH, ("//tr[contains(@ng-repeat-start, 'groupedSubscriptions') "
+                   "and contains(., '%s')]/following-sibling::tr[1]/td/"
+                   "a[contains(@href, '/info')]")),
     "subs.delete_manifest": (
         By.XPATH, "//button[contains(@ng-click,'deleteManifest')]"),
     "subs.refresh_manifest": (

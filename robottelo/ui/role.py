@@ -3,11 +3,20 @@
 from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
 class Role(Base):
     """Implements the CRUD functions for Roles."""
+
+    def navigate_to_entity(self):
+        """Navigate to Role entity page"""
+        Navigator(self.browser).go_to_roles()
+
+    def _search_locator(self):
+        """Specify locator for Role entity search procedure"""
+        return locators['roles.role']
 
     def create(self, name):
         """Creates new Role with default permissions."""
@@ -21,17 +30,11 @@ class Role(Base):
                 'Could not create new role "{0}"'.format(name)
             )
 
-    def search(self, name):
-        """Searches existing role from UI."""
-        element = self.search_entity(name, locators['roles.role'])
-        return element
-
     def delete(self, name, really=True):
         """Delete existing role."""
         self.delete_entity(
             name,
             really,
-            locators['roles.role'],
             locators['roles.delete'],
             locators['roles.dropdown'],
         )

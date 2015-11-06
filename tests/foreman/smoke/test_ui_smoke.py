@@ -136,7 +136,7 @@ class TestSmoke(UITestCase):
                 password1=password,
                 password2=password
             )
-            self.assertIsNotNone(self.user.search(user_name, 'login'))
+            self.assertIsNotNone(self.user.search(user_name))
             is_admin_role_selected = self.user.admin_role_to_user(user_name)
             self.assertTrue(is_admin_role_selected)
 

@@ -1,12 +1,21 @@
 """Implements Subscriptions/Manifest handling for the UI"""
 
-from robottelo.helpers import escape_search
 from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.navigator import Navigator
 
 
 class Subscriptions(Base):
     """Manipulates Subscriptions from UI"""
+    is_katello = True
+
+    def navigate_to_entity(self):
+        """Navigate to Subscription entity page"""
+        Navigator(self.browser).go_to_red_hat_subscriptions()
+
+    def _search_locator(self):
+        """Specify locator for Subscription entity search procedure"""
+        return locators['subs.select']
 
     def upload(self, path, repo_url=None):
         """Uploads Manifest/subscriptions via UI.
@@ -35,13 +44,3 @@ class Subscriptions(Base):
         """Refreshes Manifest/subscriptions via UI."""
         self.click(locators['subs.manage_manifest'])
         self.click(locators['subs.refresh_manifest'])
-
-    def search(self, element_name):
-        """Searches existing Subscription from UI"""
-        strategy, value = locators['subs.subscription_search']
-        searchbox = self.wait_until_element(common_locators['kt_search'])
-        if searchbox:
-            searchbox.clear()
-            searchbox.send_keys(escape_search(element_name))
-            self.click(common_locators['kt_search_button'])
-            return self.wait_until_element((strategy, value))
