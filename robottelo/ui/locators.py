@@ -2101,6 +2101,10 @@ locators = LocatorDict({
         By.XPATH, "//input[contains(@data-url, 'auto_complete_search')]"),
     "oscap.content_edit": (
         By.XPATH, "//td[contains(.,'%s')]/../td/div/span/a"),
+    "oscap.content_dropdown": (
+        By.XPATH,
+        ("//td[contains(.,'%s')]/following-sibling::td/div/"
+         "a[@data-toggle='dropdown']")),
     "oscap.content_download": (
         By.XPATH,
         ("//td[contains(.,'%s')]/../td/div/ul/li/"
@@ -2141,6 +2145,8 @@ locators = LocatorDict({
     "oscap.profile_policy": (By.ID, "policy_scap_content_profile_id"),
     "oscap.period_policy": (By.ID, "policy_period"),
     "oscap.weekday_policy": (By.ID, "policy_weekday"),
+    "oscap.dayofmonth_policy": (By.ID, "policy_day_of_month"),
+    "oscap.custom_policy": (By.ID, "policy_cron_line"),
 
     # oscap reports
     "oscap.report_select": (
