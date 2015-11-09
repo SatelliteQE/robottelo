@@ -895,7 +895,6 @@ class ContentViewTestCaseStub(APITestCase):
     """Incomplete tests for content views."""
     # Each of these tests should be given a better name when they're
     # implemented. In the meantime, let's not worry about bad names.
-    # pylint:disable=invalid-name
 
     @stubbed()
     def test_cv_edit_rh_custom_spin(self):

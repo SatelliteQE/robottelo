@@ -1,3 +1,4 @@
+"""Test class for ISO downloads UI"""
 from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import UITestCase
 

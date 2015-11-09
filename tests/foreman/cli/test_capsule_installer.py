@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=invalid-name
 """Test for capsule installer CLI"""
 from robottelo.test import CLITestCase
 

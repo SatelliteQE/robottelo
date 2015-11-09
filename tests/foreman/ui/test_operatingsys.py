@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=invalid-name
 """Test class for Operating System UI"""
 
 from fauxfactory import gen_string

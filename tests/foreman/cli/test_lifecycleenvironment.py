@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=invalid-name
 """Test class for Host CLI"""
 
 from fauxfactory import gen_alphanumeric, gen_string

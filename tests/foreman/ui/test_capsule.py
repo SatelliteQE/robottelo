@@ -5,6 +5,7 @@ from robottelo.test import UITestCase
 
 
 class CapsuleTestCase(UITestCase):
+    """Implements capsule tests in UI"""
 
     def capsule_errata_push(self):
         """@Test: User can push errata through to a client on

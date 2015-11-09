@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 """Test class for Config Groups UI"""
 
 from fauxfactory import gen_string

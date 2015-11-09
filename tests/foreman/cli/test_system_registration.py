@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 """Test module for System Registration CLI"""
 from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase

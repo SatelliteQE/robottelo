@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 """Test class for Active Directory Feature"""
 from fauxfactory import gen_string
 from nailgun import entities

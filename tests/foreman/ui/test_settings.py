@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=too-many-public-methods, invalid-name
 """Test class for Setting Parameter values"""
 
 from fauxfactory import gen_email, gen_string, gen_url

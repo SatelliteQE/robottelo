@@ -1,4 +1,5 @@
 # -*- encoding: utf-8 -*-
+"""Test class for Hosts UI"""
 from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
 from robottelo.api.utils import promote
@@ -13,6 +14,7 @@ from robottelo.ui.session import Session
 
 
 class Host(UITestCase, Base):
+    """Implements Host tests in UI"""
 
     hostname = gen_string('numeric')
 
@@ -122,7 +124,7 @@ class Host(UITestCase, Base):
         cls.subnet = entities.Subnet().search(
             query={u'search': u'network={0}'.format(network)}
         )
-        if (len(cls.subnet) == 1):
+        if len(cls.subnet) == 1:
             cls.subnet = cls.subnet[0]
             cls.subnet.domain = [cls.domain]
             cls.subnet.location = [cls.loc]
@@ -165,7 +167,7 @@ class Host(UITestCase, Base):
             provider='libvirt',
             url=resource_url
         ).search()
-        if (len(cls.computeresource) >= 1):
+        if len(cls.computeresource) >= 1:
             cls.computeresource = cls.computeresource[0]
             cls.computeresource.location = [cls.loc]
             cls.computeresource.organization = [cls.org]

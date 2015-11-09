@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=invalid-name
 """Tests for Installer"""
 from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import CLITestCase

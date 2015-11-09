@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=too-many-public-methods
 """Test class for Content View Filters"""
 
 from fauxfactory import gen_choice, gen_string

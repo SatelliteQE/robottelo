@@ -1,4 +1,3 @@
-# pylint: disable=too-many-public-methods
 """Unit tests for the ``locations`` paths.
 
 A full API reference for locations can be found here:

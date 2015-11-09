@@ -1,11 +1,12 @@
 # -*- encoding: utf-8 -*-
-"""Test class for installer (UI)"""
+"""Test class for SSO (UI)"""
 
 from robottelo.decorators import stubbed
 from robottelo.test import UITestCase
 
 
 class TestSSOUI(UITestCase):
+    """Implements SSO tests in UI"""
     # Notes for SSO testing:
     # Of interest... In some test cases I've placed a few comments prefaced
     # with "devnote:" These are -- obviously -- notes from developers that

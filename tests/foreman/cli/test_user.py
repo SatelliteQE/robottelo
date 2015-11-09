@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=too-many-public-methods, too-many-lines
 """Test class for Users CLI
 
 When testing email validation [1] and [2] should be taken into consideration.

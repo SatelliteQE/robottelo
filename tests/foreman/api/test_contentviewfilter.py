@@ -38,9 +38,6 @@ class ContentViewFilterTestCase(APITestCase):
         self.content_view.repository = [self.repo]
         self.content_view.update(['repository'])
 
-    # Test method names are long for descriptive purposes.
-    # pylint:disable=invalid-name
-
     @run_only_on('sat')
     def test_get_with_no_args(self):
         """@Test: Issue an HTTP GET to the base content view filters path.

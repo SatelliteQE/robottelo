@@ -5,6 +5,7 @@ from robottelo.test import UITestCase
 
 
 class LDAPAuthUI(UITestCase):
+    """Implements ldap tests in UI"""
     # Notes for SSO testing:
     # Of interest... In some test cases I've placed a few comments prefaced
     # with "devnote:" These are -- obviously -- notes from developers that

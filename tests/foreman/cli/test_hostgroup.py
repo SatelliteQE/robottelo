@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=invalid-name
 """Test class for :class:`robottelo.cli.hostgroup.HostGroup` CLI."""
 
 from robottelo.cli.base import CLIReturnCodeError

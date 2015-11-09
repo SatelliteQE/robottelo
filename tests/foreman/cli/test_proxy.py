@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=no-self-use, invalid-name
+# pylint: disable=no-self-use
 """proxy class for Smart proxy CLI"""
 
 import random
