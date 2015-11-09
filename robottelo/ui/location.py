@@ -10,6 +10,14 @@ from selenium.webdriver.support.select import Select
 class Location(Base):
     """Implements CRUD functions for UI"""
 
+    def navigate_to_entity(self):
+        """Navigate to ContentViews entity page"""
+        Navigator(self.browser).go_to_loc()
+
+    def _search_locator(self):
+        """Specify locator for ContentViews entity search procedure"""
+        return locators['location.select_name']
+
     def _configure_location(self, users=None, proxies=None, subnets=None,
                             resources=None, medias=None, templates=None,
                             domains=None, envs=None, hostgroups=None,
@@ -102,12 +110,6 @@ class Location(Base):
             )
             self.click(common_locators['submit'])
 
-    def search(self, name):
-        """Searches existing location from UI."""
-        Navigator(self.browser).go_to_loc()
-        element = self.search_entity(name, locators['location.select_name'])
-        return element
-
     def update(self, loc_name, new_name=None, users=None,
                proxies=None, subnets=None, resources=None, medias=None,
                templates=None, domains=None, envs=None, hostgroups=None,
@@ -150,7 +152,6 @@ class Location(Base):
         self.delete_entity(
             name,
             really,
-            locators['location.select_name'],
             locators['location.delete'],
-            drop_locator=locators['location.dropdown'],
+            locators['location.dropdown'],
         )

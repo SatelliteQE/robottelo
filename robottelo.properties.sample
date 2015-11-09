@@ -68,7 +68,7 @@ ssh_key=
 # [ldap]
 # hostname=
 # username=
-# passwd=
+# password=
 # basedn=
 # grpbasedn=
 
