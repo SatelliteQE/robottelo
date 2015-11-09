@@ -54,18 +54,27 @@ class DiscoveryRules(Base):
         self._configure_discovery(hostname, host_limit, priority, enabled)
         self.click(common_locators['submit'])
 
-    def search(self, rule_name):
-        """Searches existing discovery rule from UI"""
+    def navigate_to_entity(self):
+        """Navigate to Discovery Rule entity page"""
         Navigator(self.browser).go_to_discovery_rules()
-        strategy, value = locators['discoveryrules.rule_name']
-        return self.wait_until_element((strategy, value % rule_name))
 
-    def delete(self, rule_name, really=True):
+    def _search_locator(self):
+        """Specify locator for Discovery Rule entity search procedure"""
+        return locators['discoveryrules.rule_name']
+
+    def search(self, name):
+        """Searches existing discovery rule from UI"""
+        self.navigate_to_entity()
+        strategy, value = self._search_locator()
+        return self.wait_until_element((strategy, value % name))
+
+    def delete(self, name, really=True):
         """Delete existing discovery rule from UI"""
-        Navigator(self.browser).go_to_discovery_rules()
-        strategy, value = locators['discoveryrules.rule_delete']
-        self.click((strategy, value % rule_name), wait_for_ajax=False)
-        self.handle_alert(really)
+        self.delete_entity(
+            name,
+            really,
+            locators['discoveryrules.rule_delete'],
+        )
 
     def update(self, name, new_name=None, search_rule=None, hostgroup=None,
                hostname=None, host_limit=None, priority=None, enabled=False):
