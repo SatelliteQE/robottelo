@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=invalid-name, too-many-lines, too-many-public-methods
 """Test class for Host/System Unification
 
 Feature details: https://fedorahosted.org/katello/wiki/ContentViews

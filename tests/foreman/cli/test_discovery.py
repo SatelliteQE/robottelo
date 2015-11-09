@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=invalid-name
 """Test class for CLI Foreman Discovery"""
 from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase

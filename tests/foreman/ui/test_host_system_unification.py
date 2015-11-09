@@ -6,6 +6,7 @@ from robottelo.test import UITestCase
 
 
 class TestHostSystemUnificationUI(UITestCase):
+    """Implements Host System Unification tests in UI"""
     # Testing notes for host/system unification in katello/foreman
     # Basically assuring that hosts in foreman/katello bits are joined
     # and information can be associated across both parts of product.

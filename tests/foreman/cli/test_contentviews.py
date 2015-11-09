@@ -1,4 +1,3 @@
-# pylint: disable=too-many-public-methods, too-many-lines
 """Test class for Content Views"""
 import random
 

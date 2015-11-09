@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=invalid-name
 """Test class for Partition table CLI"""
 from fauxfactory import gen_string, gen_alphanumeric
 from robottelo.cli.factory import make_os, make_partition_table

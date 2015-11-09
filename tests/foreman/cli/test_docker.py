@@ -1,5 +1,4 @@
-# pylint: disable=too-many-public-methods, too-many-lines
-# pylint: disable=invalid-name, attribute-defined-outside-init
+# pylint: attribute-defined-outside-init
 """Unit tests for the Docker feature."""
 from fauxfactory import gen_alpha, gen_choice, gen_string, gen_url
 from random import choice, randint

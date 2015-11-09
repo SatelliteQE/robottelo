@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=invalid-name
 """Test for Host/System Unification"""
 
 from robottelo.decorators import run_only_on, stubbed

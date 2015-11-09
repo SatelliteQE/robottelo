@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=invalid-name
 """Test for Environment  CLI"""
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError

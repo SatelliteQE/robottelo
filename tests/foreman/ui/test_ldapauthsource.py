@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 """Test class for Active Directory Feature"""
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE

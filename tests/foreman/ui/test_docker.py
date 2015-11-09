@@ -22,7 +22,6 @@ from robottelo.ui.factory import (
 )
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
-# (too-many-public-methods) pylint:disable=R0904
 
 VALID_DOCKER_UPSTREAM_NAMES = (
     # boundaries

@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=too-many-public-methods, too-many-lines
 """Test class for GPG Key CLI"""
 
 from fauxfactory import gen_string, gen_alphanumeric, gen_integer

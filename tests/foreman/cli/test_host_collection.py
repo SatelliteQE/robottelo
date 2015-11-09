@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=invalid-name
 """Test class for Host Collection CLI"""
 
 from fauxfactory import gen_string

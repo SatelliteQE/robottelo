@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=too-many-public-methods, too-many-lines
-# pylint: disable=unexpected-keyword-arg, invalid-name
+# pylint: disable=unexpected-keyword-arg
 """Test class for Activation key CLI"""
 
 from fauxfactory import gen_string

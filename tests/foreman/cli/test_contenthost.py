@@ -1,4 +1,3 @@
-# pylint: disable=too-many-public-methods
 """Test class for Content-Host CLI"""
 
 from fauxfactory import gen_string

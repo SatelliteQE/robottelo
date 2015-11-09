@@ -1,5 +1,4 @@
 """Test class for Sync Plan UI"""
-# pylint: disable=invalid-name
 
 from datetime import datetime, timedelta
 from fauxfactory import gen_string

@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=invalid-name
 """Test for Medium  CLI"""
 
 from fauxfactory import gen_alphanumeric

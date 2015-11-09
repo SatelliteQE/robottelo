@@ -1,4 +1,3 @@
-# pylint: disable=too-many-public-methods
 """Data-driven unit tests for multiple paths."""
 import httplib
 import logging
@@ -10,7 +9,7 @@ from robottelo.decorators import bz_bug_is_open, run_only_on, skip_if_bug_open
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 
-logger = logging.getLogger(__name__)  # pylint:disable=invalid-name
+logger = logging.getLogger(__name__)
 
 BZ_1118015_ENTITIES = (
     entities.ActivationKey, entities.Architecture, entities.ConfigTemplate,

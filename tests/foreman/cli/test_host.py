@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 """CLI tests for ``hammer host``."""
 from fauxfactory import gen_string
 from nailgun import entities

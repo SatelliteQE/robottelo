@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=too-many-public-methods, too-many-lines, invalid-name
 """Test class for Activation key UI"""
 
 from fauxfactory import gen_string
@@ -1038,7 +1037,6 @@ class ActivationKey(UITestCase):
                 )
             )
 
-    # pylint: disable=too-many-locals
     @run_only_on('sat')
     def test_multiple_activation_keys_to_system(self):
         """@Test: Check if multiple Activation keys can be attached to a system

@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=too-many-public-methods, too-many-lines, invalid-name
 """Test class for Users UI"""
 
 from fauxfactory import gen_string

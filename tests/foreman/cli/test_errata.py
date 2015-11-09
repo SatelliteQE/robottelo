@@ -1,4 +1,3 @@
-# pylint: disable=too-many-public-methods
 """CLI Tests for the errata management feature"""
 
 # For ease of use hc refers to host-collection throughout this document

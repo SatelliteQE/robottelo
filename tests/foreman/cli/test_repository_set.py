@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 """Tests for cli repository set"""
 from robottelo.cli.factory import make_org
 from robottelo.cli.product import Product

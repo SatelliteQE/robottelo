@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=too-many-public-methods, too-many-lines, invalid-name
 """Test class for GPG Key UI"""
 
 from fauxfactory import gen_string
@@ -170,7 +169,7 @@ class GPGKey(UITestCase):
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(
-                    len1=300, remove_str='numeric', bug_id=1184480):
+                    length=300, remove_str='numeric', bug_id=1184480):
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -197,7 +196,7 @@ class GPGKey(UITestCase):
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(
-                    len1=300, remove_str='numeric', bug_id=1184480):
+                    length=300, remove_str='numeric', bug_id=1184480):
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -395,7 +394,7 @@ class GPGKey(UITestCase):
             )
             self.assertIsNotNone(self.gpgkey.search(name))
             for new_name in generate_strings_list(
-                    len1=300, remove_str='numeric', bug_id=1184480):
+                    length=300, remove_str='numeric', bug_id=1184480):
                 with self.subTest(new_name):
                     self.gpgkey.update(name, new_name)
                     self.assertIsNotNone(

@@ -1,5 +1,4 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=invalid-name
 """Test class for Partition Table UI"""
 from fauxfactory import gen_string
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE

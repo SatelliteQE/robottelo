@@ -1,4 +1,3 @@
-# pylint: disable=invalid-name
 # -*- encoding: utf-8 -*-
 """Test class for Life cycle environments UI"""
 

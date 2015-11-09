@@ -1,5 +1,5 @@
 # -*- encoding: utf-8 -*-
-# pylint: disable=too-many-public-methods, too-many-lines, no-self-use
+# pylint: disable=no-self-use
 """Test class for Organization CLI"""
 import random
 
