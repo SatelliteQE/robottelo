@@ -12,53 +12,13 @@ from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_location, make_org, make_role, make_user
 from robottelo.cli.user import User as UserObj
+from robottelo.datafactory import (
+    invalid_emails_list,
+    valid_emails_list,
+    valid_usernames_list,
+)
 from robottelo.decorators import stubbed, skip_if_bug_open
 from robottelo.test import CLITestCase
-
-
-def valid_data_user():
-    """Returns a list of valid data for user tests.
-
-    Note: utf8 data is being rejected by the satellite server so it is not
-    included
-
-    """
-    return [
-        gen_string("latin1"),
-        gen_string("alpha"),
-        gen_string("alphanumeric"),
-        gen_string("numeric"),
-    ]
-
-
-def valid_email_list():
-    """Returns a tuple of valid emails."""
-    return (
-        u'{0}@example.com'.format(gen_string('alpha')),
-        u'{0}@example.com'.format(gen_string('alphanumeric')),
-        u'{0}@example.com'.format(gen_string('numeric')),
-        u'{0}@example.com'.format(gen_string('alphanumeric', 48)),
-        u'{0}+{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
-        u'{0}.{1}@example.com'.format(gen_alphanumeric(), gen_alphanumeric()),
-        u'"():;"@example.com',
-        r'!#$%&*+-/=?^`{|}~@example.com',
-    )
-
-
-def invalid_email_list():
-    """Returns a tuple of invalid emails."""
-    return (
-        'foreman@',
-        '@foreman',
-        '@',
-        'Abc.example.com',
-        'A@b@c@example.com',
-        'email@example..c',
-        '{0}@example.com'.format(gen_string('alpha', 49)),  # total length 61
-        '{0}@example.com'.format(gen_string('html')),
-        's p a c e s@example.com',
-        'dot..dot@example.com'
-    )
 
 
 class User(CLITestCase):
@@ -140,7 +100,7 @@ class User(CLITestCase):
 
         """
         include_list = [gen_string("alphanumeric", 100)]
-        for login in valid_data_user() + include_list:
+        for login in valid_usernames_list() + include_list:
             with self.subTest(login):
                 user = make_user({'login': login})
                 self.__assert_exists(user)
@@ -158,7 +118,7 @@ class User(CLITestCase):
 
         """
         include_list = [gen_string("alphanumeric", 50)]
-        for firstname in valid_data_user() + include_list:
+        for firstname in valid_usernames_list() + include_list:
             with self.subTest(firstname):
                 user = make_user({'firstname': firstname})
                 self.__assert_exists(user)
@@ -176,7 +136,7 @@ class User(CLITestCase):
 
         """
         include_list = [gen_string("alphanumeric", 50)]
-        for lastname in valid_data_user() + include_list:
+        for lastname in valid_usernames_list() + include_list:
             with self.subTest(lastname):
                 user = make_user({'lastname': lastname})
                 self.__assert_exists(user)
@@ -193,7 +153,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         """
-        for email in valid_email_list():
+        for email in valid_emails_list():
             with self.subTest(email):
                 # The email must be escaped because some characters to not fail
                 # the parsing of the generated shell command
@@ -214,7 +174,7 @@ class User(CLITestCase):
 
         """
         include_list = [gen_string("alphanumeric", 3000)]
-        for password in valid_data_user() + include_list:
+        for password in valid_usernames_list() + include_list:
             with self.subTest(password):
                 user = make_user({'password': password})
                 self.__assert_exists(user)
@@ -661,7 +621,7 @@ class User(CLITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         """
-        for email in invalid_email_list():
+        for email in invalid_emails_list():
             with self.subTest(email):
                 with self.assertRaises(CLIReturnCodeError):
                     UserObj.create({
@@ -751,7 +711,7 @@ class User(CLITestCase):
 
         """
         user = make_user()
-        for new_firstname in valid_data_user():
+        for new_firstname in valid_usernames_list():
             with self.subTest(new_firstname):
                 UserObj.update({
                     'firstname': new_firstname,
@@ -775,7 +735,7 @@ class User(CLITestCase):
         """
         user = make_user()
         include_list = [gen_string("alphanumeric", 100)]
-        for new_login in valid_data_user() + include_list:
+        for new_login in valid_usernames_list() + include_list:
             with self.subTest(new_login):
                 UserObj.update({
                     'id': user['id'],
@@ -797,7 +757,7 @@ class User(CLITestCase):
 
         """
         user = make_user()
-        for new_lastname in valid_data_user():
+        for new_lastname in valid_usernames_list():
             with self.subTest(new_lastname):
                 UserObj.update({
                     'id': user['id'],
@@ -1306,7 +1266,7 @@ class User(CLITestCase):
 
         """
         new_user = make_user()
-        for email in invalid_email_list():
+        for email in invalid_emails_list():
             with self.subTest(email):
                 with self.assertRaises(CLIReturnCodeError):
                     UserObj.update({
@@ -1329,7 +1289,7 @@ class User(CLITestCase):
         @Assert: User is deleted
 
         """
-        for login in valid_data_user():
+        for login in valid_usernames_list():
             with self.subTest(login):
                 user = make_user({"login": login})
                 self.__assert_exists(user)
@@ -1349,7 +1309,7 @@ class User(CLITestCase):
         @Assert: User is deleted
 
         """
-        for login in valid_data_user():
+        for login in valid_usernames_list():
             with self.subTest(login):
                 user = make_user({"login": login, "admin": 'true'})
                 self.__assert_exists(user)
@@ -1396,7 +1356,7 @@ class User(CLITestCase):
 
         """
         include_list = [gen_string("alphanumeric", 100)]
-        for login in valid_data_user() + include_list:
+        for login in valid_usernames_list() + include_list:
             with self.subTest(login):
                 user = make_user({'login': login})
                 self.__assert_exists(user)
@@ -1426,7 +1386,7 @@ class User(CLITestCase):
 
         """
         include_list = [gen_string("alphanumeric", 50)]
-        for firstname in valid_data_user() + include_list:
+        for firstname in valid_usernames_list() + include_list:
             with self.subTest(firstname):
                 user = make_user({'firstname': firstname})
                 self.__assert_exists(user)
@@ -1455,7 +1415,7 @@ class User(CLITestCase):
 
         """
         include_list = [gen_string("alphanumeric", 50)]
-        for lastname in valid_data_user() + include_list:
+        for lastname in valid_usernames_list() + include_list:
             with self.subTest(lastname):
                 user = make_user({'lastname': lastname})
                 self.__assert_exists(user)
@@ -1791,7 +1751,7 @@ class User(CLITestCase):
         """
         user = make_user()
         include_list = [gen_string("alphanumeric", 100)]
-        for role_name in valid_data_user() + include_list:
+        for role_name in valid_usernames_list() + include_list:
             with self.subTest(role_name):
                 make_role({'name': role_name})
                 self.__assert_exists(user)
@@ -1818,7 +1778,7 @@ class User(CLITestCase):
         """
         user = make_user()
         include_list = [gen_string("alphanumeric", 100)]
-        for role_name in valid_data_user() + include_list:
+        for role_name in valid_usernames_list() + include_list:
             with self.subTest(role_name):
                 make_role({'name': role_name})
                 self.__assert_exists(user)

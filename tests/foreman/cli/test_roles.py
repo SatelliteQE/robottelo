@@ -4,19 +4,9 @@ from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_role
 from robottelo.cli.role import Role
+from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import skip_if_bug_open, stubbed
 from robottelo.test import CLITestCase
-
-
-def valid_names():
-    """Returns a tuple of valid role names"""
-    return(
-        gen_string('alpha', 15),
-        gen_string('alphanumeric', 15),
-        gen_string('numeric', 15),
-        gen_string('latin1', 15),
-        gen_string('utf8', 15),
-    )
 
 
 class TestRole(CLITestCase):
@@ -33,7 +23,7 @@ class TestRole(CLITestCase):
         @BZ: 1138553
 
         """
-        for name in valid_names():
+        for name in generate_strings_list(length=10):
             with self.subTest(name):
                 role = make_role({'name': name})
                 self.assertEqual(role['name'], name)
@@ -61,7 +51,7 @@ class TestRole(CLITestCase):
         @Assert: Assert deletion of roles
 
         """
-        for name in valid_names():
+        for name in generate_strings_list(length=10):
             with self.subTest(name):
                 role = make_role({'name': name})
                 self.assertEqual(role['name'], name)
@@ -79,7 +69,7 @@ class TestRole(CLITestCase):
 
         """
         role = make_role({'name': gen_string('alpha', 15)})
-        for new_name in valid_names():
+        for new_name in generate_strings_list(length=10):
             with self.subTest(new_name):
                 Role.update({
                     'id': role['id'],

@@ -5,13 +5,17 @@ import unittest2
 from robottelo.config import settings
 from robottelo.datafactory import (
     generate_strings_list,
+    invalid_emails_list,
     invalid_id_list,
     invalid_names_list,
     invalid_values_list,
     InvalidArgumentError,
     valid_data_list,
+    valid_emails_list,
+    valid_environments_list,
     valid_labels_list,
     valid_names_list,
+    valid_usernames_list,
 )
 
 
@@ -28,22 +32,30 @@ class DataCheckTestCase(unittest2.TestCase):
         settings.run_one_datapoint = False
         self.assertEqual(len(generate_strings_list()), 7)
         self.assertEqual(len(invalid_id_list()), 4)
+        self.assertEqual(len(invalid_emails_list()), 10)
         self.assertEqual(len(invalid_names_list()), 7)
         self.assertEqual(len(invalid_values_list()), 10)
         self.assertEqual(len(valid_labels_list()), 2)
         self.assertEqual(len(valid_data_list()), 7)
+        self.assertEqual(len(valid_emails_list()), 8)
+        self.assertEqual(len(valid_environments_list()), 3)
         self.assertEqual(len(valid_names_list()), 15)
+        self.assertEqual(len(valid_usernames_list()), 4)
 
     def test_datacheck_False(self):
         """Tests if run_one_datapoint=True returns one data point"""
         settings.run_one_datapoint = True
         self.assertEqual(len(generate_strings_list()), 1)
+        self.assertEqual(len(invalid_emails_list()), 1)
         self.assertEqual(len(invalid_id_list()), 1)
         self.assertEqual(len(invalid_names_list()), 1)
         self.assertEqual(len(invalid_values_list()), 1)
         self.assertEqual(len(valid_data_list()), 1)
+        self.assertEqual(len(valid_emails_list()), 1)
+        self.assertEqual(len(valid_environments_list()), 1)
         self.assertEqual(len(valid_labels_list()), 1)
         self.assertEqual(len(valid_names_list()), 1)
+        self.assertEqual(len(valid_usernames_list()), 1)
 
     @classmethod
     def tearDownClass(cls):
@@ -58,19 +70,27 @@ class TestReturnTypes(unittest2.TestCase):
         """This test validates return types for functions:
 
         1. :meth:`robottelo.datafactory.generate_strings_list`
-        2. :meth:`robottelo.datafactory.invalid_names_list`
-        3. :meth:`robottelo.datafactory.valid_data_list`
-        4. :meth:`robottelo.datafactory.valid_labels_list`
-        5. :meth:`robottelo.datafactory.valid_names_list`
-        6. :meth:`robottelo.datafactory.invalid_id_list`
+        2. :meth:`robottelo.datafactory.invalid_emails_list`
+        3. :meth:`robottelo.datafactory.invalid_names_list`
+        4. :meth:`robottelo.datafactory.valid_data_list`
+        5. :meth:`robottelo.datafactory.valid_emails_list`
+        6. :meth:`robottelo.datafactory.valid_environments_list`
+        7. :meth:`robottelo.datafactory.valid_labels_list`
+        8. :meth:`robottelo.datafactory.valid_names_list`
+        9. :meth:`robottelo.datafactory.valid_usernames_list`
+        10. :meth:`robottelo.datafactory.invalid_id_list`
 
         """
         for item in itertools.chain(
                 generate_strings_list(),
+                invalid_emails_list(),
                 invalid_names_list(),
                 valid_data_list(),
+                valid_emails_list(),
+                valid_environments_list(),
                 valid_labels_list(),
-                valid_names_list()):
+                valid_names_list(),
+                valid_usernames_list(),):
             self.assertIsInstance(item, unicode)
         for item in invalid_id_list():
             if not (isinstance(item, (unicode, int)) or item is None):

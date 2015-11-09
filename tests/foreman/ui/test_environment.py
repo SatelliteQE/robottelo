@@ -2,21 +2,12 @@
 """Test class for Environment UI"""
 
 from fauxfactory import gen_string
-from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import invalid_values_list, valid_environments_list
 from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_env
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
-
-
-def valid_env_names():
-    """Returns a list of valid environment names"""
-    return[
-        gen_string('alpha'),
-        gen_string('numeric'),
-        gen_string('alphanumeric'),
-    ]
 
 
 class Environment(UITestCase):
@@ -36,7 +27,7 @@ class Environment(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in valid_env_names():
+            for name in valid_environments_list():
                 with self.subTest(name):
                     make_env(session, name=name)
                     self.assertIsNotNone(self.environment.search(name))
@@ -97,7 +88,7 @@ class Environment(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_env(session, name=name)
-            for new_name in valid_env_names():
+            for new_name in valid_environments_list():
                 with self.subTest(new_name):
                     self.environment.update(name, new_name=new_name)
                     self.assertIsNotNone(self.environment.search(new_name))
@@ -113,7 +104,7 @@ class Environment(UITestCase):
 
         """
         with Session(self.browser) as session:
-            for name in valid_env_names():
+            for name in valid_environments_list():
                 with self.subTest(name):
                     make_env(session, name=name)
                     self.environment.delete(name)
