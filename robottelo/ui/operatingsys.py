@@ -10,8 +10,6 @@ from selenium.webdriver.support.select import Select
 class OperatingSys(Base):
     """Manipulates Foreman's operating system from UI."""
 
-    search_key = 'description'
-
     def navigate_to_entity(self):
         """Navigate to OS entity page"""
         Navigator(self.browser).go_to_operating_systems()
