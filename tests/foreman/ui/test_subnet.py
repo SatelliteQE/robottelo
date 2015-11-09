@@ -48,9 +48,7 @@ class Subnet(UITestCase):
                         subnet_network=gen_ipaddr(ip3=True),
                         subnet_mask=gen_netmask(),
                     )
-                    self.assertIsNotNone(
-                        self.subnet.search_subnet(subnet_name=name)
-                    )
+                    self.assertIsNotNone(self.subnet.search(name))
 
     @run_only_on('sat')
     def test_create_subnet_with_long_strings(self):
@@ -76,9 +74,7 @@ class Subnet(UITestCase):
                         subnet_mask=gen_netmask(),
                     )
                     self.assertIsNotNone(
-                        self.subnet.search_subnet(
-                            subnet_name=test_data['name'])
-                    )
+                        self.subnet.search(test_data['name']))
 
     @run_only_on('sat')
     def test_create_subnet_with_domain(self):
@@ -104,9 +100,9 @@ class Subnet(UITestCase):
                 subnet_mask=gen_netmask(),
                 domains=[domain.name],
             )
-            self.assertIsNotNone(self.subnet.search_subnet(subnet_name=name))
-            session.nav.search_entity(
-                name, locators['subnet.display_name']).click()
+            subnet = self.subnet.search(name)
+            self.assertIsNotNone(subnet)
+            subnet.click()
             session.nav.click(tab_locators['subnet.tab_domain'])
             element = session.nav.wait_until_element(
                 (strategy1, value1 % domain.name))
@@ -161,21 +157,16 @@ class Subnet(UITestCase):
                 subnet_primarydns='292.256.256.2',
                 subnet_secondarydns='292.256.256.3',
             )
-            network_element = session.nav.wait_until_element(
-                locators['subnet.network_haserror'])
-            mask_element = session.nav.wait_until_element(
-                locators['subnet.mask_haserror'])
-            gateway_element = session.nav.wait_until_element(
-                locators['subnet.gateway_haserror'])
-            primarydns_element = session.nav.wait_until_element(
-                locators['subnet.dnsprimary_haserror'])
-            secondarydns_element = session.nav.wait_until_element(
-                locators['subnet.dnssecondary_haserror'])
-            self.assertIsNotNone(network_element)
-            self.assertIsNotNone(mask_element)
-            self.assertIsNotNone(gateway_element)
-            self.assertIsNotNone(primarydns_element)
-            self.assertIsNotNone(secondarydns_element)
+            self.assertIsNotNone(session.nav.wait_until_element(
+                locators['subnet.network_haserror']))
+            self.assertIsNotNone(session.nav.wait_until_element(
+                locators['subnet.mask_haserror']))
+            self.assertIsNotNone(session.nav.wait_until_element(
+                locators['subnet.gateway_haserror']))
+            self.assertIsNotNone(session.nav.wait_until_element(
+                locators['subnet.dnsprimary_haserror']))
+            self.assertIsNotNone(session.nav.wait_until_element(
+                locators['subnet.dnssecondary_haserror']))
 
     @run_only_on('sat')
     def test_remove_subnet(self):
@@ -238,7 +229,7 @@ class Subnet(UITestCase):
             for new_name in generate_strings_list(length=8):
                 with self.subTest(new_name):
                     self.subnet.update(name, new_subnet_name=new_name)
-                    result_object = self.subnet.search_subnet(new_name)
+                    result_object = self.subnet.search_and_validate(new_name)
                     self.assertEqual(new_name, result_object['name'])
                     name = new_name  # for next iteration
 
@@ -261,7 +252,7 @@ class Subnet(UITestCase):
                 subnet_mask=gen_netmask(),
             )
             self.subnet.update(name, new_subnet_network=new_network)
-            result_object = self.subnet.search_subnet(name)
+            result_object = self.subnet.search_and_validate(name)
             self.assertEqual(new_network, result_object['network'])
 
     @run_only_on('sat')
@@ -283,5 +274,5 @@ class Subnet(UITestCase):
                 subnet_mask=gen_netmask(1, 15),
             )
             self.subnet.update(name, new_subnet_mask=new_mask)
-            result_object = self.subnet.search_subnet(name)
+            result_object = self.subnet.search_and_validate(name)
             self.assertEqual(new_mask, result_object['mask'])
