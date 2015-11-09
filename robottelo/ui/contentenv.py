@@ -3,10 +3,19 @@
 
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.navigator import Navigator
 
 
 class ContentEnvironment(Base):
     """Manipulates content environments from UI."""
+
+    def navigate_to_entity(self):
+        """Navigate to Lifecycle Environment entity page"""
+        Navigator(self.browser).go_to_life_cycle_environments()
+
+    def _search_locator(self):
+        """Specify locator for Lifecycle Environment entity search procedure"""
+        return locators['content_env.select_name']
 
     def create(self, name, description=None, prior=None):
         """Creates new life cycle environment."""
@@ -24,16 +33,28 @@ class ContentEnvironment(Base):
                 common_locators['description'], description)
         self.click(common_locators['create'])
 
+    def search(self, name):
+        """Search for an existing environment."""
+        self.navigate_to_entity()
+        strategy, value = self._search_locator()
+        return self.wait_until_element((strategy, value % name))
+
     def delete(self, name):
         """Deletes an existing environment."""
-        strategy, value = locators['content_env.select_name']
-        self.click((strategy, value % name))
+        element = self.search(name)
+        if not element:
+            raise UINoSuchElementError(
+                'Could not find the %s lifecycle environment.' % name)
+        element.click()
         self.click(locators['content_env.remove'])
 
     def update(self, name, new_name=None, description=None):
         """Updates an existing environment."""
-        strategy, value = locators['content_env.select_name']
-        self.click((strategy, value % name))
+        element = self.search(name)
+        if not element:
+            raise UINoSuchElementError(
+                'Could not find the %s lifecycle environment.' % name)
+        element.click()
         if new_name:
             self.edit_entity(
                 locators['content_env.edit_name'],

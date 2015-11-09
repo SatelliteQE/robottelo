@@ -8,7 +8,6 @@ from robottelo.decorators import run_only_on
 from robottelo.helpers import generate_strings_list
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_lifecycle_environment
-from robottelo.ui.locators import locators
 from robottelo.ui.session import Session
 
 
@@ -17,6 +16,7 @@ class ContentEnvironment(UITestCase):
 
     @classmethod
     def setUpClass(cls):
+        super(ContentEnvironment, cls).setUpClass()
         cls.org_name = entities.Organization().create().name
 
     @run_only_on('sat')
@@ -28,7 +28,6 @@ class ContentEnvironment(UITestCase):
         @Assert: Environment is created
 
         """
-        strategy, value = locators['content_env.select_name']
         with Session(self.browser) as session:
             for name in generate_strings_list():
                 with self.subTest(name):
@@ -36,10 +35,9 @@ class ContentEnvironment(UITestCase):
                         session,
                         org=self.org_name,
                         name=name,
-                        description=gen_string('alpha')
+                        description=gen_string('alpha'),
                     )
-                    self.assertIsNotNone(self.contentenv.wait_until_element((
-                        strategy, value % name)))
+                    self.assertIsNotNone(self.contentenv.search(name))
 
     @run_only_on('sat')
     def test_positive_create_content_environment_chain(self):
@@ -53,7 +51,6 @@ class ContentEnvironment(UITestCase):
         env1_name = gen_string('alpha')
         env2_name = gen_string('alpha')
         description = gen_string('alpha')
-        strategy, value = locators['content_env.select_name']
         with Session(self.browser) as session:
             make_lifecycle_environment(
                 session,
@@ -61,11 +58,15 @@ class ContentEnvironment(UITestCase):
                 name=env1_name,
                 description=description
             )
-            self.assertIsNotNone(self.contentenv.wait_until_element
-                                 ((strategy, value % env1_name)))
-            self.contentenv.create(env2_name, description, prior=env1_name)
-            self.assertIsNotNone(self.contentenv.wait_until_element
-                                 ((strategy, value % env2_name)))
+            self.assertIsNotNone(self.contentenv.search(env1_name))
+            make_lifecycle_environment(
+                session,
+                org=self.org_name,
+                name=env2_name,
+                description=description,
+                prior=env1_name,
+            )
+            self.assertIsNotNone(self.contentenv.search(env2_name))
 
     @run_only_on('sat')
     def test_positive_delete_content_environment(self):
@@ -77,20 +78,16 @@ class ContentEnvironment(UITestCase):
 
         """
         name = gen_string('alpha')
-        strategy, value = locators['content_env.select_name']
         with Session(self.browser) as session:
             make_lifecycle_environment(
                 session,
                 org=self.org_name,
                 name=name,
-                description=gen_string('alpha')
+                description=gen_string('alpha'),
             )
-            self.assertIsNotNone(self.contentenv.wait_until_element
-                                 ((strategy, value % name)))
+            self.assertIsNotNone(self.contentenv.search(name))
             self.contentenv.delete(name)
-            session.nav.go_to_life_cycle_environments()
-            self.assertIsNone(self.contentenv.wait_until_element
-                              ((strategy, value % name), 3))
+            self.assertIsNone(self.contentenv.search(name))
 
     @run_only_on('sat')
     def test_positive_update_content_environment(self):
@@ -103,13 +100,9 @@ class ContentEnvironment(UITestCase):
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
-        strategy, value = locators['content_env.select_name']
         with Session(self.browser) as session:
             make_lifecycle_environment(
                 session, org=self.org_name, name=name)
-            self.assertIsNotNone(self.contentenv.wait_until_element
-                                 ((strategy, value % name)))
+            self.assertIsNotNone(self.contentenv.search(name))
             self.contentenv.update(name, new_name, gen_string('alpha'))
-            session.nav.go_to_life_cycle_environments()
-            self.assertIsNotNone(self.contentenv.wait_until_element
-                                 ((strategy, value % new_name)))
+            self.assertIsNotNone(self.contentenv.search(new_name))

@@ -38,7 +38,7 @@ from robottelo.ui.factory import (
     make_user,
     set_context,
 )
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
@@ -149,10 +149,7 @@ class TestSmoke(UITestCase):
 
             # Create New Lifecycle environment1
             make_lifecycle_environment(session, org=org_name, name=env_1_name)
-            strategy, value = locators['content_env.select_name']
-            self.assertIsNotNone(self.contentenv.wait_until_element(
-                (strategy, value % env_1_name)
-            ))
+            self.assertIsNotNone(self.contentenv.search(env_1_name))
             # Create New  Lifecycle environment2
             make_lifecycle_environment(
                 session,
@@ -160,9 +157,7 @@ class TestSmoke(UITestCase):
                 name=env_2_name,
                 prior=env_1_name
             )
-            self.assertIsNotNone(self.contentenv.wait_until_element(
-                (strategy, value % env_2_name)
-            ))
+            self.assertIsNotNone(self.contentenv.search(env_2_name))
 
             # Create custom product
             make_product(session, org=org_name, name=product_name)
@@ -254,7 +249,7 @@ class TestSmoke(UITestCase):
                 subnet_network=gen_ipaddr(ip3=True),
                 subnet_mask='255.255.255.0'
             )
-            self.assertIsNotNone(self.subnet.search_subnet(subnet_name))
+            self.assertIsNotNone(self.subnet.search(subnet_name))
 
             # Create a Domain
             make_domain(
@@ -292,10 +287,7 @@ class TestSmoke(UITestCase):
             self.assertIsNotNone(self.org.search(org_name))
             # Create New Lifecycle environment
             make_lifecycle_environment(session, org=org_name, name=env_name)
-            strategy, value = locators['content_env.select_name']
-            self.assertIsNotNone(self.contentenv.wait_until_element(
-                (strategy, value % env_name)
-            ))
+            self.assertIsNotNone(self.contentenv.search(env_name))
             # Navigate UI to select org and redhat subscription page
             session.nav.go_to_select_org(org_name)
             session.nav.go_to_red_hat_subscriptions()
@@ -394,10 +386,7 @@ class TestSmoke(UITestCase):
             self.assertIsNotNone(self.org.search(org_name))
             # Create New Lifecycle environment
             make_lifecycle_environment(session, org=org_name, name=env_name)
-            strategy, value = locators['content_env.select_name']
-            self.assertIsNotNone(self.contentenv.wait_until_element(
-                (strategy, value % env_name)
-            ))
+            self.assertIsNotNone(self.contentenv.search(env_name))
             session.nav.go_to_red_hat_subscriptions()
             # Upload manifest from webui
             self.subscriptions.upload(cloned_manifest_path)
