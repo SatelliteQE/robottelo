@@ -7,19 +7,20 @@ from robottelo.ui.navigator import Navigator
 
 class OpenScapReports(Base):
     """Manipulates OpenScap Reports from UI"""
+    search_key = 'host'
 
-    def search(self, name):
-        """Searches existing oscap reports from UI"""
+    def navigate_to_entity(self):
+        """Navigate to OpenScap Reports entity page"""
         Navigator(self.browser).go_to_oscap_reports()
-        return self.search_entity(
-            name,
-            locators['oscap.report_select'],
-            search_key='host',
-        )
+
+    def _search_locator(self):
+        """Specify locator for OpenScap Reports entity search procedure"""
+        return locators['oscap.report_select']
 
     def delete(self, name, really=True):
         """Delete existing oscap reports from UI"""
-        Navigator(self.browser).go_to_oscap_reports()
-        strategy, value = locators['oscap.report_delete']
-        self.click((strategy, value % name))
-        self.handle_alert(really)
+        self.delete_entity(
+            name,
+            really,
+            locators['oscap.report_delete'],
+        )

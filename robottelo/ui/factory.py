@@ -656,7 +656,7 @@ def make_oscappolicy(session, **kwargs):
         u'content': None,
         u'profile': None,
         u'period': None,
-        u'weekday': None,
+        u'period_value': None,
         u'org': None,
         u'loc': None,
         u'host_group': None,
