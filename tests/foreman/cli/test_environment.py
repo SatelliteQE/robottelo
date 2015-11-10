@@ -4,18 +4,13 @@ from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_environment, make_location, make_org
-from robottelo.datafactory import invalid_id_list, invalid_values_list
+from robottelo.datafactory import (
+    invalid_id_list,
+    invalid_values_list,
+    valid_environments_list,
+)
 from robottelo.decorators import bz_bug_is_open, run_only_on, skip_if_bug_open
 from robottelo.test import CLITestCase
-
-
-def valid_names():
-    """Returns a list of valid environment names"""
-    return [
-        gen_string('alpha'),
-        gen_string('numeric'),
-        gen_string('alphanumeric'),
-    ]
 
 
 class TestEnvironment(CLITestCase):
@@ -28,7 +23,7 @@ class TestEnvironment(CLITestCase):
 
         @Assert: Environment list is displayed
         """
-        for name in valid_names():
+        for name in valid_environments_list():
             with self.subTest(name):
                 Environment.create({'name': name})
                 result = Environment.list({
@@ -44,7 +39,7 @@ class TestEnvironment(CLITestCase):
 
         @Assert: Environment is created.
         """
-        for name in valid_names():
+        for name in valid_environments_list():
             with self.subTest(name):
                 environment = make_environment({'name': name})
                 self.assertEqual(environment['name'], name)
@@ -102,7 +97,7 @@ class TestEnvironment(CLITestCase):
 
         @assert: Environment is deleted
         """
-        for name in valid_names():
+        for name in valid_environments_list():
             with self.subTest(name):
                 environment = make_environment({'name': name})
                 Environment.delete({'id': environment['id']})
@@ -144,7 +139,7 @@ class TestEnvironment(CLITestCase):
         @Assert: Environment Update is displayed
         """
         environment = make_environment()
-        for new_name in valid_names():
+        for new_name in valid_environments_list():
             with self.subTest(new_name):
                 Environment.update({
                     'id': environment['id'],

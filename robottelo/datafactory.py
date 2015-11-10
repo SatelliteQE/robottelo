@@ -61,6 +61,23 @@ def generate_strings_list(length=None, remove_str=None, bug_id=None):
 
 
 @datacheck
+def invalid_emails_list():
+    """Returns a list of invalid emails."""
+    return [
+        u'foreman@',
+        u'@foreman',
+        u'@',
+        u'Abc.example.com',
+        u'A@b@c@example.com',
+        u'email@example..c',
+        u'{0}@example.com'.format(gen_string('alpha', 49)),  # total length 61
+        u'{0}@example.com'.format(gen_string('html')),
+        u's p a c e s@example.com',
+        u'dot..dot@example.com'
+    ]
+
+
+@datacheck
 def invalid_id_list():
     """Generates a list of invalid IDs."""
     return [
@@ -133,6 +150,37 @@ def valid_data_list():
 
 
 @datacheck
+def valid_emails_list():
+    """Returns a list of valid emails."""
+    return [
+        u'{0}@example.com'.format(gen_string('alpha')),
+        u'{0}@example.com'.format(gen_string('alphanumeric')),
+        u'{0}@example.com'.format(gen_string('numeric')),
+        u'{0}@example.com'.format(gen_string('alphanumeric', 48)),
+        u'{0}+{1}@example.com'.format(
+            gen_string('alphanumeric'),
+            gen_string('alphanumeric'),
+        ),
+        u'{0}.{1}@example.com'.format(
+            gen_string('alphanumeric'),
+            gen_string('alphanumeric'),
+        ),
+        u'"():;"@example.com',
+        u'!#$%&*+-/=?^`{|}~@example.com',
+    ]
+
+
+@datacheck
+def valid_environments_list():
+    """Returns a list of valid environment names"""
+    return[
+        gen_string('alpha'),
+        gen_string('numeric'),
+        gen_string('alphanumeric'),
+    ]
+
+
+@datacheck
 def valid_labels_list():
     """Generates a list of valid labels."""
     return [
@@ -160,4 +208,20 @@ def valid_names_list():
         u"bar+{{}}|\"?hi {0}".format(gen_string('utf8')),
         u' {0}'.format(gen_string('utf8')),
         u'{0} '.format(gen_string('utf8')),
+    ]
+
+
+@datacheck
+def valid_usernames_list():
+    """Returns a list of valid user names.
+
+    Note: utf8 data is being rejected by the satellite server so it is not
+    included
+
+    """
+    return [
+        gen_string("latin1"),
+        gen_string("alpha"),
+        gen_string("alphanumeric"),
+        gen_string("numeric"),
     ]
