@@ -375,7 +375,7 @@ class VirtualMachine(object):
         service.
 
         :param activation_key: Activation key to be used to register the
-        system to satellite
+            system to satellite
         :param org: The org to which the system is required to be registered
         :param rhel_distro: rhel distribution for
         :return: None

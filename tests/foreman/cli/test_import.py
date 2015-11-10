@@ -204,6 +204,7 @@ def get_sat6_id(
 ):
     """Updates the dictionary of the import entity with 'sat6' key/value pairs
     for keeping the Satellite 6 referrence to the imported entity
+
     :param entity_dict: A dictionary holding the info for an entity to be
         imported (typically a product of csv_to_dataset())
     :param transition_dict: A dictionary holding the transition data for the
