@@ -34,7 +34,11 @@ class ContentEnvironment(Base):
         self.click(common_locators['create'])
 
     def search(self, name):
-        """Search for an existing environment."""
+        """Search for an existing environment. It is necessary to use custom
+        search here as we don't have search bar, search button and entities
+        list.
+
+        """
         self.navigate_to_entity()
         strategy, value = self._search_locator()
         return self.wait_until_element((strategy, value % name))

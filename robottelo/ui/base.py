@@ -3,6 +3,7 @@
 
 import logging
 
+from robottelo.constants import SEARCH_EXCEPTIONS_LIST
 from robottelo.helpers import escape_search
 from robottelo.ui.locators import locators, common_locators
 from selenium.common.exceptions import NoSuchElementException
@@ -116,9 +117,12 @@ class Base(object):
         self.click(search_button_locator)
 
         strategy, value = element_locator
-        # If foreman entity and it's length more than 32 chars use the
-        # common locator.
-        if not self.is_katello and len(element_name) > 32:
+        # If foreman entity and it's length more than 32 chars, and not in
+        # exceptions list use the common locator.
+        if (
+                not self.is_katello and
+                len(element_name) > 32 and
+                type(self).__name__ not in SEARCH_EXCEPTIONS_LIST):
             strategy, value = common_locators['select_filtered_entity']
         # Return found element
         element = self.wait_until_element(

@@ -59,7 +59,10 @@ class LdapAuthSource(Base):
         self.click(common_locators['submit'])
 
     def search(self, name):
-        """Searches existing ldap auth source from UI."""
+        """Searches existing ldap auth source from UI. It is necessary to use
+        custom search as we don't have both search bar and search button there.
+
+        """
         self.navigate_to_entity()
         strategy1, value1 = self._search_locator()
         return self.wait_until_element((strategy1, value1 % (name, name)))

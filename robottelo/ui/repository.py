@@ -27,10 +27,9 @@ class Repos(Base):
         if repo_type:
             type_ele = self.find_element(locators['repo.type'])
             Select(type_ele).select_by_visible_text(repo_type)
-        if repo_checksum:
-            Select(self.find_element(
-                locators['repo.checksum'])
-            ).select_by_visible_text(repo_checksum)
+        repo_checksum_element = self.find_element(locators['repo.checksum'])
+        if repo_checksum_element:
+            Select(repo_checksum_element).select_by_visible_text(repo_checksum)
         if gpg_key:
             type_ele = self.find_element(common_locators['gpg_key'])
             Select(type_ele).select_by_visible_text(gpg_key)
@@ -94,7 +93,11 @@ class Repos(Base):
             self.click(common_locators['cancel'])
 
     def search(self, element_name):
-        """Uses the search box to locate an element from a list of elements."""
+        """Uses the search box to locate an element from a list of elements.
+        Repository entity is located inside of Product entity and has another
+        appearance, so it is necessary to use custom search there.
+
+        """
         self.navigate_to_entity()
         strategy, value = self._search_locator()
         searchbox = self.wait_until_element(locators['repo.search'])

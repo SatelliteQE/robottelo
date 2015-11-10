@@ -161,24 +161,23 @@ class TestSmoke(UITestCase):
 
             # Create custom product
             make_product(session, org=org_name, name=product_name)
-            self.assertIsNotNone(self.products.search(product_name))
+            product = self.products.search(product_name)
+            self.assertIsNotNone(product)
 
             # Create a YUM repository
+            product.click()
             make_repository(
                 session,
-                org=org_name,
                 name=yum_repository_name,
-                product=product_name,
                 url=GOOGLE_CHROME_REPO
             )
             self.assertIsNotNone(self.repository.search(yum_repository_name))
 
             # Create a puppet Repository
+            self.products.search(product_name).click()
             make_repository(
                 session,
-                org=org_name,
                 name=puppet_repository_name,
-                product=product_name,
                 url=FAKE_0_PUPPET_REPO,
                 repo_type=REPO_TYPE['puppet']
             )
@@ -405,13 +404,13 @@ class TestSmoke(UITestCase):
             ))
             # Create custom product
             make_product(session, org=org_name, name=product_name)
-            self.assertIsNotNone(self.products.search(product_name))
+            product = self.products.search(product_name)
+            self.assertIsNotNone(product)
             # Create a puppet Repository
+            product.click()
             make_repository(
                 session,
-                org=org_name,
                 name=puppet_repository_name,
-                product=product_name,
                 url=FAKE_6_PUPPET_REPO,
                 repo_type=REPO_TYPE['puppet']
             )
