@@ -63,7 +63,10 @@ class DiscoveryRules(Base):
         return locators['discoveryrules.rule_name']
 
     def search(self, name):
-        """Searches existing discovery rule from UI"""
+        """Searches existing discovery rule from UI. It is necessary to use
+        custom search as we don't have both search bar and search button there.
+
+        """
         self.navigate_to_entity()
         strategy, value = self._search_locator()
         return self.wait_until_element((strategy, value % name))
