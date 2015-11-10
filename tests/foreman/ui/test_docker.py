@@ -19,8 +19,10 @@ from robottelo.ui.factory import (
     make_registry,
     make_repository,
     make_resource,
+    set_context,
 )
 from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.products import Products
 from robottelo.ui.session import Session
 
 VALID_DOCKER_UPSTREAM_NAMES = (
@@ -59,11 +61,11 @@ def _create_repository(session, org, name, product, upstream_name=None):
     """
     if upstream_name is None:
         upstream_name = u'busybox'
+    set_context(session, org=org)
+    Products(session.browser).search(product).click()
     make_repository(
         session,
-        org=org,
         name=name,
-        product=product,
         repo_type=REPO_TYPE['docker'],
         url=DOCKER_REGISTRY_HUB,
         upstream_repo_name=upstream_name,
@@ -142,7 +144,6 @@ class DockerRepositoryTestCase(UITestCase):
                     name=name,
                     product=product.name,
                 )
-                self.navigator.go_to_products()
                 self.products.search(product.name).click()
                 self.assertIsNotNone(self.repository.search(name))
 
@@ -167,7 +168,6 @@ class DockerRepositoryTestCase(UITestCase):
                         name=name,
                         product=pr.name,
                     )
-                    self.navigator.go_to_products()
                     self.products.search(pr.name).click()
                     self.assertIsNotNone(self.repository.search(name))
 
@@ -220,7 +220,6 @@ class DockerRepositoryTestCase(UITestCase):
             for new_name in valid_data_list():
                 with self.subTest(new_name):
                     self.repository.update(name, new_name=new_name)
-                    self.navigator.go_to_products()
                     self.products.search(product.name).click()
                     self.assertIsNotNone(self.repository.search(new_name))
                     name = new_name
@@ -249,11 +248,9 @@ class DockerRepositoryTestCase(UITestCase):
                 repo_name, 'upstream', 'busybox'))
             for new_upstream_name in VALID_DOCKER_UPSTREAM_NAMES:
                 with self.subTest(new_upstream_name):
-                    self.navigator.go_to_products()
                     self.products.search(product.name).click()
                     self.repository.update(
                         repo_name, new_upstream_name=new_upstream_name)
-                    self.navigator.go_to_products()
                     self.products.search(product.name).click()
                     self.assertTrue(self.repository.validate_field(
                         repo_name, 'upstream', new_upstream_name))
@@ -282,10 +279,8 @@ class DockerRepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(name))
             self.assertTrue(self.repository.validate_field(
                 name, 'url', DOCKER_REGISTRY_HUB))
-            self.navigator.go_to_products()
             self.products.search(product.name).click()
             self.repository.update(name, new_url=new_url)
-            self.navigator.go_to_products()
             self.products.search(product.name).click()
             self.assertTrue(self.repository.validate_field(
                 name, 'url', new_url))
@@ -354,7 +349,6 @@ class DockerRepositoryTestCase(UITestCase):
 
             # Check if others repositories are not touched
             for product_name, repo_name in entities_list:
-                self.navigator.go_to_products()
                 self.products.search(product_name).click()
                 self.assertIsNotNone(self.repository.search(repo_name))
 
@@ -397,7 +391,6 @@ class DockerContentViewTestCase(UITestCase):
                 product=self.product.name,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_repos(
                 content_view.name, [repo_name], repo_type='docker')
 
@@ -428,7 +421,6 @@ class DockerContentViewTestCase(UITestCase):
                 )
                 self.assertIsNotNone(self.repository.search(repo_name))
                 repos.append(repo_name)
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_repos(
                 content_view.name, repos, repo_type='docker')
 
@@ -459,7 +451,6 @@ class DockerContentViewTestCase(UITestCase):
             synced = self.sync.sync_custom_repos(
                 self.product.name, [repo_name])
             self.assertTrue(synced)
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_repos(
                 content_view.name, [repo_name], repo_type='docker')
 
@@ -487,14 +478,12 @@ class DockerContentViewTestCase(UITestCase):
                 product=self.product.name,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_repos(
                 content_view.name, [repo_name], repo_type='docker')
             self.content_views.publish(content_view.name)
 
             composite_name = gen_string('alpha')
             self.content_views.create(composite_name, is_composite=True)
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_cv(
                 composite_name, [content_view.name])
 
@@ -533,7 +522,6 @@ class DockerContentViewTestCase(UITestCase):
 
             composite_name = gen_string('alpha')
             self.content_views.create(composite_name, is_composite=True)
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_cv(composite_name, cvs)
 
     @run_only_on('sat')
@@ -561,7 +549,6 @@ class DockerContentViewTestCase(UITestCase):
                         product=self.product.name,
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
-                    self.navigator.go_to_content_views()
                     self.content_views.add_remove_repos(
                         content_view.name, [repo_name], repo_type='docker')
                     self.content_views.publish(content_view.name)
@@ -600,7 +587,6 @@ class DockerContentViewTestCase(UITestCase):
 
             composite_name = gen_string('alpha')
             self.content_views.create(composite_name, is_composite=True)
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_cv(
                 composite_name, [content_view.name])
             self.content_views.publish(composite_name)
@@ -631,7 +617,6 @@ class DockerContentViewTestCase(UITestCase):
                 product=self.product.name,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_repos(
                 content_view.name, [repo_name], repo_type='docker')
             for _ in range(randint(2, 5)):
@@ -664,14 +649,12 @@ class DockerContentViewTestCase(UITestCase):
                 product=self.product.name,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_repos(
                 content_view.name, [repo_name], repo_type='docker')
             self.content_views.publish(content_view.name)
 
             composite_name = gen_string('alpha')
             self.content_views.create(composite_name, is_composite=True)
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_cv(
                 composite_name, [content_view.name])
             for _ in range(randint(2, 5)):
@@ -705,7 +688,6 @@ class DockerContentViewTestCase(UITestCase):
                 product=self.product.name,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_repos(
                 content_view.name, [repo_name], repo_type='docker')
             self.content_views.publish(content_view.name)
@@ -740,7 +722,6 @@ class DockerContentViewTestCase(UITestCase):
                 product=self.product.name,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_repos(
                 content_view.name, [repo_name], repo_type='docker')
             self.content_views.publish(content_view.name)
@@ -781,14 +762,12 @@ class DockerContentViewTestCase(UITestCase):
                 product=self.product.name,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_repos(
                 content_view.name, [repo_name], repo_type='docker')
             self.content_views.publish(content_view.name)
 
             composite_name = gen_string('alpha')
             self.content_views.create(composite_name, is_composite=True)
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_cv(
                 composite_name, [content_view.name])
             self.content_views.publish(composite_name)
@@ -823,14 +802,12 @@ class DockerContentViewTestCase(UITestCase):
                 product=self.product.name,
             )
             self.assertIsNotNone(self.repository.search(repo_name))
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_repos(
                 content_view.name, [repo_name], repo_type='docker')
             self.content_views.publish(content_view.name)
 
             composite_name = gen_string('alpha')
             self.content_views.create(composite_name, is_composite=True)
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_cv(
                 composite_name, [content_view.name])
             self.content_views.publish(composite_name)
@@ -891,7 +868,7 @@ class DockerActivationKeyTestCase(UITestCase):
                 env=self.lce.name,
                 content_view=self.content_view.name,
             )
-            self.assertIsNotNone(self.activationkey.search_key(ak_name))
+            self.assertIsNotNone(self.activationkey.search(ak_name))
 
     @stubbed()
     # Return to that case once BZ 1269829 is fixed
@@ -929,7 +906,6 @@ class DockerActivationKeyTestCase(UITestCase):
             self.navigator.go_to_select_org(self.organization.name)
             self.navigator.go_to_content_views()
             self.content_views.create(composite_name, is_composite=True)
-            self.navigator.go_to_content_views()
             self.content_views.add_remove_cv(
                 composite_name, [self.content_view.name])
             self.content_views.publish(composite_name)
@@ -944,7 +920,7 @@ class DockerActivationKeyTestCase(UITestCase):
                 env=self.lce.name,
                 content_view=composite_name,
             )
-            self.assertIsNotNone(self.activationkey.search_key(ak_name))
+            self.assertIsNotNone(self.activationkey.search(ak_name))
 
     @stubbed()
     # Return to that case once BZ 1269829 is fixed

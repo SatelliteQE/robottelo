@@ -728,3 +728,12 @@ OSCAP_PROFILE = {
               'Certified Cloud Providers (RH CCP)'),
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
 }
+
+SEARCH_EXCEPTIONS_LIST = [
+    'ComputeResource',
+    'HostGroup',
+    'Location',
+    'OpenScapContent',
+    'OpenScapPolicy',
+    'Organization',
+]

@@ -7,10 +7,13 @@ from robottelo.ui.navigator import Navigator
 class ComputeProfile(Base):
     """Provides the CRUD functionality for Compute Profiles."""
 
-    def search(self, name):
-        """Search for existing compute profile from UI."""
+    def navigate_to_entity(self):
+        """Navigate to Compute Profile entity page"""
         Navigator(self.browser).go_to_compute_profiles()
-        return self.search_entity(name, locators['profile.select_name'])
+
+    def _search_locator(self):
+        """Specify locator for Compute Profile entity search procedure"""
+        return locators['profile.select_name']
 
     def select_resource(self, profile_name, res_name, res_type):
         """Select necessary compute resource from specific compute profile

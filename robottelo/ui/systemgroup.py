@@ -4,9 +4,19 @@
 
 from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.navigator import Navigator
 
 
 class SystemGroup(Base):
+    is_katello = True
+
+    def navigate_to_entity(self):
+        """Navigate to Host Collection entity page"""
+        Navigator.go_to_host_collections()
+
+    def _search_locator(self):
+        """Specify locator for Host Collection entity search procedure"""
+        return locators['system-groups.search']
 
     def create(self, name, description=None, limit=None):
         """Creates new System Group from UI"""
@@ -67,8 +77,3 @@ class SystemGroup(Base):
             self.wait_for_ajax()
             self.click(locators["system-groups.remove"])
             self.click(locators["system-groups.confirm_remove"])
-
-    def search(self, name):
-        """Searches existing System Group from UI"""
-        return self.search_entity(
-            name, locators['system-groups.search'], katello=True)

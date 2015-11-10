@@ -92,8 +92,9 @@ class OperatingSys(UITestCase):
                         os_family=test_data['os_family'],
                         archs=['i386'],
                     )
+                    self.operatingsys.search_key = 'description'
                     self.assertIsNotNone(self.operatingsys.search(
-                        test_data['desc'], search_key='description'))
+                        test_data['desc']))
 
     @run_only_on('sat')
     def test_negative_create_os_invalid_name(self):

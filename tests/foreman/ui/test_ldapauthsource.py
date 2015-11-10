@@ -61,8 +61,8 @@ class LDAPAuthSource(UITestCase):
 
         @steps:
 
-        1. Delete LDAP Auth source with AD.
-        2. Fill in all the fields appropriately for AD.
+        1. Create a new LDAP Auth source with AD.
+        2. Delete LDAP Auth source with AD.
 
         @Assert: Whether deleting LDAP Auth with AD is successful.
 
