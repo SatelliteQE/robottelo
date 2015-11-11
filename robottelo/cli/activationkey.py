@@ -68,7 +68,10 @@ class ActivationKey(Base):
     def product_content(cls, options=None):
         """List associated products"""
         cls.command_sub = 'product-content'
-        return cls.execute(cls._construct_command(options))
+        return cls.execute(
+            cls._construct_command(options),
+            output_format='csv'
+        )
 
     @classmethod
     def remove_host_collection(cls, options=None):
