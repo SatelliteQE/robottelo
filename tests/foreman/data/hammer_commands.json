@@ -1363,6 +1363,12 @@
                   "value": "TLS"
                 },
                 {
+                  "help": "sync external user groups on login",
+                  "name": "usergroup-sync",
+                  "shortname": null,
+                  "value": "USERGROUP-SYNC"
+                },
+                {
                   "help": "print help",
                   "name": "help",
                   "shortname": "h",
@@ -1557,6 +1563,12 @@
                   "name": "tls",
                   "shortname": null,
                   "value": "TLS"
+                },
+                {
+                  "help": "sync external user groups on login",
+                  "name": "usergroup-sync",
+                  "shortname": null,
+                  "value": "USERGROUP-SYNC"
                 },
                 {
                   "help": "print help",
