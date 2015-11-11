@@ -236,7 +236,10 @@ class EntityTestCase(APITestCase):
         @Assert: HTTP 401 is returned
 
         """
-        for entity_cls in valid_entities():
+        exclude_list = (
+            entities.TemplateKind,  # see comments in class definition
+        )
+        for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 logger.debug('test_post_unauthorized arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
