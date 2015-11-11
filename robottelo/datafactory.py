@@ -184,8 +184,8 @@ def valid_environments_list():
 def valid_labels_list():
     """Generates a list of valid labels."""
     return [
-        gen_string('alphanumeric', random.randint(1, 255)),
-        gen_string('alpha', random.randint(1, 255)),
+        gen_string('alphanumeric', random.randint(1, 128)),
+        gen_string('alpha', random.randint(1, 128)),
     ]
 
 
