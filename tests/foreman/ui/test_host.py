@@ -106,9 +106,10 @@ class Host(UITestCase, Base):
         cls.proxy = cls.proxy.update(['location'])
 
         # Search for domain and associate org, location
+        _, _, domain = settings.server.hostname.partition('.')
         cls.domain = entities.Domain().search(
             query={
-                u'search': u'name="usersys.redhat.com"'
+                u'search': u'name="{0}"'.format(domain)
             }
         )[0]
         cls.domain_name = cls.domain.name
