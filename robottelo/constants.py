@@ -735,5 +735,5 @@ SEARCH_EXCEPTIONS_LIST = [
     'Location',
     'OpenScapContent',
     'OpenScapPolicy',
-    'Organization',
+    'Org',
 ]
