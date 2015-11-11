@@ -7,7 +7,35 @@ from robottelo.helpers import (
     HostInfoError,
     escape_search,
     get_host_info,
+    get_server_version,
 )
+
+
+class GetServerVersionTestCase(unittest2.TestCase):
+    """Tests for method ``get_server_version``."""
+    @mock.patch('robottelo.helpers.ssh')
+    def test_return_version(self, ssh):
+        """get_server_version returns a proper version.
+
+        When the version.rb file is present.
+        """
+        ssh.command = mock.MagicMock(return_value=FakeSSHResult(
+            ['"6.1.4"'],
+            0
+        ))
+        self.assertEqual(get_server_version(), '6.1.4')
+
+    @mock.patch('robottelo.helpers.ssh')
+    def test_return_none(self, ssh):
+        """get_server_version returns None.
+
+        When the versions.rb file is not present.
+        """
+        ssh.command = mock.MagicMock(return_value=FakeSSHResult(
+            [],
+            0
+        ))
+        self.assertEqual(get_server_version(), None)
 
 
 class GetHostInfoTestCase(unittest2.TestCase):

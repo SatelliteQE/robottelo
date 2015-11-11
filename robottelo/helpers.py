@@ -36,6 +36,25 @@ def get_server_software():
     return 'downstream' if return_code == 0 else 'upstream'
 
 
+def get_server_version():
+    """Read Satellite version.
+
+    Inspect server /usr/share/foreman/lib/satellite/version.rb in
+    order to get the installed Satellite version.
+
+    :return: Either a string containing the Satellite version or
+        ``None`` if the version.rb file is not present.
+    """
+    result = ''.join(ssh.command(
+        "cat /usr/share/foreman/lib/satellite/version.rb | grep VERSION | "
+        "awk '{print $3}'"
+    ).stdout)
+    result = result.replace('"', '').strip()
+    if len(result) == 0:
+        return None
+    return result
+
+
 def get_host_info(hostname=None):
     """Get remote host's distribution information
 
