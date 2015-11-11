@@ -19,12 +19,7 @@ from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import (
-    bz_bug_is_open,
-    run_only_on,
-    skip_if_bug_open,
-    stubbed
-)
+from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -1333,6 +1328,7 @@ class TestActivationKey(CLITestCase):
         self.assertIn(
             u"'--auto-attach': value must be one of", exe.exception.stderr)
 
+    @skip_if_bug_open('bugzilla', 1180282)
     def test_positive_content_override(self):
         """@Test: Positive content override
 
@@ -1345,27 +1341,28 @@ class TestActivationKey(CLITestCase):
         3. Override the product's content enablement
         4. Verify that the command succeeded
 
+        @BZ: 1180282
+
         @Assert: Activation key content override was successful
 
         """
-        if not bz_bug_is_open(1180282):
-            self.fail(
-                'BZ 1180282 has been closed. This test should be updated to'
-                'verify value change via product-content.'
-            )
         if self.pub_key is None:
             self._make_public_key()
         result = ActivationKey.product_content({
             u'id': self.pub_key['key_id'],
             u'organization-id': self.pub_key['org_id'],
         })
-        product_label = result[3].split('|')[5].replace(' ', '')
         for override_value in (u'1', u'0'):
             with self.subTest(override_value):
                 result = ActivationKey.content_override({
-                    u'content-label': product_label,
+                    u'content-label': result[0]['label'],
                     u'id': self.pub_key['key_id'],
                     u'organization-id': self.pub_key['org_id'],
                     u'value': override_value,
                 })
-                self.assertIn(result[0], 'Updated content override')
+                # Retrieve the product content enabled flag
+                result = ActivationKey.product_content({
+                    u'id': self.pub_key['key_id'],
+                    u'organization-id': self.pub_key['org_id'],
+                })
+                self.assertEqual(result[0]['enabled?'], override_value)
