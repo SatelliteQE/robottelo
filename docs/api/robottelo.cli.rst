@@ -3,10 +3,6 @@
 
 Submodules:
 
-.. toctree::
-
-    robottelo.cli.metatest
-
 .. automodule:: robottelo.cli
 
 :mod:`robottelo.cli.activationkey`
