@@ -40,6 +40,9 @@ ssh_key=
 # verbosity=debug
 # Selenium webdriver to use
 # webdriver=firefox
+# Binary location for selected wedriver
+# webdriver_binary=/usr/bin/firefox
+# webdriver_binary=/usr/bin/chromedriver
 # cdn=true
 # Run one datapoint or multiple datapoints for tests
 # run_one_datapoint=false

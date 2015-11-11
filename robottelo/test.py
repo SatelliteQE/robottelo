@@ -131,6 +131,7 @@ class UITestCase(TestCase):
         cls.katello_user = settings.server.admin_username
         cls.katello_passwd = settings.server.admin_password
         cls.driver_name = settings.webdriver
+        cls.driver_binary = settings.webdriver_binary
         cls.locale = settings.locale
         cls.server_name = settings.server.hostname
         cls.screenshots_dir = settings.screenshots_path
@@ -170,11 +171,20 @@ class UITestCase(TestCase):
     def setUp(self):  # noqa
         """We do want a new browser instance for every test."""
         if self.driver_name.lower() == 'firefox':
-            self.browser = webdriver.Firefox()
+            self.browser = webdriver.Firefox(
+                firefox_binary=webdriver.firefox.firefox_binary.FirefoxBinary(
+                    self.driver_binary)
+            )
         elif self.driver_name.lower() == 'chrome':
-            self.browser = webdriver.Chrome()
+            self.browser = (
+                webdriver.Chrome() if self.driver_binary is None
+                else webdriver.Chrome(executable_path=self.driver_binary)
+            )
         elif self.driver_name.lower() == 'ie':
-            self.browser = webdriver.Ie()
+            self.browser = (
+                webdriver.Ie() if self.driver_binary is None
+                else webdriver.Ie(executable_path=self.driver_binary)
+            )
         elif self.driver_name.lower() == 'phantomjs':
             service_args = ['--ignore-ssl-errors=true']
             self.browser = webdriver.PhantomJS(
