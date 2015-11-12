@@ -5,7 +5,9 @@ http://theforeman.org/api/apidoc/v2/config_templates.html
 
 """
 from nailgun import client, entities
+from requests.exceptions import HTTPError
 from robottelo.config import settings
+from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import skip_if_bug_open
 from robottelo.test import APITestCase
 
@@ -20,7 +22,6 @@ class ConfigTemplateTestCase(APITestCase):
         @Assert: The response is a JSON payload.
 
         @Feature: ConfigTemplate
-
         """
         response = client.get(
             entities.ConfigTemplate().path('build_pxe_default'),
@@ -36,7 +37,6 @@ class ConfigTemplateTestCase(APITestCase):
         @Assert: Config template is associated with organization
 
         @Feature: ConfigTemplate
-
         """
         orgs = [entities.Organization().create() for _ in range(2)]
 
@@ -63,3 +63,77 @@ class ConfigTemplateTestCase(APITestCase):
         conf_templ.organization = []
         conf_templ = conf_templ.update(['organization'])
         self.assertEqual(len(conf_templ.organization), 0)
+
+    def test_positive_create_name(self):
+        """@Test: Create a configuration template providing the initial name.
+
+        @Assert: Configuration Template is created and contains provided name.
+
+        @Feature: Configuration Template
+        """
+        for name in valid_data_list():
+            with self.subTest(name):
+                c_temp = entities.ConfigTemplate(name=name).create()
+                self.assertEqual(name, c_temp.name)
+
+    def test_negative_create_name(self):
+        """@Test: Create configuration template providing an invalid name.
+
+        @Assert: Configuration Template is not created
+
+        @Feature: Configuration Template
+        """
+        for name in invalid_names_list():
+            with self.subTest(name):
+                with self.assertRaises(HTTPError):
+                    entities.ConfigTemplate(name=name).create()
+
+    def test_positive_update_name(self):
+        """@Test: Create configuration template providing the initial name,
+        then update its name to another valid name.
+
+        @Assert: Configuration Template is created, and its name can be
+        updated.
+
+        @Feature: Configuration Template
+        """
+        c_temp = entities.ConfigTemplate().create()
+
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                updated = entities.ConfigTemplate(
+                    id=c_temp.id, name=new_name).update(['name'])
+                self.assertEqual(new_name, updated.name)
+
+    def test_negative_update_name(self):
+        """@Test: Create configuration template then update its name to an
+        invalid name.
+
+        @Assert: Configuration Template is created, and its name is not
+        updated.
+
+        @Feature: Configuration Template
+        """
+        c_temp = entities.ConfigTemplate().create()
+        for new_name in invalid_names_list():
+            with self.subTest(new_name):
+                with self.assertRaises(HTTPError):
+                    entities.ConfigTemplate(
+                        id=c_temp.id, name=new_name).update(['name'])
+                c_temp = entities.ConfigTemplate(id=c_temp.id).read()
+                self.assertNotEqual(c_temp.name, new_name)
+
+    def test_positive_delete(self):
+        """@Test: Create configuration template and then delete it.
+
+        @Assert: Configuration Template is successfully deleted.
+
+        @Feature: Configuration Template
+
+        """
+        for name in valid_data_list():
+            with self.subTest(name):
+                c_temp = entities.ConfigTemplate().create()
+                c_temp.delete()
+                with self.assertRaises(HTTPError):
+                    entities.ConfigTemplate(id=c_temp.id).read()
