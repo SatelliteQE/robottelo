@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 """Test class for Activation key UI"""
 
+import random
 from fauxfactory import gen_string
 from nailgun import entities
-from random import randint
 from robottelo import manifests
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
@@ -552,7 +552,7 @@ class ActivationKey(UITestCase):
         """
         # Pick one of the valid data list items - data driven tests is not
         # necessary for this test
-        cv2_name = (valid_data_list())[randint(0, 6)]
+        cv2_name = random.choice(valid_data_list())
         name = gen_string('alpha')
         env1_name = gen_string('alpha')
         env2_name = gen_string('alpha')
@@ -598,7 +598,7 @@ class ActivationKey(UITestCase):
         """
         # Pick one of the valid data list items - data driven tests is not
         # necessary for this test
-        cv2_name = (valid_data_list())[randint(0, 6)]
+        cv2_name = random.choice(valid_data_list())
         name = gen_string('alpha')
         env1_name = gen_string('alpha')
         env2_name = gen_string('alpha')
