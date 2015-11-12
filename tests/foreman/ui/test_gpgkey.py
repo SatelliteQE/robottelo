@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 """Test class for GPG Key UI"""
 
+import random
 from fauxfactory import gen_string
 from nailgun import entities
-from random import randint
 from robottelo.config import settings
 from robottelo.constants import (
     FAKE_1_YUM_REPO,
@@ -30,8 +30,8 @@ from robottelo.vm import VirtualMachine
 
 def get_random_gpgkey_name():
     """Creates a random gpgkey name"""
-    return_value = generate_strings_list(remove_str='numeric', bug_id=1184480)
-    return return_value[randint(0, len(return_value)-1)]
+    return random.choice(
+        generate_strings_list(remove_str='numeric', bug_id=1184480))
 
 
 class GPGKey(UITestCase):
