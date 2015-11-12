@@ -16,6 +16,7 @@ class ContentEnvironment(UITestCase):
 
     @classmethod
     def setUpClass(cls):
+        super(ContentEnvironment, cls).setUpClass()
         cls.org_name = entities.Organization().create().name
 
     @run_only_on('sat')
