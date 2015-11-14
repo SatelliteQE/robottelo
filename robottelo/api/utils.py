@@ -41,18 +41,23 @@ def enable_rhrepo_and_fetchid(basearch, org_id, product, repo,
     return result[0].id
 
 
-def promote(content_view_version, environment_id):
+def promote(content_view_version, environment_id, force=False):
     """Call ``content_view_version.promote(…)``.
 
     :param content_view_version: A ``nailgun.entities.ContentViewVersion``
         object.
     :param environment_id: An environment ID.
+    :param force: Whether to force the promotion or not. Only needed if
+        promoting to a lifecycle environment that is not the next in order
+        of sequence.
     :returns: Whatever ``nailgun.entities.ContentViewVersion.promote`` returns.
 
     """
-    return content_view_version.promote(data={
-        u'environment_id': environment_id
-    })
+    data = {
+        u'environment_id': environment_id,
+        u'force': True if force else False,
+    }
+    return content_view_version.promote(data=data)
 
 
 def upload_manifest(organization_id, manifest):

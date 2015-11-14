@@ -3,6 +3,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
 from robottelo.constants import (
+    DEFAULT_CV,
     FAKE_1_YUM_REPO,
     PUPPET_MODULE_NTP_PUPPETLABS,
     ZOO_CUSTOM_GPG_KEY,
@@ -11,33 +12,168 @@ from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import APITestCase
 
 
-class CVVersionTestCase(APITestCase):
-    """Tests for content view versions."""
+class ContentViewVersionCreateTestCase(APITestCase):
+    """Tests for content view version creation."""
 
-    def test_negative_promote_1(self):
+    @classmethod
+    def setUpClass(cls):
+        """Single organization for all tests"""
+        super(ContentViewVersionCreateTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+
+    def setUp(self):
+        """Init content view with repo per each test"""
+        super(ContentViewVersionCreateTestCase, self).setUp()
+        self.content_view = entities.ContentView(
+            organization=self.org,
+        ).create()
+
+    def test_positive_create(self):
+        """@Test: Create a content view version.
+
+        @Assert: Content View Version is created.
+
+        @Feature: Content View Version
+        """
+        # Fetch content view for latest information
+        cv = self.content_view.read()
+        # No versions should be available yet
+        self.assertEqual(len(cv.version), 0)
+
+        # Publish existing content view
+        cv.publish()
+        # Fetch it again
+        cv = cv.read()
+        self.assertGreater(len(cv.version), 0)
+
+    def test_negative_create(self):
+        """@Test: Create content view version using the 'Default Content View'.
+
+        @Assert: Content View Version is not created
+
+        @Feature: Content View Version
+        """
+        # The default content view cannot be published
+        cv = entities.ContentView(
+            organization=self.org,
+            name=DEFAULT_CV
+        ).search()
+        # There should be only 1 record returned
+        self.assertEqual(len(cv), 1)
+        with self.assertRaises(HTTPError):
+            cv[0].publish()
+
+
+class ContentViewVersionPromoteTestCase(APITestCase):
+    """Tests for content view version promotion."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create some entities for all tests."""
+        super(ContentViewVersionPromoteTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.lce1 = entities.LifecycleEnvironment(organization=cls.org).create()
+        cls.lce2 = entities.LifecycleEnvironment(
+            organization=cls.org,
+            prior=cls.lce1
+        ).create()
+        default_cv = entities.ContentView(
+            organization=cls.org,
+            name=DEFAULT_CV
+        ).search()
+        # There should be only 1 record returned
+        assert len(default_cv) == 1
+        # There should be only 1 version
+        assert len(default_cv[0].version) == 1
+        cls.default_cv = default_cv[0].version[0].read()
+
+    def test_positive_promote_valid_environment(self):
+        """@Test: Promote a content view version to 'next in sequence'
+        lifecycle environment.
+
+        @Assert: Promotion succeeds.
+
+        @Feature: Content View Version
+        """
+        # Create a new content view...
+        cv = entities.ContentView(organization=self.org).create()
+        # ... and promote it.
+        cv.publish()
+        # Refresh the entity
+        cv = cv.read()
+        # Check that we have a new version
+        self.assertEqual(len(cv.version), 1)
+        version = cv.version[0].read()
+        # Assert that content view version is found in 1 lifecycle
+        # environments (i.e. 'Library')
+        self.assertEqual(len(version.environment), 1)
+        # Promote it to the next 'in sequence' lifecycle environment
+        promote(version, self.lce1.id)
+        # Assert that content view version is found in 2 lifecycle
+        # environments.
+        version = version.read()
+        self.assertEqual(len(version.environment), 2)
+
+    def test_positive_promote_out_of_sequence_environment(self):
+        """@Test: Promote a content view version to a lifecycle environment that
+        is 'out of sequence'.
+
+        @Assert: The promotion succeeds.
+
+        @Feature: Content View Version
+        """
+        # Create a new content view...
+        cv = entities.ContentView(organization=self.org).create()
+        # ... and publish it.
+        cv.publish()
+        # Refresh the entity
+        cv = cv.read()
+        # Check that we have a new version
+        self.assertEqual(len(cv.version), 1)
+        version = cv.version[0].read()
+        # The immediate lifecycle is lce1, not lce2
+        promote(version, self.lce2.id, force=True)
+        # Assert that content view version is found in 2 lifecycle
+        # environments.
+        version = version.read()
+        self.assertEqual(len(version.environment), 2)
+
+    def test_negative_promote_valid_environment(self):
         """@Test: Promote the default content view version.
 
         @Assert: The promotion fails.
 
         @Feature: ContentViewVersion
-
         """
-        env = entities.Environment().create()
         with self.assertRaises(HTTPError):
-            promote(entities.ContentViewVersion(id=1), env.id)
+            promote(self.default_cv, self.lce1.id)
 
-    def test_negative_promote_2(self):
-        """@Test: Promote a content view version using an invalid environment.
+    def test_negative_promote_out_of_sequence_environment(self):
+        """@Test: Promote a content view version to a lifecycle environment that
+        is 'out of sequence'.
 
         @Assert: The promotion fails.
 
-        @Feature: ContentViewVersion
-
+        @Feature: Content View Version
         """
+        # Create a new content view...
+        cv = entities.ContentView(organization=self.org).create()
+        # ... and publish it.
+        cv.publish()
+        # Refresh the entity
+        cv = cv.read()
+        # Check that we have a new version
+        self.assertEqual(len(cv.version), 1)
+        version = cv.version[0].read()
+        # The immediate lifecycle is lce1, not lce2
         with self.assertRaises(HTTPError):
-            promote(entities.ContentViewVersion(id=1), -1)
+            promote(version, self.lce2.id)
 
-    def test_delete_version(self):
+
+class ContentViewVersionDeleteTestCase(APITestCase):
+    """Tests for content view version promotion."""
+
+    def test_positive_delete_version(self):
         """@Test: Create content view and publish it. After that try to
         disassociate content view from 'Library' environment through
         'delete_from_environment' command and delete content view version from
@@ -47,7 +183,6 @@ class CVVersionTestCase(APITestCase):
         @Assert: Content version deleted successfully
 
         @Feature: ContentViewVersion
-
         """
         key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
         org = entities.Organization().create()
@@ -84,7 +219,7 @@ class CVVersionTestCase(APITestCase):
         # Make sure that content view version is really removed
         self.assertEqual(len(content_view.read().version), 0)
 
-    def test_delete_version_non_default(self):
+    def test_positive_delete_version_non_default(self):
         """@Test: Create content view and publish and promote it to new
         environment. After that try to disassociate content view from 'Library'
         and one more non-default environments through 'delete_from_environment'
@@ -93,7 +228,6 @@ class CVVersionTestCase(APITestCase):
         @Assert: Content view version deleted successfully
 
         @Feature: ContentViewVersion
-
         """
         org = entities.Organization().create()
         content_view = entities.ContentView(organization=org).create()
@@ -113,7 +247,7 @@ class CVVersionTestCase(APITestCase):
         # Make sure that content view version is really removed
         self.assertEqual(len(content_view.read().version), 0)
 
-    def test_delete_version_negative(self):
+    def test_negative_delete_version(self):
         """@Test: Create content view and publish it. Try to delete content
         view version while content view is still associated with lifecycle
         environment
@@ -121,7 +255,6 @@ class CVVersionTestCase(APITestCase):
         @Assert: Content view version is not deleted
 
         @Feature: ContentViewVersion
-
         """
         org = entities.Organization().create()
         content_view = entities.ContentView(organization=org).create()
@@ -134,14 +267,17 @@ class CVVersionTestCase(APITestCase):
         # Make sure that content view version is still present
         self.assertEqual(len(content_view.read().version), 1)
 
-    def test_incremental_update_puppet(self):
+
+class ContentViewVersionIncremnentalTestCase(APITestCase):
+    """Tests for content view version promotion."""
+
+    def test_positive_incremental_update_puppet(self):
         """@Test: Incrementally update a CVV with a puppet module.
 
-        @Assert: The the incremental update succeeds with no errors, and the
+        @Assert: The incremental update succeeds with no errors, and the
         content view is given an additional version.
 
         @Feature: ContentViewVersion
-
         """
         # Create a content view and add a yum repository to it. Publish the CV.
         product = entities.Product().create()
