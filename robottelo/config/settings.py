@@ -453,6 +453,7 @@ class Settings(object):
         self.verbosity = None
         self.virtual_display = None
         self.webdriver = None
+        self.webdriver_binary = None
         self.window_manager_command = None
 
         # Features
@@ -540,6 +541,8 @@ class Settings(object):
             'robottelo', 'virtual_display', False, bool)
         self.webdriver = self.reader.get(
             'robottelo', 'webdriver', 'firefox')
+        self.webdriver_binary = self.reader.get(
+            'robottelo', 'webdriver_binary', None)
         self.window_manager_command = self.reader.get(
             'robottelo', 'window_manager_command', None)
 
