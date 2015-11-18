@@ -1275,6 +1275,54 @@ class DockerContainersTestCase(CLITestCase):
                     container['compute-resource'], compute_resource['name'])
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1282431)
+    def test_create_container_content_view(self):
+        """@Test: Create docker container using custom content view, lifecycle
+        environment and docker repository for local and external compute
+        resources
+
+        @Feature: Docker
+
+        @Assert: The docker container is created for each compute resource
+
+        @BZ: 1282431
+        """
+        lce = make_lifecycle_environment({'organization-id': self.org['id']})
+        repo = _make_docker_repo(
+            make_product({'organization-id': self.org['id']})['id'],
+            upstream_name='centos',
+        )
+        Repository.synchronize({'id': repo['id']})
+        content_view = make_content_view({'organization-id': self.org['id']})
+        ContentView.add_repository({
+            'id': content_view['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': content_view['id']})
+        content_view = ContentView.info({'id': content_view['id']})
+        ContentView.version_promote({
+            'content-view-id': content_view['id'],
+            'id': content_view['versions'][0]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        for compute_resource in (self.cr_internal, self.cr_external):
+            with self.subTest(compute_resource['url']):
+                container = make_container({
+                    'compute-resource-id': compute_resource['id'],
+                    'organization-ids': [self.org['id']],
+                    'repository-name': repo['container-repository-name'],
+                    'tag': 'latest',
+                    'tty': 'yes',
+                })
+                self.assertEqual(
+                    container['compute-resource'], compute_resource['name'])
+                self.assertEqual(
+                    container['image-repository'],
+                    repo['container-repository-name']
+                )
+                self.assertEqual(container['tag'], 'latest')
+
+    @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1230915)
     @skip_if_bug_open('bugzilla', 1269196)
     def test_container_power(self):
