@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
-"""
-Defines various constants
-"""
+"""Defines various constants"""
+from nailgun import entities
 
 # Bugzilla
 BZ_OPEN_STATUSES = [
@@ -46,17 +45,7 @@ HTML_TAGS = [
     'SUP', 'TABLE', 'TBODY', 'TD', 'TEXTAREA', 'TFOOT', 'TH',
     'THEAD', 'TITLE', 'TR', 'TT', 'U', 'UL', 'VAR']
 
-OPERATING_SYSTEMS = [
-    'AIX',
-    'Archlinux',
-    'Debian',
-    'Freebsd',
-    'Gentoo',
-    'Redhat',
-    'Solaris',
-    'Suse',
-    'Windows',
-]
+OPERATING_SYSTEMS = entities._OPERATING_SYSTEMS
 
 TEMPLATE_TYPES = [
     'finish',
