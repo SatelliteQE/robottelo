@@ -143,3 +143,67 @@ def read_data_file(filename):
     absolute_file_path = get_data_file(filename)
     with open(absolute_file_path, 'r') as file_contents:
         return file_contents.read()
+
+
+def install_katello_ca(hostname=None):
+        """Downloads and installs katello-ca rpm
+
+        :param str hostname: Hostname or IP address of the remote host. If
+        ``None`` the hostname will be get from ``main.server.hostname`` config.
+        :return: None.
+        :raises AssertionError: If katello-ca wasn't installed.
+        """
+        ssh.command(
+            u'rpm -Uvh {0}'.format(settings.server.get_cert_rpm_url()),
+            hostname
+        )
+        # Not checking the return_code here, as rpm could be installed before
+        # and installation may fail
+        result = ssh.command(
+            u'rpm -q katello-ca-consumer-{0}'
+            .format(settings.server.hostname),
+            hostname
+        )
+        # Checking the return_code here to verify katello-ca rpm is actually
+        # present in the system
+        if result.return_code != 0:
+            raise AssertionError('Failed to install the katello-ca rpm')
+
+
+def remove_katello_ca(hostname=None):
+        """Removes katello-ca rpm
+
+        :param str hostname: Hostname or IP address of the remote host. If
+        ``None`` the hostname will be get from ``main.server.hostname`` config.
+        :return: None.
+        :raises AssertionError: If katello-ca wasn't removed.
+        """
+        # Not checking the return_code here, as rpm can be not even installed
+        # and deleting may fail
+        ssh.command(
+            'yum erase -y $(rpm -qa |grep katello-ca-consumer)',
+            hostname
+        )
+        # Checking the return_code here to verify katello-ca rpm is actually
+        # not present in the system
+        result = ssh.command(
+            'rpm -q katello-ca-consumer-{0}'
+            .format(settings.server.hostname),
+            hostname
+        )
+        if result.return_code == 0:
+            raise AssertionError('Failed to remove the katello-ca rpm')
+        # Resetting rhsm.conf to point to cdn
+        rhsm_updates = [
+            's/^hostname.*/hostname=subscription.rhn.redhat.com/',
+            's|^prefix.*|prefix=/subscription|',
+            's|^baseurl.*|baseurl=https://cdn.redhat.com|',
+            's/^repo_ca_cert.*/repo_ca_cert=%(ca_cert_dir)sredhat-uep.pem/',
+        ]
+        for command in rhsm_updates:
+            result = ssh.command(
+                'sed -i -e "{0}" /etc/rhsm/rhsm.conf'.format(command),
+                hostname
+            )
+            if result.return_code != 0:
+                raise AssertionError('Failed to reset the rhsm.conf')

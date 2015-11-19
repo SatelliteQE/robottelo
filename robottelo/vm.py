@@ -15,6 +15,7 @@ import time
 
 from robottelo import ssh
 from robottelo.config import settings
+from robottelo.helpers import install_katello_ca, remove_katello_ca
 
 BASE_IMAGES = (
     'rhel65',
@@ -212,26 +213,22 @@ class VirtualMachine(object):
         if result.return_code != 0:
             raise VirtualMachineError('Failed to install katello-agent')
 
-    def install_katello_cert(self):
+    def install_katello_ca(self):
         """Downloads and installs katello-ca rpm on the virtual machine.
+
+        Uses common helper `install_katello_ca(hostname=None)`, but passes
+        `self.ip_addr` instead of the hostname as we are using fake hostnames
+        for virtual machines.
 
         :return: None.
         :raises robottelo.vm.VirtualMachineError: If katello-ca wasn't
             installed.
-
         """
-        result = self.run(
-            u'rpm -Uvh {}'.format(settings.server.get_cert_rpm_url())
-        )
-        if result.return_code != 0:
+        try:
+            install_katello_ca(hostname=self.ip_addr)
+        except AssertionError:
             raise VirtualMachineError(
                 'Failed to download and install the katello-ca rpm')
-        result = self.run(
-            u'rpm -q katello-ca-consumer-{0}'
-            .format(settings.server.hostname)
-        )
-        if result.return_code != 0:
-            raise VirtualMachineError('Failed to find the katello-ca rpm')
 
     def register_contenthost(self, activation_key, org, releasever=None):
         """Registers content host on foreman server using activation-key.
@@ -254,6 +251,21 @@ class VirtualMachine(object):
         if result.return_code == 0:
             self._subscribed = True
         return result
+
+    def remove_katello_ca(self):
+        """Removes katello-ca rpm from the virtual machine.
+
+        Uses common helper `remove_katello_ca(hostname=None)`, but passes
+        `self.ip_addr` instead of the hostname as we are using fake hostnames
+        for virtual machines.
+
+        :return: None.
+        :raises robottelo.vm.VirtualMachineError: If katello-ca wasn't removed.
+        """
+        try:
+            remove_katello_ca(hostname=self.ip_addr)
+        except AssertionError:
+            raise VirtualMachineError('Failed to remove the katello-ca rpm')
 
     def unregister(self):
         """Run subscription-manager unregister.
@@ -381,7 +393,7 @@ class VirtualMachine(object):
         :return: None
         """
         # Download and Install ketello-ca rpm
-        self.install_katello_cert()
+        self.install_katello_ca()
         self.register_contenthost(activation_key, org)
 
         # Red Hat Access Insights requires RHEL 6/7 repo and it is not

@@ -191,7 +191,7 @@ class OpenScap(UITestCase):
             for value in vm_values:
                 with VirtualMachine(distro=value['distro']) as vm:
                     host = vm.hostname
-                    vm.install_katello_cert()
+                    vm.install_katello_ca()
                     vm.register_contenthost(self.ak_name, self.org_name)
                     vm.configure_puppet(value['rhel_repo'])
                     session.nav.go_to_hosts()

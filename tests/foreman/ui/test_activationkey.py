@@ -424,7 +424,7 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success']))
             with VirtualMachine(distro=self.vm_distro) as vm:
-                vm.install_katello_cert()
+                vm.install_katello_ca()
                 result = vm.register_contenthost(name, self.organization.label)
                 self.assertEqual(result.return_code, 0)
                 self.activationkey.delete(name)
@@ -798,11 +798,11 @@ class ActivationKey(UITestCase):
                 common_locators['alert.success']))
             with VirtualMachine(distro=self.vm_distro) as vm1:
                 with VirtualMachine(distro=self.vm_distro) as vm2:
-                    vm1.install_katello_cert()
+                    vm1.install_katello_ca()
                     result = vm1.register_contenthost(
                         name, self.organization.label)
                     self.assertEqual(result.return_code, 0)
-                    vm2.install_katello_cert()
+                    vm2.install_katello_ca()
                     result = vm2.register_contenthost(
                         name, self.organization.label)
                     self.assertNotEqual(result.return_code, 0)
@@ -837,7 +837,7 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.search(key_name))
             # Creating VM
             with VirtualMachine(distro=self.vm_distro) as vm:
-                vm.install_katello_cert()
+                vm.install_katello_ca()
                 vm.register_contenthost(key_name, self.organization.label)
                 name = self.activationkey.fetch_associated_content_host(
                     key_name)
@@ -1087,7 +1087,7 @@ class ActivationKey(UITestCase):
                 common_locators['alert.success']))
             # Create VM
             with VirtualMachine(distro=self.vm_distro) as vm:
-                vm.install_katello_cert()
+                vm.install_katello_ca()
                 result = vm.register_contenthost(
                     '{0},{1}'.format(key_1_name, key_2_name),
                     self.organization.label

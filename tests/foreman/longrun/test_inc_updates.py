@@ -202,7 +202,7 @@ class TestIncrementalUpdate(TestCase):
     def setup_vm(client, act_key, org_name):
         """Creates the vm and registers it to the satellite"""
         client.create()
-        client.install_katello_cert()
+        client.install_katello_ca()
 
         # Register content host, install katello-agent
         result = client.register_contenthost(

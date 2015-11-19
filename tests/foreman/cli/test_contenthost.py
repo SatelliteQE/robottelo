@@ -432,7 +432,7 @@ class TestCHKatelloAgent(CLITestCase):
         # Create VM and register content host
         self.client = VirtualMachine(distro='rhel71')
         self.client.create()
-        self.client.install_katello_cert()
+        self.client.install_katello_ca()
         # Register content host, install katello-agent
         self.client.register_contenthost(
             TestCHKatelloAgent.activation_key['name'],
