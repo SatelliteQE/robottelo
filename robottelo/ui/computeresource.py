@@ -9,6 +9,14 @@ from selenium.webdriver.support.select import Select
 class ComputeResource(Base):
     """Provides the CRUD functionality for Compute Resources."""
 
+    def navigate_to_entity(self):
+        """Navigate to Compute Resource entity page"""
+        Navigator(self.browser).go_to_compute_resources()
+
+    def _search_locator(self):
+        """Specify locator for Compute Resource entity search procedure"""
+        return locators['resource.select_name']
+
     def _configure_resource_provider(
             self, provider_type=None, parameter_list=None):
         """Provide configuration capabilities for compute resource provider.
@@ -114,11 +122,6 @@ class ComputeResource(Base):
             self._configure_orgs(orgs, org_select)
         self.click(common_locators['submit'])
 
-    def search(self, name):
-        """Searches existing compute resource from UI."""
-        Navigator(self.browser).go_to_compute_resources()
-        return self.search_entity(name, locators['resource.select_name'])
-
     def update(self, name, newname=None, parameter_list=None,
                orgs=None, org_select=None, locations=None, loc_select=None):
         """Updates compute resource entity"""
@@ -143,7 +146,6 @@ class ComputeResource(Base):
         self.delete_entity(
             name,
             really,
-            locators['resource.select_name'],
             locators['resource.delete'],
             drop_locator=locators['resource.dropdown'],
         )

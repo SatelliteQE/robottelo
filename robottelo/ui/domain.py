@@ -32,23 +32,19 @@ class Domain(Base):
                 'Could not create new domain "{0}"'.format(name)
             )
 
-    def search(self, description):
-        """Searches existing domain from UI"""
+    def navigate_to_entity(self):
+        """Navigate to Domains entity page"""
         Navigator(self.browser).go_to_domains()
-        if len(description) <= 30:
-            element = self.search_entity(
-                description, locators['domain.domain_description'])
-        else:
-            element = self.search_entity(
-                description, common_locators['select_filtered_entity'])
-        return element
+
+    def _search_locator(self):
+        """Specify locator for Domains entity search procedure"""
+        return locators['domain.domain_description']
 
     def delete(self, description, really=True):
         """Delete existing domain from UI"""
         self.delete_entity(
             description,
             really,
-            locators['domain.domain_description'],
             locators['domain.delete'],
         )
 

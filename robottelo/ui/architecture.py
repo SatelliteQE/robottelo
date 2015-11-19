@@ -10,6 +10,14 @@ from robottelo.ui.navigator import Navigator
 class Architecture(Base):
     """Manipulates architecture from UI"""
 
+    def navigate_to_entity(self):
+        """Navigate to Architecture entity page"""
+        Navigator(self.browser).go_to_architectures()
+
+    def _search_locator(self):
+        """Specify locator for Architecture entity search procedure"""
+        return locators['arch.arch_name']
+
     def create(self, name, os_names=None):
         """Creates new architecture from UI with existing OS"""
         self.click(locators['arch.new'])
@@ -23,17 +31,11 @@ class Architecture(Base):
                 'Could not create new architecture "{0}"'.format(name)
             )
 
-    def search(self, name):
-        """Searches existing architecture from UI"""
-        Navigator(self.browser).go_to_architectures()
-        return self.search_entity(name, locators['arch.arch_name'])
-
     def delete(self, name, really=True):
         """Delete existing architecture from UI"""
         self.delete_entity(
             name,
             really,
-            locators['arch.arch_name'],
             locators['arch.delete'],
         )
 

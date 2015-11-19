@@ -1,45 +1,46 @@
 """Implements Repos UI."""
 from robottelo.constants import CHECKSUM_TYPE, REPO_TYPE
 from robottelo.ui.base import Base, UIError
-from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from selenium.webdriver.support.select import Select
 
 
 class Repos(Base):
     """Manipulates Repos from UI."""
 
-    def create(self, name, product=None, gpg_key=None, http=False, url=None,
+    def navigate_to_entity(self):
+        """Navigate to Repository entity tab"""
+        self.click(tab_locators['prd.tab_repos'])
+
+    def _search_locator(self):
+        """Specify locator for Repository entity search procedure"""
+        return locators['repo.select']
+
+    def create(self, name, gpg_key=None, http=False, url=None,
                upstream_repo_name=None, repo_type=REPO_TYPE['yum'],
                repo_checksum=CHECKSUM_TYPE['default']):
         """Creates new repository from UI."""
-        prd_element = self.search_entity(
-            product, locators['prd.select'], katello=True)
-        if prd_element:
-            prd_element.click()
-            self.wait_for_ajax()
-            self.click(locators['repo.new'])
-            self.text_field_update(common_locators['name'], name)
-            # label takes long time for 256 char test, hence timeout of 60 sec
-            self.wait_for_ajax(timeout=60)
-            if repo_type:
-                type_ele = self.find_element(locators['repo.type'])
-                Select(type_ele).select_by_visible_text(repo_type)
-            if self.find_element(locators['repo.checksum']):
-                type_ele = self.find_element(locators['repo.checksum'])
-                Select(type_ele).select_by_visible_text(repo_checksum)
-            if gpg_key:
-                type_ele = self.find_element(common_locators['gpg_key'])
-                Select(type_ele).select_by_visible_text(gpg_key)
-            if url:
-                self.text_field_update(locators['repo.url'], url)
-            if upstream_repo_name:
-                self.text_field_update(
-                    locators['repo.upstream_name'], upstream_repo_name)
-            if http:
-                self.click(locators['repo.via_http'])
-            self.click(common_locators['create'])
-        else:
-            raise UIError('Unable to find the product "{0}"'.format(name))
+        self.click(locators['repo.new'])
+        self.text_field_update(common_locators['name'], name)
+        # label takes long time for 256 char test, hence timeout of 60 sec
+        self.wait_for_ajax(timeout=60)
+        if repo_type:
+            type_ele = self.find_element(locators['repo.type'])
+            Select(type_ele).select_by_visible_text(repo_type)
+        repo_checksum_element = self.find_element(locators['repo.checksum'])
+        if repo_checksum_element:
+            Select(repo_checksum_element).select_by_visible_text(repo_checksum)
+        if gpg_key:
+            type_ele = self.find_element(common_locators['gpg_key'])
+            Select(type_ele).select_by_visible_text(gpg_key)
+        if url:
+            self.text_field_update(locators['repo.url'], url)
+        if upstream_repo_name:
+            self.text_field_update(
+                locators['repo.upstream_name'], upstream_repo_name)
+        if http:
+            self.click(locators['repo.via_http'])
+        self.click(common_locators['create'])
 
     def update(self, name, new_name=None, new_url=None, new_repo_checksum=None,
                new_gpg_key=None, http=False, new_upstream_name=None):
@@ -82,6 +83,7 @@ class Repos(Base):
 
     def delete(self, repo, really=True):
         """Delete a repository from UI."""
+        self.navigate_to_entity()
         strategy, value = locators['repo.select']
         self.click((strategy, value % repo))
         self.click(locators['repo.remove'])
@@ -91,9 +93,13 @@ class Repos(Base):
             self.click(common_locators['cancel'])
 
     def search(self, element_name):
-        """Uses the search box to locate an element from a list of elements."""
-        element = None
-        strategy, value = locators['repo.select']
+        """Uses the search box to locate an element from a list of elements.
+        Repository entity is located inside of Product entity and has another
+        appearance, so it is necessary to use custom search there.
+
+        """
+        self.navigate_to_entity()
+        strategy, value = self._search_locator()
         searchbox = self.wait_until_element(locators['repo.search'])
         if searchbox:
             searchbox.clear()

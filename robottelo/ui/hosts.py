@@ -2,6 +2,7 @@
 from robottelo.constants import RESOURCE_DEFAULT
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
@@ -194,16 +195,19 @@ class Hosts(Base):
         )
         self.click(common_locators['submit'])
 
-    def search(self, name):
-        """Searches existing host from UI."""
-        return self.search_entity(name, locators['host.select_name'])
+    def navigate_to_entity(self):
+        """Navigate to Hosts entity page"""
+        Navigator(self.browser).go_to_hosts()
+
+    def _search_locator(self):
+        """Specify locator for Hosts entity search procedure"""
+        return locators['host.select_name']
 
     def delete(self, name, really=True):
         """Deletes a host."""
         self.delete_entity(
             name,
             really,
-            locators['host.select_name'],
             locators['host.delete'],
             drop_locator=locators['host.dropdown'],
         )

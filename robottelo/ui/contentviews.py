@@ -3,14 +3,15 @@
 
 import time
 
-from robottelo.helpers import escape_search
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
 class ContentViews(Base):
     """Manipulates Content Views from UI"""
+    is_katello = True
 
     def go_to_filter_page(self, cv_name, filter_name):
         """Navigates UI to selected Filter page"""
@@ -95,17 +96,13 @@ class ContentViews(Base):
         self.click(locators['contentviews.next_button'])
         self.click(locators['contentviews.confirm_remove_ver'])
 
-    def search(self, element_name):
-        """Uses the search box to locate an element from a list of elements"""
-        element = None
-        strategy, value = locators['contentviews.key_name']
-        searchbox = self.wait_until_element(common_locators['kt_search'])
-        if searchbox:
-            searchbox.clear()
-            searchbox.send_keys(escape_search(element_name))
-            self.click(common_locators['kt_search_button'])
-            element = self.wait_until_element((strategy, value % element_name))
-        return element
+    def navigate_to_entity(self):
+        """Navigate to ContentViews entity page"""
+        Navigator(self.browser).go_to_content_views()
+
+    def _search_locator(self):
+        """Specify locator for ContentViews entity search procedure"""
+        return locators["contentviews.key_name"]
 
     def search_filter(self, cv_name, filter_name):
         """uses search box to locate the filters"""

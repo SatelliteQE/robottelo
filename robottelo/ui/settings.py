@@ -3,6 +3,7 @@
 
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
@@ -13,10 +14,13 @@ class OptionError(ValueError):
 class Settings(Base):
     """Implements the Update function to edit/update settings"""
 
-    def search(self, name):
-        """Searches existing parameter from UI"""
-        element = self.search_entity(name, locators['settings.param'])
-        return element
+    def navigate_to_entity(self):
+        """Navigate to Settings entity page"""
+        Navigator(self.browser).go_to_settings()
+
+    def _search_locator(self):
+        """Specify locator for Settings entity search procedure"""
+        return locators['settings.param']
 
     def update(self, tab_locator, param_name, value_type, param_value):
         """Updates the value of selected parameter under settings
@@ -56,8 +60,7 @@ class Settings(Base):
         if self.wait_until_element(tab_locator):
             self.click(tab_locator)
             strategy, value = locators['settings.edit_param']
-            element = self.wait_until_element((strategy,
-                                               value % param_name))
+            element = self.wait_until_element((strategy, value % param_name))
             if element:
                 return element.text
             else:

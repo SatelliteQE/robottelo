@@ -9,6 +9,14 @@ from selenium.webdriver.support.select import Select
 class LdapAuthSource(Base):
     """Implements CRUD functions from UI."""
 
+    def navigate_to_entity(self):
+        """Navigate to LDAP auth source entity page"""
+        Navigator(self.browser).go_to_ldap_auth()
+
+    def _search_locator(self):
+        """Specify locator for LDAP auth source entity search procedure"""
+        return locators['ldapserver.ldap_servername']
+
     def create(self, name=None, server=None, ldaps=False, port=None,
                server_type=None, login_name=None, first_name=None,
                surname=None, mail=None, photo=None, account_user=None,
@@ -51,26 +59,18 @@ class LdapAuthSource(Base):
         self.click(common_locators['submit'])
 
     def search(self, name):
-        """Searches existing ldap auth source from UI."""
-        Navigator(self.browser).go_to_ldap_auth()
-        strategy1, value1 = locators['ldapserver.ldap_servername']
-        element = self.wait_until_element((strategy1, value1 % (name, name)))
-        if element is None:
-            raise UINoSuchElementError(
-                u'Could not search the entity "{0}".'
-                .format(name)
-            )
-        return element
+        """Searches existing ldap auth source from UI. It is necessary to use
+        custom search as we don't have both search bar and search button there.
 
-    def delete(self, name, really=False):
+        """
+        self.navigate_to_entity()
+        strategy1, value1 = self._search_locator()
+        return self.wait_until_element((strategy1, value1 % (name, name)))
+
+    def delete(self, name, really=True):
         """Deletes existing ldap auth source from UI."""
-        Navigator(self.browser).go_to_ldap_auth()
-        strategy1, value1 = locators['ldapserver.ldap_delete']
-        element = self.wait_until_element((strategy1, value1 % name))
-        if element is None:
-            raise UINoSuchElementError(
-                u'Could not select the entity "{0}" for deletion.'
-                .format(name)
-            )
-        element.click()
-        self.handle_alert(really)
+        self.delete_entity(
+            name,
+            really,
+            locators['ldapserver.ldap_delete'],
+        )

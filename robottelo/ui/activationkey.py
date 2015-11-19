@@ -3,11 +3,21 @@
 from robottelo.helpers import escape_search
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
 
 class ActivationKey(Base):
     """Manipulates Activation keys from UI."""
+    is_katello = True
+
+    def navigate_to_entity(self):
+        """Navigate to Activation Key entity page"""
+        Navigator(self.browser).go_to_activation_keys()
+
+    def _search_locator(self):
+        """Specify locator for Activation Key entity search procedure"""
+        return locators['ak.ak_name']
 
     def set_limit(self, limit):
         """Sets the finite limit of activation key."""
@@ -49,23 +59,9 @@ class ActivationKey(Base):
                 'Could not create new activation key "{0}"'.format(name)
             )
 
-    def search_key(self, element_name):
-        """Uses the search box to locate an element from a list of elements."""
-        element = None
-        searchbox = self.wait_until_element(common_locators['kt_search'])
-
-        if searchbox:
-            searchbox.clear()
-            searchbox.send_keys(escape_search(element_name))
-            self.wait_for_ajax()
-            self.click(common_locators['kt_search_button'])
-            strategy, value = locators['ak.ak_name']
-            element = self.wait_until_element((strategy, value % element_name))
-        return element
-
     def search_key_subscriptions(self, ak_name, subscription_name):
         """Fetch associated subscriptions from selected activation key"""
-        activation_key = self.search_key(ak_name)
+        activation_key = self.search(ak_name)
         if activation_key is None:
             raise UINoSuchElementError(
                 u'Could not find activation key {0}'.format(ak_name))
@@ -90,7 +86,7 @@ class ActivationKey(Base):
     def update(self, name, new_name=None, description=None,
                limit=None, content_view=None, env=None):
         """Updates an existing activation key."""
-        element = self.search_key(name)
+        element = self.search(name)
 
         if element:
             element.click()
@@ -135,7 +131,7 @@ class ActivationKey(Base):
 
     def delete(self, name, really=True):
         """Deletes an existing activation key."""
-        element = self.search_key(name)
+        element = self.search(name)
 
         if element:
             element.click()
@@ -148,7 +144,7 @@ class ActivationKey(Base):
 
     def associate_product(self, name, products):
         """Associate an existing product with activation key."""
-        element = self.search_key(name)
+        element = self.search(name)
 
         if not element:
             raise UIError(
@@ -166,7 +162,7 @@ class ActivationKey(Base):
 
     def enable_repos(self, name, repos, enable=True):
         """Enables repository via product_content tab of the activation_key."""
-        element = self.search_key(name)
+        element = self.search(name)
         strategy, value = locators['ak.prd_content.edit_repo']
         strategy1, value1 = locators['ak.prd_content.select_repo']
         if element is None:
@@ -187,7 +183,7 @@ class ActivationKey(Base):
 
     def get_attribute(self, name, locator):
         """Get the attribute of selected locator."""
-        element = self.search_key(name)
+        element = self.search(name)
 
         if element:
             element.click()
@@ -207,7 +203,7 @@ class ActivationKey(Base):
     def add_host_collection(self, name, host_collection_name):
         """Associate an existing Host Collection with Activation Key."""
         # find activation key
-        activation_key = self.search_key(name)
+        activation_key = self.search(name)
         if activation_key:
             activation_key.click()
             self.wait_for_ajax()
@@ -227,7 +223,7 @@ class ActivationKey(Base):
     def fetch_associated_content_host(self, name):
         """Fetch associated content host from selected activation key."""
         # find activation key
-        activation_key = self.search_key(name)
+        activation_key = self.search(name)
         if not activation_key:
             raise UINoSuchElementError(
                 'Could not find activation key {0}'.format(name))
@@ -244,7 +240,7 @@ class ActivationKey(Base):
 
     def copy(self, name, new_name=None):
         """Copies an existing activation key"""
-        element = self.search_key(name)
+        element = self.search(name)
 
         if element and new_name:
             element.click()

@@ -10,6 +10,14 @@ from selenium.webdriver.support.select import Select
 class Template(Base):
     """Provides the CRUD functionality for Templates."""
 
+    def navigate_to_entity(self):
+        """Navigate to Template entity page"""
+        Navigator(self.browser).go_to_provisioning_templates()
+
+    def _search_locator(self):
+        """Specify locator for Template entity search procedure"""
+        return locators['provision.template_select']
+
     def create(self, name, template_path=None, custom_really=None,
                audit_comment=None, template_type=None, snippet=None,
                os_list=None):
@@ -54,15 +62,6 @@ class Template(Base):
             FILTER['template_os'],
             tab_locator=tab_locators['provision.tab_association'])
         self.click(common_locators['submit'])
-
-    def search(self, name):
-        """Searches existing template from UI."""
-        self.scroll_page()
-        nav = Navigator(self.browser)
-        nav.go_to_provisioning_templates()
-        element = self.search_entity(
-            name, locators['provision.template_select'])
-        return element
 
     def update(self, name, custom_really=None, new_name=None,
                template_path=None, template_type=None,
@@ -130,11 +129,9 @@ class Template(Base):
 
     def delete(self, name, really=True):
         """Deletes a template."""
-        Navigator(self.browser).go_to_provisioning_templates()
         self.delete_entity(
             name,
             really,
-            locators['provision.template_select'],
             locators['provision.template_delete'],
             locators['provision.template_dropdown'],
         )
