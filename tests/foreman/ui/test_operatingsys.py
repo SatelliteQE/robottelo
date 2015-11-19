@@ -6,7 +6,7 @@ from nailgun import entities
 from robottelo.constants import (
     INSTALL_MEDIUM_URL, PARTITION_SCRIPT_DATA_FILE)
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, skip_if_bug_open
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -196,6 +196,7 @@ class OperatingSys(UITestCase):
                     self.assertIsNone(self.operatingsys.search(name))
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1283548)
     def test_negative_create_os_with_same_name_and_version(self):
         """@Test: OS - Create a new OS with same name and version
 
