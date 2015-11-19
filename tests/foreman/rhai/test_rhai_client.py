@@ -9,10 +9,11 @@ from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
 
 
-class RHAITestCase(TestCase):
+class RHAIClientTestCase(TestCase):
 
     @classmethod
     def setUpClass(cls):  # noqa
+        super(RHAIClientTestCase, cls).setUpClass()
         # Create a new organization with prefix 'insights'
         org = entities.Organization(
             name='insights_{0}'.format(gen_string('alpha', 6))
@@ -48,8 +49,6 @@ class RHAITestCase(TestCase):
         cls.org_label = org.label
         cls.ak_name = activation_key.name
         cls.org_name = org.name
-
-        super(RHAITestCase, cls).setUpClass()
 
     def test_connection_option(self):
         """@Test: Verify that '--test-connection' option for

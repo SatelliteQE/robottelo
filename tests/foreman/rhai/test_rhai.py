@@ -1,5 +1,7 @@
 """Tests for Red Hat Access Insights"""
 
+import time
+
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
@@ -130,6 +132,9 @@ class RHAITestCase(UITestCase):
                 session.nav.click(
                     locators['insights.unregister_button']
                 )
+                self.browser.refresh()
+                time.sleep(30)
+
             result = vm.run('redhat-access-insights')
             self.assertEqual(result.return_code, 1,
                              "System has not been unregistered")
