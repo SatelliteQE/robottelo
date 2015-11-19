@@ -1060,6 +1060,8 @@ class DockerClientTestCase(CLITestCase):
         """@Test: A Docker-enabled client can use ``docker pull`` to pull a
         Docker image off a Satellite 6 instance.
 
+        @Feature: Docker
+
         @Steps:
 
         1. Publish and promote content view with Docker content
@@ -1078,6 +1080,8 @@ class DockerClientTestCase(CLITestCase):
         pointing to an existing Docker image from a Satellite 6 and modify it.
         Then, using ``docker build`` generate a new image which can then be
         uploaded back onto the Satellite 6 as a new repository.
+
+        @Feature: Docker
 
         @Steps:
 
