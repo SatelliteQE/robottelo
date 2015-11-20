@@ -246,34 +246,12 @@ class UITestCase(TestCase):
     def take_screenshot(self, testmethodname):
         """Takes screenshot of the UI and saves it to the disk by creating
         a directory same as that of the test method name.
-
         """
-        # testmethodname varies so trying to handle various scenarios.
-        # pop depending on ddt, normal test or ddt's 1st job.
-        # For ddt tests with maps.
-        if "___" in testmethodname:
-            parts = testmethodname.split("___")
-        # For ddt tests with utf8, html, etc.
-        elif "__" in testmethodname:
-            parts = testmethodname.split("__")
-        # For ddt test with alpha, numeric, etc.
-        else:
-            testmethodname = testmethodname.split('_')
-            # Do Nothing for Non DDT Tests.
-            if len(testmethodname[-2]) == 1:
-                for _ in range(2):
-                    testmethodname.pop()
-        if "___" in testmethodname or "__" in testmethodname:
-            testmethodname = parts[0]
-            testmethodname = testmethodname.split('_')
-            testmethodname.pop()
-        testmethodname = "_".join(testmethodname)
         # Creates dir_structure depending upon the testmethodname.
-        directory = testmethodname
         dir_structure = os.path.join(
             self.screenshots_dir,
             datetime.now().strftime('%Y-%m-%d'),
-            directory,
+            testmethodname,
         )
         if not os.path.exists(dir_structure):
             os.makedirs(dir_structure)
