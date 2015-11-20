@@ -269,3 +269,62 @@ ssh_key=
 # for RHEL7 - the ports needs to have a correct selinux context set:
 # 'semanage port -a -t websm_port_t -p tcp <port-range>'
 port_range=9091, 14999
+
+# [rhev]
+# External RHEV to be added as a compute resource.
+# name: Name of the RHEV compute resource
+# hostname: RHEV API URL, for example: https://ovirt.example.com/api
+# username: Login for RHEVM
+# password: Password for RHEVM
+# datacenter: RHEVM datacenter, for example: Default
+# vm_name: Name of VM to power On/Off & delete
+# name=
+# hostname=
+# username=
+# password=
+# datacenter=
+# vm_name=
+
+# Compute resource image data
+# img_name: Chosen name of the image
+# img_os: Operating system of the image
+# img_arch: Architecture of the image
+# img_username: Login to the image
+# img_password: Password to the image
+# img_image: Image on the external provider
+# img_name=
+# img_os=
+# img_arch=
+# img_username=
+# img_password=
+# img_image=
+
+# [vmware]
+# External Vmware to be added as a compute resource
+# name: Name of the vmware compute resource
+# vcenter: vmware vcenter URL
+# username: Login for vmware
+# password: Password for vmware
+# datacenter: vmware datacenter
+# name=
+# vcenter=
+# username=
+# password=
+# datacenter=
+
+# vm_name: Name of VM to power On/Off & delete
+# vm_name=
+
+# Compute resource image data
+# img_name: Chosen name of the image
+# img_os: Operating system of the image
+# img_arch: Architecture of the image
+# img_username: Login to the image
+# img_password: Password to the image
+# img_image: Image on the external provider
+# img_name=
+# img_os=
+# img_arch=
+# img_username=
+# img_password=
+# img_image=
