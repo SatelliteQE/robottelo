@@ -1,10 +1,15 @@
 """Tests for module ``robottelo.ssh``."""
 # (too-many-public-methods) pylint: disable=R0904
-import mock
 import os
+import six
 
 from robottelo import ssh
 from unittest2 import TestCase
+
+if six.PY2:
+    import mock
+else:
+    from unittest import mock
 
 
 class MockSSHClient(object):

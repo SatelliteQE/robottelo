@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 """Smoke tests for the ``API`` end-to-end scenario."""
-import httplib
 import random
 
 from fauxfactory import gen_string
@@ -26,6 +25,7 @@ from robottelo.decorators import bz_bug_is_open, skip_if_bug_open
 from robottelo.helpers import get_nailgun_config
 from robottelo.vm import VirtualMachine
 from robottelo.test import TestCase
+from six.moves import http_client
 # (too many public methods) pylint: disable=R0904
 
 API_PATHS = {
@@ -680,7 +680,7 @@ class TestAvailableURLs(TestCase):
             auth=settings.server.get_credentials(),
             verify=False,
         )
-        self.assertEqual(response.status_code, httplib.OK)
+        self.assertEqual(response.status_code, http_client.OK)
         self.assertIn('application/json', response.headers['content-type'])
 
     @skip_if_bug_open('bugzilla', 1105773)

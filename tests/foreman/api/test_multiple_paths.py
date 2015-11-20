@@ -1,5 +1,4 @@
 """Data-driven unit tests for multiple paths."""
-import httplib
 import logging
 
 from nailgun import client, entities, entity_fields
@@ -8,6 +7,7 @@ from robottelo.config import settings
 from robottelo.decorators import bz_bug_is_open, run_only_on, skip_if_bug_open
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
+from six.moves import http_client
 
 logger = logging.getLogger(__name__)
 
@@ -168,7 +168,7 @@ class EntityTestCase(APITestCase):
                     verify=False,
                 )
                 response.raise_for_status()
-                self.assertEqual(httplib.OK, response.status_code)
+                self.assertEqual(http_client.OK, response.status_code)
                 self.assertIn(
                     'application/json',
                     response.headers['content-type']
@@ -194,7 +194,8 @@ class EntityTestCase(APITestCase):
                     auth=(),
                     verify=False
                 )
-                self.assertEqual(httplib.UNAUTHORIZED, response.status_code)
+                self.assertEqual(
+                    http_client.UNAUTHORIZED, response.status_code)
 
     def test_post_status_code(self):
         """@Test: Issue a POST request and check the returned status code.
@@ -221,7 +222,7 @@ class EntityTestCase(APITestCase):
                     self.skipTest('Bugzilla bug 1118015 is open.')
 
                 response = entity_cls().create_raw()
-                self.assertEqual(httplib.CREATED, response.status_code)
+                self.assertEqual(http_client.CREATED, response.status_code)
                 self.assertIn(
                     'application/json',
                     response.headers['content-type']
@@ -248,7 +249,7 @@ class EntityTestCase(APITestCase):
                 return_code = entity_cls(server_cfg).create_raw(
                     create_missing=False
                 ).status_code
-                self.assertEqual(httplib.UNAUTHORIZED, return_code)
+                self.assertEqual(http_client.UNAUTHORIZED, return_code)
 
 
 class EntityIdTestCase(APITestCase):
@@ -274,7 +275,7 @@ class EntityIdTestCase(APITestCase):
                 except HTTPError as err:
                     self.fail(err)
                 response = entity.read_raw()
-                self.assertEqual(httplib.OK, response.status_code)
+                self.assertEqual(http_client.OK, response.status_code)
                 self.assertIn(
                     'application/json',
                     response.headers['content-type']
@@ -312,7 +313,7 @@ class EntityIdTestCase(APITestCase):
                     auth=settings.server.get_credentials(),
                     verify=False,
                 )
-                self.assertEqual(httplib.OK, response.status_code)
+                self.assertEqual(http_client.OK, response.status_code)
                 self.assertIn(
                     'application/json',
                     response.headers['content-type']
@@ -348,13 +349,17 @@ class EntityIdTestCase(APITestCase):
                     self.skipTest('BZ 1187366 is open.')
                 self.assertIn(
                     response.status_code,
-                    (httplib.NO_CONTENT, httplib.OK, httplib.ACCEPTED)
+                    (
+                        http_client.NO_CONTENT,
+                        http_client.OK,
+                        http_client.ACCEPTED,
+                    )
                 )
 
                 # According to RFC 2616, HTTP 204 responses "MUST NOT include a
                 # message-body". If a message does not have a body, there is no
                 # need to set the content-type of the message.
-                if response.status_code is not httplib.NO_CONTENT:
+                if response.status_code is not http_client.NO_CONTENT:
                     self.assertIn(
                         'application/json',
                         response.headers['content-type']
@@ -476,7 +481,7 @@ class DoubleCheckTestCase(APITestCase):
                     self.fail(err)
                 entity.delete()
                 self.assertEqual(
-                    httplib.NOT_FOUND,
+                    http_client.NOT_FOUND,
                     entity.read_raw().status_code
                 )
 

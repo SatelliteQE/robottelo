@@ -327,7 +327,7 @@ def make_gpg_key(options=None):
     # Create a fake gpg key file if none was provided
     if not options.get('key'):
         (_, key_filename) = mkstemp(text=True)
-        os.chmod(key_filename, 0700)
+        os.chmod(key_filename, 0o700)
         with open(key_filename, 'w') as gpg_key_file:
             gpg_key_file.write(gen_alphanumeric(gen_integer(20, 50)))
     else:
@@ -498,7 +498,7 @@ def make_partition_table(options=None):
     if options is None:
         options = {}
     (_, layout) = mkstemp(text=True)
-    os.chmod(layout, 0700)
+    os.chmod(layout, 0o700)
     with open(layout, 'w') as ptable:
         ptable.write(options.get('content', 'default ptable content'))
 
@@ -1641,7 +1641,7 @@ def make_template(options=None):
 
     # Special handling for template factory
     (_, layout) = mkstemp(text=True)
-    chmod(layout, 0700)
+    chmod(layout, 0o700)
     with open(layout, 'w') as ptable:
         ptable.write(content)
     # Upload file to server

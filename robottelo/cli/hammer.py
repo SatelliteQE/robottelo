@@ -1,8 +1,10 @@
 """Helpers to interact with hammer command line utility."""
 import csv
 import re
+import six
 
-from itertools import izip
+from six.moves import zip
+from six.moves import cStringIO as StringIO
 
 
 def _csv_reader(output):
@@ -24,8 +26,16 @@ def _csv_reader(output):
     :return: generator that will yield a list of unicode string values.
 
     """
-    for row in csv.reader([line.encode('utf8') for line in output]):
-        yield [value.decode('utf8') for value in row]
+    data = '\n'.join(output)
+    if six.PY2:
+        data = data.encode('utf8')
+    handler = StringIO(data)
+
+    for row in csv.reader(handler):
+        if six.PY2:
+            yield [value.decode('utf8') for value in row]
+        else:
+            yield row
 
 
 def parse_csv(output):
@@ -34,7 +44,7 @@ def parse_csv(output):
     # Generate the key names, spaces will be converted to dashes "-"
     keys = [header.replace(' ', '-').lower() for header in next(reader)]
     # For each entry, create a dict mapping each key with each value
-    return [dict(izip(keys, values)) for values in reader if len(values) > 0]
+    return [dict(zip(keys, values)) for values in reader if len(values) > 0]
 
 
 def parse_help(output):

@@ -1,5 +1,6 @@
 """Tests for module ``robottelo.datafactory``."""
 import itertools
+import six
 import unittest2
 
 from robottelo.config import settings
@@ -91,9 +92,9 @@ class TestReturnTypes(unittest2.TestCase):
                 valid_labels_list(),
                 valid_names_list(),
                 valid_usernames_list(),):
-            self.assertIsInstance(item, unicode)
+            self.assertIsInstance(item, six.text_type)
         for item in invalid_id_list():
-            if not (isinstance(item, (unicode, int)) or item is None):
+            if not (isinstance(item, (six.text_type, int)) or item is None):
                 self.fail('Unexpected data type')
 
 

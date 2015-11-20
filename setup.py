@@ -25,6 +25,7 @@ setup(
         'python-bugzilla',
         'requests',
         'selenium',
+        'six',
         'unittest2',
     ],
     license='GNU GPL v3.0',

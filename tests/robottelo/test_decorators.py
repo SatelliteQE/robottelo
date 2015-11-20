@@ -1,11 +1,16 @@
 """Unit tests for :mod:`robottelo.decorators`."""
-import mock
+import six
 
 from fauxfactory import gen_integer
 from robottelo import decorators
 from robottelo.constants import BZ_CLOSED_STATUSES, BZ_OPEN_STATUSES
 from unittest2 import TestCase
 # (Too many public methods) pylint: disable=R0904
+
+if six.PY2:
+    import mock
+else:
+    from unittest import mock
 
 
 class BzBugIsOpenTestCase(TestCase):

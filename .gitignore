@@ -20,6 +20,7 @@
 /foreman-results.xml
 /robottelo.log
 /test-*.pstats
+/.tox
 
 # Varies per-deployment.
 /robottelo.properties

@@ -5,13 +5,12 @@ An API reference can be found here:
 http://theforeman.org/api/apidoc/v2/hosts.html
 
 """
-import httplib
-
 from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from robottelo.config import settings
 from robottelo.decorators import bz_bug_is_open, run_only_on
 from robottelo.test import APITestCase
+from six.moves import http_client
 
 
 class HostsTestCase(APITestCase):
@@ -33,7 +32,7 @@ class HostsTestCase(APITestCase):
             data={u'search': query},
             verify=False,
         )
-        self.assertEqual(response.status_code, httplib.OK)
+        self.assertEqual(response.status_code, http_client.OK)
         self.assertEqual(response.json()['search'], query)
 
     @run_only_on('sat')
@@ -52,7 +51,7 @@ class HostsTestCase(APITestCase):
             data={u'per_page': per_page},
             verify=False,
         )
-        self.assertEqual(response.status_code, httplib.OK)
+        self.assertEqual(response.status_code, http_client.OK)
         self.assertEqual(response.json()['per_page'], per_page)
 
     @run_only_on('sat')

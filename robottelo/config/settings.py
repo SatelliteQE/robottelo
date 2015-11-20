@@ -2,26 +2,17 @@
 import logging
 import os
 import sys
-import urlparse
-
-from nailgun import entities, entity_mixins
-from nailgun.config import ServerConfig
-
-try:
-    from ConfigParser import (
-        NoOptionError,
-        NoSectionError,
-        SafeConfigParser as ConfigParser,
-    )
-except ImportError:
-    from configparser import (
-        ConfigParser,
-        NoOptionError,
-        NoSectionError,
-    )
 
 from logging import config
+from nailgun import entities, entity_mixins
+from nailgun.config import ServerConfig
 from robottelo.config import casts
+from six.moves.urllib.parse import urlunsplit, urljoin
+from six.moves.configparser import (
+    NoOptionError,
+    NoSectionError,
+    ConfigParser
+)
 
 LOGGER = logging.getLogger(__name__)
 SETTINGS_FILE_NAME = 'robottelo.properties'
@@ -190,9 +181,9 @@ class ServerSettings(FeatureSettings):
             scheme = self.scheme
         # All anticipated error cases have been handled at this point.
         if not self.port:
-            return urlparse.urlunsplit((scheme, self.hostname, '', '', ''))
+            return urlunsplit((scheme, self.hostname, '', '', ''))
         else:
-            return urlparse.urlunsplit((
+            return urlunsplit((
                 scheme, '{0}:{1}'.format(self.hostname, self.port), '', '', ''
             ))
 
@@ -207,7 +198,7 @@ class ServerSettings(FeatureSettings):
         :rtype: str
 
         """
-        return urlparse.urlunsplit(('http', self.hostname, 'pub/', '', ''))
+        return urlunsplit(('http', self.hostname, 'pub/', '', ''))
 
     def get_cert_rpm_url(self):
         """Return the Katello cert RPM URL of the server being tested.
@@ -220,7 +211,7 @@ class ServerSettings(FeatureSettings):
         :rtype: str
 
         """
-        return urlparse.urljoin(
+        return urljoin(
             self.get_pub_url(), 'katello-ca-consumer-latest.noarch.rpm')
 
 
