@@ -1,6 +1,5 @@
 # -*- encoding: utf-8 -*-
 """Test class for Architecture UI"""
-from ddt import ddt, data
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.datafactory import generate_strings_list, invalid_values_list
@@ -11,20 +10,22 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@ddt
+def valid_arch_os_names():
+    """Returns a tuple of arch/os names for creation tests"""
+    return(
+        {u'name': gen_string('alpha'), u'os_name': gen_string('alpha')},
+        {u'name': gen_string('html'), u'os_name': gen_string('html')},
+        {u'name': gen_string('utf8'), u'os_name': gen_string('utf8')},
+        {u'name': gen_string('alphanumeric'),
+         u'os_name': gen_string('alphanumeric')}
+    )
+
+
 class Architecture(UITestCase):
     """Implements Architecture tests from UI"""
 
-    @data({u'name': gen_string('alpha'),
-           u'os_name': gen_string('alpha')},
-          {u'name': gen_string('html'),
-           u'os_name': gen_string('html')},
-          {u'name': gen_string('utf8'),
-           u'os_name': gen_string('utf8')},
-          {u'name': gen_string('alphanumeric'),
-           u'os_name': gen_string('alphanumeric')})
     @run_only_on('sat')
-    def test_positive_create_arch_with_os(self, test_data):
+    def test_positive_create_arch_with_os(self):
         """@Test: Create a new Architecture with OS
 
         @Feature: Architecture - Positive Create
@@ -32,15 +33,18 @@ class Architecture(UITestCase):
         @Assert: Architecture is created
 
         """
-        entities.OperatingSystem(name=test_data['os_name']).create()
         with Session(self.browser) as session:
-            make_arch(session, name=test_data['name'],
-                      os_names=[test_data['os_name']])
-            self.assertIsNotNone(self.architecture.search(test_data['name']))
+            for test_data in valid_arch_os_names():
+                with self.subTest(test_data):
+                    entities.OperatingSystem(
+                        name=test_data['os_name']).create()
+                    make_arch(session, name=test_data['name'],
+                              os_names=[test_data['os_name']])
+                    self.assertIsNotNone(
+                        self.architecture.search(test_data['name']))
 
-    @data(*generate_strings_list())
     @run_only_on('sat')
-    def test_positive_create_arch_with_different_names(self, name):
+    def test_positive_create_arch_with_different_names(self):
         """@Test: Create a new Architecture with different data
 
         @Feature: Architecture - Positive Create
@@ -49,12 +53,13 @@ class Architecture(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_arch(session, name=name)
-            self.assertIsNotNone(self.architecture.search(name))
+            for name in generate_strings_list():
+                with self.subTest(name):
+                    make_arch(session, name=name)
+                    self.assertIsNotNone(self.architecture.search(name))
 
-    @data(*invalid_values_list())
     @run_only_on('sat')
-    def test_negative_create_arch(self, name):
+    def test_negative_create_arch(self):
         """@Test: Try to create architecture and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
@@ -64,13 +69,14 @@ class Architecture(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_arch(session, name=name)
-            self.assertIsNotNone(self.architecture.wait_until_element
-                                 (common_locators['name_haserror']))
+            for invalid_name in invalid_values_list(interface='ui'):
+                with self.subTest(invalid_name):
+                    make_arch(session, name=invalid_name)
+                    self.assertIsNotNone(self.architecture.wait_until_element(
+                        common_locators['name_haserror']))
 
-    @data(*generate_strings_list())
     @run_only_on('sat')
-    def test_negative_create_arch_with_same_name(self, name):
+    def test_negative_create_arch_with_same_name(self):
         """@Test: Create a new Architecture with same name
 
         @Feature: Architecture - Negative Create
@@ -79,15 +85,16 @@ class Architecture(UITestCase):
 
         """
         with Session(self.browser) as session:
-            make_arch(session, name=name)
-            self.assertIsNotNone(self.architecture.search(name))
-            make_arch(session, name=name)
-            self.assertIsNotNone(self.architecture.wait_until_element
-                                 (common_locators['name_haserror']))
+            for name in generate_strings_list():
+                with self.subTest(name):
+                    make_arch(session, name=name)
+                    self.assertIsNotNone(self.architecture.search(name))
+                    make_arch(session, name=name)
+                    self.assertIsNotNone(self.architecture.wait_until_element(
+                        common_locators['name_haserror']))
 
-    @data(*generate_strings_list())
     @run_only_on('sat')
-    def test_remove_architecture(self, name):
+    def test_delete_architecture(self):
         """@Test: Delete an existing Architecture
 
         @Feature: Architecture - Delete
@@ -96,14 +103,16 @@ class Architecture(UITestCase):
 
         """
         os = entities.OperatingSystem(name=gen_string('alpha')).create()
-        entities.Architecture(name=name, operatingsystem=[os]).create()
         with Session(self.browser) as session:
-            session.nav.go_to_architectures()
-            self.architecture.delete(name)
+            for name in generate_strings_list():
+                with self.subTest(name):
+                    entities.Architecture(
+                        name=name, operatingsystem=[os]).create()
+                    session.nav.go_to_architectures()
+                    self.architecture.delete(name)
 
-    @data(*generate_strings_list())
     @run_only_on('sat')
-    def test_update_arch(self, name):
+    def test_update_arch(self):
         """@Test: Update Architecture with new name and OS
 
         @Feature: Architecture - Update
@@ -112,10 +121,14 @@ class Architecture(UITestCase):
 
         """
         old_name = gen_string('alpha')
-        os_name = gen_string('alpha')
-        entities.OperatingSystem(name=os_name).create()
         with Session(self.browser) as session:
             make_arch(session, name=old_name)
             self.assertIsNotNone(self.architecture.search(old_name))
-            self.architecture.update(old_name, name, new_os_names=[os_name])
-            self.assertIsNotNone(self.architecture.search(name))
+            for new_name in generate_strings_list():
+                with self.subTest(new_name):
+                    os_name = gen_string('alpha')
+                    entities.OperatingSystem(name=os_name).create()
+                    self.architecture.update(
+                        old_name, new_name, new_os_names=[os_name])
+                    self.assertIsNotNone(self.architecture.search(new_name))
+                    old_name = new_name  # for next iteration
