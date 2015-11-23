@@ -238,6 +238,31 @@ class ClientsSettings(FeatureSettings):
         return validation_errors
 
 
+class LibvirtHostSettings(FeatureSettings):
+    """Libvirt host settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(LibvirtHostSettings, self).__init__(*args, **kwargs)
+        self.libvirt_image_dir = None
+        self.libvirt_hostname = None
+
+    def read(self, reader):
+        """Read libvirt host settings."""
+        self.libvirt_image_dir = reader.get(
+            'compute_resources', 'libvirt_image_dir', '/var/lib/libvirt/images'
+        )
+        self.libvirt_hostname = reader.get(
+            'compute_resources', 'libvirt_hostname')
+
+    def validate(self):
+        """Validate libvirt host settings."""
+        validation_errors = []
+        if self.libvirt_hostname is None:
+            validation_errors.append(
+                '[compute_resources] libvirt_hostname option must be provided.'
+            )
+        return validation_errors
+
+
 class DockerSettings(FeatureSettings):
     """Docker settings definitions."""
     def __init__(self, *args, **kwargs):
