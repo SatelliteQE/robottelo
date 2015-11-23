@@ -188,3 +188,12 @@ ssh_key=
 # Parameter for deciding whether conduct initial sync or resync
 # 'resync' denotes resync; 'sync' denotes initial sync
 # sync_type='sync'
+
+# [compute_resources]
+# External Libvirt Hostname
+# libvirt_hostname=
+
+# Path on the Libvirt host, where the virtual images will be stored.
+# The default libvirt image dir will be used
+# "/var/lib/libvirt/images/".
+# libvirt_image_dir=/var/lib/libvirt/images
