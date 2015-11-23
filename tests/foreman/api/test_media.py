@@ -82,7 +82,7 @@ class MediaTestCase(APITestCase):
             organization=[self.org],
             operatingsystem=[os],
         ).create()
-        self.assertEqual(os.read().media[0].read().name, media.name)
+        self.assertEqual(os.read().medium[0].read().name, media.name)
 
     @run_only_on('sat')
     def test_negative_create_different_names(self):
