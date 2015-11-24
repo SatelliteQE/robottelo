@@ -219,6 +219,9 @@ PRD_SETS = {
     }
 }
 
+RHEL_6_MAJOR_VERSION = 6
+RHEL_7_MAJOR_VERSION = 7
+
 # The 'create_repos_tree' function under 'sync' module uses the following
 # list of tuples. It actually includes following two repos under
 # Reposet: Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs

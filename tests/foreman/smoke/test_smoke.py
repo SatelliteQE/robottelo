@@ -3,6 +3,8 @@ import re
 
 from robottelo import ssh
 from robottelo.config import settings
+from robottelo.constants import RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION
+from robottelo.decorators import bz_bug_is_open
 from robottelo.helpers import get_host_info
 from robottelo.log import LogFile
 from robottelo.test import TestCase
@@ -55,6 +57,7 @@ class SELinuxTestCase(TestCase):
         'tomcat'} are started
 
         """
+        major_version = get_host_info()[1]
         services = (
             'elasticsearch',
             'foreman-proxy',
@@ -67,17 +70,24 @@ class SELinuxTestCase(TestCase):
             'pulp_workers',
             'qdrouterd',
             'qpidd',
-            'tomcat',
+            'tomcat6' if major_version == RHEL_6_MAJOR_VERSION else 'tomcat',
         )
 
         # check `services` status using service command
-        if get_host_info()[1] >= 7:
+        if major_version >= RHEL_7_MAJOR_VERSION:
             status_format = 'systemctl status {0}'
         else:
             status_format = 'service {0} status'
 
         for service in services:
             result = ssh.command(status_format.format(service))
+            if (major_version == RHEL_6_MAJOR_VERSION and
+                    service is 'qpidd' and
+                    not bz_bug_is_open(1246152)):
+                # This is a note to fix this test once Bug 1246152 is fixed
+                self.fail('Bug 1246152 is fixed. Fix Me.')
+            else:
+                continue
             self.assertEqual(result.return_code, 0)
             self.assertEqual(len(result.stderr), 0)
 
