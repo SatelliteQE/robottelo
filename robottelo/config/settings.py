@@ -451,6 +451,32 @@ class TransitionSettings(FeatureSettings):
         return validation_errors
 
 
+class VlanNetworkSettings(FeatureSettings):
+    """Vlan Network settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(VlanNetworkSettings, self).__init__(*args, **kwargs)
+        self.subnet = None
+        self.netmask = None
+        self.gateway = None
+        self.bridge = None
+
+    def read(self, reader):
+        """Read Vlan Network settings."""
+        self.subnet = reader.get('vlan_networking', 'subnet')
+        self.netmask = reader.get('vlan_networking', 'netmask')
+        self.gateway = reader.get('vlan_networking', 'gateway')
+        self.bridge = reader.get('vlan_networking', 'bridge')
+
+    def validate(self):
+        """Validate Vlan Network settings."""
+        validation_errors = []
+        if not all(vars(self).values()):
+            validation_errors.append(
+                'All [vlan_networking] subnet, netmask, gateway, bridge '
+                'options must be provided.')
+        return validation_errors
+
+
 class Settings(object):
     """Robottelo's settings representation."""
 
