@@ -50,6 +50,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
+from robottelo.cli.usergroup import UserGroup, UserGroupExternal
 from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
     FAKE_1_YUM_REPO,
@@ -1136,6 +1137,66 @@ def make_user(options=None):
     )
 
     return create_object(User, args, options)
+
+
+@cacheable
+def make_usergroup(options=None):
+    """
+    Usage:
+        hammer user-group create [OPTIONS]
+
+    Options:
+        --name NAME
+        --role-ids ROLE_IDS                              Comma separated list
+        --roles ROLE_NAMES                               Comma separated list
+        --user-group-ids, --usergroup-ids USER_GROUP_IDS Comma separated list
+        --user-groups, --usergroups USER_GROUP_NAMES     Comma separated list
+        --user-ids USER_IDS                              Comma separated list
+        --users USER_LOGINS                              Comma separated list
+    """
+    # Assigning default values for attributes
+    args = {
+        u'name': gen_alphanumeric(8),
+        u'role-ids': None,
+        u'roles': None,
+        u'user-group-ids': None,
+        u'user-groups': None,
+        u'user-ids': None,
+        u'users': None,
+    }
+
+    return create_object(UserGroup, args, options)
+
+
+@cacheable
+def make_usergroup_external(options=None):
+    """
+    Usage:
+        hammer user-group external create [OPTIONS]
+
+    Options:
+        --auth-source-id AUTH_SOURCE_ID           ID of linked auth source
+        --name NAME                               External user group name
+        --user-group, --usergroup USER_GROUP_NAME Name to search by
+        --user-group-id, --usergroup-id USER_GROUP_ID
+    """
+    # UserGroup Name or ID is a required field.
+    if (
+        not options or
+        not options.get('user-group') and
+        not options.get('user-group-id')
+    ):
+        raise CLIFactoryError('Please provide a valid UserGroup.')
+
+    # Assigning default values for attributes
+    args = {
+        u'auth-source-id': 1,
+        u'name': gen_alphanumeric(8),
+        u'user-group': None,
+        u'user-group-id': None,
+    }
+
+    return create_object(UserGroupExternal, args, options)
 
 
 @cacheable
