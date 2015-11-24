@@ -14,18 +14,18 @@ class Discovery(UITestCase):
     """Implements Foreman discovery tests in UI."""
 
     name = gen_string("alpha")
-    image_path = '/var/lib/libvirt/images/{0}.img'.format(name)
 
     def _pxe_boot_host(self, mac):
         """PXE boot a unknown host"""
-        libvirt_server = 'qemu+tcp://{0}:16509/system'.format(
-            settings.server.hostname)
-        ssh.command('virt-install --hvm --network=bridge:virbr1, --mac={0} '
-                    '--pxe --name {1} --ram=1024 --vcpus=1 --os-type=linux '
-                    '--os-variant=rhel7 --disk path={2},size=10 --connect {3} '
-                    '--noautoconsole'
-                    .format(mac, self.name, self.image_path, libvirt_server))
-        sleep(30)
+        ssh.command(
+            u'virt-install --hvm --network=bridge:{0}, --mac={1} '
+            '--pxe --name {2} --ram=1024 --vcpus=1 --os-type=linux '
+            '--os-variant=rhel7 --disk path={3},size=10 --noautoconsole'
+            .format(settings.vlan_networking.bridge, mac, self.name,
+                    self.image_path),
+            hostname=self.libvirt_host
+        )
+        sleep(70)
 
     @classmethod
     def setUpClass(cls):
@@ -40,6 +40,10 @@ class Discovery(UITestCase):
 
         """
         super(Discovery, cls).setUpClass()
+
+        cls.image_path = u'{0}/{1}.img'.format(
+            settings.compute_resources.libvirt_image_dir, cls.name)
+        cls.libvirt_host = settings.compute_resources.libvirt_hostname
         # Build PXE default template to get default PXE file
         entities.ConfigTemplate().build_pxe_default()
 
@@ -78,10 +82,19 @@ class Discovery(UITestCase):
 
     def tearDown(self):
         """Delete the pxe host to free the resources"""
-        ssh.command('virsh destroy {0}'.format(self.name))
-        ssh.command('virsh undefine {0}'.format(self.name))
-        ssh.command('virsh vol-delete --pool default {0}'
-                    .format(self.image_path))
+        ssh.command(
+            'virsh destroy {0}'.format(self.name),
+            hostname=self.libvirt_host
+        )
+        ssh.command(
+            'virsh undefine {0}'.format(self.name),
+            hostname=self.libvirt_host
+        )
+        ssh.command(
+            'virsh vol-delete --pool default {0}'
+            .format(self.image_path),
+            hostname=self.libvirt_host
+        )
         super(Discovery, self).tearDown()
 
     def test_host_discovery(self):
@@ -97,7 +110,7 @@ class Discovery(UITestCase):
         @Assert: Host should be successfully discovered
 
         """
-        mac = gen_mac(multicast=True, locally=True)
+        mac = gen_mac(multicast=False, locally=True)
         hostname = 'mac{0}'.format(mac.replace(':', ""))
         self._pxe_boot_host(mac)
         with Session(self.browser) as session:
@@ -162,7 +175,7 @@ class Discovery(UITestCase):
         @Assert: Selected host should be removed successfully
 
         """
-        mac = gen_mac(multicast=True, locally=True)
+        mac = gen_mac(multicast=False, locally=True)
         hostname = 'mac{0}'.format(mac.replace(':', ""))
         self._pxe_boot_host(mac)
         with Session(self.browser) as session:
