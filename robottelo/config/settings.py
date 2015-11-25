@@ -510,10 +510,10 @@ class Settings(object):
         self.vlan_networking = VlanNetworkSettings()
 
     def configure(self):
-        """Read the settings file and parse the configturation.
+        """Read the settings file and parse the configuration.
 
         :raises: ImproperlyConfigured if any issue is found during the parsing
-            or validation of the configruation.
+            or validation of the configuration.
         """
         if self.configured:
             # TODO: what to do here, raise and exception, just skip or ...?
@@ -534,6 +534,9 @@ class Settings(object):
         if self.reader.has_section('clients'):
             self.clients.read(self.reader)
             self._validation_errors.extend(self.clients.validate())
+        if self.reader.has_section('compute_resources'):
+            self.compute_resources.read(self.reader)
+            self._validation_errors.extend(self.compute_resources.validate())
         if self.reader.has_section('docker'):
             self.docker.read(self.reader)
             self._validation_errors.extend(self.docker.validate())
@@ -552,6 +555,9 @@ class Settings(object):
         if self.reader.has_section('transition'):
             self.transition.read(self.reader)
             self._validation_errors.extend(self.transition.validate())
+        if self.reader.has_section('vlan_networking'):
+            self.vlan_networking.read(self.reader)
+            self._validation_errors.extend(self.vlan_networking.validate())
 
         if self._validation_errors:
             raise ImproperlyConfigured(
