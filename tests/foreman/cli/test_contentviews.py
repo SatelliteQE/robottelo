@@ -75,7 +75,6 @@ class TestContentView(CLITestCase):
     rhel_repo = None
     rhel_product_name = 'Red Hat Enterprise Linux Workstation'
 
-    @run_only_on('sat')
     def create_rhel_content(self):
         """Enable/Synchronize rhel content"""
         if TestContentView.rhel_content_org is not None:

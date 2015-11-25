@@ -1,12 +1,14 @@
 # -*- encoding: utf-8 -*-
 """Test class for the capsule CLI."""
+from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase
 
 
 class CapsuleTestCase(CLITestCase):
     """Tests for capsule functionality."""
 
-    def provision_through_capsule(self):
+    @stubbed()
+    def test_provision_through_capsule(self):
         """@Test: User can provision through a capsule
 
         @Feature: Capsules
@@ -28,7 +30,8 @@ class CapsuleTestCase(CLITestCase):
 
         """
 
-    def register_through_capsule(self):
+    @stubbed()
+    def test_register_through_capsule(self):
         """@Test: User can register system through proxy-enabled capsule
 
         @Feature: Capsules
@@ -43,7 +46,8 @@ class CapsuleTestCase(CLITestCase):
 
         """
 
-    def deregister_through_capsule(self):
+    @stubbed()
+    def test_deregister_through_capsule(self):
         """@Test: User can unregister system through proxy-enabled capsule
 
         @Feature: Capsules
@@ -58,7 +62,8 @@ class CapsuleTestCase(CLITestCase):
 
         """
 
-    def subscribe_content_through_capsule(self):
+    @stubbed()
+    def test_subscribe_content_through_capsule(self):
         """@Test: User can subscribe system to content through proxy-enabled
         capsule
 
@@ -78,7 +83,8 @@ class CapsuleTestCase(CLITestCase):
 
         """
 
-    def consume_content_through_capsule(self):
+    @stubbed()
+    def test_consume_content_through_capsule(self):
         """@Test: User can consume content on system, from a content source,
         through proxy-enabled capsule
 
@@ -100,7 +106,8 @@ class CapsuleTestCase(CLITestCase):
 
         """
 
-    def unsusbscribe_content_through_capsule(self):
+    @stubbed()
+    def test_unsusbscribe_content_through_capsule(self):
         """@Test: User can unsubscribe system from content through
         proxy-enabled capsule
 
@@ -122,7 +129,8 @@ class CapsuleTestCase(CLITestCase):
 
         """
 
-    def reregister_with_capsule_cert(self):
+    @stubbed()
+    def test_reregister_with_capsule_cert(self):
         """@Test: system can register via capsule using cert provided by
         the capsule itself.
 
@@ -144,6 +152,7 @@ class CapsuleTestCase(CLITestCase):
 
         """
 
+    @stubbed()
     def test_ssl_capsule(self):
         """@Test: Assure SSL functionality for capsules
 
@@ -164,6 +173,7 @@ class CapsuleTestCase(CLITestCase):
 
         """
 
+    @stubbed()
     def test_enable_bmc(self):
         """@Test: Enable BMC feature on smart-proxy
 

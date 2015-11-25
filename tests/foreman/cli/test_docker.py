@@ -316,7 +316,6 @@ class DockerContentViewTestCase(CLITestCase):
         super(DockerContentViewTestCase, cls).setUpClass()
         cls.org_id = make_org()['id']
 
-    @run_only_on('sat')
     def _create_and_associate_repo_with_cv(self):
         """Create a Docker-based repository and content view and associate
         them.
