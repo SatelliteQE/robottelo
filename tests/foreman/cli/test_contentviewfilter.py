@@ -13,7 +13,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.repository import Repository
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -36,6 +36,7 @@ class TestContentViewFilter(CLITestCase):
             u'repository-id': cls.repo['id'],
         })
 
+    @tier1
     def test_create_cvf_different_names(self):
         """Test: Create new content view filter and assign it to existing
         content view by id. Use different value types as a name and random
@@ -66,6 +67,7 @@ class TestContentViewFilter(CLITestCase):
                 self.assertEqual(cvf['name'], name)
                 self.assertEqual(cvf['type'], filter_content_type)
 
+    @tier1
     def test_create_cvf_content_types(self):
         """Test: Create new content view filter and assign it to existing
         content view by id. Use different content types as a parameter
@@ -90,6 +92,7 @@ class TestContentViewFilter(CLITestCase):
                 })
                 self.assertEqual(cvf['type'], filter_content_type)
 
+    @tier1
     def test_create_cvf_inclusions(self):
         """Test: Create new content view filter and assign it to existing
         content view by id. Use different inclusions as a parameter
@@ -115,6 +118,7 @@ class TestContentViewFilter(CLITestCase):
                 })
                 self.assertEqual(cvf['inclusion'], inclusion)
 
+    @tier1
     @skip_if_bug_open('bugzilla', 1236532)
     def test_create_cvf_description(self):
         """Test: Create new content view filter with description and assign it
@@ -140,6 +144,7 @@ class TestContentViewFilter(CLITestCase):
         })
         self.assertEqual(cvf['description'], description)
 
+    @tier1
     def test_create_cvf_by_cv_name(self):
         """Test: Create new content view filter and assign it to existing
         content view by name. Use organization id for reference
@@ -162,6 +167,7 @@ class TestContentViewFilter(CLITestCase):
             u'name': cvf_name,
         })
 
+    @tier1
     def test_create_cvf_by_org_name(self):
         """Test: Create new content view filter and assign it to existing
         content view by name. Use organization name for reference
@@ -184,6 +190,7 @@ class TestContentViewFilter(CLITestCase):
             u'name': cvf_name,
         })
 
+    @tier1
     def test_create_cvf_by_org_label(self):
         """Test: Create new content view filter and assign it to existing
         content view by name. Use organization label for reference
@@ -206,6 +213,7 @@ class TestContentViewFilter(CLITestCase):
             u'name': cvf_name,
         })
 
+    @tier1
     def test_create_cvf_repo_by_id(self):
         """Test: Create new content view filter and assign it to existing
         content view that has repository assigned to it. Use that repository id
@@ -231,6 +239,7 @@ class TestContentViewFilter(CLITestCase):
         })
         self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
 
+    @tier1
     @skip_if_bug_open('bugzilla', 1228890)
     def test_create_cvf_repo_by_name(self):
         """Test: Create new content view filter and assign it to existing
@@ -257,6 +266,7 @@ class TestContentViewFilter(CLITestCase):
         })
         self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
 
+    @tier1
     def test_create_cvf_original_pkgs(self):
         """Test: Create new content view filter and assign it to existing
         content view that has repository assigned to it. Enable 'original
@@ -283,6 +293,7 @@ class TestContentViewFilter(CLITestCase):
         })
         self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
 
+    @tier1
     def test_create_cvf_repos_docker(self):
         """Test: Create new docker repository and add to content view that has
         yum repo already assigned to it. Create new content view filter and
@@ -322,6 +333,7 @@ class TestContentViewFilter(CLITestCase):
         for repo in cvf['repositories']:
             self.assertIn(repo['id'], repos)
 
+    @tier1
     def test_create_cvf_names_negative(self):
         """@Test: Try to create content view filter using invalid names only
 
@@ -339,6 +351,7 @@ class TestContentViewFilter(CLITestCase):
                         'type': 'rpm',
                     })
 
+    @tier1
     def test_create_same_name_negative(self):
         """@Test: Try to create content view filter using same name twice
 
@@ -360,6 +373,7 @@ class TestContentViewFilter(CLITestCase):
                 'type': 'rpm',
             })
 
+    @tier1
     def test_create_no_type_negative(self):
         """@Test: Try to create content view filter without providing required
         parameter 'type'
@@ -375,6 +389,7 @@ class TestContentViewFilter(CLITestCase):
                 'name': gen_string('utf8'),
             })
 
+    @tier1
     def test_create_without_cv_negative(self):
         """@Test: Try to create content view filter without providing content
         view information which should be used as basis for filter
@@ -390,6 +405,7 @@ class TestContentViewFilter(CLITestCase):
                 'type': 'rpm',
             })
 
+    @tier1
     def test_create_repo_by_id_negative(self):
         """@Test: Try to create content view filter using incorrect repository
 
@@ -406,6 +422,7 @@ class TestContentViewFilter(CLITestCase):
                 'type': 'rpm',
             })
 
+    @tier2
     def test_update_cvf_different_names(self):
         """Test: Create new content view filter and assign it to existing
         content view by id. Try to update that filter using different value
@@ -437,6 +454,7 @@ class TestContentViewFilter(CLITestCase):
                 self.assertEqual(cvf['name'], new_name)
                 cvf_name = new_name  # updating cvf name for next iteration
 
+    @tier2
     def test_update_cvf_repo(self):
         """Test: Create new content view filter and apply it to existing
         content view that has repository assigned to it. Try to update that
@@ -482,6 +500,7 @@ class TestContentViewFilter(CLITestCase):
         self.assertNotEqual(cvf['repositories'][0]['name'], self.repo['name'])
         self.assertEqual(cvf['repositories'][0]['name'], new_repo['name'])
 
+    @tier2
     def test_update_cvf_repo_type(self):
         """Test: Create new content view filter and apply it to existing
         content view that has repository assigned to it. Try to update that
@@ -530,6 +549,7 @@ class TestContentViewFilter(CLITestCase):
         self.assertNotEqual(cvf['repositories'][0]['name'], self.repo['name'])
         self.assertEqual(cvf['repositories'][0]['name'], docker_repo['name'])
 
+    @tier2
     def test_update_cvf_inclusion(self):
         """Test: Create new content view filter and assign it to existing
         content view by id. Try to update that filter and assign opposite
@@ -564,6 +584,7 @@ class TestContentViewFilter(CLITestCase):
         })
         self.assertEqual(cvf['inclusion'], 'false')
 
+    @tier1
     def test_update_diffnames_negative(self):
         """@Test: Try to update content view filter using invalid names only
 
@@ -592,6 +613,7 @@ class TestContentViewFilter(CLITestCase):
                         u'name': new_name,
                     })
 
+    @tier1
     def test_update_samename_negative(self):
         """@Test: Try to update content view filter using name of already
         existing entity
@@ -620,6 +642,7 @@ class TestContentViewFilter(CLITestCase):
                 'new-name': cvf_name,
             })
 
+    @tier1
     def test_update_inclusion_negative(self):
         """Test: Try to update content view filter and assign incorrect
         inclusion value for it
@@ -648,6 +671,7 @@ class TestContentViewFilter(CLITestCase):
         })
         self.assertEqual(cvf['inclusion'], 'true')
 
+    @tier1
     def test_update_wrongrepo_negative(self):
         """Test: Try to update content view filter using non-existing
         repository ID
@@ -671,6 +695,7 @@ class TestContentViewFilter(CLITestCase):
                 'repository-ids': gen_string('numeric', 6),
             })
 
+    @tier1
     def test_update_new_repo_negative(self):
         """Test: Try to update filter and assign repository which does not
         belong to filter content view
@@ -695,6 +720,7 @@ class TestContentViewFilter(CLITestCase):
                 'repository-ids': new_repo['id'],
             })
 
+    @tier1
     def test_delete_cvf_different_names(self):
         """Test: Create new content view filter and assign it to existing
         content view by id. Try to delete that filter using different value
@@ -726,6 +752,7 @@ class TestContentViewFilter(CLITestCase):
                         u'name': name,
                     })
 
+    @tier1
     def test_delete_cvf_by_id(self):
         """Test: Create new content view filter and assign it to existing
         content view by id. Try to delete that filter using its id as a
@@ -753,6 +780,7 @@ class TestContentViewFilter(CLITestCase):
                 u'name': cvf_name,
             })
 
+    @tier1
     def test_delete_cvf_org(self):
         """Test: Create new content view filter and assign it to existing
         content view by id. Try to delete that filter using organization and
@@ -784,6 +812,7 @@ class TestContentViewFilter(CLITestCase):
                 u'name': cvf_name,
             })
 
+    @tier1
     def test_delete_cvf_name_negative(self):
         """Test: Try to delete non-existent filter using generated name
 

@@ -33,9 +33,7 @@ class TestHostSystemUnificationCLI(CLITestCase):
         @assert: Hosts/Systems created in both places return in list
 
         @status: Manual
-
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -52,6 +50,4 @@ class TestHostSystemUnificationCLI(CLITestCase):
         @assert: Hosts/Systems created in both places return in list
 
         @status: Manual
-
         """
-        pass

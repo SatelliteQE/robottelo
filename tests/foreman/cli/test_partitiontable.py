@@ -4,7 +4,7 @@ from fauxfactory import gen_string, gen_alphanumeric
 from robottelo.cli.factory import make_os, make_partition_table
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.partitiontable import PartitionTable
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -20,6 +20,7 @@ class TestPartitionTableUpdateCreate(CLITestCase):
                      'content': self.content}
 
     @run_only_on('sat')
+    @tier1
     def test_create_ptable(self):
         """@Test: Check if Partition Table can be created
 
@@ -32,6 +33,7 @@ class TestPartitionTableUpdateCreate(CLITestCase):
         self.assertEqual(ptable['name'], self.name)
 
     @run_only_on('sat')
+    @tier1
     def test_update_ptable(self):
         """@Test: Check if Partition Table can be updated
 
@@ -53,6 +55,7 @@ class TestPartitionTableUpdateCreate(CLITestCase):
 class TestPartitionTableDelete(CLITestCase):
     """Test case for Dump/Delete CLI tests."""
 
+    @tier1
     def test_dump_ptable_1(self):
         """@Test: Check if Partition Table can be created with specific content
 
@@ -66,6 +69,7 @@ class TestPartitionTableDelete(CLITestCase):
         ptable_content = PartitionTable().dump({'id': ptable['id']})
         self.assertTrue(content in ptable_content[0])
 
+    @tier1
     def test_delete_ptable_1(self):
         """@Test: Check if Partition Table can be deleted
 
@@ -81,6 +85,7 @@ class TestPartitionTableDelete(CLITestCase):
         self.assertFalse(PartitionTable().exists(search=('name', name)))
 
     # pylint: disable=no-self-use
+    @tier2
     def test_addoperatingsystem_ptable(self):
         """@Test: Check if Partition Table can be associated
                   with operating system
@@ -98,6 +103,7 @@ class TestPartitionTableDelete(CLITestCase):
             'operatingsystem-id': os_list[0]['id']
         })
 
+    @tier2
     def test_remove_os_ptable(self):
         """@Test: Check if associated operating system can be removed
 

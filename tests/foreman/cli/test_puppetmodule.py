@@ -5,7 +5,7 @@ from robottelo.cli.factory import make_org, make_product, make_repository
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.repository import Repository
 from robottelo.constants import FAKE_0_PUPPET_REPO
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
 from robottelo.test import CLITestCase
 
 
@@ -29,6 +29,7 @@ class TestPuppetModule(CLITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1283173)
+    @tier1
     def test_puppet_module_list(self):
         """@Test: Check if puppet-module list retrieves puppet-modules of
         the given org
@@ -36,13 +37,13 @@ class TestPuppetModule(CLITestCase):
         @Feature: Puppet-module
 
         @Assert: Puppet-modules are retrieved for the given org
-
         """
         result = PuppetModule.list({'organization-id': self.org['id']})
         # There are 4 puppet modules in the test puppet-module url
         self.assertEqual(len(result), 4)
 
     @run_only_on('sat')
+    @tier1
     def test_puppet_module_info(self):
         """@Test: Check if puppet-module info retrieves info for the given
         puppet-module id
@@ -50,7 +51,6 @@ class TestPuppetModule(CLITestCase):
         @Feature: Puppet-module
 
         @Assert: The puppet-module info is retrieved
-
         """
         return_value = PuppetModule.list({
             'organization-id': self.org['id'],

@@ -6,6 +6,7 @@ from robottelo.cli.host import Host
 from robottelo.cli.proxy import Proxy
 from robottelo.config import settings
 from robottelo.datafactory import invalid_values_list, valid_data_list
+from robottelo.decorators import tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -23,6 +24,7 @@ class HostTestCase(CLITestCase):
         self.assertGreater(len(result), 0)
         self.puppet_proxy = result[0]
 
+    @tier1
     def test_positive_create_1(self):
         """@test: A host can be created with a random name
 
@@ -52,6 +54,7 @@ class HostTestCase(CLITestCase):
             result['name'],
         )
 
+    @tier2
     def test_create_libvirt_without_mac(self):
         """@Test: Create a libvirt host and not specify a MAC address.
 
@@ -114,6 +117,7 @@ class HostParameterTests(CLITestCase):
             u'root-pass': cls.host.root_pass,
         })
 
+    @tier1
     def test_add_parameter_diff_names(self):
         """@Test: Add host parameter with different valid names.
 
@@ -133,6 +137,7 @@ class HostParameterTests(CLITestCase):
                 self.host = Host.info({'id': self.host['id']})
                 self.assertIn(name, self.host['parameters'].keys())
 
+    @tier1
     def test_add_parameter_diff_values(self):
         """@Test: Add host parameter with different valid values.
 
@@ -153,6 +158,7 @@ class HostParameterTests(CLITestCase):
                 self.assertIn(name, self.host['parameters'].keys())
                 self.assertEqual(value, self.host['parameters'][name])
 
+    @tier1
     def test_add_parameter_by_host_name(self):
         """@Test: Add host parameter by specifying host name.
 
@@ -173,6 +179,7 @@ class HostParameterTests(CLITestCase):
         self.assertIn(name, self.host['parameters'].keys())
         self.assertEqual(value, self.host['parameters'][name])
 
+    @tier1
     def test_update_parameter_by_host_id(self):
         """@Test: Update existing host parameter by specifying host ID.
 
@@ -199,6 +206,7 @@ class HostParameterTests(CLITestCase):
                 self.assertIn(name, self.host['parameters'].keys())
                 self.assertEqual(new_value, self.host['parameters'][name])
 
+    @tier1
     def test_update_parameter_by_host_name(self):
         """@Test: Update existing host parameter by specifying host name.
 
@@ -225,6 +233,7 @@ class HostParameterTests(CLITestCase):
                 self.assertIn(name, self.host['parameters'].keys())
                 self.assertEqual(new_value, self.host['parameters'][name])
 
+    @tier1
     def test_delete_parameter_by_host_id(self):
         """@Test: Delete existing host parameter by specifying host ID.
 
@@ -248,6 +257,7 @@ class HostParameterTests(CLITestCase):
                 self.host = Host.info({'id': self.host['id']})
                 self.assertNotIn(name, self.host['parameters'].keys())
 
+    @tier1
     def test_delete_parameter_by_host_name(self):
         """@Test: Delete existing host parameter by specifying host name.
 
@@ -271,6 +281,7 @@ class HostParameterTests(CLITestCase):
                 self.host = Host.info({'id': self.host['id']})
                 self.assertNotIn(name, self.host['parameters'].keys())
 
+    @tier1
     def test_add_parameter_negative(self):
         """@Test: Try to add host parameter with different invalid names.
 

@@ -10,7 +10,7 @@ from robottelo.cli.factory import make_domain, make_subnet, CLIFactoryError
 from robottelo.cli.subnet import Subnet
 from robottelo.constants import SUBNET_IPAM_TYPES
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
 from robottelo.test import CLITestCase
 
 
@@ -51,13 +51,13 @@ class TestSubnet(CLITestCase):
     """Subnet CLI tests."""
 
     @run_only_on('sat')
+    @tier1
     def test_positive_create_1(self):
         """@Test: Check if Subnet can be created with random names
 
         @Feature: Subnet - Create
 
         @Assert: Subnet is created and has random name
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -65,13 +65,13 @@ class TestSubnet(CLITestCase):
                 self.assertEqual(subnet['name'], name)
 
     @run_only_on('sat')
+    @tier1
     def test_positive_create_2(self):
         """@Test: Create subnet with valid address pool
 
         @Feature: Subnet positive create
 
         @Assert: Subnet is created and address pool is set
-
         """
         for pool in valid_addr_pools():
             with self.subTest(pool):
@@ -91,19 +91,20 @@ class TestSubnet(CLITestCase):
                 self.assertEqual(subnet['to'], to_ip)
 
     @run_only_on('sat')
+    @tier1
     def test_create_subnet_with_domain(self):
         """@Test: Check if subnet with domain can be created
 
         @Feature: Subnet - Positive create
 
         @Assert: Subnet is created and has new domain assigned
-
         """
         domain = make_domain()
         subnet = make_subnet({'domain-ids': domain['id']})
         self.assertIn(domain['name'], subnet['domains'])
 
     @run_only_on('sat')
+    @tier1
     def test_create_subnet_with_domains(self):
         """@Test: Check if subnet with different amount of domains can be
         created in the system
@@ -111,7 +112,6 @@ class TestSubnet(CLITestCase):
         @Feature: Subnet - Positive create
 
         @Assert: Subnet is created and has new domains assigned
-
         """
         domains_amount = random.randint(3, 5)
         domains = [make_domain() for _ in range(domains_amount)]
@@ -123,13 +123,13 @@ class TestSubnet(CLITestCase):
             self.assertIn(domain['name'], subnet['domains'])
 
     @run_only_on('sat')
+    @tier1
     def test_create_subnet_with_gateway(self):
         """@Test: Check if subnet with gateway can be created
 
         @Feature: Subnet - Positive create
 
         @Assert: Subnet is created and has gateway assigned
-
         """
         gateway = gen_ipaddr(ip3=True)
         subnet = make_subnet({'gateway': gateway})
@@ -137,6 +137,7 @@ class TestSubnet(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1213437)
     @run_only_on('sat')
+    @tier1
     def test_create_subnet_with_ipam(self):
         """@Test: Check if subnet with different ipam types can be created
 
@@ -145,7 +146,6 @@ class TestSubnet(CLITestCase):
         @Assert: Subnet is created and correct ipam type is assigned
 
         @BZ: 1213437
-
         """
         for ipam_type in (SUBNET_IPAM_TYPES['dhcp'],
                           SUBNET_IPAM_TYPES['internal'],
@@ -155,13 +155,13 @@ class TestSubnet(CLITestCase):
                 self.assertIn(ipam_type, subnet['ipam'])
 
     @run_only_on('sat')
+    @tier1
     def test_negative_create_1(self):
         """@Test: Create subnet with invalid or missing required attributes
 
         @Feature: Subnet create
 
         @Assert: Subnet is not created
-
         """
         for options in invalid_missing_attributes():
             with self.subTest(options):
@@ -169,13 +169,13 @@ class TestSubnet(CLITestCase):
                     make_subnet(options)
 
     @run_only_on('sat')
+    @tier1
     def test_negative_create_2(self):
         """@Test: Create subnet with invalid address pool range
 
         @Feature: Create subnet negative
 
         @Assert: Subnet is not created
-
         """
         mask = '255.255.255.0'
         network = gen_ipaddr()
@@ -189,13 +189,13 @@ class TestSubnet(CLITestCase):
                     make_subnet(opts)
 
     @run_only_on('sat')
+    @tier1
     def test_list(self):
         """@Test: Check if Subnet can be listed
 
         @Feature: Subnet - List
 
         @Assert: Subnet is listed
-
         """
         # Fetch current total
         subnets_before = Subnet.list()
@@ -206,13 +206,13 @@ class TestSubnet(CLITestCase):
         self.assertGreater(len(subnets_after), len(subnets_before))
 
     @run_only_on('sat')
+    @tier1
     def test_positive_update_1(self):
         """@Test: Check if Subnet name can be updated
 
         @Feature: Subnet - Update
 
         @Assert: Subnet name is updated
-
         """
         new_subnet = make_subnet()
         for new_name in valid_data_list():
@@ -222,13 +222,13 @@ class TestSubnet(CLITestCase):
                 self.assertEqual(result['name'], new_name)
 
     @run_only_on('sat')
+    @tier1
     def test_positive_update_2(self):
         """@Test: Check if Subnet network and mask can be updated
 
         @Feature: Subnet - Update
 
         @Assert: Subnet network and mask are updated
-
         """
         network = gen_ipaddr()
         mask = '255.255.255.0'
@@ -249,13 +249,13 @@ class TestSubnet(CLITestCase):
         self.assertEqual(subnet['mask'], new_mask)
 
     @run_only_on('sat')
+    @tier1
     def test_positive_update_3(self):
         """@Test: Check if Subnet address pool can be updated
 
         @Feature: Subnet - Update
 
         @Assert: Subnet address pool is updated
-
         """
         subnet = make_subnet({u'mask': '255.255.255.0'})
         for pool in valid_addr_pools():
@@ -274,13 +274,13 @@ class TestSubnet(CLITestCase):
                 self.assertEqual(subnet['to'], ip_to)
 
     @run_only_on('sat')
+    @tier1
     def test_negative_update_1(self):
         """@Test: Update subnet with invalid or missing required attributes
 
         @Feature: Subnet - Update
 
         @Assert: Subnet is not updated
-
         """
         subnet = make_subnet()
         for options in invalid_missing_attributes():
@@ -294,13 +294,13 @@ class TestSubnet(CLITestCase):
                         self.assertEqual(subnet[key], result[key])
 
     @run_only_on('sat')
+    @tier1
     def test_negative_update_2(self):
         """@Test: Update subnet with invalid address pool
 
         @Feature: Subnet - Update
 
         @Assert: Subnet is not updated
-
         """
         subnet = make_subnet()
         for options in invalid_addr_pools():
@@ -317,13 +317,13 @@ class TestSubnet(CLITestCase):
                     self.assertEqual(result[key], subnet[key])
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete_1(self):
         """@Test: Check if Subnet can be deleted
 
         @Feature: Subnet - Delete
 
         @Assert: Subnet is deleted
-
         """
         for name in valid_data_list():
             with self.subTest(name):

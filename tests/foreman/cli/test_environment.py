@@ -9,12 +9,19 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_environments_list,
 )
-from robottelo.decorators import bz_bug_is_open, run_only_on, skip_if_bug_open
+from robottelo.decorators import (
+    bz_bug_is_open,
+    run_only_on,
+    skip_if_bug_open,
+    tier1,
+    tier2,
+)
 from robottelo.test import CLITestCase
 
 
 class TestEnvironment(CLITestCase):
     """Test class for Environment CLI"""
+    @tier2
     @run_only_on('sat')
     def test_positive_list(self):
         """@Test: Test Environment List
@@ -32,6 +39,7 @@ class TestEnvironment(CLITestCase):
                 self.assertEqual(len(result), 1)
                 self.assertEqual(result[0]['name'], name)
 
+    @tier1
     def test_positive_create(self):
         """@Test: Successfully creates an Environment.
 
@@ -44,6 +52,7 @@ class TestEnvironment(CLITestCase):
                 environment = make_environment({'name': name})
                 self.assertEqual(environment['name'], name)
 
+    @tier1
     def test_negative_create(self):
         """@Test: Don't create an Environment with invalid data.
 
@@ -56,6 +65,7 @@ class TestEnvironment(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Environment.create({'name': name})
 
+    @tier1
     @run_only_on('sat')
     def test_create_environment_with_location(self):
         """@Test: Check if Environment with Location can be created
@@ -72,6 +82,7 @@ class TestEnvironment(CLITestCase):
         })
         self.assertIn(new_loc['name'], new_environment['locations'])
 
+    @tier1
     @run_only_on('sat')
     def test_create_environment_with_organization(self):
         """@Test: Check if Environment with Organization can be created
@@ -88,6 +99,7 @@ class TestEnvironment(CLITestCase):
         })
         self.assertIn(new_org['name'], new_environment['organizations'])
 
+    @tier1
     @run_only_on('sat')
     def test_positive_delete(self):
         """@test: Create Environment with valid values then delete it
@@ -104,6 +116,7 @@ class TestEnvironment(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Environment.info({'id': environment['id']})
 
+    @tier1
     @run_only_on('sat')
     def test_negative_delete(self):
         """@test: Create Environment then delete it by wrong ID
@@ -117,6 +130,7 @@ class TestEnvironment(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Environment.delete({'id': entity_id})
 
+    @tier1
     @run_only_on('sat')
     def test_positive_delete_by_name(self):
         """@Test: Delete the environment by its name.
@@ -130,6 +144,7 @@ class TestEnvironment(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Environment.info({'name': environment['name']})
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update(self):
         """@Test: Update the environment
@@ -148,6 +163,7 @@ class TestEnvironment(CLITestCase):
                 environment = Environment.info({'id': environment['id']})
                 self.assertEqual(environment['name'], new_name)
 
+    @tier1
     @run_only_on('sat')
     def test_negative_update(self):
         """@Test: Update the Environment with invalid values
@@ -167,6 +183,7 @@ class TestEnvironment(CLITestCase):
                 result = Environment.info({'id': environment['id']})
                 self.assertEqual(environment['name'], result['name'])
 
+    @tier1
     @run_only_on('sat')
     def test_update_location(self):
         """@Test: Update environment location with new value
@@ -188,6 +205,7 @@ class TestEnvironment(CLITestCase):
         self.assertIn(new_loc['name'], new_env['locations'])
         self.assertNotIn(old_loc['name'], new_env['locations'])
 
+    @tier1
     @run_only_on('sat')
     def test_update_organization(self):
         """@Test: Update environment organization with new value
@@ -213,6 +231,7 @@ class TestEnvironment(CLITestCase):
         self.assertIn(new_org['name'], env['organizations'])
         self.assertNotIn(old_org['name'], env['organizations'])
 
+    @tier1
     @skip_if_bug_open('bugzilla', 1219934)
     @run_only_on('sat')
     def test_sc_params_by_environment_id(self):
@@ -233,6 +252,7 @@ class TestEnvironment(CLITestCase):
         if not bz_bug_is_open(1219934):
             self.fail('BZ #1219934 is closed, should assert the content')
 
+    @tier1
     @skip_if_bug_open('bugzilla', 1219934)
     @run_only_on('sat')
     def test_sc_params_by_environment_name(self):

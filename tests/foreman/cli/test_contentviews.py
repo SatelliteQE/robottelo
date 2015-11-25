@@ -21,7 +21,14 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.subscription import Subscription
 from robottelo.constants import DEFAULT_CV, ENVIRONMENT, FAKE_0_PUPPET_REPO
-from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+)
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -142,6 +149,7 @@ class TestContentView(CLITestCase):
                 cached=True)
 
     # pylint: disable=unexpected-keyword-arg
+    @tier1
     @run_only_on('sat')
     def test_create_valid_names(self):
         """@test: create content views (positive)
@@ -158,6 +166,7 @@ class TestContentView(CLITestCase):
                 self.assertEqual(content_view['name'], test_data['name'])
 
     # pylint: disable=unexpected-keyword-arg
+    @tier1
     @run_only_on('sat')
     def test_create_invalid_names(self):
         """@test: create content views (negative)
@@ -174,6 +183,7 @@ class TestContentView(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     make_content_view(test_data)
 
+    @tier1
     @run_only_on('sat')
     def test_create_invalid_org(self):
         # Use an invalid org name
@@ -189,6 +199,7 @@ class TestContentView(CLITestCase):
             ContentView.create({'organization-id': gen_string('alpha')})
 
     # pylint: disable=unexpected-keyword-arg
+    @tier1
     @run_only_on('sat')
     def test_cv_edit(self):
         """@test: edit content views - name, description, etc.
@@ -232,6 +243,7 @@ class TestContentView(CLITestCase):
         """
 
     # pylint: disable=unexpected-keyword-arg
+    @tier1
     @run_only_on('sat')
     def test_cv_delete(self):
         """@test: delete content views
@@ -249,6 +261,7 @@ class TestContentView(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ContentView.info({'id': con_view['id']})
 
+    @tier1
     def test_delete_cv_files(self):
         """@Test: Delete empty content view and verify it was actually deleted
         from hard drive.
@@ -287,6 +300,7 @@ class TestContentView(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout), 0)
 
+    @tier1
     @skip_if_bug_open('bugzilla', 1265703)
     def test_delete_cv_custom_repo_files(self):
         """@Test: Delete content view containing custom repo and verify it was
@@ -337,6 +351,7 @@ class TestContentView(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertEqual(len(result.stdout), 0)
 
+    @tier2
     @run_only_on('sat')
     def test_delete_cv_version_name(self):
         """@test: Create content view and publish it. After that try to
@@ -367,6 +382,7 @@ class TestContentView(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(len(content_view['versions']), 0)
 
+    @tier1
     @run_only_on('sat')
     def test_delete_cv_version_id(self):
         """@test: Create content view and publish it. After that try to
@@ -412,6 +428,7 @@ class TestContentView(CLITestCase):
         new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(len(new_cv['versions']), 0)
 
+    @tier2
     @run_only_on('sat')
     def test_delete_cv_version_negative(self):
         """@test: Create content view and publish it. Try to delete content
@@ -435,6 +452,7 @@ class TestContentView(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(len(content_view['versions']), 1)
 
+    @tier1
     @run_only_on('sat')
     def test_remove_cv_environment(self):
         """@Test: Remove content view from lifecycle environment assignment
@@ -457,6 +475,7 @@ class TestContentView(CLITestCase):
         new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(len(new_cv['lifecycle-environments']), 0)
 
+    @tier2
     @run_only_on('sat')
     def test_remove_cv_and_reassign_ak(self):
         """Test: Remove content view environment and re-assign activation key
@@ -513,6 +532,7 @@ class TestContentView(CLITestCase):
         destination_cv = ContentView.info({u'id': destination_cv['id']})
         self.assertEqual(destination_cv['activation-keys'][0], ac_key['name'])
 
+    @tier2
     @run_only_on('sat')
     def test_remove_cv_reassign_ch(self):
         """Test: Remove content view environment and re-assign content host
@@ -574,6 +594,7 @@ class TestContentView(CLITestCase):
         destination_cv = ContentView.info({u'id': destination_cv['id']})
         self.assertEqual(destination_cv['content-host-count'], '1')
 
+    @tier1
     @run_only_on('sat')
     def test_remove_cv_version(self):
         """@Test: Delete content view version through 'remove' command
@@ -602,6 +623,7 @@ class TestContentView(CLITestCase):
         new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(len(new_cv['versions']), 0)
 
+    @tier2
     @run_only_on('sat')
     def test_cv_composite_create(self):
         # Note: puppet repos cannot/should not be used in this test
@@ -655,10 +677,11 @@ class TestContentView(CLITestCase):
     # katello content definition add_filter --label=MyView
     #   --filter=stable --org=ACME
     # katello content definition add_product --label=MyView
-    #   --product=product1 --org=ACME
+    #   --product=productier1 --org=ACME
     # katello content definition add_repo --label=MyView
     #   --repo=repo1 --org=ACME
 
+    @tier2
     @run_only_on('sat')
     def test_associate_view_rh(self):
         """@test: associate Red Hat content in a view
@@ -688,6 +711,7 @@ class TestContentView(CLITestCase):
             'Repo was not associated to CV',
         )
 
+    @tier2
     @run_only_on('sat')
     def test_associate_rh_content(self):
         """@test: associate Red Hat content in a view
@@ -731,6 +755,7 @@ class TestContentView(CLITestCase):
             'name': 'walgrind',
         })
 
+    @tier2
     @run_only_on('sat')
     def test_associate_custom_content(self):
         """@test: associate Red Hat content in a view
@@ -759,6 +784,7 @@ class TestContentView(CLITestCase):
             'Repo was not associated to CV',
         )
 
+    @tier1
     @run_only_on('sat')
     def test_add_custom_repos_with_name(self):
         """@test: add custom repos to cv with names
@@ -787,6 +813,7 @@ class TestContentView(CLITestCase):
             'Repo was not associated to CV',
         )
 
+    @tier2
     @run_only_on('sat')
     def test_invalid_puppet_repo(self):
         # Again, individual modules should be ok.
@@ -812,6 +839,7 @@ class TestContentView(CLITestCase):
                 u'repository-id': new_repo['id'],
             })
 
+    @tier2
     @run_only_on('sat')
     def test_associate_comp_negative(self):
         """@test: attempt to associate components in a non-composite
@@ -846,6 +874,7 @@ class TestContentView(CLITestCase):
                 u'organization-id': self.org['id'],
             })
 
+    @tier2
     @run_only_on('sat')
     def test_add_dupe_repo(self):
         """@test: attempt to associate the same repo multiple times within a
@@ -885,6 +914,7 @@ class TestContentView(CLITestCase):
             'No new entry of same repo is expected',
         )
 
+    @tier2
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1222118)
     def test_add_dupe_puppet_module(self):
@@ -934,6 +964,7 @@ class TestContentView(CLITestCase):
     # katello content view promote --label=MyView --env=Dev --org=ACME
     # katello content view promote --view=MyView --env=Staging --org=ACME
 
+    @tier2
     @run_only_on('sat')
     def test_cv_promote_rh(self):
         """@test: attempt to promote a content view containing RH content
@@ -989,6 +1020,7 @@ class TestContentView(CLITestCase):
 
         """
 
+    @tier2
     @run_only_on('sat')
     def test_promote_custom_content(self):
         """@test: attempt to promote a content view containing custom content
@@ -1025,6 +1057,7 @@ class TestContentView(CLITestCase):
             new_cv['lifecycle-environments'],
         )
 
+    @tier2
     @run_only_on('sat')
     def test_promote_composite(self):
         # Variations:
@@ -1083,6 +1116,7 @@ class TestContentView(CLITestCase):
             con_view['lifecycle-environments'],
         )
 
+    @tier2
     @run_only_on('sat')
     def test_promote_defaultcv_negative(self):
         """@test: attempt to promote the default content views
@@ -1107,6 +1141,7 @@ class TestContentView(CLITestCase):
                 u'to-lifecycle-environment-id': self.env1['id'],
             })
 
+    @tier2
     @run_only_on('sat')
     def test_promote_invalid_env(self):
         """@test: attempt to promote a content view using an invalid
@@ -1143,6 +1178,7 @@ class TestContentView(CLITestCase):
     # Content Views: publish
     # katello content definition publish --label=MyView
 
+    @tier2
     @run_only_on('sat')
     def test_cv_publish_rh(self):
         """@test: attempt to publish a content view containing RH content
@@ -1193,6 +1229,7 @@ class TestContentView(CLITestCase):
 
         """
 
+    @tier2
     @run_only_on('sat')
     def test_cv_publish_custom_content(self):
         """@test: attempt to publish a content view containing custom content
@@ -1228,6 +1265,7 @@ class TestContentView(CLITestCase):
             'Publishing new version of CV was not successful',
         )
 
+    @tier2
     @run_only_on('sat')
     def test_cv_publish_composite(self):
         # Variations:
@@ -1292,6 +1330,7 @@ class TestContentView(CLITestCase):
             'Publishing new version of CV was not successful'
         )
 
+    @tier2
     @run_only_on('sat')
     def test_version_update_1(self):
         # Dev notes:
@@ -1378,6 +1417,7 @@ class TestContentView(CLITestCase):
             'Promotion of version2 not successful to the env',
         )
 
+    @tier2
     @run_only_on('sat')
     def test_version_update_2(self):
         # Dev notes:
@@ -1471,6 +1511,7 @@ class TestContentView(CLITestCase):
             'version1 still exists in the next env',
         )
 
+    @tier3
     @run_only_on('sat')
     def test_cv_subscribe_system(self):
         """@test: Attempt to subscribe content host to content view
@@ -1501,6 +1542,7 @@ class TestContentView(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '1')
 
+    @tier3
     @run_only_on('sat')
     def test_cv_subscribe_rh1(self):
         """@test: Attempt to subscribe content host to content view that has
@@ -1547,6 +1589,7 @@ class TestContentView(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '1')
 
+    @tier3
     @run_only_on('sat')
     def test_cv_subscribe_rh2(self):
         """@test: Attempt to subscribe content host to filtered content view
@@ -1610,6 +1653,7 @@ class TestContentView(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '1')
 
+    @tier3
     @run_only_on('sat')
     def test_cv_subscribe_system_custom(self):
         """@test: Attempt to subscribe content host to content view that has
@@ -1653,6 +1697,7 @@ class TestContentView(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '1')
 
+    @tier3
     @run_only_on('sat')
     def test_subscribe_system_ccv(self):
         """@test: Attempt to subscribe content host to composite content view
@@ -1688,6 +1733,7 @@ class TestContentView(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '1')
 
+    @tier3
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1222118)
     def test_cv_subscribe_system_puppet(self):
@@ -1815,6 +1861,7 @@ class TestContentView(CLITestCase):
     # All this stuff is speculative at best.
 
     # pylint: disable=unexpected-keyword-arg
+    @tier1
     @run_only_on('sat')
     def test_cv_admin_user_negative(self):
         # Note:

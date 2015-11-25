@@ -7,7 +7,7 @@ import random
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.report import Report
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
@@ -18,34 +18,32 @@ class TestReport(CLITestCase):
         super(TestReport, self).setUp()
         self.run_puppet_agent()
 
-    @run_only_on('sat')
     def run_puppet_agent(self):
         """Retrieves the client configuration from the puppet master and
         applies it to the local host. This is required to make sure
         that we have reports available.
-
         """
         ssh.command('puppet agent -t')
 
     @run_only_on('sat')
+    @tier1
     def test_list(self):
         """@Test: Test list for Puppet report
 
         @Feature: Puppet Report - list
 
         @Assert: Puppert Report List is displayed
-
         """
         Report.list()
 
     @run_only_on('sat')
+    @tier1
     def test_info(self):
         """@Test: Test Info for Puppet report
 
         @Feature: Puppet Report - Info
 
         @Assert: Puppet Report Info is displayed
-
         """
         result = Report.list()
         self.assertGreater(len(result), 0)
@@ -55,13 +53,13 @@ class TestReport(CLITestCase):
         self.assertEqual(report['id'], result['id'])
 
     @run_only_on('sat')
+    @tier1
     def test_delete(self):
         """@Test: Check if Puppet Report can be deleted
 
         @Feature: Puppet Report - Delete
 
         @Assert: Puppet Report is deleted
-
         """
         result = Report.list()
         self.assertGreater(len(result), 0)

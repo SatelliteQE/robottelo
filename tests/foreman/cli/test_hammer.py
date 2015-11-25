@@ -3,7 +3,7 @@ import json
 
 from robottelo import ssh
 from robottelo.cli import hammer
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import bz_bug_is_open, tier1
 from robottelo.helpers import read_data_file
 from robottelo.test import CLITestCase
 
@@ -97,6 +97,7 @@ class HammerCommandsTestCase(CLITestCase):
                     '{0} {1}'.format(command, subcommand['name'])
                 )
 
+    @tier1
     def test_hammer_options(self):
         """@Test: check all provided options for every hammer command
 

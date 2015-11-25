@@ -26,9 +26,7 @@ class TestSSOCLI(CLITestCase):
         mongod} are started
 
         @status: Manual
-
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -45,9 +43,7 @@ class TestSSOCLI(CLITestCase):
         postgresql, mongod} logfiles.
 
         @status: Manual
-
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -60,9 +56,7 @@ class TestSSOCLI(CLITestCase):
         commences, through to completion
 
         @status: Manual
-
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -74,9 +68,7 @@ class TestSSOCLI(CLITestCase):
         @assert: Install from ISO is sucessful.
 
         @status: Manual
-
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -88,9 +80,7 @@ class TestSSOCLI(CLITestCase):
         @assert: Install of main instance successful.
 
         @status: Manual
-
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -102,9 +92,7 @@ class TestSSOCLI(CLITestCase):
         @assert: Install of node successful.
 
         @status: Manual
-
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -116,9 +104,7 @@ class TestSSOCLI(CLITestCase):
         @assert: Install of smart-proxy successful.
 
         @status: Manual
-
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -131,9 +117,7 @@ class TestSSOCLI(CLITestCase):
         @assert: Install of disconnected utility successful.
 
         @status: Manual
-
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -147,9 +131,7 @@ class TestSSOCLI(CLITestCase):
         following install.
 
         @status: Manual
-
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -163,6 +145,4 @@ class TestSSOCLI(CLITestCase):
         @bz: 1072780
 
         @status: Manual
-
         """
-        pass

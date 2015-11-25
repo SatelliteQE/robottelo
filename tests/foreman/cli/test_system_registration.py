@@ -18,7 +18,6 @@ class SystemRegistrationTestCase(CLITestCase):
         @assert: rhsm.conf has been updated appropriately.
 
         @status: Manual
-
         """
 
     @stubbed()
@@ -30,7 +29,6 @@ class SystemRegistrationTestCase(CLITestCase):
         @assert: system successfully registered to appropriate org
 
         @status: Manual
-
         """
 
     @stubbed()
@@ -43,7 +41,6 @@ class SystemRegistrationTestCase(CLITestCase):
         subscribed to content as listed in key
 
         @status: Manual
-
         """
 
     @stubbed()
@@ -55,7 +52,6 @@ class SystemRegistrationTestCase(CLITestCase):
         @assert: system cannot be registered twice via RHSM
 
         @status: Manual
-
         """
 
     @stubbed()
@@ -68,7 +64,6 @@ class SystemRegistrationTestCase(CLITestCase):
         @assert: RH RPM/errata content can be retrieved/installed via sat
 
         @status: Manual
-
         """
 
     @stubbed()
@@ -80,7 +75,6 @@ class SystemRegistrationTestCase(CLITestCase):
         @assert: newly registered system appears in system list
 
         @status: Manual
-
         """
 
     @stubbed()
@@ -93,7 +87,6 @@ class SystemRegistrationTestCase(CLITestCase):
         assures system no longer appears in CLI
 
         @status: Manual
-
         """
 
     @stubbed()
@@ -106,5 +99,4 @@ class SystemRegistrationTestCase(CLITestCase):
         @assert: system can no longer retrieve content from satellite
 
         @status: Manual
-
         """
