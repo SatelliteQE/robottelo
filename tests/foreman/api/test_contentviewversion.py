@@ -268,7 +268,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         self.assertEqual(len(content_view.read().version), 1)
 
 
-class ContentViewVersionIncremnentalTestCase(APITestCase):
+class ContentViewVersionIncrementalTestCase(APITestCase):
     """Tests for content view version promotion."""
 
     def test_positive_incremental_update_puppet(self):
