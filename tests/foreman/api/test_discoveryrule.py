@@ -4,7 +4,7 @@ from fauxfactory import gen_choice, gen_integer, gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import APITestCase
 
 
@@ -41,6 +41,7 @@ class DiscoveryRule(APITestCase):
             'myhost-<%= rand(99999) %>'
         )
 
+    @tier1
     @run_only_on('sat')
     def test_create_discovery_rule_basic(self):
         """@Test: Create a new discovery rule.
@@ -62,6 +63,7 @@ class DiscoveryRule(APITestCase):
                     discovery_rule.search_,
                 )
 
+    @tier1
     @run_only_on('sat')
     def test_delete_discovery_rule(self):
         """@Test: Delete a discovery rule
@@ -79,6 +81,7 @@ class DiscoveryRule(APITestCase):
                 with self.assertRaises(HTTPError):
                     discovery_rule.read()
 
+    @tier1
     def test_create_rule_with_invalid_name(self):
         """@Test: Create a discovery rule with more than 255 char in name
 
@@ -95,6 +98,7 @@ class DiscoveryRule(APITestCase):
                 with self.assertRaises(HTTPError):
                     self.discovery_rule.create()
 
+    @tier2
     def test_create_rule_with_invalid_host_limit(self):
         """@Test: Create a discovery rule with invalid host limit
 
@@ -107,6 +111,7 @@ class DiscoveryRule(APITestCase):
         with self.assertRaises(HTTPError):
             self.discovery_rule.create()
 
+    @tier2
     def test_create_rule_with_invalid_priority(self):
         """@Test: Create a discovery rule with invalid priority
 
@@ -119,6 +124,7 @@ class DiscoveryRule(APITestCase):
         with self.assertRaises(HTTPError):
             self.discovery_rule.create()
 
+    @tier1
     @run_only_on('sat')
     def test_update_discovery_rule_name(self):
         """@Test: Update an existing discovery rule name
@@ -135,6 +141,7 @@ class DiscoveryRule(APITestCase):
                 discovery_rule = discovery_rule.update(['name'])
                 self.assertEqual(discovery_rule.name, name)
 
+    @tier1
     def test_update_search_rule(self):
         """@Test: Update an existing discovery search rule
 
@@ -150,6 +157,7 @@ class DiscoveryRule(APITestCase):
             discovery_rule.update(['search_']).search_,
         )
 
+    @tier2
     def test_update_host_limit(self):
         """@Test: Update an existing rule with valid host limit.
 
@@ -165,6 +173,7 @@ class DiscoveryRule(APITestCase):
             discovery_rule.update(['max_count']).max_count,
         )
 
+    @tier1
     def test_disable_rule(self):
         """@Test: Disable an existing enabled discovery rule.
 
@@ -181,6 +190,7 @@ class DiscoveryRule(APITestCase):
             discovery_rule.update(['enabled']).enabled,
         )
 
+    @tier2
     def test_update_rule_hostgroup(self):
         """@Test: Update host group of an existing rule.
 

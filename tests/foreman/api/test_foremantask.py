@@ -1,13 +1,14 @@
 """Unit tests for the ``foreman_tasks/api/v2/tasks`` paths."""
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
 from robottelo.test import APITestCase
 
 
 class ForemanTasksIdTestCase(APITestCase):
     """Tests for the ``foreman_tasks/api/v2/tasks/:id`` path."""
 
+    @tier1
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1131702)
     def test_no_such_task(self):
@@ -23,6 +24,7 @@ class ForemanTasksIdTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.ForemanTask(id='abc123').read()
 
+    @tier1
     @run_only_on('sat')
     def test_summary(self):
         """@Test: Get a summary of foreman tasks.

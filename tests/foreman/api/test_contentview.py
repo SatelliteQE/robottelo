@@ -15,7 +15,14 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import bz_bug_is_open, run_only_on, stubbed
+from robottelo.decorators import (
+    bz_bug_is_open,
+    run_only_on,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+)
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
@@ -29,6 +36,7 @@ REPEAT = 3
 class ContentViewTestCase(APITestCase):
     """Tests for content views."""
 
+    @tier3
     @run_only_on('sat')
     def test_subscribe_system_to_cv(self):
         """@Test: Subscribe a system to a content view.
@@ -70,6 +78,7 @@ class ContentViewTestCase(APITestCase):
         if not bz_bug_is_open(1223494):
             self.assertEqual(system.organization.id, org.id)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_clone_within_same_env(self):
         """@Test: attempt to create, publish and promote new content view
@@ -93,6 +102,7 @@ class ContentViewTestCase(APITestCase):
         cloned_cv.publish()
         promote(cloned_cv.read().version[0], lc_env.id)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_clone_with_diff_env(self):
         """@Test: attempt to create, publish and promote new content
@@ -116,6 +126,7 @@ class ContentViewTestCase(APITestCase):
         cloned_cv.publish()
         promote(cloned_cv.read().version[0], le_clone.id)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_associate_custom_content(self):
         """@Test: Associate custom content in a view
@@ -135,6 +146,7 @@ class ContentViewTestCase(APITestCase):
         self.assertEqual(len(content_view.repository), 1)
         self.assertEqual(content_view.repository[0].read().name, yum_repo.name)
 
+    @tier2
     @run_only_on('sat')
     def test_negative_associate_puppet_content(self):
         """@Test: Attempt to associate puppet repos within a custom
@@ -159,6 +171,7 @@ class ContentViewTestCase(APITestCase):
                 repository=[puppet_repo.id],
             ).create()
 
+    @tier2
     @run_only_on('sat')
     def test_negative_associate_dupe_content(self):
         """@Test: Attempt to associate the same repo multiple times within a
@@ -180,6 +193,7 @@ class ContentViewTestCase(APITestCase):
             content_view.update(['repository'])
         self.assertEqual(len(content_view.read().repository), 0)
 
+    @tier2
     @run_only_on('sat')
     def test_negative_associate_dupe_modules(self):
         """@Test: Attempt to associate duplicate puppet modules within a
@@ -223,6 +237,7 @@ class ContentViewTestCase(APITestCase):
 class ContentViewCreateTestCase(APITestCase):
     """Create tests for content views."""
 
+    @tier1
     def test_positive_create_composite(self):
         """@Test: Create composite and non-composite content views.
 
@@ -240,6 +255,7 @@ class ContentViewCreateTestCase(APITestCase):
                     ).create().composite,
                 )
 
+    @tier1
     def test_positive_create_name(self):
         """@Test: Create empty content-view with random names.
 
@@ -254,6 +270,7 @@ class ContentViewCreateTestCase(APITestCase):
                     name
                 )
 
+    @tier2
     def test_positive_create_description(self):
         """@Test: Create empty content view with random description.
 
@@ -270,6 +287,7 @@ class ContentViewCreateTestCase(APITestCase):
                     ).create().description,
                 )
 
+    @tier1
     def test_negative_create_name(self):
         """@Test: Create content view providing an invalid name.
 
@@ -303,6 +321,7 @@ class CVPublishPromoteTestCase(APITestCase):
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             cls.puppet_repo.upload_content(files={'content': handle})
 
+    @tier2
     def add_content_views_to_composite(
             self, composite_cv, cv_amount=1):
         """Add necessary number of content views to the composite one
@@ -319,6 +338,7 @@ class CVPublishPromoteTestCase(APITestCase):
         composite_cv = composite_cv.update(['component'])
         self.assertEqual(len(composite_cv.component), cv_amount)
 
+    @tier2
     def test_positive_publish_multiple(self):
         """@Test: Publish a content view several times.
 
@@ -332,6 +352,7 @@ class CVPublishPromoteTestCase(APITestCase):
             content_view.publish()
         self.assertEqual(len(content_view.read().version), REPEAT)
 
+    @tier2
     def test_positive_publish_with_content_multiple(self):
         """@Test: Give a content view yum packages and publish it repeatedly.
 
@@ -355,6 +376,7 @@ class CVPublishPromoteTestCase(APITestCase):
         for cvv in content_view.read().version:
             self.assertGreater(cvv.read_json()['package_count'], 0)
 
+    @tier2
     def test_positive_publish_composite_single_content_once(self):
         """@Test: Create empty composite view and assign one normal content
         view to it. After that publish that composite content view once.
@@ -372,6 +394,7 @@ class CVPublishPromoteTestCase(APITestCase):
         composite_cv.publish()
         self.assertEqual(len(composite_cv.read().version), 1)
 
+    @tier2
     def test_positive_publish_composite_multiple_content_once(self):
         """@Test: Create empty composite view and assign random number of
         normal content views to it. After that publish that composite content
@@ -390,6 +413,7 @@ class CVPublishPromoteTestCase(APITestCase):
         composite_cv.publish()
         self.assertEqual(len(composite_cv.read().version), 1)
 
+    @tier2
     def test_positive_publish_composite_single_content_multiple(self):
         """@Test: Create empty composite view and assign one normal content
         view to it. After that publish that composite content view several
@@ -410,6 +434,7 @@ class CVPublishPromoteTestCase(APITestCase):
             composite_cv.publish()
             self.assertEqual(len(composite_cv.read().version), i + 1)
 
+    @tier2
     def test_positive_publish_composite_multiple_content_multiple(self):
         """@Test: Create empty composite view and assign random number of
         normal content views to it. After that publish that composite content
@@ -430,6 +455,7 @@ class CVPublishPromoteTestCase(APITestCase):
             composite_cv.publish()
             self.assertEqual(len(composite_cv.read().version), i + 1)
 
+    @tier2
     def test_positive_publish_with_puppet_once(self):
         """@Test: Publish a content view that has puppet module once.
 
@@ -453,6 +479,7 @@ class CVPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(content_view.version), 1)
         self.assertEqual(len(content_view.puppet_module), 1)
 
+    @tier2
     def test_positive_publish_with_puppet_multiple(self):
         """@Test: Publish a content view that has puppet module
         several times.
@@ -484,6 +511,7 @@ class CVPublishPromoteTestCase(APITestCase):
         for cvv in content_view.read().version:
             self.assertEqual(len(cvv.read().puppet_module), 1)
 
+    @tier2
     def test_positive_promote_empty_multiple(self):
         """@Test: Promote a content view version ``REPEAT`` times.
 
@@ -507,6 +535,7 @@ class CVPublishPromoteTestCase(APITestCase):
             REPEAT + 1,
         )
 
+    @tier2
     def test_positive_promote_with_yum_multiple(self):
         """@Test: Give a content view a yum repo, publish it once and promote
         the content view version ``REPEAT + 1`` times.
@@ -538,6 +567,7 @@ class CVPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(cvv_attrs['environments']), REPEAT + 1)
         self.assertGreater(cvv_attrs['package_count'], 0)
 
+    @tier2
     def test_positive_promote_with_puppet_once(self):
         """@Test: Give content view a puppet module. Publish
         and promote it once
@@ -570,6 +600,7 @@ class CVPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(cvv.environment), 2)
         self.assertEqual(len(cvv.puppet_module), 1)
 
+    @tier2
     def test_positive_promote_with_puppet_multiple(self):
         """@Test: Give a content view a puppet module, publish it once and
         promote the content view version ``Library + random`` times.
@@ -608,6 +639,7 @@ class CVPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(cvv.environment), envs_amount + 1)
         self.assertEqual(len(cvv.puppet_module), 1)
 
+    @tier2
     def test_positive_add_to_composite(self):
         """@Test: Create normal content view, publish and add it to a new
         composite content view
@@ -641,6 +673,7 @@ class CVPublishPromoteTestCase(APITestCase):
             content_view.id,
         )
 
+    @tier2
     def test_negative_associate_components_to_composite(self):
         """@Test: Attempt to associate components in a non-composite content
         view
@@ -664,6 +697,7 @@ class CVPublishPromoteTestCase(APITestCase):
             non_composite_cv.update(['component'])
         self.assertEqual(len(non_composite_cv.read().component), 0)
 
+    @tier2
     def test_positive_promote_composite_single_content_once(self):
         """@Test: Create empty composite view and assign one normal content
         view to it. After that promote that composite content view once.
@@ -685,6 +719,7 @@ class CVPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(composite_cv.version), 1)
         self.assertEqual(len(composite_cv.version[0].read().environment), 2)
 
+    @tier2
     def test_positive_promote_composite_multiple_content_once(self):
         """@Test: Create empty composite view and assign random number of
         normal content views to it. After that promote that composite
@@ -707,6 +742,7 @@ class CVPublishPromoteTestCase(APITestCase):
         self.assertEqual(len(composite_cv.version), 1)
         self.assertEqual(len(composite_cv.version[0].read().environment), 2)
 
+    @tier2
     def test_positive_promote_composite_single_content_multiple(self):
         """@Test: Create empty composite view and assign one normal content
         view to it. After that promote that composite content view
@@ -736,6 +772,7 @@ class CVPublishPromoteTestCase(APITestCase):
             len(composite_cv.version[0].read().environment),
         )
 
+    @tier2
     def test_positive_promote_composite_multiple_content_multiple(self):
         """@Test: Create empty composite view and assign random number of
         normal content views to it. After that promote that composite content
@@ -775,6 +812,7 @@ class ContentViewUpdateTestCase(APITestCase):
         super(ContentViewUpdateTestCase, cls).setUpClass()
         cls.content_view = entities.ContentView().create()
 
+    @tier1
     def test_positive_update_attributes(self):
         """@Test: Update a content view and provide valid attributes.
 
@@ -789,6 +827,7 @@ class ContentViewUpdateTestCase(APITestCase):
                 self.content_view = self.content_view.update({key})
                 self.assertEqual(getattr(self.content_view, key), value)
 
+    @tier1
     def test_positive_update_name(self):
         """@Test: Create content view providing the initial name, then update
         its name to another valid name.
@@ -804,6 +843,7 @@ class ContentViewUpdateTestCase(APITestCase):
                     id=self.content_view.id, name=new_name).update(['name'])
                 self.assertEqual(new_name, updated.name)
 
+    @tier1
     def test_negative_update_name(self):
         """@Test: Create content view then update its name to an
         invalid name.
@@ -822,6 +862,7 @@ class ContentViewUpdateTestCase(APITestCase):
                 cv = entities.ContentView(id=self.content_view.id).read()
                 self.assertNotEqual(cv.name, new_name)
 
+    @tier1
     def test_negative_update_attributes(self):
         """@Test: Update a content view and provide an invalid attribute.
 
@@ -842,6 +883,7 @@ class ContentViewUpdateTestCase(APITestCase):
 class ContentViewDeleteTestCase(APITestCase):
     """Tests for deleting content views."""
 
+    @tier1
     def test_positive_delete(self):
         """@Test: Create content view and then delete it.
 
@@ -882,6 +924,7 @@ class CVRedHatContent(APITestCase):
         cls.repo = entities.Repository(id=repo_id)
         cls.repo.sync()
 
+    @tier2
     def test_positive_associate_rh(self):
         """@Test: associate Red Hat content in a view
 
@@ -899,6 +942,7 @@ class CVRedHatContent(APITestCase):
             REPOS['rhst7']['name'],
         )
 
+    @tier2
     def test_positive_associate_rh_custom_spin(self):
         """@Test: Associate Red Hat content in a view and filter it using rule
 
@@ -934,6 +978,7 @@ class ContentViewTestCaseStub(APITestCase):
     # Each of these tests should be given a better name when they're
     # implemented. In the meantime, let's not worry about bad names.
 
+    @tier2
     @stubbed()
     def test_cv_edit_rh_custom_spin(self):
         """

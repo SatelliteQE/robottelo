@@ -1,6 +1,6 @@
 """Unit tests for host collections."""
 from nailgun import entities
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open, tier1
 from robottelo.test import APITestCase
 
 
@@ -18,6 +18,7 @@ class HostCollectionTestCase(APITestCase):
             in range(2)
         ]
 
+    @tier1
     def test_create_with_system(self):
         """@Test: Create a host collection that contains a content host.
 
@@ -33,6 +34,7 @@ class HostCollectionTestCase(APITestCase):
         ).create()
         self.assertEqual(len(host_collection.system), 1)
 
+    @tier1
     def test_create_with_systems(self):
         """@Test: Create a host collection that contains content hosts.
 
@@ -48,6 +50,7 @@ class HostCollectionTestCase(APITestCase):
         ).create()
         self.assertEqual(len(host_collection.system), len(self.systems))
 
+    @tier1
     @skip_if_bug_open('bugzilla', 1203323)
     def test_read_system_ids(self):
         """@Test: Read a host collection and look at the ``system_ids`` field.

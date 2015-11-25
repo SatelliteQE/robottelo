@@ -12,7 +12,7 @@ from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import PRDS, REPOSET, VALID_GPG_KEY_FILE
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.helpers import read_data_file
 from robottelo.test import APITestCase
 
@@ -38,6 +38,7 @@ def valid_name_desc_list():
 class ProductsTestCase(APITestCase):
     """Tests for ``katello/api/v2/products``."""
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_1(self):
         """@Test: Create a product and provide a name or description.
@@ -53,6 +54,7 @@ class ProductsTestCase(APITestCase):
                 for name, value in attr.items():
                     self.assertEqual(getattr(product, name), value)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_create_2(self):
         """@Test: Create a product and provide a GPG key.
@@ -86,6 +88,7 @@ class ProductUpdateTestCase(APITestCase):
         super(ProductUpdateTestCase, cls).setUpClass()
         cls.product = entities.Product().create()
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_1(self):
         """@Test: Update a product with a new name or description.
@@ -104,6 +107,7 @@ class ProductUpdateTestCase(APITestCase):
                     attrs.values()[0]
                 )
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_2(self):
         """@Test: Rename Product back to original name
@@ -133,6 +137,7 @@ class ProductUpdateTestCase(APITestCase):
 class RepositorySetsTestCase(APITestCase):
     """Tests for ``katello/api/v2/products/<product_id>/repository_sets``."""
 
+    @tier1
     @run_only_on('sat')
     def test_repositoryset_enable(self):
         """@Test: Enable repo from reposet
@@ -163,6 +168,7 @@ class RepositorySetsTestCase(APITestCase):
                 repo['substitutions']['releasever'] == '6Server')
         ][0])
 
+    @tier1
     @run_only_on('sat')
     def test_repositoryset_disable(self):
         """@Test: Disable repo from reposet

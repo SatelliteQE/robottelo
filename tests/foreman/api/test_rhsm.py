@@ -6,6 +6,7 @@ No API doc exists for the subscription manager path(s). However, bugzilla bug
 """
 from nailgun import client
 from robottelo.config import settings
+from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 from six.moves import http_client
 
@@ -13,6 +14,7 @@ from six.moves import http_client
 class RHSMTestCase(APITestCase):
     """Tests for the ``/rhsm`` path."""
 
+    @tier1
     def test_path_exists(self):
         """@Test: Check whether the path exists.
 

@@ -12,7 +12,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.constants import OPERATING_SYSTEMS
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.test import APITestCase
 from six.moves.http_client import NOT_FOUND
 
@@ -20,6 +20,7 @@ from six.moves.http_client import NOT_FOUND
 class OSParameterTestCase(APITestCase):
     """Tests for operating system parameters."""
 
+    @tier1
     @run_only_on('sat')
     def test_bz_1114640(self):
         """@Test: Create a parameter for operating system 1.
@@ -59,6 +60,7 @@ class OSTestCase(APITestCase):
         super(OSTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_different_names(self):
         """@Test: Create operating system with valid name only
@@ -72,6 +74,7 @@ class OSTestCase(APITestCase):
                 os = entities.OperatingSystem(name=name).create()
                 self.assertEqual(os.name, name)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_different_os_family(self):
         """@Test: Create operating system with every OS family possible
@@ -86,6 +89,7 @@ class OSTestCase(APITestCase):
                 os = entities.OperatingSystem(family=os_family).create()
                 self.assertEqual(os.family, os_family)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_with_minor(self):
         """@Test: Create operating system with minor version
@@ -99,6 +103,7 @@ class OSTestCase(APITestCase):
         os = entities.OperatingSystem(minor=minor_version).create()
         self.assertEqual(os.minor, minor_version)
 
+    @tier1
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1230902)
     def test_create_with_minor_1230902(self):
@@ -112,6 +117,7 @@ class OSTestCase(APITestCase):
         operating_sys = entities.OperatingSystem(minor=minor).create()
         self.assertEqual(operating_sys.minor, str(minor))
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_with_description(self):
         """@Test: Create operating system with description
@@ -128,6 +134,7 @@ class OSTestCase(APITestCase):
                 self.assertEqual(os.name, name)
                 self.assertEqual(os.description, desc)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_with_hash(self):
         """@Test: Create operating system with valid password hash option
@@ -142,6 +149,7 @@ class OSTestCase(APITestCase):
                 os = entities.OperatingSystem(password_hash=pass_hash).create()
                 self.assertEqual(os.password_hash, pass_hash)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_create_with_arch(self):
         """@Test: Create an operating system that points at an architecture.
@@ -156,6 +164,7 @@ class OSTestCase(APITestCase):
         self.assertEqual(len(operating_sys.architecture), 1)
         self.assertEqual(operating_sys.architecture[0].id, arch.id)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_create_with_multiple_archs(self):
         """@Test: Create an operating system that points at multiple different
@@ -175,6 +184,7 @@ class OSTestCase(APITestCase):
             set([arch.id for arch in archs])
         )
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_with_ptable(self):
         """@Test: Create an operating system that points at a partition table.
@@ -189,6 +199,7 @@ class OSTestCase(APITestCase):
         self.assertEqual(len(operating_sys.ptable), 1)
         self.assertEqual(operating_sys.ptable[0].id, ptable.id)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_with_multiple_ptables(self):
         """@Test: Create an operating system that points at multiple different
@@ -208,6 +219,7 @@ class OSTestCase(APITestCase):
             set([ptable.id for ptable in ptables])
         )
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_with_media(self):
         """@Test: Create an operating system that points at a media.
@@ -221,6 +233,7 @@ class OSTestCase(APITestCase):
         self.assertEqual(len(operating_sys.medium), 1)
         self.assertEqual(operating_sys.medium[0].id, medium.id)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_with_template(self):
         """@Test: Create an operating system that points at a config template.
@@ -236,6 +249,7 @@ class OSTestCase(APITestCase):
         self.assertEqual(len(operating_sys.config_template), 1)
         self.assertEqual(operating_sys.config_template[0].id, template.id)
 
+    @tier1
     @run_only_on('sat')
     def test_negative_create_different_names(self):
         """@Test: Try to create operating system entity providing an invalid
@@ -250,6 +264,7 @@ class OSTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.OperatingSystem(name=name).create()
 
+    @tier1
     @run_only_on('sat')
     def test_negative_create_os_family(self):
         """@Test: Try to create operating system entity providing an invalid
@@ -262,6 +277,7 @@ class OSTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.OperatingSystem(family='NON_EXISTENT_OS').create()
 
+    @tier1
     @run_only_on('sat')
     def test_negative_create_with_too_long_description(self):
         """@Test: Try to create operating system entity providing too long
@@ -275,6 +291,7 @@ class OSTestCase(APITestCase):
             entities.OperatingSystem(
                 description=gen_string('alphanumeric', 256)).create()
 
+    @tier1
     @run_only_on('sat')
     def test_negative_create_with_wrong_major_version(self):
         """@Test: Try to create operating system entity providing incorrect
@@ -290,6 +307,7 @@ class OSTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.OperatingSystem(major=major_version).create()
 
+    @tier1
     @run_only_on('sat')
     def test_negative_create_with_wrong_minor_version(self):
         """@Test: Try to create operating system entity providing incorrect
@@ -304,6 +322,7 @@ class OSTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.OperatingSystem(minor=minor_version).create()
 
+    @tier1
     @run_only_on('sat')
     def test_negative_create_with_wrong_hash(self):
         """@Test: Try to create operating system entity providing invalid
@@ -316,6 +335,7 @@ class OSTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.OperatingSystem(password_hash='INVALID_HASH').create()
 
+    @tier1
     @run_only_on('sat')
     def test_negative_create_with_same_name_and_version(self):
         """@Test: Create operating system providing valid name and major
@@ -330,6 +350,7 @@ class OSTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.OperatingSystem(name=os.name, major=os.major).create()
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_different_names(self):
         """@Test: Create operating system entity providing the initial name,
@@ -346,6 +367,7 @@ class OSTestCase(APITestCase):
                     id=os.id, name=new_name).update(['name'])
                 self.assertEqual(os.name, new_name)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_description(self):
         """@Test: Create operating entity providing the initial description,
@@ -362,6 +384,7 @@ class OSTestCase(APITestCase):
                     id=os.id, description=new_desc).update(['description'])
                 self.assertEqual(os.description, new_desc)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_major_version(self):
         """@Test: Create operating entity providing the initial major version,
@@ -377,6 +400,7 @@ class OSTestCase(APITestCase):
             id=os.id, major=new_major_version).update(['major'])
         self.assertEqual(os.major, new_major_version)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_minor_version(self):
         """@Test: Create operating entity providing the initial minor version,
@@ -392,6 +416,7 @@ class OSTestCase(APITestCase):
             id=os.id, minor=new_minor_version).update(['minor'])
         self.assertEqual(os.minor, new_minor_version)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_os_family(self):
         """@Test: Create operating entity providing the initial os family, then
@@ -408,6 +433,7 @@ class OSTestCase(APITestCase):
             id=os.id, family=new_os_family).update(['family'])
         self.assertEqual(os.family, new_os_family)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_with_arch(self):
         """@Test: Create an operating system that points at an architecture and
@@ -428,6 +454,7 @@ class OSTestCase(APITestCase):
         self.assertEqual(len(os.architecture), 1)
         self.assertEqual(os.architecture[0].id, arch_2.id)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_with_ptable(self):
         """@Test: Create an operating system that points at partition table and
@@ -448,6 +475,7 @@ class OSTestCase(APITestCase):
         self.assertEqual(len(os.ptable), 1)
         self.assertEqual(os.ptable[0].id, ptable_2.id)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_with_media(self):
         """@Test: Create an operating system that points at media entity and
@@ -468,6 +496,7 @@ class OSTestCase(APITestCase):
         self.assertEqual(len(os.medium), 1)
         self.assertEqual(os.medium[0].id, media_2.id)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_with_multiple_medias(self):
         """@Test: Create an operating system that points at media entity and
@@ -492,6 +521,7 @@ class OSTestCase(APITestCase):
             set([medium.id for medium in medias])
         )
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_with_template(self):
         """@Test: Create an operating system that points at config template and
@@ -512,6 +542,7 @@ class OSTestCase(APITestCase):
         self.assertEqual(len(os.config_template), 1)
         self.assertEqual(os.config_template[0].id, template_2.id)
 
+    @tier1
     @run_only_on('sat')
     def test_negative_update_different_names(self):
         """@Test: Create operating system entity providing the initial name,
@@ -528,6 +559,7 @@ class OSTestCase(APITestCase):
                     os = entities.OperatingSystem(
                         id=os.id, name=new_name).update(['name'])
 
+    @tier1
     @run_only_on('sat')
     def test_negative_update_major_version(self):
         """@Test: Create operating entity providing the initial major version,
@@ -541,6 +573,7 @@ class OSTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.OperatingSystem(id=os.id, major='-20').update(['major'])
 
+    @tier1
     @run_only_on('sat')
     def test_negative_update_minor_version(self):
         """@Test: Create operating entity providing the initial minor version,
@@ -555,6 +588,7 @@ class OSTestCase(APITestCase):
             entities.OperatingSystem(
                 id=os.id, minor='INVALID_VERSION').update(['minor'])
 
+    @tier1
     @run_only_on('sat')
     def test_negative_update_os_family(self):
         """@Test: Create operating entity providing the initial os family, then
@@ -569,6 +603,7 @@ class OSTestCase(APITestCase):
             entities.OperatingSystem(
                 id=os.id, family='NON_EXISTENT_OS').update(['family'])
 
+    @tier1
     @run_only_on('sat')
     def test_positive_delete(self):
         """@Test: Create new operating system entity and then delete it.

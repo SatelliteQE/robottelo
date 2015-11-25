@@ -15,7 +15,7 @@ from fauxfactory import (
 )
 from nailgun import entities
 from requests.exceptions import HTTPError
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import bz_bug_is_open, tier1
 from robottelo.test import APITestCase
 
 
@@ -34,6 +34,7 @@ def data_generator():
 class RoleTestCase(APITestCase):
     """Tests for ``api/v2/roles``."""
 
+    @tier1
     def test_positive_create_1(self):
         """@Test: Create a role with name ``name_generator()``.
 
@@ -53,6 +54,7 @@ class RoleTestCase(APITestCase):
                 name = name_generator()
                 self.assertEqual(entities.Role(name=name).create().name, name)
 
+    @tier1
     def test_positive_delete_1(self):
         """@Test: Delete a role with name ``name_generator()``.
 
@@ -75,6 +77,7 @@ class RoleTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     role.read()
 
+    @tier1
     def test_positive_update_1(self):
         """@Test: Update a role with and give a name of ``name_generator()``.
 

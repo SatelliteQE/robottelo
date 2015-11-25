@@ -22,6 +22,7 @@ setup(
         'numpy',
         'paramiko',
         'pygal',
+        'pytest',
         'python-bugzilla',
         'requests',
         'selenium',

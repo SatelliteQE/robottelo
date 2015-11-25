@@ -11,7 +11,7 @@ from random import randint
 from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.datafactory import invalid_values_list
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 from six.moves import http_client
@@ -39,6 +39,7 @@ def valid_org_data_list():
 class OrganizationTestCase(APITestCase):
     """Tests for the ``organizations`` path."""
 
+    @tier1
     def test_create_text_plain(self):
         """@Test Create an organization using a 'text/plain' content-type.
 
@@ -59,6 +60,7 @@ class OrganizationTestCase(APITestCase):
         self.assertEqual(
             http_client.UNSUPPORTED_MEDIA_TYPE, response.status_code)
 
+    @tier1
     def test_positive_create_1(self):
         """@Test: Create an organization and provide a name.
 
@@ -72,6 +74,7 @@ class OrganizationTestCase(APITestCase):
         self.assertTrue(hasattr(org, 'label'))
         self.assertIsInstance(org.label, type(u''))
 
+    @tier1
     def test_positive_create_2(self):
         """@Test: Create an org and provide a name and identical label.
 
@@ -89,6 +92,7 @@ class OrganizationTestCase(APITestCase):
         self.assertEqual(name_label, org.name)
         self.assertEqual(name_label, org.label)
 
+    @tier1
     def test_positive_create_3(self):
         """@Test: Create an organization and provide a name and label.
 
@@ -104,6 +108,7 @@ class OrganizationTestCase(APITestCase):
         self.assertEqual(name, org.name)
         self.assertEqual(label, org.label)
 
+    @tier1
     def test_positive_create_4(self):
         """@Test: Create an organization and provide a name and description.
 
@@ -127,6 +132,7 @@ class OrganizationTestCase(APITestCase):
                 self.assertIsInstance(org.label, type(u''))
                 self.assertGreater(len(org.label), 0)
 
+    @tier1
     def test_positive_create_5(self):
         """@Test: Create an org and provide a name, label and description.
 
@@ -144,6 +150,7 @@ class OrganizationTestCase(APITestCase):
         self.assertEqual(org.label, label)
         self.assertEqual(org.description, desc)
 
+    @tier1
     def test_negative_create_name(self):
         """@Test: Create an org with an incorrect name.
 
@@ -157,6 +164,7 @@ class OrganizationTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Organization(name=name).create()
 
+    @tier1
     def test_negative_create_duplicate(self):
         """@Test: Create two organizations with identical names.
 
@@ -169,6 +177,7 @@ class OrganizationTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.Organization(name=name).create()
 
+    @tier1
     def test_positive_search(self):
         """@Test: Create an organization, then search for it by name.
 
@@ -195,6 +204,7 @@ class OrganizationUpdateTestCase(APITestCase):
         super(OrganizationUpdateTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
+    @tier1
     def test_update_name(self):
         """@Test: Update an organization's name with valid values.
 
@@ -209,6 +219,7 @@ class OrganizationUpdateTestCase(APITestCase):
                 self.organization = self.organization.update(['name'])
                 self.assertEqual(self.organization.name, name)
 
+    @tier1
     def test_update_desc(self):
         """@Test: Update an organization's description with valid values.
 
@@ -223,6 +234,7 @@ class OrganizationUpdateTestCase(APITestCase):
                 self.organization = self.organization.update(['description'])
                 self.assertEqual(self.organization.description, desc)
 
+    @tier1
     def test_update_name_desc(self):
         """@Test: Update an organization with new name and description.
 
@@ -239,6 +251,7 @@ class OrganizationUpdateTestCase(APITestCase):
         self.assertEqual(self.organization.name, name)
         self.assertEqual(self.organization.description, desc)
 
+    @tier2
     def test_associate_with_user(self):
         """@Test: Update an organization, associate user with it.
 
@@ -253,6 +266,7 @@ class OrganizationUpdateTestCase(APITestCase):
         self.assertEqual(len(self.organization.user), 1)
         self.assertEqual(self.organization.user[0].id, user.id)
 
+    @tier2
     def test_associate_with_subnet(self):
         """@Test: Update an organization, associate subnet with it.
 
@@ -267,6 +281,7 @@ class OrganizationUpdateTestCase(APITestCase):
         self.assertEqual(len(self.organization.subnet), 1)
         self.assertEqual(self.organization.subnet[0].id, subnet.id)
 
+    @tier2
     @skip_if_bug_open('bugzilla', 1230865)
     def test_associate_with_media(self):
         """@Test: Update an organization and associate it with a media.
@@ -282,6 +297,7 @@ class OrganizationUpdateTestCase(APITestCase):
         self.assertEqual(len(self.organization.media), 1)
         self.assertEqual(self.organization.media[0].id, media.id)
 
+    @tier1
     def test_negative_update(self):
         """@Test: Update an organization's attributes with invalid values.
 
@@ -303,6 +319,7 @@ class OrganizationUpdateTestCase(APITestCase):
                         **attrs
                     ).update(attrs.keys())
 
+    @tier2
     @skip_if_bug_open('bugzilla', 1103157)
     def test_bugzilla_1103157(self):
         """@Test: Create organization and add two compute resources one by one

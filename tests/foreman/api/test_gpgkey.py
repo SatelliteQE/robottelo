@@ -1,12 +1,13 @@
 """Unit tests for the ``gpgkeys`` paths."""
 from nailgun import entities
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import APITestCase
 
 
 class GPGKeyTestCase(APITestCase):
     """Tests for ``katello/api/v2/gpg_keys``."""
 
+    @tier1
     @run_only_on('sat')
     def test_get_all(self):
         """@Test: Search for a GPG key and specify just ``organization_id``.

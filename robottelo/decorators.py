@@ -2,6 +2,7 @@
 """Implements various decorators"""
 import bugzilla
 import logging
+import pytest
 import requests
 import unittest2
 
@@ -15,6 +16,15 @@ BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
 LOGGER = logging.getLogger(__name__)
 OBJECT_CACHE = {}
 REDMINE_URL = 'http://projects.theforeman.org'
+
+# Test Tier Decorators
+# CRUD tests
+tier1 = pytest.mark.tier1
+# Association tests
+tier2 = pytest.mark.tier2
+# Systems integration and long-running tests
+tier3 = pytest.mark.tier3
+
 
 # A dict mapping bug IDs to python-bugzilla bug objects.
 _bugzilla = {}

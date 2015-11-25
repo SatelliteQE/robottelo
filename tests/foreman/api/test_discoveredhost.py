@@ -3,7 +3,7 @@
 from fauxfactory import gen_string, gen_ipaddr, gen_mac
 from nailgun import entities
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, stubbed
+from robottelo.decorators import run_only_on, stubbed, tier2
 from robottelo.test import APITestCase
 
 
@@ -92,6 +92,7 @@ class Discovery(APITestCase):
 
         """
 
+    @tier2
     @run_only_on('sat')
     def test_upload_facts(self):
         """@Test: Upload fake facts to create a discovered host

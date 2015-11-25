@@ -1,6 +1,6 @@
 """Tests for the ``smart_proxies`` paths."""
 from nailgun import entities
-from robottelo.decorators import run_only_on, stubbed, skip_if_bug_open
+from robottelo.decorators import run_only_on, stubbed, skip_if_bug_open, tier1
 from robottelo.test import APITestCase
 from robottelo.api.utils import one_to_many_names
 
@@ -29,6 +29,7 @@ class MissingAttrTestCase(APITestCase):
         assert len(smart_proxies) > 0
         cls.smart_proxy_attrs = set(smart_proxies[0].update_json([]).keys())
 
+    @tier1
     def test_location(self):
         """@Test: Update a smart proxy. Inspect the server's response.
 
@@ -44,6 +45,7 @@ class MissingAttrTestCase(APITestCase):
             'None of {0} are in {1}'.format(names, self.smart_proxy_attrs),
         )
 
+    @tier1
     def test_organization(self):
         """@Test: Update a smart proxy. Inspect the server's response.
 
