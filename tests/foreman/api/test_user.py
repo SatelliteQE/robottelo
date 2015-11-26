@@ -9,6 +9,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
+from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
 
@@ -43,6 +44,7 @@ def _user_attrs():
 class UsersTestCase(APITestCase):
     """Tests for the ``users`` path."""
 
+    @tier1
     def test_create(self):
         """@Test: Create a user with attributes ``attrs`` and delete it.
 
@@ -57,6 +59,7 @@ class UsersTestCase(APITestCase):
                 for name, value in attr.items():
                     self.assertEqual(getattr(user, name), value)
 
+    @tier1
     def test_delete(self):
         """@Test: Create a user with attributes ``attrs`` and delete it.
 
@@ -72,6 +75,7 @@ class UsersTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     user.read()
 
+    @tier1
     def test_update_admin(self):
         """@Test: Update a user and provide the ``admin`` attribute.
 
@@ -98,6 +102,7 @@ class UserRoleTestCase(APITestCase):
         roles = entities.Role().search(query={'search': 'name="Anonymous"'})
         cls.anon_role = roles[0]
 
+    @tier1
     def test_create_with_role(self):
         """@Test: Create a user with the ``role`` attribute.
 
@@ -119,6 +124,7 @@ class UserRoleTestCase(APITestCase):
                 set([role.id for role in chosen_roles] + [self.anon_role.id]),
             )
 
+    @tier1
     def test_update_with_role(self):
         """@Test: Update an existing user and give it roles.
 

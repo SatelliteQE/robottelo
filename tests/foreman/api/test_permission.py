@@ -13,7 +13,7 @@ from itertools import chain
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.constants import PERMISSIONS
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1
 from robottelo.helpers import get_nailgun_config, get_server_software
 from robottelo.test import APITestCase
 
@@ -41,6 +41,7 @@ class PermissionsTestCase(APITestCase):
             chain.from_iterable(cls.permissions.values()))
 
     @run_only_on('sat')
+    @tier1
     def test_search_by_name(self):
         """@test: Search for a permission by name.
 
@@ -64,6 +65,7 @@ class PermissionsTestCase(APITestCase):
             self.fail(json.dumps(failures, indent=True, sort_keys=True))
 
     @run_only_on('sat')
+    @tier1
     def test_search_by_resource_type(self):
         """@test: Search for permissions by resource type.
 
@@ -95,6 +97,7 @@ class PermissionsTestCase(APITestCase):
             self.fail(json.dumps(failures, indent=True, sort_keys=True))
 
     @run_only_on('sat')
+    @tier1
     def test_search_permissions(self):
         """@test: search with no parameters return all permissions
 
@@ -201,6 +204,7 @@ class UserRoleTestCase(APITestCase):
         self.user.role = [role]
         self.user = self.user.update(['role'])
 
+    @tier1
     def test_create(self):
         """@Test: Check whether the "create_*" role has an effect.
 
@@ -220,6 +224,7 @@ class UserRoleTestCase(APITestCase):
                 entity_id = entity_cls(self.cfg).create_json()['id']
                 entity_cls(id=entity_id).read()  # As admin user.
 
+    @tier1
     def test_read(self):
         """@Test: Check whether the "view_*" role has an effect.
 
@@ -237,6 +242,7 @@ class UserRoleTestCase(APITestCase):
                 self.give_user_permission(_permission_name(entity_cls, 'read'))
                 entity_cls(self.cfg, id=entity_id).read()
 
+    @tier1
     def test_delete(self):
         """@Test: Check whether the "destroy_*" role has an effect.
 
@@ -258,6 +264,7 @@ class UserRoleTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entity.read()  # As admin user
 
+    @tier1
     def test_update(self):
         """@Test: Check whether the "edit_*" role has an effect.
 

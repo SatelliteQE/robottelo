@@ -11,7 +11,7 @@ from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.test import APITestCase
 from six.moves import http_client
 
@@ -37,6 +37,7 @@ class ContentViewFilterTestCase(APITestCase):
         self.content_view.repository = [self.repo]
         self.content_view.update(['repository'])
 
+    @tier2
     @run_only_on('sat')
     def test_get_with_no_args(self):
         """@Test: Issue an HTTP GET to the base content view filters path.
@@ -58,6 +59,7 @@ class ContentViewFilterTestCase(APITestCase):
             (http_client.BAD_REQUEST, http_client.UNPROCESSABLE_ENTITY)
         )
 
+    @tier2
     @run_only_on('sat')
     def test_get_with_bad_args(self):
         """@Test: Issue an HTTP GET to the base content view filters path.
@@ -80,6 +82,7 @@ class ContentViewFilterTestCase(APITestCase):
             (http_client.BAD_REQUEST, http_client.UNPROCESSABLE_ENTITY)
         )
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_erratum_with_different_names(self):
         """Test: Create new erratum content filter using different inputs as
@@ -99,6 +102,7 @@ class ContentViewFilterTestCase(APITestCase):
                 self.assertEqual(cvf.name, name)
                 self.assertEqual(cvf.type, 'erratum')
 
+    @tier2
     @run_only_on('sat')
     def test_positive_create_pkg_group_with_different_names(self):
         """Test: Create new package group content filter using different inputs
@@ -118,6 +122,7 @@ class ContentViewFilterTestCase(APITestCase):
                 self.assertEqual(cvf.name, name)
                 self.assertEqual(cvf.type, 'package_group')
 
+    @tier2
     @run_only_on('sat')
     def test_positive_create_rpm_with_different_names(self):
         """Test: Create new RPM content filter using different inputs as
@@ -137,6 +142,7 @@ class ContentViewFilterTestCase(APITestCase):
                 self.assertEqual(cvf.name, name)
                 self.assertEqual(cvf.type, 'rpm')
 
+    @tier2
     @run_only_on('sat')
     def test_positive_create_with_inclusion(self):
         """Test: Create new content view filter with different inclusion values
@@ -154,6 +160,7 @@ class ContentViewFilterTestCase(APITestCase):
                 ).create()
                 self.assertEqual(cvf.inclusion, inclusion)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_create_with_description(self):
         """Test: Create new content filter using different inputs as a
@@ -172,6 +179,7 @@ class ContentViewFilterTestCase(APITestCase):
                 ).create()
                 self.assertEqual(cvf.description, description)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_create_with_repo(self):
         """Test: Create new content filter with repository assigned
@@ -188,6 +196,7 @@ class ContentViewFilterTestCase(APITestCase):
         ).create()
         self.assertEqual(cvf.repository[0].id, self.repo.id)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_create_with_original_packages(self):
         """Test: Create new content view filter with different 'original
@@ -209,6 +218,7 @@ class ContentViewFilterTestCase(APITestCase):
                 ).create()
                 self.assertEqual(cvf.original_packages, original_packages)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_create_with_multiple_repos_with_docker(self):
         """Test: Create new docker repository and add to content view that has
@@ -237,6 +247,7 @@ class ContentViewFilterTestCase(APITestCase):
         for repo in cvf.repository:
             self.assertIn(repo.id, [self.repo.id, docker_repository.id])
 
+    @tier1
     @run_only_on('sat')
     def test_negative_create_with_different_names(self):
         """@Test: Try to create content view filter using invalid names only
@@ -253,6 +264,7 @@ class ContentViewFilterTestCase(APITestCase):
                         name=name,
                     ).create()
 
+    @tier2
     @run_only_on('sat')
     def test_negative_create_with_same_names(self):
         """@Test: Try to create content view filter using same name twice
@@ -269,6 +281,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.RPMContentViewFilter(**kwargs).create()
 
+    @tier2
     @run_only_on('sat')
     def test_negative_create_without_cv(self):
         """@Test: Try to create content view filter without providing content
@@ -281,6 +294,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.RPMContentViewFilter(content_view=None).create()
 
+    @tier2
     @run_only_on('sat')
     def test_negative_create_with_repo_by_id(self):
         """@Test: Try to create content view filter using incorrect repository
@@ -296,6 +310,7 @@ class ContentViewFilterTestCase(APITestCase):
                 repository=[gen_integer(10000, 99999)],
             ).create()
 
+    @tier1
     @run_only_on('sat')
     def test_positive_delete_by_id(self):
         """@Test: Delete content view filter
@@ -311,6 +326,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             cvf.read()
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_with_new_name(self):
         """@Test: Update content view filter with new name
@@ -327,6 +343,7 @@ class ContentViewFilterTestCase(APITestCase):
                 cvf.name = name
                 self.assertEqual(cvf.update(['name']).name, name)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_update_with_new_description(self):
         """@Test: Update content view filter with new description
@@ -344,6 +361,7 @@ class ContentViewFilterTestCase(APITestCase):
                 cvf.description = desc
                 self.assertEqual(cvf.update(['description']).description, desc)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_update_with_new_inclusion(self):
         """Test: Update content view filter with new inclusion value
@@ -362,6 +380,7 @@ class ContentViewFilterTestCase(APITestCase):
                 cvf = cvf.update(['inclusion'])
                 self.assertEqual(cvf.inclusion, inclusion)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_update_with_new_repo(self):
         """Test: Update content view filter with new repository
@@ -385,6 +404,7 @@ class ContentViewFilterTestCase(APITestCase):
         self.assertEqual(len(cvf.repository), 1)
         self.assertEqual(cvf.repository[0].id, new_repo.id)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_update_with_multiple_repos(self):
         """Test: Update content view filter with multiple repositories
@@ -415,6 +435,7 @@ class ContentViewFilterTestCase(APITestCase):
             set([repo.id for repo in repos])
         )
 
+    @tier2
     @run_only_on('sat')
     def test_positive_update_original_packages(self):
         """Test: Update content view filter with new 'original packages' option
@@ -436,6 +457,7 @@ class ContentViewFilterTestCase(APITestCase):
                 cvf = cvf.update(['original_packages'])
                 self.assertEqual(cvf.original_packages, original_packages)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_update_with_repo_with_docker(self):
         """Test: Update existing content view filter which has yum repository
@@ -465,6 +487,7 @@ class ContentViewFilterTestCase(APITestCase):
         for repo in cvf.repository:
             self.assertIn(repo.id, [self.repo.id, docker_repository.id])
 
+    @tier1
     @run_only_on('sat')
     def test_negative_update_with_different_names(self):
         """@Test: Try to update content view filter using invalid names only
@@ -482,6 +505,7 @@ class ContentViewFilterTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     cvf.update(['name'])
 
+    @tier2
     @run_only_on('sat')
     def test_negative_update_with_already_used_name(self):
         """@Test: Try to update content view filter's name to already used one
@@ -502,6 +526,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             cvf.update(['name'])
 
+    @tier2
     @run_only_on('sat')
     def test_negative_update_with_cv_by_id(self):
         """@Test: Try to update content view filter using incorrect content
@@ -518,6 +543,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             cvf.update(['content_view'])
 
+    @tier2
     @run_only_on('sat')
     def test_negative_update_with_repo_by_id(self):
         """@Test: Try to update content view filter using incorrect repository
@@ -535,6 +561,7 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             cvf.update(['repository'])
 
+    @tier2
     @run_only_on('sat')
     def test_negative_update_with_new_repo(self):
         """Test: Try to update content view filter with new repository which
@@ -565,6 +592,7 @@ class SearchTestCase(APITestCase):
         super(SearchTestCase, cls).setUpClass()
         cls.content_view = entities.ContentView().create()
 
+    @tier1
     @skip_if_bug_open('bugzilla', 1242534)
     def test_positive_search_erratum(self):
         """@Test: Search for an erratum content view filter's rules.
@@ -578,6 +606,7 @@ class SearchTestCase(APITestCase):
         ).create()
         entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
 
+    @tier1
     def test_positive_search_package_group(self):
         """@Test: Search for an package group content view filter's rules.
 
@@ -590,6 +619,7 @@ class SearchTestCase(APITestCase):
         ).create()
         entities.ContentViewFilterRule(content_view_filter=cv_filter).search()
 
+    @tier1
     def test_positive_search_rpm(self):
         """@Test: Search for an rpm content view filter's rules.
 

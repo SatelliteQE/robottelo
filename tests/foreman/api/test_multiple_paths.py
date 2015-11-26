@@ -4,7 +4,12 @@ import logging
 from nailgun import client, entities, entity_fields
 from requests.exceptions import HTTPError
 from robottelo.config import settings
-from robottelo.decorators import bz_bug_is_open, run_only_on, skip_if_bug_open
+from robottelo.decorators import (
+    bz_bug_is_open,
+    run_only_on,
+    skip_if_bug_open,
+    tier1,
+)
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 from six.moves import http_client
@@ -140,6 +145,7 @@ def skip_if_sam(self, entity):
 class EntityTestCase(APITestCase):
     """Issue HTTP requests to various ``entity/`` paths."""
 
+    @tier1
     def test_get_status_code(self):
         """@Test: GET an entity-dependent path.
 
@@ -174,6 +180,7 @@ class EntityTestCase(APITestCase):
                     response.headers['content-type']
                 )
 
+    @tier1
     def test_get_unauthorized(self):
         """@Test: GET an entity-dependent path without credentials.
 
@@ -197,6 +204,7 @@ class EntityTestCase(APITestCase):
                 self.assertEqual(
                     http_client.UNAUTHORIZED, response.status_code)
 
+    @tier1
     def test_post_status_code(self):
         """@Test: Issue a POST request and check the returned status code.
 
@@ -228,6 +236,7 @@ class EntityTestCase(APITestCase):
                     response.headers['content-type']
                 )
 
+    @tier1
     @skip_if_bug_open('bugzilla', 1122257)
     def test_post_unauthorized(self):
         """@Test: POST to an entity-dependent path without credentials.
@@ -255,6 +264,7 @@ class EntityTestCase(APITestCase):
 class EntityIdTestCase(APITestCase):
     """Issue HTTP requests to various ``entity/:id`` paths."""
 
+    @tier1
     def test_get_status_code(self):
         """@Test: Create an entity and GET it.
 
@@ -281,6 +291,7 @@ class EntityIdTestCase(APITestCase):
                     response.headers['content-type']
                 )
 
+    @tier1
     def test_put_status_code(self):
         """@Test Issue a PUT request and check the returned status code.
 
@@ -319,6 +330,7 @@ class EntityIdTestCase(APITestCase):
                     response.headers['content-type']
                 )
 
+    @tier1
     def test_delete_status_code(self):
         """@Test Issue an HTTP DELETE request and check the returned status
         code.
@@ -376,6 +388,7 @@ class DoubleCheckTestCase(APITestCase):
     """
     longMessage = True
 
+    @tier1
     def test_put_and_get(self):
         """@Test: Update an entity, then read it back.
 
@@ -418,6 +431,7 @@ class DoubleCheckTestCase(APITestCase):
                     self.assertIn(key, entity_attrs.keys())
                     self.assertEqual(value, entity_attrs[key], key)
 
+    @tier1
     def test_post_and_get(self):
         """@Test: Create an entity, then read it back.
 
@@ -448,6 +462,7 @@ class DoubleCheckTestCase(APITestCase):
                     self.assertIn(key, entity_attrs.keys())
                     self.assertEqual(value, entity_attrs[key], key)
 
+    @tier1
     def test_delete_and_get(self):
         """@Test: Issue an HTTP DELETE request and GET the deleted entity.
 
@@ -491,6 +506,7 @@ class EntityReadTestCase(APITestCase):
     Check that classes inheriting from
     ``nailgun.entity_mixins.EntityReadMixin`` function correctly.
     """
+    @tier1
     def test_entity_read(self):
         """@Test: Create an entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
@@ -517,6 +533,7 @@ class EntityReadTestCase(APITestCase):
                     entity_cls
                 )
 
+    @tier1
     def test_architecture_read(self):
         """@Test: Create an arch that points to an OS, and read the arch.
 
@@ -534,6 +551,7 @@ class EntityReadTestCase(APITestCase):
         self.assertEqual(len(architecture.operatingsystem), 1)
         self.assertEqual(architecture.operatingsystem[0].id, os_id)
 
+    @tier1
     def test_syncplan_read(self):
         """@Test: Create a SyncPlan and read it back using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
@@ -552,6 +570,7 @@ class EntityReadTestCase(APITestCase):
             entities.SyncPlan
         )
 
+    @tier1
     @run_only_on('sat')
     def test_osparameter_read(self):
         """@Test: Create an OperatingSystemParameter and get it using
@@ -574,6 +593,7 @@ class EntityReadTestCase(APITestCase):
             entities.OperatingSystemParameter
         )
 
+    @tier1
     @run_only_on('sat')
     def test_permission_read(self):
         """@Test: Create an Permission entity and get it using
@@ -589,6 +609,7 @@ class EntityReadTestCase(APITestCase):
         self.assertGreater(len(perm.name), 0)
         self.assertGreater(len(perm.resource_type), 0)
 
+    @tier1
     def test_media_read(self):
         """@Test: Create a media pointing at an OS and read the media.
 

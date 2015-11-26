@@ -1,7 +1,7 @@
 """Unit tests for the ``katello/api/v2/puppet_modules`` paths."""
 from nailgun import entities
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open, tier1
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
@@ -26,6 +26,7 @@ class RepositorySearchTestCase(APITestCase):
             product=self.product,
         ).create()
 
+    @tier1
     @skip_if_bug_open('bugzilla', 1260206)
     def test_0_search_results(self):
         """@Test: Search for puppet modules in an empty repository.
@@ -38,6 +39,7 @@ class RepositorySearchTestCase(APITestCase):
         query = {'repository_id': self.repository.id}
         self.assertEqual(len(entities.PuppetModule().search(query=query)), 0)
 
+    @tier1
     @skip_if_bug_open('bugzilla', 1260206)
     def test_1_search_result(self):
         """@Test: Search for puppet modules in a non-empty repository.
@@ -78,6 +80,7 @@ class CVVSearchTestCase(APITestCase):
             organization=self.product.organization,
         ).create()
 
+    @tier1
     def test_0_search_results(self):
         """@Test: Search for puppet modules in an emtpy content view version.
 
@@ -91,6 +94,7 @@ class CVVSearchTestCase(APITestCase):
         query = {'content_view_version_id': self.content_view.version[0].id}
         self.assertEqual(len(entities.PuppetModule().search(query=query)), 0)
 
+    @tier1
     def test_1_search_result(self):
         """@Test: Search for puppet modules in a CVV with one puppet module.
 

@@ -21,6 +21,8 @@ from robottelo.decorators import (
     bz_bug_is_open,
     run_only_on,
     skip_if_bug_open,
+    tier1,
+    tier2,
 )
 from robottelo.helpers import (
     get_data_file,
@@ -68,6 +70,7 @@ class RepositoryTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
 
+    @tier1
     @run_only_on('sat')
     def test_create_attrs(self):
         """@Test: Create a repository and provide valid attributes.
@@ -88,6 +91,7 @@ class RepositoryTestCase(APITestCase):
                     self.assertIn(name, repo_attrs.keys())
                     self.assertEqual(value, repo_attrs[name])
 
+    @tier2
     @run_only_on('sat')
     def test_create_gpgkey(self):
         """@Test: Create a repository and provide a GPG key ID.
@@ -114,6 +118,7 @@ class RepositoryTestCase(APITestCase):
         # Verify that the given GPG key ID is used.
         self.assertEqual(gpg_key.id, repo.read().gpg_key.id)
 
+    @tier2
     @run_only_on('sat')
     def test_create_same_name(self):
         """@Test: Create two repos with the same name in two organizations.
@@ -129,6 +134,7 @@ class RepositoryTestCase(APITestCase):
         for repo in (repo1, repo2, repo1.read(), repo2.read()):
             self.assertEqual(repo.name, repo1.name)
 
+    @tier1
     @run_only_on('sat')
     def test_delete(self):
         """@Test: Create a repository with attributes ``attrs`` and delete it.
@@ -148,6 +154,7 @@ class RepositoryTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     repo.read()
 
+    @tier2
     @run_only_on('sat')
     def test_update_gpgkey(self):
         """@Test: Create a repository and update its GPGKey
@@ -176,6 +183,7 @@ class RepositoryTestCase(APITestCase):
         repo = repo.update()
         self.assertEqual(repo.gpg_key.id, gpg_key_2.id)
 
+    @tier2
     @run_only_on('sat')
     def test_update_contents(self):
         """@Test: Create a repository and upload RPM contents.
@@ -192,6 +200,7 @@ class RepositoryTestCase(APITestCase):
         # Verify the repository's contents.
         self.assertEqual(repo.read_json()[u'content_counts'][u'rpm'], 1)
 
+    @tier2
     def test_sync(self):
         """@Test: Create a repo and sync it.
 
@@ -214,6 +223,7 @@ class RepositoryUpdateTestCase(APITestCase):
         super(RepositoryUpdateTestCase, cls).setUpClass()
         cls.repository = entities.Repository().create()
 
+    @tier1
     @run_only_on('sat')
     def test_update(self):
         """@Test: Create a repository and update its attributes.
@@ -248,6 +258,7 @@ class RepositoryUpdateTestCase(APITestCase):
 class RepositorySyncTestCase(APITestCase):
     """Tests for ``/katello/api/repositories/:id/sync``."""
 
+    @tier2
     @run_only_on('sat')
     def test_redhat_sync_1(self):
         """@Test: Sync RedHat Repository.
@@ -280,6 +291,7 @@ class DockerRepositoryTestCase(APITestCase):
         super(DockerRepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
+    @tier1
     @run_only_on('sat')
     def test_create_docker_repo(self):
         """@Test: Create a Docker-type repository
@@ -307,6 +319,7 @@ class DockerRepositoryTestCase(APITestCase):
                 )
                 self.assertEqual(repo.content_type, repo2.content_type)
 
+    @tier2
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1217603)
     def test_sync_docker_repo(self):
@@ -336,6 +349,7 @@ class DockerRepositoryTestCase(APITestCase):
             1
         )
 
+    @tier1
     def test_update_name(self):
         """@Test: Update a repository's name.
 

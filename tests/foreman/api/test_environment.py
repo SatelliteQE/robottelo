@@ -9,13 +9,14 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.api.utils import one_to_many_names
 from robottelo.datafactory import invalid_names_list
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.test import APITestCase
 
 
 class EnvironmentTestCase(APITestCase):
     """Tests for environments."""
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_1(self):
         """@Test: Create an environment and provide a valid name.
@@ -34,6 +35,7 @@ class EnvironmentTestCase(APITestCase):
                 env = env.read()  # check sat isn't blindly handing back data
                 self.assertEqual(env.name, name)
 
+    @tier1
     @run_only_on('sat')
     def test_negative_create_1(self):
         """@Test: Create an environment and provide an invalid name.
@@ -50,6 +52,7 @@ class EnvironmentTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Environment(name=name).create()
 
+    @tier2
     @run_only_on('sat')
     def test_negative_create_2(self):
         """@Test: Create an environment and provide an illegal name.
@@ -87,6 +90,7 @@ class MissingAttrTestCase(APITestCase):
         env = entities.Environment().create()
         cls.env_attrs = set(env.update_json([]).keys())
 
+    @tier2
     def test_location(self):
         """@Test: Update an environment. Inspect the server's response.
 
@@ -102,6 +106,7 @@ class MissingAttrTestCase(APITestCase):
             'None of {0} are in {1}'.format(names, self.env_attrs),
         )
 
+    @tier2
     def test_organization(self):
         """@Test: Update an environment. Inspect the server's response.
 

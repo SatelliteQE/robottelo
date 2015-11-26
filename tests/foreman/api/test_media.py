@@ -5,7 +5,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.constants import OPERATING_SYSTEMS
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import APITestCase
 
 
@@ -18,6 +18,7 @@ class MediaTestCase(APITestCase):
         super(MediaTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_different_names(self):
         """@Test: Create media with valid name only
@@ -35,6 +36,7 @@ class MediaTestCase(APITestCase):
                 ).create()
                 self.assertEqual(media.name, name)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_create_different_os_family(self):
         """@Test: Create media with every OS family possible
@@ -52,6 +54,7 @@ class MediaTestCase(APITestCase):
                 ).create()
                 self.assertEqual(media.os_family, os_family)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_create_with_location(self):
         """@Test: Create media entity assigned to non-default location
@@ -68,6 +71,7 @@ class MediaTestCase(APITestCase):
         ).create()
         self.assertEqual(media.location[0].read().name, location.name)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_create_with_operating_system(self):
         """@Test: Create media entity assigned to operation system entity
@@ -84,6 +88,7 @@ class MediaTestCase(APITestCase):
         ).create()
         self.assertEqual(os.read().medium[0].read().name, media.name)
 
+    @tier1
     @run_only_on('sat')
     def test_negative_create_different_names(self):
         """@Test: Try to create media entity providing an invalid name
@@ -98,6 +103,7 @@ class MediaTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Media(name=name).create()
 
+    @tier2
     @run_only_on('sat')
     def test_negative_create_with_wrong_url(self):
         """@Test: Try to create media entity providing an invalid URL
@@ -110,6 +116,7 @@ class MediaTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.Media(path_='NON_EXISTENT_URL').create()
 
+    @tier2
     @run_only_on('sat')
     def test_negative_create_with_wrong_os_family(self):
         """@Test: Try to create media entity providing an invalid OS family
@@ -122,6 +129,7 @@ class MediaTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.Media(os_family='NON_EXISTENT_OS').create()
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update_different_names(self):
         """@Test: Create media entity providing the initial name, then update
@@ -139,6 +147,7 @@ class MediaTestCase(APITestCase):
                     id=media.id, name=new_name).update(['name'])
                 self.assertEqual(media.name, new_name)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_update_url(self):
         """@Test: Create media entity providing the initial url path, then
@@ -154,6 +163,7 @@ class MediaTestCase(APITestCase):
         media = entities.Media(id=media.id, path_=new_url).update(['path_'])
         self.assertEqual(media.path_, new_url)
 
+    @tier2
     @run_only_on('sat')
     def test_positive_update_os_family(self):
         """@Test: Create media entity providing the initial os family, then
@@ -173,6 +183,7 @@ class MediaTestCase(APITestCase):
         media.os_family = new_os_family
         self.assertEqual(media.update(['os_family']).os_family, new_os_family)
 
+    @tier1
     @run_only_on('sat')
     def test_negative_update_different_names(self):
         """@Test: Create media entity providing the initial name, then try to
@@ -189,6 +200,7 @@ class MediaTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Media(id=media.id, name=new_name).update(['name'])
 
+    @tier2
     @run_only_on('sat')
     def test_negative_update_with_wrong_url(self):
         """@Test: Try to update media with invalid url.
@@ -203,6 +215,7 @@ class MediaTestCase(APITestCase):
             entities.Media(
                 id=media.id, path_='NON_EXISTENT_URL').update(['path_'])
 
+    @tier2
     @run_only_on('sat')
     def test_negative_update_with_wrong_os_family(self):
         """@Test: Try to update media with invalid operation system.
@@ -217,6 +230,7 @@ class MediaTestCase(APITestCase):
             entities.Media(
                 id=media.id, os_family='NON_EXISTENT_OS').update(['os_family'])
 
+    @tier1
     @run_only_on('sat')
     def test_positive_delete(self):
         """@Test: Create new media entity and then delete it.

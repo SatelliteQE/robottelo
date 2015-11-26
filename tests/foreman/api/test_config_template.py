@@ -8,13 +8,14 @@ from nailgun import client, entities
 from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.test import APITestCase
 
 
 class ConfigTemplateTestCase(APITestCase):
     """Tests for config templates."""
 
+    @tier2
     @skip_if_bug_open('bugzilla', 1202564)
     def test_build_pxe_default(self):
         """@Test: Call the "build_pxe_default" path.
@@ -31,6 +32,7 @@ class ConfigTemplateTestCase(APITestCase):
         response.raise_for_status()
         self.assertIsInstance(response.json(), dict)
 
+    @tier2
     def test_config_template_orgs(self):
         """@Test: Associate a config template with organizations.
 
@@ -64,6 +66,7 @@ class ConfigTemplateTestCase(APITestCase):
         conf_templ = conf_templ.update(['organization'])
         self.assertEqual(len(conf_templ.organization), 0)
 
+    @tier1
     def test_positive_create_name(self):
         """@Test: Create a configuration template providing the initial name.
 
@@ -76,6 +79,7 @@ class ConfigTemplateTestCase(APITestCase):
                 c_temp = entities.ConfigTemplate(name=name).create()
                 self.assertEqual(name, c_temp.name)
 
+    @tier1
     def test_negative_create_name(self):
         """@Test: Create configuration template providing an invalid name.
 
@@ -88,6 +92,7 @@ class ConfigTemplateTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.ConfigTemplate(name=name).create()
 
+    @tier1
     def test_positive_update_name(self):
         """@Test: Create configuration template providing the initial name,
         then update its name to another valid name.
@@ -105,6 +110,7 @@ class ConfigTemplateTestCase(APITestCase):
                     id=c_temp.id, name=new_name).update(['name'])
                 self.assertEqual(new_name, updated.name)
 
+    @tier1
     def test_negative_update_name(self):
         """@Test: Create configuration template then update its name to an
         invalid name.
@@ -123,6 +129,7 @@ class ConfigTemplateTestCase(APITestCase):
                 c_temp = entities.ConfigTemplate(id=c_temp.id).read()
                 self.assertNotEqual(c_temp.name, new_name)
 
+    @tier1
     def test_positive_delete(self):
         """@Test: Create configuration template and then delete it.
 

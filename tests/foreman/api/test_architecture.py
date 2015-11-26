@@ -4,13 +4,14 @@ from nailgun import client, entities
 from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.test import APITestCase
 
 
 class ArchitectureTestCase(APITestCase):
     """Tests for architectures."""
 
+    @tier2
     @skip_if_bug_open('bugzilla', 1151220)
     def test_post_hash(self):
         """@Test: Do not wrap API calls in an extra hash.
@@ -38,6 +39,7 @@ class ArchitectureTestCase(APITestCase):
         self.assertIn('operatingsystems', attrs)
         self.assertEqual([os_id], attrs['operatingsystems'])
 
+    @tier2
     def test_associate_with_os(self):
         """@Test: Create an architecture and associate it with an OS.
 
@@ -53,6 +55,7 @@ class ArchitectureTestCase(APITestCase):
             {os.id for os in arch.operatingsystem},
         )
 
+    @tier1
     def test_positive_create_name(self):
         """@Test: Create an architecture providing the initial name.
 
@@ -65,6 +68,7 @@ class ArchitectureTestCase(APITestCase):
                 arch = entities.Architecture(name=name).create()
                 self.assertEqual(name, arch.name)
 
+    @tier1
     def test_negative_create_name(self):
         """@Test: Create architecture providing an invalid initial name.
         set.
@@ -78,6 +82,7 @@ class ArchitectureTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Architecture(name=name).create()
 
+    @tier1
     def test_positive_update_name(self):
         """@Test: Create architecture then update its name to another
         valid name.
@@ -96,6 +101,7 @@ class ArchitectureTestCase(APITestCase):
                 updated = entities.Architecture(id=arch.id).read()
                 self.assertEqual(new_name, updated.name)
 
+    @tier1
     def test_negative_update_name(self):
         """@Test: Create architecture then update its name to an invalid name.
 
@@ -112,6 +118,7 @@ class ArchitectureTestCase(APITestCase):
                 arch = entities.Architecture(id=arch.id).read()
                 self.assertNotEqual(arch.name, new_name)
 
+    @tier1
     def test_positive_delete(self):
         """@Test: Create architecture and then delete it.
 

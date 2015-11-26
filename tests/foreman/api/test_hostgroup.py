@@ -5,7 +5,7 @@ from nailgun import client, entities, entity_fields
 from robottelo.api.utils import promote, one_to_one_names
 from robottelo.config import settings
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.decorators import skip_if_bug_open, stubbed
+from robottelo.decorators import skip_if_bug_open, stubbed, tier1, tier3
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
@@ -13,6 +13,7 @@ from robottelo.test import APITestCase
 class HostGroupTestCase(APITestCase):
     """Tests for host group entity."""
 
+    @tier3
     @skip_if_bug_open('bugzilla', 1222118)
     def test_bz_1107708(self):
         """@Test: Host that created from HostGroup entity with PuppetClass
@@ -167,6 +168,7 @@ class MissingAttrTestCase(APITestCase):
         host_group = entities.HostGroup().create()
         cls.host_group_attrs = set(host_group.read_json().keys())
 
+    @tier1
     def test_get_content_source(self):
         """@Test: Read a host group. Inspect the server's response.
 
@@ -183,6 +185,7 @@ class MissingAttrTestCase(APITestCase):
             'None of {0} are in {1}'.format(names, self.host_group_attrs)
         )
 
+    @tier1
     def test_get_content_view(self):
         """@Test: Read a host group. Inspect the server's response.
 
@@ -199,6 +202,7 @@ class MissingAttrTestCase(APITestCase):
             'None of {0} are in {1}'.format(names, self.host_group_attrs)
         )
 
+    @tier1
     def test_get_lifecycle_environment(self):
         """@Test: Read a host group. Inspect the server's response.
 

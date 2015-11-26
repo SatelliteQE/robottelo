@@ -6,6 +6,7 @@ http://theforeman.org/api/apidoc/v2/filters.html
 """
 from nailgun import entities
 from requests.exceptions import HTTPError
+from robottelo.decorators import tier1
 from robottelo.test import APITestCase
 
 
@@ -20,6 +21,7 @@ class FilterTestCase(APITestCase):
             entities.Permission(resource_type='ConfigTemplate').search()
         )
 
+    @tier1
     def test_create_filter_with_perms(self):
         """@Test: Create a filter and assign it some permissions.
 
@@ -35,6 +37,7 @@ class FilterTestCase(APITestCase):
             [perm.id for perm in self.ct_perms],
         )
 
+    @tier1
     def test_directly_delete_filter(self):
         """@Test: Create a filter and delete it.
 
@@ -48,6 +51,7 @@ class FilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             filter_.read()
 
+    @tier1
     def test_implicitly_delete_filter(self):
         """@Test: Create a filter and delete the role it points at.
 
