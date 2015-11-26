@@ -50,9 +50,12 @@ class OpenScap(UITestCase):
         ]
 
         # step 1: Create new organization and environment.
-        org = entities.Organization().create()
+        org = entities.Organization(name=gen_string('alpha')).create()
         cls.org_name = org.name
-        env = entities.LifecycleEnvironment(organization=org).create()
+        env = entities.LifecycleEnvironment(
+            organization=org,
+            name=gen_string('alpha')
+        ).create()
         cls.env_name = env.name
 
         # step 2: Clone and Upload manifest
@@ -75,7 +78,10 @@ class OpenScap(UITestCase):
             repo.sync()
 
         # step 4: Create content view
-        content_view = entities.ContentView(organization=org).create()
+        content_view = entities.ContentView(
+            organization=org,
+            name=gen_string('alpha')
+        ).create()
         cls.cv_name = content_view.name
 
         # step 5: Associate repository to new content view
