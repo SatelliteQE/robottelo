@@ -1,13 +1,15 @@
 # -*- encoding: utf-8 -*-
 """Test class for UI functions against an isolated capsule"""
 
+from robottelo.decorators import stubbed
 from robottelo.test import UITestCase
 
 
 class CapsuleTestCase(UITestCase):
     """Implements capsule tests in UI"""
 
-    def capsule_errata_push(self):
+    @stubbed()
+    def test_capsule_errata_push(self):
         """@Test: User can push errata through to a client on
         an isolated capsule
 
@@ -27,7 +29,8 @@ class CapsuleTestCase(UITestCase):
 
         """
 
-    def capsule_rpm_push(self):
+    @stubbed()
+    def test_capsule_rpm_push(self):
         """@Test: User can install a new errata on a client through
         an isolated capsule - this is a satellite-initiated action
 
@@ -47,7 +50,8 @@ class CapsuleTestCase(UITestCase):
 
         """
 
-    def capsule_puppet_push(self):
+    @stubbed()
+    def test_capsule_puppet_push(self):
         """@Test: user can install new puppet module on a client
         through an isolated capsule
 
@@ -65,7 +69,9 @@ class CapsuleTestCase(UITestCase):
         @Status: Manual
 
         """
-    def capsule_content_host_selector(self):
+
+    @stubbed()
+    def test_capsule_content_host_selector(self):
         """@Test: User can choose, or is given an indication within
         the content hosts UI, any referenced capsule in order to
         learn/setup registration against said capsule(s).
