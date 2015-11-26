@@ -24,6 +24,7 @@ from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
+from robottelo.helpers import install_katello_ca, remove_katello_ca
 from robottelo.test import CLITestCase
 
 STRING_TYPES = ['alpha', 'alphanumeric', 'cjk', 'utf8', 'latin1']
@@ -1259,6 +1260,13 @@ class DockerContainersTestCase(CLITestCase):
             'provider': DOCKER_PROVIDER,
             'url': settings.docker.external_url,
         })
+        install_katello_ca()
+
+    @classmethod
+    def tearDownClass(cls):
+        """Remove katello-ca certificate"""
+        remove_katello_ca()
+        super(DockerContainersTestCase, cls).tearDownClass()
 
     @run_only_on('sat')
     def test_create_container(self):

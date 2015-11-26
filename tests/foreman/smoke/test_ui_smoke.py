@@ -347,7 +347,7 @@ class TestSmoke(UITestCase):
                 ))
             # Create VM
             with VirtualMachine(distro='rhel66') as vm:
-                vm.install_katello_cert()
+                vm.install_katello_ca()
                 result = vm.register_contenthost(activation_key_name, org_name)
                 self.assertEqual(result.return_code, 0)
 
@@ -471,7 +471,7 @@ class TestSmoke(UITestCase):
                 ))
             # Create VM
             with VirtualMachine(distro='rhel67') as vm:
-                vm.install_katello_cert()
+                vm.install_katello_ca()
                 vm.register_contenthost(activation_key_name, org_name)
                 vm.configure_puppet(rhel6_repo)
                 host = vm.hostname

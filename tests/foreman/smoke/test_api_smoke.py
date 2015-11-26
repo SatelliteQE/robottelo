@@ -1062,7 +1062,7 @@ class TestSmoke(TestCase):
         # Create VM
         package_name = 'python-kitchen'
         with VirtualMachine(distro='rhel66') as vm:
-            vm.install_katello_cert()
+            vm.install_katello_ca()
             result = vm.register_contenthost(activation_key_name, org.label)
             self.assertEqual(result.return_code, 0)
             # Install contents from sat6 server

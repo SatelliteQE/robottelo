@@ -12,6 +12,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
+from robottelo.helpers import install_katello_ca, remove_katello_ca
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_activationkey,
@@ -1168,7 +1169,15 @@ class DockerContainersTestCase(UITestCase):
             {'main_tab_name': 'Image', 'sub_tab_name': 'Content View',
              'name': 'Tag', 'value': 'latest'},
         ]
+        install_katello_ca()
 
+    @classmethod
+    def tearDownClass(cls):
+        """Remove katello-ca certificate"""
+        remove_katello_ca()
+        super(DockerContainersTestCase, cls).tearDownClass()
+
+    @skip_if_bug_open('bugzilla', 1282431)
     @run_only_on('sat')
     def test_create_container_compute_resource(self):
         """@Test: Create containers for local and external compute resources
@@ -1189,6 +1198,7 @@ class DockerContainersTestCase(UITestCase):
                         parameter_list=self.parameter_list,
                     )
 
+    @skip_if_bug_open('bugzilla', 1282431)
     @skip_if_bug_open('bugzilla', 1273958)
     @run_only_on('sat')
     def test_create_container_compute_resource_power(self):
@@ -1232,6 +1242,7 @@ class DockerContainersTestCase(UITestCase):
 
         """
 
+    @skip_if_bug_open('bugzilla', 1282431)
     @skip_if_bug_open('bugzilla', 1273958)
     @run_only_on('sat')
     def test_delete_container_compute_resource(self):

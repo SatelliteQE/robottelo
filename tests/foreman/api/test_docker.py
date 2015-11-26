@@ -9,6 +9,7 @@ from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
+from robottelo.helpers import install_katello_ca, remove_katello_ca
 from robottelo.test import APITestCase
 
 DOCKER_PROVIDER = 'Docker'
@@ -1112,6 +1113,13 @@ class DockerContainersTestCase(APITestCase):
             organization=[cls.org],
             url=settings.docker.external_url,
         ).create()
+        install_katello_ca()
+
+    @classmethod
+    def tearDownClass(cls):
+        """Remove katello-ca certificate"""
+        remove_katello_ca()
+        super(DockerContainersTestCase, cls).tearDownClass()
 
     @run_only_on('sat')
     def test_create_container_compute_resource(self):
@@ -1133,6 +1141,51 @@ class DockerContainersTestCase(APITestCase):
                     container.compute_resource.read().name,
                     compute_resource.name,
                 )
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1282431)
+    def test_create_container_content_view(self):
+        """@Test: Create docker container using custom content view, lifecycle
+        environment and docker repository for local and external compute
+        resources
+
+        @Feature: Docker
+
+        @Assert: The docker container is created for each compute resource
+        """
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        repo = _create_repository(
+            entities.Product(organization=self.org).create(),
+            upstream_name='centos',
+        )
+        repo.sync()
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.repository = [repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        content_view = content_view.read()
+        self.assertEqual(len(content_view.version), 1)
+        cvv = content_view.read().version[0].read()
+        promote(cvv, lce.id)
+        for compute_resource in (self.cr_internal, self.cr_external):
+            with self.subTest(compute_resource):
+                container = entities.DockerHubContainer(
+                    command='top',
+                    compute_resource=compute_resource,
+                    organization=[self.org],
+                    repository_name=repo.container_repository_name,
+                    tag='latest',
+                    tty='yes',
+                ).create()
+                self.assertEqual(
+                    container.compute_resource.read().name,
+                    compute_resource.name
+                )
+                self.assertEqual(
+                    container.repository_name,
+                    repo.container_repository_name
+                )
+                self.assertEqual(container.tag, 'latest')
 
     @run_only_on('sat')
     def test_create_container_compute_resource_power(self):
