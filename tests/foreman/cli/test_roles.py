@@ -5,7 +5,7 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_role
 from robottelo.cli.role import Role
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import skip_if_bug_open, stubbed
+from robottelo.decorators import skip_if_bug_open, stubbed, tier1
 from robottelo.test import CLITestCase
 
 
@@ -13,6 +13,7 @@ class TestRole(CLITestCase):
     """Test class for Roles CLI"""
 
     @skip_if_bug_open('bugzilla', 1138553)
+    @tier1
     def test_positive_create_role_1(self):
         """@Test: Create new roles and assign to the custom user
 
@@ -21,7 +22,6 @@ class TestRole(CLITestCase):
         @Assert: Assert creation of roles
 
         @BZ: 1138553
-
         """
         for name in generate_strings_list(length=10):
             with self.subTest(name):
@@ -33,23 +33,21 @@ class TestRole(CLITestCase):
     def test_create_role_permission_1(self):
         """@test: Create new roles Use different set of permission
 
-           @feature: Roles
+        @feature: Roles
 
-           @assert: Assert creation of roles with set of permission
+        @assert: Assert creation of roles with set of permission
 
-           @status: manual
-
+        @status: manual
         """
-        pass
 
     @skip_if_bug_open('bugzilla', 1138553)
+    @tier1
     def test_positive_delete_role_1(self):
         """@Test: Delete roles after creating them
 
         @Feature: Roles
 
         @Assert: Assert deletion of roles
-
         """
         for name in generate_strings_list(length=10):
             with self.subTest(name):
@@ -60,13 +58,13 @@ class TestRole(CLITestCase):
                     Role.info({'id': role['id']})
 
     @skip_if_bug_open('bugzilla', 1138553)
+    @tier1
     def test_positive_update_role_1(self):
         """@Test: Update roles after creating them
 
         @Feature: Roles
 
         @Assert: Assert updating of roles
-
         """
         role = make_role({'name': gen_string('alpha', 15)})
         for new_name in generate_strings_list(length=10):

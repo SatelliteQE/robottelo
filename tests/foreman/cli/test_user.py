@@ -17,7 +17,7 @@ from robottelo.datafactory import (
     valid_emails_list,
     valid_usernames_list,
 )
-from robottelo.decorators import stubbed, skip_if_bug_open
+from robottelo.decorators import stubbed, skip_if_bug_open, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -46,6 +46,7 @@ class User(CLITestCase):
         self.assertEqual(result[0]['email'], user['email'])
 
     # Issues
+    @tier1
     def test_bugzilla_1079649_1(self):
         """@Test: Delete a user by it's name
 
@@ -56,7 +57,6 @@ class User(CLITestCase):
         2. Delete the User
 
         @Assert: User is deleted
-
         """
         user = make_user()
         self.__assert_exists(user)
@@ -65,6 +65,7 @@ class User(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             UserObj.info({'login': user['login']})
 
+    @tier1
     def test_bugzilla_1079649_2(self):
         """@Test: Delete a user by it's ID
 
@@ -77,7 +78,6 @@ class User(CLITestCase):
         @Assert: User is deleted
 
         @BZ: 1079649
-
         """
         user = make_user()
         self.__assert_exists(user)
@@ -87,6 +87,7 @@ class User(CLITestCase):
             UserObj.info({'login': user['login']})
 
     # CRUD
+    @tier1
     def test_positive_create_user_1(self):
         """@Test: Create User for all variations of Username
 
@@ -97,7 +98,6 @@ class User(CLITestCase):
         valid First Name, Surname, Email Address, Language, authorized by
 
         @Assert: User is created
-
         """
         include_list = [gen_string("alphanumeric", 100)]
         for login in valid_usernames_list() + include_list:
@@ -105,6 +105,7 @@ class User(CLITestCase):
                 user = make_user({'login': login})
                 self.__assert_exists(user)
 
+    @tier1
     def test_positive_create_user_2(self):
         """@Test: Create User for all variations of First Name
 
@@ -115,7 +116,6 @@ class User(CLITestCase):
         valid Username, Surname, Email Address, Language, authorized by
 
         @Assert: User is created
-
         """
         include_list = [gen_string("alphanumeric", 50)]
         for firstname in valid_usernames_list() + include_list:
@@ -123,6 +123,7 @@ class User(CLITestCase):
                 user = make_user({'firstname': firstname})
                 self.__assert_exists(user)
 
+    @tier1
     def test_positive_create_user_3(self):
         """@Test: Create User for all variations of Surname
 
@@ -133,7 +134,6 @@ class User(CLITestCase):
         valid Username, First Name, Email Address, Language, authorized by
 
         @Assert: User is created
-
         """
         include_list = [gen_string("alphanumeric", 50)]
         for lastname in valid_usernames_list() + include_list:
@@ -141,6 +141,7 @@ class User(CLITestCase):
                 user = make_user({'lastname': lastname})
                 self.__assert_exists(user)
 
+    @tier1
     def test_positive_create_user_4(self):
         """@Test: Create User for all variations of Email Address
 
@@ -151,7 +152,6 @@ class User(CLITestCase):
         valid Username, First Name, Surname, Language, authorized by
 
         @Assert: User is created
-
         """
         for email in valid_emails_list():
             with self.subTest(email):
@@ -161,6 +161,7 @@ class User(CLITestCase):
                 user = make_user({'mail': escaped_email})
                 self.assertEqual(user['email'], email)
 
+    @tier1
     def test_positive_create_user_5(self):
         """@Test: Create User for all variations of Password
 
@@ -171,7 +172,6 @@ class User(CLITestCase):
         Username, First Name, Surname, Email Address, Language, authorized by
 
         @Assert: User is created
-
         """
         include_list = [gen_string("alphanumeric", 3000)]
         for password in valid_usernames_list() + include_list:
@@ -179,24 +179,24 @@ class User(CLITestCase):
                 user = make_user({'password': password})
                 self.__assert_exists(user)
 
+    @tier1
     def test_positive_create_user_6(self):
         """@Test: Create an Admin user
 
         @Feature: User - Positive Create
 
         @Assert: Admin User is created
-
         """
         user = make_user({'admin': '1'})
         self.__assert_exists(user)
 
+    @tier1
     def test_create_user_default_loc(self):
         """@Test: Check if user with default location can be created
 
         @Feature: User - Positive create
 
         @Assert: User is created and has new default location assigned
-
         """
         location = make_location()
         user = make_user({
@@ -206,13 +206,13 @@ class User(CLITestCase):
         self.assertIn(location['name'], user['locations'])
         self.assertEqual(location['name'], user['default-location'])
 
+    @tier1
     def test_create_user_defaut_org(self):
         """@Test: Check if user with default organization can be created
 
         @Feature: User - Positive create
 
         @Assert: User is created and has new default organization assigned
-
         """
         org = make_org()
         user = make_user({
@@ -234,9 +234,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_10(self):
@@ -250,9 +248,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_11(self):
@@ -266,9 +262,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_12(self):
@@ -282,9 +276,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_13(self):
@@ -298,9 +290,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_14(self):
@@ -314,9 +304,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_15(self):
@@ -330,9 +318,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_16(self):
@@ -346,9 +332,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_17(self):
@@ -362,9 +346,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_18(self):
@@ -378,9 +360,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_19(self):
@@ -394,9 +374,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_20(self):
@@ -410,9 +388,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_21(self):
@@ -426,9 +402,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_22(self):
@@ -442,9 +416,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_23(self):
@@ -458,9 +430,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_24(self):
@@ -471,9 +441,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_25(self):
@@ -484,9 +452,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_26(self):
@@ -497,9 +463,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_27(self):
@@ -513,9 +477,7 @@ class User(CLITestCase):
         @Assert: User is created
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_create_user_28(self):
@@ -530,10 +492,9 @@ class User(CLITestCase):
         @Assert: User is created without specifying the password
 
         @Status: Manual
-
         """
-        pass
 
+    @tier1
     def test_negative_create_user_1(self):
         """@Test: Create User with invalid Username
 
@@ -544,7 +505,6 @@ class User(CLITestCase):
         using valid First Name, Surname, Email Address, Language, authorized by
 
         @Assert: User is not created. Appropriate error shown.
-
         """
         for invalid_name in ('',
                              'space {0}'.format(gen_string('alpha')),
@@ -561,6 +521,7 @@ class User(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     UserObj.create(options)
 
+    @tier1
     def test_negative_create_user_2(self):
         """@Test: Create User with invalid Firstname
 
@@ -571,7 +532,6 @@ class User(CLITestCase):
         using valid Username, Surname, Email Address, Language, authorized by
 
         @Assert: User is not created. Appropriate error shown.
-
         """
         for invalid_firstname in (gen_string("alpha", 51),
                                   gen_string("html")):
@@ -585,6 +545,7 @@ class User(CLITestCase):
                         'password': gen_string('alpha'),
                     })
 
+    @tier1
     def test_negative_create_user_3(self):
         """@Test: Create User with invalid lastname
 
@@ -595,7 +556,6 @@ class User(CLITestCase):
         using valid Username, First Name Email Address, Language, authorized by
 
         @Assert: User is not created. Appropriate error shown.
-
         """
         for invalid_lastname in (gen_string("alpha", 51),
                                  gen_string("html")):
@@ -609,6 +569,7 @@ class User(CLITestCase):
                         'password': gen_string('alpha'),
                     })
 
+    @tier1
     def test_negative_create_user_4(self):
         """@Test: Create User with invalid Email Address
 
@@ -619,7 +580,6 @@ class User(CLITestCase):
         using valid Username, First Name, Surname, Language, authorized by
 
         @Assert: User is not created. Appropriate error shown.
-
         """
         for email in invalid_emails_list():
             with self.subTest(email):
@@ -634,6 +594,7 @@ class User(CLITestCase):
                     })
 
     @skip_if_bug_open('bugzilla', 1204686)
+    @tier1
     def test_bugzilla_1204686(self):
         """@Test: Create User with Empty Email Address
 
@@ -646,7 +607,6 @@ class User(CLITestCase):
         @Assert: User is not created. Appropriate error shown.
 
         @BZ: 1204686
-
         """
         with self.assertRaises(CLIReturnCodeError):
             UserObj.create({
@@ -658,6 +618,7 @@ class User(CLITestCase):
                 'password': gen_string('alpha'),
             })
 
+    @tier1
     def test_negative_create_user_5(self):
         """@Test: Create User with blank Authorized by
 
@@ -668,7 +629,6 @@ class User(CLITestCase):
         using valid Username, First Name, Surname, Email Address, Language
 
         @Assert: User is not created. Appropriate error shown.
-
         """
         with self.assertRaises(CLIReturnCodeError):
             UserObj.create({
@@ -677,6 +637,7 @@ class User(CLITestCase):
                 'mail': 'root@localhost',
             })
 
+    @tier1
     def test_negative_create_user_6(self):
         """@Test: Create User with blank Authorized by but values in
 
@@ -688,7 +649,6 @@ class User(CLITestCase):
         Surname, Email Address, Language
 
         @Assert: User is not created. Appropriate error shown.
-
         """
         with self.assertRaises(CLIReturnCodeError):
             UserObj.create({
@@ -698,6 +658,7 @@ class User(CLITestCase):
                 'password': gen_string('alpha'),
             })
 
+    @tier1
     def test_positive_update_user_1(self):
         """@Test: Update firstname in User
 
@@ -708,7 +669,6 @@ class User(CLITestCase):
         2. Update first name for all variations in [1]
 
         @Assert: User is updated
-
         """
         user = make_user()
         for new_firstname in valid_usernames_list():
@@ -721,6 +681,7 @@ class User(CLITestCase):
                 user_name = result['name'].split(' ')
                 self.assertEqual(user_name[0], new_firstname)
 
+    @tier1
     def test_positive_update_user_2(self):
         """@Test: Update Login in User
 
@@ -731,7 +692,6 @@ class User(CLITestCase):
         2. Update User login for all variations in [1]
 
         @Assert: User login is updated
-
         """
         user = make_user()
         include_list = [gen_string("alphanumeric", 100)]
@@ -744,6 +704,7 @@ class User(CLITestCase):
                 user = UserObj.info({'id': user['id']})
                 self.assertEqual(user['login'], new_login)
 
+    @tier1
     def test_positive_update_user_3(self):
         """@Test: Update Lastname in User
 
@@ -754,7 +715,6 @@ class User(CLITestCase):
         2. Update Lastname for all variations in [1]
 
         @Assert: User is updated
-
         """
         user = make_user()
         for new_lastname in valid_usernames_list():
@@ -767,6 +727,7 @@ class User(CLITestCase):
                 last_name_after = user['name'].split(' ')
                 self.assertEqual(last_name_after[1], new_lastname)
 
+    @tier1
     def test_positive_update_user_4(self):
         """@Test: Update Email Address in User
 
@@ -777,7 +738,6 @@ class User(CLITestCase):
         2. Update Email Address for all variations in [1]
 
         @Assert: User is updated
-
         """
         user = make_user()
         for data in (gen_string("alpha"),
@@ -809,9 +769,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_6(self):
@@ -826,9 +784,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_7(self):
@@ -843,9 +799,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_8(self):
@@ -860,9 +814,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_9(self):
@@ -877,9 +829,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_10(self):
@@ -894,9 +844,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_11(self):
@@ -911,9 +859,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_12(self):
@@ -928,9 +874,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_13(self):
@@ -945,9 +889,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_14(self):
@@ -962,9 +904,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_15(self):
@@ -979,9 +919,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_16(self):
@@ -996,9 +934,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_17(self):
@@ -1013,9 +949,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_18(self):
@@ -1030,9 +964,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_19(self):
@@ -1047,9 +979,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_20(self):
@@ -1064,9 +994,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_21(self):
@@ -1081,9 +1009,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_22(self):
@@ -1098,9 +1024,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_23(self):
@@ -1114,9 +1038,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_24(self):
@@ -1131,9 +1053,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_25(self):
@@ -1148,9 +1068,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_26(self):
@@ -1165,9 +1083,7 @@ class User(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_positive_update_user_28(self):
@@ -1182,9 +1098,7 @@ class User(CLITestCase):
         @Assert: User is update
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_negative_update_user_1(self):
@@ -1199,10 +1113,9 @@ class User(CLITestCase):
         @Assert: User is not updated.  Appropriate error shown.
 
         @Status: Manual
-
         """
-        pass
 
+    @tier1
     def test_negative_update_user_2(self):
         """@Test: Update invalid Firstname in an User
 
@@ -1213,7 +1126,6 @@ class User(CLITestCase):
         2. Update Firstname for all variations in [2]
 
         @Assert: User is not updated.  Appropriate error shown.
-
         """
         new_user = make_user()
         for invalid_firstname in (gen_string("alpha", 51),
@@ -1228,6 +1140,7 @@ class User(CLITestCase):
                         search=('login', new_user['login']))
                     self.assertEqual(updated_user['name'], new_user['name'])
 
+    @tier1
     def test_negative_update_user_3(self):
         """@Test: Update invalid lastname in an User
 
@@ -1238,7 +1151,6 @@ class User(CLITestCase):
         2. Update Surname for all variations in [2]
 
         @Assert: User is not updated.  Appropriate error shown.
-
         """
         new_user = make_user()
         for invalid_lastname in (gen_string("alpha", 51),
@@ -1253,6 +1165,7 @@ class User(CLITestCase):
                         search=('login', new_user['login']))
                     self.assertEqual(updated_user['name'], new_user['name'])
 
+    @tier1
     def test_negative_update_user_4(self):
         """@Test: Update invalid Email Address in an User
 
@@ -1263,7 +1176,6 @@ class User(CLITestCase):
         2. Update Email Address for all variations in [2]
 
         @Assert: User is not updated.  Appropriate error shown.
-
         """
         new_user = make_user()
         for email in invalid_emails_list():
@@ -1277,6 +1189,7 @@ class User(CLITestCase):
                         search=('login', new_user['login']))
                     self.assertEqual(updated_user['email'], new_user['email'])
 
+    @tier1
     def test_positive_delete_user_1(self):
         """@Test: Delete a user
 
@@ -1287,7 +1200,6 @@ class User(CLITestCase):
         2. Delete the User
 
         @Assert: User is deleted
-
         """
         for login in valid_usernames_list():
             with self.subTest(login):
@@ -1297,6 +1209,7 @@ class User(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     UserObj.info({'login': user['login']})
 
+    @tier1
     def test_positive_delete_user_2(self):
         """@Test: Delete an admin user
 
@@ -1307,7 +1220,6 @@ class User(CLITestCase):
         2. Delete the User
 
         @Assert: User is deleted
-
         """
         for login in valid_usernames_list():
             with self.subTest(login):
@@ -1317,6 +1229,7 @@ class User(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     UserObj.info({'login': user['login']})
 
+    @tier1
     def test_negative_delete_user_1(self):
         """@Test: Attempt to delete internal admin user
 
@@ -1326,7 +1239,6 @@ class User(CLITestCase):
         1. Attempt to delete the last admin user
 
         @Assert: User is not deleted
-
         """
         for opts in ({'admin': 'true'},
                      {'login': 'admin', 'password': 'changeme'}):
@@ -1342,6 +1254,7 @@ class User(CLITestCase):
                     result = UserObj.exists(search=('login', 'admin'))
                     self.assertTrue(result)
 
+    @tier1
     def test_list_user_1(self):
         """@Test: List User for all variations of Username
 
@@ -1353,7 +1266,6 @@ class User(CLITestCase):
         2. List User
 
         @Assert: User is listed
-
         """
         include_list = [gen_string("alphanumeric", 100)]
         for login in valid_usernames_list() + include_list:
@@ -1372,6 +1284,7 @@ class User(CLITestCase):
                     'name': user['name'],
                 }, result[0])
 
+    @tier1
     def test_list_user_2(self):
         """@Test: List User for all variations of Firstname
 
@@ -1383,7 +1296,6 @@ class User(CLITestCase):
         2. List User
 
         @Assert: User is listed
-
         """
         include_list = [gen_string("alphanumeric", 50)]
         for firstname in valid_usernames_list() + include_list:
@@ -1401,6 +1313,7 @@ class User(CLITestCase):
                     'name': user['name'],
                 }, result)
 
+    @tier1
     def test_list_user_3(self):
         """@Test: List User for all variations of Surname
 
@@ -1412,7 +1325,6 @@ class User(CLITestCase):
         2. List User
 
         @Assert: User is listed
-
         """
         include_list = [gen_string("alphanumeric", 50)]
         for lastname in valid_usernames_list() + include_list:
@@ -1430,6 +1342,7 @@ class User(CLITestCase):
                     'name': user['name'],
                 }, result)
 
+    @tier1
     def test_list_user_4(self):
         """@Test: List User for all variations of Email Address
 
@@ -1441,7 +1354,6 @@ class User(CLITestCase):
         2. List User
 
         @Assert: User is listed
-
         """
         for mail in (gen_string("alpha") + "@somemail.com",
                      gen_string("alphanumeric", 10) + "@somemail.com",
@@ -1462,6 +1374,7 @@ class User(CLITestCase):
                 }, result)
 
     @skip_if_bug_open('bugzilla', 1204667)
+    @tier1
     def test_bugzilla_1204667(self):
         """@Test: List User for utf-8,latin variations of Email Address
 
@@ -1475,7 +1388,6 @@ class User(CLITestCase):
         @Assert: User is listed
 
         @BZ: 1204667
-
         """
         for mail in (gen_string("latin1") + "@somemail.com",
                      gen_string("utf8") + "@somemail.com"):
@@ -1507,9 +1419,7 @@ class User(CLITestCase):
         @Assert: User is found
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_search_user_2(self):
@@ -1525,9 +1435,7 @@ class User(CLITestCase):
         @Assert: User is found
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_search_user_3(self):
@@ -1543,9 +1451,7 @@ class User(CLITestCase):
         @Assert: User is found
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_search_user_4(self):
@@ -1561,9 +1467,7 @@ class User(CLITestCase):
         @Assert: User is found
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_search_user_5(self):
@@ -1579,9 +1483,7 @@ class User(CLITestCase):
         @Assert: User is found
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_info_user_1(self):
@@ -1597,9 +1499,7 @@ class User(CLITestCase):
         @Assert: User info is displayed
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_info_user_2(self):
@@ -1615,9 +1515,7 @@ class User(CLITestCase):
         @Assert: User info is displayed
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_info_user_3(self):
@@ -1633,9 +1531,7 @@ class User(CLITestCase):
         @Assert: User info is displayed
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_info_user_4(self):
@@ -1651,9 +1547,7 @@ class User(CLITestCase):
         @Assert: User info is displayed
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_info_user_5(self):
@@ -1669,9 +1563,7 @@ class User(CLITestCase):
         @Assert: User info is displayed
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_end_to_end_user_1(self):
@@ -1691,9 +1583,7 @@ class User(CLITestCase):
         @Assert: All actions passed
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_end_to_end_user_2(self):
@@ -1713,17 +1603,15 @@ class User(CLITestCase):
         @Assert: All actions failed since the User is not assigned to any Org
 
         @Status: Manual
-
         """
-        pass
 
+    @tier1
     def test_automation_bz_1110337(self):
         """@Test: Automation of BZ 1110337
 
         @Feature: User - info, list BZ
 
         @Assert: No undefined method exception
-
         """
         users = [make_user() for _ in range(4)]
         # non-existing user info
@@ -1736,6 +1624,7 @@ class User(CLITestCase):
             self.assertNotEqual(str(result).find(user['login']), -1)
 
     @skip_if_bug_open('bugzilla', 1138553)
+    @tier2
     def test_user_add_role_1(self):
         """@Test: Add role to User for all variations of role names
 
@@ -1747,7 +1636,6 @@ class User(CLITestCase):
         @Assert: Role is added to user
 
         @BZ: 1138553
-
         """
         user = make_user()
         include_list = [gen_string("alphanumeric", 100)]
@@ -1763,6 +1651,7 @@ class User(CLITestCase):
                 self.assertIn(role_name, user['roles'])
 
     @skip_if_bug_open('bugzilla', 1138553)
+    @tier2
     def test_user_remove_role_1(self):
         """@Test: Remove role to User for all variations of role names
 
@@ -1774,7 +1663,6 @@ class User(CLITestCase):
         @Assert: Role is removed
 
         @BZ: 1138553
-
         """
         user = make_user()
         include_list = [gen_string("alphanumeric", 100)]

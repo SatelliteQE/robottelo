@@ -5,7 +5,7 @@ from robottelo.cli.factory import make_org
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -28,13 +28,13 @@ class TestSubscription(CLITestCase):
             'organization-id': org_id,
         })
 
+    @tier1
     def test_manifest_upload(self):
         """@Test: upload manifest (positive)
 
         @Feature: Subscriptions/Manifest Upload
 
         @Assert: Manifest are uploaded properly
-
         """
         self._upload_manifest(self.manifest, self.org['id'])
         Subscription.list(
@@ -42,13 +42,13 @@ class TestSubscription(CLITestCase):
             per_page=False,
         )
 
+    @tier1
     def test_manifest_delete(self):
         """@Test: Delete uploaded manifest (positive)
 
         @Feature: Subscriptions/Manifest Delete
 
         @Assert: Manifest are deleted properly
-
         """
         self._upload_manifest(self.manifest, self.org['id'])
         Subscription.list(
@@ -63,6 +63,7 @@ class TestSubscription(CLITestCase):
             per_page=False,
         )
 
+    @tier2
     def test_enable_manifest_reposet(self):
         """@Test: enable repository set (positive)
 
@@ -70,7 +71,6 @@ class TestSubscription(CLITestCase):
 
         @Assert: you are able to enable and synchronize
         repository contained in a manifest
-
         """
         self._upload_manifest(self.manifest, self.org['id'])
         Subscription.list(
@@ -97,13 +97,13 @@ class TestSubscription(CLITestCase):
             'product': 'Red Hat Enterprise Linux Workstation',
         })
 
+    @tier1
     def test_manifest_history(self):
         """@Test: upload manifest (positive) and check history
 
         @Feature: Subscriptions/Manifest History
 
         @Assert: Manifest history is shown properly
-
         """
         self._upload_manifest(self.manifest, self.org['id'])
         Subscription.list(
@@ -118,13 +118,13 @@ class TestSubscription(CLITestCase):
             ''.join(history),
         )
 
+    @tier1
     def test_manifest_refresh(self):
         """@Test: upload manifest (positive) and refresh
 
         @Feature: Subscriptions/Manifest refresh
 
         @Assert: Manifests can be refreshed
-
         """
         self._upload_manifest(
             manifests.download_manifest_template(), self.org['id'])
@@ -140,6 +140,7 @@ class TestSubscription(CLITestCase):
         })
 
     @skip_if_bug_open('bugzilla', 1226425)
+    @tier1
     def test_invalid_manifest_refresh(self):
         """@Test: manifest refresh must fail with a cloned manifest
 
@@ -148,7 +149,6 @@ class TestSubscription(CLITestCase):
         @Assert: the refresh command returns a non-zero return code
 
         @BZ: 1226425
-
         """
         self._upload_manifest(self.manifest, self.org['id'])
         Subscription.list(

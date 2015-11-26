@@ -6,7 +6,7 @@ from robottelo.cli.domain import Domain
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_domain, make_location, make_org
 from robottelo.datafactory import invalid_id_list, valid_data_list
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
@@ -101,6 +101,7 @@ class TestDomain(CLITestCase):
     factory = make_domain
     factory_obj = Domain
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create(self):
         """@Test: Create domain with valid name and description
@@ -117,6 +118,7 @@ class TestDomain(CLITestCase):
                 self.assertEqual(
                     domain['description'], options['description'])
 
+    @tier1
     @run_only_on('sat')
     def test_create_domain_with_location(self):
         """@Test: Check if domain with location can be created
@@ -130,6 +132,7 @@ class TestDomain(CLITestCase):
         domain = make_domain({'location-ids': location['id']})
         self.assertIn(location['name'], domain['locations'])
 
+    @tier1
     @run_only_on('sat')
     def test_create_domain_with_organization(self):
         """@Test: Check if domain with organization can be created
@@ -143,6 +146,7 @@ class TestDomain(CLITestCase):
         domain = make_domain({'organization-ids': org['id']})
         self.assertIn(org['name'], domain['organizations'])
 
+    @tier1
     @run_only_on('sat')
     def test_negative_create(self):
         """@Test: Create domain with invalid values
@@ -157,6 +161,7 @@ class TestDomain(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     make_domain(options)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_update(self):
         """@Test: Update domain with valid values
@@ -178,6 +183,7 @@ class TestDomain(CLITestCase):
                 for key, val in options.iteritems():
                     self.assertEqual(domain[key], val)
 
+    @tier1
     @run_only_on('sat')
     def test_negative_update(self):
         """@Test: Update domain with invalid values
@@ -197,6 +203,7 @@ class TestDomain(CLITestCase):
                 for key in options.keys():
                     self.assertEqual(result[key], domain[key])
 
+    @tier1
     @run_only_on('sat')
     def test_positive_set_parameter(self):
         """@Test: Domain set-parameter with valid key and value
@@ -218,6 +225,7 @@ class TestDomain(CLITestCase):
                 }
                 self.assertDictEqual(parameter, domain['parameters'])
 
+    @tier1
     @run_only_on('sat')
     def test_negative_set_parameter(self):
         """@Test: Domain set-parameter with invalid values
@@ -238,6 +246,7 @@ class TestDomain(CLITestCase):
                 domain = Domain.info({'id': domain['id']})
                 self.assertEqual(len(domain['parameters']), 0)
 
+    @tier1
     @run_only_on('sat')
     def test_positive_delete(self):
         """@test: Create Domain with valid values then delete it
@@ -254,6 +263,7 @@ class TestDomain(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Domain.info({'id': domain['id']})
 
+    @tier1
     @run_only_on('sat')
     def test_negative_delete(self):
         """@test: Create Domain then delete it by wrong ID
@@ -267,6 +277,7 @@ class TestDomain(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Domain.delete({'id': entity_id})
 
+    @tier1
     @run_only_on('sat')
     def test_positive_delete_parameter(self):
         """@Test: Domain delete-parameter removes parameter

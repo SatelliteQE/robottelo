@@ -26,7 +26,7 @@ from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.factory import make_location, make_compute_resource
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
 from robottelo.test import CLITestCase
 
 LIBVIRT_URL = 'qemu+tcp://{}:16509/system'.format(settings.server.hostname)
@@ -96,6 +96,7 @@ class TestComputeResource(CLITestCase):
     """ComputeResource CLI tests."""
 
     # pylint: disable=no-self-use
+    @tier1
     @run_only_on('sat')
     def test_create(self):
         """@Test: Create Compute Resource
@@ -111,6 +112,7 @@ class TestComputeResource(CLITestCase):
             'url': LIBVIRT_URL,
         })
 
+    @tier1
     @run_only_on('sat')
     def test_info(self):
         """@Test: Test Compute Resource Info
@@ -129,6 +131,7 @@ class TestComputeResource(CLITestCase):
         # factory already runs info, just check the data
         self.assertEquals(compute_resource['name'], name)
 
+    @tier1
     @run_only_on('sat')
     def test_list(self):
         """@Test: Test Compute Resource List
@@ -149,6 +152,7 @@ class TestComputeResource(CLITestCase):
         result = ComputeResource.exists(search=('name', comp_res['name']))
         self.assertTrue(result)
 
+    @tier1
     @run_only_on('sat')
     def test_delete(self):
         """@Test: Test Compute Resource delete
@@ -169,6 +173,7 @@ class TestComputeResource(CLITestCase):
 
     # Positive create
 
+    @tier1
     @run_only_on('sat')
     def test_create_positive_libvirt(self):
         """@Test: Test Compute Resource create
@@ -187,6 +192,7 @@ class TestComputeResource(CLITestCase):
                     u'url': gen_url(),
                 })
 
+    @tier1
     @run_only_on('sat')
     def test_create_cr_with_location(self):
         """@Test: Create Compute Resource with location
@@ -201,6 +207,7 @@ class TestComputeResource(CLITestCase):
         self.assertEqual(1, len(comp_resource['locations']))
         self.assertEqual(comp_resource['locations'][0], location['name'])
 
+    @tier1
     @run_only_on('sat')
     def test_create_cr_with_locations(self):
         """@Test: Create Compute Resource with multiple locations
@@ -220,6 +227,7 @@ class TestComputeResource(CLITestCase):
         for location in locations:
             self.assertIn(location['name'], comp_resource['locations'])
 
+    @tier1
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1214312)
     def test_create_cr_with_consolepwd(self):
@@ -249,6 +257,7 @@ class TestComputeResource(CLITestCase):
 
     # Negative create
 
+    @tier1
     @run_only_on('sat')
     def test_create_negative_1(self):
         """@Test: Compute Resource negative create with invalid values
@@ -269,6 +278,7 @@ class TestComputeResource(CLITestCase):
                         u'url': options.get('url', gen_url()),
                     })
 
+    @tier1
     @run_only_on('sat')
     def test_create_negative_2(self):
         """@Test: Compute Resource negative create with the same name
@@ -288,6 +298,7 @@ class TestComputeResource(CLITestCase):
 
     # Update Positive
 
+    @tier1
     @run_only_on('sat')
     def test_update_positive(self):
         """@Test: Compute Resource positive update
@@ -324,6 +335,7 @@ class TestComputeResource(CLITestCase):
 
     # Update Negative
 
+    @tier1
     @run_only_on('sat')
     def test_update_negative(self):
         """@Test: Compute Resource negative update
@@ -346,6 +358,7 @@ class TestComputeResource(CLITestCase):
                 for key in options.keys():
                     self.assertEqual(comp_res[key], result[key])
 
+    @tier1
     @run_only_on('sat')
     def test_set_console_password_v1(self):
         """@Test: Create a compute resource with ``--set-console-password``.
@@ -366,6 +379,7 @@ class TestComputeResource(CLITestCase):
                     'url': gen_url(),
                 })
 
+    @tier1
     @run_only_on('sat')
     def test_set_console_password_v2(self):
         """@Test: Update a compute resource with ``--set-console-password``.

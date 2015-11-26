@@ -30,7 +30,7 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.datafactory import invalid_values_list, generate_strings_list
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 
@@ -80,6 +80,7 @@ class TestContentHost(CLITestCase):
         })
         TestContentHost.PROMOTED_CV = TestContentHost.NEW_CV
 
+    @tier1
     def test_positive_create_1(self):
         """@Test: Check if content host can be created with random names
 
@@ -99,6 +100,7 @@ class TestContentHost(CLITestCase):
             # Assert that name matches data passed
             self.assertEqual(new_system['name'], name)
 
+    @tier1
     def test_positive_create_2(self):
         """@Test: Check if content host can be created with random description
 
@@ -118,6 +120,7 @@ class TestContentHost(CLITestCase):
                 # Assert that description matches data passed
                 self.assertEqual(new_system['description'], desc)
 
+    @tier1
     def test_positive_create_3(self):
         """@Test: Check if content host can be created with organization name
 
@@ -140,6 +143,7 @@ class TestContentHost(CLITestCase):
             self.LIBRARY['name'],
         )
 
+    @tier1
     def test_positive_create_4(self):
         """@Test: Check if content host can be created with organization label
 
@@ -163,6 +167,7 @@ class TestContentHost(CLITestCase):
         )
 
     @run_only_on('sat')
+    @tier1
     def test_positive_create_5(self):
         """@Test: Check if content host can be created with content view name
 
@@ -180,6 +185,7 @@ class TestContentHost(CLITestCase):
         # Assert that name matches data passed
         self.assertEqual(new_system['content-view'], self.DEFAULT_CV['name'])
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_6(self):
         """@Test: Check if content host can be created with lifecycle name
@@ -201,6 +207,7 @@ class TestContentHost(CLITestCase):
             self.LIBRARY['name'],
         )
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_7(self):
         """@Test: Check if content host can be created with new lifecycle
@@ -222,6 +229,7 @@ class TestContentHost(CLITestCase):
             self.NEW_LIFECYCLE['name'],
         )
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_8(self):
         """@Test: Check if content host can be created with new content view
@@ -246,6 +254,7 @@ class TestContentHost(CLITestCase):
             TestContentHost.PROMOTED_CV['name'],
         )
 
+    @tier1
     def test_negative_create_1(self):
         """@Test: Check if content host can be created with random long names
 
@@ -264,6 +273,7 @@ class TestContentHost(CLITestCase):
                         u'lifecycle-environment-id': self.LIBRARY['id'],
                     })
 
+    @tier1
     @run_only_on('sat')
     def test_negative_create_2(self):
         """@Test: Check if content host can be created with new content view
@@ -285,6 +295,7 @@ class TestContentHost(CLITestCase):
                 u'organization-id': TestContentHost.NEW_ORG['id'],
             })
 
+    @tier1
     def test_positive_update_1(self):
         """@Test: Check if content host name can be updated
 
@@ -307,6 +318,7 @@ class TestContentHost(CLITestCase):
                 result = ContentHost.info({'id': new_system['id']})
                 self.assertEqual(result['name'], new_name)
 
+    @tier1
     def test_positive_update_2(self):
         """@Test: Check if content host description can be updated
 
@@ -329,6 +341,7 @@ class TestContentHost(CLITestCase):
                 result = ContentHost.info({'id': new_system['id']})
                 self.assertEqual(result['description'], new_desc)
 
+    @tier1
     def test_positive_delete_1(self):
         """@Test: Check if content host can be created and deleted
 
@@ -349,6 +362,7 @@ class TestContentHost(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     ContentHost.info({'id': new_system['id']})
 
+    @tier1
     @skip_if_bug_open('bugzilla', 1154611)
     def test_bugzilla_1154611(self):
         """@test: check if Content Host creation does not allow duplicated
@@ -445,6 +459,7 @@ class TestCHKatelloAgent(CLITestCase):
         self.client.destroy()
         super(TestCHKatelloAgent, self).tearDown()
 
+    @tier2
     @run_only_on('sat')
     def test_ch_get_errata_info(self):
         """@Test: Get errata info
@@ -466,6 +481,7 @@ class TestCHKatelloAgent(CLITestCase):
         self.assertEqual(result[0]['errata-id'], FAKE_0_ERRATA_ID)
         self.assertEqual(result[0]['packages'], FAKE_0_CUSTOM_PACKAGE)
 
+    @tier2
     @run_only_on('sat')
     def test_ch_apply_errata(self):
         """@Test: Apply errata to content host
@@ -485,6 +501,7 @@ class TestCHKatelloAgent(CLITestCase):
             u'organization-id': TestCHKatelloAgent.org['id'],
         })
 
+    @tier2
     @run_only_on('sat')
     def test_ch_package_install(self):
         """@Test: Install package to content host remotely
@@ -504,6 +521,7 @@ class TestCHKatelloAgent(CLITestCase):
         )
         self.assertEqual(result.return_code, 0)
 
+    @tier2
     @run_only_on('sat')
     def test_ch_package_remove(self):
         """@Test: Remove package from content host remotely
@@ -527,6 +545,7 @@ class TestCHKatelloAgent(CLITestCase):
         )
         self.assertNotEqual(result.return_code, 0)
 
+    @tier2
     @run_only_on('sat')
     def test_ch_package_upgrade(self):
         """@Test: Upgrade content host package remotely
@@ -545,6 +564,7 @@ class TestCHKatelloAgent(CLITestCase):
         result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
         self.assertEqual(result.return_code, 0)
 
+    @tier2
     @run_only_on('sat')
     def test_ch_package_upgrade_all(self):
         """@Test: Upgrade all the content host packages remotely
@@ -563,6 +583,7 @@ class TestCHKatelloAgent(CLITestCase):
         result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
         self.assertEqual(result.return_code, 0)
 
+    @tier2
     @run_only_on('sat')
     def test_ch_package_group_install(self):
         """@Test: Install package group to content host remotely
@@ -581,6 +602,7 @@ class TestCHKatelloAgent(CLITestCase):
             result = self.client.run('rpm -q {0}'.format(package))
             self.assertEqual(result.return_code, 0)
 
+    @tier2
     @run_only_on('sat')
     def test_ch_package_group_remove(self):
         """@Test: Remove package group from content host remotely

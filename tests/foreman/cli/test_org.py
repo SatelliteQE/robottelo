@@ -14,7 +14,13 @@ from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.org import Org
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
-from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+    tier1,
+    tier2,
+)
 from robottelo.test import CLITestCase
 
 
@@ -24,7 +30,6 @@ def valid_names():
     Note: The maximum allowed length of org name is 242 only. This is an
     intended behavior (Also note that 255 is the standard across other
     entities.)
-
     """
     return (
         {'name': gen_string("latin1")},
@@ -42,7 +47,6 @@ def valid_name_label_combo():
     Use this when name and label must match. Labels cannot contain the same
     data type as names, so this is a bit limited compared to other tests.
     Label cannot contain characters other than ascii alpha numerals, '_', '-'.
-
     """
     return (
         {'name': gen_string("alpha")},
@@ -61,7 +65,6 @@ def valid_names_simple():
     Note: The maximum allowed length of org name is 242 only. This is an
     intended behavior (Also note that 255 is the standard across other
     entities.)
-
     """
     return(
         gen_string('alpha', randint(1, 242)),
@@ -76,7 +79,6 @@ def valid_names_simple_all():
     Note: The maximum allowed length of org name is 242 only. This is an
     intended behavior (Also note that 255 is the standard across other
     entities.)
-
     """
     return(
         gen_string('alpha', randint(1, 242)),
@@ -95,7 +97,6 @@ def valid_name_label():
     Note: The maximum allowed length of org name is 242 only. This is an
     intended behavior (Also note that 255 is the standard across other
     entities.)
-
     """
     return (
         {'name': gen_string("latin1"),
@@ -119,7 +120,6 @@ def valid_name_desc():
     Note: The maximum allowed length of org name is 242 only. This is an
     intended behavior (Also note that 255 is the standard across other
     entities.)
-
     """
     return (
         {'name': gen_string("latin1"),
@@ -143,7 +143,6 @@ def valid_name_desc_label():
     Note: The maximum allowed length of org name is 242 only. This is an
     intended behavior (Also note that 255 is the standard across other
     entities.)
-
     """
     return (
         {'name': gen_string("alpha", randint(1, 242)),
@@ -210,13 +209,13 @@ class TestOrg(CLITestCase):
     # Tests for issues
 
     # This test also covers the redmine bug 4443
+    @tier1
     def test_redmine_4486(self):
         """@test: Can search for an organization by name
 
         @feature: Organizations
 
         @assert: organization is created and can be searched by name
-
         """
         for test_data in valid_names():
             with self.subTest(test_data):
@@ -226,13 +225,13 @@ class TestOrg(CLITestCase):
                 self.assertEqual(org['name'], result['name'])
 
     @run_only_on('sat')
+    @tier2
     def test_remove_domain(self):
         """@Test: Check if a Domain can be removed from an Org
 
         @Feature: Org - Domain
 
         @Assert: Domain is removed from the org
-
         """
         org = make_org()
         domain = make_domain()
@@ -245,13 +244,13 @@ class TestOrg(CLITestCase):
             'name': org['name'],
         })
 
+    @tier1
     def test_bugzilla_1079587(self):
         """@test: Search for an organization by label
 
         @feature: Organizations
 
         @assert: organization is created and can be searched by label
-
         """
         for test_data in valid_names():
             with self.subTest(test_data):
@@ -260,13 +259,13 @@ class TestOrg(CLITestCase):
                 result = Org.exists(search=('label', org['label']))
                 self.assertEqual(org['name'], result['name'])
 
+    @tier1
     def test_bugzilla_1076568_1(self):
         """@test: Delete organization by name
 
         @feature: Organizations
 
         @assert: Organization is deleted
-
         """
         org = make_org()
         Org.delete({'name': org['name']})
@@ -274,13 +273,13 @@ class TestOrg(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Org.info({'id': org['id']})
 
+    @tier1
     def test_bugzilla_1076568_2(self):
         """@test: Delete organization by ID
 
         @feature: Organizations
 
         @assert: Organization is deleted
-
         """
         org = make_org()
         Org.delete({'id': org['id']})
@@ -288,13 +287,13 @@ class TestOrg(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Org.info({'id': org['id']})
 
+    @tier1
     def test_bugzilla_1076568_3(self):
         """@test: Delete organization by label
 
         @feature: Organizations
 
         @assert: Organization is deleted
-
         """
         org = make_org()
         Org.delete({'label': org['label']})
@@ -302,13 +301,13 @@ class TestOrg(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             Org.info({'id': org['id']})
 
+    @tier1
     def test_bugzilla_1076541(self):
         """@test: Cannot update organization name via CLI
 
         @feature: Organizations
 
         @assert: Organization name is updated
-
         """
         org = make_org()
         # Update the org name
@@ -321,6 +320,7 @@ class TestOrg(CLITestCase):
         org = Org.info({'id': org['id']})
         self.assertEqual(org['name'], new_name)
 
+    @tier1
     def test_bugzilla_1075163(self):
         """@Test: Add --label as a valid argument to organization info command
 
@@ -328,12 +328,12 @@ class TestOrg(CLITestCase):
 
         @Assert: Organization is created and info can be obtained by its label
         graciously
-
         """
         org = make_org()
         result = Org.info({'label': org['label']})
         self.assertEqual(org['id'], result['id'])
 
+    @tier1
     def test_bugzilla_1075156(self):
         """@Test: Cannot use CLI info for organizations by name
 
@@ -341,20 +341,19 @@ class TestOrg(CLITestCase):
 
         @Assert: Organization is created and info can be obtained by its name
         graciously
-
         """
         org = make_org()
         result = Org.info({'name': org['name']})
         self.assertEqual(org['id'], result['id'])
 
     @run_only_on('sat')
+    @tier2
     def test_bugzilla_1062295_1(self):
         """@Test: Foreman Cli : Add_Config template fails
 
         @Feature: Org
 
         @Assert: Config Template is added to the org
-
         """
         org = make_org()
         template = make_template()
@@ -364,13 +363,13 @@ class TestOrg(CLITestCase):
         })
 
     @run_only_on('sat')
+    @tier2
     def test_bugzilla_1062295_2(self):
         """@Test: Foreman Cli : Add_Config template fails
 
         @Feature: Org
 
         @Assert: ConfigTemplate is removed from the org
-
         """
         org = make_org()
         template = make_template()
@@ -383,6 +382,7 @@ class TestOrg(CLITestCase):
             'name': org['name'],
         })
 
+    @tier1
     def test_bugzilla_1023125(self):
         """@Test: hammer-cli: trying to create duplicate org throws unhandled
         ISE
@@ -391,7 +391,6 @@ class TestOrg(CLITestCase):
 
         @Assert: Organization is created once and second attempt is handled
         graciously
-
         """
         org = make_org()
         # Create new org with the same name as before
@@ -400,6 +399,7 @@ class TestOrg(CLITestCase):
             make_org({'name': org['name']})
 
     # This Bugzilla bug is private. It is impossible to fetch info about it.
+    @tier1
     def test_bugzilla_1078866(self):
         """@Test: hammer organization <info,list> --help types information
         doubled
@@ -407,7 +407,6 @@ class TestOrg(CLITestCase):
         @Feature: org info/list
 
         @Assert: no duplicated lines in usage message
-
         """
         # org list --help:
         result = Org.list({'help': True})
@@ -424,26 +423,26 @@ class TestOrg(CLITestCase):
 
     # CRUD
 
+    @tier1
     def test_positive_create_1(self):
         """@test: Create organization with valid name only
 
         @feature: Organizations
 
         @assert: organization is created, label is auto-generated
-
         """
         for test_data in valid_names():
             with self.subTest(test_data):
                 org = make_org(test_data)
                 self.assertEqual(org['name'], test_data['name'])
 
+    @tier1
     def test_positive_create_2(self):
         """@test: Create organization with valid matching name and label only
 
         @feature: Organizations
 
         @assert: organization is created, label matches name
-
         """
         for test_data in valid_name_label_combo():
             with self.subTest(test_data):
@@ -452,6 +451,7 @@ class TestOrg(CLITestCase):
                 self.assertEqual(org['name'], org['label'])
 
     @skip_if_bug_open('bugzilla', 1142821)
+    @tier1
     def test_positive_create_3(self):
         """@test: Create organization with valid unmatching name and label only
 
@@ -460,7 +460,6 @@ class TestOrg(CLITestCase):
         @assert: organization is created, label does not match name
 
         @bz: 1142821
-
         """
         for test_data in valid_name_label():
             with self.subTest(test_data):
@@ -469,13 +468,13 @@ class TestOrg(CLITestCase):
                 self.assertEqual(org['name'], test_data['name'])
                 self.assertEqual(org['label'], test_data['label'])
 
+    @tier1
     def test_positive_create_4(self):
         """@test: Create organization with valid name and description only
 
         @feature: Organizations
 
         @assert: organization is created, label is auto-generated
-
         """
         for test_data in valid_name_desc():
             with self.subTest(test_data):
@@ -485,6 +484,7 @@ class TestOrg(CLITestCase):
                 self.assertEqual(org['description'], test_data['description'])
 
     @skip_if_bug_open('bugzilla', 1142821)
+    @tier1
     def test_positive_create_5(self):
         """@test: Create organization with valid name, label and description
 
@@ -493,7 +493,6 @@ class TestOrg(CLITestCase):
         @assert: organization is created
 
         @bz: 1142821
-
         """
         for test_data in valid_name_desc():
             with self.subTest(test_data):
@@ -503,24 +502,24 @@ class TestOrg(CLITestCase):
                 self.assertEqual(org['description'], test_data['description'])
                 self.assertEqual(org['label'], test_data['label'])
 
+    @tier1
     def test_list_org(self):
         """@Test: Check if Org can be listed
 
         @Feature: Org - List
 
         @Assert: Org is listed
-
         """
         Org.list()
 
     @run_only_on('sat')
+    @tier2
     def test_add_subnet(self):
         """@Test: Check if a subnet can be added to an Org
 
         @Feature: Org - Subnet
 
         @Assert: Subnet is added to the org
-
         """
         org = make_org()
         subnet = make_subnet()
@@ -530,13 +529,13 @@ class TestOrg(CLITestCase):
         })
 
     @run_only_on('sat')
+    @tier2
     def test_remove_subnet(self):
         """@Test: Check if a subnet can be removed from an Org
 
         @Feature: Org - Subnet
 
         @Assert: Subnet is removed from the org
-
         """
         org = make_org()
         subnet = make_subnet()
@@ -549,13 +548,13 @@ class TestOrg(CLITestCase):
             'subnet': subnet['name'],
         })
 
+    @tier2
     def test_add_user(self):
         """@Test: Check if a User can be added to an Org
 
         @Feature: Org - User
 
         @Assert: User is added to the org
-
         """
         org = make_org()
         user = make_user()
@@ -564,13 +563,13 @@ class TestOrg(CLITestCase):
             'user-id': user['id'],
         })
 
+    @tier2
     def test_remove_user(self):
         """@Test: Check if a User can be removed from an Org
 
         @Feature: Org - User
 
         @Assert: User is removed from the org
-
         """
         org = make_org()
         user = make_user()
@@ -584,13 +583,13 @@ class TestOrg(CLITestCase):
         })
 
     @run_only_on('sat')
+    @tier2
     def test_add_hostgroup(self):
         """@Test: Check if a hostgroup can be added to an Org
 
         @Feature: Org - Hostgroup
 
         @Assert: Hostgroup is added to the org
-
         """
         org = make_org()
         hostgroup = make_hostgroup()
@@ -600,13 +599,13 @@ class TestOrg(CLITestCase):
         })
 
     @run_only_on('sat')
+    @tier2
     def test_remove_hostgroup(self):
         """@Test: Check if a hostgroup can be removed from an Org
 
         @Feature: Org - Subnet
 
         @Assert: Hostgroup is removed from the org
-
         """
         org = make_org()
         hostgroup = make_hostgroup()
@@ -620,13 +619,13 @@ class TestOrg(CLITestCase):
         })
 
     @run_only_on('sat')
+    @tier2
     def test_add_computeresource(self):
         """@Test: Check if a Compute Resource can be added to an Org
 
         @Feature: Org - Compute Resource
 
         @Assert: Compute Resource is added to the org
-
         """
         org = make_org()
         compute_res = make_compute_resource({
@@ -640,6 +639,7 @@ class TestOrg(CLITestCase):
         org = Org.info({'id': org['id']})
         self.assertEqual(org['compute-resources'][0], compute_res['name'])
 
+    @tier2
     def test_add_compute_resource_by_id(self):
         """@Test: Check that new organization with compute resource associated
         to it can be created in the system
@@ -647,13 +647,13 @@ class TestOrg(CLITestCase):
         @Feature: Org - Compute Resource
 
         @Assert: Organization with compute resource created successfully
-
         """
         compute_res = make_compute_resource()
         org = make_org({'compute-resource-ids': compute_res['id']})
         self.assertEqual(len(org['compute-resources']), 1)
         self.assertEqual(org['compute-resources'][0], compute_res['name'])
 
+    @tier2
     def test_add_compute_resources(self):
         """@Test: Check if Organization can be created with multiple compute
         resources
@@ -661,7 +661,6 @@ class TestOrg(CLITestCase):
         @Feature: Org - Compute Resource
 
         @Assert: Organization with compute resources created successfully
-
         """
         cr_amount = random.randint(3, 5)
         resources = [make_compute_resource() for _ in range(cr_amount)]
@@ -683,18 +682,16 @@ class TestOrg(CLITestCase):
         @Assert: ComputeResource is removed from the org
 
         @status: manual
-
         """
-        pass
 
     @run_only_on('sat')
+    @tier2
     def test_add_medium(self):
         """@Test: Check if a Medium can be added to an Org
 
         @Feature: Org - Medium
 
         @Assert: Medium is added to the org
-
         """
         org = make_org()
         medium = make_medium()
@@ -706,13 +703,13 @@ class TestOrg(CLITestCase):
         self.assertIn(medium['name'], org['installation-media'])
 
     @run_only_on('sat')
+    @tier2
     def test_remove_medium(self):
         """@Test: Check if a Medium can be removed from an Org
 
         @Feature: Org - Medium
 
         @Assert: Medium is removed from the org
-
         """
         org = make_org()
         medium = make_medium()
@@ -728,13 +725,13 @@ class TestOrg(CLITestCase):
         self.assertNotIn(medium['name'], org['installation-media'])
 
     @run_only_on('sat')
+    @tier2
     def test_add_configtemplate(self):
         """@Test: Check if a Config Template can be added to an Org
 
         @Feature: Org - Config Template
 
         @Assert: Config Template is added to the org
-
         """
         for name in valid_names_simple_all():
             with self.subTest(name):
@@ -753,6 +750,7 @@ class TestOrg(CLITestCase):
                     org['templates']
                 )
 
+    @tier2
     def test_add_configtemplate_by_id(self):
         """@Test: Check that new organization with config template associated
         to it can be created in the system
@@ -760,7 +758,6 @@ class TestOrg(CLITestCase):
         @Feature: Org - Config Template
 
         @Assert: Organization with config template created successfully
-
         """
         conf_templ = make_template()
         org = make_org({'config-template-ids': conf_templ['id']})
@@ -769,6 +766,7 @@ class TestOrg(CLITestCase):
             org['templates']
         )
 
+    @tier2
     def test_add_configtemplates(self):
         """@Test: Check that new organization with multiple config templates
         associated to it can be created in the system
@@ -776,7 +774,6 @@ class TestOrg(CLITestCase):
         @Feature: Org - Config Template
 
         @Assert: Organization with config templates created successfully
-
         """
         templates_amount = random.randint(3, 5)
         templates = [make_template() for _ in range(templates_amount)]
@@ -792,13 +789,13 @@ class TestOrg(CLITestCase):
             )
 
     @run_only_on('sat')
+    @tier2
     def test_remove_configtemplate(self):
         """@Test: Check if a ConfigTemplate can be removed from an Org
 
         @Feature: Org - ConfigTemplate
 
         @Assert: ConfigTemplate is removed from the org
-
         """
         for name in valid_names_simple_all():
             with self.subTest(name):
@@ -829,13 +826,13 @@ class TestOrg(CLITestCase):
                 )
 
     @run_only_on('sat')
+    @tier2
     def test_add_environment(self):
         """@Test: Check if an environment can be added to an Org
 
         @Feature: Org - Environment
 
         @Assert: Environment is added to the org
-
         """
         # Create a lifecycle environment.
         org_id = make_org()['id']
@@ -850,13 +847,13 @@ class TestOrg(CLITestCase):
         self.assertEqual(response[0]['name'], lc_env_name)
 
     @run_only_on('sat')
+    @tier2
     def test_remove_environment(self):
         """@Test: Check if an Environment can be removed from an Org
 
         @Feature: Org - Environment
 
         @Assert: Environment is removed from the org
-
         """
         # Create a lifecycle environment.
         org_id = make_org()['id']
@@ -884,7 +881,6 @@ class TestOrg(CLITestCase):
         @Feature: Org - Smartproxy
 
         @Assert: Smartproxy is added to the org
-
         """
         org = make_org()
         proxy = make_proxy()
@@ -901,7 +897,6 @@ class TestOrg(CLITestCase):
         @Feature: Org - Smartproxy
 
         @Assert: Smartproxy is removed from the org
-
         """
         org = make_org()
         proxy = make_proxy()
@@ -916,6 +911,7 @@ class TestOrg(CLITestCase):
 
     # Negative Create
 
+    @tier1
     def test_negative_create_0(self):
         """@test: Create organization with valid label and description, name is
         too long
@@ -923,7 +919,6 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization is not created
-
         """
         for test_data in invalid_name_label():
             with self.subTest(test_data):
@@ -934,6 +929,7 @@ class TestOrg(CLITestCase):
                         'name': test_data['name'],
                     })
 
+    @tier1
     def test_negative_create_1(self):
         """@test: Create organization with valid label and description, name is
         blank
@@ -941,7 +937,6 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization is not created
-
         """
         for test_data in valid_names_simple():
             with self.subTest(test_data):
@@ -952,6 +947,7 @@ class TestOrg(CLITestCase):
                         'name': '',
                     })
 
+    @tier1
     def test_negative_create_2(self):
         """@test: Create organization with valid label and description, name is
         whitespace
@@ -959,7 +955,6 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization is not created
-
         """
         for test_data in valid_names_simple():
             with self.subTest(test_data):
@@ -970,6 +965,7 @@ class TestOrg(CLITestCase):
                         'name': ' \t',
                     })
 
+    @tier1
     def test_negative_create_3(self):
         """@test: Create organization with valid values, then create a new one
         with same values.
@@ -977,7 +973,6 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization is not created
-
         """
         for test_data in valid_names_simple():
             with self.subTest(test_data):
@@ -995,6 +990,7 @@ class TestOrg(CLITestCase):
 
     # Positive Delete
 
+    @tier1
     def test_positive_delete_1(self):
         """@test: Create organization with valid values then delete it
         by ID
@@ -1002,7 +998,6 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization is deleted
-
         """
         for test_data in valid_name_desc_label():
             with self.subTest(test_data):
@@ -1012,6 +1007,7 @@ class TestOrg(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Org.info({'id': org['id']})
 
+    @tier1
     def test_positive_delete_2(self):
         """@test: Create organization with valid values then delete it
         by label
@@ -1019,7 +1015,6 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization is deleted
-
         """
         for test_data in valid_name_desc_label():
             with self.subTest(test_data):
@@ -1029,6 +1024,7 @@ class TestOrg(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Org.info({'id': org['id']})
 
+    @tier1
     def test_positive_delete_3(self):
         """@test: Create organization with valid values then delete it
         by name
@@ -1036,7 +1032,6 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization is deleted
-
         """
         for test_data in valid_name_desc_label():
             with self.subTest(test_data):
@@ -1046,13 +1041,13 @@ class TestOrg(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Org.info({'id': org['id']})
 
+    @tier1
     def test_positive_update_1(self):
         """@test: Create organization with valid values then update its name
 
         @feature: Organizations
 
         @assert: organization name is updated
-
         """
         for test_data in valid_names():
             with self.subTest(test_data):
@@ -1066,6 +1061,7 @@ class TestOrg(CLITestCase):
                 org = Org.info({'id': org['id']})
                 self.assertEqual(org['name'], test_data['name'])
 
+    @tier1
     def test_positive_update_3(self):
         """@test: Create organization with valid values then update its
         description
@@ -1073,7 +1069,6 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization description is updated
-
         """
         for test_data in positive_desc_data():
             with self.subTest(test_data):
@@ -1087,13 +1082,13 @@ class TestOrg(CLITestCase):
                 org = Org.info({'id': org['id']})
                 self.assertEqual(org['description'], test_data['description'])
 
+    @tier1
     def test_positive_update_4(self):
         """@test: Create organization with valid values then update all values
 
         @feature: Organizations
 
         @assert: organization name and description are updated
-
         """
         for test_data in valid_name_desc():
             with self.subTest(test_data):
@@ -1111,6 +1106,7 @@ class TestOrg(CLITestCase):
 
     # Negative Update
 
+    @tier1
     def test_negative_update_1(self):
         """@test: Create organization then fail to update
         its name
@@ -1118,7 +1114,6 @@ class TestOrg(CLITestCase):
         @feature: Organizations
 
         @assert: organization name is not updated
-
         """
         for test_data in invalid_name_data():
             with self.subTest(test_data):
@@ -1141,10 +1136,7 @@ class TestOrg(CLITestCase):
         @assert: organization is displayed/listed
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     def test_search_key_1(self):
@@ -1155,10 +1147,7 @@ class TestOrg(CLITestCase):
         @assert: organization can be found
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     def test_info_key_1(self):
@@ -1170,10 +1159,7 @@ class TestOrg(CLITestCase):
         creation values
 
         @status: manual
-
         """
-
-        pass
 
     # Associations
 
@@ -1187,10 +1173,7 @@ class TestOrg(CLITestCase):
         @assert: the domain is removed from the organization
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     def test_remove_domain_2(self):
@@ -1202,10 +1185,7 @@ class TestOrg(CLITestCase):
         @assert: the domain is removed from the organization
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     def test_remove_domain_3(self):
@@ -1217,10 +1197,7 @@ class TestOrg(CLITestCase):
         @assert: the domain is removed from the organization
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     def test_remove_domain_4(self):
@@ -1232,10 +1209,7 @@ class TestOrg(CLITestCase):
         @assert: the domain is removed from the organization
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     def test_remove_user_1(self):
@@ -1247,10 +1221,7 @@ class TestOrg(CLITestCase):
         @assert: User is added and then removed from organization
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     def test_remove_user_2(self):
@@ -1262,10 +1233,7 @@ class TestOrg(CLITestCase):
         @assert: The user is added then removed from the organization
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     def test_remove_user_3(self):
@@ -1277,10 +1245,7 @@ class TestOrg(CLITestCase):
         @assert: The user is added then removed from the organization
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1293,10 +1258,7 @@ class TestOrg(CLITestCase):
         @assert: hostgroup is added to organization then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1309,10 +1271,7 @@ class TestOrg(CLITestCase):
         @assert: hostgroup is added to organization then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1325,10 +1284,7 @@ class TestOrg(CLITestCase):
         @assert: hostgroup is added to organization then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1341,10 +1297,7 @@ class TestOrg(CLITestCase):
         @assert: hostgroup is added to organization then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1357,10 +1310,7 @@ class TestOrg(CLITestCase):
         @assert: smartproxy is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1373,10 +1323,7 @@ class TestOrg(CLITestCase):
         @assert: smartproxy is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1389,10 +1336,7 @@ class TestOrg(CLITestCase):
         @assert: smartproxy is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1404,19 +1348,16 @@ class TestOrg(CLITestCase):
         @assert: smartproxy is added
 
         @status: manual
-
         """
 
-        pass
-
     @run_only_on('sat')
+    @tier2
     def test_add_subnet_1(self):
         """@test: Add a subnet by using organization name and subnet name
 
         @feature: Organizations
 
         @assert: subnet is added
-
         """
         for name in (gen_string('alpha'), gen_string('numeric'),
                      gen_string('alphanumeric'), gen_string('utf8'),
@@ -1441,10 +1382,7 @@ class TestOrg(CLITestCase):
         @assert: subnet is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1456,10 +1394,7 @@ class TestOrg(CLITestCase):
         @assert: subnet is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1471,10 +1406,7 @@ class TestOrg(CLITestCase):
         @assert: subnet is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1486,10 +1418,7 @@ class TestOrg(CLITestCase):
         @assert: Domain is added to organization
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     def test_add_user_1(self):
@@ -1501,10 +1430,7 @@ class TestOrg(CLITestCase):
         @assert: User is added to organization
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     def test_add_user_2(self):
@@ -1516,10 +1442,7 @@ class TestOrg(CLITestCase):
         @assert: User is added to organization
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     def test_add_user_3(self):
@@ -1531,10 +1454,7 @@ class TestOrg(CLITestCase):
         @assert: User is added to organization
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1547,10 +1467,7 @@ class TestOrg(CLITestCase):
         @assert: hostgroup is added to organization
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1563,10 +1480,7 @@ class TestOrg(CLITestCase):
         @assert: hostgroup is added to organization
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1579,10 +1493,7 @@ class TestOrg(CLITestCase):
         @assert: hostgroup is added to organization
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1595,10 +1506,7 @@ class TestOrg(CLITestCase):
         @assert: hostgroup is added to organization
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1611,10 +1519,7 @@ class TestOrg(CLITestCase):
         @assert: computeresource is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1627,10 +1532,7 @@ class TestOrg(CLITestCase):
         @assert: computeresource is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1643,10 +1545,7 @@ class TestOrg(CLITestCase):
         @assert: computeresource is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1659,10 +1558,7 @@ class TestOrg(CLITestCase):
         @assert: computeresource is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1674,10 +1570,7 @@ class TestOrg(CLITestCase):
         @assert: medium is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1689,10 +1582,7 @@ class TestOrg(CLITestCase):
         @assert: medium is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1704,10 +1594,7 @@ class TestOrg(CLITestCase):
         @assert: medium is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1719,10 +1606,7 @@ class TestOrg(CLITestCase):
         @assert: medium is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1734,10 +1618,7 @@ class TestOrg(CLITestCase):
         @assert: configtemplate is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1750,10 +1631,7 @@ class TestOrg(CLITestCase):
         @assert: environment is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1766,10 +1644,7 @@ class TestOrg(CLITestCase):
         @assert: environment is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1782,10 +1657,7 @@ class TestOrg(CLITestCase):
         @assert: environment is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1798,10 +1670,7 @@ class TestOrg(CLITestCase):
         @assert: environment is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1814,10 +1683,7 @@ class TestOrg(CLITestCase):
         @assert: smartproxy is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1830,10 +1696,7 @@ class TestOrg(CLITestCase):
         @assert: smartproxy is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1846,10 +1709,7 @@ class TestOrg(CLITestCase):
         @assert: smartproxy is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1861,10 +1721,7 @@ class TestOrg(CLITestCase):
         @assert: smartproxy is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1877,10 +1734,7 @@ class TestOrg(CLITestCase):
         @assert: computeresource is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1893,10 +1747,7 @@ class TestOrg(CLITestCase):
         @assert: computeresource is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1909,10 +1760,7 @@ class TestOrg(CLITestCase):
         @assert: computeresource is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1925,10 +1773,7 @@ class TestOrg(CLITestCase):
         @assert: computeresource is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1940,10 +1785,7 @@ class TestOrg(CLITestCase):
         @assert: medium is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1955,10 +1797,7 @@ class TestOrg(CLITestCase):
         @assert: medium is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1970,10 +1809,7 @@ class TestOrg(CLITestCase):
         @assert: medium is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -1985,10 +1821,7 @@ class TestOrg(CLITestCase):
         @assert: medium is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -2001,10 +1834,7 @@ class TestOrg(CLITestCase):
         @assert: configtemplate is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -2017,10 +1847,7 @@ class TestOrg(CLITestCase):
         @assert: configtemplate is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -2033,10 +1860,7 @@ class TestOrg(CLITestCase):
         @assert: configtemplate is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -2049,10 +1873,7 @@ class TestOrg(CLITestCase):
         @assert: configtemplate is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -2065,10 +1886,7 @@ class TestOrg(CLITestCase):
         @assert: environment is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -2080,10 +1898,7 @@ class TestOrg(CLITestCase):
         @assert: environment is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -2095,10 +1910,7 @@ class TestOrg(CLITestCase):
         @assert: environment is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -2110,10 +1922,7 @@ class TestOrg(CLITestCase):
         @assert: environment is added
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -2125,10 +1934,7 @@ class TestOrg(CLITestCase):
         @assert: subnet is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -2140,10 +1946,7 @@ class TestOrg(CLITestCase):
         @assert: subnet is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -2155,10 +1958,7 @@ class TestOrg(CLITestCase):
         @assert: subnet is added then removed
 
         @status: manual
-
         """
-
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -2170,7 +1970,4 @@ class TestOrg(CLITestCase):
         @assert: subnet is added then removed
 
         @status: manual
-
         """
-
-        pass

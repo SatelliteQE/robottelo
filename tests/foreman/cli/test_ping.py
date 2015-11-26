@@ -1,6 +1,7 @@
 """Test Class for hammer ping"""
 from robottelo import ssh
 from robottelo.config import settings
+from robottelo.decorators import tier1
 from robottelo.test import CLITestCase
 from six.moves import zip
 
@@ -8,6 +9,7 @@ from six.moves import zip
 class PingTestCase(CLITestCase):
     """Tests related to the hammer ping command"""
 
+    @tier1
     def test_hammer_ping(self):
         """@test: hammer ping return code
 
@@ -18,7 +20,6 @@ class PingTestCase(CLITestCase):
         2. Check its return code, should be 0 if all services are ok else != 0
 
         @assert: hammer ping returns a right return code
-
         """
         result = ssh.command('hammer -u {0} -p {1} ping'.format(
             settings.server.admin_username,

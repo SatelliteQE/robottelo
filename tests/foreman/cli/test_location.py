@@ -18,7 +18,7 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.location import Location
 from robottelo.datafactory import invalid_values_list
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open, tier1
 from robottelo.test import CLITestCase
 
 
@@ -45,6 +45,7 @@ class TestLocation(CLITestCase):
     """Tests for Location via Hammer CLI"""
     # TODO Add coverage for smart_proxy and realm once we can create ssh tunnel
 
+    @tier1
     def test_create_location_with_different_names_positive(self):
         """@Test: Try to create location using different value types as a name
 
@@ -59,6 +60,7 @@ class TestLocation(CLITestCase):
                 self.assertEqual(loc['name'], name)
 
     @skip_if_bug_open('bugzilla', 1233612)
+    @tier1
     def test_create_location_with_description(self):
         """@Test: Create new location with custom description
 
@@ -72,6 +74,7 @@ class TestLocation(CLITestCase):
         loc = make_location({'description': description})
         self.assertEqual(loc['description'], description)
 
+    @tier1
     def test_create_location_with_user_by_id(self):
         """@Test: Create new location with assigned user to it. Use user id as
         a parameter
@@ -86,6 +89,7 @@ class TestLocation(CLITestCase):
         loc = make_location({'user-ids': user['id']})
         self.assertEqual(loc['users'][0], user['login'])
 
+    @tier1
     def test_create_location_with_user_by_name(self):
         """@Test: Create new location with assigned user to it. Use user login
         as a parameter
@@ -100,6 +104,7 @@ class TestLocation(CLITestCase):
         loc = make_location({'users': user['login']})
         self.assertEqual(loc['users'][0], user['login'])
 
+    @tier1
     def test_create_location_with_comp_resource_by_id(self):
         """@Test: Create new location with compute resource assigned to it. Use
         compute resource id as a parameter
@@ -114,6 +119,7 @@ class TestLocation(CLITestCase):
         loc = make_location({'compute-resource-ids': comp_resource['id']})
         self.assertEqual(loc['compute-resources'][0], comp_resource['name'])
 
+    @tier1
     def test_create_location_with_comp_resource_by_name(self):
         """@Test: Create new location with compute resource assigned to it. Use
         compute resource name as a parameter
@@ -128,6 +134,7 @@ class TestLocation(CLITestCase):
         loc = make_location({'compute-resources': comp_resource['name']})
         self.assertEqual(loc['compute-resources'][0], comp_resource['name'])
 
+    @tier1
     def test_create_location_with_template_by_id(self):
         """@Test: Create new location with config template assigned to it. Use
         config template id as a parameter
@@ -146,6 +153,7 @@ class TestLocation(CLITestCase):
             loc['templates']
         )
 
+    @tier1
     def test_create_location_with_template_by_name(self):
         """@Test: Create new location with config template assigned to it. Use
         config template name as a parameter
@@ -164,6 +172,7 @@ class TestLocation(CLITestCase):
             loc['templates']
         )
 
+    @tier1
     def test_create_location_with_domain_by_id(self):
         """@Test: Create new location with assigned domain to it. Use domain id
         as a parameter
@@ -178,6 +187,7 @@ class TestLocation(CLITestCase):
         loc = make_location({'domain-ids': domain['id']})
         self.assertEqual(loc['domains'][0], domain['name'])
 
+    @tier1
     def test_create_location_with_domain_by_name(self):
         """@Test: Create new location with assigned domain to it. Use domain
         name as a parameter
@@ -192,6 +202,7 @@ class TestLocation(CLITestCase):
         loc = make_location({'domains': domain['name']})
         self.assertEqual(loc['domains'][0], domain['name'])
 
+    @tier1
     def test_create_location_with_subnet_by_id(self):
         """@Test: Create new location with assigned subnet to it. Use subnet id
         as a parameter
@@ -207,6 +218,7 @@ class TestLocation(CLITestCase):
         self.assertIn(subnet['name'], loc['subnets'][0])
         self.assertIn(subnet['network'], loc['subnets'][0])
 
+    @tier1
     def test_create_location_with_subnet_by_name(self):
         """@Test: Create new location with assigned subnet to it. Use subnet
         name as a parameter
@@ -222,6 +234,7 @@ class TestLocation(CLITestCase):
         self.assertIn(subnet['name'], loc['subnets'][0])
         self.assertIn(subnet['network'], loc['subnets'][0])
 
+    @tier1
     def test_create_location_with_environment_by_id(self):
         """@Test: Create new location with assigned environment to it. Use
         environment id as a parameter
@@ -236,6 +249,7 @@ class TestLocation(CLITestCase):
         loc = make_location({'environment-ids': env['id']})
         self.assertEqual(loc['environments'][0], env['name'])
 
+    @tier1
     def test_create_location_with_environment_by_name(self):
         """@Test: Create new location with assigned environment to it. Use
         environment name as a parameter
@@ -250,6 +264,7 @@ class TestLocation(CLITestCase):
         loc = make_location({'environments': env['name']})
         self.assertEqual(loc['environments'][0], env['name'])
 
+    @tier1
     def test_create_location_with_host_group_by_id(self):
         """@Test: Create new location with assigned host group to it. Use host
         group id as a parameter
@@ -264,6 +279,7 @@ class TestLocation(CLITestCase):
         loc = make_location({'hostgroup-ids': host_group['id']})
         self.assertEqual(loc['hostgroups'][0], host_group['name'])
 
+    @tier1
     def test_create_location_with_host_group_by_name(self):
         """@Test: Create new location with assigned host group to it. Use host
         group name as a parameter
@@ -279,6 +295,7 @@ class TestLocation(CLITestCase):
         self.assertEqual(loc['hostgroups'][0], host_group['name'])
 
     @skip_if_bug_open('bugzilla', 1234287)
+    @tier1
     def test_create_location_with_medium(self):
         """@Test: Create new location with assigned media to it.
 
@@ -293,6 +310,7 @@ class TestLocation(CLITestCase):
         self.assertGreater(len(loc['installation-media']), 0)
         self.assertEqual(loc['installation-media'][0], medium['name'])
 
+    @tier1
     def test_create_location_with_multiple_environments_by_id(self):
         """@Test: Basically, verifying that location with multiple entities
         assigned to it by id can be created in the system. Environments were
@@ -311,6 +329,7 @@ class TestLocation(CLITestCase):
         for env in envs:
             self.assertIn(env['name'], loc['environments'])
 
+    @tier1
     def test_create_location_with_multiple_domains_by_name(self):
         """@Test: Basically, verifying that location with multiple entities
         assigned to it by name can be created in the system. Domains were
@@ -331,6 +350,7 @@ class TestLocation(CLITestCase):
         for domain in domains:
             self.assertIn(domain['name'], loc['domains'])
 
+    @tier1
     def test_create_location_with_different_names_negative(self):
         """@Test: Try to create location using invalid names only
 
@@ -344,6 +364,7 @@ class TestLocation(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     make_location({'name': invalid_name})
 
+    @tier1
     def test_create_location_with_same_names_negative(self):
         """@Test: Try to create location using same name twice
 
@@ -358,6 +379,7 @@ class TestLocation(CLITestCase):
         with self.assertRaises(CLIFactoryError):
             make_location({'name': name})
 
+    @tier1
     def test_create_location_with_comp_resource_by_id_negative(self):
         """@Test: Try to create new location with incorrect compute resource
         assigned to it. Use compute resource id as a parameter
@@ -370,6 +392,7 @@ class TestLocation(CLITestCase):
         with self.assertRaises(CLIFactoryError):
             make_location({'compute-resource-ids': gen_string('numeric', 6)})
 
+    @tier1
     def test_create_location_with_user_by_name_negative(self):
         """@Test: Try to create new location with incorrect user assigned to it
         Use user login as a parameter
@@ -382,6 +405,7 @@ class TestLocation(CLITestCase):
         with self.assertRaises(CLIFactoryError):
             make_location({'users': gen_string('utf8', 80)})
 
+    @tier1
     def test_update_location_with_different_names(self):
         """@Test: Try to update location using different value types as a name
 
@@ -401,6 +425,7 @@ class TestLocation(CLITestCase):
                 loc = Location.info({'id': loc['id']})
                 self.assertEqual(loc['name'], new_name)
 
+    @tier1
     def test_update_location_with_user_by_id(self):
         """@Test: Create new location with assigned user to it. Try to update
         that location and change assigned user on another one. Use user id as a
@@ -422,6 +447,7 @@ class TestLocation(CLITestCase):
         loc = Location.info({'id': loc['id']})
         self.assertEqual(loc['users'][0], user[1]['login'])
 
+    @tier1
     def test_update_location_with_subnet_by_name(self):
         """@Test: Create new location with assigned subnet to it. Try to update
         that location and change assigned subnet on another one. Use subnet
@@ -445,6 +471,7 @@ class TestLocation(CLITestCase):
         self.assertIn(subnet[1]['name'], loc['subnets'][0])
         self.assertIn(subnet[1]['network'], loc['subnets'][0])
 
+    @tier1
     def test_update_location_with_multiple_comp_resources_to_single(self):
         """@Test: Create location with multiple (not less than three) compute
         resources assigned to it. Try to update location and overwrite all
@@ -476,6 +503,7 @@ class TestLocation(CLITestCase):
         self.assertEqual(len(loc['compute-resources']), 1)
         self.assertEqual(loc['compute-resources'][0], new_resource['name'])
 
+    @tier1
     def test_update_location_with_multiple_host_group_to_multiple(self):
         """@Test: Create location with multiple (three) host groups assigned to
         it. Try to update location and overwrite all host groups by new
@@ -504,6 +532,7 @@ class TestLocation(CLITestCase):
         for host_group in new_host_groups:
             self.assertIn(host_group['name'], loc['hostgroups'])
 
+    @tier1
     def test_update_location_with_different_names_negative(self):
         """@Test: Try to update location using invalid names only
 
@@ -521,6 +550,7 @@ class TestLocation(CLITestCase):
                         'new-name': invalid_name,
                     })
 
+    @tier1
     def test_update_location_with_domain_by_id_negative(self):
         """@Test: Try to update existing location with incorrect domain. Use
         domain id as a parameter
@@ -537,6 +567,7 @@ class TestLocation(CLITestCase):
                 'id': loc['id'],
             })
 
+    @tier1
     def test_update_location_with_template_by_name_negative(self):
         """@Test: Try to update existing location with incorrect config
         template. Use template name as a parameter
@@ -553,6 +584,7 @@ class TestLocation(CLITestCase):
                 'id': loc['id'],
             })
 
+    @tier1
     def test_delete_location_by_name(self):
         """@Test: Try to delete location using name of that location as a
         parameter. Use different value types for testing.
@@ -570,6 +602,7 @@ class TestLocation(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Location.info({'id': loc['id']})
 
+    @tier1
     def test_delete_location_by_id(self):
         """@Test: Try to delete location using id of that location as a
         parameter

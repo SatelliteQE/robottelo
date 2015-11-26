@@ -29,9 +29,7 @@ class TestSSOCLI(CLITestCase):
         @assert: Log in to hammer cli successfully
 
         @status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_sso_ipa_cli(self):
@@ -44,9 +42,7 @@ class TestSSOCLI(CLITestCase):
         @assert: Log in to hammer cli successfully
 
         @status: Manual
-
         """
-        pass
 
     @stubbed()
     def test_sso_openldap_cli(self):
@@ -59,6 +55,4 @@ class TestSSOCLI(CLITestCase):
         @assert: Log in to hammer cli successfully
 
         @status: Manual
-
         """
-        pass

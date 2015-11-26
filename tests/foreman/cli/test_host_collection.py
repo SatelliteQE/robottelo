@@ -11,7 +11,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.datafactory import valid_data_list, invalid_values_list
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -73,6 +73,7 @@ class TestHostCollection(CLITestCase):
 
         return make_host_collection(options)
 
+    @tier1
     def test_positive_create_1(self):
         """@Test: Check if host collection can be created with random names
 
@@ -86,6 +87,7 @@ class TestHostCollection(CLITestCase):
                 new_host_col = self._new_host_collection({'name': name})
                 self.assertEqual(new_host_col['name'], name)
 
+    @tier1
     def test_positive_create_2(self):
         """@Test: Check if host collection can be created with random
         description
@@ -100,6 +102,7 @@ class TestHostCollection(CLITestCase):
                 new_host_col = self._new_host_collection({'description': desc})
                 self.assertEqual(new_host_col['description'], desc)
 
+    @tier1
     def test_positive_create_3(self):
         """@Test: Check if host collection can be created with random limits
 
@@ -115,6 +118,7 @@ class TestHostCollection(CLITestCase):
                 self.assertEqual(new_host_col['limit'], str(limit))
 
     @skip_if_bug_open('bugzilla', 1214675)
+    @tier1
     def test_create_hc_with_unlimited_content_hosts(self):
         """@Test: Create Host Collection with different values of
         unlimited-content-hosts parameter
@@ -144,6 +148,7 @@ class TestHostCollection(CLITestCase):
                     self.assertEqual(
                         result['unlimited-content-hosts'], u'false')
 
+    @tier1
     def test_negative_create_1(self):
         """@Test: Check if host collection can be created with random names
 
@@ -157,6 +162,7 @@ class TestHostCollection(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     self._new_host_collection({'name': name})
 
+    @tier1
     def test_positive_update_1(self):
         """@Test: Check if host collection name can be updated
 
@@ -176,6 +182,7 @@ class TestHostCollection(CLITestCase):
                 result = HostCollection.info({'id': new_host_col['id']})
                 self.assertEqual(result['name'], new_name)
 
+    @tier1
     def test_positive_update_2(self):
         """@Test: Check if host collection description can be updated
 
@@ -196,6 +203,7 @@ class TestHostCollection(CLITestCase):
                 self.assertEqual(result['description'], desc)
 
     @skip_if_bug_open('bugzilla', 1245334)
+    @tier1
     def test_positive_update_3(self):
         """@Test: Check if host collection limits be updated
 
@@ -217,6 +225,7 @@ class TestHostCollection(CLITestCase):
                 result = HostCollection.info({'id': new_host_col['id']})
                 self.assertEqual(result['limit'], limit)
 
+    @tier1
     def test_positive_delete_1(self):
         """@Test: Check if host collection can be created and deleted
 
@@ -235,6 +244,7 @@ class TestHostCollection(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     HostCollection.info({'id': new_host_col['id']})
 
+    @tier2
     def test_add_content_host(self):
         """@Test: Check if content host can be added to host collection
 
@@ -263,6 +273,7 @@ class TestHostCollection(CLITestCase):
         })
         self.assertGreater(result['total-content-hosts'], no_of_content_host)
 
+    @tier2
     def test_remove_content_host(self):
         """@Test: Check if content host can be removed from host collection
 
@@ -299,6 +310,7 @@ class TestHostCollection(CLITestCase):
         })
         self.assertGreater(no_of_content_host, result['total-content-hosts'])
 
+    @tier2
     def test_content_hosts(self):
         """@Test: Check if content hosts added to host collection is listed
 

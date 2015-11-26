@@ -3,7 +3,7 @@
 
 from fauxfactory import gen_string
 from robottelo.cli.globalparam import GlobalParameter
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
@@ -12,6 +12,7 @@ class TestGlobalParameter(CLITestCase):
 
     # pylint: disable=no-self-use
     @run_only_on('sat')
+    @tier1
     def test_set(self):
         """@Test: Check if Global Param can be set
 
@@ -29,6 +30,7 @@ class TestGlobalParameter(CLITestCase):
         })
 
     @run_only_on('sat')
+    @tier1
     def test_list(self):
         """@Test: Test Global Param List
 
@@ -49,6 +51,7 @@ class TestGlobalParameter(CLITestCase):
         self.assertEqual(result[0]['value'], value)
 
     @run_only_on('sat')
+    @tier1
     def test_delete(self):
         """@Test: Check if Global Param can be deleted
 

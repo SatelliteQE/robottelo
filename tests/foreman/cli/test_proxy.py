@@ -9,7 +9,7 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError, make_proxy
 from robottelo.cli.proxy import Proxy, default_url_on_new_port
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -21,13 +21,13 @@ class TestProxy(CLITestCase):
         self.skipTest('Skipping tests until we can create ssh tunnels')
 
     @run_only_on('sat')
+    @tier1
     def test_redmine_3875(self):
         """@Test: Proxy creation with random URL
 
         @Feature: Smart Proxy
 
         @Assert: Proxy is not created
-
         """
         # Create a random proxy
         with self.assertRaises(CLIFactoryError):
@@ -38,13 +38,13 @@ class TestProxy(CLITestCase):
             })
 
     @run_only_on('sat')
+    @tier1
     def test_proxy_create(self):
         """@Test: Proxy creation with the home proxy
 
         @Feature: Smart Proxy
 
         @Assert: Proxy is created
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -52,13 +52,13 @@ class TestProxy(CLITestCase):
                 self.assertEquals(proxy['name'], name)
 
     @run_only_on('sat')
+    @tier1
     def test_proxy_delete(self):
         """@Test: Proxy deletion with the home proxy
 
         @Feature: Smart Proxy
 
         @Assert: Proxy is deleted
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -68,13 +68,13 @@ class TestProxy(CLITestCase):
                     Proxy.info({u'id': proxy['id']})
 
     @run_only_on('sat')
+    @tier1
     def test_proxy_update(self):
         """@Test: Proxy name update with the home proxy
 
         @Feature: Smart Proxy
 
         @Assert: Proxy has the name updated
-
         """
         proxy = make_proxy({u'name': gen_alphanumeric()})
         newport = random.randint(9091, 49090)
@@ -90,25 +90,25 @@ class TestProxy(CLITestCase):
                     self.assertEqual(proxy['name'], new_name)
 
     @run_only_on('sat')
+    @tier2
     def test_refresh_refresh_features_by_id(self):
         """@Test: Refresh smart proxy features, search for proxy by id
 
         @Feature: Smart Proxy
 
         @Assert: Proxy features are refreshed
-
         """
         proxy = make_proxy()
         Proxy.refresh_features({u'id': proxy['id']})
 
     @run_only_on('sat')
+    @tier2
     def test_proxy_refresh_features_by_name(self):
         """@Test: Refresh smart proxy features, search for proxy by name
 
         @Feature: Smart Proxy
 
         @Assert: Proxy features are refreshed
-
         """
         proxy = make_proxy()
         Proxy.refresh_features({u'name': proxy['name']})

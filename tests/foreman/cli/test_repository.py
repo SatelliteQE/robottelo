@@ -26,7 +26,13 @@ from robottelo.constants import (
     FAKE_5_PUPPET_REPO,
     RPM_TO_UPLOAD,
 )
-from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+    tier1,
+    tier2,
+)
 from robottelo.datafactory import valid_data_list, invalid_values_list
 from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
@@ -61,6 +67,7 @@ class TestRepository(CLITestCase):
 
         return make_repository(options)
 
+    @tier1
     def test_bugzilla_1189289(self):
         """@Test: Check if repository docker-upstream-name is shown
         in repository info
@@ -69,7 +76,6 @@ class TestRepository(CLITestCase):
 
         @Assert: repository info command returns upstream-repository-name
         value
-
         """
         repository = self._make_repository({
             u'content-type': u'docker',
@@ -81,19 +87,20 @@ class TestRepository(CLITestCase):
             repository['upstream-repository-name'], u'fedora/rabbitmq')
 
     @run_only_on('sat')
+    @tier1
     def test_positive_create_1(self):
         """@Test: Check if repository can be created with random names
 
         @Feature: Repository
 
         @Assert: Repository is created and has random name
-
         """
         for name in valid_data_list():
             with self.subTest(name):
                 new_repo = self._make_repository({u'name': name})
                 self.assertEqual(new_repo['name'], name)
 
+    @tier1
     def test_positive_create_2(self):
         """@Test: Check if repository can be created with random names and
         labels
@@ -101,7 +108,6 @@ class TestRepository(CLITestCase):
         @Feature: Repository
 
         @Assert: Repository is created and has random name and labels
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -115,13 +121,13 @@ class TestRepository(CLITestCase):
                 self.assertNotEqual(new_repo['name'], new_repo['label'])
 
     @run_only_on('sat')
+    @tier1
     def test_positive_create_3(self):
         """@Test: Create YUM repository
 
         @Feature: Repository
 
         @Assert: YUM repository is created
-
         """
         for url in (FAKE_0_YUM_REPO, FAKE_1_YUM_REPO, FAKE_2_YUM_REPO,
                     FAKE_3_YUM_REPO, FAKE_4_YUM_REPO):
@@ -133,13 +139,13 @@ class TestRepository(CLITestCase):
                 self.assertEqual(new_repo['url'], url)
                 self.assertEqual(new_repo['content-type'], u'yum')
 
+    @tier1
     def test_positive_create_4(self):
         """@Test: Create Puppet repository
 
         @Feature: Repository
 
         @Assert: Puppet repository is created
-
         """
         for url in (FAKE_1_PUPPET_REPO, FAKE_2_PUPPET_REPO, FAKE_3_PUPPET_REPO,
                     FAKE_4_PUPPET_REPO, FAKE_5_PUPPET_REPO):
@@ -152,13 +158,13 @@ class TestRepository(CLITestCase):
                 self.assertEqual(new_repo['content-type'], u'puppet')
 
     @run_only_on('sat')
+    @tier1
     def test_positive_create_5(self):
         """@Test: Check if repository can be created with gpg key ID
 
         @Feature: Repository
 
         @Assert: Repository is created and has gpg key
-
         """
         # Make a new gpg key
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
@@ -173,6 +179,7 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1103944)
+    @tier1
     def test_positive_create_6(self):
         """@Test: Check if repository can be created with gpg key name
 
@@ -181,7 +188,6 @@ class TestRepository(CLITestCase):
         @Assert: Repository is created and has gpg key
 
         @BZ: 1103944
-
         """
         gpg_key = make_gpg_key({'organization-id': self.org['id']})
         for name in valid_data_list():
@@ -194,13 +200,13 @@ class TestRepository(CLITestCase):
                 self.assertEqual(new_repo['gpg-key']['name'], gpg_key['name'])
 
     @run_only_on('sat')
+    @tier1
     def test_positive_create_7(self):
         """@Test: Create repository published via http
 
         @Feature: Repository
 
         @Assert: Repository is created and is published via http
-
         """
         for use_http in u'true', u'yes', u'1':
             with self.subTest(use_http):
@@ -208,13 +214,13 @@ class TestRepository(CLITestCase):
                 self.assertEqual(repo['publish-via-http'], u'yes')
 
     @run_only_on('sat')
+    @tier1
     def test_positive_create_8(self):
         """@Test: Create repository not published via http
 
         @Feature: Repository
 
         @Assert: Repository is created and is not published via http
-
         """
         for use_http in u'false', u'no', u'0':
             with self.subTest(use_http):
@@ -222,6 +228,7 @@ class TestRepository(CLITestCase):
                 self.assertEqual(repo['publish-via-http'], u'no')
 
     @run_only_on('sat')
+    @tier1
     def test_positive_create_9(self):
         """@Test: Create a YUM repository with a checksum type
 
@@ -229,8 +236,6 @@ class TestRepository(CLITestCase):
 
         @Assert: A YUM repository is created and contains the correct checksum
         type
-
-
         """
         for checksum_type in u'sha1', u'sha256':
             with self.subTest(checksum_type):
@@ -243,13 +248,13 @@ class TestRepository(CLITestCase):
                 self.assertEqual(repository['checksum-type'], checksum_type)
 
     @run_only_on('sat')
+    @tier1
     def test_positive_create_docker_repo_1(self):
         """@Test: Create a Docker repository with upstream name.
 
         @Feature: Repository
 
         @Assert: Docker repository is created and contains correct values.
-
         """
         content_type = u'docker'
         new_repo = self._make_repository({
@@ -264,13 +269,13 @@ class TestRepository(CLITestCase):
         self.assertEqual(new_repo['name'], u'busybox')
 
     @run_only_on('sat')
+    @tier1
     def test_positive_create_docker_repo_2(self):
         """@Test: Create a Docker repository with a random name.
 
         @Feature: Repository
 
         @Assert: Docker repository is created and contains correct values.
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -286,13 +291,13 @@ class TestRepository(CLITestCase):
                 self.assertEqual(new_repo['content-type'], content_type)
                 self.assertEqual(new_repo['name'], name)
 
+    @tier1
     def test_negative_create_1(self):
         """@Test: Repository name cannot be 300-characters long
 
         @Feature: Repository
 
         @Assert: Repository cannot be created
-
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -301,13 +306,13 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1152237)
+    @tier2
     def test_positive_synchronize_1(self):
         """@Test: Check if repository can be created and synced
 
         @Feature: Repository
 
         @Assert: Repository is created and synced
-
         """
         for url in FAKE_1_YUM_REPO, FAKE_3_YUM_REPO, FAKE_4_YUM_REPO:
             with self.subTest(url):
@@ -325,13 +330,13 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1152237)
+    @tier2
     def test_positive_synchronize_2(self):
         """@Test: Check if Docker repository can be created and synced
 
         @Feature: Repository
 
         @Assert: Docker repository is created and synced
-
         """
         new_repo = self._make_repository({
             u'content-type': u'docker',
@@ -347,13 +352,13 @@ class TestRepository(CLITestCase):
         self.assertEqual(new_repo['sync']['status'], 'Finished')
 
     @run_only_on('sat')
+    @tier1
     def test_positive_update_1(self):
         """@Test: Update the original url for a repository
 
         @Feature: Repository
 
         @Assert: Repository url is updated
-
         """
         new_repo = self._make_repository()
         for url in (FAKE_4_YUM_REPO, FAKE_1_PUPPET_REPO, FAKE_2_PUPPET_REPO,
@@ -378,7 +383,6 @@ class TestRepository(CLITestCase):
         @Assert: Repository gpg key is updated
 
         @Status: manual
-
         """
 
     @run_only_on('sat')
@@ -391,11 +395,11 @@ class TestRepository(CLITestCase):
         @Assert: Repository publishing method is updated
 
         @Status: manual
-
         """
 
     @skip_if_bug_open('bugzilla', 1208305)
     @run_only_on('sat')
+    @tier1
     def test_positive_update_4(self):
         """@Test: Create a YUM repository and update the checksum type
 
@@ -405,7 +409,6 @@ class TestRepository(CLITestCase):
         type
 
         @BZ: 1208305
-
         """
         content_type = u'yum'
         repository = self._make_repository({
@@ -425,13 +428,13 @@ class TestRepository(CLITestCase):
                 self.assertEqual(result['checksum-type'], checksum_type)
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete_1(self):
         """@Test: Check if repository can be created and deleted
 
         @Feature: Repository
 
         @Assert: Repository is created and then deleted
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -440,13 +443,13 @@ class TestRepository(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Repository.info({u'id': new_repo['id']})
 
+    @tier1
     def test_upload_content(self):
         """@Test: Create repository and upload content
 
         @Feature: Repository
 
         @Assert: upload content is successful
-
         """
         new_repo = self._make_repository({'name': gen_string('alpha', 15)})
         ssh.upload_file(local_file=get_data_file(RPM_TO_UPLOAD),

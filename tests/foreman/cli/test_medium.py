@@ -6,7 +6,7 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_location, make_medium, make_org, make_os
 from robottelo.cli.medium import Medium
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import CLITestCase
 
 URL = "http://mirror.fakeos.org/%s/$major.$minor/os/$arch"
@@ -24,6 +24,7 @@ OSES = [
 class TestMedium(CLITestCase):
     """Test class for Medium CLI"""
     @run_only_on('sat')
+    @tier1
     def test_positive_create_1(self):
         """@Test: Check if Medium can be created
 
@@ -38,6 +39,7 @@ class TestMedium(CLITestCase):
                 self.assertEqual(medium['name'], name)
 
     @run_only_on('sat')
+    @tier1
     def test_create_medium_with_location(self):
         """@Test: Check if medium with location can be created
 
@@ -51,6 +53,7 @@ class TestMedium(CLITestCase):
         self.assertIn(location['name'], medium['locations'])
 
     @run_only_on('sat')
+    @tier1
     def test_create_medium_with_organization(self):
         """@Test: Check if medium with organization can be created
 
@@ -64,6 +67,7 @@ class TestMedium(CLITestCase):
         self.assertIn(org['name'], medium['organizations'])
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete_1(self):
         """@Test: Check if Medium can be deleted
 
@@ -81,6 +85,7 @@ class TestMedium(CLITestCase):
 
     # pylint: disable=no-self-use
     @run_only_on('sat')
+    @tier2
     def test_add_operatingsystem_medium(self):
         """@Test: Check if Medium can be associated with operating system
 
@@ -97,6 +102,7 @@ class TestMedium(CLITestCase):
         })
 
     @run_only_on('sat')
+    @tier2
     def test_removeoperatingsystem_medium(self):
         """@Test: Check if operating system can be removed from media
 
@@ -121,6 +127,7 @@ class TestMedium(CLITestCase):
         self.assertNotIn(os['name'], medium['operating-systems'])
 
     @run_only_on('sat')
+    @tier1
     def test_medium_update(self):
         """@Test: Check if medium can be updated
 

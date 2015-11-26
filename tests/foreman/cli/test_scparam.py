@@ -3,7 +3,7 @@
 
 from robottelo import ssh
 from robottelo.cli.smartclass import SmartClassParameter
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
@@ -11,7 +11,6 @@ from robottelo.test import CLITestCase
 class TestSmartClassParameter(CLITestCase):
     """Test class for Smart Class Parameter CLI."""
 
-    @run_only_on('sat')
     def run_puppet_module(self):
         """Import some parameterized puppet class. This is required to make
         sure that we have smart class variable available.
@@ -20,6 +19,7 @@ class TestSmartClassParameter(CLITestCase):
         ssh.command('puppet module install --force puppetlabs/ntp')
 
     @run_only_on('sat')
+    @tier1
     def test_bugzilla_1047794(self):
         """@Test: Check if SmartClass Paramter Info generates an error
 

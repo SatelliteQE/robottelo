@@ -19,7 +19,13 @@ from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+    tier1,
+    tier2,
+)
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -129,6 +135,7 @@ class TestActivationKey(CLITestCase):
                 TestActivationKey.pub_key = None
                 self.fail(err)
 
+    @tier1
     def test_positive_create_ak_1(self):
         """@Test: Create Activation key for all variations of Activation key
         name
@@ -150,6 +157,7 @@ class TestActivationKey(CLITestCase):
                 # Name should match passed data
                 self.assertEqual(new_ackey_name, name)
 
+    @tier1
     def test_positive_create_ak_2(self):
         """@Test: Create Activation key for all variations of Description
 
@@ -170,6 +178,7 @@ class TestActivationKey(CLITestCase):
                 # Description should match passed data
                 self.assertEqual(new_ackey_description, desc)
 
+    @tier2
     def test_positive_add_env_1(self):
         """@Test: Create Activation key and associate with Library environment
 
@@ -193,6 +202,7 @@ class TestActivationKey(CLITestCase):
                 self.assertEqual(new_ackey_env, self.library['name'])
 
     @run_only_on('sat')
+    @tier2
     def test_positive_add_env_2(self):
         """@Test: Create Activation key and associate with environment
 
@@ -215,6 +225,7 @@ class TestActivationKey(CLITestCase):
                 # Description should match passed data
                 self.assertEqual(new_ackey_env, self.env1['name'])
 
+    @tier2
     def test_positive_create_ak_3(self):
         """@Test: Create Activation key for all variations of Content Views
 
@@ -262,7 +273,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_positive_create_ak_5(self):
@@ -280,7 +290,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_positive_create_ak_6(self):
@@ -298,7 +307,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_positive_create_ak_7(self):
@@ -316,8 +324,8 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
+    @tier1
     @run_only_on('sat')
     def test_positive_create_ak_8(self):
         """@test: Create Activation key with environment name
@@ -358,7 +366,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_negative_create_ak_2(self):
@@ -376,7 +383,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_negative_create_ak_3(self):
@@ -394,8 +400,8 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
+    @tier1
     def test_delete_ak_by_name(self):
         """@Test: Create Activation key and delete it for all variations of
         Activation key name
@@ -423,6 +429,7 @@ class TestActivationKey(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     ActivationKey.info({'id': activation_key['id']})
 
+    @tier1
     def test_delete_ak_by_org_name(self):
         """@Test: Create Activation key and delete it using organization name
         for which that key was created
@@ -448,6 +455,7 @@ class TestActivationKey(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': activation_key['id']})
 
+    @tier1
     def test_delete_ak_by_org_label(self):
         """@Test: Create Activation key and delete it using organization
         label for which that key was created
@@ -472,6 +480,7 @@ class TestActivationKey(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': activation_key['id']})
 
+    @tier2
     def test_delete_ak_with_cv(self):
         """@Test: Create activation key with content view assigned to it and
         delete it using activation key id
@@ -497,6 +506,7 @@ class TestActivationKey(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': activation_key['id']})
 
+    @tier2
     def test_delete_ak_with_env(self):
         """@Test: Create activation key with lifecycle environment assigned to
         it and delete it using activation key id
@@ -523,6 +533,7 @@ class TestActivationKey(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.info({'id': activation_key['id']})
 
+    @tier1
     def test_positive_update_ak_1(self):
         """@Test: Update Activation Key Name in Activation key searching by ID
 
@@ -549,6 +560,7 @@ class TestActivationKey(CLITestCase):
                 })
                 self.assertEqual(activation_key['name'], name)
 
+    @tier1
     def test_positive_update_ak_2(self):
         """@Test: Update Activation Key Name in an Activation key searching by
         name
@@ -576,6 +588,7 @@ class TestActivationKey(CLITestCase):
                 })
                 self.assertEqual(activation_key['name'], name)
 
+    @tier1
     def test_positive_update_ak_3(self):
         """@Test: Update Description in an Activation key
 
@@ -619,8 +632,8 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
+    @tier2
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1109649)
     def test_positive_update_ak5(self):
@@ -671,7 +684,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_positive_update_ak7(self):
@@ -689,7 +701,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_negative_update_ak1(self):
@@ -707,7 +718,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_negative_update_ak2(self):
@@ -725,7 +735,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_negative_update_ak3(self):
@@ -743,7 +752,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_usage_limit(self):
@@ -763,8 +771,8 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
+    @tier2
     @skip_if_bug_open('bugzilla', 1110476)
     def test_associate_host(self):
         """@Test: Test that host collection can be associated to Activation
@@ -816,7 +824,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -835,7 +842,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @run_only_on('sat')
     @stubbed()
@@ -855,7 +861,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_delete_manifest(self):
@@ -874,7 +879,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_multiple_aks_to_system(self):
@@ -892,7 +896,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_list_activation_keys_1(self):
@@ -911,7 +914,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_list_activation_keys_2(self):
@@ -929,7 +931,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_info_activation_keys_1(self):
@@ -949,7 +950,6 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
     @stubbed()
     def test_info_activation_keys_2(self):
@@ -967,8 +967,8 @@ class TestActivationKey(CLITestCase):
         @Status: Manual
 
         """
-        pass
 
+    @tier1
     def test_bugzilla_1111723(self):
         """@test: Create activation key, rename it and create another with the
         initial name
@@ -1000,6 +1000,7 @@ class TestActivationKey(CLITestCase):
         })
         self.assertEqual(new_activation_key['name'], name)
 
+    @tier2
     def test_remove_hc_by_id(self):
         """@Test: Test that hosts associated to Activation Keys can be removed
         using id of that host collection
@@ -1037,6 +1038,7 @@ class TestActivationKey(CLITestCase):
         activation_key = ActivationKey.info({u'id': activation_key['id']})
         self.assertEqual(len(activation_key['host-collections']), 0)
 
+    @tier2
     def test_remove_hc_by_name(self):
         """@Test: Test that hosts associated to Activation Keys can be removed
         using name of that host collection
@@ -1086,6 +1088,7 @@ class TestActivationKey(CLITestCase):
                 })
                 self.assertEqual(len(activation_key['host-collections']), 0)
 
+    @tier2
     def test_add_subscription(self):
         """@Test: Test that subscription can be added to activation key
 
@@ -1117,6 +1120,7 @@ class TestActivationKey(CLITestCase):
         })
         self.assertIn('Subscription added to activation key', result)
 
+    @tier1
     def test_positive_copy_ak1(self):
         """@Test: Copy Activation key for all valid Activation Key name
            variations
@@ -1143,6 +1147,7 @@ class TestActivationKey(CLITestCase):
                 })
                 self.assertEqual(result[0], u'Activation key copied')
 
+    @tier1
     def test_positive_copy_ak2(self):
         """@Test: Copy Activation key by passing name of parent
 
@@ -1166,6 +1171,7 @@ class TestActivationKey(CLITestCase):
         })
         self.assertEqual(result[0], u'Activation key copied')
 
+    @tier1
     def test_negative_copy_ak(self):
         """@Test: Copy activation key with duplicate name
 
@@ -1191,6 +1197,7 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(exe.exception.return_code, 65)
         self.assertIn(u'Name has already been taken', exe.exception.stderr)
 
+    @tier2
     def test_positive_copy_subscription(self):
         """@Test: Copy Activation key and verify contents
 
@@ -1240,6 +1247,7 @@ class TestActivationKey(CLITestCase):
             result[3]  # subscription list
         )
 
+    @tier1
     def test_update_autoattach_1(self):
         """@Test: Update Activation key with inverse auto-attach value
 
@@ -1273,6 +1281,7 @@ class TestActivationKey(CLITestCase):
         })['auto-attach']
         self.assertEqual(attach_value, new_value)
 
+    @tier1
     def test_update_autoattach_2(self):
         """@Test: Update Activation key with valid auto-attach values
 
@@ -1301,6 +1310,7 @@ class TestActivationKey(CLITestCase):
                 self.assertEqual(
                     u'Activation key updated', result[0]['message'])
 
+    @tier1
     def test_negative_update_auto_attach(self):
         """@Test: Attempt to update Activation key with bad auto-attach value
 
@@ -1328,6 +1338,7 @@ class TestActivationKey(CLITestCase):
         self.assertIn(
             u"'--auto-attach': value must be one of", exe.exception.stderr)
 
+    @tier1
     @skip_if_bug_open('bugzilla', 1180282)
     def test_positive_content_override(self):
         """@Test: Positive content override

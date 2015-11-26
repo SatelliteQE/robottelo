@@ -14,7 +14,6 @@ class MyAccount(CLITestCase):
 
     [2] Negative Name Variations -  Blank, Greater than Max Length,
     Lesser than Min Length, Greater than Max DB size
-
     """
 
     @stubbed()
@@ -29,7 +28,6 @@ class MyAccount(CLITestCase):
         @Assert: Current User is updated
 
         @Status: Manual
-
         """
 
     @stubbed()
@@ -44,7 +42,6 @@ class MyAccount(CLITestCase):
         @Assert: Current User is updated
 
         @Status: Manual
-
         """
 
     @stubbed()
@@ -59,7 +56,6 @@ class MyAccount(CLITestCase):
         @Assert: Current User is updated
 
         @Status: Manual
-
         """
 
     @stubbed()
@@ -74,7 +70,6 @@ class MyAccount(CLITestCase):
         @Assert: Current User is updated
 
         @Status: Manual
-
         """
 
     @stubbed()
@@ -89,7 +84,6 @@ class MyAccount(CLITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
 
     @stubbed()
@@ -104,7 +98,6 @@ class MyAccount(CLITestCase):
         @Assert: User is not updated. Appropriate error shown.
 
         @Status: Manual
-
         """
 
     @stubbed()
@@ -119,7 +112,6 @@ class MyAccount(CLITestCase):
         @Assert: User is not updated. Appropriate error shown.
 
         @Status: Manual
-
         """
 
     @stubbed()
@@ -134,7 +126,6 @@ class MyAccount(CLITestCase):
         @Assert: User is not updated. Appropriate error shown.
 
         @Status: Manual
-
         """
 
     @stubbed()
@@ -150,7 +141,6 @@ class MyAccount(CLITestCase):
         @Assert: User is not updated. Appropriate error shown.
 
         @Status: Manual
-
         """
 
     @stubbed()
@@ -167,7 +157,6 @@ class MyAccount(CLITestCase):
         @Assert: User is not updated. Appropriate error shown.
 
         @Status: Manual
-
         """
 
     @stubbed()
@@ -184,5 +173,4 @@ class MyAccount(CLITestCase):
         @Assert: User is not updated.
 
         @Status: Manual
-
         """

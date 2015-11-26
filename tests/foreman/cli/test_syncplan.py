@@ -7,7 +7,7 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError, make_org, make_sync_plan
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.datafactory import valid_data_list, invalid_values_list
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open, tier1
 from robottelo.test import CLITestCase
 
 
@@ -102,39 +102,39 @@ class TestSyncPlan(CLITestCase):
 
         return make_sync_plan(options)
 
+    @tier1
     def test_positive_create_1(self):
         """@Test: Check if syncplan can be created with random names
 
         @Feature: Sync Plan
 
         @Assert: Sync plan is created and has random name
-
         """
         for name in valid_data_list():
             with self.subTest(name):
                 new_sync_plan = self._make_sync_plan({u'name': name})
                 self.assertEqual(new_sync_plan['name'], name)
 
+    @tier1
     def test_positive_create_2(self):
         """@Test: Check if syncplan can be created with random description
 
         @Feature: Sync Plan
 
         @Assert: Sync plan is created and has random description
-
         """
         for desc in valid_data_list():
             with self.subTest(desc):
                 new_sync_plan = self._make_sync_plan({u'description': desc})
                 self.assertEqual(new_sync_plan['description'], desc)
 
+    @tier1
     def test_positive_create_3(self):
         """@Test: Check if syncplan can be created with varied intervals
 
         @Feature: Sync Plan
 
         @Assert: Sync plan is created and has selected interval
-
         """
         for test_data in valid_name_interval_create_tests():
             with self.subTest(test_data):
@@ -148,26 +148,26 @@ class TestSyncPlan(CLITestCase):
                     test_data['interval']
                 )
 
+    @tier1
     def test_negative_create_1(self):
         """@Test: Check if syncplan can be created with random names
 
         @Feature: Sync Plan
 
         @Assert: Sync plan is created and has random name
-
         """
         for name in invalid_values_list():
             with self.subTest(name):
                 with self.assertRaises(CLIFactoryError):
                     self._make_sync_plan({u'name': name})
 
+    @tier1
     def test_positive_update_1(self):
         """@Test: Check if syncplan description can be updated
 
         @Feature: Sync Plan
 
         @Assert: Sync plan is created and description is updated
-
         """
         new_sync_plan = self._make_sync_plan()
         for new_desc in valid_data_list():
@@ -179,13 +179,13 @@ class TestSyncPlan(CLITestCase):
                 result = SyncPlan.info({u'id': new_sync_plan['id']})
                 self.assertEqual(result['description'], new_desc)
 
+    @tier1
     def test_positive_update_2(self):
         """@Test: Check if syncplan interval be updated
 
         @Feature: Sync Plan
 
         @Assert: Sync plan interval is updated
-
         """
         for test_data in valid_name_interval_update_tests():
             with self.subTest(test_data):
@@ -200,13 +200,13 @@ class TestSyncPlan(CLITestCase):
                 result = SyncPlan.info({u'id': new_sync_plan['id']})
                 self.assertEqual(result['interval'], test_data['new-interval'])
 
+    @tier1
     def test_positive_update_3(self):
         """@Test: Check if syncplan sync date can be updated
 
         @Feature: Sync Plan
 
         @Assert: Sync plan is created and sync plan is updated
-
         """
         # Set the sync date to today/right now
         today = datetime.now()
@@ -244,13 +244,13 @@ class TestSyncPlan(CLITestCase):
             'Sync date was not updated',
         )
 
+    @tier1
     def test_positive_delete_1(self):
         """@Test: Check if syncplan can be created and deleted
 
         @Feature: Sync Plan
 
         @Assert: Sync plan is created and then deleted
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -260,6 +260,7 @@ class TestSyncPlan(CLITestCase):
                     SyncPlan.info({'id': new_sync_plan['id']})
 
     @skip_if_bug_open('bugzilla', 1261122)
+    @tier1
     def test_bz1261122_enabled_state_visible(self):
         """@Test: Check if Enabled field is displayed in sync-plan info output
 
@@ -268,7 +269,6 @@ class TestSyncPlan(CLITestCase):
         @Assert: Sync plan Enabled state is displayed
 
         @BZ: 1261122
-
         """
         new_sync_plan = self._make_sync_plan()
         result = SyncPlan.info({'id': new_sync_plan['id']})

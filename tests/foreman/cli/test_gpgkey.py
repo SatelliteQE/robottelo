@@ -8,7 +8,12 @@ from robottelo.cli.factory import make_gpg_key, make_org
 from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.org import Org
 from robottelo.constants import VALID_GPG_KEY_FILE
-from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+    tier1,
+)
 from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
 from tempfile import mkstemp
@@ -46,7 +51,6 @@ def negative_create_data():
 def create_gpg_key_file(content=None):
     """Creates a fake GPG Key file and returns its path or None if an error
     happens.
-
     """
 
     (_, key_filename) = mkstemp(text=True)
@@ -68,7 +72,6 @@ class TestGPGKey(CLITestCase):
     def setUpClass(cls):  # noqa
         """Create a shared organization for all tests to avoid generating
         hundreds of organizations
-
         """
         super(TestGPGKey, cls).setUpClass()
         # pylint: disable=unexpected-keyword-arg
@@ -78,6 +81,7 @@ class TestGPGKey(CLITestCase):
 
     @skip_if_bug_open('redmine', 4272)
     @run_only_on('sat')
+    @tier1
     def test_redmine_4272(self):
         """@Test: gpg info should display key content
 
@@ -86,7 +90,6 @@ class TestGPGKey(CLITestCase):
         @Assert: gpg info should display key content
 
         @BZ: Redmine#4272
-
         """
         # GPG Key data
         data = {
@@ -102,13 +105,13 @@ class TestGPGKey(CLITestCase):
         self.assertEqual(gpg_key['content'], content)
 
     @run_only_on('sat')
+    @tier1
     def test_info_by_name(self):
         """@Test: Create single gpg key and get its info by name
 
         @Feature: GPG Keys
 
         @Assert: specific information for GPG key matches the creation name
-
         """
         name = gen_string('utf8')
         gpg_key = make_gpg_key({
@@ -126,6 +129,7 @@ class TestGPGKey(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1172009)
     @run_only_on('sat')
+    @tier1
     def test_positive_create_1(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import using the default created organization
@@ -135,7 +139,6 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is created
 
         @BZ: 1172009
-
         """
         for test_data in positive_create_data():
             with self.subTest(test_data):
@@ -159,6 +162,7 @@ class TestGPGKey(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1172009)
     @run_only_on('sat')
+    @tier1
     def test_positive_create_2(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import using the a new organization
@@ -168,7 +172,6 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is created
 
         @BZ: 1172009
-
         """
         for test_data in positive_create_data():
             with self.subTest(test_data):
@@ -191,6 +194,7 @@ class TestGPGKey(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1172009)
     @run_only_on('sat')
+    @tier1
     def test_negative_create_1(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then try to create new one with same name
@@ -200,7 +204,6 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is not created
 
         @BZ: 1172009
-
         """
         test_data = {'name': gen_string('alphanumeric')}
         # Setup data to pass to the factory
@@ -223,13 +226,13 @@ class TestGPGKey(CLITestCase):
             GPGKey().create(test_data)
 
     @run_only_on('sat')
+    @tier1
     def test_negative_create_2(self):
         """@test: Create gpg key with valid name and no gpg key
 
         @feature: GPG Keys
 
         @assert: gpg key is not created
-
         """
         # Setup data to pass to create
         for test_data in positive_create_data():
@@ -241,6 +244,7 @@ class TestGPGKey(CLITestCase):
                     GPGKey().create(test_data)
 
     @run_only_on('sat')
+    @tier1
     def test_negative_create_3(self):
         """@test: Create gpg key with invalid name and valid gpg key via
         file import
@@ -248,7 +252,6 @@ class TestGPGKey(CLITestCase):
         @feature: GPG Keys
 
         @assert: gpg key is not created
-
         """
         for test_data in negative_create_data():
             with self.subTest(test_data):
@@ -276,10 +279,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is deleted
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -292,10 +292,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is deleted
 
         @status: manual
-
         """
-
-        pass
 
     # Negative Delete
     @stubbed()
@@ -309,10 +306,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is not deleted
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -325,10 +319,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is not deleted
 
         @status: manual
-
         """
-
-        pass
 
     # Positive Update
 
@@ -343,10 +334,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is updated
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -359,10 +347,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is updated
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -375,10 +360,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is updated
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -391,10 +373,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is updated
 
         @status: manual
-
         """
-
-        pass
 
     # Negative Update
     @stubbed()
@@ -408,10 +387,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is not updated
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -424,10 +400,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is not updated
 
         @status: manual
-
         """
-
-        pass
 
     # Product association
     @stubbed()
@@ -441,10 +414,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -457,10 +427,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product but not the repository
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -474,10 +441,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product but not the repositories
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -491,10 +455,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product but not the repositories
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -508,10 +469,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product and the repository
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -527,10 +485,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with the repository
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -544,10 +499,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product and all the repositories
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -561,10 +513,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product before/after update
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -579,10 +528,7 @@ class TestGPGKey(CLITestCase):
         not the repository
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -597,10 +543,7 @@ class TestGPGKey(CLITestCase):
         not the repositories
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -615,10 +558,7 @@ class TestGPGKey(CLITestCase):
         not the repositories
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -633,10 +573,7 @@ class TestGPGKey(CLITestCase):
         before/after update
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -651,10 +588,7 @@ class TestGPGKey(CLITestCase):
         before/after update
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -669,10 +603,7 @@ class TestGPGKey(CLITestCase):
         before/after update
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -687,10 +618,7 @@ class TestGPGKey(CLITestCase):
         from product after deletion
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -705,10 +633,7 @@ class TestGPGKey(CLITestCase):
         during creation but removed from product after deletion
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -723,10 +648,7 @@ class TestGPGKey(CLITestCase):
         during creation but removed from product after deletion
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -741,10 +663,7 @@ class TestGPGKey(CLITestCase):
         during creation but removed from product after deletion
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -759,10 +678,7 @@ class TestGPGKey(CLITestCase):
         during creation but removed from product and repository after deletion
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -777,10 +693,7 @@ class TestGPGKey(CLITestCase):
         during creation but removed from product and repository after deletion
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -796,10 +709,7 @@ class TestGPGKey(CLITestCase):
         deletion
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -813,10 +723,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -830,10 +737,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product but not the repository
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -847,10 +751,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product but not the repositories
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -864,10 +765,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product but not the repositories
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -881,10 +779,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product and the repository
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -898,10 +793,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product and one of the repositories
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -915,10 +807,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product and all the repositories
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -932,10 +821,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is associated with product before/after update
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -950,10 +836,7 @@ class TestGPGKey(CLITestCase):
         but not the repository
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -968,10 +851,7 @@ class TestGPGKey(CLITestCase):
         but not the repositories
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -986,10 +866,7 @@ class TestGPGKey(CLITestCase):
         but not the repositories
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -1004,10 +881,7 @@ class TestGPGKey(CLITestCase):
         before/after update
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -1022,10 +896,7 @@ class TestGPGKey(CLITestCase):
         before/after update
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -1040,10 +911,7 @@ class TestGPGKey(CLITestCase):
         before/after update
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -1058,10 +926,7 @@ class TestGPGKey(CLITestCase):
         removed from product after deletion
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -1076,10 +941,7 @@ class TestGPGKey(CLITestCase):
         during creation but removed from product after deletion
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -1094,10 +956,7 @@ class TestGPGKey(CLITestCase):
         during creation but removed from product after deletion
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -1112,10 +971,7 @@ class TestGPGKey(CLITestCase):
         during creation but removed from product after deletion
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -1130,10 +986,7 @@ class TestGPGKey(CLITestCase):
         during creation but removed from product and repository after deletion
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -1148,10 +1001,7 @@ class TestGPGKey(CLITestCase):
         during creation but removed from product and repository after deletion
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -1167,10 +1017,7 @@ class TestGPGKey(CLITestCase):
         after deletion
 
         @status: manual
-
         """
-
-        pass
 
     # Content
 
@@ -1185,10 +1032,7 @@ class TestGPGKey(CLITestCase):
         @assert: host can install package from custom repository
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -1201,10 +1045,7 @@ class TestGPGKey(CLITestCase):
         @assert: host can install package from custom repositories
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -1217,10 +1058,7 @@ class TestGPGKey(CLITestCase):
         @assert: host can install package from custom repositories
 
         @status: manual
-
         """
-
-        pass
 
     # Miscelaneous
 
@@ -1234,10 +1072,7 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key is displayed/listed
 
         @status: manual
-
         """
-
-        pass
 
     @stubbed()
     @run_only_on('sat')
@@ -1249,7 +1084,4 @@ class TestGPGKey(CLITestCase):
         @assert: gpg key can be found
 
         @status: manual
-
         """
-
-        pass

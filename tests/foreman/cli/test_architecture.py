@@ -9,13 +9,14 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
 class TestArchitecture(CLITestCase):
     """Architecture CLI related tests."""
 
+    @tier1
     def test_positive_create(self):
         """@Test: Successfully creates an Architecture.
 
@@ -28,6 +29,7 @@ class TestArchitecture(CLITestCase):
                 architecture = make_architecture({'name': name})
                 self.assertEqual(architecture['name'], name)
 
+    @tier1
     def test_negative_create(self):
         """@Test: Don't create an Architecture with invalid data.
 
@@ -40,6 +42,7 @@ class TestArchitecture(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Architecture.create({'name': name})
 
+    @tier1
     def test_positive_update_name(self):
         """@Test: Successfully update an Architecture.
 
@@ -57,6 +60,7 @@ class TestArchitecture(CLITestCase):
                 architecture = Architecture.info({'id': architecture['id']})
                 self.assertEqual(architecture['name'], new_name)
 
+    @tier1
     @run_only_on('sat')
     def test_negative_update(self):
         """@test: Create Architecture then fail to update its name
@@ -76,6 +80,7 @@ class TestArchitecture(CLITestCase):
                 result = Architecture.info({'id': architecture['id']})
                 self.assertEqual(architecture['name'], result['name'])
 
+    @tier1
     @run_only_on('sat')
     def test_positive_delete(self):
         """@test: Create Architecture with valid values then delete it
@@ -92,6 +97,7 @@ class TestArchitecture(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Architecture.info({'id': architecture['id']})
 
+    @tier1
     @run_only_on('sat')
     def test_negative_delete(self):
         """@test: Create Architecture then delete it by wrong ID
