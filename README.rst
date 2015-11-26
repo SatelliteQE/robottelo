@@ -1,6 +1,9 @@
 Robottelo
 =========
 
+.. image:: https://coveralls.io/repos/SatelliteQE/robottelo/badge.svg?branch=master&service=github
+    :target: https://coveralls.io/github/SatelliteQE/robottelo?branch=master
+
 `Robottelo`_ is a test suite which exercises `The Foreman`_. All tests are
 automated, suited for use in a continuous integration environment, and `data
 driven`_. There are three types of tests:

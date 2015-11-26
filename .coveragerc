@@ -1,0 +1,7 @@
+[run]
+include =
+    robottelo/*.py
+    robottelo/api
+    robottelo/cli/base.py
+    robottelo/cli/hammer.py
+    robottelo/ui/base.py

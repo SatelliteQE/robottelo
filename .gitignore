@@ -21,6 +21,7 @@
 /robottelo.log
 /test-*.pstats
 /.tox
+/.coverage
 
 # Varies per-deployment.
 /robottelo.properties
