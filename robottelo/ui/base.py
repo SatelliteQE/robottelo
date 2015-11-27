@@ -349,6 +349,14 @@ class Base(object):
         self.browser.execute_script("$('#panel_main').\
                                     data('jsp').scrollBy(0, 100);")
 
+    def scroll_into_view(self, element):
+        """ Scrolls current element into visible area of the browser window."""
+        # Here aligntoTop=False option is set.
+        self.browser.execute_script(
+            'arguments[0].scrollIntoView(false);',
+            element,
+        )
+
     def field_update(self, loc_string, newtext):
         """
         Function to replace the existing/default text from textbox
@@ -508,7 +516,7 @@ class Base(object):
         return element_type
 
     def click(self, locator, wait_for_ajax=True,
-              ajax_timeout=30, waiter_timeout=12):
+              ajax_timeout=30, waiter_timeout=12, scroll=False):
         """Locate the element described by the ``locator`` and click on it.
 
         :param locator: The locator that describes the element.
@@ -528,6 +536,11 @@ class Base(object):
                 '{0}: element with locator {1} not found while trying to click'
                 .format(type(self).__name__, locator)
             )
+        # Required since from seleniume 2.48.0. which makes Selenium more
+        # closely resemble a user when interacting with elements.
+        # Scrolling element into view before attempting to click solves this.
+        if scroll:
+            self.scroll_into_view(element)
         element.click()
         if wait_for_ajax:
             self.wait_for_ajax(ajax_timeout)
