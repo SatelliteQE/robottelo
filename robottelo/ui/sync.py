@@ -146,6 +146,7 @@ class Sync(Base):
                 # Below loop helps when reposet checkbox is already expanded
                 # and when selecting multiple repos.
                 if rs_exp:
+                    self.scroll_into_view(rs_exp)
                     rs_exp.click()
                 elif rs_cb:
                     rs_cb.click()
@@ -171,7 +172,10 @@ class Sync(Base):
                     repo_name = repo_values['repo_name']
                     # UI is very slow here. Hence timeout is 120 seconds.
                     self.click(
-                        (strategy3, value3 % repo_name), waiter_timeout=120)
+                        (strategy3, value3 % repo_name),
+                        waiter_timeout=120,
+                        scroll=True,
+                    )
                     # Similar to above reposet checkbox spinner
                     repo_spinner = self.wait_until_element(
                         (strategy5, value5 % repo_name),
