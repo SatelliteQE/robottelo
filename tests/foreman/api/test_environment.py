@@ -13,38 +13,81 @@ from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.test import APITestCase
 
 
+def valid_data_list():
+    """Return a generator yielding various kinds of valid strings for
+    Environment entity
+    """
+    return(
+        gen_string('alpha'),
+        gen_string('numeric'),
+        gen_string('alphanumeric'),
+    )
+
+
 class EnvironmentTestCase(APITestCase):
     """Tests for environments."""
 
     @tier1
     @run_only_on('sat')
-    def test_positive_create_1(self):
+    def test_positive_create_different_names(self):
         """@Test: Create an environment and provide a valid name.
-
-        @Assert: The environment has the provided attributes.
 
         @Feature: Environment
 
+        @Assert: The environment created successfully and has expected name.
+
         """
-        for name in (
-                gen_string(str_type)
-                for str_type in ('alpha', 'numeric', 'alphanumeric')):
+        for name in valid_data_list():
             with self.subTest(name):
                 env = entities.Environment(name=name).create()
-                self.assertEqual(env.name, name)
-                env = env.read()  # check sat isn't blindly handing back data
                 self.assertEqual(env.name, name)
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_1(self):
-        """@Test: Create an environment and provide an invalid name.
-
-        @Assert: The server returns an error.
+    def test_positive_create_with_org(self):
+        """@Test: Create an environment and assign it to new organization.
 
         @Feature: Environment
 
-        In this test, an "invalid name" is one that is too long.
+        @Assert: The environment created successfully and has expected
+        attributes.
+
+        """
+        org = entities.Organization().create()
+        env = entities.Environment(
+            name=gen_string('alphanumeric'),
+            organization=[org],
+        ).create()
+        self.assertEqual(len(env.organization), 1)
+        self.assertEqual(env.organization[0].id, org.id)
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_create_with_location(self):
+        """@Test: Create an environment and assign it to new location.
+
+        @Feature: Environment
+
+        @Assert: The environment created successfully and has expected
+        attributes.
+
+        """
+        location = entities.Location().create()
+        env = entities.Environment(
+            name=gen_string('alphanumeric'),
+            location=[location],
+        ).create()
+        self.assertEqual(len(env.location), 1)
+        self.assertEqual(env.location[0].id, location.id)
+
+    @tier1
+    @run_only_on('sat')
+    def test_negative_create_with_too_long_names(self):
+        """@Test: Create an environment and provide an invalid name.
+
+        @Feature: Environment
+
+        @Assert: The server returns an error.
 
         """
         for name in invalid_names_list():
@@ -54,15 +97,12 @@ class EnvironmentTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_negative_create_2(self):
+    def test_negative_create_with_invalid_characters(self):
         """@Test: Create an environment and provide an illegal name.
-
-        @Assert: The server returns an error.
 
         @Feature: Environment
 
-        In this test, an "invalid name" is one that contains illegal
-        characters, such as latin1 characters.
+        @Assert: The server returns an error.
 
         """
         str_types = ('cjk', 'latin1', 'utf8')
@@ -70,6 +110,89 @@ class EnvironmentTestCase(APITestCase):
             with self.subTest(name):
                 with self.assertRaises(HTTPError):
                     entities.Environment(name=name).create()
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_update_different_names(self):
+        """@Test: Create environment entity providing the initial name, then
+        update its name to another valid name.
+
+        @Feature: Environment
+
+        @Assert: Environment entity is created and updated properly
+        """
+        env = entities.Environment().create()
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                env = entities.Environment(
+                    id=env.id, name=new_name).update(['name'])
+                self.assertEqual(env.name, new_name)
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_update_organization(self):
+        """@Test: Update environment and assign it to a new organization
+
+        @Feature: Environment
+
+        @Assert: Environment entity is updated properly
+        """
+        env = entities.Environment().create()
+        org = entities.Organization().create()
+        env = entities.Environment(
+            id=env.id, organization=[org]).update(['organization'])
+        self.assertEqual(len(env.organization), 1)
+        self.assertEqual(env.organization[0].id, org.id)
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_update_location(self):
+        """@Test: Update environment and assign it to a new location
+
+        @Feature: Environment
+
+        @Assert: Environment entity is updated properly
+        """
+        env = entities.Environment().create()
+        location = entities.Location().create()
+        env = entities.Environment(
+            id=env.id, location=[location]).update(['location'])
+        self.assertEqual(len(env.location), 1)
+        self.assertEqual(env.location[0].id, location.id)
+
+    @tier1
+    @run_only_on('sat')
+    def test_negative_update_different_names(self):
+        """@Test: Create environment entity providing the initial name, then
+        try to update its name to invalid one.
+
+        @Feature: Environment
+
+        @Assert: Environment entity is not updated
+        """
+        env = entities.Environment().create()
+        for new_name in invalid_names_list():
+            with self.subTest(new_name):
+                with self.assertRaises(HTTPError):
+                    entities.Environment(
+                        id=env.id, name=new_name).update(['name'])
+
+    @tier1
+    @run_only_on('sat')
+    def test_positive_delete(self):
+        """@Test: Create new environment entity and then delete it.
+
+        @Feature: Environment
+
+        @Assert: Environment entity is deleted successfully
+
+        """
+        for name in valid_data_list():
+            with self.subTest(name):
+                env = entities.Environment(name=name).create()
+                env.delete()
+                with self.assertRaises(HTTPError):
+                    env.read()
 
 
 @skip_if_bug_open('bugzilla', 1262029)
