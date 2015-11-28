@@ -17,21 +17,22 @@ ROBOTTELO_TESTS_PATH=tests/robottelo/
 
 help:
 	@echo "Please use \`make <target>' where <target> is one of"
-	@echo "  docs                  to make documentation in the default format"
-	@echo "  docs-clean            to remove docs and doc build artifacts"
-	@echo "  test-docstrings       to check whether docstrings are good quality"
-	@echo "  test-robottelo        to run internal robottelo tests"
-	@echo "  test-foreman-api      to test a Foreman deployment API"
+	@echo "  docs                       to make documentation in the default format"
+	@echo "  docs-clean                 to remove docs and doc build artifacts"
+	@echo "  test-docstrings            to check whether docstrings are good quality"
+	@echo "  test-robottelo             to run internal robottelo tests"
+	@echo "  test-robottelo-coverage    to run internal robottelo tests with coverage report"
+	@echo "  test-foreman-api           to test a Foreman deployment API"
 	@echo "  test-foreman-api-threaded  to do the above with threading"
-	@echo "  test-foreman-cli      to test a Foreman deployment CLI"
+	@echo "  test-foreman-cli           to test a Foreman deployment CLI"
 	@echo "  test-foreman-cli-threaded  to do the above with threading"
-	@echo "  test-foreman-rhai	   to test Red Hat Access Insights plugin"
-	@echo "  test-foreman-rhci     to test a Foreman deployment w/RHCI plugin"
-	@echo "  test-foreman-ui       to test a Foreman deployment UI"
-	@echo "  test-foreman-ui-xvfb  to test a Foreman deployment UI using xvfb-run"
-	@echo "  test-foreman-smoke    to perform a generic smoke test"
-	@echo "  graph-entities        to graph entity relationships"
-	@echo "  lint                  to run pylint on the entire codebase"
+	@echo "  test-foreman-rhai          to test Red Hat Access Insights plugin"
+	@echo "  test-foreman-rhci          to test a Foreman deployment w/RHCI plugin"
+	@echo "  test-foreman-ui            to test a Foreman deployment UI"
+	@echo "  test-foreman-ui-xvfb       to test a Foreman deployment UI using xvfb-run"
+	@echo "  test-foreman-smoke         to perform a generic smoke test"
+	@echo "  graph-entities             to graph entity relationships"
+	@echo "  lint                       to run pylint on the entire codebase"
 
 docs:
 	@cd docs; $(MAKE) html
@@ -48,6 +49,9 @@ test-docstrings:
 
 test-robottelo:
 	$$(which nosetests) -s  $(ROBOTTELO_TESTS_PATH)
+
+test-robottelo-coverage:
+	py.test --cov --cov-config=.coveragerc tests/robottelo
 
 test-foreman-api:
 	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_API_TESTS_PATH)
@@ -90,6 +94,6 @@ lint:
 # Special Targets -------------------------------------------------------------
 
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
-        test-foreman-api test-foreman-cli test-foreman-rhai test-foreman-rhci \
-        test-foreman-ui test-foreman-ui-xvfb test-foreman-smoke \
-        graph-entities lint
+        test-robottelo-coverage test-foreman-api test-foreman-cli \
+        test-foreman-rhai test-foreman-rhci test-foreman-ui  \
+        test-foreman-ui-xvfb test-foreman-smoke graph-entities lint

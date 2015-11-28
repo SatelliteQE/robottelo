@@ -1,7 +1,9 @@
-# Travis runs tests and checks code quality using these modules.
+# For running tests and checking code quality using these modules.
+coveralls
 flake8
 mock
 nose
+pytest-cov
 testimony
 tox
 

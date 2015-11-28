@@ -12,5 +12,7 @@ script:
     - tox
     # The `test-foreman-*` recipes require the presence of a Foreman
     # deployment, and they are lengthy. Don't run them on Travis.
+after_success:
+    coveralls
 notifications:
     irc: "chat.freenode.net#robottelo"
