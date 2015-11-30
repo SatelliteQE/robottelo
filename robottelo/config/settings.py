@@ -604,6 +604,12 @@ class Settings(object):
                 '[robottelo] virtual_display is enabled, '
                 'window_manager_command must be provided.'
             )
+        webdrivers = ('chrome', 'firefox', 'ie', 'phantomjs', 'remote')
+        if self.webdriver not in webdrivers:
+            raise ImproperlyConfigured(
+                '[robottelo] webdriver should be one of {0}.'
+                .format(', '.join(webdrivers.keys()))
+            )
         return validation_errors
 
     @property

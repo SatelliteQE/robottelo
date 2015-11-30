@@ -5,3 +5,4 @@ include =
     robottelo/cli/base.py
     robottelo/cli/hammer.py
     robottelo/ui/base.py
+    robottelo/ui/browser.py
