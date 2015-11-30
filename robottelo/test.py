@@ -33,6 +33,7 @@ from robottelo.performance.thread import (
     SubscribeAKThread,
     SubscribeAttachThread
 )
+from robottelo.ui.browser import browser
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeprofile import ComputeProfile
@@ -77,7 +78,6 @@ from robottelo.ui.template import Template
 from robottelo.ui.trend import Trend
 from robottelo.ui.usergroup import UserGroup
 from robottelo.ui.user import User
-from selenium import webdriver
 
 SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
 
@@ -170,29 +170,7 @@ class UITestCase(TestCase):
 
     def setUp(self):  # noqa
         """We do want a new browser instance for every test."""
-        if self.driver_name.lower() == 'firefox':
-            self.browser = webdriver.Firefox(
-                firefox_binary=webdriver.firefox.firefox_binary.FirefoxBinary(
-                    self.driver_binary)
-            )
-        elif self.driver_name.lower() == 'chrome':
-            self.browser = (
-                webdriver.Chrome() if self.driver_binary is None
-                else webdriver.Chrome(executable_path=self.driver_binary)
-            )
-        elif self.driver_name.lower() == 'ie':
-            self.browser = (
-                webdriver.Ie() if self.driver_binary is None
-                else webdriver.Ie(executable_path=self.driver_binary)
-            )
-        elif self.driver_name.lower() == 'phantomjs':
-            service_args = ['--ignore-ssl-errors=true']
-            self.browser = webdriver.PhantomJS(
-                service_args=service_args
-            )
-        else:
-            self.browser = webdriver.Remote()
-
+        self.browser = browser()
         self.browser.maximize_window()
         self.browser.get(settings.server.get_url())
 
