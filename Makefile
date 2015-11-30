@@ -8,9 +8,9 @@ FOREMAN_RHCI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhci)
 FOREMAN_SMOKE_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), smoke)
 FOREMAN_TESTS_PATH=tests/foreman/
 FOREMAN_UI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), ui)
-NOSETESTS=python -m cProfile -o $@.pstats $$(which nosetests)
-NOSETESTS_OPTS=-s --logging-filter=nailgun,robottelo --with-xunit\
-			   --xunit-file=foreman-results.xml
+PYTEST=python -m cProfile -o $@.pstats $$(which py.test)
+PYTEST_OPTS=-v --junit-xml=foreman-results.xml
+PYTEST_XDIST_OPTS=$(PYTEST_OPTS) -n auto --boxed
 ROBOTTELO_TESTS_PATH=tests/robottelo/
 
 # Commands --------------------------------------------------------------------
@@ -21,11 +21,14 @@ help:
 	@echo "  docs-clean                 to remove docs and doc build artifacts"
 	@echo "  test-docstrings            to check whether docstrings are good quality"
 	@echo "  test-robottelo             to run internal robottelo tests"
-	@echo "  test-robottelo-coverage    to run internal robottelo tests with coverage report"
+	@echo "  test-robottelo-coverage    to run internal robottelo tests with coverage report."
+	@echo "                             Requires pytest-cov"
 	@echo "  test-foreman-api           to test a Foreman deployment API"
-	@echo "  test-foreman-api-threaded  to do the above with threading"
+	@echo "  test-foreman-api-threaded  to do the above with threading."
+	@echo "                             Requires pytest-xdist"
 	@echo "  test-foreman-cli           to test a Foreman deployment CLI"
-	@echo "  test-foreman-cli-threaded  to do the above with threading"
+	@echo "  test-foreman-cli-threaded  to do the above with threading."
+	@echo "                             Requires pytest-xdist"
 	@echo "  test-foreman-rhai          to test Red Hat Access Insights plugin"
 	@echo "  test-foreman-rhci          to test a Foreman deployment w/RHCI plugin"
 	@echo "  test-foreman-ui            to test a Foreman deployment UI"
@@ -48,42 +51,40 @@ test-docstrings:
 	testimony validate_docstring tests/foreman/rhai
 
 test-robottelo:
-	$$(which nosetests) -s  $(ROBOTTELO_TESTS_PATH)
+	$$(which py.test) -s  $(ROBOTTELO_TESTS_PATH)
 
 test-robottelo-coverage:
-	py.test --cov --cov-config=.coveragerc tests/robottelo
+	$$(which py.test) --cov --cov-config=.coveragerc tests/robottelo
 
 test-foreman-api:
-	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_API_TESTS_PATH)
+	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_API_TESTS_PATH)
 
 test-foreman-api-threaded:
-	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_API_TESTS_PATH)\
-	    --processes=-1 --process-timeout=300
+	$(PYTEST) $(PYTEST_XDIST_OPTS) $(FOREMAN_API_TESTS_PATH)
 
 test-foreman-cli:
-	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_CLI_TESTS_PATH)
+	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_CLI_TESTS_PATH)
 
 test-foreman-cli-threaded:
-	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_CLI_TESTS_PATH)\
-	    --processes=-1 --process-timeout=300
+	$(PYTEST) $(PYTEST_XDIST_OPTS) $(FOREMAN_CLI_TESTS_PATH)
 
 test-foreman-longrun:
-	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_LONGRUN_TESTS_PATH)
+	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_LONGRUN_TESTS_PATH)
 
 test-foreman-rhai:
-	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_RHAI_TESTS_PATH)
+	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_RHAI_TESTS_PATH)
 
 test-foreman-rhci:
-	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_RHCI_TESTS_PATH)
+	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_RHCI_TESTS_PATH)
 
 test-foreman-ui:
-	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_UI_TESTS_PATH)
+	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_UI_TESTS_PATH)
 
 test-foreman-ui-xvfb:
-	xvfb-run nosetests $(NOSETESTS_OPTS) $(FOREMAN_UI_TESTS_PATH)
+	xvfb-run py.test $(PYTEST_OPTS) $(FOREMAN_UI_TESTS_PATH)
 
 test-foreman-smoke:
-	$(NOSETESTS) $(NOSETESTS_OPTS) $(FOREMAN_SMOKE_TESTS_PATH)
+	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_SMOKE_TESTS_PATH)
 
 graph-entities:
 	scripts/graph_entities.py | dot -Tsvg -o entities.svg
