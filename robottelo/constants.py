@@ -723,7 +723,7 @@ OSCAP_PROFILE = {
 
 SEARCH_EXCEPTIONS_LIST = [
     'ComputeResource',
-    'HostGroup',
+    'Hostgroup',
     'Location',
     'OpenScapContent',
     'OpenScapPolicy',
