@@ -37,7 +37,6 @@ class Hostgroup(Base):
 
     def delete(self, name, really=True):
         """Deletes existing hostgroup from UI."""
-        Navigator(self.browser).go_to_host_groups()
         self.delete_entity(
             name,
             really,

@@ -231,7 +231,7 @@ class ComputeResource(UITestCase):
             )
 
     @run_only_on('sat')
-    def test_remove_resource(self):
+    def test_positive_delete(self):
         """@Test: Delete a Compute Resource
 
         @Feature: Compute Resource - Delete

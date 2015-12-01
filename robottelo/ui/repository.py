@@ -7,6 +7,7 @@ from selenium.webdriver.support.select import Select
 
 class Repos(Base):
     """Manipulates Repos from UI."""
+    is_katello = True
 
     def navigate_to_entity(self):
         """Navigate to Repository entity tab"""
@@ -81,16 +82,13 @@ class Repos(Base):
                 locators['repo.upstream_update'], new_upstream_name)
             self.click(common_locators['save'])
 
-    def delete(self, repo, really=True):
+    def delete(self, name, really=True):
         """Delete a repository from UI."""
-        self.navigate_to_entity()
-        strategy, value = locators['repo.select']
-        self.click((strategy, value % repo))
-        self.click(locators['repo.remove'])
-        if really:
-            self.click(common_locators['confirm_remove'])
-        else:
-            self.click(common_locators['cancel'])
+        self.delete_entity(
+            name,
+            really,
+            locators['repo.remove'],
+        )
 
     def search(self, element_name):
         """Uses the search box to locate an element from a list of elements.

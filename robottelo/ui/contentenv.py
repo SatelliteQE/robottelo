@@ -44,7 +44,9 @@ class ContentEnvironment(Base):
         return self.wait_until_element((strategy, value % name))
 
     def delete(self, name):
-        """Deletes an existing environment."""
+        """Deletes an existing environment. We don't have confirmation dialog
+        for current operation, so it is necessary to use custom method
+        """
         element = self.search(name)
         if not element:
             raise UINoSuchElementError(

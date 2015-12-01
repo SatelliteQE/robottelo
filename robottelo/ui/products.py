@@ -70,12 +70,10 @@ class Products(Base):
                 Select(type_ele).select_by_visible_text(new_sync_plan)
                 self.click(common_locators['create'])
 
-    def delete(self, product, really=True):
+    def delete(self, name, really=True):
         """Delete a product from UI"""
-        strategy, value = locators['prd.select']
-        self.click((strategy, value % product))
-        self.click(locators['prd.remove'])
-        if really:
-            self.click(common_locators['confirm_remove'])
-        else:
-            self.click(common_locators['cancel'])
+        self.delete_entity(
+            name,
+            really,
+            locators['prd.remove'],
+        )

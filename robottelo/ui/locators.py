@@ -686,12 +686,13 @@ common_locators = LocatorDict({
         By.XPATH, "//tr/td/input[@value='%s']/following::td/span/a/i"),
 
     # Katello Common Locators
-    "confirm_remove": (By.XPATH, "//button[contains(@ng-click,'ok')]"),
+    "confirm_remove": (
+        By.XPATH, "//button[@ng-click='ok()' or @ng-click='delete()']"),
     "create": (By.XPATH, "//button[contains(@ng-click,'Save')]"),
     "save": (
         By.XPATH, ("//button[contains(@ng-click,'save')"
                    "and not(contains(@class,'ng-hide'))]")),
-    "cancel": (By.XPATH, "//button[contains(@ng-click,'Cancel')]"),
+    "cancel": (By.XPATH, "//button[@aria-label='Close']"),
     "name": (By.ID, "name"),
     "label": (By.ID, "label"),
     "description": (By.ID, "description"),
@@ -1407,9 +1408,6 @@ locators = LocatorDict({
         By.XPATH, "//input[@ng-model='copyName']"),
     "ak.copy_create": (
         By.XPATH, "//button[@ng-click='copy(copyName)']"),
-    "ak.cancel": (
-        By.XPATH, ("//div[@class='modal-dialog']"
-                   "//button[@ng-click='cancel()']")),
     "ak.save_cv": (
         By.XPATH,
         ("//form[@bst-edit-select='activationKey.content_view.name']"
@@ -1657,8 +1655,6 @@ locators = LocatorDict({
         By.XPATH, "//select[@ng-model='selectedContentViewId']"),
     "contentviews.confirm_remove_ver": (
         By.XPATH, "//button[@ng-click='performDeletion()']"),
-    "contentviews.confirm_remove": (
-        By.XPATH, "//button[@ng-click='delete()']"),
     "contentviews.version_name": (
         By.XPATH, "//td/a[contains(., '%s')]"),
     "contentviews.success_rm_alert": (
@@ -1884,8 +1880,6 @@ locators = LocatorDict({
 
     "system-groups.remove": (
         By.XPATH, "//button[@ng-disabled='!group.permissions.deletable']"),
-    "system-groups.confirm_remove": (
-        By.XPATH, "//button[@ng-click='ok()']"),
 
     "system-groups.search": (
         By.XPATH, "//a[contains(@href,'system-groups') and contains(.,'%s')]"),

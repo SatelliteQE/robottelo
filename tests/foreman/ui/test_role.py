@@ -42,7 +42,7 @@ class Role(UITestCase):
                     self.assertIsNotNone(session.nav.wait_until_element(
                         common_locators['name_haserror']))
 
-    def test_remove_role(self):
+    def test_positive_delete(self):
         """@Test: Delete an existing role
 
         @Feature: Role - Positive Delete

@@ -33,7 +33,7 @@ class OpenScapContent(Base):
             name,
             really,
             locators['oscap.content_delete'],
-            locators['oscap.content_dropdown']
+            drop_locator=locators['oscap.content_dropdown'],
         )
 
     def update(self, name, new_name=None, content_org=None, content_loc=None):

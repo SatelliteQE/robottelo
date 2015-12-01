@@ -169,7 +169,7 @@ class Subnet(UITestCase):
                 locators['subnet.dnssecondary_haserror']))
 
     @run_only_on('sat')
-    def test_remove_subnet(self):
+    def test_positive_delete(self):
         """@Test: Delete a subnet
 
         @Feature: Subnet - Positive Delete
@@ -189,10 +189,9 @@ class Subnet(UITestCase):
                     self.subnet.delete(name)
 
     @run_only_on('sat')
-    def test_remove_subnet_and_cancel(self):
-        """@Test: Delete subnet.
-
-        Attempt to delete subnet but cancel in the confirmation dialog box.
+    def test_negative_delete(self):
+        """@Test: Delete subnet. Attempt to delete subnet, but cancel in the
+        confirmation dialog box.
 
         @Feature: Subnet - Negative Delete
 
@@ -207,7 +206,7 @@ class Subnet(UITestCase):
                 subnet_network=gen_ipaddr(ip3=True),
                 subnet_mask=gen_netmask(),
             )
-            self.subnet.delete(name, False)
+            self.subnet.delete(name, really=False)
 
     @run_only_on('sat')
     def test_update_subnet_with_name(self):

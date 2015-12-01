@@ -232,7 +232,7 @@ class OperatingSys(UITestCase):
                                  (common_locators['haserror']))
 
     @run_only_on('sat')
-    def test_remove_os(self):
+    def test_positive_delete(self):
         """@Test: Delete an existing OS
 
         @Feature: OS - Positive Delete
@@ -241,8 +241,7 @@ class OperatingSys(UITestCase):
 
         """
         os_name = entities.OperatingSystem().create().name
-        with Session(self.browser) as session:
-            session.nav.go_to_operating_systems()
+        with Session(self.browser):
             self.operatingsys.delete(os_name)
 
     @run_only_on('sat')

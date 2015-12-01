@@ -313,7 +313,7 @@ class Repos(UITestCase):
                 repo_name, 'checksum', checksum_update))
 
     @run_only_on('sat')
-    def test_remove_repo(self):
+    def test_positive_delete(self):
         """@Test: Create content repository and remove it
 
         @Feature: Content Repos - Positive Delete
@@ -334,7 +334,6 @@ class Repos(UITestCase):
                     )
                     self.assertIsNotNone(self.repository.search(repo_name))
                     self.repository.delete(repo_name)
-                    self.assertIsNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
     def test_discover_repo_via_existing_product(self):

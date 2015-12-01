@@ -458,11 +458,6 @@ class TestContentViewsUI(UITestCase):
                             name, self.organization.name)
                     )
                     self.content_views.delete(name)
-                    self.assertIsNone(
-                        self.content_views.search(name),
-                        'Content view %s from %s org was not deleted' % (
-                            name, self.organization.name)
-                    )
 
     @run_only_on('sat')
     def test_cv_composite_create(self):

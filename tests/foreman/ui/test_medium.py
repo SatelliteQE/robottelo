@@ -125,7 +125,7 @@ class Medium(UITestCase):
             self.assertIsNone(self.medium.search(new_name))
 
     @run_only_on('sat')
-    def test_remove_medium(self):
+    def test_positive_delete(self):
         """@Test: Delete a media
 
         @Feature: Media - Delete

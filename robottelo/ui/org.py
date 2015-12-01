@@ -154,9 +154,8 @@ class Org(Base):
         )
         self.click(common_locators['submit'])
 
-    def remove(self, org_name, really=True):
+    def delete(self, org_name, really=True):
         """Remove Organization in UI."""
-        Navigator(self.browser).go_to_org()
         self.delete_entity(
             org_name,
             really,

@@ -42,7 +42,7 @@ class User(UITestCase):
 
     """
 
-    def test_delete_user(self):
+    def test_positive_delete_user(self):
         """@Test: Delete a User
 
         @Feature: User - Delete
@@ -1380,22 +1380,6 @@ class User(UITestCase):
         2. Click Cancel
 
         @Assert: User is not updated.
-
-        @Status: Manual
-
-        """
-
-    @stubbed()
-    def test_positive_delete_user_1(self):
-        """@Test: Delete a user
-
-        @Feature: User - Positive Delete
-
-        @Steps:
-        1. Create User
-        2. Delete the User
-
-        @Assert: User is deleted
 
         @Status: Manual
 

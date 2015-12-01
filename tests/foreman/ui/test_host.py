@@ -344,7 +344,7 @@ class Host(UITestCase, Base):
             self.assertIsNotNone(search)
 
     @run_only_on('sat')
-    def test_delete_host(self):
+    def test_positive_delete_host(self):
         """@Test: Delete a Host
 
         @Feature: Host - Positive Delete

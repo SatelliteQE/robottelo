@@ -118,7 +118,7 @@ class PartitionTable(UITestCase):
             self.assertIsNone(self.partitiontable.search(name))
 
     @run_only_on('sat')
-    def test_remove_partition_table(self):
+    def test_positive_delete(self):
         """@Test: Delete a partition table
 
         @Feature: Partition table - Positive Delete
