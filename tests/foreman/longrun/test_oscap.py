@@ -19,7 +19,7 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, skip_if_not_set
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context, make_hostgroup, make_oscappolicy
 from robottelo.ui.session import Session
@@ -30,6 +30,7 @@ class OpenScap(UITestCase):
     """Implements Product tests in UI"""
 
     @classmethod
+    @skip_if_not_set('clients')
     def setUpClass(cls):
         """ Create an organization, environment, content view and activation key.
 

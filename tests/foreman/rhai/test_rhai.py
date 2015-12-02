@@ -7,6 +7,7 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.decorators import skip_if_not_set
 from robottelo.test import UITestCase
 from robottelo.ui.locators import locators
 from robottelo.ui.navigator import Navigator
@@ -55,6 +56,7 @@ class RHAITestCase(UITestCase):
         cls.ak_name = activation_key.name
         cls.org_name = org.name
 
+    @skip_if_not_set('clients')
     def test_client_registration_to_rhai(self):
         """@Test: Check for client registration to redhat-access-insights
         service.
@@ -100,6 +102,7 @@ class RHAITestCase(UITestCase):
                 locators['insights.org_selection_msg']).text
             self.assertIn("Organization Selection Required", result)
 
+    @skip_if_not_set('clients')
     def test_unregister_system_from_rhai(self):
         """@Test: Verify that 'Unregister' a system from RHAI works correctly
 

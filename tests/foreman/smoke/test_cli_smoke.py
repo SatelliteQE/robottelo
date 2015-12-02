@@ -34,6 +34,7 @@ from robottelo.constants import (
 )
 from robottelo.config import settings
 from robottelo.datafactory import generate_strings_list
+from robottelo.decorators import skip_if_not_set
 from robottelo.helpers import get_server_software
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -384,6 +385,7 @@ class TestSmoke(CLITestCase):
 
         return entity.info(attrs)
 
+    @skip_if_not_set('clients')
     def test_end_to_end(self):
         """@Test: Perform end to end smoke tests using RH repos.
 

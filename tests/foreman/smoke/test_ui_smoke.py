@@ -21,7 +21,7 @@ from robottelo.constants import (
     SAT6_TOOLS_TREE,
     FAKE_6_PUPPET_REPO,
 )
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import bz_bug_is_open, skip_if_not_set
 from robottelo.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
@@ -260,6 +260,7 @@ class TestSmoke(UITestCase):
             make_hostgroup(session, name=hostgroup_name)
             self.assertIsNotNone(self.hostgroup.search(hostgroup_name))
 
+    @skip_if_not_set('clients')
     def test_end_to_end(self):
         """@Test: Perform end to end smoke tests using RH repos.
 
@@ -356,6 +357,7 @@ class TestSmoke(UITestCase):
                 result = vm.run(u'rpm -q {0}'.format(package_name))
                 self.assertEqual(result.return_code, 0)
 
+    @skip_if_not_set('clients')
     def test_puppet_install(self):
         """@Test: Perform puppet end to end smoke tests using RH repos.
 
