@@ -2,8 +2,8 @@
 coveralls
 flake8
 mock
-nose
 pytest-cov
+pytest-xdist
 testimony
 tox
 
@@ -12,9 +12,6 @@ pylint
 
 # For generating documentation.
 sphinx
-
-# ???
-nose_xunitmp
 
 # For running UI tests in a headless mode
 # PyVirtualDisplay requires xvfb

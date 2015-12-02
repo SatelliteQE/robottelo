@@ -70,7 +70,7 @@ class HostsTestCase(APITestCase):
         for owner_type in ('User', 'Usergroup'):
             with self.subTest(owner_type):
                 if owner_type == 'Usergroup' and bz_bug_is_open(1203865):
-                    continue  # instead of skip for compatibility with nose
+                    continue  # instead of skip for compatibility with py.test
                 host = entities.Host()
                 host.create_missing()
                 host.owner_type = owner_type
@@ -91,7 +91,7 @@ class HostsTestCase(APITestCase):
         for owner_type in ('User', 'Usergroup'):
             with self.subTest(owner_type):
                 if owner_type == 'Usergroup' and bz_bug_is_open(1210001):
-                    continue  # instead of skip for compatibility with nose
+                    continue  # instead of skip for compatibility with py.test
                 host.owner_type = owner_type
                 host = host.update(['owner_type'])
                 self.assertEqual(host.owner_type, owner_type)
