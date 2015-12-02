@@ -83,7 +83,7 @@ class HardwareModelTestCase(UITestCase):
                     name = test_data['name']  # for next iteration
 
     @run_only_on('sat')
-    def test_delete_positive(self):
+    def test_positive_delete(self):
         """@test: Deletes the Hardware-Model
 
         @feature: Hardware-Model - Positive delete
@@ -102,5 +102,3 @@ class HardwareModelTestCase(UITestCase):
                         )
                     make_hw_model(session, name=test_data['name'])
                     self.hardwaremodel.delete(test_data['name'])
-                    self.assertIsNone(self.hardwaremodel.search(
-                        test_data['name']))

@@ -57,7 +57,7 @@ class TrendTest(UITestCase):
             search = self.trend.search(new_name)
             self.assertIsNotNone(search)
 
-    def test_delete_trend_positive(self):
+    def test_positive_delete(self):
         """@Test: Delete existing trend
 
         @Feature: Trend - Positive Delete
@@ -68,5 +68,3 @@ class TrendTest(UITestCase):
         with Session(self.browser) as session:
             make_trend(session, trend_type=TREND_TYPES['environment'])
             self.trend.delete(TREND_TYPES['environment'])
-            search = self.trend.search(TREND_TYPES['environment'])
-            self.assertIsNone(search)

@@ -336,7 +336,6 @@ class ActivationKey(UITestCase):
                     )
                     self.assertIsNotNone(self.activationkey.search(name))
                     self.activationkey.delete(name)
-                    self.assertIsNone(self.activationkey.search(name))
 
     @run_only_on('sat')
     def test_positive_delete_activation_key_with_env(self):
@@ -362,7 +361,6 @@ class ActivationKey(UITestCase):
             )
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.delete(name)
-            self.assertIsNone(self.activationkey.search(name))
 
     @run_only_on('sat')
     def test_positive_delete_activation_key_with_cv(self):
@@ -389,7 +387,6 @@ class ActivationKey(UITestCase):
             )
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.delete(name)
-            self.assertIsNone(self.activationkey.search(name))
 
     def test_positive_delete_activation_key_with_system(self):
         """@Test: Delete an Activation key which has registered systems
@@ -428,7 +425,6 @@ class ActivationKey(UITestCase):
                 result = vm.register_contenthost(name, self.organization.label)
                 self.assertEqual(result.return_code, 0)
                 self.activationkey.delete(name)
-                self.assertIsNone(self.activationkey.search(name))
 
     def test_negative_delete_activation_key(self):
         """@Test: [UI ONLY] Attempt to delete an Activation Key and cancel it
@@ -453,7 +449,6 @@ class ActivationKey(UITestCase):
             )
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.delete(name, really=False)
-            self.assertIsNotNone(self.activationkey.search(name))
 
     def test_positive_update_ak_with_different_names(self):
         """@Test: Update Activation Key Name in an Activation key

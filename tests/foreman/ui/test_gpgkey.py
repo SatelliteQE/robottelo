@@ -213,7 +213,7 @@ class GPGKey(UITestCase):
     # Positive Delete
 
     @run_only_on('sat')
-    def test_positive_delete_1(self):
+    def test_positive_delete_for_uploaded_content(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then delete it
 
@@ -234,11 +234,10 @@ class GPGKey(UITestCase):
                         upload_key=True,
                     )
                     self.assertIsNotNone(self.gpgkey.search(name))
-                    self.gpgkey.delete(name, True)
-                    self.assertIsNone(self.gpgkey.search(name))
+                    self.gpgkey.delete(name)
 
     @run_only_on('sat')
-    def test_positive_delete_2(self):
+    def test_positive_delete_for_pasted_content(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then delete it
 
@@ -258,8 +257,7 @@ class GPGKey(UITestCase):
                         org=self.organization.name,
                     )
                     self.assertIsNotNone(self.gpgkey.search(name))
-                    self.gpgkey.delete(name, True)
-                    self.assertIsNone(self.gpgkey.search(name))
+                    self.gpgkey.delete(name)
 
     # Positive Update
 
@@ -1159,9 +1157,8 @@ class GPGKeyProductAssociate(UITestCase):
 
     @run_only_on('sat')
     def test_key_associate_15(self):
-        """@test: Create gpg key with valid name and valid gpg key
-        then associate it with empty (no repos) custom
-        product then delete it
+        """@test: Create gpg key with valid name and valid gpg key then
+        associate it with empty (no repos) custom product then delete it
 
         @feature: GPG Keys
 
@@ -1188,9 +1185,8 @@ class GPGKeyProductAssociate(UITestCase):
             self.assertIsNotNone(
                 self.gpgkey.assert_product_repo(name, product=True)
             )
-            self.gpgkey.delete(name, True)
-            # Assert GPGKey cannot be found and isn't associated with product
-            self.assertIsNone(self.gpgkey.search(name))
+            self.gpgkey.delete(name)
+            # Assert GPGKey isn't associated with product
             prd_element = self.products.search(product.name)
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(name, prd_element))
@@ -1232,9 +1228,8 @@ class GPGKeyProductAssociate(UITestCase):
                 self.assertIsNotNone(
                     self.gpgkey.assert_product_repo(name, product=product_)
                 )
-            self.gpgkey.delete(name, True)
-            # Assert GPGKey cannot be found and isn't associated with product
-            self.assertIsNone(self.gpgkey.search(name))
+            self.gpgkey.delete(name)
+            # Assert GPGKey isn't associated with product
             prd_element = self.products.search(product.name)
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(name, prd_element))
@@ -1283,9 +1278,8 @@ class GPGKeyProductAssociate(UITestCase):
                 self.assertIsNotNone(
                     self.gpgkey.assert_product_repo(name, product=product_)
                 )
-            self.gpgkey.delete(name, True)
-            # Assert GPGKey cannot be found and isn't associated with product
-            self.assertIsNone(self.gpgkey.search(name))
+            self.gpgkey.delete(name)
+            # Assert GPGKey isn't associated with product
             prd_element = self.products.search(product.name)
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(name, prd_element))
@@ -1327,8 +1321,7 @@ class GPGKeyProductAssociate(UITestCase):
                 self.assertIsNotNone(
                     self.gpgkey.assert_product_repo(name, product=product_)
                 )
-            self.gpgkey.delete(name, True)
-            self.assertIsNone(self.gpgkey.search(name))
+            self.gpgkey.delete(name)
             prd_element = self.products.search(product_name)
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(name, prd_element))
@@ -1374,8 +1367,7 @@ class GPGKeyProductAssociate(UITestCase):
             self.assertIsNotNone(
                 self.gpgkey.assert_product_repo(name, product=False)
             )
-            self.gpgkey.delete(name, True)
-            self.assertIsNone(self.gpgkey.search(name))
+            self.gpgkey.delete(name)
             # Assert that after deletion GPGKey is not associated with product
             prd_element = self.products.search(product.name)
             self.assertIsNone(self.gpgkey.assert_key_from_product(
@@ -1429,8 +1421,7 @@ class GPGKeyProductAssociate(UITestCase):
             self.assertIsNotNone(
                 self.gpgkey.assert_product_repo(name, product=False)
             )
-            self.gpgkey.delete(name, True)
-            self.assertIsNone(self.gpgkey.search(name))
+            self.gpgkey.delete(name)
             # Assert key shouldn't be associated with product or repository
             # after deletion
             prd_element = self.products.search(product.name)

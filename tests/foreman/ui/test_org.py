@@ -247,13 +247,12 @@ class Org(UITestCase):
         @assert: Organization is deleted successfully
 
         """
-        with Session(self.browser) as session:
+        with Session(self.browser):
             for org_name in generate_strings_list():
                 with self.subTest(org_name):
                     # Use nailgun to create org
                     entities.Organization(name=org_name).create()
-                    session.nav.go_to_org()
-                    self.org.remove(org_name)
+                    self.org.delete(org_name)
 
     def test_positive_delete_bz1225588(self):
         """@test: Create Organization with valid values and upload manifest.
@@ -276,10 +275,7 @@ class Org(UITestCase):
             # Org cannot be deleted when selected,
             # So switching to Default Org and then deleting.
             session.nav.go_to_select_org('Default Organization')
-            self.org.remove(org_name)
-            session.nav.go_to_dashboard()
-            status = self.org.search(org_name)
-            # Check for at least ten times that org is deleted due #1225588
+            self.org.delete(org_name)
             for _ in range(10):
                 status = self.org.search(org_name)
                 if status is None:

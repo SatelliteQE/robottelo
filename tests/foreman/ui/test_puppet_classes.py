@@ -39,7 +39,7 @@ class PuppetClasses(UITestCase):
                     )
 
     @run_only_on('sat')
-    def test_delete_positive(self):
+    def test_positive_delete(self):
         """@Test: Create new puppet-class
 
         @Feature: Puppet-Classes - Positive delete
@@ -47,9 +47,8 @@ class PuppetClasses(UITestCase):
         @Assert: Puppet-Class is deleted
 
         """
-        with Session(self.browser) as session:
+        with Session(self.browser):
             for name in generate_strings_list(length=8):
                 with self.subTest(name):
                     entities.PuppetClass(name=name).create()
-                    session.nav.go_to_puppet_classes()
                     self.puppetclasses.delete(name)

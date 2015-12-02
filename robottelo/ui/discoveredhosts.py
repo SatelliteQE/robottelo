@@ -23,5 +23,5 @@ class DiscoveredHosts(Base):
             hostname,
             really,
             locators['discoveredhosts.delete'],
-            locators['discoveredhosts.dropdown'],
+            drop_locator=locators['discoveredhosts.dropdown'],
         )

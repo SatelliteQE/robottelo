@@ -197,7 +197,7 @@ class Products(UITestCase):
                 common_locators['alert.error']))
 
     @run_only_on('sat')
-    def test_remove_prd(self):
+    def test_positive_delete(self):
         """@Test: Delete Content Product
 
         @Feature: Content Product - Positive Delete
@@ -217,7 +217,3 @@ class Products(UITestCase):
                     )
                     self.assertIsNotNone(self.products.search(prd_name))
                     self.products.delete(prd_name)
-                    # Note: refresh is used here because sometimes selenium
-                    # is too fast to check the deleted object and it fails
-                    self.browser.refresh()
-                    self.assertIsNone(self.products.search(prd_name))

@@ -46,20 +46,13 @@ class GPGKey(Base):
                 'Could not create new gpg key "{0}"'.format(name)
             )
 
-    def delete(self, name, really):
+    def delete(self, name, really=True):
         """Deletes an existing gpg key."""
-        element = self.search(name)
-
-        if element:
-            element.click()
-            self.wait_for_ajax()
-            self.click(locators["gpgkey.remove"])
-            if really:
-                self.click(common_locators["confirm_remove"])
-            else:
-                raise UIError(
-                    'Could not delete the selected key "{0}".'.format(name)
-                )
+        self.delete_entity(
+            name,
+            really,
+            locators['gpgkey.remove'],
+        )
 
     def update(self, name, new_name=None, new_key=None):
         """Updates an existing GPG key."""

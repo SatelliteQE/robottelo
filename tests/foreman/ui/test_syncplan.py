@@ -338,6 +338,4 @@ class Syncplan(UITestCase):
                         organization=self.organization,
                     ).create()
                     session.nav.go_to_select_org(self.organization.name)
-                    session.nav.go_to_sync_plans()
                     self.syncplan.delete(plan_name)
-                    self.assertIsNone(self.syncplan.search(plan_name))

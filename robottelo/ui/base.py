@@ -191,12 +191,21 @@ class Base(object):
         searched = self.search(name)
         if not searched:
             raise UIError('Could not search the entity "{0}"'.format(name))
-        if drop_locator:
-            strategy, value = drop_locator
-            self.click((strategy, value % name))
-        strategy, value = del_locator
-        self.click((strategy, value % name), wait_for_ajax=False)
-        self.handle_alert(really)
+        if self.is_katello:
+            searched.click()
+            self.wait_for_ajax()
+            self.click(del_locator)
+            if really:
+                self.click(common_locators['confirm_remove'])
+            else:
+                self.click(common_locators['cancel'])
+        else:
+            if drop_locator:
+                strategy, value = drop_locator
+                self.click((strategy, value % name))
+            strategy, value = del_locator
+            self.click((strategy, value % name), wait_for_ajax=False)
+            self.handle_alert(really)
         # Make sure that element is really removed from UI. It is necessary to
         # verify that fact few times as sometimes 1 second is not enough for
         # element to be actually deleted from DB

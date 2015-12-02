@@ -95,7 +95,7 @@ class Environment(UITestCase):
                     name = new_name  # for next iteration
 
     @run_only_on('sat')
-    def test_remove_env(self):
+    def test_positive_delete(self):
         """@Test: Delete an environment
 
         @Feature: Environment - Positive Delete
@@ -108,4 +108,3 @@ class Environment(UITestCase):
                 with self.subTest(name):
                     make_env(session, name=name)
                     self.environment.delete(name)
-                    self.assertIsNone(self.environment.search(name))

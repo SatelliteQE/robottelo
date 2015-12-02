@@ -75,5 +75,5 @@ class Trend(Base):
             name,
             really,
             locators['trend.delete'],
-            locators['trend.dropdown'],
+            drop_locator=locators['trend.dropdown'],
         )

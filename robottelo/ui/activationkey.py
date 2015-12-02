@@ -131,16 +131,11 @@ class ActivationKey(Base):
 
     def delete(self, name, really=True):
         """Deletes an existing activation key."""
-        element = self.search(name)
-
-        if element:
-            element.click()
-            self.wait_for_ajax()
-            self.click(locators['ak.remove'])
-            if really:
-                self.click(common_locators['confirm_remove'])
-            else:
-                self.click(locators['ak.cancel'])
+        self.delete_entity(
+            name,
+            really,
+            locators['ak.remove'],
+        )
 
     def associate_product(self, name, products):
         """Associate an existing product with activation key."""

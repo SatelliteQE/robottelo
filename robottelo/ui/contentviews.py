@@ -57,16 +57,14 @@ class ContentViews(Base):
 
     def delete(self, name, really=True):
         """Deletes an existing content view."""
-        element = self.search(name)
-        if element:
-            element.click()
-            self.wait_for_ajax()
-            self.click(locators['contentviews.remove'])
-            if really:
-                self.click(locators['contentviews.confirm_remove'])
-            else:
-                raise UIError(
-                    'Could not delete the "{0}" content view.'.format(name))
+        if not really:
+            raise UIError(
+                'Could not delete the "{0}" content view.'.format(name))
+        self.delete_entity(
+            name,
+            really,
+            locators['contentviews.remove'],
+        )
 
     def move_affected_components(self, env, cv):
         """Move affected components to another environment or content view.

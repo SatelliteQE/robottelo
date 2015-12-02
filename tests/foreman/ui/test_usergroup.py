@@ -73,7 +73,7 @@ class UserGroup(UITestCase):
                 common_locators['name_haserror']))
 
     @skip_if_bug_open('bugzilla', 1142588)
-    def test_remove_empty_usergroup(self):
+    def test_positive_delete_empty(self):
         """@Test: Delete an empty Usergroup
 
         @Feature: Usergroup - Positive Delete
@@ -89,7 +89,7 @@ class UserGroup(UITestCase):
                     self.usergroup.delete(group_name)
 
     @skip_if_bug_open('bugzilla', 1142588)
-    def test_remove_usergroup(self):
+    def test_positive_delete(self):
         """@Test: Delete an Usergroup that contains a user
 
         @Feature: Usergroup - Positive Delete

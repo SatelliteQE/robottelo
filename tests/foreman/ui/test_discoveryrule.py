@@ -160,7 +160,7 @@ class DiscoveryRules(UITestCase):
             self.assertIsNotNone(self.discoveryrules.search(name))
 
     @run_only_on('sat')
-    def test_delete_discovery_rule_1(self):
+    def test_positive_delete(self):
         """@Test: Delete Discovery Rule
 
         @Feature: Foreman Discovery
@@ -175,7 +175,6 @@ class DiscoveryRules(UITestCase):
                                        hostgroup=self.host_group.name)
                     self.assertIsNotNone(self.discoveryrules.search(name))
                     self.discoveryrules.delete(name)
-                    self.assertIsNone(self.discoveryrules.search(name))
 
     @run_only_on('sat')
     def test_update_discovery_rule_1(self):

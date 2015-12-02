@@ -188,12 +188,12 @@ class Template(UITestCase):
                     self.assertIsNotNone(self.template.search(name))
 
     @run_only_on('sat')
-    def test_remove_template(self):
+    def test_positive_delete(self):
         """@Test: Remove a template
 
         @Feature: Template - Positive Delete
 
-        @Assert: Template removed successfully
+        @Assert: Template is removed successfully
 
         """
         with Session(self.browser) as session:

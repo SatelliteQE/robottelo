@@ -68,12 +68,10 @@ class SystemGroup(Base):
                 self.field_update("system-groups.update_limit_field", limit)
                 self.click(locators["system-groups.update_limit_save"])
 
-    def remove(self, name):
+    def delete(self, name, really=True):
         """Removes existing System Group from UI"""
-        system_group = self.search(name)
-        self.wait_for_ajax()
-        if system_group:
-            system_group.click()
-            self.wait_for_ajax()
-            self.click(locators["system-groups.remove"])
-            self.click(locators["system-groups.confirm_remove"])
+        self.delete_entity(
+            name,
+            really,
+            locators['system-groups.remove'],
+        )

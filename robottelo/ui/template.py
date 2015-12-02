@@ -133,5 +133,5 @@ class Template(Base):
             name,
             really,
             locators['provision.template_delete'],
-            locators['provision.template_dropdown'],
+            drop_locator=locators['provision.template_dropdown'],
         )

@@ -54,7 +54,7 @@ class LDAPAuthSource(UITestCase):
                         self.ldapauthsource.search(server_name)
                     )
 
-    def test_delete_ldap_auth_withad(self):
+    def test_positive_delete_ldap_auth_withad(self):
         """@Test: Delete LDAP authentication with AD
 
         @Feature: LDAP Authentication - Active Directory - delete LDAP AD

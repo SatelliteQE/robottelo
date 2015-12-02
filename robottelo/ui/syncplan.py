@@ -92,12 +92,10 @@ class Syncplan(Base):
                 select_locator=select_loc
             )
 
-    def delete(self, sync_plan, really=True):
+    def delete(self, name, really=True):
         """Deletes a sync_plan from UI."""
-        strategy, value = locators['sp.select']
-        self.click((strategy, value % sync_plan))
-        self.click(locators['sp.remove'])
-        if really:
-            self.click(common_locators['confirm_remove'])
-        else:
-            self.click(common_locators['cancel'])
+        self.delete_entity(
+            name,
+            really,
+            locators['sp.remove'],
+        )
