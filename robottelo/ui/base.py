@@ -438,6 +438,9 @@ class Base(object):
         self.wait_for_ajax()
         strategy, value = common_locators['auto_search']
         self.click((strategy, value % name))
+        # Intentionally clicking second time because sometimes first time
+        # click just selects/highlights the item but not clicking it
+        self.click((strategy, value % name))
         self.click(common_locators['search_button'])
         entity_elem = self.wait_until_element((strategy1, value1 % name))
         return entity_elem
