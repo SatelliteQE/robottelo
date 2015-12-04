@@ -957,7 +957,8 @@ locators = LocatorDict({
     "host.vm_memory": (By.ID, "host_compute_attributes_memory"),
     "host.network_type": (
         By.ID, "host_compute_attributes_nics_attributes_0_type"),
-    "host.network": (By.ID, "host_compute_attributes_nics_attributes_0_type"),
+    "host.network": (
+        By.ID, "host_compute_attributes_nics_attributes_0_bridge"),
     "host.vm_start": (By.ID, "host_compute_attributes_start"),
     "host.vm_addstorage": (
         By.XPATH, "//fieldset[@id='storage_volumes']/a"),
