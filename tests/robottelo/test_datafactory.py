@@ -1,5 +1,6 @@
 """Tests for module ``robottelo.datafactory``."""
 import itertools
+import random
 import six
 import unittest2
 
@@ -18,6 +19,11 @@ from robottelo.datafactory import (
     valid_names_list,
     valid_usernames_list,
 )
+
+if six.PY2:
+    import mock
+else:
+    from unittest import mock
 
 
 class DataCheckTestCase(unittest2.TestCase):
@@ -57,6 +63,18 @@ class DataCheckTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_labels_list()), 1)
         self.assertEqual(len(valid_names_list()), 1)
         self.assertEqual(len(valid_usernames_list()), 1)
+
+    @mock.patch('robottelo.datafactory.gen_string')
+    def test_generate_strings_list_remove_str(self, gen_string):
+        gen_string.side_effect = lambda str_type, _: str_type
+        str_types = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8',
+                     'cjk', 'html']
+        remove_type = random.choice(str_types)
+        str_types.remove(remove_type)
+        str_types.sort()
+        string_list = generate_strings_list(remove_str=remove_type)
+        string_list.sort()
+        self.assertEqual(string_list, str_types)
 
     @classmethod
     def tearDownClass(cls):

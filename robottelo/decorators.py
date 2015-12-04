@@ -10,7 +10,7 @@ from functools import wraps
 from robottelo.config import settings
 from robottelo.constants import BZ_OPEN_STATUSES, NOT_IMPLEMENTED
 from six.moves.xmlrpc_client import Fault
-from xml.parsers.expat import ExpatError, errors
+from xml.parsers.expat import ExpatError, ErrorString
 
 BUGZILLA_URL = "https://bugzilla.redhat.com/xmlrpc.cgi"
 LOGGER = logging.getLogger(__name__)
@@ -241,7 +241,8 @@ def _get_bugzilla_bug(bug_id):
             )
         except ExpatError as err:
             raise BugFetchError(
-                'Could not interpret bug. Error: {0}'.format(errors[err.code])
+                'Could not interpret bug. Error: {0}'
+                .format(ErrorString(err.code))
             )
 
     return _bugzilla[bug_id]
@@ -380,6 +381,12 @@ class skip_if_bug_open(object):  # noqa pylint:disable=C0103,R0903
         :param func: The function being decorated.
 
         """
+        if self.bug_type not in ('bugzilla', 'redmine'):
+            raise BugTypeError(
+                '"{0}" is not a recognized bug type. Did you mean '
+                '"bugzilla" or "redmine"?'.format(self.bug_type)
+            )
+
         @wraps(func)
         def wrapper_func(*args, **kwargs):
             """Run ``func`` or skip it by raising an exception.
@@ -392,11 +399,6 @@ class skip_if_bug_open(object):  # noqa pylint:disable=C0103,R0903
             :raises BugTypeError: If ``bug_type`` is not recognized.
 
             """
-            if self.bug_type not in ('bugzilla', 'redmine'):
-                raise BugTypeError(
-                    '"{0}" is not a recognized bug type. Did you mean '
-                    '"bugzilla" or "redmine"?'.format(self.bug_type)
-                )
             if self.bug_type == 'bugzilla' and bz_bug_is_open(self.bug_id):
                 LOGGER.debug(
                     'Skipping test %s in module %s due to Bugzilla bug #%s',
