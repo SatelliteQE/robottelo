@@ -18,13 +18,18 @@ class OpenScapContent(Base):
         """Specify locator for OpenScap content entity search procedure"""
         return locators['oscap.content_select']
 
-    def create(self, name, oscap_content_path=None):
+    def create(self, name, content_path=None):
         """Creates new oscap Content from UI"""
-        self.click(locators['oscap.new_content'])
+        self.click(locators['oscap.upload_content'])
         if not self.wait_until_element(locators['oscap.content_title']):
-            raise UIError(u'Could not create new content {0}'.format(name))
+            raise UIError(
+                u'Could not create new Oscap Content {0}'
+                .format(name)
+            )
         self.text_field_update(locators['oscap.content_title'], name)
-        # TODO: upload oscap content
+        self.wait_until_element(
+            locators['oscap.content_path']
+        ).send_keys(content_path)
         self.click(common_locators['submit'])
 
     def delete(self, name, really=True):

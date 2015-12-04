@@ -360,6 +360,26 @@ class LibvirtHostSettings(FeatureSettings):
         return validation_errors
 
 
+class OscapSettings(FeatureSettings):
+    """Oscap settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(OscapSettings, self).__init__(*args, **kwargs)
+        self.content_path = None
+
+    def read(self, reader):
+        """Read Oscap settings."""
+        self.content_path = reader.get('oscap', 'content_path')
+
+    def validate(self):
+        """Validate Oscap settings."""
+        validation_errors = []
+        if self.content_path is None:
+            validation_errors.append(
+                '[oscap] content_path option must be provided.'
+            )
+        return validation_errors
+
+
 class PerformanceSettings(FeatureSettings):
     """Performance settings definitions."""
     def __init__(self, *args, **kwargs):
@@ -505,6 +525,7 @@ class Settings(object):
         self.docker = DockerSettings()
         self.fake_manifest = FakeManifestSettings()
         self.ldap = LDAPSettings()
+        self.oscap = OscapSettings()
         self.performance = PerformanceSettings()
         self.rhai = RHAISettings()
         self.transition = TransitionSettings()
@@ -547,6 +568,9 @@ class Settings(object):
         if self.reader.has_section('ldap'):
             self.ldap.read(self.reader)
             self._validation_errors.extend(self.ldap.validate())
+        if self.reader.has_section('oscap'):
+            self.oscap.read(self.reader)
+            self._validation_errors.extend(self.oscap.validate())
         if self.reader.has_section('performance'):
             self.performance.read(self.reader)
             self._validation_errors.extend(self.performance.validate())
