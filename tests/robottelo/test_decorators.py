@@ -148,6 +148,41 @@ class BzBugIsOpenTestCase(TestCase):
                 self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
 
 
+class CacheableTestCase(TestCase):
+    """Tests for :func:`robottelo.decorators.cacheable`."""
+    def setUp(self):
+        self.object_cache_patcher = mock.patch.dict(
+            'robottelo.decorators.OBJECT_CACHE')
+        self.object_cache = self.object_cache_patcher.start()
+
+        def make_foo(options):
+            return {'id': 42}
+
+        self.make_foo = decorators.cacheable(make_foo)
+
+    def tearDown(self):
+        self.object_cache_patcher.stop()
+
+    def test_build_cache(self):
+        """Create a new object and add it to the cache."""
+        obj = self.make_foo(cached=True)
+        self.assertEqual(decorators.OBJECT_CACHE, {'foo': {'id': 42}})
+        self.assertEqual(id(decorators.OBJECT_CACHE['foo']), id(obj))
+
+    def test_return_from_cache(self):
+        """Return an already cached object."""
+        cache_obj = {'id': 42}
+        decorators.OBJECT_CACHE['foo'] = cache_obj
+        obj = self.make_foo(cached=True)
+        self.assertEqual(id(cache_obj), id(obj))
+
+    def test_create_and_not_add_to_cache(self):
+        """Create a new object and not add it to the cache."""
+        self.make_foo(cached=False)
+        self.assertNotIn('foo', decorators.OBJECT_CACHE)
+        self.assertEqual(decorators.OBJECT_CACHE, {})
+
+
 class RmBugIsOpenTestCase(TestCase):
     """Tests for :func:`robottelo.decorators.rm_bug_is_open`."""
     # (protected-access) pylint:disable=W0212
@@ -184,6 +219,172 @@ class RmBugIsOpenTestCase(TestCase):
             raise decorators.BugFetchError
         decorators._get_redmine_bug_status_id = bomb
         self.assertFalse(decorators.rm_bug_is_open(self.bug_id))
+
+
+class GetBugzillaBugStatusIdTestCase(TestCase):
+    """Tests for :func:`robottelo.decorators._get_bugzilla_bug`."""
+    def setUp(self):
+        self.bugzilla_patcher = mock.patch('robottelo.decorators.bugzilla')
+        self.bugzilla = self.bugzilla_patcher.start()
+
+    def tearDown(self):
+        self.bugzilla_patcher.stop()
+
+    def test_cached_bug(self):
+        """Return bug information from the cache."""
+        with mock.patch.dict(
+                'robottelo.decorators._bugzilla', {'4242': 42}):
+            self.assertEqual(decorators._get_bugzilla_bug('4242'), 42)
+
+    def test_not_cached_bug(self):
+        """Fetch bug information and cache it."""
+        bug = {'id': 42}
+        connection = mock.MagicMock()
+        connection.getbugsimple.side_effect = [bug]
+        self.bugzilla.RHBugzilla.side_effect = [connection]
+
+        with mock.patch.dict(
+                'robottelo.decorators._bugzilla', {}):
+            self.assertEqual(id(decorators._get_bugzilla_bug('4242')), id(bug))
+        connection.connect.assert_called_once_with(decorators.BUGZILLA_URL)
+
+    def test_raise_bug_fetch_error_connect_type_error(self):
+        """Raise BugFetchError due to TypeError exception on connect."""
+        connection = mock.MagicMock()
+        connection.connect.side_effect = [TypeError()]
+        self.bugzilla.RHBugzilla.side_effect = [connection]
+
+        with mock.patch.dict(
+                'robottelo.decorators._redmine', {}):
+            with self.assertRaises(decorators.BugFetchError):
+                decorators._get_bugzilla_bug('4242')
+
+    def test_raise_bug_fetch_error_connect_value_error(self):
+        """Raise BugFetchError due to ValueError exception on connect."""
+        connection = mock.MagicMock()
+        connection.connect.side_effect = [ValueError()]
+        self.bugzilla.RHBugzilla.side_effect = [connection]
+
+        with mock.patch.dict(
+                'robottelo.decorators._redmine', {}):
+            with self.assertRaises(decorators.BugFetchError):
+                decorators._get_bugzilla_bug('4242')
+
+    def test_raise_bug_fetch_error_getbugsimple_fault(self):
+        """Raise BugFetchError due to Fault exception on getbugsimple."""
+        connection = mock.MagicMock()
+        connection.getbugsimple.side_effect = [
+            decorators.Fault(42, 'What is the answer?')]
+        self.bugzilla.RHBugzilla.side_effect = [connection]
+
+        with mock.patch.dict(
+                'robottelo.decorators._redmine', {}):
+            with self.assertRaises(decorators.BugFetchError):
+                decorators._get_bugzilla_bug('4242')
+
+    def test_raise_bug_fetch_error_getbugsimple_expaterror(self):
+        """Raise BugFetchError due to an ExpatError exception on
+        getbugsimple.
+        """
+        expaterror = decorators.ExpatError()
+        expaterror.code = 12
+        connection = mock.MagicMock()
+        connection.getbugsimple.side_effect = [expaterror]
+        self.bugzilla.RHBugzilla.side_effect = [connection]
+
+        with mock.patch.dict(
+                'robottelo.decorators._redmine', {}):
+            with self.assertRaises(decorators.BugFetchError):
+                decorators._get_bugzilla_bug('4242')
+
+
+class GetRedmineBugStatusIdTestCase(TestCase):
+    """Tests for :func:`robottelo.decorators._get_redmine_bug_status_id`."""
+    def test_cached_bug(self):
+        """Return bug status from the cache."""
+        with mock.patch.dict(
+                'robottelo.decorators._redmine', issues={'4242': 42}):
+            self.assertEqual(decorators._get_redmine_bug_status_id('4242'), 42)
+
+    @mock.patch('robottelo.decorators.requests')
+    def test_not_cached_bug(self, requests):
+        """Return bug status."""
+        bug_id = '4242'
+        result = mock.MagicMock()
+        result.json.side_effect = [{'issue': {'status': {'id': 42}}}]
+        result.status_code = 200
+        requests.get.side_effect = [result]
+        with mock.patch.dict(
+                'robottelo.decorators._redmine', issues={}):
+            self.assertEqual(decorators._get_redmine_bug_status_id('4242'), 42)
+            requests.get.assert_called_once_with(
+                '{0}/issues/{1}.json'.format(decorators.REDMINE_URL, bug_id))
+
+    @mock.patch('robottelo.decorators.requests')
+    def test_raise_bug_fetch_error_status_code(self, requests):
+        """Return bug status."""
+        result = mock.MagicMock()
+        result.status_code = 404
+        requests.get.side_effect = [result]
+        with mock.patch.dict(
+                'robottelo.decorators._redmine', issues={}):
+            with self.assertRaises(decorators.BugFetchError):
+                decorators._get_redmine_bug_status_id('4242')
+
+    @mock.patch('robottelo.decorators.requests')
+    def test_raise_bug_fetch_error_key_error(self, requests):
+        """Return bug status."""
+        bug_id = '4242'
+        result = mock.MagicMock()
+        result.json.side_effect = [{'issue': {'status': {}}}]
+        result.status_code = 200
+        requests.get.side_effect = [result]
+        with mock.patch.dict(
+                'robottelo.decorators._redmine', issues={}):
+            with self.assertRaises(decorators.BugFetchError):
+                decorators._get_redmine_bug_status_id('4242')
+        requests.get.assert_called_once_with(
+            '{0}/issues/{1}.json'.format(decorators.REDMINE_URL, bug_id))
+
+
+class RedmineClosedIssueStatusesTestCase(TestCase):
+    """Tests for
+    :func:`robottelo.decorators._redmine_closed_issue_statuses`.
+    """
+    @mock.patch('robottelo.decorators.requests')
+    def test_build_cache(self, requests):
+        """Build closed issue statuses cache."""
+        result = mock.MagicMock()
+        result.json.side_effect = [{
+            'issue_statuses': [{
+                'id': 42,
+                'is_closed': True,
+            }, {
+                'id': 12,
+                'is_closed': False,
+            }]
+        }]
+        result.status_code = 200
+        requests.get.side_effect = [result]
+        with mock.patch.dict(
+                'robottelo.decorators._redmine', closed_statuses=None):
+            self.assertEqual(
+                decorators._redmine_closed_issue_statuses(),
+                [42]
+            )
+        requests.get.assert_called_once_with(
+            '{0}/issue_statuses.json'.format(decorators.REDMINE_URL))
+
+    @mock.patch('robottelo.decorators.requests')
+    def test_return_cache(self, requests):
+        """Return the cache if already built."""
+        with mock.patch.dict(
+                'robottelo.decorators._redmine', closed_statuses=[42]):
+            self.assertEqual(
+                decorators._redmine_closed_issue_statuses(),
+                [42]
+            )
+        requests.get.assert_not_called()
 
 
 class RunOnlyOnTestCase(TestCase):
@@ -230,6 +431,78 @@ class RunOnlyOnTestCase(TestCase):
         with self.assertRaises(decorators.ProjectModeError):
             dummy()
 
+    @mock.patch('robottelo.decorators.settings')
+    def test_default_project_value(self, settings):
+        settings.project = None
+
+        @decorators.run_only_on('sat')
+        def dummy():
+            return 42
+
+        self.assertEqual(dummy(), 42)
+
+    @mock.patch('robottelo.decorators.settings')
+    def test_raise_skip_test(self, settings):
+        settings.project = 'sam'
+
+        @decorators.run_only_on('sat')
+        def dummy():
+            return 42
+
+        with self.assertRaises(decorators.ProjectModeError):
+            dummy()
+
+
+class SkipIfBugOpen(TestCase):
+    """Tests for :func:`robottelo.decorators.skip_if_bug_open`."""
+    def test_raise_bug_type_error(self):
+        with self.assertRaises(decorators.BugTypeError):
+            @decorators.skip_if_bug_open('notvalid', 123456)
+            def foo():
+                pass
+
+    @mock.patch('robottelo.decorators.bz_bug_is_open')
+    def test_skip_bugzilla_bug(self, bz_bug_is_open):
+        bz_bug_is_open.side_effect = [True]
+
+        @decorators.skip_if_bug_open('bugzilla', 123456)
+        def foo():
+            pass
+
+        with self.assertRaises(SkipTest):
+            foo()
+
+    @mock.patch('robottelo.decorators.bz_bug_is_open')
+    def test_not_skip_bugzilla_bug(self, bz_bug_is_open):
+        bz_bug_is_open.side_effect = [False]
+
+        @decorators.skip_if_bug_open('bugzilla', 123456)
+        def foo():
+            return 42
+
+        self.assertEqual(foo(), 42)
+
+    @mock.patch('robottelo.decorators.rm_bug_is_open')
+    def test_skip_redmine_bug(self, rm_bug_is_open):
+        rm_bug_is_open.side_effect = [True]
+
+        @decorators.skip_if_bug_open('redmine', 123456)
+        def foo():
+            pass
+
+        with self.assertRaises(SkipTest):
+            foo()
+
+    @mock.patch('robottelo.decorators.rm_bug_is_open')
+    def test_not_skip_redmine_bug(self, rm_bug_is_open):
+        rm_bug_is_open.side_effect = [False]
+
+        @decorators.skip_if_bug_open('redmine', 123456)
+        def foo():
+            return 42
+
+        self.assertEqual(foo(), 42)
+
 
 class SkipIfNotSetTestCase(TestCase):
     """Tests for :func:`robottelo.decorators.skip_if_not_set`."""
@@ -268,3 +541,24 @@ class SkipIfNotSetTestCase(TestCase):
             @decorators.skip_if_not_set('client')
             def dummy():
                 pass
+
+
+class StubbedTestCase(TestCase):
+    """Tests for :func:`robottelo.decorators.stubbed`."""
+    @mock.patch('robottelo.decorators.unittest2.skip')
+    def test_default_reason(self, skip):
+
+        @decorators.stubbed()
+        def foo():
+            pass
+
+        skip.assert_called_once_with(decorators.NOT_IMPLEMENTED)
+
+    @mock.patch('robottelo.decorators.unittest2.skip')
+    def test_reason(self, skip):
+
+        @decorators.stubbed('42 is the answer')
+        def foo():
+            pass
+
+        skip.assert_called_once_with('42 is the answer')
