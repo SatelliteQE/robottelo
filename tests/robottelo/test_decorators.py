@@ -4,7 +4,7 @@ import six
 from fauxfactory import gen_integer
 from robottelo import decorators
 from robottelo.constants import BZ_CLOSED_STATUSES, BZ_OPEN_STATUSES
-from unittest2 import TestCase
+from unittest2 import SkipTest, TestCase
 # (Too many public methods) pylint: disable=R0904
 
 if six.PY2:
@@ -229,3 +229,42 @@ class RunOnlyOnTestCase(TestCase):
 
         with self.assertRaises(decorators.ProjectModeError):
             dummy()
+
+
+class SkipIfNotSetTestCase(TestCase):
+    """Tests for :func:`robottelo.decorators.skip_if_not_set`."""
+    def setUp(self):
+        self.settings_patcher = mock.patch('robottelo.decorators.settings')
+        self.settings = self.settings_patcher.start()
+        self.settings.all_features = ['clients']
+
+    def tearDown(self):
+        self.settings_patcher.stop()
+
+    def test_raise_skip_if(self):
+        """Skip if configuration is missing."""
+        self.settings.clients.validate.side_effect = ['Validation error']
+
+        @decorators.skip_if_not_set('clients')
+        def dummy():
+            pass
+
+        with self.assertRaises(SkipTest):
+            dummy()
+
+    def test_not_raise_skip_if(self):
+        """Don't skip if configuration is available."""
+        self.settings.clients.validate.side_effect = [[]]
+
+        @decorators.skip_if_not_set('clients')
+        def dummy():
+            return 'ok'
+
+        self.assertEqual(dummy(), 'ok')
+
+    def test_raise_value_error(self):
+        """ValueError is raised when a misspelled feature is passed."""
+        with self.assertRaises(ValueError):
+            @decorators.skip_if_not_set('client')
+            def dummy():
+                pass

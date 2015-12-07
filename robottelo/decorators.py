@@ -40,6 +40,65 @@ _redmine = {
 }
 
 
+def skip_if_not_set(*options):
+    """Skips test if expected configuration is not set.
+
+    Decorating a method::
+
+        @skip_if_not_set('clients')
+        def test_something(self):
+            self.assertTrue(True)
+
+    Decorating an entire class::
+
+        class FeatureTestCase(robottelo.test.TestCase):
+
+            @skip_if_not_set('clients')
+            def setUp(self):
+                pass
+
+            def test_something(self):
+                self.assertTrue(True)
+
+    The above approach is required for decorating all test methods of a class
+    because the ``skip_if_not_set`` decorator is intended to run at runtime and
+    not import time. Decorating a class or the ``setUpClass`` method is not
+    supported.
+
+    :param options: List of valid `robottelo.properties` section names.
+    :raises unittest2.SkipTest: If expected configuration section is not fully
+        set in the `robottelo.properties` file. All required attributes must be
+        set. For example, if the `server` section is enabled but its `hostname`
+        attribute is not set, then a test that expects it will be skipped.
+    """
+    options_set = set(options)
+    if not options_set.issubset(settings.all_features):
+        invalid = options_set.difference(settings.all_features)
+        raise ValueError(
+            'Feature(s): "{0}" not found. Available ones are: "{1}"'
+            .format(
+                ', '.join(invalid),
+                ', '.join(settings.all_features)
+            )
+        )
+
+    def decorator(func):
+        @wraps(func)
+        def wrapper(*args, **kwargs):
+            missing = []
+            for option in options:
+                # Example: `settings.clients`
+                if getattr(settings, option).validate():
+                    # List of all sections that are not fully configured
+                    missing.append(option)
+            if not missing:
+                return func(*args, **kwargs)
+            raise unittest2.SkipTest(
+                'Missing configuration for: {0}.'.format(', '.join(missing)))
+        return wrapper
+    return decorator
+
+
 def stubbed(reason=None):
     """Skips test due to non-implentation or some other reason."""
 

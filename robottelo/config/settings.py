@@ -481,6 +481,7 @@ class Settings(object):
     """Robottelo's settings representation."""
 
     def __init__(self):
+        self._all_features = None
         self._configured = False
         self._validation_errors = []
         self.locale = None
@@ -616,6 +617,16 @@ class Settings(object):
     def configured(self):
         """Returns True if the settings have already been configured."""
         return self._configured
+
+    @property
+    def all_features(self):
+        """List all expected feature settings sections."""
+        if self._all_features is None:
+            self._all_features = [
+                name for name, value in vars(self).items()
+                if isinstance(value, FeatureSettings)
+            ]
+        return self._all_features
 
     def _configure_entities(self):
         """Configure NailGun's entity classes.
