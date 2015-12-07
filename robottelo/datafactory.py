@@ -180,6 +180,26 @@ def valid_environments_list():
 
 
 @datacheck
+def valid_hosts_list(domain_length=10):
+    """Generates a list of valid host names.
+
+    Note::
+    Host name format stored in db is 'fqdn=' + host_name + '.' + domain_name
+    Host name max length is: 255 - 'fqdn=' - '.' - domain name length
+    (default is 10) = 239 chars (by default).
+
+    :param int domain_length: Domain name length (default is 10).
+    :return: Returns the valid host names list
+    """
+    return [
+        gen_string(
+            'alphanumeric', random.randint(1, (255 - 6 - domain_length))),
+        gen_string('alpha', random.randint(1, (255 - 6 - domain_length))),
+        gen_string('numeric', random.randint(1, (255 - 6 - domain_length))),
+    ]
+
+
+@datacheck
 def valid_labels_list():
     """Generates a list of valid labels."""
     return [
