@@ -294,17 +294,18 @@ def make_domain(session, org=None, loc=None, force_context=True, **kwargs):
 def make_user(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a user"""
 
-    password = gen_string("alpha", 6)
+    password = gen_string('alpha', 6)
 
     create_args = {
+        u'admin': False,
         u'username': None,
         u'email': gen_email(),
         u'password1': password,
         u'password2': password,
         u'authorized_by': u'INTERNAL',
         u'locale': None,
-        u'first_name': gen_string("alpha", 6),
-        u'last_name': gen_string("alpha", 6),
+        u'first_name': gen_string('alpha'),
+        u'last_name': gen_string('alpha'),
         u'roles': None,
         u'locations': None,
         u'organizations': None,
@@ -312,6 +313,7 @@ def make_user(session, org=None, loc=None, force_context=True, **kwargs):
         u'select': True,
         u'default_org': None,
         u'default_loc': None,
+        u'submit': True,
     }
     page = session.nav.go_to_users
     core_factory(create_args, kwargs, session, page,

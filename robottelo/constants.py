@@ -729,3 +729,22 @@ SEARCH_EXCEPTIONS_LIST = [
     'OpenScapPolicy',
     'Org',
 ]
+
+ROLES = [
+    'Access Insights Admin',
+    'Access Insights Viewer',
+    'Boot disk access',
+    'Discovery Manager',
+    'Discovery Reader',
+    'Edit compliance policies',
+    'Edit hosts',
+    'Edit partition tables',
+    'Red Hat Access Logs',
+    'Site manager',
+    'Tasks Manager',
+    'Tasks Reader',
+    'View compliance reports',
+    'View hosts',
+    'Manager',
+    'Viewer',
+]
