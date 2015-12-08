@@ -391,25 +391,20 @@ def gen_import_chost_data():
                 u'organization': gen_string('alphanumeric'),
             } for i in range(len(org_ids))],
             u'custom-channels': [{
-                u'key': u'org_id',
+                u'key': u'channel_id',
                 u'key_id': type(u'')(i + 1),
                 u'channel_name': gen_string('alphanumeric'),
                 u'channel_label': gen_string('alphanumeric')}
-                for i in range(len(org_ids))
-            ],
-            # wipe all channel labels to make hammer skip the sync
-            u'channels': [{
-                u'key': u'channel_id',
-                u'key_id': type(u'')(i),
-                u'channel_label': u'',
-                u'channel_name': gen_string('alphanumeric')}
-                for i in set(range(101, 113))
+                # generate random names and labels for channels 106-112
+                # according channel numbering in our sample file
+                for i in range(106, 113)
             ],
             u'system-profiles': [{
                 u'key': u'server_id',
                 u'key_id': type(u'')(1000010000 + i),
                 u'base_channel_id': u'110',
                 u'child_channel_id': u'None;111'}
+                # generate random data for sys profiles 1000010000[8-10]
                 for i in set(range(8, 11))
             ],
         },
