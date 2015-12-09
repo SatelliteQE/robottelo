@@ -2095,6 +2095,8 @@ locators = LocatorDict({
 
     # OpenScap locators
     # Scap Content
+    "oscap.upload_content": (
+        By.XPATH, "//a[@data-id='aid_compliance_scap_contents_new']"),
     "oscap.content_search": (
         By.XPATH, "//input[contains(@data-url, 'auto_complete_search')]"),
     "oscap.content_edit": (
@@ -2103,11 +2105,15 @@ locators = LocatorDict({
         By.XPATH,
         ("//td[contains(.,'%s')]/following-sibling::td/div/"
          "a[@data-toggle='dropdown']")),
+    "oscap.content_path": (
+        By.ID, "scap_content_scap_file"),
     "oscap.content_download": (
         By.XPATH,
         ("//td[contains(.,'%s')]/../td/div/ul/li/"
          "a[contains(@data-id, 'compliance_scap_contents') "
          "and not(contains(@class, 'delete'))]")),
+    "oscap.content_title": (
+        By.ID, "scap_content_title"),
     "oscap.content_delete": (
         By.XPATH,
         ("//td[contains(.,'%s')]/../td/div/ul/li/"

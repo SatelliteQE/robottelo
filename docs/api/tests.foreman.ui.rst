@@ -153,6 +153,11 @@
 
 .. automodule:: tests.foreman.ui.test_openscap
 
+:mod:`tests.foreman.ui.test_oscapcontent`
+-----------------------------------------
+
+.. automodule:: tests.foreman.ui.test_oscapcontent
+
 :mod:`tests.foreman.ui.test_operatingsys`
 -----------------------------------------
 

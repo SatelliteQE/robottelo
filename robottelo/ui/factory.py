@@ -22,6 +22,7 @@ from robottelo.ui.locators import menu_locators
 from robottelo.ui.medium import Medium
 from robottelo.ui.operatingsys import OperatingSys
 from robottelo.ui.org import Org
+from robottelo.ui.oscapcontent import OpenScapContent
 from robottelo.ui.oscappolicy import OpenScapPolicy
 from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.products import Products
@@ -648,6 +649,17 @@ def make_ldapauth(session, **kwargs):
     page = session.nav.go_to_ldap_auth
     core_factory(create_args, kwargs, session, page)
     LdapAuthSource(session.browser).create(**create_args)
+
+
+def make_oscapcontent(session, **kwargs):
+    """Creates an OSCAP Content"""
+    create_args = {
+        u'name': None,
+        u'content_path': None,
+    }
+    page = session.nav.go_to_oscap_content
+    core_factory(create_args, kwargs, session, page)
+    OpenScapContent(session.browser).create(**create_args)
 
 
 def make_oscappolicy(session, **kwargs):

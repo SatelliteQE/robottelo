@@ -132,6 +132,9 @@ ssh_key=
 # bridge=BRIDGE_VALUE
 # gateway=GATEWAY_VALUE
 
+# For OSCAP Testing
+# [oscap]
+# content_path=~/ssg-rhel6-ds.xml
 
 # Section for declaring Sat5->Sat6 transition parameters
 # [transition]

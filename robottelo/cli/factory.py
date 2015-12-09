@@ -1171,10 +1171,12 @@ def make_usergroup(options=None):
 @cacheable
 def make_usergroup_external(options=None):
     """
-    Usage:
+    Usage::
+
         hammer user-group external create [OPTIONS]
 
-    Options:
+    Options::
+
         --auth-source-id AUTH_SOURCE_ID           ID of linked auth source
         --name NAME                               External user group name
         --user-group, --usergroup USER_GROUP_NAME Name to search by

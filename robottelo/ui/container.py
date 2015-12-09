@@ -144,7 +144,7 @@ class Container(Base):
     def set_power_status(self, resource_name, cont_name, power_on):
         """Perform power on or power off for container
 
-        :param boolean power_on: True - for On, False - for Off
+        :param bool power_on: True - for On, False - for Off
 
         """
         status = None
