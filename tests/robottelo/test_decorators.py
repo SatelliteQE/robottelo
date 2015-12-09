@@ -512,8 +512,8 @@ class SkipIfNotSetTestCase(TestCase):
     def tearDown(self):
         self.settings_patcher.stop()
 
-    def test_raise_skip_if(self):
-        """Skip if configuration is missing."""
+    def test_raise_skip_if_method(self):
+        """Skip a test method if configuration is missing."""
         self.settings.clients.validate.side_effect = ['Validation error']
 
         @decorators.skip_if_not_set('clients')
@@ -522,6 +522,32 @@ class SkipIfNotSetTestCase(TestCase):
 
         with self.assertRaises(SkipTest):
             dummy()
+
+    def test_raise_skip_if_setup(self):
+        """Skip setUp method if configuration is missing."""
+        self.settings.clients.validate.side_effect = ['Validation error']
+
+        class MyTestCase(object):
+            @decorators.skip_if_not_set('clients')
+            def setUp(self):
+                pass
+
+        test_case = MyTestCase()
+        with self.assertRaises(SkipTest):
+            test_case.setUp()
+
+    def test_raise_skip_if_setupclass(self):
+        """Skip setUpClass method if configuration is missing."""
+        self.settings.clients.validate.side_effect = ['Validation error']
+
+        class MyTestCase(object):
+            @classmethod
+            @decorators.skip_if_not_set('clients')
+            def setUpClass(cls):
+                pass
+
+        with self.assertRaises(SkipTest):
+            MyTestCase.setUpClass()
 
     def test_not_raise_skip_if(self):
         """Don't skip if configuration is available."""
@@ -539,6 +565,18 @@ class SkipIfNotSetTestCase(TestCase):
             @decorators.skip_if_not_set('client')
             def dummy():
                 pass
+
+    def test_configure_settings(self):
+        """Call settings.configure() if settings is not configured."""
+        self.settings.clients.validate.side_effect = [[]]
+        self.settings.configured = False
+
+        @decorators.skip_if_not_set('clients')
+        def dummy():
+            return 'ok'
+
+        self.assertEqual(dummy(), 'ok')
+        self.settings.configure.called_once_with()
 
 
 class StubbedTestCase(TestCase):

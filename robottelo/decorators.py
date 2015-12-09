@@ -60,22 +60,40 @@ def skip_if_not_set(*options):
             def test_something(self):
                 self.assertTrue(True)
 
-    The above approach is required for decorating all test methods of a class
-    because the ``skip_if_not_set`` decorator is intended to run at runtime and
-    not import time. Decorating a class or the ``setUpClass`` method is not
-    supported.
+    Or::
+
+        class FeatureTestCase(robottelo.test.TestCase):
+
+            @classmethod
+            @skip_if_not_set('clients')
+            def setUpClass(cls):
+                pass
+
+            def test_something(self):
+                self.assertTrue(True)
+
+    The last two approaches are required for decorating all test methods of a
+    class, because the ``skip_if_not_set`` decorator is intended to run at
+    runtime and not at import time. Decorating a class definition directly is
+    not supported.
+
+    Be aware that nosetests and standard Python unittest runners are not able
+    to identify the ``SkipTest`` exception being raised on ``setUpClass`` and
+    will report a failure. On the other hand, pytest will handle this as
+    expected.
 
     :param options: List of valid `robottelo.properties` section names.
-    :raises: unittest2.SkipTest: If expected configuration section is not fully
-        set in the `robottelo.properties` file. All required attributes must be
-        set. For example, if the `server` section is enabled but its `hostname`
-        attribute is not set, then a test that expects it will be skipped.
+    :raises: ``unittest2.SkipTest``: If expected configuration section is not
+        fully set in the `robottelo.properties` file. All required attributes
+        must be set. For example, if the `server` section is enabled but its
+        `hostname` attribute is not set, then a test that expects it will be
+        skipped.
     """
     options_set = set(options)
     if not options_set.issubset(settings.all_features):
         invalid = options_set.difference(settings.all_features)
         raise ValueError(
-            'Feature(s): "{0}" not found. Available ones are: "{1}"'
+            'Feature(s): "{0}" not found. Available ones are: "{1}".'
             .format(
                 ', '.join(invalid),
                 ', '.join(settings.all_features)
@@ -85,6 +103,8 @@ def skip_if_not_set(*options):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
+            if not settings.configured:
+                settings.configure()
             missing = []
             for option in options:
                 # Example: `settings.clients`
