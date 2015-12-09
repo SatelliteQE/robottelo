@@ -98,9 +98,6 @@ def valid_delete_params():
 class TestDomain(CLITestCase):
     """Domain CLI tests"""
 
-    factory = make_domain
-    factory_obj = Domain
-
     @tier1
     @run_only_on('sat')
     def test_positive_create(self):

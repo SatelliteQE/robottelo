@@ -66,7 +66,7 @@ def skip_if_not_set(*options):
     supported.
 
     :param options: List of valid `robottelo.properties` section names.
-    :raises unittest2.SkipTest: If expected configuration section is not fully
+    :raises: unittest2.SkipTest: If expected configuration section is not fully
         set in the `robottelo.properties` file. All required attributes must be
         set. For example, if the `server` section is enabled but its `hostname`
         attribute is not set, then a test that expects it will be skipped.
