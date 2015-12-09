@@ -2,7 +2,7 @@
 """Test class for Puppet Classes UI"""
 
 from nailgun import entities
-from robottelo.datafactory import generate_strings_list
+from robottelo.datafactory import valid_data_list
 from robottelo.decorators import run_only_on
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
@@ -23,7 +23,7 @@ class PuppetClasses(UITestCase):
         class_name = 'foreman_scap_client'
         param_name = 'ca file'
         with Session(self.browser):
-            for description in generate_strings_list(length=8):
+            for description in valid_data_list():
                 with self.subTest(description):
                     # Importing puppet classes from puppet-foreman_scap_client
                     # module for update process
@@ -48,7 +48,7 @@ class PuppetClasses(UITestCase):
 
         """
         with Session(self.browser):
-            for name in generate_strings_list(length=8):
+            for name in valid_data_list():
                 with self.subTest(name):
                     entities.PuppetClass(name=name).create()
                     self.puppetclasses.delete(name)
