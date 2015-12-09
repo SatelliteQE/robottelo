@@ -58,11 +58,11 @@ class User(Base):
                 org_element = self.find_element(locators['users.default_org'])
                 Select(org_element).select_by_visible_text(default_org)
 
-    def create(self, username=None, email=None, password1=None,
-               password2=None, authorized_by='INTERNAL',
-               locale=None, first_name=None, last_name=None,
-               roles=None, locations=None, organizations=None,
-               edit=False, default_org=None, default_loc=None, select=True):
+    def create(self, username=None, email=None, password1=None, password2=None,
+               authorized_by='INTERNAL', locale=None, first_name=None,
+               last_name=None, roles=None, admin=False, locations=None,
+               organizations=None, edit=False, default_org=None,
+               default_loc=None, select=True, submit=True):
         """Create new user from UI."""
         self.click(locators['users.new'])
         if self.wait_until_element(locators['users.username']):
@@ -99,7 +99,13 @@ class User(Base):
                     default_loc=default_loc,
                     select=select
                 )
-        self.click(common_locators['submit'])
+            if admin:
+                self.click(tab_locators['users.tab_roles'])
+                self.click(locators['users.admin_role'])
+        if submit:
+            self.click(common_locators['submit'])
+        else:
+            self.click(common_locators['cancel_form'])
 
     def delete(self, name, really=True):
         """Deletes existing user from UI."""
@@ -109,16 +115,13 @@ class User(Base):
             locators['users.delete'],
         )
 
-    def update(self, username, new_username=None,
-               email=None, password=None,
-               first_name=None, last_name=None, locale=None,
-               roles=None, new_roles=None, locations=None,
-               new_locations=None, organizations=None,
-               new_organizations=None, default_org=None,
-               default_loc=None, select=False):
+    def update(self, username, new_username=None, email=None, password=None,
+               first_name=None, last_name=None, locale=None, roles=None,
+               new_roles=None, locations=None, new_locations=None,
+               organizations=None, new_organizations=None, default_org=None,
+               default_loc=None, select=False, submit=True):
         """Update username, email, password, firstname, lastname and locale
         from UI
-
         """
         element = self.search(username)
 
@@ -156,12 +159,14 @@ class User(Base):
             default_loc=default_loc,
             select=select
         )
-        self.click(common_locators['submit'])
+        if submit:
+            self.click(common_locators['submit'])
+        else:
+            self.click(common_locators['cancel_form'])
 
-    def admin_role_to_user(self, username):
-        """Checks if selected user has Administrator privileges otherwise
-        assign it to user.
-
+    def user_admin_role_toggle(self, username, is_admin=True):
+        """Checks if selected user has Administrator privileges according to
+        expected state and assign/unassign them otherwise
         """
         element = self.search(username)
 
@@ -176,8 +181,46 @@ class User(Base):
         admin_role_locator = locators['users.admin_role']
         is_admin_role_selected = self.find_element(
             admin_role_locator).is_selected()
-        if not is_admin_role_selected:
+        if is_admin_role_selected != is_admin:
             self.click(admin_role_locator)
             self.click(common_locators['submit'])
-            is_admin_role_selected = True
+            is_admin_role_selected = is_admin
         return is_admin_role_selected
+
+    def validate_user(
+            self, username, field_name, field_value, validate_index_page=True):
+        """Checks if selected user has necessary field values on the index and
+        edit pages
+
+        :param str username: Username of the user to be validated
+        :param str field_name: User field that should be validated (e.g.
+            'firstname' or 'lastname')
+        :param str field_value: Expected value for specified field
+        :param bool validate_index_page: Specify whether we like to validate
+            user field value not only on user edit screen, but on index page
+            (where we have search functionality and table with all users). Not
+            all fields values present in the table, so we have specify that
+            parameter explicitly
+        """
+        element = self.search(username)
+        if element is None:
+            raise UINoSuchElementError(
+                'Unable to find the username "{0}".'.format(username)
+            )
+        if validate_index_page:
+            strategy, value = locators['users.table_value']
+            searched = self.wait_until_element(
+                (strategy, value % field_value))
+            if searched is None:
+                raise UINoSuchElementError(
+                    'User "{0}" field in the table has not "{1}" value.'
+                    .format(field_name, field_value)
+                )
+
+        element.click()
+        if (self.wait_until_element(locators[
+                'users.' + field_name]).get_attribute('value') != field_value):
+            raise UIError(
+                'User "{0}" field in the edit screen has not "{1}" value.'
+                .format(field_name, field_value)
+            )

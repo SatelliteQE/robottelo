@@ -641,10 +641,12 @@ common_locators = LocatorDict({
         By.XPATH, "//input[@checked='checked']/parent::label"),
     "entity_select": (
         By.XPATH,
-        "//div[@class='ms-selectable']//span[contains(.,'%s')]"),
+        ("//div[@class='ms-selectable']//"
+         "li[not(contains(@style, 'display: none'))]/span[contains(.,'%s')]")),
     "entity_deselect": (
         By.XPATH,
-        "//div[@class='ms-selection']//span[contains(.,'%s')]"),
+        ("//div[@class='ms-selection']//"
+         "li[not(contains(@style, 'display: none'))]/span[contains(.,'%s')]")),
     "entity_checkbox": (
         By.XPATH,
         "//label[normalize-space(.)='%s']/input[@type='checkbox']"),
@@ -671,6 +673,7 @@ common_locators = LocatorDict({
     "search": (By.ID, "search"),
     "auto_search": (By.XPATH, "//ul[@id='ui-id-1']/li/a[contains(., '%s')]"),
     "search_button": (By.XPATH, "//button[contains(@type,'submit')]"),
+    "cancel_form": (By.XPATH, "//a[text()='Cancel']"),
     "submit": (By.NAME, "commit"),
     "filter": (By.XPATH,
                ("//div[@id='ms-%s_ids']"
@@ -1038,6 +1041,7 @@ locators = LocatorDict({
     "users.password": (By.ID, "user_password"),
     "users.password_confirmation": (By.ID, "user_password_confirmation"),
     "users.user": (By.XPATH, "//a[contains(., '%s')]"),
+    "users.table_value": (By.XPATH, "//td[contains(., '%s')]"),
     "users.default_org": (By.ID, "user_default_organization_id"),
     "users.default_loc": (By.ID, "user_default_location_id"),
     "users.delete": (

@@ -5,7 +5,7 @@ from nailgun import entities, entity_mixins
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import ENVIRONMENT
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import UITestCase
 from robottelo.ui.base import Base
 from robottelo.ui.factory import make_host
@@ -378,3 +378,25 @@ class Host(UITestCase, Base):
             # Delete host
             self.hosts.delete(
                 u'{0}.{1}'.format(host.name, host.domain.name))
+
+    @stubbed()
+    def test_positive_create_with_user(self):
+        """@Test: Create Host with new user specified
+
+        @Feature: Host - Positive Create
+
+        @Assert: Host is created
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    def test_positive_update_with_user(self):
+        """@Test: Update Host with new user specified
+
+        @Feature: Host - Positive Update
+
+        @Assert: Host is updated
+
+        @Status: Manual
+        """
