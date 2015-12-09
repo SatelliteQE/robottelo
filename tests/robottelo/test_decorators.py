@@ -222,7 +222,7 @@ class RmBugIsOpenTestCase(TestCase):
 
 
 class GetBugzillaBugStatusIdTestCase(TestCase):
-    """Tests for :func:`robottelo.decorators._get_bugzilla_bug`."""
+    """Tests for ``robottelo.decorators._get_bugzilla_bug``."""
     def setUp(self):
         self.bugzilla_patcher = mock.patch('robottelo.decorators.bugzilla')
         self.bugzilla = self.bugzilla_patcher.start()
@@ -299,7 +299,7 @@ class GetBugzillaBugStatusIdTestCase(TestCase):
 
 
 class GetRedmineBugStatusIdTestCase(TestCase):
-    """Tests for :func:`robottelo.decorators._get_redmine_bug_status_id`."""
+    """Tests for ``robottelo.decorators._get_redmine_bug_status_id``."""
     def test_cached_bug(self):
         """Return bug status from the cache."""
         with mock.patch.dict(
@@ -348,9 +348,7 @@ class GetRedmineBugStatusIdTestCase(TestCase):
 
 
 class RedmineClosedIssueStatusesTestCase(TestCase):
-    """Tests for
-    :func:`robottelo.decorators._redmine_closed_issue_statuses`.
-    """
+    """Tests for ``robottelo.decorators._redmine_closed_issue_statuses``."""
     @mock.patch('robottelo.decorators.requests')
     def test_build_cache(self, requests):
         """Build closed issue statuses cache."""

@@ -149,9 +149,10 @@ def install_katello_ca(hostname=None):
         """Downloads and installs katello-ca rpm
 
         :param str hostname: Hostname or IP address of the remote host. If
-        ``None`` the hostname will be get from ``main.server.hostname`` config.
+         ``None`` the hostname will be get from ``main.server.hostname`` config
         :return: None.
-        :raises AssertionError: If katello-ca wasn't installed.
+        :raises: AssertionError: If katello-ca wasn't installed.
+
         """
         ssh.command(
             u'rpm -Uvh {0}'.format(settings.server.get_cert_rpm_url()),
@@ -174,9 +175,10 @@ def remove_katello_ca(hostname=None):
         """Removes katello-ca rpm
 
         :param str hostname: Hostname or IP address of the remote host. If
-        ``None`` the hostname will be get from ``main.server.hostname`` config.
+         ``None`` the hostname will be get from ``main.server.hostname`` config
         :return: None.
-        :raises AssertionError: If katello-ca wasn't removed.
+        :raises: AssertionError: If katello-ca wasn't removed.
+
         """
         # Not checking the return_code here, as rpm can be not even installed
         # and deleting may fail

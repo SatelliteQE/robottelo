@@ -111,7 +111,6 @@ def invalid_values_list(interface=None):
 
     :param str interface: Interface name (one of api/cli/ui).
     :return: Returns the invalid values list
-    :rtype: list
     :raises: :meth:`InvalidArgumentError`: If an invalid interface is received.
 
     """
