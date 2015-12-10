@@ -134,7 +134,6 @@ class UITestCase(TestCase):
         cls.driver_binary = settings.webdriver_binary
         cls.locale = settings.locale
         cls.server_name = settings.server.hostname
-        cls.screenshots_dir = settings.screenshots_path
 
         if settings.virtual_display and settings.window_manager_command:
             # Import from optional requirements
@@ -221,22 +220,30 @@ class UITestCase(TestCase):
         self.user = User(self.browser)
         self.usergroup = UserGroup(self.browser)
 
-    def take_screenshot(self, testmethodname):
-        """Takes screenshot of the UI and saves it to the disk by creating
-        a directory same as that of the test method name.
+    def take_screenshot(self):
+        """Take screen shot from the current browser window.
+
+        The screenshot named ``screenshot-YYYY-mm-dd_HH_MM_SS.png`` will be
+        placed on the path specified by
+        ``settings.screenshots_path/YYYY-mm-dd/ClassName/method_name/``.
+
+        All directories will be created if they don't exist. Make sure that the
+        user running robottelo have the right permissions to create files and
+        directories matching the complete.
         """
-        # Creates dir_structure depending upon the testmethodname.
-        dir_structure = os.path.join(
-            self.screenshots_dir,
-            datetime.now().strftime('%Y-%m-%d'),
-            testmethodname,
+        now = datetime.now()
+        path = os.path.join(
+            settings.screenshots_path,
+            now.strftime('%Y-%m-%d'),
+            type(self).__name__,
+            self._testMethodName,
         )
-        if not os.path.exists(dir_structure):
-            os.makedirs(dir_structure)
+        if not os.path.exists(path):
+            os.makedirs(path)
         filename = 'screenshot-{0}.png'.format(
-            datetime.now().strftime('%Y-%m-%d_%H_%M_%S')
+            now.strftime('%Y-%m-%d_%H_%M_%S')
         )
-        self.browser.save_screenshot(os.path.join(dir_structure, filename))
+        self.browser.save_screenshot(os.path.join(path, filename))
 
     def tearDown(self):  # noqa
         """Make sure to close the browser after each test."""
@@ -246,7 +253,7 @@ class UITestCase(TestCase):
         if sys.exc_info()[0] is not None and not skipped:
             # Take screenshot if any exception is raised and the test method is
             # not in the skipped tests.
-            self.take_screenshot(self._testMethodName)
+            self.take_screenshot()
         self.browser.quit()
         self.browser = None
 
