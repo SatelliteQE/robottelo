@@ -82,10 +82,8 @@ class TestSmoke(UITestCase):
         @Assert: Admin User is found and has Admin role
 
         """
-        with Session(self.browser) as session:
-            session.nav.go_to_users()
-            self.assertIsNotNone(self.user.search('admin'))
-            self.assertTrue(self.user.admin_role_to_user('admin'))
+        with Session(self.browser):
+            self.assertTrue(self.user.user_admin_role_toggle('admin'))
 
     def test_smoke(self):
         """@Test: Check that basic content can be created
@@ -137,8 +135,7 @@ class TestSmoke(UITestCase):
                 password2=password
             )
             self.assertIsNotNone(self.user.search(user_name))
-            is_admin_role_selected = self.user.admin_role_to_user(user_name)
-            self.assertTrue(is_admin_role_selected)
+            self.assertTrue(self.user.user_admin_role_toggle(user_name))
 
         # FIX ME: UI doesn't authenticate user created via UI auto: Issue #1152
         # Once #1152 is fixed; need to pass user_name and password to Session
@@ -475,8 +472,8 @@ class TestSmoke(UITestCase):
                 vm.register_contenthost(activation_key_name, org_name)
                 vm.configure_puppet(rhel6_repo)
                 host = vm.hostname
-                session.nav.go_to_hosts()
                 set_context(session, org=ANY_CONTEXT['org'])
+                session.nav.go_to_hosts()
                 self.hosts.update_host_bulkactions(host=host, org=org_name)
                 self.hosts.update(
                     name=host,
