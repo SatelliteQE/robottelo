@@ -561,6 +561,10 @@ API_PATHS = {
     u'statistics': (
         u'/api/statistics',
     ),
+    u'subnet_disks': (
+        u'/bootdisk/api',
+        u'/bootdisk/api/subnets/:subnet_id',
+    ),
     u'subnets': (
         u'/api/subnets',
         u'/api/subnets',
@@ -683,7 +687,6 @@ class TestAvailableURLs(TestCase):
         self.assertEqual(response.status_code, http_client.OK)
         self.assertIn('application/json', response.headers['content-type'])
 
-    @skip_if_bug_open('bugzilla', 1105773)
     def test_get_links(self):
         """@Test: GET ``api/v2`` and check the links returned.
 
