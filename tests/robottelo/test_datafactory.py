@@ -15,6 +15,7 @@ from robottelo.datafactory import (
     valid_data_list,
     valid_emails_list,
     valid_environments_list,
+    valid_hosts_list,
     valid_labels_list,
     valid_names_list,
     valid_usernames_list,
@@ -46,6 +47,7 @@ class DataCheckTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_data_list()), 7)
         self.assertEqual(len(valid_emails_list()), 8)
         self.assertEqual(len(valid_environments_list()), 3)
+        self.assertEqual(len(valid_hosts_list()), 3)
         self.assertEqual(len(valid_names_list()), 15)
         self.assertEqual(len(valid_usernames_list()), 4)
 
@@ -60,6 +62,7 @@ class DataCheckTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_data_list()), 1)
         self.assertEqual(len(valid_emails_list()), 1)
         self.assertEqual(len(valid_environments_list()), 1)
+        self.assertEqual(len(valid_hosts_list()), 1)
         self.assertEqual(len(valid_labels_list()), 1)
         self.assertEqual(len(valid_names_list()), 1)
         self.assertEqual(len(valid_usernames_list()), 1)
@@ -94,10 +97,11 @@ class TestReturnTypes(unittest2.TestCase):
         4. :meth:`robottelo.datafactory.valid_data_list`
         5. :meth:`robottelo.datafactory.valid_emails_list`
         6. :meth:`robottelo.datafactory.valid_environments_list`
-        7. :meth:`robottelo.datafactory.valid_labels_list`
-        8. :meth:`robottelo.datafactory.valid_names_list`
-        9. :meth:`robottelo.datafactory.valid_usernames_list`
-        10. :meth:`robottelo.datafactory.invalid_id_list`
+        7. :meth:`robottelo.datafactory.valid_hosts_list`
+        8. :meth:`robottelo.datafactory.valid_labels_list`
+        9. :meth:`robottelo.datafactory.valid_names_list`
+        10. :meth:`robottelo.datafactory.valid_usernames_list`
+        11. :meth:`robottelo.datafactory.invalid_id_list`
 
         """
         for item in itertools.chain(
@@ -107,6 +111,7 @@ class TestReturnTypes(unittest2.TestCase):
                 valid_data_list(),
                 valid_emails_list(),
                 valid_environments_list(),
+                valid_hosts_list(),
                 valid_labels_list(),
                 valid_names_list(),
                 valid_usernames_list(),):
