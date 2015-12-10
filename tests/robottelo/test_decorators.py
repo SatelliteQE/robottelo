@@ -447,7 +447,7 @@ class RunOnlyOnTestCase(TestCase):
         def dummy():
             return 42
 
-        with self.assertRaises(decorators.ProjectModeError):
+        with self.assertRaises(SkipTest):
             dummy()
 
 
