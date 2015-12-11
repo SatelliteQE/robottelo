@@ -402,7 +402,11 @@ class Navigator(Base):
             raise UIError(
                 u'Could not select the organization: {0}'.format(org)
             )
-        self.wait_for_ajax()
+        # close dropdown
+        self.click(menu_locators['menu.current_text'])
+        # get to left corner of the browser instance to not have impact on
+        # further actions
+        self.perform_action_chain_move_by_offset(-150, -150)
         return org
 
     def go_to_select_loc(self, loc):
@@ -425,5 +429,9 @@ class Navigator(Base):
             raise UIError(
                 u'Could not select the location: {0}'.format(loc)
             )
-        self.wait_for_ajax()
+        # close dropdown
+        self.click(menu_locators['menu.current_text'])
+        # get to left corner of the browser instance to not have impact on
+        # further actions
+        self.perform_action_chain_move_by_offset(-150, -150)
         return loc
