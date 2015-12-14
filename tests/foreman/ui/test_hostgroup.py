@@ -3,24 +3,24 @@
 
 from fauxfactory import gen_string
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hostgroup
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-class Hostgroup(UITestCase):
+class HostgroupTestCase(UITestCase):
     """Implements HostGroup tests from UI"""
 
     @run_only_on('sat')
-    def test_positive_create_hostgroup(self):
+    @tier1
+    def test_positive_create_with_name(self):
         """@Test: Create new hostgroup
 
         @Feature: Hostgroup - Positive Create
 
         @Assert: Hostgroup is created
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -29,13 +29,13 @@ class Hostgroup(UITestCase):
                     self.assertIsNotNone(self.hostgroup.search(name))
 
     @run_only_on('sat')
-    def test_negative_create_hostgroup(self):
+    @tier1
+    def test_negative_create_with_name(self):
         """@Test: Create new hostgroup with invalid names
 
         @Feature: Hostgroup - Negative Create
 
         @Assert: Hostgroup is not created
-
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -45,13 +45,13 @@ class Hostgroup(UITestCase):
                                          (common_locators['name_haserror']))
 
     @run_only_on('sat')
-    def test_negative_create_hostgroup_with_same_name(self):
+    @tier1
+    def test_negative_create_with_same_name(self):
         """@Test: Create new hostgroup with same name
 
         @Feature: Hostgroup - Negative Create
 
         @Assert: Hostgroup is not created
-
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -62,13 +62,13 @@ class Hostgroup(UITestCase):
                                  (common_locators['name_haserror']))
 
     @run_only_on('sat')
-    def test_delete_hostgroup(self):
+    @tier1
+    def test_positive_delete(self):
         """@Test: Delete a hostgroup
 
         @Feature: Hostgroup - Positive Delete
 
         @Assert: Hostgroup is deleted
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -77,13 +77,13 @@ class Hostgroup(UITestCase):
                     self.hostgroup.delete(name)
 
     @run_only_on('sat')
-    def test_update_hostgroup(self):
+    @tier1
+    def test_positive_update(self):
         """@Test: Update hostgroup with a new name
 
         @Feature: Hostgroup - Positive Update
 
         @Assert: Hostgroup is updated
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:

@@ -1,10 +1,10 @@
 """Test class for installer (UI)"""
 
-from robottelo.decorators import stubbed
+from robottelo.decorators import skip_if_not_set, stubbed, tier3
 from robottelo.test import UITestCase
 
 
-class LDAPAuthUI(UITestCase):
+class LDAPAuthTestCase(UITestCase):
     """Implements ldap tests in UI"""
     # Notes for SSO testing:
     # Of interest... In some test cases I've placed a few comments prefaced
@@ -21,8 +21,10 @@ class LDAPAuthUI(UITestCase):
     # http://theforeman.org/manuals/1.8/index.html#4.1.1LDAPAuthentication
     # LDAP Auth testing involves testing with RHDS(389), IdM(IPA) and AD ldap.
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_ipa_basic_no_roles(self):
+    @tier3
+    def test_positive_ipa_basic_no_roles(self):
         """@test: Login with LDAP Auth- IPA for user with no roles/rights
 
         @feature: LDAP Authentication
@@ -39,8 +41,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_ipa_basic_roles(self):
+    @tier3
+    def test_positive_ipa_basic_roles(self):
         """@test: Login with LDAP - IPA for user with roles/rights
 
         @feature: LDAP Authentication
@@ -57,8 +61,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_ipa_user_disabled(self):
+    @tier3
+    def test_positive_ipa_user_disabled(self):
         """@test: LDAP - IPA user activity when IPA user account has been
         deleted or deactivated
 
@@ -75,8 +81,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_ad_basic_no_roles(self):
+    @tier3
+    def test_positive_ad_basic_no_roles(self):
         """@test: Login with LDAP Auth- AD for user with no roles/rights
 
         @feature: LDAP Authentication
@@ -93,8 +101,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_ad_basic_roles(self):
+    @tier3
+    def test_positive_ad_basic_roles(self):
         """@test: Login with LDAP - AD for user with roles/rights
 
         @feature: LDAP Authentication
@@ -111,8 +121,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_ad_user_disabled(self):
+    @tier3
+    def test_positive_ad_user_disabled(self):
         """@test: LDAP - AD user activity when AD user account has been deleted
         or deactivated
 
@@ -129,8 +141,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_openldap_basic_no_roles(self):
+    @tier3
+    def test_positive_openldap_basic_no_roles(self):
         """@test: Login with LDAP - RHDSLDAP that has no roles / rights
 
         @feature: LDAP Authentication
@@ -147,8 +161,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_rhdsldap_basic_roles(self):
+    @tier3
+    def test_positive_rhdsldap_basic_roles(self):
         """@test: Login with LDAP - RHDS LDAP for user with roles/rights
         assigned.
 
@@ -166,8 +182,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_rhdsldap_user_disabled(self):
+    @tier3
+    def test_positive_rhdsldap_user_disabled(self):
         """@test: LDAP - RHDSLDAP user activity when RHDS ldap account has been
         deleted or deactivated
 
@@ -184,8 +202,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_multiple_ldap_backends(self):
+    @tier3
+    def test_positive_multiple_ldap_backends(self):
         """@test: LDAP - multiple LDAP servers kafo instance
 
         @feature: LDAP Authentication
@@ -205,8 +225,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_multiple_ldap_namespace_collision(self):
+    @tier3
+    def test_negative_multiple_ldap_namespaces_collision(self):
         # devnote:
         # users have auth_source which could distinguish them, but validation
         # would fail atm
@@ -229,8 +251,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_ldap_user_named_admin(self):
+    @tier3
+    def test_positive_ldap_user_named_admin(self):
         # devnote:
         # shouldn't be a problem since admin from internal DB will be used at
         # first, worth of testing thou, however if authentication is done by
@@ -250,8 +274,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_ldap_server_down_before_session(self):
+    @tier3
+    def test_negative_ldap_server_down_before_session(self):
         """@test: LDAP - what happens when we have an ldap server that goes
         down before logging in?
 
@@ -267,8 +293,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_ldap_server_down_during_session(self):
+    @tier3
+    def test_negative_ldap_server_down_during_session(self):
         """@test: LDAP - what happens when we have an ldap server that goes
         down after login?
 
@@ -285,8 +313,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_UserGroup_roles_read(self):
+    @tier3
+    def test_positive_usergroup_roles_read(self):
         """@test: Usergroups: group roles get pushed down to user
 
         @feature: LDAP Authentication
@@ -304,8 +334,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_UserGroup_roles_update(self):
+    @tier3
+    def test_positive_usergroup_roles_update(self):
         """@test: Usergroups: added UserGroup roles get pushed down to user
 
         @feature: LDAP Authentication
@@ -323,8 +355,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_UserGroup_roles_delete(self):
+    @tier3
+    def test_positive_usergroup_roles_delete(self):
         """@test: Usergroups: deleted UserGroup roles get pushed down to user
 
         @feature: LDAP Authentication
@@ -342,8 +376,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_UserGroup_additional_user_roles(self):
+    @tier3
+    def test_positive_usergroup_additional_user_roles(self):
         """@test: Assure that user has roles/can access feature areas for
         additional roles assigned outside any roles assigned by his group
 
@@ -365,8 +401,10 @@ class LDAPAuthUI(UITestCase):
 
         """
 
+    @skip_if_not_set('ldap')
     @stubbed()
-    def test_ldap_auth_UserGroup_user_add(self):
+    @tier3
+    def test_positive_ldap_auth_usergroup_user_add(self):
         """@test: Usergroups: new user added to UserGroup inherits roles
 
         @feature: LDAP Authentication

@@ -5,7 +5,7 @@ from nailgun import entities, entity_mixins
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import ENVIRONMENT
-from robottelo.decorators import run_only_on, stubbed
+from robottelo.decorators import run_only_on, stubbed, tier3
 from robottelo.test import UITestCase
 from robottelo.ui.base import Base
 from robottelo.ui.factory import make_host
@@ -13,7 +13,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-class Host(UITestCase, Base):
+class HostTestCase(UITestCase, Base):
     """Implements Host tests in UI"""
 
     hostname = gen_string('numeric')
@@ -44,7 +44,7 @@ class Host(UITestCase, Base):
         16. Create new host group with all required entities
 
         """
-        super(Host, cls).setUpClass()
+        super(HostTestCase, cls).setUpClass()
         # Create a new Organization and Location
         cls.org = entities.Organization(name=gen_string('alpha')).create()
         cls.org_name = cls.org.name
@@ -275,16 +275,16 @@ class Host(UITestCase, Base):
                 self.assertIsNotNone(
                     self.hosts.wait_until_element(
                         common_locators['notif.success']))
-        super(Host, self).tearDown()
+        super(HostTestCase, self).tearDown()
 
     @run_only_on('sat')
-    def test_create_host_on_libvirt(self):
+    @tier3
+    def test_positive_create_libvirt(self):
         """@Test: Create a new Host on libvirt compute resource
 
         @Feature: Host - Positive create
 
         @Assert: Host is created
-
         """
         resource = u'{0} (Libvirt)'.format(self.computeresource.name)
         root_pwd = gen_string("alpha", 15)
@@ -307,13 +307,13 @@ class Host(UITestCase, Base):
             self.assertIsNotNone(search)
 
     @run_only_on('sat')
-    def test_create_host(self):
+    @tier3
+    def test_positive_create(self):
         """@Test: Create a new Host
 
         @Feature: Host - Positive create
 
         @Assert: Host is created
-
         """
         host = entities.Host()
         host.create_missing()
@@ -344,13 +344,13 @@ class Host(UITestCase, Base):
             self.assertIsNotNone(search)
 
     @run_only_on('sat')
-    def test_positive_delete_host(self):
+    @tier3
+    def test_positive_delete(self):
         """@Test: Delete a Host
 
         @Feature: Host - Positive Delete
 
-        @Assert: Host is deleted
-
+        @Assert: Host is delete
         """
         host = entities.Host()
         host.create_missing()
@@ -380,6 +380,7 @@ class Host(UITestCase, Base):
                 u'{0}.{1}'.format(host.name, host.domain.name))
 
     @stubbed()
+    @tier3
     def test_positive_create_with_user(self):
         """@Test: Create Host with new user specified
 
@@ -391,6 +392,7 @@ class Host(UITestCase, Base):
         """
 
     @stubbed()
+    @tier3
     def test_positive_update_with_user(self):
         """@Test: Update Host with new user specified
 

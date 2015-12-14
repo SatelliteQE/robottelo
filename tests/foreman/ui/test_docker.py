@@ -11,7 +11,14 @@ from robottelo.constants import (
     REPO_TYPE,
 )
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    skip_if_not_set,
+    stubbed,
+    tier1,
+    tier2,
+)
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
@@ -73,12 +80,13 @@ def _create_repository(session, org, name, product, upstream_name=None):
     )
 
 
-class DockerTagsTestCase(UITestCase):
+class DockerTagTestCase(UITestCase):
     """Tests related to Content > Docker Tags page"""
 
     @stubbed()
     @run_only_on('sat')
-    def test_search_docker_image(self):
+    @tier2
+    def test_positive_search_docker_image(self):
         """@Test: Search for a docker image
 
         @Feature: Docker
@@ -86,7 +94,6 @@ class DockerTagsTestCase(UITestCase):
         @Assert: The docker tag can be searched and found
 
         @Status: Manual
-
         """
 
 
@@ -103,13 +110,13 @@ class DockerRepositoryTestCase(UITestCase):
         cls.organization = entities.Organization().create()
 
     @run_only_on('sat')
-    def test_create_one_docker_repo(self):
-        """@Test: Create one Docker-type repository
-
-        @Assert: A repository is created with a Docker image.
+    @tier1
+    def test_positive_create_repo_with_name(self):
+        """@Test: Create one Docker-type repository using different names
 
         @Feature: Docker
 
+        @Assert: A repository is created with a Docker image.
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -126,14 +133,14 @@ class DockerRepositoryTestCase(UITestCase):
                     self.assertIsNotNone(self.repository.search(name))
 
     @run_only_on('sat')
-    def test_create_multiple_docker_repo(self):
+    @tier1
+    def test_positive_create_repos(self):
         """@Test: Create multiple Docker-type repositories
-
-        @Assert: Multiple docker repositories are created with a Docker image
-        and they all belong to the same product.
 
         @Feature: Docker
 
+        @Assert: Multiple docker repositories are created with a Docker image
+        and they all belong to the same product.
         """
         product = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
@@ -149,14 +156,14 @@ class DockerRepositoryTestCase(UITestCase):
                 self.assertIsNotNone(self.repository.search(name))
 
     @run_only_on('sat')
-    def test_create_multiple_docker_repo_multiple_products(self):
+    @tier1
+    def test_positive_create_repos_for_multiple_products(self):
         """@Test: Create multiple Docker-type repositories on multiple products.
-
-        @Assert: Multiple docker repositories are created with a Docker image
-        and they all belong to their respective products.
 
         @Feature: Docker
 
+        @Assert: Multiple docker repositories are created with a Docker image
+        and they all belong to their respective products.
         """
         with Session(self.browser) as session:
             for _ in range(randint(2, 3)):
@@ -173,14 +180,14 @@ class DockerRepositoryTestCase(UITestCase):
                     self.assertIsNotNone(self.repository.search(name))
 
     @run_only_on('sat')
-    def test_sync_docker_repo(self):
+    @tier2
+    def test_positive_synchronize_repo(self):
         """@Test: Create and sync a Docker-type repository
-
-        @Assert: A repository is created with a Docker repository and it is
-        synchronized.
 
         @Feature: Docker
 
+        @Assert: A repository is created with a Docker repository and it is
+        synchronized.
         """
         repo_name = gen_string('alphanumeric')
         product = entities.Product(organization=self.organization).create()
@@ -198,14 +205,14 @@ class DockerRepositoryTestCase(UITestCase):
             self.assertTrue(synced)
 
     @run_only_on('sat')
-    def test_update_docker_repo_name(self):
+    @tier1
+    def test_positive_update_repo_name(self):
         """@Test: Create a Docker-type repository and update its name.
-
-        @Assert: A repository is created with a Docker image and that its name
-        can be updated.
 
         @Feature: Docker
 
+        @Assert: A repository is created with a Docker image and that its name
+        can be updated.
         """
         with Session(self.browser) as session:
             name = gen_string('alphanumeric')
@@ -226,14 +233,14 @@ class DockerRepositoryTestCase(UITestCase):
                     name = new_name
 
     @run_only_on('sat')
-    def test_update_docker_repo_upstream_name(self):
+    @tier1
+    def test_positive_update_repo_upstream_name(self):
         """@Test: Create a Docker-type repository and update its upstream name.
-
-        @Assert: A repository is created with a Docker image and that its
-        upstream name can be updated.
 
         @Feature: Docker
 
+        @Assert: A repository is created with a Docker image and that its
+        upstream name can be updated.
         """
         with Session(self.browser) as session:
             repo_name = gen_string('alphanumeric')
@@ -257,14 +264,14 @@ class DockerRepositoryTestCase(UITestCase):
                         repo_name, 'upstream', new_upstream_name))
 
     @run_only_on('sat')
-    def test_update_docker_repo_url(self):
+    @tier1
+    def test_positive_update_repo_url(self):
         """@Test: Create a Docker-type repository and update its URL.
-
-        @Assert: A repository is created with a Docker image and that its URL
-        can be updated.
 
         @Feature: Docker
 
+        @Assert: A repository is created with a Docker image and that its URL
+        can be updated.
         """
         with Session(self.browser) as session:
             name = gen_string('alphanumeric')
@@ -287,13 +294,13 @@ class DockerRepositoryTestCase(UITestCase):
                 name, 'url', new_url))
 
     @run_only_on('sat')
-    def test_delete_docker_repo(self):
+    @tier1
+    def test_positive_delete_repo(self):
         """@Test: Create and delete a Docker-type repository
-
-        @Assert: A repository is created with a Docker image and then deleted.
 
         @Feature: Docker
 
+        @Assert: A repository is created with a Docker image and then deleted.
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -312,15 +319,15 @@ class DockerRepositoryTestCase(UITestCase):
                     self.assertIsNone(self.repository.search(name))
 
     @run_only_on('sat')
-    def test_delete_random_docker_repo(self):
+    @tier2
+    def test_positive_delete_random_repo(self):
         """@Test: Create Docker-type repositories on multiple products and
         delete a random repository from a random product.
 
-        @Assert: Random repository can be deleted from random product without
-        altering the other products.
-
         @Feature: Docker
 
+        @Assert: Random repository can be deleted from random product without
+        altering the other products.
         """
         entities_list = []
         products = [
@@ -370,14 +377,14 @@ class DockerContentViewTestCase(UITestCase):
             organization=self.organization).create()
 
     @run_only_on('sat')
-    def test_add_docker_repo_to_content_view(self):
+    @tier2
+    def test_positive_add_repo(self):
         """@Test: Add one Docker-type repository to a non-composite content view
-
-        @Assert: A repository is created with a Docker repository and the
-        product is added to a non-composite content view
 
         @Feature: Docker
 
+        @Assert: A repository is created with a Docker repository and the
+        product is added to a non-composite content view
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -396,15 +403,15 @@ class DockerContentViewTestCase(UITestCase):
                 content_view.name, [repo_name], repo_type='docker')
 
     @run_only_on('sat')
-    def test_add_multiple_docker_repos_to_content_view(self):
+    @tier2
+    def test_positive_add_repos(self):
         """@Test: Add multiple Docker-type repositories to a non-composite
         content view.
 
-        @Assert: Repositories are created with Docker images and the product is
-        added to a non-composite content view.
-
         @Feature: Docker
 
+        @Assert: Repositories are created with Docker images and the product is
+        added to a non-composite content view.
         """
         repos = []
         content_view = entities.ContentView(
@@ -426,14 +433,14 @@ class DockerContentViewTestCase(UITestCase):
                 content_view.name, repos, repo_type='docker')
 
     @run_only_on('sat')
-    def test_add_synced_docker_repo_to_content_view(self):
+    @tier2
+    def test_positive_add_synced_repo(self):
         """@Test: Create and sync a Docker-type repository
-
-        @Assert: A repository is created with a Docker repository and it is
-        synchronized.
 
         @Feature: Docker
 
+        @Assert: A repository is created with a Docker repository and it is
+        synchronized.
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -456,15 +463,15 @@ class DockerContentViewTestCase(UITestCase):
                 content_view.name, [repo_name], repo_type='docker')
 
     @run_only_on('sat')
-    def test_add_docker_repo_to_composite_content_view(self):
+    @tier2
+    def test_positive_add_repo_to_composite_cv(self):
         """@Test: Add one Docker-type repository to a composite content view
+
+        @Feature: Docker
 
         @Assert: A repository is created with a Docker repository and the
         product is added to a content view which is then added to a composite
         content view.
-
-        @Feature: Docker
-
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -489,16 +496,16 @@ class DockerContentViewTestCase(UITestCase):
                 composite_name, [content_view.name])
 
     @run_only_on('sat')
-    def test_add_multiple_docker_repos_to_composite_content_view(self):
+    @tier2
+    def test_positive_add_repos_to_composite_cv(self):
         """@Test: Add multiple Docker-type repositories to a composite content
         view.
+
+        @Feature: Docker
 
         @Assert: One repository is created with a Docker image and the product
         is added to a random number of content views which are then added to a
         composite content view.
-
-        @Feature: Docker
-
         """
         cvs = []
         with Session(self.browser) as session:
@@ -526,15 +533,15 @@ class DockerContentViewTestCase(UITestCase):
             self.content_views.add_remove_cv(composite_name, cvs)
 
     @run_only_on('sat')
-    def test_publish_once_docker_repo_content_view(self):
+    @tier2
+    def test_positive_publish_once_cv(self):
         """@Test: Add Docker-type repository to content view and publish it
         once.
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then published only once.
-
         @Feature: Docker
 
+        @Assert: One repository is created with a Docker image and the product
+        is added to a content view which is then published only once.
         """
         with Session(self.browser) as session:
             for repo_name in valid_data_list():
@@ -557,16 +564,16 @@ class DockerContentViewTestCase(UITestCase):
                         common_locators['alert.success']))
 
     @run_only_on('sat')
-    def test_publish_once_docker_repo_composite_content_view(self):
+    @tier2
+    def test_positive_publish_once_composite_cv(self):
         """@Test: Add Docker-type repository to composite content view and
         publish it once.
+
+        @Feature: Docker
 
         @Assert: One repository is created with a Docker image and the product
         is added to a content view which is then published only once and then
         added to a composite content view which is also published only once.
-
-        @Feature: Docker
-
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -595,15 +602,15 @@ class DockerContentViewTestCase(UITestCase):
                 common_locators['alert.success']))
 
     @run_only_on('sat')
-    def test_publish_multiple_docker_repo_content_view(self):
+    @tier2
+    def test_positive_publish_multiple_cv(self):
         """@Test: Add Docker-type repository to content view and publish it
         multiple times.
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then published multiple times.
-
         @Feature: Docker
 
+        @Assert: One repository is created with a Docker image and the product
+        is added to a content view which is then published multiple times.
         """
         repo_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -626,7 +633,8 @@ class DockerContentViewTestCase(UITestCase):
                 common_locators['alert.success']))
 
     @run_only_on('sat')
-    def test_publish_multiple_docker_repo_composite_content_view(self):
+    @tier2
+    def test_positive_publish_multiple_composite_cv(self):
         """@Test: Add Docker-type repository to content view and publish it
         multiple times.
 
@@ -664,15 +672,15 @@ class DockerContentViewTestCase(UITestCase):
                 common_locators['alert.success']))
 
     @run_only_on('sat')
-    def test_promote_docker_repo_content_view(self):
+    @tier2
+    def test_positive_promote_cv(self):
         """@Test: Add Docker-type repository to content view and publish it.
         Then promote it to the next available lifecycle-environment.
 
-        @Assert: Docker-type repository is promoted to content view found in
-        the specific lifecycle-environment.
-
         @Feature: Docker
 
+        @Assert: Docker-type repository is promoted to content view found in
+        the specific lifecycle-environment.
         """
         repo_name = gen_string('utf8')
         lce = entities.LifecycleEnvironment(
@@ -700,15 +708,15 @@ class DockerContentViewTestCase(UITestCase):
                 common_locators['alert.success']))
 
     @run_only_on('sat')
-    def test_promote_multiple_docker_repo_content_view(self):
+    @tier2
+    def test_positive_promote_multiple_cv(self):
         """@Test: Add Docker-type repository to content view and publish it.
         Then promote it to multiple available lifecycle-environments.
 
-        @Assert: Docker-type repository is promoted to content view found in
-        the specific lifecycle-environments.
-
         @Feature: Docker
 
+        @Assert: Docker-type repository is promoted to content view found in
+        the specific lifecycle-environments.
         """
         repo_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -737,7 +745,8 @@ class DockerContentViewTestCase(UITestCase):
                     common_locators['alert.success']))
 
     @run_only_on('sat')
-    def test_promote_docker_repo_composite_content_view(self):
+    @tier2
+    def test_positive_promote_once_composite_cv(self):
         """@Test: Add Docker-type repository to composite content view and
         publish it. Then promote it to the next available
         lifecycle-environment.
@@ -779,16 +788,16 @@ class DockerContentViewTestCase(UITestCase):
                 common_locators['alert.success']))
 
     @run_only_on('sat')
-    def test_promote_multiple_docker_repo_composite_content_view(self):
+    @tier2
+    def test_positive_promote_multiple_composite_cv(self):
         """@Test: Add Docker-type repository to composite content view and
         publish it. Then promote it to the multiple available
         lifecycle-environments.
 
-        @Assert: Docker-type repository is promoted to content view found in
-        the specific lifecycle-environments.
-
         @Feature: Docker
 
+        @Assert: Docker-type repository is promoted to content view found in
+        the specific lifecycle-environments.
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -850,15 +859,15 @@ class DockerActivationKeyTestCase(UITestCase):
         promote(cls.cvv, cls.lce.id)
 
     @run_only_on('sat')
-    def test_add_docker_repo_to_activation_key(self):
+    @tier2
+    def test_positive_add_cv(self):
         """@Test:Add Docker-type repository to a non-composite content view and
         publish it. Then create an activation key and associate it with the
         Docker content view.
 
-        @Assert: Docker-based content view can be added to activation key
-
         @Feature: Docker
 
+        @Assert: Docker-based content view can be added to activation key
         """
         ak_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -874,32 +883,32 @@ class DockerActivationKeyTestCase(UITestCase):
     @stubbed()
     # Return to that case once BZ 1269829 is fixed
     @run_only_on('sat')
-    def test_remove_docker_repo_to_activation_key(self):
+    @tier2
+    def test_positive_remove_cv(self):
         """@Test:Add Docker-type repository to a non-composite
         content view and publish it. Create an activation key
         and associate it with the Docker content view. Then remove
         this content view from the activation key.
 
+        @Feature: Docker
+
         @Assert: Docker-based content view can be added and then removed
         from the activation key.
 
-        @Feature: Docker
-
         @Status: Manual
-
         """
 
     @run_only_on('sat')
-    def test_add_docker_repo_composite_view_to_activation_key(self):
+    @tier2
+    def test_positive_add_composite_cv(self):
         """@Test:Add Docker-type repository to a non-composite content view and
         publish it. Then add this content view to a composite content view and
         publish it. Create an activation key and associate it with the
         composite Docker content view.
 
-        @Assert: Docker-based content view can be added to activation key
-
         @Feature: Docker
 
+        @Assert: Docker-based content view can be added to activation key
         """
         ak_name = gen_string('utf8')
         composite_name = gen_string('utf8')
@@ -926,20 +935,20 @@ class DockerActivationKeyTestCase(UITestCase):
     @stubbed()
     # Return to that case once BZ 1269829 is fixed
     @run_only_on('sat')
-    def test_remove_docker_repo_composite_view_to_activation_key(self):
+    @tier2
+    def test_positive_remove_composite_cv(self):
         """@Test:Add Docker-type repository to a non-composite
         content view and publish it. Then add this content view to a composite
         content view and publish it. Create an activation key and associate it
         with the composite Docker content view. Then, remove the composite
         content view from the activation key.
 
+        @Feature: Docker
+
         @Assert: Docker-based composite content view can be added and then
         removed from the activation key.
 
-        @Feature: Docker
-
         @Status: Manual
-
         """
 
 
@@ -947,20 +956,21 @@ class DockerComputeResourceTestCase(UITestCase):
     """Tests specific to managing Docker-based Compute Resources."""
 
     @classmethod
+    @skip_if_not_set('docker')
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerComputeResourceTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
     @run_only_on('sat')
-    def test_create_internal_docker_compute_resource(self):
+    @tier1
+    def test_positive_create_internal(self):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance.
 
-        @Assert: Compute Resource can be created and listed.
-
         @Feature: Docker
 
+        @Assert: Compute Resource can be created and listed.
         """
         with Session(self.browser) as session:
             for comp_name in valid_data_list():
@@ -979,15 +989,15 @@ class DockerComputeResourceTestCase(UITestCase):
                         self.compute_resource.search(comp_name))
 
     @run_only_on('sat')
-    def test_update_internal_docker_compute_resource(self):
+    @tier1
+    def test_positive_update_internal(self):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance then edit its attributes.
 
-        @Assert: Compute Resource can be created, listed and its attributes can
-        be updated.
-
         @Feature: Docker
 
+        @Assert: Compute Resource can be created, listed and its attributes can
+        be updated.
         """
         comp_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -1009,8 +1019,8 @@ class DockerComputeResourceTestCase(UITestCase):
                 common_locators['notif.success']))
 
     @stubbed()
-    @run_only_on('sat')
-    def test_list_containers_internal_docker_compute_resource(self):
+    @tier2
+    def test_positive_list_containers_internal(self):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance then list its running containers.
 
@@ -1024,14 +1034,14 @@ class DockerComputeResourceTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    def test_create_external_docker_compute_resource(self):
+    @tier1
+    def test_positive_create_external(self):
         """@Test: Create a Docker-based Compute Resource using an external
         Docker-enabled system.
 
-        @Assert: Compute Resource can be created and listed.
-
         @Feature: Docker
 
+        @Assert: Compute Resource can be created and listed.
         """
         with Session(self.browser) as session:
             for comp_name in valid_data_list():
@@ -1050,15 +1060,15 @@ class DockerComputeResourceTestCase(UITestCase):
                         self.compute_resource.search(comp_name))
 
     @run_only_on('sat')
-    def test_update_external_docker_compute_resource(self):
+    @tier1
+    def test_positive_update_external(self):
         """@Test:@Test: Create a Docker-based Compute Resource using an
         external Docker-enabled system then edit its attributes.
 
-        @Assert: Compute Resource can be created, listed and its
-        attributes can be updated.
-
         @Feature: Docker
 
+        @Assert: Compute Resource can be created, listed and its
+        attributes can be updated.
         """
         comp_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -1082,27 +1092,27 @@ class DockerComputeResourceTestCase(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_list_containers_external_docker_compute_resource(self):
+    @tier2
+    def test_positive_list_containers_external(self):
         """@Test: Create a Docker-based Compute Resource using an external
         Docker-enabled system then list its running containers.
+
+        @Feature: Docker
 
         @Assert: Compute Resource can be created, listed and existing
         running instances can be listed.
 
-        @Feature: Docker
-
         @Status: Manual
-
         """
 
     @run_only_on('sat')
-    def test_delete_docker_compute_resource(self):
+    @tier1
+    def test_positive_delete(self):
         """@Test: Create a Docker-based Compute Resource then delete it.
-
-        @Assert: Compute Resource can be created, listed and deleted.
 
         @Feature: Docker
 
+        @Assert: Compute Resource can be created, listed and deleted.
         """
         comp_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -1120,16 +1130,17 @@ class DockerComputeResourceTestCase(UITestCase):
                     self.compute_resource.delete(comp_name)
 
 
-class DockerContainersTestCase(UITestCase):
+class DockerContainerTestCase(UITestCase):
     """Tests specific to using ``Containers`` in local and external Docker
     Compute Resources
 
     """
 
     @classmethod
+    @skip_if_not_set('docker')
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
-        super(DockerContainersTestCase, cls).setUpClass()
+        super(DockerContainerTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
         cls.lce = entities.LifecycleEnvironment(
             organization=cls.organization).create()
@@ -1175,17 +1186,17 @@ class DockerContainersTestCase(UITestCase):
     def tearDownClass(cls):
         """Remove katello-ca certificate"""
         remove_katello_ca()
-        super(DockerContainersTestCase, cls).tearDownClass()
+        super(DockerContainerTestCase, cls).tearDownClass()
 
     @skip_if_bug_open('bugzilla', 1282431)
     @run_only_on('sat')
-    def test_create_container_compute_resource(self):
+    @tier2
+    def test_positive_create_with_compute_resource(self):
         """@Test: Create containers for local and external compute resources
 
         @Feature: Docker
 
         @Assert: The docker container is created for each compute resource
-
         """
         with Session(self.browser) as session:
             for compute_resource in (self.cr_internal, self.cr_external):
@@ -1201,7 +1212,8 @@ class DockerContainersTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1282431)
     @skip_if_bug_open('bugzilla', 1273958)
     @run_only_on('sat')
-    def test_create_container_compute_resource_power(self):
+    @tier2
+    def test_positive_power_with_compute_resource(self):
         """@Test: Create containers for local and external compute resource,
         then power them on and finally power them off
 
@@ -1209,7 +1221,6 @@ class DockerContainersTestCase(UITestCase):
 
         @Assert: The docker container is created for each compute resource and
         the power status is showing properly
-
         """
         with Session(self.browser) as session:
             for compute_resource in (self.cr_internal, self.cr_external):
@@ -1229,7 +1240,8 @@ class DockerContainersTestCase(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_create_container_external_registry(self):
+    @tier2
+    def test_positive_create_with_external_registry(self):
         """@Test: Create a container pulling an image from a custom external
         registry
 
@@ -1239,20 +1251,18 @@ class DockerContainersTestCase(UITestCase):
         the external registry
 
         @Status: Manual
-
         """
 
     @skip_if_bug_open('bugzilla', 1282431)
     @skip_if_bug_open('bugzilla', 1273958)
     @run_only_on('sat')
-    def test_delete_container_compute_resource(self):
+    def test_positive_delete(self):
         """@Test: Delete containers in local and external compute resources
 
         @Feature: Docker
 
         @Assert: The docker containers are deleted in local and external
         compute resources
-
         """
         with Session(self.browser) as session:
             for compute_resource in (self.cr_internal, self.cr_external):
@@ -1270,20 +1280,20 @@ class DockerContainersTestCase(UITestCase):
                         self.container.search(compute_resource.name, name))
 
 
-class DockerRegistriesTestCase(UITestCase):
+class DockerExternalRegistryTestCase(UITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
 
     """
 
     @run_only_on('sat')
-    def test_create_registry(self):
+    @tier1
+    def test_positive_create_with_name(self):
         """@Test: Create an external docker registry
 
         @Feature: Docker
 
         @Assert: the external registry is created
-
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -1297,13 +1307,13 @@ class DockerRegistriesTestCase(UITestCase):
                     self.assertIsNotNone(self.registry.search(name))
 
     @run_only_on('sat')
-    def test_update_registry_name(self):
+    @tier1
+    def test_positive_update_name(self):
         """@Test: Create an external docker registry and update its name
 
         @Feature: Docker
 
         @Assert: the external registry is updated with the new name
-
         """
         with Session(self.browser) as session:
             name = gen_string('utf8')
@@ -1321,13 +1331,13 @@ class DockerRegistriesTestCase(UITestCase):
                     name = new_name
 
     @run_only_on('sat')
-    def test_update_registry_url(self):
+    @tier1
+    def test_positive_update_url(self):
         """@Test: Create an external docker registry and update its URL
 
         @Feature: Docker
 
         @Assert: the external registry is updated with the new URL
-
         """
         with Session(self.browser) as session:
             name = gen_string('utf8')
@@ -1345,13 +1355,13 @@ class DockerRegistriesTestCase(UITestCase):
                 locators['registry.url']).text, new_url)
 
     @run_only_on('sat')
-    def test_update_registry_description(self):
+    @tier1
+    def test_positive_update_description(self):
         """@Test: Create an external docker registry and update its description
 
         @Feature: Docker
 
         @Assert: the external registry is updated with the new description
-
         """
         with Session(self.browser) as session:
             name = gen_string('utf8')
@@ -1370,13 +1380,13 @@ class DockerRegistriesTestCase(UITestCase):
                 locators['registry.description']).text, new_description)
 
     @run_only_on('sat')
-    def test_update_registry_username(self):
+    @tier1
+    def test_positive_update_username(self):
         """@Test: Create an external docker registry and update its username
 
         @Feature: Docker
 
         @Assert: the external registry is updated with the new username
-
         """
         with Session(self.browser) as session:
             name = gen_string('utf8')
@@ -1395,13 +1405,13 @@ class DockerRegistriesTestCase(UITestCase):
                 locators['registry.username']).text, new_username)
 
     @run_only_on('sat')
-    def test_delete_registry(self):
+    @tier1
+    def test_positive_delete(self):
         """@Test: Create an external docker registry and then delete it
 
         @Feature: Docker
 
         @Assert: The external registry is deleted successfully
-
         """
         with Session(self.browser) as session:
             for name in valid_data_list():

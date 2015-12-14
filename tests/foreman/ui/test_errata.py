@@ -1,6 +1,6 @@
 """UI Tests for the errata management feature"""
 
-from robottelo.decorators import stubbed
+from robottelo.decorators import stubbed, tier2, tier3
 from robottelo.test import UITestCase
 
 
@@ -8,7 +8,8 @@ class ErrataTestCase(UITestCase):
     """UI Tests for the errata management feature"""
 
     @stubbed()
-    def test_errata_sort(self):
+    @tier2
+    def test_positive_sort(self):
         """@Test: Sort the columns of Errata page
 
         @Feature: Errata
@@ -27,7 +28,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_errata_list(self):
+    @tier2
+    def test_positive_list(self):
         """@Test: View all errata in an Org
 
         @Feature: Errata
@@ -46,7 +48,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_errata_list_permission(self):
+    @tier2
+    def test_positive_list_permission(self):
         """@Test: Show errata only if the User has permissions to view them
 
         @Feature: Errata
@@ -69,7 +72,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_apply_errata_1(self):
+    @tier2
+    def test_positive_apply_for_host(self):
         """@Test: Apply an erratum for selected content hosts
 
         @Feature: Errata
@@ -89,7 +93,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_apply_errata_2(self):
+    @tier2
+    def test_positive_apply_for_all_hosts(self):
         """@Test: Apply an erratum for all content hosts
 
         @Feature: Errata
@@ -108,7 +113,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_view_errata_1(self):
+    @tier2
+    def test_positive_view(self):
         """@Test: View erratum similar to RH Customer portal
 
         @Feature: Errata
@@ -127,7 +133,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_view_errata_2(self):
+    @tier2
+    def test_positive_view_details(self):
         """@Test: View erratum details similar to RH Customer portal
 
         @Feature: Errata
@@ -147,7 +154,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_view_errata_3(self):
+    @tier2
+    def test_positive_view_products_and_repos(self):
         """@Test: View a list of products/repositories for an erratum
 
         @Feature: Errata
@@ -165,7 +173,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_view_errata_4(self):
+    @tier2
+    def test_positive_view_cve(self):
         """@Test: View CVE number(s) in Errata Details page
 
         @Feature: Errata
@@ -187,7 +196,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_view_errata_5(self):
+    @tier2
+    def test_positive_filter(self):
         """@Test: Filter Content hosts by environment
 
         @Feature: Errata
@@ -206,7 +216,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_search_errata_1(self):
+    @tier2
+    def test_positive_search(self):
         """@Test: Check if autocomplete works in search field of Errata page
 
         @Feature: Errata
@@ -224,7 +235,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_search_errata_2(self):
+    @tier2
+    def test_positive_search_redirect(self):
         """@Test: Check if all the errata searches are redirected to the new
         errata page
 
@@ -252,7 +264,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_errata_content_host_1(self):
+    @tier2
+    def test_positive_content_host_previous(self):
         """@Test: Check if the applicable errata are available from the content
         host's previous environment
 
@@ -275,7 +288,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_errata_content_host_2(self):
+    @tier2
+    def test_positive_content_host_library(self):
         """@Test: Check if the applicable errata are available from the content
         host's Library
 
@@ -298,7 +312,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_errata_content_host_3(self):
+    @tier2
+    def test_positive_show_count_on_content_host_page(self):
         """@Test: Available errata count displayed in Content hosts page
 
         @Feature: Errata
@@ -326,7 +341,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_errata_content_host_4(self):
+    @tier2
+    def test_positive_show_count_on_content_host_details_page(self):
         """@Test: Errata count on Content host Details page
 
         @Feature: Errata
@@ -352,7 +368,8 @@ class ErrataTestCase(UITestCase):
         """
 
     @stubbed()
-    def test_incremental_update_1(self):
+    @tier3
+    def test_positive_incremental_update(self):
         """@Test: Update composite content views and environments with new
         point releases
 

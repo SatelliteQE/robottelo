@@ -3,14 +3,14 @@
 
 from fauxfactory import gen_string
 from robottelo.datafactory import invalid_values_list, valid_environments_list
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_env
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-class Environment(UITestCase):
+class EnvironmentTestCase(UITestCase):
     """Implements environment tests in UI.
 
     Please note that, Environment will accept only alphanumeric chars as name.
@@ -18,13 +18,13 @@ class Environment(UITestCase):
     """
 
     @run_only_on('sat')
-    def test_create_env_positive_1(self):
+    @tier1
+    def test_positive_create_with_name(self):
         """@Test: Create new environment
 
         @Feature: Environment - Positive Create
 
         @Assert: Environment is created
-
         """
         with Session(self.browser) as session:
             for name in valid_environments_list():
@@ -33,13 +33,13 @@ class Environment(UITestCase):
                     self.assertIsNotNone(self.environment.search(name))
 
     @run_only_on('sat')
-    def test_create_env_positive_2(self):
+    @tier1
+    def test_positive_create_with_long_name(self):
         """@Test: Create new environment with 255 chars
 
         @Feature: Environment - Positive Create
 
         @Assert: Environment is created
-
         """
         # TODO: This test can be removed by adding the value
         # gen_string('alphanumeric', 255) to valid_env_names().  But since
@@ -55,14 +55,14 @@ class Environment(UITestCase):
             self.assertIsNotNone(self.environment.search(name))
 
     @run_only_on('sat')
-    def test_create_env_negative(self):
+    @tier1
+    def test_negative_create(self):
         """@Test: Try to create environment and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
         @Feature: Environment - Negative Create
 
         @Assert: Environment is not created
-
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -73,17 +73,14 @@ class Environment(UITestCase):
                             common_locators['name_haserror'])
                     )
 
-    @skip_if_bug_open('bugzilla', 1126033)
     @run_only_on('sat')
-    def test_update_env(self):
+    @tier1
+    def test_positive_update(self):
         """@Test: Update an environment and associated OS
 
         @Feature: Environment - Positive Update
 
         @Assert: Environment is updated
-
-        @BZ: 1126033
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -95,13 +92,13 @@ class Environment(UITestCase):
                     name = new_name  # for next iteration
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete(self):
         """@Test: Delete an environment
 
         @Feature: Environment - Positive Delete
 
         @Assert: Environment is deleted
-
         """
         with Session(self.browser) as session:
             for name in valid_environments_list():
