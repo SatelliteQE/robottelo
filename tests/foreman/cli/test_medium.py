@@ -21,11 +21,11 @@ OSES = [
 ]
 
 
-class TestMedium(CLITestCase):
+class MediumTestCase(CLITestCase):
     """Test class for Medium CLI"""
     @run_only_on('sat')
     @tier1
-    def test_positive_create_1(self):
+    def test_positive_create_with_name(self):
         """@Test: Check if Medium can be created
 
         @Feature: Medium - Positive Create
@@ -40,7 +40,7 @@ class TestMedium(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_medium_with_location(self):
+    def test_positive_create_with_location(self):
         """@Test: Check if medium with location can be created
 
         @Feature: Medium - Positive create
@@ -54,7 +54,7 @@ class TestMedium(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_medium_with_organization(self):
+    def test_positive_create_with_organization_by_id(self):
         """@Test: Check if medium with organization can be created
 
         @Feature: Medium - Positive create
@@ -68,7 +68,7 @@ class TestMedium(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_delete_1(self):
+    def test_positive_delete_by_id(self):
         """@Test: Check if Medium can be deleted
 
         @Feature: Medium - Positive Delete
@@ -86,7 +86,7 @@ class TestMedium(CLITestCase):
     # pylint: disable=no-self-use
     @run_only_on('sat')
     @tier2
-    def test_add_operatingsystem_medium(self):
+    def test_positive_add_os(self):
         """@Test: Check if Medium can be associated with operating system
 
         @Feature: Medium - Add operating system
@@ -103,7 +103,7 @@ class TestMedium(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_removeoperatingsystem_medium(self):
+    def test_positive_remove_os(self):
         """@Test: Check if operating system can be removed from media
 
         @Feature: Medium - Remove operating system
@@ -128,7 +128,7 @@ class TestMedium(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_medium_update(self):
+    def test_positive_update_name(self):
         """@Test: Check if medium can be updated
 
         @Feature: Medium - Update medium
