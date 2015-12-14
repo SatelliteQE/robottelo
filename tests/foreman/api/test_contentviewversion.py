@@ -8,7 +8,7 @@ from robottelo.constants import (
     PUPPET_MODULE_NTP_PUPPETLABS,
     ZOO_CUSTOM_GPG_KEY,
 )
-from robottelo.decorators import tier1, tier2
+from robottelo.decorators import tier2
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import APITestCase
 
@@ -29,7 +29,7 @@ class ContentViewVersionCreateTestCase(APITestCase):
             organization=self.org,
         ).create()
 
-    @tier1
+    @tier2
     def test_positive_create(self):
         """@Test: Create a content view version.
 
@@ -48,7 +48,7 @@ class ContentViewVersionCreateTestCase(APITestCase):
         cv = cv.read()
         self.assertGreater(len(cv.version), 0)
 
-    @tier1
+    @tier2
     def test_negative_create(self):
         """@Test: Create content view version using the 'Default Content View'.
 
@@ -120,8 +120,8 @@ class ContentViewVersionPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_promote_out_of_sequence_environment(self):
-        """@Test: Promote a content view version to a lifecycle environment that
-        is 'out of sequence'.
+        """@Test: Promote a content view version to a lifecycle environment
+        that is 'out of sequence'.
 
         @Assert: The promotion succeeds.
 
@@ -156,8 +156,8 @@ class ContentViewVersionPromoteTestCase(APITestCase):
 
     @tier2
     def test_negative_promote_out_of_sequence_environment(self):
-        """@Test: Promote a content view version to a lifecycle environment that
-        is 'out of sequence'.
+        """@Test: Promote a content view version to a lifecycle environment
+        that is 'out of sequence'.
 
         @Assert: The promotion fails.
 
@@ -181,7 +181,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
     """Tests for content view version promotion."""
 
     @tier2
-    def test_positive_delete_version(self):
+    def test_positive_delete(self):
         """@Test: Create content view and publish it. After that try to
         disassociate content view from 'Library' environment through
         'delete_from_environment' command and delete content view version from
@@ -228,7 +228,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         self.assertEqual(len(content_view.read().version), 0)
 
     @tier2
-    def test_positive_delete_version_non_default(self):
+    def test_positive_delete_non_default(self):
         """@Test: Create content view and publish and promote it to new
         environment. After that try to disassociate content view from 'Library'
         and one more non-default environments through 'delete_from_environment'
@@ -256,8 +256,8 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         # Make sure that content view version is really removed
         self.assertEqual(len(content_view.read().version), 0)
 
-    @tier1
-    def test_negative_delete_version(self):
+    @tier2
+    def test_negative_delete(self):
         """@Test: Create content view and publish it. Try to delete content
         view version while content view is still associated with lifecycle
         environment

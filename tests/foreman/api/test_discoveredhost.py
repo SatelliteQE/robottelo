@@ -15,7 +15,6 @@ def _create_discovered_host(name=None, ipaddress=None, discovery_bootif=None):
     :param str ipaddress: A valid ip address.
         If ``None`` then then a random value will be generated.
     :return: A ``dict`` of ``DiscoveredHost`` facts.
-
     """
     if name is None:
         name = gen_string('alpha')
@@ -32,11 +31,11 @@ def _create_discovered_host(name=None, ipaddress=None, discovery_bootif=None):
     })
 
 
-class Discovery(APITestCase):
+class DiscoveryTestCase(APITestCase):
     """Implements tests for foreman discovery feature"""
 
     @stubbed()
-    def test_list_all_discovered_host(self):
+    def test_positive_list_all(self):
         """@Test: List all discovered hosts
 
         @Feature: Foreman Discovery
@@ -51,11 +50,10 @@ class Discovery(APITestCase):
         @Assert: List of all discovered hosts are retrieved
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_show_discovered_host(self):
+    def test_positive_show(self):
         """@Test: Show a specific discovered hosts
 
         @Feature: Foreman Discovery
@@ -70,11 +68,10 @@ class Discovery(APITestCase):
         @Assert: Selected host is retrieved
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_create_discovered_host(self):
+    def test_positive_create(self):
         """@Test: Create a discovered hosts
 
         @Feature: Foreman Discovery
@@ -89,12 +86,11 @@ class Discovery(APITestCase):
         @Assert: Host should be created successfully
 
         @Status: Manual
-
         """
 
     @tier2
     @run_only_on('sat')
-    def test_upload_facts(self):
+    def test_positive_upload_facts(self):
         """@Test: Upload fake facts to create a discovered host
 
         @Feature: Foreman Discovery
@@ -104,7 +100,6 @@ class Discovery(APITestCase):
         1. POST /api/v2/discovered_hosts/facts
 
         @Assert: Host should be created successfully
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -113,7 +108,7 @@ class Discovery(APITestCase):
                 self.assertEqual(host['name'], host_name)
 
     @stubbed()
-    def test_provision_discovered_host(self):
+    def test_positive_provision(self):
         """@Test: Provision a discovered hosts
 
         @Feature: Foreman Discovery
@@ -128,11 +123,10 @@ class Discovery(APITestCase):
         @Assert: Host should be provisioned successfully
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_delete_discovered_host(self):
+    def test_positive_delete(self):
         """@Test: Delete a discovered hosts
 
         @Feature: Foreman Discovery
@@ -147,11 +141,10 @@ class Discovery(APITestCase):
         @Assert: Discovered Host should be deleted successfully
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_auto_provision_host(self):
+    def test_positive_auto_provision(self):
         """@Test: Auto provision a host by executing discovery rules
 
         @Feature: Foreman Discovery
@@ -166,11 +159,10 @@ class Discovery(APITestCase):
         @Assert: Selected Host should be auto-provisioned successfully
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_auto_provision_all_host(self):
+    def test_positive_auto_provision_all(self):
         """@Test: Auto provision all host by executing discovery rules
 
         @Feature: Foreman Discovery
@@ -185,11 +177,10 @@ class Discovery(APITestCase):
         @Assert: All discovered hosts should be auto-provisioned successfully
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_refresh_facts(self):
+    def test_positive_refresh_facts(self):
         """@Test: Refreshing the facts of discovered host
 
         @Feature: Foreman Discovery
@@ -208,11 +199,10 @@ class Discovery(APITestCase):
         @Assert: Added Fact should be displayed on refreshing the facts
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_reboot_host(self):
+    def test_positive_reboot(self):
         """@Test: Rebooting a discovered host
 
         @Feature: Foreman Discovery
@@ -227,11 +217,10 @@ class Discovery(APITestCase):
         @Assert: Selected host should be rebooted successfully
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_create_discovery_rule_1(self):
+    def test_positive_create_discovery_rule_with_simple_query(self):
         """@Test: Create a new discovery rule
 
         Set query as (e.g IP=IP_of_discovered_host)
@@ -243,11 +232,10 @@ class Discovery(APITestCase):
         @Assert: Host should reboot and provision
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_create_discovery_rule_2(self):
+    def test_positive_create_discovery_rule_with_complex_query(self):
         """@Test: Create a new discovery rule with (host_limit = 0)
         that applies to multi hosts.
         Set query as cpu_count = 1 OR mem > 500
@@ -259,11 +247,10 @@ class Discovery(APITestCase):
         @Assert: All Hosts of same subnet should reboot and provision
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_create_discovery_rule_3(self):
+    def test_positive_create_discovery_rule_with_priority(self):
         """@Test: Create multiple discovery rules with different priority
 
         @Feature: Foreman Discovery
@@ -274,11 +261,10 @@ class Discovery(APITestCase):
         and that rule should be executed first
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_create_discovery_rule_4(self):
+    def test_positive_create_discovery_rule_with_host_limit(self):
         """@Test: Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
         provision more than one host with same rule
 
@@ -290,11 +276,10 @@ class Discovery(APITestCase):
         other rule should already be skipped.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_update_discovery_rule_1(self):
+    def test_positive_update_discovery_rule_execute(self):
         """@Test: Update an existing rule and execute it
 
         @Feature: Foreman Discovery
@@ -305,11 +290,10 @@ class Discovery(APITestCase):
         executed on discovered host
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_update_discovery_rule_2(self):
+    def test_positive_update_discovery_rule_provision(self):
         """@Test: Update the discovered host name and provision it
 
         @Feature: Foreman Discovery
@@ -319,5 +303,4 @@ class Discovery(APITestCase):
         @Assert: The host name should be updated and host should be provisioned
 
         @Status: Manual
-
         """

@@ -8,13 +8,13 @@ from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import APITestCase
 
 
-class DiscoveryRule(APITestCase):
+class DiscoveryRuleTestCase(APITestCase):
     """Tests for ``katello/api/v2/discovery_rules``."""
 
     @classmethod
     def setUpClass(cls):
         """Create a hostgroup which can be re-used in tests."""
-        super(DiscoveryRule, cls).setUpClass()
+        super(DiscoveryRuleTestCase, cls).setUpClass()
         cls.hostgroup = entities.HostGroup().create()
 
     def setUp(self):
@@ -24,7 +24,6 @@ class DiscoveryRule(APITestCase):
         on the Satellite server. This allows the object to be customized. Save
         it as ``self.discovery_rule``, set its ``hostgroup`` and ``search_``
         fields, and give its ``hostname`` field a default value.
-
         """
         searches = [
             'CPU_Count = 1',
@@ -43,7 +42,7 @@ class DiscoveryRule(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_create_discovery_rule_basic(self):
+    def test_positive_create_with_name(self):
         """@Test: Create a new discovery rule.
 
         Set query as (e.g CPU_Count = 1)
@@ -51,7 +50,6 @@ class DiscoveryRule(APITestCase):
         @Feature: Foreman Discovery
 
         @Assert: Rule should be created with given name and query
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -65,13 +63,12 @@ class DiscoveryRule(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_delete_discovery_rule(self):
+    def test_positive_delete(self):
         """@Test: Delete a discovery rule
 
         @Feature: Foreman Discovery
 
         @Assert: Rule should be deleted successfully
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -82,13 +79,12 @@ class DiscoveryRule(APITestCase):
                     discovery_rule.read()
 
     @tier1
-    def test_create_rule_with_invalid_name(self):
+    def test_negative_create_with_name(self):
         """@Test: Create a discovery rule with more than 255 char in name
 
         @Feature: Foreman Discovery
 
         @Assert: Validation error should be raised
-
         """
         for name in (
                 gen_string(str_type, 256)
@@ -98,27 +94,25 @@ class DiscoveryRule(APITestCase):
                 with self.assertRaises(HTTPError):
                     self.discovery_rule.create()
 
-    @tier2
-    def test_create_rule_with_invalid_host_limit(self):
+    @tier1
+    def test_negative_create_with_host_limit(self):
         """@Test: Create a discovery rule with invalid host limit
 
         @Feature: Foreman Discovery
 
         @Assert: Validation error should be raised
-
         """
         self.discovery_rule.max_count = gen_string('alpha')
         with self.assertRaises(HTTPError):
             self.discovery_rule.create()
 
-    @tier2
-    def test_create_rule_with_invalid_priority(self):
+    @tier1
+    def test_negative_create_with_priority(self):
         """@Test: Create a discovery rule with invalid priority
 
         @Feature: Foreman Discovery
 
         @Assert: Validation error should be raised
-
         """
         self.discovery_rule.priority = gen_string('alpha')
         with self.assertRaises(HTTPError):
@@ -126,13 +120,12 @@ class DiscoveryRule(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_update_discovery_rule_name(self):
+    def test_positive_update_name(self):
         """@Test: Update an existing discovery rule name
 
         @Feature: Foreman Discovery
 
         @Assert: User should be able to update the rule
-
         """
         discovery_rule = self.discovery_rule.create()
         for name in valid_data_list():
@@ -142,13 +135,12 @@ class DiscoveryRule(APITestCase):
                 self.assertEqual(discovery_rule.name, name)
 
     @tier1
-    def test_update_search_rule(self):
+    def test_positive_update_search_rule(self):
         """@Test: Update an existing discovery search rule
 
         @Feature: Foreman Discovery
 
         @Assert: User should be able to update the rule
-
         """
         discovery_rule = self.discovery_rule.create()
         discovery_rule.search_ = 'Location = Default_Location'
@@ -157,14 +149,13 @@ class DiscoveryRule(APITestCase):
             discovery_rule.update(['search_']).search_,
         )
 
-    @tier2
-    def test_update_host_limit(self):
+    @tier1
+    def test_positive_update_host_limit(self):
         """@Test: Update an existing rule with valid host limit.
 
         @Feature: Foreman Discovery
 
         @Assert: User should be able to update the rule
-
         """
         discovery_rule = self.discovery_rule.create()
         discovery_rule.max_count = gen_integer(1, 100)
@@ -174,13 +165,12 @@ class DiscoveryRule(APITestCase):
         )
 
     @tier1
-    def test_disable_rule(self):
+    def test_positive_disable(self):
         """@Test: Disable an existing enabled discovery rule.
 
         @Feature: Foreman Discovery
 
         @Assert: User should be able to update the rule
-
         """
         discovery_rule = self.discovery_rule.create()
         self.assertEqual(discovery_rule.enabled, True)
@@ -191,13 +181,12 @@ class DiscoveryRule(APITestCase):
         )
 
     @tier2
-    def test_update_rule_hostgroup(self):
+    def test_positive_update_rule_hostgroup(self):
         """@Test: Update host group of an existing rule.
 
         @Feature: Foreman Discovery
 
         @Assert: User should be able to update the rule
-
         """
         discovery_rule = self.discovery_rule.create()
         discovery_rule.hostgroup = entities.HostGroup().create()

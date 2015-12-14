@@ -13,7 +13,7 @@ class ArchitectureTestCase(APITestCase):
 
     @tier2
     @skip_if_bug_open('bugzilla', 1151220)
-    def test_post_hash(self):
+    def test_positive_post_hash(self):
         """@Test: Do not wrap API calls in an extra hash.
 
         @Assert: It is possible to associate an activation key with an
@@ -40,7 +40,7 @@ class ArchitectureTestCase(APITestCase):
         self.assertEqual([os_id], attrs['operatingsystems'])
 
     @tier2
-    def test_associate_with_os(self):
+    def test_positive_add_os(self):
         """@Test: Create an architecture and associate it with an OS.
 
         @Assert: The architecture can be created, and the association can be
@@ -56,7 +56,7 @@ class ArchitectureTestCase(APITestCase):
         )
 
     @tier1
-    def test_positive_create_name(self):
+    def test_positive_create_with_name(self):
         """@Test: Create an architecture providing the initial name.
 
         @Assert: Architecture is created and contains provided name.
@@ -69,7 +69,7 @@ class ArchitectureTestCase(APITestCase):
                 self.assertEqual(name, arch.name)
 
     @tier1
-    def test_negative_create_name(self):
+    def test_negative_create_with_name(self):
         """@Test: Create architecture providing an invalid initial name.
         set.
 
@@ -90,7 +90,6 @@ class ArchitectureTestCase(APITestCase):
         @Assert: Architecture is created, and its name can be updated.
 
         @Feature: Architecture
-
         """
         arch = entities.Architecture().create()
 

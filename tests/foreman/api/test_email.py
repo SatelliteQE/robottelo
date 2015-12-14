@@ -1,6 +1,6 @@
 """API Tests for the email notification feature"""
 
-from robottelo.decorators import stubbed
+from robottelo.decorators import stubbed, tier1
 from robottelo.test import APITestCase
 
 
@@ -8,6 +8,7 @@ class EmailTestCase(APITestCase):
     """API Tests for the email notification feature"""
 
     @stubbed()
+    @tier1
     def test_email_1(self):
         """@Test: Manage user email notification preferences.
 
@@ -21,5 +22,4 @@ class EmailTestCase(APITestCase):
         accordingly.
 
         @Status: Manual
-
         """
