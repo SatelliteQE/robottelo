@@ -39,7 +39,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_get_with_no_args(self):
+    def test_negative_get_with_no_args(self):
         """@Test: Issue an HTTP GET to the base content view filters path.
 
         @Feature: ContentViewFilter
@@ -61,7 +61,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_get_with_bad_args(self):
+    def test_negative_get_with_bad_args(self):
         """@Test: Issue an HTTP GET to the base content view filters path.
 
         @Feature: ContentViewFilter
@@ -82,9 +82,9 @@ class ContentViewFilterTestCase(APITestCase):
             (http_client.BAD_REQUEST, http_client.UNPROCESSABLE_ENTITY)
         )
 
-    @tier1
+    @tier2
     @run_only_on('sat')
-    def test_positive_create_erratum_with_different_names(self):
+    def test_positive_create_erratum_with_name(self):
         """Test: Create new erratum content filter using different inputs as
         a name
 
@@ -104,7 +104,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_create_pkg_group_with_different_names(self):
+    def test_positive_create_pkg_group_with_name(self):
         """Test: Create new package group content filter using different inputs
         as a name
 
@@ -124,7 +124,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_create_rpm_with_different_names(self):
+    def test_positive_create_rpm_with_name(self):
         """Test: Create new RPM content filter using different inputs as
         a name
 
@@ -206,7 +206,6 @@ class ContentViewFilterTestCase(APITestCase):
         packages' value
 
         @Feature: Content View Filter - Create
-
         """
         for original_packages in (True, False):
             with self.subTest(original_packages):
@@ -220,7 +219,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_create_with_multiple_repos_with_docker(self):
+    def test_positive_create_with_repos_with_docker(self):
         """Test: Create new docker repository and add to content view that has
         yum repo already assigned to it. Create new content view filter and
         assign it to the content view.
@@ -247,9 +246,9 @@ class ContentViewFilterTestCase(APITestCase):
         for repo in cvf.repository:
             self.assertIn(repo.id, [self.repo.id, docker_repository.id])
 
-    @tier1
+    @tier2
     @run_only_on('sat')
-    def test_negative_create_with_different_names(self):
+    def test_negative_create_with_name(self):
         """@Test: Try to create content view filter using invalid names only
 
         @Assert: Content view filter was not created
@@ -266,7 +265,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_negative_create_with_same_names(self):
+    def test_negative_create_with_same_name(self):
         """@Test: Try to create content view filter using same name twice
 
         @Assert: Second content view filter was not created
@@ -310,7 +309,7 @@ class ContentViewFilterTestCase(APITestCase):
                 repository=[gen_integer(10000, 99999)],
             ).create()
 
-    @tier1
+    @tier2
     @run_only_on('sat')
     def test_positive_delete_by_id(self):
         """@Test: Delete content view filter
@@ -326,9 +325,9 @@ class ContentViewFilterTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             cvf.read()
 
-    @tier1
+    @tier2
     @run_only_on('sat')
-    def test_positive_update_with_new_name(self):
+    def test_positive_update_name(self):
         """@Test: Update content view filter with new name
 
         @Assert: Content view filter updated successfully and name was changed
@@ -345,7 +344,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_update_with_new_description(self):
+    def test_positive_update_description(self):
         """@Test: Update content view filter with new description
 
         @Assert: Content view filter updated successfully and description was
@@ -363,7 +362,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_update_with_new_inclusion(self):
+    def test_positive_update_inclusion(self):
         """Test: Update content view filter with new inclusion value
 
         @Assert: Content view filter updated successfully and inclusion value
@@ -382,7 +381,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_update_with_new_repo(self):
+    def test_positive_update_repo(self):
         """Test: Update content view filter with new repository
 
         @Assert: Content view filter updated successfully and has new
@@ -406,7 +405,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_update_with_multiple_repos(self):
+    def test_positive_update_repos(self):
         """Test: Update content view filter with multiple repositories
 
         @Assert: Content view filter updated successfully and has new
@@ -459,7 +458,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_update_with_repo_with_docker(self):
+    def test_positive_update_repo_with_docker(self):
         """Test: Update existing content view filter which has yum repository
         assigned with new docker repository
 
@@ -487,9 +486,9 @@ class ContentViewFilterTestCase(APITestCase):
         for repo in cvf.repository:
             self.assertIn(repo.id, [self.repo.id, docker_repository.id])
 
-    @tier1
+    @tier2
     @run_only_on('sat')
-    def test_negative_update_with_different_names(self):
+    def test_negative_update_name(self):
         """@Test: Try to update content view filter using invalid names only
 
         @Assert: Content view filter was not updated
@@ -507,7 +506,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_negative_update_with_already_used_name(self):
+    def test_negative_update_same_name(self):
         """@Test: Try to update content view filter's name to already used one
 
         @Assert: Content view filter was not updated
@@ -528,7 +527,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_negative_update_with_cv_by_id(self):
+    def test_negative_update_cv_by_id(self):
         """@Test: Try to update content view filter using incorrect content
         view ID
 
@@ -545,7 +544,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_negative_update_with_repo_by_id(self):
+    def test_negative_update_repo_by_id(self):
         """@Test: Try to update content view filter using incorrect repository
         ID
 
@@ -563,7 +562,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_negative_update_with_new_repo(self):
+    def test_negative_update_repo(self):
         """Test: Try to update content view filter with new repository which
         doesn't belong to filter's content view
 
@@ -583,13 +582,13 @@ class ContentViewFilterTestCase(APITestCase):
             cvf.update(['repository'])
 
 
-class SearchTestCase(APITestCase):
+class ContentViewFilterSearchTestCase(APITestCase):
     """Tests that search through content view filters."""
 
     @classmethod
     def setUpClass(cls):
         """Create a content view as ``cls.content_view``."""
-        super(SearchTestCase, cls).setUpClass()
+        super(ContentViewFilterSearchTestCase, cls).setUpClass()
         cls.content_view = entities.ContentView().create()
 
     @tier1

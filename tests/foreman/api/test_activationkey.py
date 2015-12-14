@@ -19,11 +19,11 @@ def _bad_max_content_hosts():
     return (gen_integer(-100, -1), 0, gen_string('alpha'))
 
 
-class ActivationKeysTestCase(APITestCase):
+class ActivationKeyTestCase(APITestCase):
     """Tests for the ``activation_keys`` path."""
 
-    @tier2
-    def test_positive_create_unlimited_content_hosts(self):
+    @tier1
+    def test_positive_create_unlimited_chosts(self):
         """@Test: Create a plain vanilla activation key.
 
         @Assert: An activation key is created and its "unlimited_content_hosts"
@@ -35,8 +35,8 @@ class ActivationKeysTestCase(APITestCase):
             entities.ActivationKey().create().unlimited_content_hosts
         )
 
-    @tier2
-    def test_positive_create_limited_content_hosts(self):
+    @tier1
+    def test_positive_create_limited_chosts(self):
         """@Test: Create an activation key with limited content hosts.
 
         @Assert: Activation key is created, defaults to limited content host
@@ -53,7 +53,7 @@ class ActivationKeysTestCase(APITestCase):
                 self.assertFalse(act_key.unlimited_content_hosts)
 
     @tier1
-    def test_positive_create_name(self):
+    def test_positive_create_with_name(self):
         """@Test: Create an activation key providing the initial name.
 
         @Assert: Activation key is created and contains provided name.
@@ -65,8 +65,8 @@ class ActivationKeysTestCase(APITestCase):
                 act_key = entities.ActivationKey(name=name).create()
                 self.assertEqual(name, act_key.name)
 
-    @tier2
-    def test_positive_create_description(self):
+    @tier1
+    def test_positive_create_with_description(self):
         """@Test: Create an activation key and provide a description.
 
         @Assert: Created entity contains the provided description.
@@ -78,8 +78,8 @@ class ActivationKeysTestCase(APITestCase):
                 act_key = entities.ActivationKey(description=desc).create()
                 self.assertEqual(desc, act_key.description)
 
-    @tier2
-    def test_negative_create_no_content_host_limit(self):
+    @tier1
+    def test_negative_create_no_chost_limit(self):
         """@Test: Create activation key with limited content hosts but no limit
         set.
 
@@ -90,8 +90,8 @@ class ActivationKeysTestCase(APITestCase):
         with self.assertRaises(HTTPError):
             entities.ActivationKey(unlimited_content_hosts=False).create()
 
-    @tier2
-    def test_negative_create_invalid_content_host_limit(self):
+    @tier1
+    def test_negative_create_invalid_chost_limit(self):
         """@Test: Create activation key with limited content hosts but with
         invalid limit values.
 
@@ -107,9 +107,9 @@ class ActivationKeysTestCase(APITestCase):
                         unlimited_content_hosts=False,
                     ).create()
 
-    @tier2
+    @tier1
     @skip_if_bug_open('bugzilla', 1156555)
-    def test_negative_create_no_content_host_limit_with_set_max(self):
+    def test_negative_create_no_chost_limit_with_set_max(self):
         """@Test Create activation key with unlimited content hosts and set max
         content hosts of varied values.
 
@@ -126,7 +126,7 @@ class ActivationKeysTestCase(APITestCase):
                     ).create()
 
     @tier1
-    def test_negative_create_invalid_name(self):
+    def test_negative_create_with_name(self):
         """@Test: Create activation key providing an invalid name.
 
         @Assert: Activation key is not created
@@ -138,8 +138,8 @@ class ActivationKeysTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.ActivationKey(name=name).create()
 
-    @tier2
-    def test_positive_update_limited_content_host(self):
+    @tier1
+    def test_positive_update_limited_chost(self):
         """@Test: Create activation key then update it to limited content
         hosts.
 
@@ -175,8 +175,8 @@ class ActivationKeysTestCase(APITestCase):
                     id=act_key.id, name=new_name).update(['name'])
                 self.assertEqual(new_name, updated.name)
 
-    @tier2
-    def test_negative_update_invalid_limit(self):
+    @tier1
+    def test_negative_update_limit(self):
         """@Test: Create activation key then update its limit to invalid value.
 
         @Assert:
@@ -203,7 +203,7 @@ class ActivationKeysTestCase(APITestCase):
                 self.assertEqual(want, actual)
 
     @tier1
-    def test_negative_update_invalid_name(self):
+    def test_negative_update_name(self):
         """@Test: Create activation key then update its name to an invalid name.
 
         @Assert: Activation key is created, and its name is not updated.
@@ -220,8 +220,8 @@ class ActivationKeysTestCase(APITestCase):
                 self.assertNotEqual(new_key.name, new_name)
                 self.assertEqual(new_key.name, act_key.name)
 
-    @tier2
-    def test_negative_update_max_content_hosts(self):
+    @tier1
+    def test_negative_update_max_chosts(self):
         """@Test: Create an activation key with ``max_content_hosts == 1``,
         then update that field with a string value.
 
@@ -238,7 +238,7 @@ class ActivationKeysTestCase(APITestCase):
         self.assertEqual(act_key.read().max_content_hosts, 1)
 
     @tier2
-    def test_get_releases_status_code(self):
+    def test_positive_get_releases_status_code(self):
         """@Test: Get an activation key's releases. Check response format.
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
@@ -257,7 +257,7 @@ class ActivationKeysTestCase(APITestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
     @tier2
-    def test_get_releases_content(self):
+    def test_positive_get_releases_content(self):
         """@Test: Get an activation key's releases. Check response contents.
 
         @Assert: A list of results is returned.
@@ -274,7 +274,7 @@ class ActivationKeysTestCase(APITestCase):
         self.assertEqual(type(response['results']), list)
 
     @tier2
-    def test_set_host_collection(self):
+    def test_positive_add_host_collections(self):
         """@Test: Associate an activation key with several host collections.
 
         @Assert:
@@ -312,7 +312,7 @@ class ActivationKeysTestCase(APITestCase):
         act_key = act_key.update(['host_collection'])
         self.assertEqual(len(act_key.host_collection), 0)
 
-    @tier2
+    @tier1
     def test_positive_update_auto_attach(self):
         """@Test: Create an activation key, then update the auto_attach
         field with the inverse boolean value.
@@ -344,20 +344,20 @@ class ActivationKeysTestCase(APITestCase):
                     entities.ActivationKey(id=act_key.id).read()
 
 
-class SearchTestCase(APITestCase):
+class ActivationKeySearchTestCase(APITestCase):
     """Tests that search for activation keys."""
 
     @classmethod
     def setUpClass(cls):
         """Create an organization and an activation key belonging to it."""
-        super(SearchTestCase, cls).setUpClass()
+        super(ActivationKeySearchTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.act_key = entities.ActivationKey(organization=cls.org).create()
         if rm_bug_is_open(4638):
             cls.act_key.read()  # Wait for elasticsearch to index new act key.
 
     @tier1
-    def test_search_by_org(self):
+    def test_positive_search_by_org(self):
         """@Test: Search for all activation keys in an organization.
 
         @Assert: Only activation keys in the organization are returned.

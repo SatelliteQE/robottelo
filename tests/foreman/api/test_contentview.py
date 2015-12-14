@@ -18,6 +18,7 @@ from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     bz_bug_is_open,
     run_only_on,
+    skip_if_not_set,
     stubbed,
     tier1,
     tier2,
@@ -38,7 +39,7 @@ class ContentViewTestCase(APITestCase):
 
     @tier3
     @run_only_on('sat')
-    def test_subscribe_system_to_cv(self):
+    def test_positive_subscribe_system_to_cv(self):
         """@Test: Subscribe a system to a content view.
 
         @Feature: ContentView
@@ -128,7 +129,7 @@ class ContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_associate_custom_content(self):
+    def test_positive_add_custom_content(self):
         """@Test: Associate custom content in a view
 
         @Assert: Custom content assigned and present in content view
@@ -148,12 +149,12 @@ class ContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_negative_associate_puppet_content(self):
-        """@Test: Attempt to associate puppet repos within a custom
-        content view directly
+    def test_negative_add_puppet_content(self):
+        """@Test: Attempt to associate puppet repos within a custom content
+        view directly
 
-        @Assert: User cannot create a non-composite content view
-        that contains direct puppet repos reference.
+        @Assert: User cannot create a non-composite content view that contains
+        direct puppet repos reference.
 
         @Feature: Content Views
         """
@@ -173,7 +174,7 @@ class ContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_negative_associate_dupe_content(self):
+    def test_negative_add_dupe_content(self):
         """@Test: Attempt to associate the same repo multiple times within a
         content view
 
@@ -195,7 +196,7 @@ class ContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_negative_associate_dupe_modules(self):
+    def test_negative_add_dupe_modules(self):
         """@Test: Attempt to associate duplicate puppet modules within a
         content view
 
@@ -256,7 +257,7 @@ class ContentViewCreateTestCase(APITestCase):
                 )
 
     @tier1
-    def test_positive_create_name(self):
+    def test_positive_create_with_name(self):
         """@Test: Create empty content-view with random names.
 
         @Assert: Content-view is created and had random name.
@@ -270,8 +271,8 @@ class ContentViewCreateTestCase(APITestCase):
                     name
                 )
 
-    @tier2
-    def test_positive_create_description(self):
+    @tier1
+    def test_positive_create_with_description(self):
         """@Test: Create empty content view with random description.
 
         @Assert: Content-view is created and has random description.
@@ -288,7 +289,7 @@ class ContentViewCreateTestCase(APITestCase):
                 )
 
     @tier1
-    def test_negative_create_name(self):
+    def test_negative_create_with_name(self):
         """@Test: Create content view providing an invalid name.
 
         @Assert: Content View is not created
@@ -301,13 +302,13 @@ class ContentViewCreateTestCase(APITestCase):
                     entities.ContentView(name=name).create()
 
 
-class CVPublishPromoteTestCase(APITestCase):
+class ContentViewPublishPromoteTestCase(APITestCase):
     """Tests for publishing and promoting content views."""
 
     @classmethod
     def setUpClass(cls):  # noqa
         """Set up organization, product and repositories for tests."""
-        super(CVPublishPromoteTestCase, cls).setUpClass()
+        super(ContentViewPublishPromoteTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
         cls.product = entities.Product(organization=cls.org).create()
         cls.yum_repo = entities.Repository(product=cls.product).create()
@@ -321,7 +322,6 @@ class CVPublishPromoteTestCase(APITestCase):
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             cls.puppet_repo.upload_content(files={'content': handle})
 
-    @tier2
     def add_content_views_to_composite(
             self, composite_cv, cv_amount=1):
         """Add necessary number of content views to the composite one
@@ -674,7 +674,7 @@ class CVPublishPromoteTestCase(APITestCase):
         )
 
     @tier2
-    def test_negative_associate_components_to_composite(self):
+    def test_negative_add_components_to_composite(self):
         """@Test: Attempt to associate components in a non-composite content
         view
 
@@ -725,8 +725,8 @@ class CVPublishPromoteTestCase(APITestCase):
         normal content views to it. After that promote that composite
         content view once.
 
-        @Assert: Composite content view version points to
-        ``Library + 1`` lifecycle environments after the promotions.
+        @Assert: Composite content view version points to ``Library + 1``
+        lifecycle environments after the promotions.
 
         @Feature: ContentView
         """
@@ -748,8 +748,8 @@ class CVPublishPromoteTestCase(APITestCase):
         view to it. After that promote that composite content view
         ``Library + random`` times.
 
-        @Assert: Composite content view version points to
-        ``Library + random`` lifecycle environments after the promotions.
+        @Assert: Composite content view version points to ``Library + random``
+        lifecycle environments after the promotions.
 
         @Feature: ContentView
         """
@@ -899,13 +899,14 @@ class ContentViewDeleteTestCase(APITestCase):
                     entities.ContentView(id=cv.id).read()
 
 
-class CVRedHatContent(APITestCase):
+class ContentViewRedHatContent(APITestCase):
     """Tests for publishing and promoting content views."""
 
     @classmethod
+    @skip_if_not_set('fake_manifest')
     def setUpClass(cls):  # noqa
         """Set up organization, product and repositories for tests."""
-        super(CVRedHatContent, cls).setUpClass()
+        super(ContentViewRedHatContent, cls).setUpClass()
 
         cls.org = entities.Organization().create()
         with open(manifests.clone(), 'rb') as manifest:
@@ -925,7 +926,7 @@ class CVRedHatContent(APITestCase):
         cls.repo.sync()
 
     @tier2
-    def test_positive_associate_rh(self):
+    def test_positive_add_rh(self):
         """@Test: associate Red Hat content in a view
 
         @Assert: RH Content assigned and present in a view
@@ -943,7 +944,7 @@ class CVRedHatContent(APITestCase):
         )
 
     @tier2
-    def test_positive_associate_rh_custom_spin(self):
+    def test_positive_add_rh_custom_spin(self):
         """@Test: Associate Red Hat content in a view and filter it using rule
 
         @Feature: Content Views
@@ -980,7 +981,7 @@ class ContentViewTestCaseStub(APITestCase):
 
     @tier2
     @stubbed()
-    def test_cv_edit_rh_custom_spin(self):
+    def test_positive_update_rh_custom_spin(self):
         """
         @test: edit content views for a custom rh spin.  For example,
         @feature: Content Views
@@ -999,8 +1000,9 @@ class ContentViewTestCaseStub(APITestCase):
     # katello content view promote --label=MyView --env=Dev --org=ACME
     # katello content view promote --view=MyView --env=Staging --org=ACME
 
+    @tier2
     @stubbed()
-    def test_cv_promote_rh(self):
+    def test_positive_promote_rh(self):
         """
         @test: attempt to promote a content view containing RH content
         @feature: Content Views
@@ -1009,8 +1011,9 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
+    @tier2
     @stubbed()
-    def test_cv_promote_rh_custom_spin(self):
+    def test_positive_promote_rh_custom_spin(self):
         """
         @test: attempt to promote a content view containing a custom RH
         spin - i.e., contains filters.
@@ -1020,8 +1023,9 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
+    @tier2
     @stubbed()
-    def test_cv_promote_custom_content(self):
+    def test_positive_promote_custom_content(self):
         """
         @test: attempt to promote a content view containing custom content
         @feature: Content Views
@@ -1029,8 +1033,9 @@ class ContentViewTestCaseStub(APITestCase):
         @assert: Content view can be promoted
         """
 
+    @tier2
     @stubbed()
-    def test_cv_promote_composite(self):
+    def test_positive_promote_composite(self):
         """
         @test: attempt to promote a content view containing custom content
         @feature: Content Views
@@ -1044,8 +1049,9 @@ class ContentViewTestCaseStub(APITestCase):
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
 
+    @tier2
     @stubbed()
-    def test_cv_promote_badid_negative(self):
+    def test_negative_promote_badid(self):
         """
         @test: attempt to promote a content view using an invalid id
         @feature: Content Views
@@ -1064,8 +1070,9 @@ class ContentViewTestCaseStub(APITestCase):
     # Content Views: publish
     # katello content definition publish --label=MyView
 
+    @tier2
     @stubbed()
-    def test_cv_publish_rh(self):
+    def test_positive_publish_rh(self):
         """
         @test: attempt to publish a content view containing RH content
         @feature: Content Views
@@ -1074,8 +1081,9 @@ class ContentViewTestCaseStub(APITestCase):
         """
         # See method test_subscribe_system_to_cv in module test_contentview_v2
 
+    @tier2
     @stubbed()
-    def test_cv_publish_rh_custom_spin(self):
+    def test_positive_publish_rh_custom_spin(self):
         """
         @test: attempt to publish  a content view containing a custom RH
         spin - i.e., contains filters.
@@ -1085,8 +1093,9 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
+    @tier2
     @stubbed()
-    def test_cv_publish_custom_content(self):
+    def test_positive_publish_custom_content(self):
         """
         @test: attempt to publish a content view containing custom content
         @feature: Content Views
@@ -1095,8 +1104,9 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
+    @tier2
     @stubbed()
-    def test_cv_publish_composite(self):
+    def test_positive_publish_composite(self):
         """
         @test: attempt to publish  a content view containing custom content
         @feature: Content Views
@@ -1109,8 +1119,9 @@ class ContentViewTestCaseStub(APITestCase):
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
 
+    @tier2
     @stubbed()
-    def test_cv_publish_badlabel_negative(self):
+    def test_negative_publish_badlabel(self):
         """
         @test: attempt to publish a content view containing invalid strings
         @feature: Content Views
@@ -1123,8 +1134,9 @@ class ContentViewTestCaseStub(APITestCase):
         # Variations might be:
         # zero length, too long, symbols, etc.
 
+    @tier2
     @stubbed()
-    def test_cv_publish_version_changes_in_target_env(self):
+    def test_positive_publish_new_env(self):
         """
         @test: when publishing new version to environment, version
         gets updated
@@ -1134,7 +1146,7 @@ class ContentViewTestCaseStub(APITestCase):
         @steps:
         1. publish a view to an environment noting the CV version
         2. edit and republish a new version of a CV
-        @assert: Content view version is updated intarget environment.
+        @assert: Content view version is updated in target environment.
         @status: Manual
         """
         # Dev notes:
@@ -1142,8 +1154,9 @@ class ContentViewTestCaseStub(APITestCase):
         # Dev, version x goes away (ie when I promote version 1 to Dev,
         # version 3 goes away)
 
+    @tier2
     @stubbed()
-    def test_cv_publish_version_changes_in_source_env(self):
+    def test_positive_publish_source_env(self):
         """
         @test: when publishing new version to environment, version
         gets updated
@@ -1160,8 +1173,9 @@ class ContentViewTestCaseStub(APITestCase):
         # Similarly when I publish version y, version x goes away from
         # Library (ie when I publish version 2, version 1 disappears)
 
+    @tier2
     @stubbed()
-    def test_cv_refresh_errata_to_new_view_in_same_env(self):
+    def test_positive_refresh_errata_new_view_same_env(self):
         """
         @test: attempt to refresh errata in a new view, based on
         an existing view, from within the same  environment
@@ -1170,8 +1184,9 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
+    @tier3
     @stubbed()
-    def test_cv_subscribe_system(self):
+    def test_positive_subscribe_system(self):
         """
         @test: attempt to  subscribe systems to content view(s)
         @feature: Content Views
@@ -1189,8 +1204,9 @@ class ContentViewTestCaseStub(APITestCase):
         # * composite
         # * CVs with puppet modules
 
+    @tier3
     @stubbed()
-    def test_custom_cv_subscribe_system(self):
+    def test_positive_subscribe_system_custom_cv(self):
         """
         @test: attempt to  subscribe systems to content view(s)
         @feature: Content Views
@@ -1199,8 +1215,9 @@ class ContentViewTestCaseStub(APITestCase):
         # This test is implemented in tests/foreman/smoke/test_api_smoke.py.
         # See the end of method TestSmoke.test_smoke.
 
+    @tier2
     @stubbed()
-    def test_cv_dynflow_restart_promote(self):
+    def test_positive_dynflow_restart_promote(self):
         """
         @test: attempt to restart a promotion
         @feature: Content Views
@@ -1211,8 +1228,9 @@ class ContentViewTestCaseStub(APITestCase):
         @status: Manual
         """
 
+    @tier2
     @stubbed()
-    def test_cv_dynflow_restart_publish(self):
+    def test_positive_dynflow_restart_publish(self):
         """
         @test: attempt to restart a publish
         @feature: Content Views
@@ -1226,8 +1244,9 @@ class ContentViewTestCaseStub(APITestCase):
     # ROLES TESTING
     # All this stuff is speculative at best.
 
+    @tier2
     @stubbed()
-    def test_cv_roles_admin_user(self):
+    def test_positive_roles_admin_user(self):
         """
         @test: attempt to view content views
         @feature: Content Views
@@ -1245,8 +1264,9 @@ class ContentViewTestCaseStub(APITestCase):
         # Variations:
         #  * Read, Modify, Delete, Promote Publish, Subscribe
 
+    @tier2
     @stubbed()
-    def test_cv_roles_readonly_user(self):
+    def test_positive_roles_readonly_user(self):
         """
         @test: attempt to view content views
         @feature: Content Views
@@ -1265,8 +1285,9 @@ class ContentViewTestCaseStub(APITestCase):
         # Variations:
         #  * Read, Modify,  Promote?, Publish?, Subscribe??
 
+    @tier2
     @stubbed()
-    def test_cv_roles_admin_user_negative(self):
+    def test_negative_roles_admin_user(self):
         """
         @test: attempt to view content views
         @feature: Content Views
@@ -1284,8 +1305,9 @@ class ContentViewTestCaseStub(APITestCase):
         # Variations:
         #  * Read, Modify, Delete, Promote Publish, Subscribe
 
+    @tier2
     @stubbed()
-    def test_cv_roles_readonly_user_negative(self):
+    def test_negative_roles_readonly_user(self):
         """
         @test: attempt to view content views
         @feature: Content Views

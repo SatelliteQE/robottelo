@@ -17,7 +17,7 @@ class ConfigTemplateTestCase(APITestCase):
 
     @tier2
     @skip_if_bug_open('bugzilla', 1202564)
-    def test_build_pxe_default(self):
+    def test_positive_build_pxe_default(self):
         """@Test: Call the "build_pxe_default" path.
 
         @Assert: The response is a JSON payload.
@@ -33,7 +33,7 @@ class ConfigTemplateTestCase(APITestCase):
         self.assertIsInstance(response.json(), dict)
 
     @tier2
-    def test_config_template_orgs(self):
+    def test_positive_add_orgs(self):
         """@Test: Associate a config template with organizations.
 
         @Assert: Config template is associated with organization
@@ -67,7 +67,7 @@ class ConfigTemplateTestCase(APITestCase):
         self.assertEqual(len(conf_templ.organization), 0)
 
     @tier1
-    def test_positive_create_name(self):
+    def test_positive_create_with_name(self):
         """@Test: Create a configuration template providing the initial name.
 
         @Assert: Configuration Template is created and contains provided name.
@@ -80,7 +80,7 @@ class ConfigTemplateTestCase(APITestCase):
                 self.assertEqual(name, c_temp.name)
 
     @tier1
-    def test_negative_create_name(self):
+    def test_negative_create_with_name(self):
         """@Test: Create configuration template providing an invalid name.
 
         @Assert: Configuration Template is not created
@@ -136,7 +136,6 @@ class ConfigTemplateTestCase(APITestCase):
         @Assert: Configuration Template is successfully deleted.
 
         @Feature: Configuration Template
-
         """
         for name in valid_data_list():
             with self.subTest(name):
