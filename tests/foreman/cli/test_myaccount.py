@@ -5,7 +5,7 @@ from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase
 
 
-class MyAccount(CLITestCase):
+class MyAccountTestCase(CLITestCase):
     """Implements Users tests in CLI
 
     [1] Positive Name variations - Alpha, Numeric, Alphanumeric, Symbols,
@@ -17,7 +17,7 @@ class MyAccount(CLITestCase):
     """
 
     @stubbed()
-    def test_positive_update_my_account_1(self):
+    def test_positive_update_first_name(self):
         """@Test: Update Firstname in My Account
 
         @Feature: My Account - Positive Update
@@ -31,7 +31,7 @@ class MyAccount(CLITestCase):
         """
 
     @stubbed()
-    def test_positive_update_my_account_2(self):
+    def test_positive_update_surname(self):
         """@Test: Update Surname in My Account
 
         @Feature: My Account - Positive Update
@@ -45,7 +45,7 @@ class MyAccount(CLITestCase):
         """
 
     @stubbed()
-    def test_positive_update_my_account_3(self):
+    def test_positive_update_email(self):
         """@Test: Update Email Address in My Account
 
         @Feature: My Account - Positive Update
@@ -59,7 +59,7 @@ class MyAccount(CLITestCase):
         """
 
     @stubbed()
-    def test_positive_update_my_account_4(self):
+    def test_positive_update_language(self):
         """@Test: Update Language in My Account
 
         @Feature: My Account - Positive Update
@@ -73,7 +73,7 @@ class MyAccount(CLITestCase):
         """
 
     @stubbed()
-    def test_positive_update_my_account_5(self):
+    def test_positive_update_password(self):
         """@Test: Update Password/Verify fields in My Account
 
         @Feature: My Account - Positive Update
@@ -87,7 +87,7 @@ class MyAccount(CLITestCase):
         """
 
     @stubbed()
-    def test_negative_update_my_account_1(self):
+    def test_negative_update_first_name(self):
         """@Test: Update My Account with invalid FirstName
 
         @Feature: My Account - Negative Update
@@ -101,7 +101,7 @@ class MyAccount(CLITestCase):
         """
 
     @stubbed()
-    def test_negative_update_my_account_2(self):
+    def test_negative_update_surname(self):
         """@Test: Update My Account with invalid Surname
 
         @Feature: My Account - Negative Update
@@ -115,7 +115,7 @@ class MyAccount(CLITestCase):
         """
 
     @stubbed()
-    def test_negative_update_my_account_3(self):
+    def test_negative_update_email(self):
         """@Test: Update My Account with invalid Email Address
 
         @Feature: My Account - Negative Update
@@ -129,7 +129,7 @@ class MyAccount(CLITestCase):
         """
 
     @stubbed()
-    def test_negative_update_my_account_4(self):
+    def test_negative_update_password_invalid(self):
         """@Test: Update My Account with invalid Password/Verify fields
 
         @Feature: My Account - Negative Update
@@ -144,7 +144,7 @@ class MyAccount(CLITestCase):
         """
 
     @stubbed()
-    def test_negative_update_my_account_5(self):
+    def test_negative_update_password_mismatch(self):
         """@Test: Update My Account with non-matching values in Password and
 
         @Feature: My Account - Negative Update
@@ -155,22 +155,6 @@ class MyAccount(CLITestCase):
         fields
 
         @Assert: User is not updated. Appropriate error shown.
-
-        @Status: Manual
-        """
-
-    @stubbed()
-    def test_negative_update_my_account_6(self):
-        """@Test: [UI ONLY] Attempt to update all info in My Accounts page and
-
-        @Feature: My Account - Negative Update Cancel
-
-        @Steps:
-        1. Update Current user with valid Firstname, Surname, Email Address,
-        Language, Password/Verify fields
-        2. Click Cancel
-
-        @Assert: User is not updated.
 
         @Status: Manual
         """
