@@ -11,7 +11,7 @@ from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
-class TestLifeCycleEnvironment(CLITestCase):
+class LifeCycleEnvironmentTestCase(CLITestCase):
     """Test class for Lifecycle Environment CLI"""
 
     org = None
@@ -19,15 +19,15 @@ class TestLifeCycleEnvironment(CLITestCase):
     def setUp(self):
         """Tests for Lifecycle Environment via Hammer CLI"""
 
-        super(TestLifeCycleEnvironment, self).setUp()
+        super(LifeCycleEnvironmentTestCase, self).setUp()
 
-        if TestLifeCycleEnvironment.org is None:
-            TestLifeCycleEnvironment.org = make_org()
+        if LifeCycleEnvironmentTestCase.org is None:
+            LifeCycleEnvironmentTestCase.org = make_org()
 
     # Issues validation
     @run_only_on('sat')
     @tier1
-    def test_bugzilla_1077386(self):
+    def test_verify_bugzilla_1077386(self):
         """@Test: List subcommand returns standard output
 
         @Feature: Lifecycle Environment
@@ -49,7 +49,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_bugzilla_1077333(self):
+    def test_verify_bugzilla_1077333(self):
         """@Test: Search lifecycle environment via its name containing UTF-8
         chars
 
@@ -72,7 +72,7 @@ class TestLifeCycleEnvironment(CLITestCase):
     # CRUD
     @run_only_on('sat')
     @tier1
-    def test_positive_create_1(self):
+    def test_positive_create_with_name(self):
         """@Test: Create lifecycle environment with valid name, prior to
         Library
 
@@ -92,7 +92,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_2(self):
+    def test_positive_create_with_description(self):
         """@Test: Create lifecycle environment with valid description prior to
         Library
 
@@ -116,7 +116,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_lifecycle_environment_by_label(self):
+    def test_positive_create_with_label(self):
         """@Test: Create lifecycle environment with valid name and label
 
         @Feature: Lifecycle Environment
@@ -136,7 +136,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_lifecycle_environment_by_organization_name(self):
+    def test_positive_create_with_organization_name(self):
         """@Test: Create lifecycle environment, specifying organization name
 
         @Feature: Lifecycle Environment
@@ -152,7 +152,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_lifecycle_environment_by_organization_label(self):
+    def test_positive_create_with_organization_label(self):
         """@Test: Create lifecycle environment, specifying organization label
 
         @Feature: Lifecycle Environment
@@ -168,7 +168,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_delete_1(self):
+    def test_positive_delete_by_id(self):
         """@Test: Create lifecycle environment with valid name, prior to
         Library
 
@@ -192,7 +192,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_update_1(self):
+    def test_positive_update_name(self):
         """@Test: Create lifecycle environment then update its name
 
         @Feature: Lifecycle Environment
@@ -220,7 +220,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_update_2(self):
+    def test_positive_update_description(self):
         """@Test: Create lifecycle environment then update its description
 
         @Feature: Lifecycle Environment
@@ -248,7 +248,7 @@ class TestLifeCycleEnvironment(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_environment_paths(self):
+    def test_positve_list_paths(self):
         """@Test: List the environment paths under a given organization
 
         @Feature: Lifecycle Environment
