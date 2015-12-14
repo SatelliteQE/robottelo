@@ -14,11 +14,11 @@ from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
-class TestModel(CLITestCase):
+class ModelTestCase(CLITestCase):
     """Test class for Model CLI"""
     @tier1
-    def test_positive_create(self):
-        """@Test: Successfully creates an Model.
+    def test_positive_create_with_name(self):
+        """@Test: Successfully creates a Model.
 
         @Feature: Model
 
@@ -31,7 +31,7 @@ class TestModel(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_model_vendor_class(self):
+    def test_positive_create_with_vendor_class(self):
         """@Test: Check if Model can be created with specific vendor class
 
         @Feature: Model - Positive Create
@@ -43,7 +43,7 @@ class TestModel(CLITestCase):
         self.assertEqual(model['vendor-class'], vendor_class)
 
     @tier1
-    def test_negative_create(self):
+    def test_negative_create_with_name(self):
         """@Test: Don't create an Model with invalid data.
 
         @Feature: Model
@@ -75,7 +75,7 @@ class TestModel(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_update(self):
+    def test_negative_update_name(self):
         """@test: Create Model then fail to update its name
 
         @feature: Model
@@ -95,7 +95,7 @@ class TestModel(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_delete(self):
+    def test_positive_delete_by_id(self):
         """@test: Create Model with valid values then delete it
         by ID
 
@@ -112,7 +112,7 @@ class TestModel(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_delete(self):
+    def test_negative_delete_by_id(self):
         """@test: Create Model then delete it by wrong ID
 
         @feature: Model
