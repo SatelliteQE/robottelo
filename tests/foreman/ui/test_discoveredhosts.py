@@ -25,7 +25,21 @@ class Discovery(UITestCase):
                     self.image_path),
             hostname=self.libvirt_host
         )
-        sleep(70)
+
+    def assertdiscoveredhost(self, hostname):
+        """
+        Check if host is visible under 'Discovered Hosts' on UI
+
+        Introduced a delay of 100secs by polling every 10 secs to see if
+        unknown host gets discovered and become visible on UI
+        """
+        discovered_host = self.discoveredhosts.search(hostname)
+        for _ in range(10):
+            if discovered_host is None:
+                sleep(10)
+                discovered_host = self.discoveredhosts.search(hostname)
+            else:
+                break
 
     @classmethod
     def setUpClass(cls):
@@ -115,6 +129,7 @@ class Discovery(UITestCase):
         self._pxe_boot_host(mac)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
+            self.assertdiscoveredhost(hostname)
             self.assertIsNotNone(self.discoveredhosts.search(hostname))
 
     @stubbed()
@@ -180,6 +195,7 @@ class Discovery(UITestCase):
         self._pxe_boot_host(mac)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
+            self.assertdiscoveredhost(hostname)
             self.discoveredhosts.delete(hostname)
 
     @stubbed()
