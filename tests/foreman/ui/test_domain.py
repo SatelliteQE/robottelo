@@ -4,7 +4,12 @@ from fauxfactory import gen_string
 from robottelo.constants import DOMAIN
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import (
-    bz_bug_is_open, run_only_on, skip_if_bug_open)
+    bz_bug_is_open,
+    run_only_on,
+    skip_if_bug_open,
+    tier1,
+    tier2,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_domain
@@ -39,17 +44,17 @@ def valid_domain_update_data():
     ]
 
 
-class Domain(UITestCase):
+class DomainTestCase(UITestCase):
     """Implements Domain tests in UI"""
 
     @run_only_on('sat')
-    def test_create_domain_1(self):
+    @tier1
+    def test_positive_create_with_name(self):
         """@Test: Create a new domain
 
         @Feature: Domain - Positive Create domain
 
         @Assert: Domain is created
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -61,13 +66,13 @@ class Domain(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_create_domain_2(self):
+    @tier1
+    def test_positive_create_with_long_name(self):
         """@Test: Create a new domain
 
         @Feature: Domain - Positive Create domain with 255 chars
 
         @Assert: Domain is created
-
         """
         with Session(self.browser) as session:
             for name in valid_long_domain_names():
@@ -79,13 +84,13 @@ class Domain(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_delete_domain(self):
+    @tier1
+    def test_positive_delete(self):
         """@Test: Delete a domain
 
         @Feature: Domain - Delete
 
         @Assert: Domain is deleted
-
         """
         domain_name = description = DOMAIN % gen_string('alpha')
         with Session(self.browser) as session:
@@ -93,13 +98,13 @@ class Domain(UITestCase):
             self.domain.delete(domain_name)
 
     @run_only_on('sat')
-    def test_update_domain(self):
+    @tier1
+    def test_positive_update(self):
         """@Test: Update a domain with name and description
 
         @Feature: Domain - Update
 
         @Assert: Domain is updated
-
         """
         domain_name = description = DOMAIN % gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -117,14 +122,14 @@ class Domain(UITestCase):
                     domain_name = new_name  # for next iteration
 
     @run_only_on('sat')
-    def test_negative_create_domain(self):
+    @tier1
+    def test_negative_create_with_name(self):
         """@Test: Try to create domain and use whitespace, blank, tab symbol or
         too long string of different types as its name value
 
         @Feature: Domain - Negative Create
 
         @Assert: Domain is not created
-
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -135,13 +140,13 @@ class Domain(UITestCase):
                     self.assertIsNotNone(error)
 
     @run_only_on('sat')
-    def test_positive_set_domain_parameter_1(self):
+    @tier2
+    def test_positive_set_parameter(self):
         """@Test: Set parameter name and value for domain
 
         @Feature: Domain - Misc
 
         @Assert: Domain is updated
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -159,13 +164,13 @@ class Domain(UITestCase):
                         self.fail(err)
 
     @run_only_on('sat')
-    def test_positive_set_domain_parameter_2(self):
+    @tier2
+    def test_positive_set_parameter_long(self):
         """@Test: Set a parameter in a domain with 255 chars in name and value.
 
         @Feature: Domain - Misc.
 
         @Assert: Domain parameter is created.
-
         """
         name = gen_string('alpha', 4)
         domain_name = description = DOMAIN % name
@@ -182,13 +187,13 @@ class Domain(UITestCase):
                 self.fail(err)
 
     @run_only_on('sat')
-    def test_positive_set_domain_parameter_3(self):
+    @tier2
+    def test_positive_set_parameter_blank(self):
         """@Test: Set a parameter in a domain with blank value.
 
         @Feature: Domain - Misc.
 
         @Assert: Domain parameter is created with blank value.
-
         """
         name = gen_string('alpha', 4)
         domain_name = description = DOMAIN % name
@@ -205,13 +210,13 @@ class Domain(UITestCase):
                 self.fail(err)
 
     @run_only_on('sat')
-    def test_set_domain_parameter_negative_1(self):
+    @tier2
+    def test_negative_set_parameter(self):
         """@Test: Set a parameter in a domain with 256 chars in name and value.
 
         @Feature: Domain - Misc.
 
         @Assert: Domain parameter is not updated.
-
         """
         name = gen_string('alpha', 4)
         domain_name = description = DOMAIN % name
@@ -231,7 +236,8 @@ class Domain(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1123360)
     @run_only_on('sat')
-    def test_set_domain_parameter_negative_2(self):
+    @tier2
+    def test_negative_set_parameter_same(self):
         """@Test: Again set the same parameter for domain with name and value.
 
         @Feature: Domain - Misc.
@@ -239,7 +245,6 @@ class Domain(UITestCase):
         @Assert: Domain parameter is not updated.
 
         @BZ: 1123360
-
         """
         name = gen_string('alpha', 4)
         domain_name = description = DOMAIN % name
@@ -260,13 +265,13 @@ class Domain(UITestCase):
                 common_locators['common_param_error']))
 
     @run_only_on('sat')
-    def test_remove_domain_parameter(self):
+    @tier2
+    def test_positive_remove_parameter(self):
         """@Test: Remove a selected domain parameter
 
         @Feature: Domain - Misc
 
         @Assert: Domain parameter is removed
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):

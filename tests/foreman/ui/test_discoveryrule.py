@@ -2,21 +2,21 @@
 """Test class for Foreman Discovery Rules"""
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on
+from robottelo.datafactory import invalid_values_list, valid_data_list
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_discoveryrule
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-class DiscoveryRules(UITestCase):
+class DiscoveryRuleTestCase(UITestCase):
     """Implements Foreman discovery Rules in UI."""
 
     @classmethod
     def setUpClass(cls):
         """Display all the discovery rules on the same page"""
-        super(DiscoveryRules, cls).setUpClass()
+        super(DiscoveryRuleTestCase, cls).setUpClass()
         cls.per_page = entities.Setting().search(
             query={'search': 'name="entries_per_page"'})[0]
         cls.saved_per_page = str(cls.per_page.value)
@@ -31,47 +31,32 @@ class DiscoveryRules(UITestCase):
         cls.per_page.value = cls.saved_per_page
         cls.per_page.update({'value'})
 
-        super(DiscoveryRules, cls).tearDownClass()
+        super(DiscoveryRuleTestCase, cls).tearDownClass()
 
     @run_only_on('sat')
-    def test_positive_create_discovery_rule_1(self):
-        """@Test: Create Discovery Rule
+    @tier1
+    def test_positive_create_with_name(self):
+        """@Test: Create Discovery Rule using different names
 
         @Feature: Foreman Discovery
 
         @Assert: Rule should be successfully created
-
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(length=8):
+            for name in valid_data_list():
                 with self.subTest(name):
                     make_discoveryrule(session, name=name,
                                        hostgroup=self.host_group.name)
                     self.assertIsNotNone(self.discoveryrules.search(name))
 
     @run_only_on('sat')
-    def test_positive_create_discovery_rule_2(self):
-        """@Test: Create Discovery Rule with 255 characters in name
-
-        @Feature: Foreman Discovery
-
-        @Assert: Rule should be successfully created
-
-        """
-        name = gen_string('alpha', 255)
-        with Session(self.browser) as session:
-            make_discoveryrule(session, name=name,
-                               hostgroup=self.host_group.name)
-            self.assertIsNotNone(self.discoveryrules.search(name))
-
-    @run_only_on('sat')
-    def test_negative_create_discovery_rule_1(self):
+    @tier1
+    def test_negative_create_with_name(self):
         """@Test: Create Discovery Rule with invalid names
 
         @Feature: Foreman Discovery
 
         @Assert: Error should be raised and rule should not be created
-
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -85,13 +70,13 @@ class DiscoveryRules(UITestCase):
                     self.assertIsNone(self.discoveryrules.search(name))
 
     @run_only_on('sat')
-    def test_negative_create_discovery_rule_2(self):
+    @tier1
+    def test_negative_create_with_limit(self):
         """@Test: Create Discovery Rule with invalid host limit
 
         @Feature: Foreman Discovery
 
         @Assert: Error should be raised and rule should not be created
-
         """
         name = gen_string("alpha", 6)
         with Session(self.browser) as session:
@@ -106,15 +91,15 @@ class DiscoveryRules(UITestCase):
                     self.assertIsNone(self.discoveryrules.search(name))
 
     @run_only_on('sat')
-    def test_negative_create_discovery_rule_3(self):
+    @tier1
+    def test_negative_create_with_same_name(self):
         """@Test: Create Discovery Rule with name that already exists
 
         @Feature: Foreman Discovery
 
         @Assert: Error should be raised and rule should not be created
-
         """
-        name = gen_string("alpha", 6)
+        name = gen_string('alpha')
         with Session(self.browser) as session:
             make_discoveryrule(session, name=name,
                                hostgroup=self.host_group.name)
@@ -126,15 +111,15 @@ class DiscoveryRules(UITestCase):
             ))
 
     @run_only_on('sat')
-    def test_negative_create_discovery_rule_4(self):
+    @tier1
+    def test_negative_create_with_invalid_priority(self):
         """@Test: Create Discovery Rule with invalid priority
 
         @Feature: Foreman Discovery
 
         @Assert: Error should be raised and rule should not be created
-
         """
-        name = gen_string("alpha", 6)
+        name = gen_string('alpha')
         with Session(self.browser) as session:
             make_discoveryrule(session, name=name,
                                hostgroup=self.host_group.name,
@@ -145,31 +130,31 @@ class DiscoveryRules(UITestCase):
             self.assertIsNone(self.discoveryrules.search(name))
 
     @run_only_on('sat')
-    def test_disable_discovery_rule_1(self):
+    @tier1
+    def test_positive_disable(self):
         """@Test: Disable Discovery Rule while creation
 
         @Feature: Foreman Discovery
 
         @Assert: Rule should be disabled
-
         """
-        name = gen_string("alpha", 6)
+        name = gen_string('alpha')
         with Session(self.browser) as session:
             make_discoveryrule(session, name=name,
                                hostgroup=self.host_group.name, enable=True)
             self.assertIsNotNone(self.discoveryrules.search(name))
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete(self):
         """@Test: Delete Discovery Rule
 
         @Feature: Foreman Discovery
 
         @Assert: Rule should be successfully created
-
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(length=8):
+            for name in valid_data_list():
                 with self.subTest(name):
                     make_discoveryrule(session, name=name,
                                        hostgroup=self.host_group.name)
@@ -177,20 +162,20 @@ class DiscoveryRules(UITestCase):
                     self.discoveryrules.delete(name)
 
     @run_only_on('sat')
-    def test_update_discovery_rule_1(self):
+    @tier1
+    def test_positive_update_name(self):
         """@Test: Update discovery rule name
 
         @Feature: Discovery Rule - Update
 
         @Assert: Rule name is updated
-
         """
-        name = gen_string("alpha", 6)
+        name = gen_string('alpha')
         with Session(self.browser) as session:
             make_discoveryrule(session, name=name,
                                hostgroup=self.host_group.name)
             self.assertIsNotNone(self.discoveryrules.search(name))
-            for new_name in generate_strings_list(length=8):
+            for new_name in valid_data_list():
                 with self.subTest(new_name):
                     self.discoveryrules.update(name=name, new_name=new_name)
                     self.assertIsNotNone(self.discoveryrules.search(new_name))

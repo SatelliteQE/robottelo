@@ -5,7 +5,7 @@ from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
 from robottelo.config import settings
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.constants import (
     ANY_CONTEXT,
     INSTALL_MEDIUM_URL,
@@ -46,7 +46,7 @@ def valid_env_names():
     ]
 
 
-class Location(UITestCase):
+class LocationTestCase(UITestCase):
     """Implements Location tests in UI"""
     location = None
 
@@ -54,7 +54,8 @@ class Location(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1177610)
     @run_only_on('sat')
-    def test_auto_search(self):
+    @tier1
+    def test_positive_auto_search(self):
         """@test: Can auto-complete search for location by partial name
 
         @feature: Locations
@@ -80,13 +81,13 @@ class Location(UITestCase):
     # Positive Create
 
     @run_only_on('sat')
-    def test_positive_create_with_different_names(self):
+    @tier1
+    def test_positive_create_with_name(self):
         """@test: Create Location with valid name only
 
         @feature: Locations
 
         @assert: Location is created, label is auto-generated
-
         """
         with Session(self.browser) as session:
             for loc_name in generate_strings_list():
@@ -95,13 +96,13 @@ class Location(UITestCase):
                     self.assertIsNotNone(self.location.search(loc_name))
 
     @run_only_on('sat')
+    @tier1
     def test_negative_create_with_invalid_names(self):
         """@test: Create location with invalid name
 
         @feature: Locations
 
         @assert: location is not created
-
         """
         with Session(self.browser) as session:
             for loc_name in invalid_values_list(interface='ui'):
@@ -112,6 +113,7 @@ class Location(UITestCase):
                     self.assertIsNotNone(error)
 
     @run_only_on('sat')
+    @tier1
     def test_negative_create_with_same_name(self):
         """@test: Create location with valid values, then create a new one
         with same values.
@@ -119,7 +121,6 @@ class Location(UITestCase):
         @feature: Locations
 
         @assert: location is not created
-
         """
         loc_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -131,13 +132,13 @@ class Location(UITestCase):
             self.assertIsNotNone(error)
 
     @run_only_on('sat')
+    @tier2
     def test_positive_create_with_location_and_org(self):
-        """@test: Select both organization and location.
+        """@test: Create and select both organization and location.
 
         @feature: Locations
 
         @assert: Both organization and location are selected.
-
         """
         with Session(self.browser) as session:
             for test_data in valid_org_loc_data():
@@ -156,13 +157,13 @@ class Location(UITestCase):
     # Positive Update
 
     @run_only_on('sat')
-    def test_positive_update_with_different_names(self):
+    @tier1
+    def test_positive_update_name(self):
         """@test: Create Location with valid values then update its name
 
         @feature: Locations
 
         @assert: Location name is updated
-
         """
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -177,6 +178,7 @@ class Location(UITestCase):
     # Negative Update
 
     @run_only_on('sat')
+    @tier1
     def test_negative_update_with_too_long_name(self):
         """@test: Create Location with valid values then fail to update
         its name
@@ -184,7 +186,6 @@ class Location(UITestCase):
         @feature: Locations
 
         @assert: Location name is not updated
-
         """
         loc_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -197,13 +198,13 @@ class Location(UITestCase):
             self.assertIsNotNone(error)
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete(self):
         """@test: Create location with valid values then delete it.
 
         @feature: Location Positive Delete test.
 
         @assert: Location is deleted
-
         """
         with Session(self.browser) as session:
             for loc_name in generate_strings_list():
@@ -213,13 +214,13 @@ class Location(UITestCase):
                     self.location.delete(loc_name)
 
     @run_only_on('sat')
-    def test_add_subnet(self):
+    @tier2
+    def test_positive_add_subnet(self):
         """@test: Add a subnet by using location name and subnet name
 
         @feature: Locations
 
         @assert: subnet is added
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -242,13 +243,13 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_add_domain(self):
+    @tier2
+    def test_positive_add_domain(self):
         """@test: Add a domain to a Location
 
         @feature: Locations
 
         @assert: Domain is added to Location
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -267,13 +268,13 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_add_user(self):
+    @tier2
+    def test_positive_add_user(self):
         """@test: Create user then add that user by using the location name
 
         @feature: Locations
 
         @assert: User is added to location
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -301,13 +302,13 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_allvalues_hostgroup(self):
+    @tier1
+    def test_positive_check_all_values_hostgroup(self):
         """@test: check whether host group has the 'All values' checked.
 
         @feature: Locations
 
         @assert: host group 'All values' checkbox is checked.
-
         """
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -323,13 +324,13 @@ class Location(UITestCase):
             self.assertIsNotNone(selected)
 
     @run_only_on('sat')
-    def test_add_hostgroup(self):
+    @tier2
+    def test_positive_add_hostgroup(self):
         """@test: Add a hostgroup by using the location name and hostgroup name
 
         @feature: Locations
 
         @assert: hostgroup is added to location
-
         """
         strategy, value = common_locators['all_values_selection']
         with Session(self.browser) as session:
@@ -347,13 +348,13 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_add_org(self):
+    @tier2
+    def test_positive_add_org(self):
         """@test: Add a organization by using the location name
 
         @feature: Locations
 
         @assert: organization is added to location
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -374,13 +375,13 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
+    @tier2
     def test_add_environment(self):
         """@test: Add environment by using location name and environment name
 
         @feature: Locations
 
         @assert: environment is added
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -399,14 +400,14 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_add_computeresource(self):
+    @tier2
+    def test_add_compresource(self):
         """@test: Add compute resource using the location name and
         compute resource name
 
         @feature: Locations
 
         @assert: compute resource is added successfully
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -428,16 +429,15 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_add_medium(self):
+    @tier2
+    def test_positive_add_medium(self):
         """@test: Add medium by using the location name and medium name
 
         @feature: Locations
 
         @assert: medium is added
-
         """
         strategy, value = common_locators['entity_deselect']
-
         with Session(self.browser) as session:
             for medium_name in generate_strings_list():
                 with self.subTest(medium_name):
@@ -458,13 +458,13 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_allvalues_configtemplate(self):
+    @tier1
+    def test_positive_check_all_values_template(self):
         """@test: check whether config template has the 'All values' checked.
 
         @feature: Locations
 
         @assert: configtemplate 'All values' checkbox is checked.
-
         """
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -477,14 +477,14 @@ class Location(UITestCase):
             self.assertIsNotNone(selected)
 
     @run_only_on('sat')
-    def test_add_configtemplate(self):
+    @tier2
+    def test_positive_add_template(self):
         """@test: Add config template by using location name and config
         template name.
 
         @feature: Locations
 
         @assert: config template is added.
-
         """
         strategy, value = common_locators['all_values_selection']
         with Session(self.browser) as session:
@@ -508,13 +508,13 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_environment(self):
+    @tier2
+    def test_positive_remove_environment(self):
         """@test: Remove environment by using location name & environment name
 
         @feature: Locations
 
         @assert: environment is removed from Location
-
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -543,13 +543,13 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_subnet(self):
+    @tier2
+    def test_positive_remove_subnet(self):
         """@test: Remove subnet by using location name and subnet name
 
         @feature: Locations
 
         @assert: subnet is added then removed
-
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -582,14 +582,14 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_domain(self):
+    @tier2
+    def test_positive_remove_domain(self):
         """@test: Add a domain to an location and remove it by location name
         and domain name
 
         @feature: Locations
 
         @assert: the domain is removed from the location
-
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -618,14 +618,14 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_user(self):
+    @tier2
+    def test_positive_remove_user(self):
         """@test: Create admin users then add user and remove it by using the
         location name
 
         @feature: Locations
 
         @assert: The user is added then removed from the location
-
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -662,14 +662,14 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_hostgroup(self):
+    @tier2
+    def test_positive_remove_hostgroup(self):
         """@test: Add a hostgroup and remove it by using the location name and
         hostgroup name
 
         @feature: Locations
 
         @assert: hostgroup is added to location then removed
-
         """
         strategy, value = common_locators['all_values_selection']
         with Session(self.browser) as session:
@@ -697,14 +697,14 @@ class Location(UITestCase):
                     self.assertIsNone(element)
 
     @run_only_on('sat')
-    def test_remove_computeresource(self):
+    @tier2
+    def test_positive_remove_compresource(self):
         """@test: Remove compute resource by using the location name and
         compute resource name
 
         @feature: Locations
 
         @assert: compute resource is added then removed
-
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -736,13 +736,13 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_medium(self):
+    @tier2
+    def test_positive_remove_medium(self):
         """@test: Remove medium by using location name and medium name
 
         @feature: Locations
 
         @assert: medium is added then removed
-
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -775,14 +775,14 @@ class Location(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_configtemplate(self):
+    @tier2
+    def test_positive_remove_template(self):
         """
         @test: Remove config template
 
         @feature: Locations
 
         @assert: config template is added and then removed
-
         """
         strategy, value = common_locators['all_values_selection']
         with Session(self.browser) as session:

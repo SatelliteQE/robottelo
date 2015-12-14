@@ -2,7 +2,7 @@
 
 from fauxfactory import gen_string
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import bz_bug_is_open, run_only_on
+from robottelo.decorators import bz_bug_is_open, run_only_on, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_hw_model
 from robottelo.ui.locators import common_locators
@@ -25,13 +25,13 @@ class HardwareModelTestCase(UITestCase):
     """Implements Hardware Model tests in UI."""
 
     @run_only_on('sat')
-    def test_create_positive_different_names(self):
+    @tier1
+    def test_positive_create_with_name(self):
         """@test: Create new Hardware-Model
 
         @feature: Hardware-Model - Positive Create
 
         @assert: Hardware-Model is created
-
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -40,13 +40,13 @@ class HardwareModelTestCase(UITestCase):
                     self.assertIsNotNone(self.hardwaremodel.search(name))
 
     @run_only_on('sat')
-    def test_create_negative_invalid_names(self):
+    @tier1
+    def test_negative_create_with_name(self):
         """@test: Create new Hardware-Model with invalid names
 
         @feature: Hardware-Model - Negative Create
 
         @assert: Hardware-Model is not created
-
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -57,13 +57,13 @@ class HardwareModelTestCase(UITestCase):
                     self.assertIsNotNone(error)
 
     @run_only_on('sat')
-    def test_update_positive(self):
+    @tier1
+    def test_positive_update(self):
         """@test: Updates the Hardware-Model
 
         @feature: Hardware-Model - Positive Update
 
         @assert: Hardware-Model is updated.
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -83,13 +83,13 @@ class HardwareModelTestCase(UITestCase):
                     name = test_data['name']  # for next iteration
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete(self):
         """@test: Deletes the Hardware-Model
 
         @feature: Hardware-Model - Positive delete
 
         @assert: Hardware-Model is deleted
-
         """
         with Session(self.browser) as session:
             for test_data in valid_hw_model_names():

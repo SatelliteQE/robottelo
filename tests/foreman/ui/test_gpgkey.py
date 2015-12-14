@@ -18,6 +18,9 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
     stubbed,
+    tier1,
+    tier2,
+    tier3,
 )
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import UITestCase
@@ -47,14 +50,14 @@ class GPGKey(UITestCase):
     # Positive Create
 
     @run_only_on('sat')
-    def test_positive_create_1(self):
-        """@test: Create gpg key with valid name and valid gpg key
-        via file import
+    @tier1
+    def test_positive_create_via_import(self):
+        """@test: Create gpg key with valid name and valid gpg key via file
+        import
 
         @feature: GPG Keys
 
         @assert: gpg key is created
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(
@@ -66,18 +69,18 @@ class GPGKey(UITestCase):
                         name=name,
                         org=self.organization.name,
                         upload_key=True,
-                        )
+                    )
                     self.assertIsNotNone(self.gpgkey.search(name))
 
     @run_only_on('sat')
-    def test_positive_create_2(self):
+    @tier1
+    def test_positive_create_via_paste(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string
 
         @feature: GPG Keys
 
         @assert: gpg key is created
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(
@@ -94,14 +97,14 @@ class GPGKey(UITestCase):
     # Negative Create
 
     @run_only_on('sat')
-    def test_negative_create_1(self):
+    @tier1
+    def test_negative_create_via_import_and_same_name(self):
         """@test: Create gpg key with valid name and valid gpg key via
         file import then try to create new one with same name
 
         @feature: GPG Keys
 
         @assert: gpg key is not created
-
         """
         name = gen_string('alphanumeric')
         kwargs = {
@@ -119,14 +122,14 @@ class GPGKey(UITestCase):
             )
 
     @run_only_on('sat')
-    def test_negative_create_2(self):
+    @tier1
+    def test_negative_create_via_paste_and_same_name(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string import then try to create new one with same name
 
         @feature: GPG Keys
 
         @assert: gpg key is not created
-
         """
         name = gen_string('alphanumeric')
         kwargs = {
@@ -143,13 +146,13 @@ class GPGKey(UITestCase):
             )
 
     @run_only_on('sat')
-    def test_negative_create_3(self):
+    @tier1
+    def test_negative_create_without_content(self):
         """@test: Create gpg key with valid name and no gpg key
 
         @feature: GPG Keys
 
         @assert: gpg key is not created
-
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -158,14 +161,14 @@ class GPGKey(UITestCase):
             self.assertIsNone(self.gpgkey.search(name))
 
     @run_only_on('sat')
-    def test_negative_create_4(self):
+    @tier1
+    def test_negative_create_via_import_and_invalid_name(self):
         """@test: Create gpg key with invalid name and valid gpg key via
         file import
 
         @feature: GPG Keys
 
         @assert: gpg key is not created
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(
@@ -185,14 +188,14 @@ class GPGKey(UITestCase):
                     self.assertIsNone(self.gpgkey.search(name))
 
     @run_only_on('sat')
-    def test_negative_create_5(self):
+    @tier1
+    def test_negative_create_via_paste_and_invalid_name(self):
         """@test: Create gpg key with invalid name and valid gpg key text via
         cut and paste/string
 
         @feature: GPG Keys
 
         @assert: gpg key is not created
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(
@@ -213,14 +216,14 @@ class GPGKey(UITestCase):
     # Positive Delete
 
     @run_only_on('sat')
-    def test_positive_delete_for_uploaded_content(self):
+    @tier1
+    def test_positive_delete_for_imported_content(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then delete it
 
         @feature: GPG Keys
 
         @assert: gpg key is deleted
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(
@@ -237,6 +240,7 @@ class GPGKey(UITestCase):
                     self.gpgkey.delete(name)
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete_for_pasted_content(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then delete it
@@ -244,7 +248,6 @@ class GPGKey(UITestCase):
         @feature: GPG Keys
 
         @assert: gpg key is deleted
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(
@@ -262,14 +265,14 @@ class GPGKey(UITestCase):
     # Positive Update
 
     @run_only_on('sat')
-    def test_positive_update_1(self):
+    @tier1
+    def test_positive_update_name_for_imported_content(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then update its name
 
         @feature: GPG Keys
 
         @assert: gpg key is updated
-
         """
         name = gen_string('alpha', 6)
         new_name = gen_string('alpha', 6)
@@ -287,18 +290,15 @@ class GPGKey(UITestCase):
                 common_locators['alert.success']
             ))
 
-    @skip_if_bug_open('bugzilla', 1204602)
     @run_only_on('sat')
-    def test_positive_update_2(self):
+    @tier1
+    def test_positive_update_file_for_imported_content(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then update its gpg key file
 
         @feature: GPG Keys
 
         @assert: gpg key is updated
-
-        @bz: 1204602
-
         """
         name = gen_string('alpha', 6)
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
@@ -317,14 +317,14 @@ class GPGKey(UITestCase):
             ))
 
     @run_only_on('sat')
-    def test_positive_update_3(self):
+    @tier1
+    def test_positive_update_name_for_pasted_content(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then update its name
 
         @feature: GPG Keys
 
         @assert: gpg key is updated
-
         """
         name = gen_string('alpha', 6)
         new_name = gen_string('alpha', 6)
@@ -341,18 +341,15 @@ class GPGKey(UITestCase):
                 common_locators['alert.success']
             ))
 
-    @skip_if_bug_open('bugzilla', 1204602)
     @run_only_on('sat')
-    def test_positive_update_4(self):
+    @tier1
+    def test_positive_update_file_for_pasted_content(self):
         """@test: Create gpg key with valid name and valid gpg key text via
         cut and paste/string then update its gpg key text
 
         @feature: GPG Keys
 
         @assert: gpg key is updated
-
-        @bz: 1204602
-
         """
         name = gen_string('alpha', 6)
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
@@ -372,14 +369,14 @@ class GPGKey(UITestCase):
     # Negative Update
 
     @run_only_on('sat')
-    def test_negative_update_1(self):
+    @tier1
+    def test_negative_update_name_for_imported_content(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then fail to update its name
 
         @feature: GPG Keys
 
         @assert: gpg key is not updated
-
         """
         name = gen_string('alpha', 6)
         with Session(self.browser) as session:
@@ -402,16 +399,14 @@ class GPGKey(UITestCase):
                     self.assertIsNone(self.gpgkey.search(new_name))
 
     @run_only_on('sat')
-    def test_consume_content_1(self):
+    @tier3
+    def test_positive_consume_content_using_repo(self):
         """@test: Hosts can install packages using gpg key associated with
         single custom repository
 
         @feature: GPG Keys
 
         @assert: host can install package from custom repository
-
-        @status: manual
-
         """
         key_name = gen_string('alphanumeric')
         # step1: Create gpg-key
@@ -518,7 +513,8 @@ class GPGKey(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_consume_content_2(self):
+    @tier3
+    def test_positive_consume_content_using_repos(self):
         """@test: Hosts can install packages using gpg key associated with
         multiple custom repositories
 
@@ -532,7 +528,8 @@ class GPGKey(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_consume_content_3(self):
+    @tier3
+    def test_positive_consume_content_using_repo_and_different_keys(self):
         """@test: Hosts can install packages using different gpg keys
         associated with multiple custom repositories
 
@@ -546,7 +543,8 @@ class GPGKey(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_list_key_1(self):
+    @tier1
+    def test_positive_list_key(self):
         """@test: Create gpg key and list it
 
         @feature: GPG Keys
@@ -559,7 +557,8 @@ class GPGKey(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_search_key_1(self):
+    @tier1
+    def test_positive_search_key(self):
         """@test: Create gpg key and search/find it
 
         @feature: GPG Keys
@@ -572,7 +571,8 @@ class GPGKey(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_info_key_1(self):
+    @tier1
+    def test_positive_info_key(self):
         """@test: Create single gpg key and get its info
 
         @feature: GPG Keys
@@ -584,25 +584,25 @@ class GPGKey(UITestCase):
         """
 
 
-class GPGKeyProductAssociate(UITestCase):
+class GPGKeyProductAssociateTestCase(UITestCase):
     """Implements Product Association tests for GPG Keys via UI"""
 
     @classmethod
     def setUpClass(cls):
-        super(GPGKeyProductAssociate, cls).setUpClass()
+        super(GPGKeyProductAssociateTestCase, cls).setUpClass()
         cls.key_content = read_data_file(VALID_GPG_KEY_FILE)
         cls.key_path = get_data_file(VALID_GPG_KEY_FILE)
         cls.organization = entities.Organization().create()
 
     @run_only_on('sat')
-    def test_key_associate_1(self):
+    @tier2
+    def test_positive_associate_with_product_that_has_no_repo(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with empty (no repos) custom product
 
         @feature: GPG Keys
 
         @assert: gpg key is associated with product
-
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -625,7 +625,8 @@ class GPGKeyProductAssociate(UITestCase):
             )
 
     @run_only_on('sat')
-    def test_key_associate_2(self):
+    @tier2
+    def test_positive_associate_with_product_that_has_repo(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has one repository
 
@@ -633,7 +634,6 @@ class GPGKeyProductAssociate(UITestCase):
 
         @assert: gpg key is associated with product as well as
         with the repository
-
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -663,7 +663,8 @@ class GPGKeyProductAssociate(UITestCase):
                 )
 
     @run_only_on('sat')
-    def test_key_associate_3(self):
+    @tier2
+    def test_positive_associate_with_product_that_has_repos(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has more than one repository
 
@@ -671,7 +672,6 @@ class GPGKeyProductAssociate(UITestCase):
 
         @assert: gpg key is associated with product as well as with
         the repositories
-
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -708,7 +708,8 @@ class GPGKeyProductAssociate(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1085035)
     @run_only_on('sat')
-    def test_key_associate_4(self):
+    @tier2
+    def test_positive_associate_with_product_using_repo_discovery(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product using Repo discovery method
 
@@ -718,7 +719,6 @@ class GPGKeyProductAssociate(UITestCase):
         the repositories
 
         @BZ: 1085035
-
         """
         name = get_random_gpgkey_name()
         with Session(self.browser) as session:
@@ -743,7 +743,8 @@ class GPGKeyProductAssociate(UITestCase):
                 )
 
     @run_only_on('sat')
-    def test_key_associate_5(self):
+    @tier2
+    def test_positive_associate_with_repo_from_product_with_repo(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has one repository
 
@@ -751,7 +752,6 @@ class GPGKeyProductAssociate(UITestCase):
 
         @assert: gpg key is associated with the repository but not with
         the product
-
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -784,7 +784,8 @@ class GPGKeyProductAssociate(UITestCase):
             )
 
     @run_only_on('sat')
-    def test_key_associate_6(self):
+    @tier2
+    def test_positive_associate_with_repo_from_product_with_repos(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has more than
         one repository
@@ -793,7 +794,6 @@ class GPGKeyProductAssociate(UITestCase):
 
         @assert: gpg key is associated with one of the repositories but
         not with the product
-
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -833,7 +833,8 @@ class GPGKeyProductAssociate(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_key_associate_7(self):
+    @tier2
+    def test_positive_associate_with_repos_using_repo_discovery(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repos from custom product using Repo discovery method
 
@@ -842,18 +843,17 @@ class GPGKeyProductAssociate(UITestCase):
         @assert: gpg key is associated with product and all the repositories
 
         @status: manual
-
         """
 
     @run_only_on('sat')
-    def test_key_associate_8(self):
+    @tier2
+    def test_positive_update_key_for_product_that_has_no_repo(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it with empty (no repos) custom product then update the key
 
         @feature: GPG Keys
 
         @assert: gpg key is associated with product before/after update
-
         """
         name = get_random_gpgkey_name()
         new_name = gen_string('alpha', 8)
@@ -884,7 +884,8 @@ class GPGKeyProductAssociate(UITestCase):
             )
 
     @run_only_on('sat')
-    def test_key_associate_9(self):
+    @tier2
+    def test_positive_update_key_for_product_that_has_repo(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has one repository
         then update the key
@@ -893,7 +894,6 @@ class GPGKeyProductAssociate(UITestCase):
 
         @assert: gpg key is associated with product as well as with
         reposiotry before/after update
-
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -931,7 +931,8 @@ class GPGKeyProductAssociate(UITestCase):
                 )
 
     @run_only_on('sat')
-    def test_key_associate_10(self):
+    @tier2
+    def test_positive_update_key_for_product_that_has_repos(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has more than one
         repository then update the key
@@ -940,7 +941,6 @@ class GPGKeyProductAssociate(UITestCase):
 
         @assert: gpg key is associated with product as well as with
         reposiories before/after update
-
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -985,7 +985,8 @@ class GPGKeyProductAssociate(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1210180)
     @run_only_on('sat')
-    def test_key_associate_11(self):
+    @tier2
+    def test_positive_update_key_for_product_using_repo_discovery(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product using Repo discovery
         method then update the key
@@ -996,7 +997,6 @@ class GPGKeyProductAssociate(UITestCase):
         repository before/after update
 
         @BZ: 1085035
-
         """
         name = get_random_gpgkey_name()
         new_name = gen_string("alpha", 8)
@@ -1027,16 +1027,16 @@ class GPGKeyProductAssociate(UITestCase):
                 )
 
     @run_only_on('sat')
-    def test_key_associate_12(self):
+    @tier2
+    def test_positive_update_key_for_repo_from_product_with_repo(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has one repository
         then update the key
 
         @feature: GPG Keys
 
-        @assert: gpg key is associated with repository
-        before/after update but not with product.
-
+        @assert: gpg key is associated with repository before/after update but
+        not with product.
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -1081,7 +1081,8 @@ class GPGKeyProductAssociate(UITestCase):
             )
 
     @run_only_on('sat')
-    def test_key_associate_13(self):
+    @tier2
+    def test_positive_update_key_for_repo_from_product_with_repos(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has more than
         one repository then update the key
@@ -1090,7 +1091,6 @@ class GPGKeyProductAssociate(UITestCase):
 
         @assert: gpg key is associated with single repository
         before/after update but not with product
-
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -1141,7 +1141,8 @@ class GPGKeyProductAssociate(UITestCase):
 
     @stubbed
     @run_only_on('sat')
-    def test_key_associate_14(self):
+    @tier2
+    def test_positive_update_key_for_repos_using_repo_discovery(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it to repos from custom product
         using Repo discovery method then update the key
@@ -1156,7 +1157,8 @@ class GPGKeyProductAssociate(UITestCase):
         """
 
     @run_only_on('sat')
-    def test_key_associate_15(self):
+    @tier2
+    def test_positive_delete_key_for_product_that_has_no_repo(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it with empty (no repos) custom product then delete it
 
@@ -1164,7 +1166,6 @@ class GPGKeyProductAssociate(UITestCase):
 
         @assert: gpg key is associated with product during creation but
         removed from product after deletion
-
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -1192,7 +1193,8 @@ class GPGKeyProductAssociate(UITestCase):
                 self.gpgkey.assert_key_from_product(name, prd_element))
 
     @run_only_on('sat')
-    def test_key_associate_16(self):
+    @tier2
+    def test_positive_delete_key_for_product_that_has_repo(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it with custom product that has one repository then delete it
 
@@ -1200,7 +1202,6 @@ class GPGKeyProductAssociate(UITestCase):
 
         @assert: gpg key is associated with product as well as with the
         repository during creation but removed from product after deletion
-
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -1235,16 +1236,16 @@ class GPGKeyProductAssociate(UITestCase):
                 self.gpgkey.assert_key_from_product(name, prd_element))
 
     @run_only_on('sat')
-    def test_key_associate_17(self):
-        """@test: Create gpg key with valid name and valid gpg key
-        then associate it with custom product that has
-        more than one repository then delete it
+    @tier2
+    def test_positive_delete_key_for_product_that_has_repos(self):
+        """@test: Create gpg key with valid name and valid gpg key then
+        associate it with custom product that has more than one repository then
+        delete it
 
         @feature: GPG Keys
 
         @assert: gpg key is associated with product as well as with
         repositories during creation but removed from product after deletion
-
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -1286,7 +1287,8 @@ class GPGKeyProductAssociate(UITestCase):
 
     @skip_if_bug_open('bugzilla', 1085035)
     @run_only_on('sat')
-    def test_key_associate_18(self):
+    @tier2
+    def test_positive_delete_key_for_product_using_repo_discovery(self):
         """@test: Create gpg key with valid name and valid gpg then associate
         it with custom product using Repo discovery method then delete it
 
@@ -1297,7 +1299,6 @@ class GPGKeyProductAssociate(UITestCase):
         after deletion
 
         @BZ: 1085035
-
         """
         name = get_random_gpgkey_name()
         product_name = gen_string('alpha', 8)
@@ -1327,7 +1328,8 @@ class GPGKeyProductAssociate(UITestCase):
                 self.gpgkey.assert_key_from_product(name, prd_element))
 
     @run_only_on('sat')
-    def test_key_associate_19(self):
+    @tier2
+    def test_positive_delete_key_for_repo_from_product_with_repo(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has one repository
         then delete the key
@@ -1336,7 +1338,6 @@ class GPGKeyProductAssociate(UITestCase):
 
         @assert: gpg key is associated with single repository
         during creation but removed from repository after deletion
-
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -1374,7 +1375,8 @@ class GPGKeyProductAssociate(UITestCase):
                 name, prd_element, repo.name))
 
     @run_only_on('sat')
-    def test_key_associate_20(self):
+    @tier2
+    def test_positive_delete_key_for_repo_from_product_with_repos(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has more than
         one repository then delete the key
@@ -1383,7 +1385,6 @@ class GPGKeyProductAssociate(UITestCase):
 
         @assert: gpg key is associated with single repository but not with
         product during creation but removed from repository after deletion
-
         """
         name = get_random_gpgkey_name()
         # Creates New GPGKey
@@ -1430,8 +1431,9 @@ class GPGKeyProductAssociate(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_key_associate_21(self):
-        """  @test: Create gpg key with valid name and valid gpg key then
+    @tier2
+    def test_positive_delete_key_for_repos_using_repo_discovery(self):
+        """@test: Create gpg key with valid name and valid gpg key then
         associate it to repos from custom product using Repo discovery method
         then delete the key
 

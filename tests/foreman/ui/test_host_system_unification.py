@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
 """Test class for Host/System Unification"""
 
-from robottelo.decorators import run_only_on, stubbed
+from robottelo.decorators import run_only_on, stubbed, tier3
 from robottelo.test import UITestCase
 
 
-class TestHostSystemUnificationUI(UITestCase):
+class HostSystemUnificationTestCase(UITestCase):
     """Implements Host System Unification tests in UI"""
     # Testing notes for host/system unification in katello/foreman
     # Basically assuring that hosts in foreman/katello bits are joined
@@ -17,7 +17,8 @@ class TestHostSystemUnificationUI(UITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_katello_host_in_foreman(self):
+    @tier3
+    def test_positive_register_katello_host(self):
         """@test: Hosts registered to Katello via rhsm appear in foreman
 
         @feature: Host/System Unification
@@ -32,12 +33,12 @@ class TestHostSystemUnificationUI(UITestCase):
         @status: Manual
 
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
-    def test_foreman_host_in_katello(self):
-        """@test: Hosts provisioned in foreman via appear in katello
+    @tier3
+    def test_positive_provision_foreman_host(self):
+        """@test: Hosts provisioned via foreman appear in katello
 
         @feature: Host/System Unification
 
@@ -51,11 +52,11 @@ class TestHostSystemUnificationUI(UITestCase):
         @status: Manual
 
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
-    def test_renamed_host_foreman(self):
+    @tier3
+    def test_positive_rename_foreman_host(self):
         """@test: Hosts renamed in foreman appear in katello
 
         @feature: Host/System Unification
@@ -70,11 +71,11 @@ class TestHostSystemUnificationUI(UITestCase):
         @status: Manual
 
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
-    def test_renamed_host_katello(self):
+    @tier3
+    def test_positive_rename_katello_host(self):
         """@test: Hosts renamed in katello via appear in foreman
 
         @feature: Host/System Unification
@@ -89,11 +90,11 @@ class TestHostSystemUnificationUI(UITestCase):
         @status: Manual
 
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
-    def test_deleted_host_foreman(self):
+    @tier3
+    def test_positive_delete_foreman_host(self):
         """@test: Hosts delete in foreman disappear from both sides of UI
 
         @feature: Host/System Unification
@@ -108,11 +109,11 @@ class TestHostSystemUnificationUI(UITestCase):
         @status: Manual
 
         """
-        pass
 
     @stubbed()
     @run_only_on('sat')
-    def test_deleted_host_katello(self):
+    @tier3
+    def test_positive_delete_katello_host(self):
         """@test: Hosts delete in katello disappear from both sides of UI
 
         @feature: Host/System Unification
@@ -127,4 +128,3 @@ class TestHostSystemUnificationUI(UITestCase):
         @status: Manual
 
         """
-        pass

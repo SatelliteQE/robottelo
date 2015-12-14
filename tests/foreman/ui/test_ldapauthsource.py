@@ -2,25 +2,27 @@
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
+from robottelo.decorators import skip_if_not_set, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_ldapauth
 from robottelo.ui.session import Session
 
 
-class LDAPAuthSource(UITestCase):
+class LDAPAuthSourceTestCase(UITestCase):
     """Implements Active Directory feature tests in UI."""
 
     @classmethod
+    @skip_if_not_set('ldap')
     def setUpClass(cls):
-        super(LDAPAuthSource, cls).setUpClass()
-        # TODO: handle when the ldap config is not available
+        super(LDAPAuthSourceTestCase, cls).setUpClass()
         cls.ldap_user_name = settings.ldap.username
         cls.ldap_user_passwd = settings.ldap.password
         cls.base_dn = settings.ldap.basedn
         cls.group_base_dn = settings.ldap.grpbasedn
         cls.ldap_hostname = settings.ldap.hostname
 
-    def test_create_ldap_authsource_withad(self):
+    @tier1
+    def test_positive_create_withad(self):
         """@Test: Create LDAP authentication with AD
 
         @Feature: LDAP Authentication - Active Directory - create LDAP AD
@@ -31,7 +33,6 @@ class LDAPAuthSource(UITestCase):
         2. Fill in all the fields appropriately for AD.
 
         @Assert: Whether creating LDAP Auth with AD is successful.
-
         """
         with Session(self.browser) as session:
             for server_name in generate_strings_list():
@@ -54,7 +55,8 @@ class LDAPAuthSource(UITestCase):
                         self.ldapauthsource.search(server_name)
                     )
 
-    def test_positive_delete_ldap_auth_withad(self):
+    @tier1
+    def test_positive_delete_withad(self):
         """@Test: Delete LDAP authentication with AD
 
         @Feature: LDAP Authentication - Active Directory - delete LDAP AD
@@ -65,7 +67,6 @@ class LDAPAuthSource(UITestCase):
         2. Delete LDAP Auth source with AD.
 
         @Assert: Whether deleting LDAP Auth with AD is successful.
-
         """
         with Session(self.browser) as session:
             for server_name in generate_strings_list():

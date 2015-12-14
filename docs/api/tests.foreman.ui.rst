@@ -43,15 +43,15 @@
 
 .. automodule:: tests.foreman.ui.test_contentsearch
 
-:mod:`tests.foreman.ui.test_contentviews`
+:mod:`tests.foreman.ui.test_contentview`
 -----------------------------------------
 
-.. automodule:: tests.foreman.ui.test_contentviews
+.. automodule:: tests.foreman.ui.test_contentview
 
-:mod:`tests.foreman.ui.test_discoveredhosts`
+:mod:`tests.foreman.ui.test_discoveredhost`
 --------------------------------------------
 
-.. automodule:: tests.foreman.ui.test_discoveredhosts
+.. automodule:: tests.foreman.ui.test_discoveredhost
 
 :mod:`tests.foreman.ui.test_discoveryrule`
 ------------------------------------------
