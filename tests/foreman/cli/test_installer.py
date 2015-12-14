@@ -4,7 +4,7 @@ from robottelo.decorators import run_only_on, stubbed
 from robottelo.test import CLITestCase
 
 
-class TestSSOCLI(CLITestCase):
+class InstallerTestCase(CLITestCase):
     """Test class for installer"""
     # Notes for installer testing:
     # Perhaps there is a convenient log analyzer library out there
@@ -13,7 +13,7 @@ class TestSSOCLI(CLITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_installer_check_services(self):
+    def test_positive_installer_check_services(self):
         # devnote:
         # maybe `hammer ping` command might be useful here to check
         # the health status
@@ -30,7 +30,7 @@ class TestSSOCLI(CLITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_installer_logfile_check(self):
+    def test_positive_installer_logfile_check(self):
         """@test: Look for ERROR or FATAL references in logfiles
 
         @feature: Installer
@@ -47,7 +47,7 @@ class TestSSOCLI(CLITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_installer_check_progress_meter(self):
+    def test_positive_installer_check_progress_meter(self):
         """@test:  Assure progress indicator/meter "works"
 
         @feature: Installer
@@ -60,7 +60,7 @@ class TestSSOCLI(CLITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_installer_from_iso(self):
+    def test_positive_server_installer_from_iso(self):
         """@test:  Can install product from ISO
 
         @feature: Installer
@@ -72,7 +72,7 @@ class TestSSOCLI(CLITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_installer_server_install(self):
+    def test_positive_server_installer_from_repository(self):
         """@test:  Can install main satellite instance successfully via RPM
 
         @feature: Installer
@@ -84,31 +84,19 @@ class TestSSOCLI(CLITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_installer_node_install(self):
-        """@test:  Can install node successfully via RPM
+    def test_positive_capsule_installer_from_repository(self):
+        """@test:  Can install capsule successfully via RPM
 
         @feature: Installer
 
-        @assert: Install of node successful.
+        @assert: Install of capsule successful.
 
         @status: Manual
         """
 
     @stubbed()
     @run_only_on('sat')
-    def test_installer_smartproxy_install(self):
-        """@test:  Can install smart-proxy successfully via RPM
-
-        @feature: Installer
-
-        @assert: Install of smart-proxy successful.
-
-        @status: Manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    def test_installer_disconnected_util_install(self):
+    def test_positive_disconnected_util_installer(self):
         """@test:  Can install  satellite disconnected utility successfully
         via RPM
 
@@ -121,13 +109,13 @@ class TestSSOCLI(CLITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_installer_smartproxy_registers(self):
-        """@test: Upon installation, smart-proxy instance self-registers
+    def test_positive_capsule_installer_and_register(self):
+        """@test: Upon installation, capsule instance self-registers
         itself to parent instance
 
         @feature: Installer
 
-        @assert: smart-proxy is communicating properly with parent,
+        @assert: capsule is communicating properly with parent,
         following install.
 
         @status: Manual
@@ -135,7 +123,7 @@ class TestSSOCLI(CLITestCase):
 
     @stubbed()
     @run_only_on('sat')
-    def test_installer_clear_data(self):
+    def test_positive_installer_clear_data(self):
         """@test:  User can run installer to clear existing data
 
         @feature: Installer
