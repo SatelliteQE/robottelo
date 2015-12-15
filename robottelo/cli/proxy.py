@@ -50,7 +50,10 @@ def default_url_on_new_port(oldport, newport):
     ssh.command('chmod 700 /tmp/dsa_{0}'.format(newport))
 
     with ssh._get_connection() as connection:
-        command = u'ssh -i {0} -L {1}:{2}:{3} {4}@{5}'.format(
+        command = (
+            u'ssh -i {0} -t -t -o UserKnownHostsFile=/dev/null'
+            ' -o StrictHostKeyChecking=no -L {1}:{2}:{3} {4}@{5}'
+        ).format(
             '/tmp/dsa_{0}'.format(newport),
             newport, domain, oldport, user, domain)
         logger.debug('Creating tunnel {0}'.format(command))
