@@ -580,9 +580,8 @@ class Base(object):
             self.wait_for_ajax(timeout)
 
     def perform_action_chain_move(self, locator):
-        """Locate the element described by the ``locator`` and put it into
-        action chain. Then mouse cursor is moved to each element from that
-        chain in a given order.
+        """Moving the mouse to the middle of an element specified by locator
+        parameter
 
         :param locator: The locator that describes the element.
         :raise: UINoSuchElementError if the element could not be found.
@@ -595,6 +594,16 @@ class Base(object):
                 .format(type(self).__name__, locator)
             )
         ActionChains(self.browser).move_to_element(element).perform()
+
+    def perform_action_chain_move_by_offset(self, x=0, y=0):
+        """Moving the mouse to an offset from current mouse position
+
+        :param x: X offset to move to
+        :param y: Y offset to move to
+
+        """
+        ActionChains(self.browser).move_by_offset(x, y).perform()
+        self.wait_for_ajax()
 
     def assign_value(self, locator, value):
         """Assign provided value to page element depending on the type of that
