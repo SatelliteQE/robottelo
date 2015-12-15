@@ -24,14 +24,14 @@ NEGATIVE_DELETE_DATA = (
 )
 
 
-class TestOperatingSystem(CLITestCase):
+class OperatingSystemTestCase(CLITestCase):
     """Test class for Operating System CLI."""
 
     # Issues
     @skip_if_bug_open('redmine', 4547)
     @run_only_on('sat')
     @tier1
-    def test_redmine_4547(self):
+    def test_verify_redmine_4547(self):
         """@test: Search for newly created OS by name
 
         @feature: Operating System - Search
@@ -39,7 +39,6 @@ class TestOperatingSystem(CLITestCase):
         @assert: Operating System is created and listed
 
         @bz: redmine#4547
-
         """
         os_list_before = OperatingSys.list()
         os = make_os()
@@ -51,35 +50,62 @@ class TestOperatingSystem(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_bugzilla_1051557(self):
-        """@test: Update an Operating System's major version.
+    def test_positive_list(self):
+        """@test: Displays list for operating system
 
-        @feature: Operating System - Update
+        @feature: Operating System
 
-        @assert: Operating System major version is updated
-
+        @assert: Operating System is created and listed
         """
-        os = make_os()
-        # New value for major
-        major = int(os['major-version']) + 1
-        OperatingSys.update({
-            'id': os['id'],
-            'major': major,
-        })
-        os = OperatingSys.info({
-            'id': os['id'],
-        })
-        self.assertEqual(int(os['major-version']), major)
+        os_list_before = OperatingSys.list()
+        name = gen_string('alpha')
+        os = make_os({'name': name})
+        os_list = OperatingSys.list({'search': 'name=%s' % name})
+        os_info = OperatingSys.info({'id': os_list[0]['id']})
+        self.assertEqual(os['id'], os_info['id'])
+        os_list_after = OperatingSys.list()
+        self.assertGreater(len(os_list_after), len(os_list_before))
 
     @run_only_on('sat')
     @tier1
-    def test_bugzilla_1203457(self):
+    def test_positive_info_by_id(self):
+        """@test: Displays info for operating system by its ID
+
+        @feature: Operating System
+
+        @assert: Operating System is created and can be looked up by its ID
+        """
+        os = make_os()
+        os_info = OperatingSys.info({'id': os['id']})
+        # Info does not return major or minor but a concat of name,
+        # major and minor
+        self.assertEqual(os['id'], os_info['id'])
+        self.assertEqual(os['name'], os_info['name'])
+        self.assertEqual(str(os['major-version']), os_info['major-version'])
+        self.assertEqual(str(os['minor-version']), os_info['minor-version'])
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_name(self):
+        """@test: Create Operating System for all variations of name
+
+        @feature: Operating System
+
+        @assert: Operating System is created and can be found
+        """
+        for name in valid_data_list():
+            with self.subTest(name):
+                os = make_os({'name': name})
+                self.assertEqual(os['name'], name)
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_arch_medium_ptable(self):
         """@test: Create an OS pointing to an arch, medium and partition table.
 
-        @feature: Operating System - Create
+        @feature: Operating System
 
         @assert: An operating system is created.
-
         """
         architecture = make_architecture()
         medium = make_medium()
@@ -102,66 +128,12 @@ class TestOperatingSystem(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_list_1(self):
-        """@test: Displays list for operating system
-
-        @feature: Operating System - List
-
-        @assert: Operating System is created and listed
-
-        """
-        os_list_before = OperatingSys.list()
-        name = gen_string('alpha')
-        os = make_os({'name': name})
-        os_list = OperatingSys.list({'search': 'name=%s' % name})
-        os_info = OperatingSys.info({'id': os_list[0]['id']})
-        self.assertEqual(os['id'], os_info['id'])
-        os_list_after = OperatingSys.list()
-        self.assertGreater(len(os_list_after), len(os_list_before))
-
-    @run_only_on('sat')
-    @tier1
-    def test_info_1(self):
-        """@test: Displays info for operating system
-
-        @feature: Operating System - Info
-
-        @assert: Operating System is created and have the correct data
-
-        """
-        os = make_os()
-        os_info = OperatingSys.info({'id': os['id']})
-        # Info does not return major or minor but a concat of name,
-        # major and minor
-        self.assertEqual(os['id'], os_info['id'])
-        self.assertEqual(os['name'], os_info['name'])
-        self.assertEqual(str(os['major-version']), os_info['major-version'])
-        self.assertEqual(str(os['minor-version']), os_info['minor-version'])
-
-    @run_only_on('sat')
-    @tier1
-    def test_positive_create_1(self):
-        """@test: Create Operating System for all variations of name
-
-        @feature: Operating System - Positive Create
-
-        @assert: Operating System is created and can be found
-
-        """
-        for name in valid_data_list():
-            with self.subTest(name):
-                os = make_os({'name': name})
-                self.assertEqual(os['name'], name)
-
-    @run_only_on('sat')
-    @tier1
-    def test_negative_create_1(self):
+    def test_negative_create_with_name(self):
         """@test: Create Operating System using invalid names
 
-        @feature: Operating System - Negative Create
+        @feature: Operating System
 
         @assert: Operating System is not created
-
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -170,13 +142,12 @@ class TestOperatingSystem(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_update_1(self):
-        """@test: Positive update of system name
+    def test_positive_update_name(self):
+        """@test: Positive update of operating system name
 
-        @feature: Operating System - Positive Update
+        @feature: Operating System
 
-        @assert: Operating System is updated and can be found
-
+        @assert: Operating System name is updated
         """
         os = make_os({'name': gen_alphanumeric()})
         for new_name in valid_data_list():
@@ -191,13 +162,33 @@ class TestOperatingSystem(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_update_1(self):
+    def test_positive_update_major_version(self):
+        """@test: Update an Operating System's major version.
+
+        @feature: Operating System
+
+        @assert: Operating System major version is updated
+        """
+        os = make_os()
+        # New value for major
+        major = int(os['major-version']) + 1
+        OperatingSys.update({
+            'id': os['id'],
+            'major': major,
+        })
+        os = OperatingSys.info({
+            'id': os['id'],
+        })
+        self.assertEqual(int(os['major-version']), major)
+
+    @run_only_on('sat')
+    @tier1
+    def test_negative_update_name(self):
         """@test: Negative update of system name
 
-        @feature: Operating System - Negative Update
+        @feature: Operating System
 
-        @assert: Operating System is not updated
-
+        @assert: Operating System name is not updated
         """
         os = make_os({'name': gen_alphanumeric()})
         for new_name in invalid_values_list():
@@ -212,13 +203,12 @@ class TestOperatingSystem(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_delete_1(self):
-        """@test: Successfully deletes Operating System
+    def test_positive_delete_by_id(self):
+        """@test: Successfully deletes Operating System by its ID
 
-        @feature: Operating System - Positive Delete
+        @feature: Operating System
 
         @assert: Operating System is deleted
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -229,13 +219,12 @@ class TestOperatingSystem(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_delete_1(self):
-        """@test: Not delete Operating System for invalid data
+    def test_negative_delete_by_id(self):
+        """@test: Delete Operating System using invalid data
 
-        @feature: Operating System - Negative Delete
+        @feature: Operating System
 
         @assert: Operating System is not deleted
-
         """
         for test_data in NEGATIVE_DELETE_DATA:
             with self.subTest(test_data):
@@ -250,13 +239,12 @@ class TestOperatingSystem(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_add_architecture(self):
-        """@test: Add Architecture to os
+    def test_positive_add_arch(self):
+        """@test: Add Architecture to operating system
 
-        @feature: Operating System - Add architecture
+        @feature: Operating System
 
-        @assert: Operating System is updated with architecture
-
+        @assert: Architecture is added to Operating System
         """
         architecture = make_architecture()
         os = make_os()
@@ -270,13 +258,12 @@ class TestOperatingSystem(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_add_configtemplate(self):
-        """@test: Add configtemplate to os
+    def test_positive_add_template(self):
+        """@test: Add provisioning template to operating system
 
-        @feature: Operating System - Add comfigtemplate
+        @feature: Operating System
 
-        @assert: Operating System is updated with config template
-
+        @assert: Provisioning template is added to Operating System
         """
         template = make_template()
         os = make_os()
@@ -291,13 +278,12 @@ class TestOperatingSystem(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_add_ptable(self):
-        """@test: Add ptable to os
+    def test_positive_add_ptable(self):
+        """@test: Add partition table to operating system
 
-        @feature: Operating System - Add ptable
+        @feature: Operating System
 
-        @assert: Operating System is updated with ptable
-
+        @assert: Partition table is added to Operating System
         """
         # Create a partition table.
         ptable_name = make_partition_table()['name']
