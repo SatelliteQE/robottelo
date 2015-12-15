@@ -10,7 +10,7 @@ class PingTestCase(CLITestCase):
     """Tests related to the hammer ping command"""
 
     @tier1
-    def test_hammer_ping(self):
+    def test_positive_ping(self):
         """@test: hammer ping return code
 
         @feature: hammer ping
