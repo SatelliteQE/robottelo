@@ -8,12 +8,12 @@ from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import CLITestCase
 
 
-class TestPartitionTableUpdateCreate(CLITestCase):
+class PartitionTableUpdateCreateTestCase(CLITestCase):
     """Test case for CLI tests."""
 
     def setUp(self):  # noqa
         """Set up file"""
-        super(TestPartitionTableUpdateCreate, self).setUp()
+        super(PartitionTableUpdateCreateTestCase, self).setUp()
         self.content = "Fake ptable"
         self.name = gen_alphanumeric(6)
         self.args = {'name': self.name,
@@ -21,26 +21,37 @@ class TestPartitionTableUpdateCreate(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_ptable(self):
-        """@Test: Check if Partition Table can be created
+    def test_positive_create_with_name_content(self):
+        """@Test: Create a Partition Table with name and content
 
-        @Assert: Partition Table is created
+        @Assert: Partition Table is created and has correct name and content
 
-        @Feature: Partition Table - Create
-
+        @Feature: Partition Table
         """
         ptable = make_partition_table(self.args)
         self.assertEqual(ptable['name'], self.name)
 
+    @tier1
+    def test_positive_create_with_content(self):
+        """@Test: Create a Partition Table with content
+
+        @Feature: Partition Table
+
+        @Assert: Partition Table is created and has correct content
+        """
+        content = "Fake ptable"
+        ptable = make_partition_table({'content': content})
+        ptable_content = PartitionTable().dump({'id': ptable['id']})
+        self.assertTrue(content in ptable_content[0])
+
     @run_only_on('sat')
     @tier1
-    def test_update_ptable(self):
-        """@Test: Check if Partition Table can be updated
+    def test_positive_update_name(self):
+        """@Test: Create a Partition Table and update its name
 
-        @Feature: Partition Table - Update
+        @Feature: Partition Table
 
-        @Assert: Partition Table is updated
-
+        @Assert: Partition Table is created and its name can be updated
         """
         ptable = make_partition_table(self.args)
         self.assertEqual(ptable['name'], self.name)
@@ -52,31 +63,16 @@ class TestPartitionTableUpdateCreate(CLITestCase):
         PartitionTable().exists(search=('name', new_name))
 
 
-class TestPartitionTableDelete(CLITestCase):
+class PartitionTableDeleteTestCase(CLITestCase):
     """Test case for Dump/Delete CLI tests."""
 
     @tier1
-    def test_dump_ptable_1(self):
-        """@Test: Check if Partition Table can be created with specific content
+    def test_positive_delete_by_id(self):
+        """@Test: Create a Partition Table then delete it by its ID
 
-        @Feature: Partition Table - Create
-
-        @Assert: Partition Table is created
-
-        """
-        content = "Fake ptable"
-        ptable = make_partition_table({'content': content})
-        ptable_content = PartitionTable().dump({'id': ptable['id']})
-        self.assertTrue(content in ptable_content[0])
-
-    @tier1
-    def test_delete_ptable_1(self):
-        """@Test: Check if Partition Table can be deleted
-
-        @Feature: Partition Table - Delete
+        @Feature: Partition Table
 
         @Assert: Partition Table is deleted
-
         """
         content = "Fake ptable"
         name = gen_alphanumeric(6)
@@ -86,13 +82,12 @@ class TestPartitionTableDelete(CLITestCase):
 
     # pylint: disable=no-self-use
     @tier2
-    def test_addoperatingsystem_ptable(self):
-        """@Test: Check if Partition Table can be associated
-                  with operating system
+    def test_positive_add_os_by_id(self):
+        """@Test: Create a partition table then add an operating system to it
 
-        @Feature: Partition Table - Add operating system
+        @Feature: Partition Table
 
-        @Assert: Operating system added
+        @Assert: Operating system is added to partition table
 
         """
         content = "Fake ptable"
@@ -104,13 +99,12 @@ class TestPartitionTableDelete(CLITestCase):
         })
 
     @tier2
-    def test_remove_os_ptable(self):
-        """@Test: Check if associated operating system can be removed
+    def test_positive_remove_os_by_id(self):
+        """@Test: Add an operating system to a partition table then remove it
 
-        @Feature: Partition Table - Add operating system
+        @Feature: Partition Table
 
-        @Assert: Operating system removed
-
+        @Assert: Operating system is added then removed from partition table
         """
         ptable = make_partition_table({'content': gen_string("alpha", 10)})
         os = make_os()
