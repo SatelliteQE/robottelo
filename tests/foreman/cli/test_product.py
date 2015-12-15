@@ -23,7 +23,7 @@ from robottelo.decorators import bz_bug_is_open, run_only_on, tier1, tier2
 from robottelo.test import CLITestCase
 
 
-class TestProduct(CLITestCase):
+class ProductTestCase(CLITestCase):
     """Product CLI tests."""
 
     org = None
@@ -32,14 +32,14 @@ class TestProduct(CLITestCase):
     def setUp(self):
         """Tests for Lifecycle Environment via Hammer CLI"""
 
-        super(TestProduct, self).setUp()
+        super(ProductTestCase, self).setUp()
 
-        if TestProduct.org is None:
-            TestProduct.org = make_org(cached=True)
+        if ProductTestCase.org is None:
+            ProductTestCase.org = make_org(cached=True)
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_1(self):
+    def test_positive_create_with_name(self):
         """@Test: Check if product can be created with random names
 
         @Feature: Product
@@ -57,7 +57,7 @@ class TestProduct(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_2(self):
+    def test_positive_create_with_label(self):
         """@Test: Check if product can be created with random labels
 
         @Feature: Product
@@ -77,7 +77,7 @@ class TestProduct(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_3(self):
+    def test_positive_create_with_description(self):
         """@Test: Check if product can be created with random description
 
         @Feature: Product
@@ -96,7 +96,7 @@ class TestProduct(CLITestCase):
                 self.assertEqual(product['description'], desc)
 
     @tier1
-    def test_positive_create_4(self):
+    def test_positive_create_with_gpg_key(self):
         """@Test: Check if product can be created with gpg key
 
         @Feature: Product
@@ -115,7 +115,7 @@ class TestProduct(CLITestCase):
                 self.assertEqual(product['gpg']['gpg-key-id'], gpg_key['id'])
 
     @tier1
-    def test_positive_create_5(self):
+    def test_positive_create_with_sync_plan(self):
         """@Test: Check if product can be created with sync plan
 
         @Feature: Product
@@ -136,7 +136,7 @@ class TestProduct(CLITestCase):
                 self.assertEqual(product['sync-plan-id'], sync_plan['id'])
 
     @tier1
-    def test_negative_create_1(self):
+    def test_negative_create_with_name(self):
         """@Test: Check that only valid names can be used
 
         @Feature: Product
@@ -152,7 +152,7 @@ class TestProduct(CLITestCase):
                     })
 
     @tier1
-    def test_negative_create_2(self):
+    def test_negative_create_with_label(self):
         """@Test: Check that only valid labels can be used
 
         @Feature: Product
@@ -171,7 +171,7 @@ class TestProduct(CLITestCase):
                     })
 
     @tier1
-    def test_positive_update_1(self):
+    def test_positive_update_description(self):
         """@Test: Update the description of a product
 
         @Feature: Product
@@ -193,7 +193,7 @@ class TestProduct(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_update_2(self):
+    def test_positive_update_gpg_key(self):
         """@Test: Update product's gpg keys
 
         @Feature: Product
@@ -221,7 +221,7 @@ class TestProduct(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_update_3(self):
+    def test_positive_update_sync_plan(self):
         """@Test: Update product's sync plan
 
         @Feature: Product
@@ -249,7 +249,7 @@ class TestProduct(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_update_4(self):
+    def test_positive_update_name(self):
         """@Test: Rename Product back to original name
 
         @Feature: Product
@@ -288,7 +288,7 @@ class TestProduct(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_delete_1(self):
+    def test_positive_delete_by_id(self):
         """@Test: Check if product can be deleted
 
         @Feature: Product
@@ -311,12 +311,12 @@ class TestProduct(CLITestCase):
                     })
 
     @tier2
-    def test_add_syncplan_1(self):
-        """@Test: Check if product can be assigned a syncplan
+    def test_positive_add_sync_plan_by_id(self):
+        """@Test: Check if a sync plan can be added to a product
 
         @Feature: Product
 
-        @Assert: Product has syncplan
+        @Assert: Product has sync plan
         """
         new_product = make_product({u'organization-id': self.org['id']})
         sync_plan = make_sync_plan({'organization-id': self.org['id']})
@@ -331,12 +331,12 @@ class TestProduct(CLITestCase):
         self.assertEqual(new_product['sync-plan-id'], sync_plan['id'])
 
     @tier2
-    def test_remove_syncplan_1(self):
-        """@Test: Check if product can be assigned a syncplan
+    def test_positive_remove_sync_plan_by_id(self):
+        """@Test: Check if a sync plan can be removed from a product
 
         @Feature: Product
 
-        @Assert: Product has syncplan
+        @Assert: Product has sync plan
         """
         product = make_product({u'organization-id': self.org['id']})
         sync_plan = make_sync_plan({'organization-id': self.org['id']})
@@ -357,13 +357,12 @@ class TestProduct(CLITestCase):
         self.assertEqual(len(product['sync-plan-id']), 0)
 
     @tier2
-    def test_product_sync_by_id(self):
-        """@Test: Check if product can be synchronized.
-        Searches for product and organization by their IDs
+    def test_positive_sync_by_id(self):
+        """@Test: Check if product can be synchronized by its ID.
 
         @Feature: Product
 
-        @Assert: Product was synchronized
+        @Assert: Product is synchronized
         """
         org = make_org()
         product = make_product({'organization-id': org['id']})
@@ -379,13 +378,12 @@ class TestProduct(CLITestCase):
         self.assertEqual(u'Syncing Complete.', product['sync-state'])
 
     @tier2
-    def test_product_sync_by_name(self):
-        """@Test: Check if product can be synchronized.
-        Searches for product and organization by their Names
+    def test_positive_sync_by_name(self):
+        """@Test: Check if product can be synchronized by its name.
 
         @Feature: Product
 
-        @Assert: Product was synchronized
+        @Assert: Product is synchronized
         """
         org = make_org()
         product = make_product({'organization-id': org['id']})
@@ -401,13 +399,12 @@ class TestProduct(CLITestCase):
         self.assertEqual(u'Syncing Complete.', product['sync-state'])
 
     @tier2
-    def test_product_sync_by_label(self):
-        """@Test: Check if product can be synchronized.
-        Searches for organization by its label
+    def test_positive_sync_by_label(self):
+        """@Test: Check if product can be synchronized by its label.
 
         @Feature: Product
 
-        @Assert: Product was synchronized
+        @Assert: Product is synchronized
         """
         org = make_org()
         product = make_product({'organization-id': org['id']})
