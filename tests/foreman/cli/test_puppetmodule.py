@@ -9,12 +9,12 @@ from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
 from robottelo.test import CLITestCase
 
 
-class TestPuppetModule(CLITestCase):
+class PuppetModuleTestCase(CLITestCase):
     """Tests for PuppetModule via Hammer CLI"""
 
     @classmethod
     def setUpClass(cls):
-        super(TestPuppetModule, cls).setUpClass()
+        super(PuppetModuleTestCase, cls).setUpClass()
         cls.org = make_org()
         cls.product = make_product({
             u'organization-id': cls.org['id']
@@ -30,7 +30,7 @@ class TestPuppetModule(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1283173)
     @tier1
-    def test_puppet_module_list(self):
+    def test_positive_list(self):
         """@Test: Check if puppet-module list retrieves puppet-modules of
         the given org
 
@@ -44,7 +44,7 @@ class TestPuppetModule(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_puppet_module_info(self):
+    def test_positive_info(self):
         """@Test: Check if puppet-module info retrieves info for the given
         puppet-module id
 
