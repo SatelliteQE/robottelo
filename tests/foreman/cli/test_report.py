@@ -11,11 +11,11 @@ from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
-class TestReport(CLITestCase):
+class ReportTestCase(CLITestCase):
     """Test class for Reports CLI. """
 
     def setUp(self):
-        super(TestReport, self).setUp()
+        super(ReportTestCase, self).setUp()
         self.run_puppet_agent()
 
     def run_puppet_agent(self):
@@ -27,10 +27,10 @@ class TestReport(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_list(self):
+    def test_positive_list(self):
         """@Test: Test list for Puppet report
 
-        @Feature: Puppet Report - list
+        @Feature: Puppet Report
 
         @Assert: Puppert Report List is displayed
         """
@@ -38,10 +38,10 @@ class TestReport(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_info(self):
+    def test_positive_info(self):
         """@Test: Test Info for Puppet report
 
-        @Feature: Puppet Report - Info
+        @Feature: Puppet Report
 
         @Assert: Puppet Report Info is displayed
         """
@@ -54,10 +54,10 @@ class TestReport(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_delete(self):
-        """@Test: Check if Puppet Report can be deleted
+    def test_positive_delete_by_id(self):
+        """@Test: Check if Puppet Report can be deleted by its ID
 
-        @Feature: Puppet Report - Delete
+        @Feature: Puppet Report
 
         @Assert: Puppet Report is deleted
         """
