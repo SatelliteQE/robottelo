@@ -35,18 +35,17 @@ def valid_name_desc_list():
     )
 
 
-class ProductsTestCase(APITestCase):
+class ProductTestCase(APITestCase):
     """Tests for ``katello/api/v2/products``."""
 
     @tier1
     @run_only_on('sat')
-    def test_positive_create_1(self):
+    def test_positive_create_with_name_and_description(self):
         """@Test: Create a product and provide a name or description.
 
         @Assert: A product is created with the provided attributes.
 
         @Feature: Product
-
         """
         for attr in valid_name_desc_list():
             with self.subTest(attr):
@@ -56,13 +55,12 @@ class ProductsTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_create_2(self):
+    def test_positive_create_with_gpg(self):
         """@Test: Create a product and provide a GPG key.
 
         @Assert: A product is created with the specified GPG key.
 
         @Feature: Product
-
         """
         # Create an organization, GPG key and product.
         #
@@ -90,13 +88,12 @@ class ProductUpdateTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_update_1(self):
+    def test_positive_update_name_and_description(self):
         """@Test: Update a product with a new name or description.
 
         @Assert: The given attributes are used.
 
         @Feature: Product
-
         """
         for attrs in valid_name_desc_list():
             with self.subTest(attrs):
@@ -109,13 +106,12 @@ class ProductUpdateTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_update_2(self):
+    def test_positive_update_name_to_original(self):
         """@Test: Rename Product back to original name
 
         @Feature: Product
 
         @Assert: Product Renamed to original
-
         """
         for new_name in generate_strings_list():
             with self.subTest(new_name):
@@ -134,18 +130,17 @@ class ProductUpdateTestCase(APITestCase):
                 )
 
 
-class RepositorySetsTestCase(APITestCase):
+class RepositorySetTestCase(APITestCase):
     """Tests for ``katello/api/v2/products/<product_id>/repository_sets``."""
 
     @tier1
     @run_only_on('sat')
-    def test_repositoryset_enable(self):
+    def test_positive_reposet_enable(self):
         """@Test: Enable repo from reposet
 
         @Feature: Repository-set
 
         @Assert: Repository was enabled
-
         """
         org = entities.Organization().create()
         with open(manifests.clone(), 'rb') as manifest:
@@ -170,13 +165,12 @@ class RepositorySetsTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_repositoryset_disable(self):
+    def test_positive_reposet_disable(self):
         """@Test: Disable repo from reposet
 
         @Feature: Repository-set
 
         @Assert: Repository was disabled
-
         """
         org = entities.Organization().create()
         with open(manifests.clone(), 'rb') as manifest:

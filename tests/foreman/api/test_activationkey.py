@@ -79,7 +79,7 @@ class ActivationKeyTestCase(APITestCase):
                 self.assertEqual(desc, act_key.description)
 
     @tier1
-    def test_negative_create_no_chost_limit(self):
+    def test_negative_create_with_no_chost_limit(self):
         """@Test: Create activation key with limited content hosts but no limit
         set.
 
@@ -91,7 +91,7 @@ class ActivationKeyTestCase(APITestCase):
             entities.ActivationKey(unlimited_content_hosts=False).create()
 
     @tier1
-    def test_negative_create_invalid_chost_limit(self):
+    def test_negative_create_with_invalid_chost_limit(self):
         """@Test: Create activation key with limited content hosts but with
         invalid limit values.
 
@@ -109,7 +109,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     @skip_if_bug_open('bugzilla', 1156555)
-    def test_negative_create_no_chost_limit_with_set_max(self):
+    def test_negative_create_with_no_chost_limit_set_max(self):
         """@Test Create activation key with unlimited content hosts and set max
         content hosts of varied values.
 

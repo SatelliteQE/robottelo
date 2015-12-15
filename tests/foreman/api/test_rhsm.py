@@ -11,11 +11,11 @@ from robottelo.test import APITestCase
 from six.moves import http_client
 
 
-class RHSMTestCase(APITestCase):
+class RedHatSubscriptionManagerTestCase(APITestCase):
     """Tests for the ``/rhsm`` path."""
 
     @tier1
-    def test_path_exists(self):
+    def test_positive_path(self):
         """@Test: Check whether the path exists.
 
         @Feature: Red Hat Subscription Manager
@@ -24,7 +24,6 @@ class RHSMTestCase(APITestCase):
         ``application/json`` content-type, and the response is a list.
 
         This test targets bugzilla bug 1112802.
-
         """
         path = '{0}/rhsm'.format(settings.server.get_url())
         response = client.get(

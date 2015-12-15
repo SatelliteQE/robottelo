@@ -75,7 +75,6 @@ def _get_readable_attributes(entity):
     Collect attributes from the ``entity`` object, drop attributes that the
     server doesn't hand back like passwords, drop foreign keys. What remains
     should match what the server will return.
-
     """
     attributes = entity.get_values()
 
@@ -124,7 +123,6 @@ def skip_if_sam(self, entity):
 
     :param entity: One of the entities defined in module ``nailgun.entities``.
     :returns: Either ``self.skipTest`` or ``None``.
-
     """
     robottelo_mode = settings.project
     server_modes = [
@@ -146,13 +144,12 @@ class EntityTestCase(APITestCase):
     """Issue HTTP requests to various ``entity/`` paths."""
 
     @tier1
-    def test_get_status_code(self):
+    def test_positive_get_status_code(self):
         """@Test: GET an entity-dependent path.
 
         @Feature: Test multiple API paths
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
-
         """
         exclude_list = (
             entities.ActivationKey,  # need organization_id or environment_id
@@ -181,13 +178,12 @@ class EntityTestCase(APITestCase):
                 )
 
     @tier1
-    def test_get_unauthorized(self):
+    def test_negative_get_unauthorized(self):
         """@Test: GET an entity-dependent path without credentials.
 
         @Feature: Test multiple API paths
 
         @Assert: HTTP 401 is returned
-
         """
         exclude_list = (
             entities.ActivationKey,  # need organization_id or environment_id
@@ -205,13 +201,12 @@ class EntityTestCase(APITestCase):
                     http_client.UNAUTHORIZED, response.status_code)
 
     @tier1
-    def test_post_status_code(self):
+    def test_positive_post_status_code(self):
         """@Test: Issue a POST request and check the returned status code.
 
         @Feature: Test multiple API paths
 
         @Assert: HTTP 201 is returned with an ``application/json`` content-type
-
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -238,13 +233,12 @@ class EntityTestCase(APITestCase):
 
     @tier1
     @skip_if_bug_open('bugzilla', 1122257)
-    def test_post_unauthorized(self):
+    def test_negative_post_unauthorized(self):
         """@Test: POST to an entity-dependent path without credentials.
 
         @Feature: Test multiple API paths
 
         @Assert: HTTP 401 is returned
-
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -265,13 +259,12 @@ class EntityIdTestCase(APITestCase):
     """Issue HTTP requests to various ``entity/:id`` paths."""
 
     @tier1
-    def test_get_status_code(self):
+    def test_positive_get_status_code(self):
         """@Test: Create an entity and GET it.
 
         @Feature: Test multiple API paths
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
-
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -292,13 +285,12 @@ class EntityIdTestCase(APITestCase):
                 )
 
     @tier1
-    def test_put_status_code(self):
+    def test_positive_put_status_code(self):
         """@Test Issue a PUT request and check the returned status code.
 
         @Feature: Test multiple API paths
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
-
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -331,7 +323,7 @@ class EntityIdTestCase(APITestCase):
                 )
 
     @tier1
-    def test_delete_status_code(self):
+    def test_positive_delete_status_code(self):
         """@Test Issue an HTTP DELETE request and check the returned status
         code.
 
@@ -339,7 +331,6 @@ class EntityIdTestCase(APITestCase):
 
         @Assert: HTTP 200, 202 or 204 is returned with an ``application/json``
         content-type.
-
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -384,18 +375,16 @@ class DoubleCheckTestCase(APITestCase):
     Do not just assume that an HTTP response with a good status code indicates
     that an action succeeded. Instead, issue a follow-up request after each
     action to ensure that the intended action was accomplished.
-
     """
     longMessage = True
 
     @tier1
-    def test_put_and_get(self):
+    def test_positive_put_and_get_requests(self):
         """@Test: Update an entity, then read it back.
 
         @Feature: Test multiple API paths
 
         @Assert: The entity is updated with the given attributes.
-
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -432,13 +421,12 @@ class DoubleCheckTestCase(APITestCase):
                     self.assertEqual(value, entity_attrs[key], key)
 
     @tier1
-    def test_post_and_get(self):
+    def test_positive_post_and_get_requests(self):
         """@Test: Create an entity, then read it back.
 
         @Feature: Test multiple API paths
 
         @Assert: The entity is created with the given attributes.
-
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -463,13 +451,12 @@ class DoubleCheckTestCase(APITestCase):
                     self.assertEqual(value, entity_attrs[key], key)
 
     @tier1
-    def test_delete_and_get(self):
+    def test_positive_delete_and_get_requests(self):
         """@Test: Issue an HTTP DELETE request and GET the deleted entity.
 
         @Feature: Test multiple API paths
 
         @Assert: An HTTP 404 is returned when fetching the missing entity.
-
         """
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
@@ -502,19 +489,18 @@ class DoubleCheckTestCase(APITestCase):
 
 
 class EntityReadTestCase(APITestCase):
+    """Check whether classes inherited from
+    ``nailgun.entity_mixins.EntityReadMixin`` are working properly.
     """
-    Check that classes inheriting from
-    ``nailgun.entity_mixins.EntityReadMixin`` function correctly.
-    """
+
     @tier1
-    def test_entity_read(self):
+    def test_positive_entity_read(self):
         """@Test: Create an entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
         @Feature: Test multiple API paths
 
         @Assert: The just-read entity is an instance of the correct class.
-
         """
         exclude_list = (
             entities.Architecture,  # see test_architecture_read
@@ -534,14 +520,13 @@ class EntityReadTestCase(APITestCase):
                 )
 
     @tier1
-    def test_architecture_read(self):
+    def test_positive_architecture_read(self):
         """@Test: Create an arch that points to an OS, and read the arch.
 
         @Feature: Test multiple API paths
 
         @Assert: The call to ``Architecture.read`` succeeds, and the response
         contains the correct operating system ID.
-
         """
         os_id = entities.OperatingSystem().create_json()['id']
         arch_id = entities.Architecture(
@@ -552,14 +537,13 @@ class EntityReadTestCase(APITestCase):
         self.assertEqual(architecture.operatingsystem[0].id, os_id)
 
     @tier1
-    def test_syncplan_read(self):
+    def test_positive_syncplan_read(self):
         """@Test: Create a SyncPlan and read it back using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
         @Feature: Test multiple API paths.
 
         @Assert: The just-read entity is an instance of the correct class.
-
         """
         org_id = entities.Organization().create_json()['id']
         syncplan_id = entities.SyncPlan(
@@ -572,14 +556,13 @@ class EntityReadTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_osparameter_read(self):
+    def test_positive_osparameter_read(self):
         """@Test: Create an OperatingSystemParameter and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
         @Feature: Test multiple API paths
 
         @Assert: The just-read entity is an instance of the correct class.
-
         """
         os_id = entities.OperatingSystem().create_json()['id']
         osp_id = entities.OperatingSystemParameter(
@@ -595,7 +578,7 @@ class EntityReadTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_permission_read(self):
+    def test_positive_permission_read(self):
         """@Test: Create an Permission entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
@@ -603,20 +586,18 @@ class EntityReadTestCase(APITestCase):
 
         @Assert: The just-read entity is an instance of the correct class and
         name and resource_type fields are populated
-
         """
         perm = entities.Permission().search(query={'per_page': 1})[0]
         self.assertGreater(len(perm.name), 0)
         self.assertGreater(len(perm.resource_type), 0)
 
     @tier1
-    def test_media_read(self):
+    def test_positive_media_read(self):
         """@Test: Create a media pointing at an OS and read the media.
 
         @Feature: Test multiple API paths
 
         @Assert: The media points at the correct operating system.
-
         """
         os_id = entities.OperatingSystem().create_json()['id']
         media_id = entities.Media(operatingsystem=[os_id]).create_json()['id']

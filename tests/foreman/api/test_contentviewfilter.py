@@ -219,7 +219,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_create_with_repos_with_docker(self):
+    def test_positive_create_with_docker_repos(self):
         """Test: Create new docker repository and add to content view that has
         yum repo already assigned to it. Create new content view filter and
         assign it to the content view.

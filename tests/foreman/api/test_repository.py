@@ -21,6 +21,7 @@ from robottelo.decorators import (
     bz_bug_is_open,
     run_only_on,
     skip_if_bug_open,
+    skip_if_not_set,
     tier1,
     tier2,
 )
@@ -72,13 +73,12 @@ class RepositoryTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_create_attrs(self):
+    def test_positive_create(self):
         """@Test: Create a repository and provide valid attributes.
 
         @Assert: A repository is created with the given attributes.
 
         @Feature: Repository
-
         """
         for attrs in _test_data():
             with self.subTest(attrs):
@@ -93,13 +93,12 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_create_gpgkey(self):
+    def test_positive_create_with_gpg(self):
         """@Test: Create a repository and provide a GPG key ID.
 
         @Assert: A repository is created with the given GPG key ID.
 
         @Feature: Repository
-
         """
         # Create this dependency tree:
         #
@@ -120,14 +119,13 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_create_same_name(self):
+    def test_positive_create_same_name_different_orgs(self):
         """@Test: Create two repos with the same name in two organizations.
 
-        @Assert: The two repositories are sucessfully created and use the given
-        name.
+        @Assert: The two repositories are successfully created and use the
+        given name.
 
         @Feature: Repository
-
         """
         repo1 = entities.Repository().create()
         repo2 = entities.Repository(name=repo1.name).create()
@@ -136,13 +134,12 @@ class RepositoryTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_delete(self):
+    def test_positive_delete(self):
         """@Test: Create a repository with attributes ``attrs`` and delete it.
 
         @Assert: The repository cannot be fetched after deletion.
 
         @Feature: Repository
-
         """
         for attrs in _test_data():
             with self.subTest(attrs):
@@ -156,13 +153,12 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_update_gpgkey(self):
+    def test_positive_update_gpg(self):
         """@Test: Create a repository and update its GPGKey
 
         @Assert: The updated repository points to a new GPG key.
 
         @Feature: Repository
-
         """
         # Create a repo and make it point to a GPG key.
         gpg_key_1 = entities.GPGKey(
@@ -185,13 +181,12 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_update_contents(self):
+    def test_positive_update_contents(self):
         """@Test: Create a repository and upload RPM contents.
 
         @Assert: The repository's contents include one RPM.
 
         @Feature: Repository
-
         """
         # Create a repository and upload RPM content.
         repo = entities.Repository(product=self.product).create()
@@ -201,13 +196,12 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.read_json()[u'content_counts'][u'rpm'], 1)
 
     @tier2
-    def test_sync(self):
+    def test_positive_synchronize(self):
         """@Test: Create a repo and sync it.
 
         @Assert: The repo has more than one RPM.
 
         @Feature: Repository
-
         """
         repo = entities.Repository(product=self.product).create()
         repo.sync()
@@ -225,13 +219,12 @@ class RepositoryUpdateTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_update(self):
+    def test_positive_update(self):
         """@Test: Create a repository and update its attributes.
 
         @Assert: The repository's attributes are updated.
 
         @Feature: Repository
-
         """
         for attrs in _test_data():
             with self.subTest(attrs):
@@ -260,13 +253,13 @@ class RepositorySyncTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_redhat_sync_1(self):
+    @skip_if_not_set('fake_manifest')
+    def test_positive_redhat_synchronize(self):
         """@Test: Sync RedHat Repository.
 
         @Feature: Repositories
 
         @Assert: Repository synced should fetch the data successfully.
-
         """
         org = entities.Organization().create()
         with open(manifests.clone(), 'rb') as manifest:
@@ -293,13 +286,12 @@ class DockerRepositoryTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_create_docker_repo(self):
+    def test_positive_create(self):
         """@Test: Create a Docker-type repository
 
         @Assert: A repository is created with a Docker repository.
 
         @Feature: Repository
-
         """
         product = entities.Product(organization=self.org).create()
         for name in _valid_names():
@@ -322,14 +314,13 @@ class DockerRepositoryTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1217603)
-    def test_sync_docker_repo(self):
+    def test_positive_synchronize(self):
         """@Test: Create and sync a Docker-type repository
 
         @Assert: A repository is created with a Docker repository
         and it is synchronized.
 
         @Feature: Repository
-
         """
         from pprint import PrettyPrinter
         printer = PrettyPrinter().pprint
@@ -350,7 +341,7 @@ class DockerRepositoryTestCase(APITestCase):
         )
 
     @tier1
-    def test_update_name(self):
+    def test_positive_update_name(self):
         """@Test: Update a repository's name.
 
         @Assert: The repository's name is updated.
@@ -359,7 +350,6 @@ class DockerRepositoryTestCase(APITestCase):
 
         The only data provided with the PUT request is a name. No other
         information about the repository (such as its URL) is provided.
-
         """
         for content_type in ('yum', 'docker'):
             with self.subTest(content_type):

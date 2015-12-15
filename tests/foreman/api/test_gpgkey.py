@@ -9,7 +9,7 @@ class GPGKeyTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_get_all(self):
+    def test_positive_search_in_org(self):
         """@Test: Search for a GPG key and specify just ``organization_id``.
 
         @Feature: GPGKey
@@ -22,7 +22,6 @@ class GPGKeyTestCase(APITestCase):
 
         @Assert: Only one GPG key is in the search results: the created GPG
         key.
-
         """
         org = entities.Organization().create()
         gpg_key = entities.GPGKey(organization=org).create()

@@ -3,7 +3,7 @@
 from fauxfactory import gen_string, gen_ipaddr, gen_mac
 from nailgun import entities
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, stubbed, tier2
+from robottelo.decorators import run_only_on, stubbed, tier2, tier3
 from robottelo.test import APITestCase
 
 
@@ -35,6 +35,7 @@ class DiscoveryTestCase(APITestCase):
     """Implements tests for foreman discovery feature"""
 
     @stubbed()
+    @tier3
     def test_positive_list_all(self):
         """@Test: List all discovered hosts
 
@@ -53,6 +54,7 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @stubbed()
+    @tier3
     def test_positive_show(self):
         """@Test: Show a specific discovered hosts
 
@@ -71,6 +73,7 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @stubbed()
+    @tier3
     def test_positive_create(self):
         """@Test: Create a discovered hosts
 
@@ -108,6 +111,7 @@ class DiscoveryTestCase(APITestCase):
                 self.assertEqual(host['name'], host_name)
 
     @stubbed()
+    @tier3
     def test_positive_provision(self):
         """@Test: Provision a discovered hosts
 
@@ -126,6 +130,7 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @stubbed()
+    @tier3
     def test_positive_delete(self):
         """@Test: Delete a discovered hosts
 
@@ -144,6 +149,7 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @stubbed()
+    @tier3
     def test_positive_auto_provision(self):
         """@Test: Auto provision a host by executing discovery rules
 
@@ -162,6 +168,7 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @stubbed()
+    @tier3
     def test_positive_auto_provision_all(self):
         """@Test: Auto provision all host by executing discovery rules
 
@@ -180,6 +187,7 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @stubbed()
+    @tier3
     def test_positive_refresh_facts(self):
         """@Test: Refreshing the facts of discovered host
 
@@ -202,6 +210,7 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @stubbed()
+    @tier3
     def test_positive_reboot(self):
         """@Test: Rebooting a discovered host
 
@@ -220,6 +229,7 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @stubbed()
+    @tier3
     def test_positive_create_discovery_rule_with_simple_query(self):
         """@Test: Create a new discovery rule
 
@@ -235,6 +245,7 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @stubbed()
+    @tier3
     def test_positive_create_discovery_rule_with_complex_query(self):
         """@Test: Create a new discovery rule with (host_limit = 0)
         that applies to multi hosts.
@@ -250,6 +261,7 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @stubbed()
+    @tier3
     def test_positive_create_discovery_rule_with_priority(self):
         """@Test: Create multiple discovery rules with different priority
 
@@ -264,6 +276,7 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @stubbed()
+    @tier3
     def test_positive_create_discovery_rule_with_host_limit(self):
         """@Test: Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
         provision more than one host with same rule
@@ -279,6 +292,7 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @stubbed()
+    @tier3
     def test_positive_update_discovery_rule_execute(self):
         """@Test: Update an existing rule and execute it
 
@@ -293,6 +307,7 @@ class DiscoveryTestCase(APITestCase):
         """
 
     @stubbed()
+    @tier3
     def test_positive_update_discovery_rule_provision(self):
         """@Test: Update the discovered host name and provision it
 

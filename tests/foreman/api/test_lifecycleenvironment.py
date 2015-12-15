@@ -24,13 +24,12 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_create_different_names(self):
+    def test_positive_create_with_name(self):
         """@Test: Create lifecycle environment with valid name only
 
         @Feature: Lifecycle Environment
 
         @Assert: Lifecycle environment is created and has proper name
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -40,15 +39,14 @@ class LifecycleEnvironmentTestCase(APITestCase):
                 ).create()
                 self.assertEqual(lc_env.name, name)
 
-    @tier2
+    @tier1
     @run_only_on('sat')
-    def test_positive_create_description(self):
+    def test_positive_create_with_description(self):
         """@Test: Create lifecycle environment with valid description
 
         @Feature: Lifecycle Environment
 
         @Assert: Lifecycle environment is created and has proper description
-
         """
         description = gen_string('utf8')
         lc_env = entities.LifecycleEnvironment(
@@ -66,7 +64,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
         @Feature: Lifecycle Environment
 
         @Assert: Lifecycle environment is created with Library as prior
-
         """
         lc_env = entities.LifecycleEnvironment(
             organization=self.org,
@@ -75,13 +72,12 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_different_names(self):
+    def test_negative_create_with_name(self):
         """@Test: Create lifecycle environment providing an invalid name
 
         @Feature: Lifecycle Environment
 
         @Assert: Lifecycle environment is not created
-
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -90,14 +86,13 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_update_different_names(self):
+    def test_positive_update_name(self):
         """@Test: Create lifecycle environment providing the initial name, then
         update its name to another valid name.
 
         @Feature: Lifecycle Environment
 
         @Assert: Lifecycle environment is created and updated properly
-
         """
         lc_env = entities.LifecycleEnvironment(organization=self.org).create()
         for new_name in valid_data_list():
@@ -115,7 +110,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
         @Feature: Lifecycle Environment
 
         @Assert: Lifecycle environment is created and updated properly
-
         """
         lc_env = entities.LifecycleEnvironment(
             organization=self.org,
@@ -135,7 +129,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         @Assert: Lifecycle environment is not updated and corresponding error
         is raised
-
         """
         name = gen_string('alpha')
         lc_env = entities.LifecycleEnvironment(
@@ -157,7 +150,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
         @Feature: Lifecycle Environment
 
         @Assert: Lifecycle environment is deleted successfully
-
         """
         lc_env = entities.LifecycleEnvironment(organization=self.org).create()
         lc_env.delete()
@@ -179,7 +171,6 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         @Assert: Only "Library" and the lifecycle environment just created are
         in the search results.
-
         """
         org = entities.Organization().create()
         lc_env = entities.LifecycleEnvironment(organization=org).create()

@@ -35,14 +35,13 @@ class RoleTestCase(APITestCase):
     """Tests for ``api/v2/roles``."""
 
     @tier1
-    def test_positive_create_1(self):
+    def test_positive_create(self):
         """@Test: Create a role with name ``name_generator()``.
 
         @Feature: Role
 
         @Assert: An entity can be created without receiving any errors, the
         entity can be fetched, and the fetched entity has the specified name.
-
         """
         for name_generator in data_generator():
             with self.subTest(name_generator):
@@ -55,13 +54,12 @@ class RoleTestCase(APITestCase):
                 self.assertEqual(entities.Role(name=name).create().name, name)
 
     @tier1
-    def test_positive_delete_1(self):
+    def test_positive_delete(self):
         """@Test: Delete a role with name ``name_generator()``.
 
         @Feature: Role
 
         @Assert: The role cannot be fetched after it is deleted.
-
         """
         for name_generator in data_generator():
             with self.subTest(name_generator):
@@ -78,13 +76,12 @@ class RoleTestCase(APITestCase):
                     role.read()
 
     @tier1
-    def test_positive_update_1(self):
+    def test_positive_update(self):
         """@Test: Update a role with and give a name of ``name_generator()``.
 
         @Feature: Role
 
         @Assert: The role is updated with the given name.
-
         """
         for name_generator in data_generator():
             with self.subTest(name_generator):

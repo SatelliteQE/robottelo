@@ -18,11 +18,11 @@ from robottelo.helpers import get_nailgun_config, get_server_software
 from robottelo.test import APITestCase
 
 
-class PermissionsTestCase(APITestCase):
+class PermissionTestCase(APITestCase):
     """Tests for the ``permissions`` path."""
     @classmethod
     def setUpClass(cls):
-        super(PermissionsTestCase, cls).setUpClass()
+        super(PermissionTestCase, cls).setUpClass()
         cls.permissions = PERMISSIONS.copy()
         if get_server_software() == 'upstream':
             cls.permissions[None].extend(cls.permissions.pop('DiscoveryRule'))
@@ -42,14 +42,13 @@ class PermissionsTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_search_by_name(self):
+    def test_positive_search_by_name(self):
         """@test: Search for a permission by name.
 
         @feature: Permissions
 
         @assert: Only one permission is returned, and the permission returned
         is the one searched for.
-
         """
         failures = {}
         for permission_name in self.permission_names:
@@ -66,14 +65,13 @@ class PermissionsTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_search_by_resource_type(self):
+    def test_positive_search_by_resource_type(self):
         """@test: Search for permissions by resource type.
 
         @feature: Permissions
 
         @assert: The permissions returned are equal to what is listed for that
         resource type in :data:`robottelo.constants.PERMISSIONS`.
-
         """
         failures = {}
         for resource_type in self.permission_resource_types:
@@ -98,13 +96,12 @@ class PermissionsTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_search_permissions(self):
+    def test_positive_search(self):
         """@test: search with no parameters return all permissions
 
         @feature: Permission
 
         @assert: Search returns a list of all expected permissions
-
         """
         permissions = entities.Permission().search(query={'per_page': 1000})
         names = {perm.name for perm in permissions}
@@ -146,7 +143,6 @@ def _permission_name(entity, which_perm):
         "delete".
     :raise: ``LookupError`` if a relevant permission cannot be found, or if
         multiple results are found.
-
     """
     pattern = {
         'create': '^create_',
@@ -195,7 +191,6 @@ class UserRoleTestCase(APITestCase):
         :raises: ``requests.exceptions.HTTPError`` if an error occurs when
             updating ``self.user``'s roles.
         :returns: Nothing.
-
         """
         role = entities.Role().create()
         permissions = entities.Permission(name=perm_name).search()
@@ -205,14 +200,13 @@ class UserRoleTestCase(APITestCase):
         self.user = self.user.update(['role'])
 
     @tier1
-    def test_create(self):
+    def test_positive_check_create(self):
         """@Test: Check whether the "create_*" role has an effect.
 
         @Assert: A user cannot create an entity when missing the "create_*"
         role, and they can create an entity when given the "create_*" role.
 
         @Feature: Role
-
         """
         for entity_cls in (entities.Architecture, entities.Domain):
             with self.subTest(entity_cls):
@@ -225,7 +219,7 @@ class UserRoleTestCase(APITestCase):
                 entity_cls(id=entity_id).read()  # As admin user.
 
     @tier1
-    def test_read(self):
+    def test_positive_check_read(self):
         """@Test: Check whether the "view_*" role has an effect.
 
         @Assert: A user cannot read an entity when missing the "view_*" role,
@@ -243,7 +237,7 @@ class UserRoleTestCase(APITestCase):
                 entity_cls(self.cfg, id=entity_id).read()
 
     @tier1
-    def test_delete(self):
+    def test_positive_check_delete(self):
         """@Test: Check whether the "destroy_*" role has an effect.
 
         @Assert: A user cannot read an entity with missing the "destroy_*"
@@ -265,7 +259,7 @@ class UserRoleTestCase(APITestCase):
                     entity.read()  # As admin user
 
     @tier1
-    def test_update(self):
+    def test_positive_check_update(self):
         """@Test: Check whether the "edit_*" role has an effect.
 
         @Assert: A user cannot update an entity when missing the "edit_*" role,

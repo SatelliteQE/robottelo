@@ -1199,7 +1199,7 @@ class DockerContainerTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_create_compresource_power(self):
+    def test_positive_power_compresource(self):
         """@Test: Create containers for local and external compute resource,
         then power them on and finally power them off
 
@@ -1227,7 +1227,7 @@ class DockerContainerTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_create_compresource_read_log(self):
+    def test_positive_read_compresource_logs(self):
         """@Test: Create containers for local and external compute resource and
         read their logs
 
@@ -1287,7 +1287,6 @@ class DockerContainerTestCase(APITestCase):
 class DockerRegistriesTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
-
     """
 
     @tier1
