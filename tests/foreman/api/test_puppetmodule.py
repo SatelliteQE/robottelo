@@ -19,7 +19,6 @@ class RepositorySearchTestCase(APITestCase):
         """Create a puppet repository as ``self.repository``.
 
         The repository belongs to ``cls.product``.
-
         """
         self.repository = entities.Repository(
             content_type='puppet',
@@ -28,26 +27,24 @@ class RepositorySearchTestCase(APITestCase):
 
     @tier1
     @skip_if_bug_open('bugzilla', 1260206)
-    def test_0_search_results(self):
+    def test_positive_search_no_results(self):
         """@Test: Search for puppet modules in an empty repository.
 
         @Assert: No puppet modules are returned.
 
         @Feature: PuppetModule
-
         """
         query = {'repository_id': self.repository.id}
         self.assertEqual(len(entities.PuppetModule().search(query=query)), 0)
 
     @tier1
     @skip_if_bug_open('bugzilla', 1260206)
-    def test_1_search_result(self):
+    def test_positive_search_single_result(self):
         """@Test: Search for puppet modules in a non-empty repository.
 
         @Assert: Only the modules in that repository are returned.
 
         @Feature: PuppetModule
-
         """
         with open(get_data_file(PUPPET_MODULE_NTP_PUPPETLABS), 'rb') as handle:
             self.repository.upload_content(files={'content': handle})
@@ -55,13 +52,13 @@ class RepositorySearchTestCase(APITestCase):
         self.assertEqual(len(entities.PuppetModule().search(query=query)), 1)
 
 
-class CVVSearchTestCase(APITestCase):
+class ContentViewVersionSearchTestCase(APITestCase):
     """Tests that search for puppet modules and filter by content view ver."""
 
     @classmethod
     def setUpClass(cls):
         """Create a product. Make it available as ``cls.product``."""
-        super(CVVSearchTestCase, cls).setUpClass()
+        super(ContentViewVersionSearchTestCase, cls).setUpClass()
         cls.product = entities.Product().create()
         repository = entities.Repository(
             content_type='puppet',
@@ -74,20 +71,18 @@ class CVVSearchTestCase(APITestCase):
         """Create a content view. Make it available as ``cls.content_view``.
 
         The content view belongs to organization ``cls.product.organization``.
-
         """
         self.content_view = entities.ContentView(
             organization=self.product.organization,
         ).create()
 
     @tier1
-    def test_0_search_results(self):
+    def test_positive_search_no_results(self):
         """@Test: Search for puppet modules in an emtpy content view version.
 
         @Assert: No puppet modules are found.
 
         @Feature: PuppetModule
-
         """
         self.content_view.publish()
         self.content_view = self.content_view.read()
@@ -95,13 +90,12 @@ class CVVSearchTestCase(APITestCase):
         self.assertEqual(len(entities.PuppetModule().search(query=query)), 0)
 
     @tier1
-    def test_1_search_result(self):
+    def test_positive_search_single_result(self):
         """@Test: Search for puppet modules in a CVV with one puppet module.
 
         @Assert: One puppet module is found.
 
         @Feature: PuppetModule
-
         """
         # Find the puppet module in `self.repository` and assign it to
         # `self.content_view`. Publish the content view.

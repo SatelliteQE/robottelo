@@ -2,7 +2,7 @@
 
 # For ease of use hc refers to host-collection throughout this document
 
-from robottelo.decorators import stubbed
+from robottelo.decorators import stubbed, tier3
 from robottelo.test import APITestCase
 
 
@@ -10,7 +10,8 @@ class ErrataTestCase(APITestCase):
     """API Tests for the errata management feature"""
 
     @stubbed()
-    def test_hc_errata_install_1(self):
+    @tier3
+    def test_positive_install(self):
         """@Test: Install errata in a host-collection
 
         @Feature: Errata
@@ -24,11 +25,11 @@ class ErrataTestCase(APITestCase):
         @Assert: errata is installed in the host-collection.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_errata_list_1(self):
+    @tier3
+    def test_positive_list(self):
         """@Test: View all errata specific to an Org
 
         @Feature: Errata
@@ -42,11 +43,11 @@ class ErrataTestCase(APITestCase):
         the other.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_errata_list_2(self):
+    @tier3
+    def test_positive_list_updated(self):
         """@Test: View all errata in an Org sorted by Updated
 
         @Feature: Errata
@@ -60,11 +61,11 @@ class ErrataTestCase(APITestCase):
         @Assert: Errata is filtered by Org and sorted by Updated date.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_errata_list_3(self):
+    @tier3
+    def test_positive_filter_by_cve(self):
         """@Test: Filter errata by CVE
 
         @Feature: Errata
@@ -78,11 +79,11 @@ class ErrataTestCase(APITestCase):
         @Assert: Errata is filtered by CVE.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_errata_systems_list_1(self):
+    @tier3
+    def test_positive_list_affected_systems(self):
         """@Test: View a list of affected content hosts for an erratum
 
         @Feature: Errata
@@ -97,11 +98,11 @@ class ErrataTestCase(APITestCase):
         retrieved.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_errata_systems_list_2(self):
+    @tier3
+    def test_positive_filter_by_affected_systems(self):
         """@Test: Filter errata list based on affected content hosts
 
         @Feature: Errata
@@ -115,11 +116,11 @@ class ErrataTestCase(APITestCase):
         @Assert: Errata is filtered based on affected content hosts.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_errata_sort_1(self):
+    @tier3
+    def test_positive_sort_by_issued_date(self):
         """@Test: Filter errata by issued date
 
         @Feature: Errata
@@ -133,11 +134,11 @@ class ErrataTestCase(APITestCase):
         @Assert: Errata is sorted by issued date.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_errata_content_host_1(self):
+    @tier3
+    def test_positive_filter_by_envs(self):
         """@Test: Filter applicable errata for a content host by current and
         Library environments
 
@@ -156,11 +157,11 @@ class ErrataTestCase(APITestCase):
         Library environments.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_errata_content_host_2(self):
+    @tier3
+    def test_positive_get_count_for_chost(self):
         """@Test: Available errata count when retrieving Content host
 
         @Feature: Errata
@@ -177,12 +178,12 @@ class ErrataTestCase(APITestCase):
         @Assert: The available errata count is retrieved.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_errata_content_view_1(self):
-        """@Test: Generate a difference in errata between a set of enviroments
+    @tier3
+    def test_positive_get_diff_for_cv_envs(self):
+        """@Test: Generate a difference in errata between a set of environments
         for a content view
 
         @Feature: Errata
@@ -200,11 +201,11 @@ class ErrataTestCase(APITestCase):
         content view is retrieved.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_incremental_update_1(self):
+    @tier3
+    def test_positive_incremental_update_apply_to_envs_cvs(self):
         """@Test: Select multiple errata and apply them to multiple content
         views in multiple environments
 
@@ -223,11 +224,11 @@ class ErrataTestCase(APITestCase):
         multiple environments.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_incremental_update_2(self):
+    @tier3
+    def test_positive_incremental_update_query_envs_cvs(self):
         """@Test: Query a subset of environments or content views to push new
         errata
 
@@ -245,11 +246,11 @@ class ErrataTestCase(APITestCase):
         @Assert: Subset of environments/content views retrieved.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_incremental_update_3(self):
+    @tier3
+    def test_positive_incremental_update_apply_packages_to_envs_cvs(self):
         """@Test: Select multiple packages and apply them to multiple content
         views in multiple environments
 
@@ -267,5 +268,4 @@ class ErrataTestCase(APITestCase):
         @Assert: Packages are applied to multiple environments/content views.
 
         @Status: Manual
-
         """

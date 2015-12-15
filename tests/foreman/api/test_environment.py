@@ -29,13 +29,12 @@ class EnvironmentTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_create_different_names(self):
+    def test_positive_create_with_name(self):
         """@Test: Create an environment and provide a valid name.
 
         @Feature: Environment
 
         @Assert: The environment created successfully and has expected name.
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -51,7 +50,6 @@ class EnvironmentTestCase(APITestCase):
 
         @Assert: The environment created successfully and has expected
         attributes.
-
         """
         org = entities.Organization().create()
         env = entities.Environment(
@@ -63,14 +61,13 @@ class EnvironmentTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_create_with_location(self):
+    def test_positive_create_with_loc(self):
         """@Test: Create an environment and assign it to new location.
 
         @Feature: Environment
 
         @Assert: The environment created successfully and has expected
         attributes.
-
         """
         location = entities.Location().create()
         env = entities.Environment(
@@ -82,13 +79,12 @@ class EnvironmentTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_with_too_long_names(self):
+    def test_negative_create_with_too_long_name(self):
         """@Test: Create an environment and provide an invalid name.
 
         @Feature: Environment
 
         @Assert: The server returns an error.
-
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -103,7 +99,6 @@ class EnvironmentTestCase(APITestCase):
         @Feature: Environment
 
         @Assert: The server returns an error.
-
         """
         str_types = ('cjk', 'latin1', 'utf8')
         for name in (gen_string(str_type) for str_type in str_types):
@@ -113,7 +108,7 @@ class EnvironmentTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_update_different_names(self):
+    def test_positive_update_name(self):
         """@Test: Create environment entity providing the initial name, then
         update its name to another valid name.
 
@@ -130,7 +125,7 @@ class EnvironmentTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_update_organization(self):
+    def test_positive_update_org(self):
         """@Test: Update environment and assign it to a new organization
 
         @Feature: Environment
@@ -146,7 +141,7 @@ class EnvironmentTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_update_location(self):
+    def test_positive_update_loc(self):
         """@Test: Update environment and assign it to a new location
 
         @Feature: Environment
@@ -162,7 +157,7 @@ class EnvironmentTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_update_different_names(self):
+    def test_negative_update_name(self):
         """@Test: Create environment entity providing the initial name, then
         try to update its name to invalid one.
 
@@ -185,7 +180,6 @@ class EnvironmentTestCase(APITestCase):
         @Feature: Environment
 
         @Assert: Environment entity is deleted successfully
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -196,7 +190,7 @@ class EnvironmentTestCase(APITestCase):
 
 
 @skip_if_bug_open('bugzilla', 1262029)
-class MissingAttrTestCase(APITestCase):
+class MissingAttrEnvironmentTestCase(APITestCase):
     """Tests to see if the server returns the attributes it should.
 
     Satellite should return a full description of an entity each time an entity
@@ -209,7 +203,7 @@ class MissingAttrTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         """Create an ``Environment``."""
-        super(MissingAttrTestCase, cls).setUpClass()
+        super(MissingAttrEnvironmentTestCase, cls).setUpClass()
         env = entities.Environment().create()
         cls.env_attrs = set(env.update_json([]).keys())
 
@@ -220,7 +214,6 @@ class MissingAttrTestCase(APITestCase):
         @Assert: The response contains some value for the ``location`` field.
 
         @Feature: Environment
-
         """
         names = one_to_many_names('location')
         self.assertGreater(
@@ -237,7 +230,6 @@ class MissingAttrTestCase(APITestCase):
         field.
 
         @Feature: Environment
-
         """
         names = one_to_many_names('organization')
         self.assertGreater(

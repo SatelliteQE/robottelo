@@ -13,18 +13,17 @@ from robottelo.test import APITestCase
 from six.moves import http_client
 
 
-class HostsTestCase(APITestCase):
+class HostTestCase(APITestCase):
     """Tests for ``entities.Host().path()``."""
 
     @tier1
     @run_only_on('sat')
-    def test_get_search(self):
+    def test_positive_get_search(self):
         """@Test: GET ``api/v2/hosts`` and specify the ``search`` parameter.
 
         @Feature: Host
 
         @Assert: HTTP 200 is returned, along with ``search`` term.
-
         """
         query = gen_string('utf8', gen_integer(1, 100))
         response = client.get(
@@ -38,13 +37,12 @@ class HostsTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_get_per_page(self):
+    def test_positive_get_per_page(self):
         """@Test: GET ``api/v2/hosts`` and specify the ``per_page`` parameter.
 
         @Feature: Host
 
         @Assert: HTTP 200 is returned, along with per ``per_page`` value.
-
         """
         per_page = gen_integer(1, 1000)
         response = client.get(
@@ -58,14 +56,13 @@ class HostsTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_create_owner_type(self):
+    def test_positive_create_with_owner_type(self):
         """@Test: Create a host and specify an ``owner_type``.
 
         @Feature: Host
 
         @Assert: The host can be read back, and the ``owner_type`` attribute is
         correct.
-
         """
         for owner_type in ('User', 'Usergroup'):
             with self.subTest(owner_type):
@@ -79,13 +76,12 @@ class HostsTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_update_owner_type(self):
+    def test_positive_update_owner_type(self):
         """@Test: Update a host's ``owner_type``.
 
         @Feature: Host
 
         @Assert: The host's ``owner_type`` attribute is updated as requested.
-
         """
         host = entities.Host().create()
         for owner_type in ('User', 'Usergroup'):

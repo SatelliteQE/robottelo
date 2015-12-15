@@ -14,7 +14,7 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import skip_if_bug_open, tier1, tier2
+from robottelo.decorators import skip_if_bug_open, tier1
 from robottelo.test import APITestCase
 
 
@@ -35,7 +35,7 @@ class PartitionTableTestCase(APITestCase):
 
     @skip_if_bug_open('bugzilla', 1229384)
     @tier1
-    def test_bugzilla_1229384(self):
+    def test_verify_bugzilla_1229384(self):
         """@Test: Create Partition table with 1 symbol in name
 
         @Assert: Partition table was created
@@ -43,7 +43,6 @@ class PartitionTableTestCase(APITestCase):
         @Feature: Partition Table - Create
 
         @BZ: 1229384
-
         """
         for name in valid_single_character_names():
             with self.subTest(name):
@@ -51,70 +50,65 @@ class PartitionTableTestCase(APITestCase):
                 self.assertEqual(ptable.name, name)
 
     @tier1
-    def test_create_different_names(self):
+    def test_positive_create_with_name(self):
         """@Test: Create new partition tables using different inputs as a name
 
         @Assert: Partition table created successfully and has correct name
 
         @Feature: Partition Table - Create
-
         """
         for name in generate_strings_list(length=gen_integer(4, 30)):
             with self.subTest(name):
                 ptable = entities.PartitionTable(name=name).create()
                 self.assertEqual(ptable.name, name)
 
-    @tier2
-    def test_create_different_layouts(self):
+    @tier1
+    def test_positive_create_with_layout(self):
         """@Test: Create new partition tables using different inputs as a
         layout
 
         @Assert: Partition table created successfully and has correct layout
 
         @Feature: Partition Table - Create
-
         """
         for layout in valid_data_list():
             with self.subTest(layout):
                 ptable = entities.PartitionTable(layout=layout).create()
                 self.assertEqual(ptable.layout, layout)
 
-    @tier2
-    def test_create_with_os(self):
+    @tier1
+    def test_positive_create_with_os(self):
         """@Test: Create new partition table with random operating system
 
         @Assert: Partition table created successfully and has correct operating
         system
 
         @Feature: Partition Table - Create
-
         """
         os_family = OPERATING_SYSTEMS[randint(0, 8)]
         ptable = entities.PartitionTable(os_family=os_family).create()
         self.assertEqual(ptable.os_family, os_family)
 
     @tier1
-    def test_create_invalid_name(self):
+    def test_negative_create_with_name(self):
         """@Test: Try to create partition table using invalid names only
 
         @Assert: Partition table was not created
 
         @Feature: Partition Table - Create
-
         """
         for name in invalid_values_list():
             with self.subTest(name):
                 with self.assertRaises(HTTPError):
                     entities.PartitionTable(name=name).create()
 
-    @tier2
-    def test_create_invalid_layout(self):
+    @tier1
+    def test_negative_create_with_layout(self):
         """@Test: Try to create partition table with empty layout
 
         @Assert: Partition table was not created
 
         @Feature: Partition Table - Create
-
         """
         for layout in ('', ' ', None):
             with self.subTest(layout):
@@ -122,13 +116,12 @@ class PartitionTableTestCase(APITestCase):
                     entities.PartitionTable(layout=layout).create()
 
     @tier1
-    def test_delete_ptable(self):
+    def test_positive_delete(self):
         """@Test: Delete partition table
 
         @Assert: Partition table was deleted
 
         @Feature: Partition Table - Delete
-
         """
         ptable = entities.PartitionTable().create()
         ptable.delete()
@@ -136,13 +129,12 @@ class PartitionTableTestCase(APITestCase):
             ptable.read()
 
     @tier1
-    def test_update_with_new_name(self):
+    def test_positive_update_name(self):
         """@Test: Update partition tables with new name
 
         @Assert: Partition table updated successfully and name was changed
 
         @Feature: Partition Table - Update
-
         """
         ptable = entities.PartitionTable().create()
         for new_name in generate_strings_list(length=gen_integer(4, 30)):
@@ -150,14 +142,13 @@ class PartitionTableTestCase(APITestCase):
                 ptable.name = new_name
                 self.assertEqual(ptable.update(['name']).name, new_name)
 
-    @tier2
-    def test_update_with_new_layout(self):
+    @tier1
+    def test_positive_update_layout(self):
         """@Test: Update partition table with new layout
 
         @Assert: Partition table updated successfully and layout was changed
 
         @Feature: Partition Table - Update
-
         """
         ptable = entities.PartitionTable().create()
         for new_layout in valid_data_list():
@@ -165,15 +156,14 @@ class PartitionTableTestCase(APITestCase):
                 ptable.layout = new_layout
                 self.assertEqual(ptable.update(['layout']).layout, new_layout)
 
-    @tier2
-    def test_update_with_new_os(self):
+    @tier1
+    def test_positive_update_os(self):
         """@Test: Update partition table with new random operating system
 
         @Assert: Partition table updated successfully and operating system was
         changed
 
         @Feature: Partition Table - Update
-
         """
         ptable = entities.PartitionTable(
             os_family=OPERATING_SYSTEMS[0],
@@ -183,13 +173,12 @@ class PartitionTableTestCase(APITestCase):
         self.assertEqual(ptable.update(['os_family']).os_family, new_os_family)
 
     @tier1
-    def test_update_invalid_name(self):
+    def test_negative_update_name(self):
         """@Test: Try to update partition table using invalid names only
 
         @Assert: Partition table was not updated
 
         @Feature: Partition Table - Update
-
         """
         ptable = entities.PartitionTable().create()
         for new_name in invalid_values_list():
@@ -198,14 +187,13 @@ class PartitionTableTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     self.assertNotEqual(ptable.update(['name']).name, new_name)
 
-    @tier2
-    def test_update_invalid_layout(self):
+    @tier1
+    def test_negative_update_layout(self):
         """@Test: Try to update partition table with empty layout
 
         @Assert: Partition table was not updated
 
         @Feature: Partition Table - Update
-
         """
         ptable = entities.PartitionTable().create()
         for new_layout in ('', ' ', None):

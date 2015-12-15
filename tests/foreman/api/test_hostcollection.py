@@ -19,14 +19,13 @@ class HostCollectionTestCase(APITestCase):
         ]
 
     @tier1
-    def test_create_with_system(self):
+    def test_positive_create_with_system(self):
         """@Test: Create a host collection that contains a content host.
 
         @Feature: HostCollection
 
         @Assert: The host collection can be read back, and it includes one
         content host.
-
         """
         host_collection = entities.HostCollection(
             organization=self.org,
@@ -35,14 +34,13 @@ class HostCollectionTestCase(APITestCase):
         self.assertEqual(len(host_collection.system), 1)
 
     @tier1
-    def test_create_with_systems(self):
+    def test_positive_create_with_systems(self):
         """@Test: Create a host collection that contains content hosts.
 
         @Feature: HostCollection
 
         @Assert: The host collection can be read back, and it references two
         content hosts.
-
         """
         host_collection = entities.HostCollection(
             organization=self.org,
@@ -52,14 +50,13 @@ class HostCollectionTestCase(APITestCase):
 
     @tier1
     @skip_if_bug_open('bugzilla', 1203323)
-    def test_read_system_ids(self):
+    def test_positive_read_system_ids(self):
         """@Test: Read a host collection and look at the ``system_ids`` field.
 
         @Feature: HostCollection
 
         @Assert: The ``system_ids`` field matches the system IDs passed in when
         creating the host collection.
-
         """
         host_collection = entities.HostCollection(
             organization=self.org,

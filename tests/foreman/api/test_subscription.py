@@ -8,15 +8,16 @@ from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from robottelo.api.utils import upload_manifest
 from robottelo import manifests
-from robottelo.decorators import tier1
+from robottelo.decorators import skip_if_not_set, tier1
 from robottelo.test import APITestCase
 
 
 class SubscriptionsTestCase(APITestCase):
     """Tests for the ``subscriptions`` path."""
 
+    @skip_if_not_set('fake_manifest')
     @tier1
-    def test_positive_create_1(self):
+    def test_positive_create(self):
         """@Test: Upload a manifest.
 
         @Assert: Manifest is uploaded successfully
@@ -28,8 +29,9 @@ class SubscriptionsTestCase(APITestCase):
         with open(manifests.clone(), 'rb') as manifest:
             upload_manifest(org.id, manifest)
 
+    @skip_if_not_set('fake_manifest')
     @tier1
-    def test_positive_delete_1(self):
+    def test_positive_delete(self):
         """@Test: Delete an Uploaded manifest.
 
         @Assert: Manifest is Deleted successfully
@@ -45,8 +47,9 @@ class SubscriptionsTestCase(APITestCase):
         sub.delete_manifest(data={'organization_id': org.id})
         self.assertEqual(len(sub.search()), 0)
 
+    @skip_if_not_set('fake_manifest')
     @tier1
-    def test_negative_create_1(self):
+    def test_negative_create(self):
         """@Test: Upload the same manifest to two organizations.
 
         @Assert: The manifest is not uploaded to the second organization.

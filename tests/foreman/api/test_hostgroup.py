@@ -5,7 +5,13 @@ from nailgun import client, entities, entity_fields
 from robottelo.api.utils import promote, one_to_one_names
 from robottelo.config import settings
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.decorators import skip_if_bug_open, stubbed, tier1, tier3
+from robottelo.decorators import (
+    skip_if_bug_open,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+)
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
@@ -15,7 +21,7 @@ class HostGroupTestCase(APITestCase):
 
     @tier3
     @skip_if_bug_open('bugzilla', 1222118)
-    def test_bz_1107708(self):
+    def test_verify_bugzilla_1107708(self):
         """@Test: Host that created from HostGroup entity with PuppetClass
         assigned to it should inherit such puppet class information under
         'all_puppetclasses' field
@@ -24,7 +30,6 @@ class HostGroupTestCase(APITestCase):
 
         @Assert: Host inherited 'all_puppetclasses' details from HostGroup that
         was used for such Host create procedure
-
         """
         # Creating entities like organization, content view and lifecycle_env
         # with not utf-8 names for easier interaction with puppet environment
@@ -151,32 +156,30 @@ class HostGroupTestCase(APITestCase):
 
 
 @skip_if_bug_open('bugzilla', 1235377)
-class MissingAttrTestCase(APITestCase):
+class HostGroupMissingAttrTestCase(APITestCase):
     """Tests to see if the server returns the attributes it should.
 
     Satellite should return a full description of an entity each time an entity
     is created, read or updated. These tests verify that certain attributes
     really are returned. The ``one_to_*_names`` functions know what names
     Satellite may assign to fields.
-
     """
 
     @classmethod
     def setUpClass(cls):
         """Create a ``HostGroup``."""
-        super(MissingAttrTestCase, cls).setUpClass()
+        super(HostGroupMissingAttrTestCase, cls).setUpClass()
         host_group = entities.HostGroup().create()
         cls.host_group_attrs = set(host_group.read_json().keys())
 
     @tier1
-    def test_get_content_source(self):
+    def test_positive_get_content_source(self):
         """@Test: Read a host group. Inspect the server's response.
 
         @Assert: The response contains some value for the ``content_source``
         field.
 
         @Feature: HostGroup
-
         """
         names = one_to_one_names('content_source')
         self.assertGreater(
@@ -186,14 +189,13 @@ class MissingAttrTestCase(APITestCase):
         )
 
     @tier1
-    def test_get_content_view(self):
+    def test_positive_get_cv(self):
         """@Test: Read a host group. Inspect the server's response.
 
         @Assert: The response contains some value for the ``content_view``
         field.
 
         @Feature: HostGroup
-
         """
         names = one_to_one_names('content_view')
         self.assertGreater(
@@ -203,14 +205,13 @@ class MissingAttrTestCase(APITestCase):
         )
 
     @tier1
-    def test_get_lifecycle_environment(self):
+    def test_positive_get_lce(self):
         """@Test: Read a host group. Inspect the server's response.
 
         @Assert: The response contains some value for the
         ``lifecycle_environment`` field.
 
         @Feature: HostGroup
-
         """
         names = one_to_one_names('lifecycle_environment')
         self.assertGreater(
@@ -238,7 +239,8 @@ class HostGroupTestCaseStub(APITestCase):
     """
 
     @stubbed()
-    def test_remove_hostgroup_1(self, test_data):
+    @tier2
+    def test_positive_remove_by_name_org_name(self):
         """
         @feature: Organizations
         @test: Add a hostgroup and remove it by using the organization
@@ -248,7 +250,8 @@ class HostGroupTestCaseStub(APITestCase):
         """
 
     @stubbed()
-    def test_remove_hostgroup_2(self, test_data):
+    @tier2
+    def test_positive_remove_by_name_org_id(self):
         """
         @feature: Organizations
         @test: Add a hostgroup and remove it by using the organization
@@ -258,7 +261,8 @@ class HostGroupTestCaseStub(APITestCase):
         """
 
     @stubbed()
-    def test_remove_hostgroup_3(self, test_data):
+    @tier2
+    def test_positive_remove_by_id_org_name(self):
         """
         @feature: Organizations
         @test: Add a hostgroup and remove it by using the organization
@@ -268,7 +272,8 @@ class HostGroupTestCaseStub(APITestCase):
         """
 
     @stubbed()
-    def test_remove_hostgroup_4(self, test_data):
+    @tier2
+    def test_positive_remove_by_id_org_id(self):
         """
         @feature: Organizations
         @test: Add a hostgroup and remove it by using the organization
@@ -278,7 +283,8 @@ class HostGroupTestCaseStub(APITestCase):
         """
 
     @stubbed()
-    def test_add_hostgroup_1(self, test_data):
+    @tier2
+    def test_positive_add_hostgroup_by_name_org_name(self):
         """
         @feature: Organizations
         @test: Add a hostgroup by using the organization
@@ -288,7 +294,8 @@ class HostGroupTestCaseStub(APITestCase):
         """
 
     @stubbed()
-    def test_add_hostgroup_2(self, test_data):
+    @tier2
+    def test_positive_add_hostgroup_by_name_org_id(self):
         """
         @feature: Organizations
         @test: Add a hostgroup by using the organization
@@ -298,7 +305,8 @@ class HostGroupTestCaseStub(APITestCase):
         """
 
     @stubbed()
-    def test_add_hostgroup_3(self, test_data):
+    @tier2
+    def test_positive_add_hostgroup_by_id_org_name(self):
         """
         @feature: Organizations
         @test: Add a hostgroup by using the organization
@@ -308,7 +316,8 @@ class HostGroupTestCaseStub(APITestCase):
         """
 
     @stubbed()
-    def test_add_hostgroup_4(self, test_data):
+    @tier2
+    def test_positive_add_hostgroup_by_id_org_id(self):
         """
         @feature: Organizations
         @test: Add a hostgroup by using the organization

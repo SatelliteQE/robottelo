@@ -20,13 +20,12 @@ class MediaTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_create_different_names(self):
+    def test_positive_create_with_name(self):
         """@Test: Create media with valid name only
 
         @Feature: Media
 
         @Assert: Media entity is created and has proper name
-
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -36,15 +35,14 @@ class MediaTestCase(APITestCase):
                 ).create()
                 self.assertEqual(media.name, name)
 
-    @tier2
+    @tier1
     @run_only_on('sat')
-    def test_positive_create_different_os_family(self):
+    def test_positive_create_with_os_family(self):
         """@Test: Create media with every OS family possible
 
         @Feature: Media
 
         @Assert: Media entity is created and has proper OS family assigned
-
         """
         for os_family in OPERATING_SYSTEMS:
             with self.subTest(os_family):
@@ -62,7 +60,6 @@ class MediaTestCase(APITestCase):
         @Feature: Media
 
         @Assert: Media entity is created and has proper location
-
         """
         location = entities.Location().create()
         media = entities.Media(
@@ -73,13 +70,12 @@ class MediaTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_create_with_operating_system(self):
+    def test_positive_create_with_os(self):
         """@Test: Create media entity assigned to operation system entity
 
         @Feature: Media
 
         @Assert: Media entity is created and assigned to expected OS
-
         """
         os = entities.OperatingSystem().create()
         media = entities.Media(
@@ -90,55 +86,51 @@ class MediaTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_different_names(self):
+    def test_negative_create_with_name(self):
         """@Test: Try to create media entity providing an invalid name
 
         @Feature: Media
 
         @Assert: Media entity is not created
-
         """
         for name in invalid_values_list():
             with self.subTest(name):
                 with self.assertRaises(HTTPError):
                     entities.Media(name=name).create()
 
-    @tier2
+    @tier1
     @run_only_on('sat')
-    def test_negative_create_with_wrong_url(self):
+    def test_negative_create_with_url(self):
         """@Test: Try to create media entity providing an invalid URL
 
         @Feature: Media
 
         @Assert: Media entity is not created
-
         """
         with self.assertRaises(HTTPError):
             entities.Media(path_='NON_EXISTENT_URL').create()
 
-    @tier2
+    @tier1
     @run_only_on('sat')
-    def test_negative_create_with_wrong_os_family(self):
+    def test_negative_create_with_os_family(self):
         """@Test: Try to create media entity providing an invalid OS family
 
         @Feature: Media
 
         @Assert: Media entity is not created
-
         """
         with self.assertRaises(HTTPError):
             entities.Media(os_family='NON_EXISTENT_OS').create()
 
     @tier1
     @run_only_on('sat')
-    def test_positive_update_different_names(self):
+    def test_positive_update_name(self):
         """@Test: Create media entity providing the initial name, then update
         its name to another valid name.
 
         @Feature: Media
 
         @Assert: Media entity is created and updated properly
-
         """
         media = entities.Media(organization=[self.org]).create()
         for new_name in valid_data_list():
@@ -156,14 +148,13 @@ class MediaTestCase(APITestCase):
         @Feature: Media
 
         @Assert: Media entity is created and updated properly
-
         """
         media = entities.Media(organization=[self.org]).create()
         new_url = gen_url(subdomain=gen_string('alpha'))
         media = entities.Media(id=media.id, path_=new_url).update(['path_'])
         self.assertEqual(media.path_, new_url)
 
-    @tier2
+    @tier1
     @run_only_on('sat')
     def test_positive_update_os_family(self):
         """@Test: Create media entity providing the initial os family, then
@@ -172,7 +163,6 @@ class MediaTestCase(APITestCase):
         @Feature: Media
 
         @Assert: Media entity is created and updated properly
-
         """
         media = entities.Media(
             organization=[self.org],
@@ -185,14 +175,13 @@ class MediaTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_update_different_names(self):
+    def test_negative_update_name(self):
         """@Test: Create media entity providing the initial name, then try to
         update its name to invalid one.
 
         @Feature: Media
 
         @Assert: Media entity is not updated
-
         """
         media = entities.Media(organization=[self.org]).create()
         for new_name in invalid_values_list():
@@ -200,30 +189,28 @@ class MediaTestCase(APITestCase):
                 with self.assertRaises(HTTPError):
                     entities.Media(id=media.id, name=new_name).update(['name'])
 
-    @tier2
+    @tier1
     @run_only_on('sat')
-    def test_negative_update_with_wrong_url(self):
+    def test_negative_update_url(self):
         """@Test: Try to update media with invalid url.
 
         @Feature: Media
 
         @Assert: Media entity is not updated
-
         """
         media = entities.Media(organization=[self.org]).create()
         with self.assertRaises(HTTPError):
             entities.Media(
                 id=media.id, path_='NON_EXISTENT_URL').update(['path_'])
 
-    @tier2
+    @tier1
     @run_only_on('sat')
-    def test_negative_update_with_wrong_os_family(self):
+    def test_negative_update_os_family(self):
         """@Test: Try to update media with invalid operation system.
 
         @Feature: Media
 
         @Assert: Media entity is not updated
-
         """
         media = entities.Media(organization=[self.org]).create()
         with self.assertRaises(HTTPError):
@@ -238,7 +225,6 @@ class MediaTestCase(APITestCase):
         @Feature: Media
 
         @Assert: Media entity is deleted successfully
-
         """
         for name in valid_data_list():
             with self.subTest(name):

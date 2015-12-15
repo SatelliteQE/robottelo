@@ -39,7 +39,7 @@ class ContentViewTestCase(APITestCase):
 
     @tier3
     @run_only_on('sat')
-    def test_positive_subscribe_system_to_cv(self):
+    def test_positive_subscribe_system(self):
         """@Test: Subscribe a system to a content view.
 
         @Feature: ContentView
@@ -174,7 +174,7 @@ class ContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_negative_add_dupe_content(self):
+    def test_negative_add_dupe_repos(self):
         """@Test: Attempt to associate the same repo multiple times within a
         content view
 
@@ -1217,7 +1217,7 @@ class ContentViewTestCaseStub(APITestCase):
 
     @tier2
     @stubbed()
-    def test_positive_dynflow_restart_promote(self):
+    def test_positive_restart_promote_via_dynflow(self):
         """
         @test: attempt to restart a promotion
         @feature: Content Views
@@ -1230,7 +1230,7 @@ class ContentViewTestCaseStub(APITestCase):
 
     @tier2
     @stubbed()
-    def test_positive_dynflow_restart_publish(self):
+    def test_positive_restart_publish_via_dynflow(self):
         """
         @test: attempt to restart a publish
         @feature: Content Views
@@ -1246,7 +1246,7 @@ class ContentViewTestCaseStub(APITestCase):
 
     @tier2
     @stubbed()
-    def test_positive_roles_admin_user(self):
+    def test_positive_admin_user_actions(self):
         """
         @test: attempt to view content views
         @feature: Content Views
@@ -1266,7 +1266,7 @@ class ContentViewTestCaseStub(APITestCase):
 
     @tier2
     @stubbed()
-    def test_positive_roles_readonly_user(self):
+    def test_positive_readonly_user_actions(self):
         """
         @test: attempt to view content views
         @feature: Content Views
@@ -1287,7 +1287,7 @@ class ContentViewTestCaseStub(APITestCase):
 
     @tier2
     @stubbed()
-    def test_negative_roles_admin_user(self):
+    def test_negative_non_admin_user_actions(self):
         """
         @test: attempt to view content views
         @feature: Content Views
@@ -1307,7 +1307,7 @@ class ContentViewTestCaseStub(APITestCase):
 
     @tier2
     @stubbed()
-    def test_negative_roles_readonly_user(self):
+    def test_negative_non_readonly_user_actions(self):
         """
         @test: attempt to view content views
         @feature: Content Views

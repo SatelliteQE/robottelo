@@ -22,13 +22,12 @@ class FilterTestCase(APITestCase):
         )
 
     @tier1
-    def test_create_filter_with_perms(self):
+    def test_positive_create_with_permission(self):
         """@Test: Create a filter and assign it some permissions.
 
         @Assert: The created filter has the assigned permissions.
 
         @Feature: Filter
-
         """
         # Create a filter and assign all ConfigTemplate permissions to it.
         filter_ = entities.Filter(permission=self.ct_perms).create()
@@ -38,13 +37,12 @@ class FilterTestCase(APITestCase):
         )
 
     @tier1
-    def test_directly_delete_filter(self):
+    def test_positive_delete(self):
         """@Test: Create a filter and delete it.
 
         @Assert: The deleted filter cannot be feched.
 
         @Feature: Filter
-
         """
         filter_ = entities.Filter(permission=self.ct_perms).create()
         filter_.delete()
@@ -52,13 +50,12 @@ class FilterTestCase(APITestCase):
             filter_.read()
 
     @tier1
-    def test_implicitly_delete_filter(self):
+    def test_positive_delete_role(self):
         """@Test: Create a filter and delete the role it points at.
 
         @Assert: The filter cannot be fetched.
 
         @Feature: Filter
-
         """
         role = entities.Role().create()
         filter_ = entities.Filter(permission=self.ct_perms, role=role).create()

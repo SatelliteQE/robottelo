@@ -23,7 +23,6 @@ def valid_org_data_list():
     Note: The maximum allowed length of org name is 242 only. This is an
     intended behavior (Also note that 255 is the standard across other
     entities.)
-
     """
     return [
         gen_string('alphanumeric', randint(1, 242)),
@@ -40,13 +39,12 @@ class OrganizationTestCase(APITestCase):
     """Tests for the ``organizations`` path."""
 
     @tier1
-    def test_create_text_plain(self):
+    def test_positive_create_text_plain(self):
         """@Test Create an organization using a 'text/plain' content-type.
 
         @Assert: HTTP 415 is returned.
 
         @Feature: Organization
-
         """
         organization = entities.Organization()
         organization.create_missing()
@@ -61,27 +59,25 @@ class OrganizationTestCase(APITestCase):
             http_client.UNSUPPORTED_MEDIA_TYPE, response.status_code)
 
     @tier1
-    def test_positive_create_1(self):
+    def test_positive_create_with_auto_label(self):
         """@Test: Create an organization and provide a name.
 
         @Assert: The organization has the provided attributes and an
         auto-generated label.
 
         @Feature: Organization
-
         """
         org = entities.Organization().create()
         self.assertTrue(hasattr(org, 'label'))
         self.assertIsInstance(org.label, type(u''))
 
     @tier1
-    def test_positive_create_2(self):
+    def test_positive_create_with_custom_label(self):
         """@Test: Create an org and provide a name and identical label.
 
         @Assert: The organization has the provided attributes.
 
-        @Feature: Organzation
-
+        @Feature: Organization
         """
         # A label has a more restrictive allowable charset than a name, so we
         # use it for populating both name and label.
@@ -93,13 +89,12 @@ class OrganizationTestCase(APITestCase):
         self.assertEqual(name_label, org.label)
 
     @tier1
-    def test_positive_create_3(self):
+    def test_positive_create_with_name_and_label(self):
         """@Test: Create an organization and provide a name and label.
 
         @Assert: The organization has the provided attributes.
 
         @Feature: Organization
-
         """
         org = entities.Organization()
         org.name = name = org.get_fields()['name'].gen_value()
@@ -109,14 +104,13 @@ class OrganizationTestCase(APITestCase):
         self.assertEqual(label, org.label)
 
     @tier1
-    def test_positive_create_4(self):
+    def test_positive_create_with_name_and_description(self):
         """@Test: Create an organization and provide a name and description.
 
         @Assert: The organization has the provided attributes and an
         auto-generated label.
 
         @Feature: Organization
-
         """
         for name in valid_org_data_list():
             with self.subTest(name):
@@ -133,13 +127,12 @@ class OrganizationTestCase(APITestCase):
                 self.assertGreater(len(org.label), 0)
 
     @tier1
-    def test_positive_create_5(self):
+    def test_positive_create_with_name_label_description(self):
         """@Test: Create an org and provide a name, label and description.
 
         @Assert: The organization has the provided name, label and description.
 
         @Feature: Organization
-
         """
         org = entities.Organization()
         org.name = name = org.get_fields()['name'].gen_value()
@@ -151,13 +144,12 @@ class OrganizationTestCase(APITestCase):
         self.assertEqual(org.description, desc)
 
     @tier1
-    def test_negative_create_name(self):
+    def test_negative_create_with_name(self):
         """@Test: Create an org with an incorrect name.
 
         @Assert: The organization cannot be created.
 
         @Feature: Organization
-
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -165,13 +157,12 @@ class OrganizationTestCase(APITestCase):
                     entities.Organization(name=name).create()
 
     @tier1
-    def test_negative_create_duplicate(self):
+    def test_negative_create_with_same_name(self):
         """@Test: Create two organizations with identical names.
 
         @Assert: The second organization cannot be created.
 
         @Feature: Organization
-
         """
         name = entities.Organization().create().name
         with self.assertRaises(HTTPError):
@@ -184,7 +175,6 @@ class OrganizationTestCase(APITestCase):
         @Assert: Searching returns at least one result.
 
         @Feature: Organization
-
         """
         org = entities.Organization().create()
         orgs = entities.Organization().search(
@@ -205,13 +195,12 @@ class OrganizationUpdateTestCase(APITestCase):
         cls.organization = entities.Organization().create()
 
     @tier1
-    def test_update_name(self):
+    def test_positive_update_name(self):
         """@Test: Update an organization's name with valid values.
 
         @Assert: The organization's name is updated.
 
         @Feature: Organization
-
         """
         for name in valid_org_data_list():
             with self.subTest(name):
@@ -220,13 +209,12 @@ class OrganizationUpdateTestCase(APITestCase):
                 self.assertEqual(self.organization.name, name)
 
     @tier1
-    def test_update_desc(self):
+    def test_positive_update_description(self):
         """@Test: Update an organization's description with valid values.
 
         @Assert: The organization's description is updated.
 
         @Feature: Organization
-
         """
         for desc in valid_org_data_list():
             with self.subTest(desc):
@@ -235,13 +223,12 @@ class OrganizationUpdateTestCase(APITestCase):
                 self.assertEqual(self.organization.description, desc)
 
     @tier1
-    def test_update_name_desc(self):
+    def test_positive_update_name_and_description(self):
         """@Test: Update an organization with new name and description.
 
         @Assert: The organization's name and description are updated.
 
         @Feature: Organization
-
         """
         name = gen_string('alpha')
         desc = gen_string('alpha')
@@ -252,13 +239,12 @@ class OrganizationUpdateTestCase(APITestCase):
         self.assertEqual(self.organization.description, desc)
 
     @tier2
-    def test_associate_with_user(self):
+    def test_positive_update_user(self):
         """@Test: Update an organization, associate user with it.
 
         @Assert: User is associated with organization.
 
         @Feature: Organization
-
         """
         user = entities.User().create()
         self.organization.user = [user]
@@ -267,13 +253,12 @@ class OrganizationUpdateTestCase(APITestCase):
         self.assertEqual(self.organization.user[0].id, user.id)
 
     @tier2
-    def test_associate_with_subnet(self):
+    def test_positive_update_subnet(self):
         """@Test: Update an organization, associate subnet with it.
 
         @Assert: Subnet is associated with organization.
 
         @Feature: Organization
-
         """
         subnet = entities.Subnet().create()
         self.organization.subnet = [subnet]
@@ -283,13 +268,12 @@ class OrganizationUpdateTestCase(APITestCase):
 
     @tier2
     @skip_if_bug_open('bugzilla', 1230865)
-    def test_associate_with_media(self):
+    def test_positive_add_media(self):
         """@Test: Update an organization and associate it with a media.
 
         @Assert: An organization is associated with a media.
 
-        @Feature: Organziation
-
+        @Feature: Organization
         """
         media = entities.Media().create()
         self.organization.media = [media]
@@ -304,7 +288,6 @@ class OrganizationUpdateTestCase(APITestCase):
         @Assert: The organization's attributes are not updated.
 
         @Feature: Organization
-
         """
         dataset = (
             {'name': gen_string(str_type='utf8', length=256)},
@@ -321,7 +304,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
     @tier2
     @skip_if_bug_open('bugzilla', 1103157)
-    def test_bugzilla_1103157(self):
+    def test_verify_bugzilla_1103157(self):
         """@Test: Create organization and add two compute resources one by one
         using different transactions and different users to see that they
         actually added, but not overwrite each other
@@ -341,7 +324,6 @@ class OrganizationUpdateTestCase(APITestCase):
            organization.
 
         @Assert: Organization contains both compute resources
-
         """
         # setUpClass() creates an organization w/admin user. Here, we use admin
         # to make two compute resources and make first belong to organization.
