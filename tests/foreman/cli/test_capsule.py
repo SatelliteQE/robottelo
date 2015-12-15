@@ -1,14 +1,122 @@
 # -*- encoding: utf-8 -*-
 """Test class for the capsule CLI."""
-from robottelo.decorators import stubbed
+import random
+
+from fauxfactory import gen_alphanumeric, gen_string
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import CLIFactoryError, make_proxy
+from robottelo.cli.proxy import Proxy, default_url_on_new_port
+from robottelo.datafactory import valid_data_list
+from robottelo.decorators import run_only_on, stubbed, tier1, tier2
 from robottelo.test import CLITestCase
 
 
-class CapsuleTestCase(CLITestCase):
+class ProxyTestCase(CLITestCase):
+    """Proxy cli tests"""
+
+    def setUp(self):
+        """Skipping tests until we can create ssh tunnels"""
+        self.skipTest('Skipping tests until we can create ssh tunnels')
+
+    @run_only_on('sat')
+    @tier1
+    def test_verify_redmine_3875(self):
+        """@Test: Proxy creation with random URL
+
+        @Feature: Smart Proxy
+
+        @Assert: Proxy is not created
+        """
+        # Create a random proxy
+        with self.assertRaises(CLIFactoryError):
+            make_proxy({
+                u'url': u'http://{0}:{1}'.format(
+                    gen_string('alpha', 6),
+                    gen_string('numeric', 4)),
+            })
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_name(self):
+        """@Test: Proxy creation with the home proxy
+
+        @Feature: Smart Proxy
+
+        @Assert: Proxy is created
+        """
+        for name in valid_data_list():
+            with self.subTest(name):
+                proxy = make_proxy({u'name': name})
+                self.assertEquals(proxy['name'], name)
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_delete_by_id(self):
+        """@Test: Proxy deletion with the home proxy
+
+        @Feature: Smart Proxy
+
+        @Assert: Proxy is deleted
+        """
+        for name in valid_data_list():
+            with self.subTest(name):
+                proxy = make_proxy({u'name': name})
+                Proxy.delete({u'id': proxy['id']})
+                with self.assertRaises(CLIReturnCodeError):
+                    Proxy.info({u'id': proxy['id']})
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_update_name(self):
+        """@Test: Proxy name update with the home proxy
+
+        @Feature: Smart Proxy
+
+        @Assert: Proxy has the name updated
+        """
+        proxy = make_proxy({u'name': gen_alphanumeric()})
+        newport = random.randint(9091, 49090)
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                with default_url_on_new_port(9090, newport) as url:
+                    Proxy.update({
+                        u'id': proxy['id'],
+                        u'name': new_name,
+                        u'url': url,
+                    })
+                    proxy = Proxy.info({u'id': proxy['id']})
+                    self.assertEqual(proxy['name'], new_name)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_refresh_features_by_id(self):
+        """@Test: Refresh smart proxy features, search for proxy by id
+
+        @Feature: Smart Proxy
+
+        @Assert: Proxy features are refreshed
+        """
+        proxy = make_proxy()
+        Proxy.refresh_features({u'id': proxy['id']})
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_refresh_features_by_name(self):
+        """@Test: Refresh smart proxy features, search for proxy by name
+
+        @Feature: Smart Proxy
+
+        @Assert: Proxy features are refreshed
+        """
+        proxy = make_proxy()
+        Proxy.refresh_features({u'name': proxy['name']})
+
+
+class CapsuleIntegrationTestCase(CLITestCase):
     """Tests for capsule functionality."""
 
     @stubbed()
-    def test_provision_through_capsule(self):
+    def test_positive_provision_through_capsule(self):
         """@Test: User can provision through a capsule
 
         @Feature: Capsules
@@ -27,11 +135,10 @@ class CapsuleTestCase(CLITestCase):
         proxy-enabled capsule.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_register_through_capsule(self):
+    def test_positive_register_through_capsule(self):
         """@Test: User can register system through proxy-enabled capsule
 
         @Feature: Capsules
@@ -43,11 +150,10 @@ class CapsuleTestCase(CLITestCase):
         @Assert: system is successfully registered
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_deregister_through_capsule(self):
+    def test_positive_deregister_through_capsule(self):
         """@Test: User can unregister system through proxy-enabled capsule
 
         @Feature: Capsules
@@ -59,11 +165,10 @@ class CapsuleTestCase(CLITestCase):
         @Assert: system is successfully unregistered
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_subscribe_content_through_capsule(self):
+    def test_positive_subscribe_content_through_capsule(self):
         """@Test: User can subscribe system to content through proxy-enabled
         capsule
 
@@ -80,11 +185,10 @@ class CapsuleTestCase(CLITestCase):
         @Assert: system is successfully subscribed to each content type
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_consume_content_through_capsule(self):
+    def test_positive_consume_content_through_capsule(self):
         """@Test: User can consume content on system, from a content source,
         through proxy-enabled capsule
 
@@ -103,11 +207,10 @@ class CapsuleTestCase(CLITestCase):
         @Assert: system successfully consume content
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_unsusbscribe_content_through_capsule(self):
+    def test_positive_unsusbscribe_content_through_capsule(self):
         """@Test: User can unsubscribe system from content through
         proxy-enabled capsule
 
@@ -126,11 +229,10 @@ class CapsuleTestCase(CLITestCase):
         @Assert: system is successfully unsubscribed from each content type
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_reregister_with_capsule_cert(self):
+    def test_positive_reregister_with_capsule_cert(self):
         """@Test: system can register via capsule using cert provided by
         the capsule itself.
 
@@ -149,11 +251,10 @@ class CapsuleTestCase(CLITestCase):
         from capsule.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_ssl_capsule(self):
+    def test_positive_ssl_capsule(self):
         """@Test: Assure SSL functionality for capsules
 
         @Feature: Capsules
@@ -170,11 +271,10 @@ class CapsuleTestCase(CLITestCase):
         baseline functionality identical to non-SSL
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_enable_bmc(self):
+    def test_positive_enable_bmc(self):
         """@Test: Enable BMC feature on smart-proxy
 
         @Feature: Capsules
@@ -198,5 +298,4 @@ class CapsuleTestCase(CLITestCase):
         @Assert: Katello installer should show the options to enable BMC
 
         @Status: Manual
-
         """
