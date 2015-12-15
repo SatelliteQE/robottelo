@@ -90,7 +90,7 @@ class PartitionTableTestCase(APITestCase):
         self.assertEqual(ptable.os_family, os_family)
 
     @tier1
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@Test: Try to create partition table using invalid names only
 
         @Assert: Partition table was not created
@@ -103,7 +103,7 @@ class PartitionTableTestCase(APITestCase):
                     entities.PartitionTable(name=name).create()
 
     @tier1
-    def test_negative_create_with_layout(self):
+    def test_negative_create_with_empty_layout(self):
         """@Test: Try to create partition table with empty layout
 
         @Assert: Partition table was not created

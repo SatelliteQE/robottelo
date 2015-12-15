@@ -248,7 +248,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@Test: Try to create content view filter using invalid names only
 
         @Assert: Content view filter was not created
@@ -295,7 +295,7 @@ class ContentViewFilterTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_negative_create_with_repo_by_id(self):
+    def test_negative_create_with_invalid_repo_id(self):
         """@Test: Try to create content view filter using incorrect repository
         id
 

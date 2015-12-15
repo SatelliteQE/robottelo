@@ -5,32 +5,32 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-class ComputeResource(UITestCase):
+class ComputeResourceTestCase(UITestCase):
     """Implements Compute Resource tests in UI"""
 
     @classmethod
     def setUpClass(cls):
-        super(ComputeResource, cls).setUpClass()
+        super(ComputeResourceTestCase, cls).setUpClass()
         cls.current_libvirt_url = (
             LIBVIRT_RESOURCE_URL % settings.server.hostname
         )
 
     @run_only_on('sat')
-    def test_create_libvirt_resource_different_names(self):
+    @tier1
+    def test_positive_create_libvirt_with_name(self):
         """@Test: Create a new libvirt Compute Resource using different value
         types as a name
 
         @Feature: Compute Resource - Create
 
         @Assert: A libvirt Compute Resource is created successfully
-
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -47,13 +47,13 @@ class ComputeResource(UITestCase):
                     self.assertIsNotNone(search)
 
     @run_only_on('sat')
-    def test_create_libvirt_resource_description(self):
+    @tier1
+    def test_positive_create_libvirt_with_description(self):
         """@Test: Create libvirt Compute Resource with description.
 
         @Feature: Compute Resource - Create
 
         @Assert: A libvirt Compute Resource is created successfully
-
         """
         with Session(self.browser) as session:
             for description in valid_data_list():
@@ -72,13 +72,13 @@ class ComputeResource(UITestCase):
                     self.assertIsNotNone(search)
 
     @run_only_on('sat')
-    def test_create_libvirt_resource_display_type(self):
+    @tier1
+    def test_positive_create_libvirt_with_display_type(self):
         """@Test: Create libvirt Compute Resource with different display types.
 
         @Feature: Compute Resource - Create
 
         @Assert: A libvirt Compute Resource is created successfully
-
         """
         with Session(self.browser) as session:
             for display_type in 'VNC', 'SPICE':
@@ -97,14 +97,14 @@ class ComputeResource(UITestCase):
                     self.assertIsNotNone(search)
 
     @run_only_on('sat')
-    def test_create_libvirt_resource_console_pass(self):
+    @tier1
+    def test_positive_create_libvirt_with_console_password(self):
         """@Test: Create libvirt Compute Resource with checked/unchecked
         console password checkbox
 
         @Feature: Compute Resource - Create
 
         @Assert: A libvirt Compute Resource is created successfully
-
         """
         with Session(self.browser) as session:
             for console_password in True, False:
@@ -123,14 +123,14 @@ class ComputeResource(UITestCase):
                     self.assertIsNotNone(search)
 
     @run_only_on('sat')
-    def test_create_libvirt_resource_different_names_negative(self):
+    @tier1
+    def test_negative_create_libvirt_with_invalid_name(self):
         """@Test: Create a new libvirt Compute Resource with incorrect values
         only
 
         @Feature: Compute Resource - Create
 
         @Assert: A libvirt Compute Resource is not created
-
         """
         include_list = [' ']
         with Session(self.browser) as session:
@@ -151,13 +151,13 @@ class ComputeResource(UITestCase):
                     )
 
     @run_only_on('sat')
-    def test_create_libvirt_resource_description_negative(self):
+    @tier1
+    def test_negative_create_libvirt_with_invalid_description(self):
         """@Test: Create libvirt Compute Resource with incorrect description.
 
         @Feature: Compute Resource - Create with long description.
 
         @Assert: A libvirt Compute Resource is not created
-
         """
         with Session(self.browser) as session:
             for description in invalid_names_list():
@@ -176,13 +176,13 @@ class ComputeResource(UITestCase):
                     self.assertIsNotNone(error_element)
 
     @run_only_on('sat')
-    def test_update_libvirt_resource_different_name(self):
+    @tier1
+    def test_positive_update_libvirt_name(self):
         """@Test: Update a libvirt Compute Resource name
 
         @Feature: Compute Resource - Update
 
         @Assert: The libvirt Compute Resource is updated
-
         """
         with Session(self.browser) as session:
             for newname in valid_data_list():
@@ -203,13 +203,13 @@ class ComputeResource(UITestCase):
                     self.assertIsNotNone(search)
 
     @run_only_on('sat')
-    def test_update_libvirt_resource_organization(self):
+    @tier1
+    def test_positive_update_libvirt_organization(self):
         """@Test: Update a libvirt Compute Resource organization
 
         @Feature: Compute Resource - Update
 
         @Assert: The libvirt Compute Resource is updated
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -231,13 +231,13 @@ class ComputeResource(UITestCase):
             )
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete(self):
         """@Test: Delete a Compute Resource
 
         @Feature: Compute Resource - Delete
 
         @Assert: The Compute Resource is deleted
-
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -254,14 +254,14 @@ class ComputeResource(UITestCase):
                     self.compute_resource.delete(name)
 
     @run_only_on('sat')
-    def test_access_docker_resource_via_compute_profile(self):
+    @tier1
+    def test_positive_access_docker_via_profile(self):
         """@Test: Try to access docker compute resource via compute profile
         (1-Small) screen
 
         @Feature: Compute Resource
 
         @Assert: The Compute Resource created and opened successfully
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:

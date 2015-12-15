@@ -19,7 +19,15 @@ from robottelo.constants import (
     REPO_TYPE,
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    skip_if_not_set,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_activationkey, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -27,12 +35,12 @@ from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
 
-class ActivationKey(UITestCase):
+class ActivationKeyTestCase(UITestCase):
     """Implements Activation key tests in UI"""
 
     @classmethod
     def setUpClass(cls):  # noqa
-        super(ActivationKey, cls).setUpClass()
+        super(ActivationKeyTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
         cls.base_key_name = entities.ActivationKey(
             organization=cls.organization
@@ -99,14 +107,14 @@ class ActivationKey(UITestCase):
         # Promote the content view version.
         promote(content_view.read().version[0], lce.id)
 
-    def test_positive_create_activation_key_with_different_names(self):
+    @tier1
+    def test_positive_create_with_name(self):
         """@Test: Create Activation key for all variations of Activation key
         name
 
         @Feature: Activation key - Positive Create
 
         @Assert: Activation key is created
-
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -119,13 +127,13 @@ class ActivationKey(UITestCase):
                     )
                     self.assertIsNotNone(self.activationkey.search(name))
 
-    def test_positive_create_activation_key_with_description(self):
+    @tier1
+    def test_positive_create_with_description(self):
         """@Test: Create Activation key with description
 
         @Feature: Activation key - Positive Create
 
         @Assert: Activation key is created
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -139,13 +147,13 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.search(name))
 
     @run_only_on('sat')
-    def test_positive_create_activation_key_with_envs(self):
+    @tier2
+    def test_positive_create_with_envs(self):
         """@Test: Create Activation key for all variations of Environments
 
         @Feature: Activation key - Positive Create
 
         @Assert: Activation key is created
-
         """
         with Session(self.browser) as session:
             for env_name in valid_data_list():
@@ -166,13 +174,13 @@ class ActivationKey(UITestCase):
                     self.assertIsNotNone(self.activationkey.search(name))
 
     @run_only_on('sat')
-    def test_positive_create_activation_key_with_cv(self):
+    @tier2
+    def test_positive_create_with_cv(self):
         """@Test: Create Activation key for all variations of Content Views
 
         @Feature: Activation key - Positive Create
 
         @Assert: Activation key is created
-
         """
         with Session(self.browser) as session:
             for cv_name in valid_data_list():
@@ -191,13 +199,13 @@ class ActivationKey(UITestCase):
                     )
                     self.assertIsNotNone(self.activationkey.search(name))
 
-    def test_positive_create_activation_key_with_hc(self):
+    @tier2
+    def test_positive_create_with_host_collection(self):
         """@Test: Create Activation key with Host Collection
 
         @Feature: Activation key - Positive Create
 
         @Assert: Activation key is created
-
         """
         name = gen_string(str_type='alpha')
         # create Host Collection using API
@@ -226,13 +234,13 @@ class ActivationKey(UITestCase):
                 (strategy, value % host_col.name))
             self.assertIsNotNone(host_collection)
 
-    def test_positive_create_activation_key_with_usage_limit(self):
+    @tier1
+    def test_positive_create_with_usage_limit(self):
         """@Test: Create Activation key with finite Usage limit
 
         @Feature: Activation key - Positive Create
 
         @Assert: Activation key is created
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -245,13 +253,13 @@ class ActivationKey(UITestCase):
             )
             self.assertIsNotNone(self.activationkey.search(name))
 
-    def test_negative_create_activation_key_with_invalid_names(self):
+    @tier2
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create Activation key with invalid Name
 
         @Feature: Activation key - Negative Create
 
         @Assert: Activation key is not created. Appropriate error shown.
-
         """
         with Session(self.browser) as session:
             for name in invalid_names_list():
@@ -267,15 +275,15 @@ class ActivationKey(UITestCase):
                     self.assertIsNone(self.activationkey.search(name))
 
     @skip_if_bug_open('bugzilla', 1177158)
-    def test_negative_create_activation_key_with_invalid_desc(self):
-        """@Test: Create Activation key with invalid Description
+    @tier1
+    def test_negative_create_with_too_long_description(self):
+        """@Test: Create Activation key with too long description
 
         @Feature: Activation key - Negative Create
 
         @Assert: Activation key is not created. Appropriate error shown.
 
         @BZ: 1177158
-
         """
         name = gen_string('alpha')
         description = gen_string('alpha', 1001)
@@ -291,14 +299,14 @@ class ActivationKey(UITestCase):
                 common_locators['common_haserror']))
             self.assertIsNone(self.activationkey.search(name))
 
-    def test_negative_create_activation_key_with_invalid_limit(self):
+    @tier2
+    def test_negative_create_with_invalid_limit(self):
         """@Test: Create Activation key with invalid Usage Limit. Both with too
         long numbers and using letters.
 
         @Feature: Activation key - Negative Create
 
         @Assert: Activation key is not created. Appropriate error shown.
-
         """
         with Session(self.browser) as session:
             for limit in invalid_names_list():
@@ -315,14 +323,14 @@ class ActivationKey(UITestCase):
                         locators['ak.invalid_limit']))
                     self.assertIsNone(self.activationkey.search(name))
 
-    def test_positive_delete_activation_key_with_different_names(self):
+    @tier1
+    def test_positive_delete(self):
         """@Test: Create Activation key and delete it for all variations of
         Activation key name
 
         @Feature: Activation key - Positive Delete
 
         @Assert: Activation key is deleted
-
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -338,13 +346,13 @@ class ActivationKey(UITestCase):
                     self.activationkey.delete(name)
 
     @run_only_on('sat')
-    def test_positive_delete_activation_key_with_env(self):
+    @tier2
+    def test_positive_delete_with_env(self):
         """@Test: Create Activation key with environment and delete it
 
         @Feature: Activation key - Positive Delete
 
         @Assert: Activation key is deleted
-
         """
         name = gen_string('alpha')
         cv_name = gen_string('alpha')
@@ -363,13 +371,13 @@ class ActivationKey(UITestCase):
             self.activationkey.delete(name)
 
     @run_only_on('sat')
-    def test_positive_delete_activation_key_with_cv(self):
+    @tier2
+    def test_positive_delete_with_cv(self):
         """@Test: Create Activation key with content view and delete it
 
         @Feature: Activation key - Positive Delete
 
         @Assert: Activation key is deleted
-
         """
         name = gen_string('alpha')
         cv_name = gen_string('utf8')
@@ -388,7 +396,9 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.delete(name)
 
-    def test_positive_delete_activation_key_with_system(self):
+    @skip_if_not_set('clients')
+    @tier3
+    def test_positive_delete_with_system(self):
         """@Test: Delete an Activation key which has registered systems
 
         @Feature: Activation key - Positive Delete
@@ -399,7 +409,6 @@ class ActivationKey(UITestCase):
         3. Delete the Activation key
 
         @Assert: Activation key is deleted
-
         """
         name = gen_string('alpha')
         cv_name = gen_string('alpha')
@@ -426,10 +435,11 @@ class ActivationKey(UITestCase):
                 self.assertEqual(result.return_code, 0)
                 self.activationkey.delete(name)
 
-    def test_negative_delete_activation_key(self):
+    @tier1
+    def test_negative_delete(self):
         """@Test: [UI ONLY] Attempt to delete an Activation Key and cancel it
 
-        @Feature: Activation key - Positive Delete
+        @Feature: Activation key - Delete
 
         @Steps:
         1. Create an Activation key
@@ -437,7 +447,6 @@ class ActivationKey(UITestCase):
         3. Click Cancel in the confirmation dialog box
 
         @Assert: Activation key is not deleted
-
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -450,13 +459,13 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.delete(name, really=False)
 
-    def test_positive_update_ak_with_different_names(self):
+    @tier1
+    def test_positive_update_name(self):
         """@Test: Update Activation Key Name in an Activation key
 
         @Feature: Activation key - Positive Update
 
         @Assert: Activation key is updated
-
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -474,13 +483,13 @@ class ActivationKey(UITestCase):
                         self.activationkey.search(new_name))
                     name = new_name
 
-    def test_positive_update_activation_key_with_description(self):
+    @tier1
+    def test_positive_update_description(self):
         """@Test: Update Description in an Activation key
 
         @Feature: Activation key - Positive Update
 
         @Assert: Activation key is updated
-
         """
         name = gen_string('alpha')
         description = gen_string('alpha')
@@ -500,13 +509,13 @@ class ActivationKey(UITestCase):
                         common_locators['alert.success']))
 
     @run_only_on('sat')
-    def test_positive_update_activation_key_env(self):
+    @tier2
+    def test_positive_update_env(self):
         """@Test: Update Environment in an Activation key
 
         @Feature: Activation key - Positive Update
 
         @Assert: Activation key is updated
-
         """
         name = gen_string('alpha')
         cv_name = gen_string('alpha')
@@ -532,7 +541,8 @@ class ActivationKey(UITestCase):
             self.assertEqual(env_name, selected_env)
 
     @run_only_on('sat')
-    def test_positive_update_activation_key_with_cv(self):
+    @tier2
+    def test_positive_update_cv(self):
         """@Test: Update Content View in an Activation key
 
         @Feature: Activation key - Positive Update
@@ -543,7 +553,6 @@ class ActivationKey(UITestCase):
         products
 
         @Assert: Activation key is updated
-
         """
         # Pick one of the valid data list items - data driven tests is not
         # necessary for this test
@@ -577,7 +586,9 @@ class ActivationKey(UITestCase):
             self.assertEqual(cv2_name, selected_cv)
 
     @run_only_on('sat')
-    def test_positive_update_activation_key_with_rh_product(self):
+    @skip_if_not_set('fake_manifest')
+    @tier2
+    def test_positive_update_rh_product(self):
         """@Test: Update Content View in an Activation key
 
         @Feature: Activation key - Positive Update
@@ -589,7 +600,6 @@ class ActivationKey(UITestCase):
            products
 
         @Assert: Activation key is updated
-
         """
         # Pick one of the valid data list items - data driven tests is not
         # necessary for this test
@@ -643,13 +653,13 @@ class ActivationKey(UITestCase):
             selected_cv = self.activationkey.get_attribute(name, cv_locator)
             self.assertEqual(cv2_name, selected_cv)
 
-    def test_positive_update_activation_key_with_limit_value(self):
+    @tier1
+    def test_positive_update_limit(self):
         """@Test: Update Usage limit from Unlimited to a finite number
 
         @Feature: Activation key - Positive Update
 
         @Assert: Activation key is updated
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -664,13 +674,13 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success']))
 
-    def test_positive_update_activation_key_with_unlimited_value(self):
+    @tier1
+    def test_positive_update_limit_to_unlimited(self):
         """@Test: Update Usage limit from definite number to Unlimited
 
         @Feature: Activation key - Positive Update
 
         @Assert: Activation key is updated
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -686,13 +696,13 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success']))
 
-    def test_negative_update_activation_key_with_invalid_names(self):
+    @tier1
+    def test_negative_update_name(self):
         """@Test: Update invalid name in an activation key
 
         @Feature: Activation key - Negative Update
 
         @Assert: Activation key is not updated.  Appropriate error shown.
-
         """
         name = gen_string('alpha', 10)
         with Session(self.browser) as session:
@@ -711,7 +721,8 @@ class ActivationKey(UITestCase):
                     self.assertIsNone(self.activationkey.search(new_name))
 
     @skip_if_bug_open('bugzilla', 1177158)
-    def test_negative_update_activation_key_with_description(self):
+    @tier1
+    def test_negative_update_description(self):
         """@Test: Update invalid Description in an activation key
 
         @Feature: Activation key - Negative Update
@@ -719,7 +730,6 @@ class ActivationKey(UITestCase):
         @Assert: Activation key is not updated.  Appropriate error shown.
 
         @BZ: 1177158
-
         """
         name = gen_string('alpha')
         new_description = gen_string('alpha', 1001)
@@ -736,13 +746,13 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.error']))
 
-    def test_negative_update_activation_key_with_invalid_limits(self):
+    @tier1
+    def test_negative_update_limit(self):
         """@Test: Update invalid Usage Limit in an activation key
 
         @Feature: Activation key - Negative Update
 
         @Assert: Activation key is not updated.  Appropriate error shown.
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -764,7 +774,9 @@ class ActivationKey(UITestCase):
                     )
 
     @run_only_on('sat')
-    def test_usage_limit(self):
+    @skip_if_not_set('clients')
+    @tier3
+    def test_negative_usage_limit(self):
         """@Test: Test that Usage limit actually limits usage
 
         @Feature: Activation key - Usage limit
@@ -776,7 +788,6 @@ class ActivationKey(UITestCase):
         4. Attempt to register an other system after reaching the Usage Limit
 
         @Assert: System Registration fails. Appropriate error shown
-
         """
         name = gen_string('alpha')
         host_limit = '1'
@@ -808,7 +819,9 @@ class ActivationKey(UITestCase):
                         result.stderr
                     )
 
-    def test_associate_host(self):
+    @skip_if_not_set('clients')
+    @tier3
+    def test_positive_add_host(self):
         """@Test: Test that hosts can be associated to Activation Keys
 
         @Feature: Activation key - Host
@@ -819,7 +832,6 @@ class ActivationKey(UITestCase):
         3. Associate the hosts to Activation key
 
         @Assert: Hosts are successfully associated to Activation key
-
         """
         key_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -838,14 +850,15 @@ class ActivationKey(UITestCase):
                     key_name)
                 self.assertEqual(vm.hostname, name)
 
+    @skip_if_not_set('fake_manifest')
     @run_only_on('sat')
-    def test_associate_product_rh(self):
+    @tier2
+    def test_positive_add_rh_product(self):
         """@Test: Test that RH product can be associated to Activation Keys
 
         @Feature: Activation key - Product
 
         @Assert: RH products are successfully associated to Activation key
-
         """
         name = gen_string('alpha')
         cv_name = gen_string('alpha')
@@ -882,13 +895,13 @@ class ActivationKey(UITestCase):
                 common_locators['alert.success']))
 
     @run_only_on('sat')
-    def test_associate_product_custom(self):
+    @tier2
+    def test_positive_add_custom_product(self):
         """@Test: Test that custom product can be associated to Activation Keys
 
         @Feature: Activation key - Product
 
         @Assert: Custom products are successfully associated to Activation key
-
         """
         name = gen_string('alpha')
         cv_name = gen_string('alpha')
@@ -910,8 +923,10 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success']))
 
+    @skip_if_not_set('fake_manifest')
     @run_only_on('sat')
-    def test_associate_product_rh_and_custom(self):
+    @tier2
+    def test_positive_add_rh_and_custom_products(self):
         """@Test: Test that RH/Custom product can be associated to Activation
         keys
 
@@ -923,7 +938,6 @@ class ActivationKey(UITestCase):
         3. Associate custom product(s) to Activation Key
 
         @Assert: RH/Custom product is successfully associated to Activation key
-
         """
         name = gen_string('alpha')
         rh_repo = {
@@ -980,7 +994,9 @@ class ActivationKey(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success']))
 
-    def test_delete_manifest(self):
+    @skip_if_not_set('fake_manifest')
+    @tier2
+    def test_positive_delete_manifest(self):
         """@Test: Check if deleting a manifest removes it from Activation key
 
         @Feature: Activation key - Manifest
@@ -991,7 +1007,6 @@ class ActivationKey(UITestCase):
         3. Delete the manifest
 
         @Assert: Deleting a manifest removes it from the Activation key
-
         """
         # Upload manifest
         org = entities.Organization().create()
@@ -1033,13 +1048,14 @@ class ActivationKey(UITestCase):
             )
 
     @run_only_on('sat')
-    def test_multiple_activation_keys_to_system(self):
+    @skip_if_not_set('clients')
+    @tier3
+    def test_positive_add_multiple_aks_to_system(self):
         """@Test: Check if multiple Activation keys can be attached to a system
 
         @Feature: Activation key - System
 
         @Assert: Multiple Activation keys are attached to a system
-
         """
         key_1_name = gen_string('alpha')
         key_2_name = gen_string('alpha')
@@ -1096,7 +1112,8 @@ class ActivationKey(UITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    def test_end_to_end_activation_key(self):
+    @tier3
+    def test_positive_end_to_end(self):
         """@Test: Create Activation key and provision content-host with it
 
         Associate activation-key with host-group to auto-register the
@@ -1113,18 +1130,17 @@ class ActivationKey(UITestCase):
         with Activation key
 
         @Status: Manual
-
         """
         pass
 
     @run_only_on('sat')
-    def test_positive_copy_activation_key(self):
+    @tier1
+    def test_positive_copy(self):
         """@Test: Create Activation key and copy it
 
         @Feature: Activation key - Positive Copy
 
         @Assert: Activation Key copy exists
-
         """
         with Session(self.browser) as session:
             for new_name in valid_data_list():
@@ -1138,13 +1154,13 @@ class ActivationKey(UITestCase):
                         self.activationkey.search(new_name))
 
     @run_only_on('sat')
-    def test_negative_copy_activation_key(self):
+    @tier1
+    def test_negative_copy(self):
         """@Test: Create Activation key and fail copying it
 
-        @Feature: Activation key -Negative Copy
+        @Feature: Activation key - Negative Copy
 
         @Assert: Activation Key copy does not exist
-
         """
         with Session(self.browser) as session:
             for new_name in invalid_names_list():

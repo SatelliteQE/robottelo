@@ -23,7 +23,6 @@ class SubscriptionsTestCase(APITestCase):
         @Assert: Manifest is uploaded successfully
 
         @Feature: Subscriptions
-
         """
         org = entities.Organization().create()
         with open(manifests.clone(), 'rb') as manifest:
@@ -37,7 +36,6 @@ class SubscriptionsTestCase(APITestCase):
         @Assert: Manifest is Deleted successfully
 
         @Feature: Subscriptions
-
         """
         org = entities.Organization().create()
         sub = entities.Subscription(organization=org)
@@ -49,13 +47,12 @@ class SubscriptionsTestCase(APITestCase):
 
     @skip_if_not_set('fake_manifest')
     @tier1
-    def test_negative_create(self):
+    def test_negative_upload(self):
         """@Test: Upload the same manifest to two organizations.
 
         @Assert: The manifest is not uploaded to the second organization.
 
         @Feature: Subscriptions
-
         """
         orgs = [entities.Organization().create() for _ in range(2)]
         with open(manifests.clone(), 'rb') as manifest:

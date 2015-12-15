@@ -126,7 +126,7 @@ class ActivationKeyTestCase(APITestCase):
                     ).create()
 
     @tier1
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create activation key providing an invalid name.
 
         @Assert: Activation key is not created

@@ -40,7 +40,6 @@ from robottelo.ui.computeprofile import ComputeProfile
 from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.container import Container
-from robottelo.ui.contentenv import ContentEnvironment
 from robottelo.ui.contentviews import ContentViews
 from robottelo.ui.contentsearch import ContentSearch
 from robottelo.ui.discoveredhosts import DiscoveredHosts
@@ -52,6 +51,7 @@ from robottelo.ui.hardwaremodel import HardwareModel
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.hosts import Hosts
 from robottelo.ui.ldapauthsource import LdapAuthSource
+from robottelo.ui.lifecycleenvironment import LifecycleEnvironment
 from robottelo.ui.location import Location
 from robottelo.ui.login import Login
 from robottelo.ui.medium import Medium
@@ -180,7 +180,6 @@ class UITestCase(TestCase):
         self.compute_profile = ComputeProfile(self.browser)
         self.compute_resource = ComputeResource(self.browser)
         self.configgroups = ConfigGroups(self.browser)
-        self.contentenv = ContentEnvironment(self.browser)
         self.content_views = ContentViews(self.browser)
         self.content_search = ContentSearch(self.browser)
         self.domain = Domain(self.browser)
@@ -192,6 +191,7 @@ class UITestCase(TestCase):
         self.hostgroup = Hostgroup(self.browser)
         self.hosts = Hosts(self.browser)
         self.ldapauthsource = LdapAuthSource(self.browser)
+        self.lifecycleenvironment = LifecycleEnvironment(self.browser)
         self.location = Location(self.browser)
         self.login = Login(self.browser)
         self.medium = Medium(self.browser)

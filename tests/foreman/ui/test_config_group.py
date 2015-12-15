@@ -6,18 +6,19 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_config_groups
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-class ConfigGroups(UITestCase):
+class ConfigGroupTestCase(UITestCase):
     """Implements Config Groups tests in UI."""
 
     @run_only_on('sat')
-    def test_create_positive(self):
+    @tier1
+    def test_positive_create(self):
         """@Test: Create new Config-Group
 
         @Feature: Config-Groups - Positive Create
@@ -32,14 +33,14 @@ class ConfigGroups(UITestCase):
                     self.assertIsNotNone(self.configgroups.search(name))
 
     @run_only_on('sat')
-    def test_create_negative(self):
+    @tier1
+    def test_negative_create(self):
         """@Test: Try to create config group and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
         @Feature: Config-Groups - Negative Create
 
         @Assert: Config-Groups is not created
-
         """
         with Session(self.browser) as session:
             for name in invalid_values_list('ui'):
@@ -50,7 +51,8 @@ class ConfigGroups(UITestCase):
                     self.assertIsNone(self.configgroups.search(name))
 
     @run_only_on('sat')
-    def test_update_positive(self):
+    @tier1
+    def test_positive_update(self):
         """@Test: Update selected config-group
 
         @Feature: Config-Groups - Positive Update
@@ -68,7 +70,8 @@ class ConfigGroups(UITestCase):
                     self.assertIsNotNone(self.configgroups.search(new_name))
 
     @run_only_on('sat')
-    def test_delete_positive(self):
+    @tier1
+    def test_positive_delete(self):
         """@Test: Delete selected config-groups
 
         @Feature: Config-Groups - Positive delete

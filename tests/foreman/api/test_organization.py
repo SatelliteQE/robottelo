@@ -144,7 +144,7 @@ class OrganizationTestCase(APITestCase):
         self.assertEqual(org.description, desc)
 
     @tier1
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create an org with an incorrect name.
 
         @Assert: The organization cannot be created.

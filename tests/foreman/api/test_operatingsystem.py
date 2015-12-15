@@ -251,7 +251,7 @@ class OperatingSystemTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@Test: Try to create operating system entity providing an invalid
         name
 
@@ -266,7 +266,7 @@ class OperatingSystemTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_with_os_family(self):
+    def test_negative_create_with_invalid_os_family(self):
         """@Test: Try to create operating system entity providing an invalid
         operating system family
 
@@ -279,7 +279,7 @@ class OperatingSystemTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_with_description(self):
+    def test_negative_create_with_too_long_description(self):
         """@Test: Try to create operating system entity providing too long
         description value
 
@@ -293,7 +293,7 @@ class OperatingSystemTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_with_major_version(self):
+    def test_negative_create_with_invalid_major_version(self):
         """@Test: Try to create operating system entity providing incorrect
         major version value (More than 5 characters, empty value, negative
         number)
@@ -309,7 +309,7 @@ class OperatingSystemTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_with_minor_version(self):
+    def test_negative_create_with_invalid_minor_version(self):
         """@Test: Try to create operating system entity providing incorrect
         minor version value (More than 16 characters and negative number)
 
@@ -324,7 +324,7 @@ class OperatingSystemTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_with_password_hash(self):
+    def test_negative_create_with_invalid_password_hash(self):
         """@Test: Try to create operating system entity providing invalid
         password hash value
 

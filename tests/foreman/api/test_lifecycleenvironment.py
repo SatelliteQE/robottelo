@@ -72,7 +72,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create lifecycle environment providing an invalid name
 
         @Feature: Lifecycle Environment
@@ -122,7 +122,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_update_different_names(self):
+    def test_negative_update_name(self):
         """@Test: Update lifecycle environment providing an invalid name
 
         @Feature: Lifecycle Environment
@@ -158,7 +158,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_get_all(self):
+    def test_positive_search_in_org(self):
         """@Test: Search for a lifecycle environment and specify an org ID.
 
         @Feature: Lifecycle Environment

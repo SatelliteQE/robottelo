@@ -4,7 +4,13 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import (
     LDAP_SERVER_TYPE, LDAP_ATTR, PERMISSIONS, ANY_CONTEXT)
-from robottelo.decorators import stubbed, skip_if_bug_open
+from robottelo.decorators import (
+    stubbed,
+    skip_if_bug_open,
+    skip_if_not_set,
+    tier1,
+    tier2,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_role, make_usergroup, make_loc, make_org, set_context)
@@ -13,13 +19,13 @@ from robottelo.ui.session import Session
 from selenium.webdriver.common.action_chains import ActionChains
 
 
-class ADUserGroups(UITestCase):
+class ActiveDirectoryUserGroupTestCase(UITestCase):
     """Implements Active Directory feature tests in UI."""
 
     @classmethod
+    @skip_if_not_set('ldap')
     def setUpClass(cls):  # noqa
-        super(ADUserGroups, cls).setUpClass()
-        # TODO: handle when the ldap config is not available
+        super(ActiveDirectoryUserGroupTestCase, cls).setUpClass()
         cls.ldap_user_name = settings.ldap.username
         cls.ldap_user_passwd = settings.ldap.password
         cls.base_dn = settings.ldap.basedn
@@ -57,9 +63,10 @@ class ADUserGroups(UITestCase):
             session.nav.go_to_users()
             if self.user.search(self.ldap_user_name):
                 self.user.delete(self.ldap_user_name)
-        super(ADUserGroups, self).tearDown()
+        super(ActiveDirectoryUserGroupTestCase, self).tearDown()
 
-    def test_adusergroup_admin_role(self):
+    @tier1
+    def test_positive_add_admin_role(self):
         """@Test: Associate Admin role to User Group.
         [belonging to external AD User Group.]
 
@@ -89,12 +96,13 @@ class ADUserGroups(UITestCase):
             self.browser,
             self.ldap_user_name,
             self.ldap_user_passwd,
-        ) as session:
+        ):
             self.assertIsNotNone(self.login.wait_until_element(
                 (strategy, value % self.ldap_user_name)
             ))
 
-    def test_adusergroup_foreman_role(self):
+    @tier2
+    def test_positive_add_foreman_role(self):
         """@Test: Associate foreman roles to User Group.
         [belonging to external AD User Group.]
 
@@ -140,7 +148,8 @@ class ADUserGroups(UITestCase):
             make_loc(session, name=location_name)
             self.assertIsNotNone(self.location.search(location_name))
 
-    def test_adusergroup_katello_role(self):
+    @tier2
+    def test_positive_add_katello_role(self):
         """@Test: Associate katello roles to User Group.
         [belonging to external AD User Group.]
 
@@ -155,7 +164,6 @@ class ADUserGroups(UITestCase):
 
         @Assert: Whether a User belonging to User Group is able to access
         katello entities as per roles.
-
         """
         strategy, value = locators['login.loggedin']
         katello_role = gen_string('alpha')
@@ -187,7 +195,8 @@ class ADUserGroups(UITestCase):
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
 
-    def test_create_external_adusergroup_1(self):
+    @tier1
+    def test_positive_create_external(self):
         """@Test: Create External AD User Group as per AD group
 
         @Feature: LDAP Authentication - Active Directory - create
@@ -210,7 +219,8 @@ class ADUserGroups(UITestCase):
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
 
-    def test_create_external_adusergroup_2(self):
+    @tier1
+    def test_negative_create_external_with_same_name(self):
         """@Test: Create another External AD User Group with same name
 
         @Feature: LDAP Authentication - Active Directory - create
@@ -244,7 +254,8 @@ class ADUserGroups(UITestCase):
             )
             self.assertIsNone(self.usergroup.search(self.usergroup_name2))
 
-    def test_create_external_adusergroup_3(self):
+    @tier1
+    def test_negative_create_external_with_invalid_name(self):
         """@Test: Create External AD User Group with random name
 
         @Feature: LDAP Authentication - Active Directory - create
@@ -269,7 +280,8 @@ class ADUserGroups(UITestCase):
             self.assertIsNone(self.usergroup.search(self.usergroup_name))
 
     @stubbed()
-    def test_delete_external_adusergroup(self):
+    @tier2
+    def test_positive_delete_external(self):
         """@Test: Delete External AD User Group
 
         @Feature: LDAP Authentication - Active Directory - delete
@@ -288,10 +300,11 @@ class ADUserGroups(UITestCase):
         at the UserGroup level.
 
         @Status: Manual
-
         """
+
     @skip_if_bug_open('bugzilla', '1221971')
-    def test_external_adusergroup_roles_update(self):
+    @tier2
+    def test_positive_update_external_roles(self):
         """@test: Added AD UserGroup roles get pushed down to user
 
         @feature: LDAP Authentication - Active directory - update
@@ -309,7 +322,6 @@ class ADUserGroups(UITestCase):
 
         @assert: User has access to all NEW functional areas that are assigned
         to aforementioned UserGroup.
-
         """
         strategy, value = locators['login.loggedin']
         foreman_role = gen_string('alpha')
@@ -371,7 +383,8 @@ class ADUserGroups(UITestCase):
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
 
-    def test_external_adusergroup_roles_delete(self):
+    @tier2
+    def test_positive_delete_external_roles(self):
         """@test: Deleted AD UserGroup roles get pushed down to user
 
         @feature: LDAP Authentication - Active directory - update
@@ -413,7 +426,7 @@ class ADUserGroups(UITestCase):
             self.browser,
             self.ldap_user_name,
             self.ldap_user_passwd,
-        ) as session:
+        ):
             self.assertIsNotNone(self.login.wait_until_element(
                 (strategy, value % self.ldap_user_name)
             ))
@@ -440,7 +453,8 @@ class ADUserGroups(UITestCase):
                 menu_locators['loc.manage_loc']
             ))
 
-    def test_external_adUserGroup_additional_user_roles(self):
+    @tier2
+    def test_positive_update_external_user_roles(self):
         """@test: Assure that user has roles/can access feature areas for
         additional roles assigned outside any roles assigned by his group
 
@@ -462,7 +476,6 @@ class ADUserGroups(UITestCase):
         @assert: User can access not only those feature areas in his
         UserGroup but those additional feature areas / roles assigned
         specifically to user
-
         """
         strategy, value = locators['login.loggedin']
         foreman_role = gen_string('alpha')
@@ -523,7 +536,8 @@ class ADUserGroups(UITestCase):
             self.assertIsNotNone(self.org.search(org_name))
 
     @stubbed()
-    def test_external_adUserGroup_user_add(self):
+    @tier2
+    def test_positive_add_external_user(self):
         """@test: New user added to UserGroup at AD side inherits roles in Sat6
 
         @feature: LDAP Authentication - Active directory - update
@@ -542,5 +556,4 @@ class ADUserGroups(UITestCase):
         UserGroup of which he is a part.
 
         @status: Manual
-
         """

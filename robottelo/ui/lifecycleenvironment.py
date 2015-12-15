@@ -6,8 +6,8 @@ from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
 
 
-class ContentEnvironment(Base):
-    """Manipulates content environments from UI."""
+class LifecycleEnvironment(Base):
+    """Manipulates lifecycle environments from UI."""
 
     def navigate_to_entity(self):
         """Navigate to Lifecycle Environment entity page"""
