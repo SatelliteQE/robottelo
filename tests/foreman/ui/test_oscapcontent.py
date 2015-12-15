@@ -14,12 +14,12 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-class OpenScapContent(UITestCase):
+class OpenScapContentTestCase(UITestCase):
     """Implements Oscap Content tests in UI."""
 
     @classmethod
     def setUpClass(cls):
-        super(OpenScapContent, cls).setUpClass()
+        super(OpenScapContentTestCase, cls).setUpClass()
         path = settings.oscap.content_path
         cls.content_path = get_data_file(path)
 
@@ -48,9 +48,9 @@ class OpenScapContent(UITestCase):
                     self.assertIsNotNone(
                         self.oscapcontent.search(content_name))
 
-    @tier1
     @skip_if_bug_open('bugzilla', 1289571)
-    def test_negative_create(self):
+    @tier1
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create OpenScap content with negative values
 
         @Feature: OpenScap - Negative Create.
@@ -60,7 +60,7 @@ class OpenScapContent(UITestCase):
         1. Create an openscap content.
         2. Provide all the appropriate parameters.
 
-        @Assert: Whether creating  content for OpenScap is not successful.
+        @Assert: Creating content for OpenScap is not successful.
         """
         with Session(self.browser) as session:
             for content_name in invalid_values_list(interface='ui'):

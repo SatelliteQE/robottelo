@@ -11,7 +11,7 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_emails_list,
 )
-from robottelo.decorators import stubbed, tier1, tier2
+from robottelo.decorators import stubbed, tier1, tier2, tier3
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_user
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -36,11 +36,11 @@ def valid_strings(len1=10):
     ]
 
 
-class User(UITestCase):
+class UserTestCase(UITestCase):
     """Implements Users tests in UI"""
 
     @tier1
-    def test_positive_create_with_usernames(self):
+    def test_positive_create_with_username(self):
         """@Test: Create User for all variations of Username
 
         @Feature: User - Positive Create
@@ -54,7 +54,7 @@ class User(UITestCase):
                     self.assertIsNotNone(self.user.search(user_name))
 
     @tier1
-    def test_positive_create_with_first_names(self):
+    def test_positive_create_with_first_name(self):
         """@Test: Create User for all variations of First Name
 
         @Feature: User - Positive Create
@@ -69,7 +69,7 @@ class User(UITestCase):
                     self.user.validate_user(name, 'firstname', first_name)
 
     @tier1
-    def test_positive_create_with_surnames(self):
+    def test_positive_create_with_surname(self):
         """@Test: Create User for all variations of Surname
 
         @Feature: User - Positive Create
@@ -84,7 +84,7 @@ class User(UITestCase):
                     self.user.validate_user(name, 'lastname', last_name)
 
     @tier1
-    def test_positive_create_with_emails(self):
+    def test_positive_create_with_email(self):
         """@Test: Create User for all variations of Email Address
 
         @Feature: User - Positive Create
@@ -99,7 +99,7 @@ class User(UITestCase):
                     self.user.validate_user(name, 'email', email)
 
     @tier1
-    def test_positive_create_with_languages(self):
+    def test_positive_create_with_language(self):
         """@Test: Create User for all variations of Language
 
         @Feature: User - Positive Create
@@ -114,7 +114,7 @@ class User(UITestCase):
                     self.user.validate_user(name, 'language', language, False)
 
     @tier1
-    def test_positive_create_with_passwords(self):
+    def test_positive_create_with_password(self):
         """@Test: Create User for all variations of Password
 
         @Feature: User - Positive Create
@@ -266,6 +266,7 @@ class User(UITestCase):
                 self.assertIsNotNone(element)
 
     @stubbed()
+    @tier2
     def test_positive_create_in_ldap_modes(self):
         """@Test: Create User in supported ldap modes - (Active Driectory, IPA,
         Posix)
@@ -310,7 +311,6 @@ class User(UITestCase):
         @Feature: User - Positive Create
 
         @Assert: User is created with default Location selected.
-
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -610,7 +610,6 @@ class User(UITestCase):
         @Feature: User - Update
 
         @Assert: User role is updated
-
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -719,7 +718,7 @@ class User(UITestCase):
 
         @Feature: User - Negative Update
 
-        @Assert: User is not updated.  Appropriate error shown.
+        @Assert: User is not updated. Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -738,7 +737,7 @@ class User(UITestCase):
 
         @Feature: User - Negative Update
 
-        @Assert: User is not updated.  Appropriate error shown.
+        @Assert: User is not updated. Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -757,7 +756,7 @@ class User(UITestCase):
 
         @Feature: User - Negative Update
 
-        @Assert: User is not updated.  Appropriate error shown.
+        @Assert: User is not updated. Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -776,7 +775,7 @@ class User(UITestCase):
 
         @Feature: User - Negative Update
 
-        @Assert: User is not updated.  Appropriate error shown.
+        @Assert: User is not updated. Appropriate error shown.
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -790,6 +789,7 @@ class User(UITestCase):
                     )
 
     @stubbed()
+    @tier1
     def test_negative_update_password(self):
         """@Test: Update different values in Password and verify fields
 
@@ -803,9 +803,9 @@ class User(UITestCase):
         @Assert: User is not updated.  Appropriate error shown.
 
         @Status: Manual
-
         """
 
+    @tier1
     def test_negative_update(self):
         """@Test: [UI ONLY] Attempt to update User info and Cancel
 
@@ -831,12 +831,11 @@ class User(UITestCase):
 
     @tier1
     def test_positive_delete_user(self):
-        """@Test: Delete a User
+        """@Test: Delete an existing User
 
         @Feature: User - Delete
 
-        @Assert: User is deleted
-
+        @Assert: User is deleted successfully
         """
         with Session(self.browser) as session:
             for user_name in valid_strings():
@@ -873,6 +872,7 @@ class User(UITestCase):
             self.user.delete(user_name, really=False)
 
     @stubbed()
+    @tier2
     def test_negative_delete_last_admin(self):
         """@Test: Attempt to delete the last remaining admin user
 
@@ -886,11 +886,11 @@ class User(UITestCase):
         @Assert: User is not deleted
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_end_to_end_user_1(self):
+    @tier3
+    def test_end_to_end_scenario(self):
         """@Test: Create User and perform different operations
 
         @Feature: User - End to End
@@ -907,11 +907,11 @@ class User(UITestCase):
         @Assert: All actions passed
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_end_to_end_user_2(self):
+    @tier3
+    def test_end_to_end_scenario_without_org(self):
         """@Test: Create User with no Org assigned and attempt different
         operations
 
@@ -928,11 +928,11 @@ class User(UITestCase):
         @Assert: All actions failed since the User is not assigned to any Org
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_positive_create_bookmark_1(self):
+    @tier2
+    def test_positive_create_bookmark_default(self):
         """@Test: Create a bookmark with default values
 
         @Feature: Search bookmark - Positive Create
@@ -944,11 +944,11 @@ class User(UITestCase):
         @Assert: Search bookmark is created
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_positive_create_bookmark_2(self):
+    @tier2
+    def test_positive_create_bookmark_alter_default(self):
         """@Test: Create a bookmark by altering the default values
 
         @Feature: Search bookmark - Positive Create
@@ -960,11 +960,11 @@ class User(UITestCase):
         @Assert: Search bookmark is created
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_positive_create_bookmark_3(self):
+    @tier2
+    def test_positive_create_bookmark_public(self):
         """@Test: Create a bookmark in public mode
 
         @Feature: Search bookmark - Positive Create
@@ -977,11 +977,11 @@ class User(UITestCase):
         by other users
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_positive_create_bookmark_4(self):
+    @tier2
+    def test_positive_create_bookmark_private(self):
         """@Test: Create a bookmark in private mode
 
         @Feature: Search bookmark - Positive Create
@@ -994,11 +994,11 @@ class User(UITestCase):
         accessible by other users
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_negative_create_bookmark_1(self):
+    @tier2
+    def test_negative_create_bookmark_with_blank_name(self):
         """@Test: Create a bookmark with a blank bookmark name
 
         @Feature: Search bookmark - Negative Create
@@ -1010,11 +1010,11 @@ class User(UITestCase):
         @Assert: Search bookmark not created. Appropriate error shown.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_negative_create_bookmark_2(self):
+    @tier2
+    def test_negative_create_bookmark_with_blank_query(self):
         """@Test: Create a bookmark with a blank bookmark query
 
         @Feature: Search bookmark - Negative Create
@@ -1026,5 +1026,4 @@ class User(UITestCase):
         @Assert: Search bookmark not created. Appropriate error shown.
 
         @Status: Manual
-
         """

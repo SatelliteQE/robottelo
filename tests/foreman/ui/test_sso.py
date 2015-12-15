@@ -1,11 +1,11 @@
 # -*- encoding: utf-8 -*-
 """Test class for SSO (UI)"""
 
-from robottelo.decorators import stubbed
+from robottelo.decorators import stubbed, tier3
 from robottelo.test import UITestCase
 
 
-class TestSSOUI(UITestCase):
+class SingleSignOnTestCase(UITestCase):
     """Implements SSO tests in UI"""
     # Notes for SSO testing:
     # Of interest... In some test cases I've placed a few comments prefaced
@@ -31,7 +31,8 @@ class TestSSOUI(UITestCase):
     # http://theforeman.org/manuals/1.8/index.html#4.1.1LDAPAuthentication
 
     @stubbed()
-    def test_sso_kerberos_basic_no_roles(self):
+    @tier3
+    def test_positive_sso_kerberos_basic_no_roles(self):
         """@test: SSO - kerberos (IdM or AD) login (basic) that has no roles
 
         @feature: SSO or External Authentication
@@ -47,11 +48,11 @@ class TestSSOUI(UITestCase):
         useful in UI
 
         @status: Manual
-
         """
 
     @stubbed()
-    def test_sso_kerberos_basic_roles(self):
+    @tier3
+    def test_positive_sso_kerberos_basic_roles(self):
         """@test: SSO - kerberos (IdM or AD) login (basic) that has roles
         assigned.
 
@@ -72,7 +73,8 @@ class TestSSOUI(UITestCase):
         """
 
     @stubbed()
-    def test_sso_kerberos_user_disabled(self):
+    @tier3
+    def test_negative_sso_kerberos_user_disabled(self):
         """@test: Kerberos (IdM or AD) user activity when kerb (IdM or AD)
         account has been deleted or deactivated.
 
@@ -86,5 +88,4 @@ class TestSSOUI(UITestCase):
         and no data corruption
 
         @status: Manual
-
         """

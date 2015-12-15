@@ -3,7 +3,7 @@
 from fauxfactory import gen_string
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import bz_bug_is_open, run_only_on
+from robottelo.decorators import bz_bug_is_open, run_only_on, tier1
 from robottelo.helpers import read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_partitiontable
@@ -33,17 +33,17 @@ def valid_partition_table_update_names():
     ]
 
 
-class PartitionTable(UITestCase):
+class PartitionTableTestCase(UITestCase):
     """Implements the partition table tests from UI"""
 
     @run_only_on('sat')
-    def test_positive_create_partition_table(self):
+    @tier1
+    def test_positive_create_with_name(self):
         """@Test: Create a new partition table
 
         @Feature: Partition table - Positive Create
 
         @Assert: Partition table is created
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=10):
@@ -57,13 +57,13 @@ class PartitionTable(UITestCase):
                     self.assertIsNotNone(self.partitiontable.search(name))
 
     @run_only_on('sat')
-    def test_negative_create_partition_table_invalid_names(self):
+    @tier1
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create partition table with invalid names
 
         @Feature: Partition table - Negative Create
 
         @Assert: Partition table is not created
-
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -80,13 +80,13 @@ class PartitionTable(UITestCase):
                     )
 
     @run_only_on('sat')
-    def test_negative_create_partition_table_with_same_name(self):
+    @tier1
+    def test_negative_create_with_same_name(self):
         """@Test: Create a new partition table with same name
 
         @Feature: Partition table - Negative Create
 
         @Assert: Partition table is not created
-
         """
         name = gen_string('utf8')
         layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
@@ -101,13 +101,13 @@ class PartitionTable(UITestCase):
                                  (common_locators['name_haserror']))
 
     @run_only_on('sat')
-    def test_negative_create_partition_table_empty_layout(self):
+    @tier1
+    def test_negative_create_with_empty_layout(self):
         """@Test: Create a new partition table with empty layout
 
         @Feature: Partition table - Negative Create
 
         @Assert: Partition table is not created
-
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -118,13 +118,13 @@ class PartitionTable(UITestCase):
             self.assertIsNone(self.partitiontable.search(name))
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete(self):
         """@Test: Delete a partition table
 
         @Feature: Partition table - Positive Delete
 
         @Assert: Partition table is deleted
-
         """
         with Session(self.browser) as session:
             for test_data in valid_partition_table_names():
@@ -144,13 +144,13 @@ class PartitionTable(UITestCase):
                     self.partitiontable.delete(name)
 
     @run_only_on('sat')
-    def test_update_partition_table(self):
+    @tier1
+    def test_positive_update(self):
         """@Test: Update partition table with its name, layout and OS family
 
         @Feature: Partition table - Positive Update
 
         @Assert: Partition table is updated
-
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:

@@ -1,14 +1,15 @@
 # -*- encoding: utf-8 -*-
 """Test class for Multi-Network Support feature"""
-from robottelo.decorators import stubbed
+from robottelo.decorators import stubbed, tier3
 from robottelo.test import UITestCase
 
 
-class Multinetwork(UITestCase):
+class MultinetworkTestCase(UITestCase):
     """Implements Multi Network support tests in UI."""
 
     @stubbed()
-    def test_create_host_1(self):
+    @tier3
+    def test_positive_create_with_dhcp_ipam(self):
         """@Test: Create host with default interface and set 'DHCP' for IPAM
         and BootMode for provisioning subnet
 
@@ -25,11 +26,11 @@ class Multinetwork(UITestCase):
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_create_host_2(self):
+    @tier3
+    def test_positive_create_with_non_specified_internal_db_ipam_dhcp(self):
         """@Test: Create host with default interface when IPAM set as
         'Internal DB' (without specifying start and end range) and BootMode
         set as 'DHCP' for provisioning subnet
@@ -49,11 +50,11 @@ class Multinetwork(UITestCase):
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_create_host_3(self):
+    @tier3
+    def test_positive_create_with_specified_internal_db_ipam_dhcp(self):
         """@Test: Create host with default interface when IPAM set as
         'Internal DB' (with start and end IP range) and BootMode set as
         'DHCP' for provisioning subnet
@@ -73,11 +74,11 @@ class Multinetwork(UITestCase):
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_create_host_4(self):
+    @tier3
+    def test_positive_create_with_specified_internal_db_ipam_static(self):
         """@Test: Create host with default interface when IPAM set as
         'Internal DB' (with start and end IP range) and BootMode set as
         'Static' for provisioning subnet
@@ -97,11 +98,11 @@ class Multinetwork(UITestCase):
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_create_host_5(self):
+    @tier3
+    def test_positive_create_with_non_specified_internal_db_ipam_static(self):
         """@Test: Create host with default interface when IPAM set as
         'Internal DB' (without start and end IP range) and BootMode set
         as 'Static' for provisioning subnet
@@ -121,11 +122,11 @@ class Multinetwork(UITestCase):
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_create_host_6(self):
+    @tier3
+    def test_positive_create_with_specified_dhcp_ipam_static(self):
         """@Test: Create host with default interface when IPAM set as 'DHCP'
         (with start and end IP range) and BootMode set as 'Static' for
         provisioning subnet
@@ -145,11 +146,11 @@ class Multinetwork(UITestCase):
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_create_host_7(self):
+    @tier3
+    def test_positive_create_with_non_specified_dhcp_ipam_static(self):
         """@Test: Create host with default interface when IPAM set as 'DHCP'
         (without start and end IP range) and BootMode set as 'Static' for
         provisioning subnet
@@ -169,11 +170,11 @@ class Multinetwork(UITestCase):
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_create_host_8(self):
+    @tier3
+    def test_positive_create_none_ipam_static(self):
         """@Test: Create host with default interface when IPAM set as 'None'
         and BootMode set as 'Static' for provisioning subnet
 
@@ -191,11 +192,11 @@ class Multinetwork(UITestCase):
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_create_host_9(self):
+    @tier3
+    def test_positive_create_none_ipam_dhcp(self):
         """@Test: Create host with default interface when IPAM set as 'None'
         and BootMode set as 'DHCP' for provisioning subnet
 
@@ -213,12 +214,12 @@ class Multinetwork(UITestCase):
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_add_alias_interface_1(self):
-        """@Test:  Add an alias interface(eth0:0) with mac different than
+    @tier3
+    def test_negative_add_alias_interface_with_mac(self):
+        """@Test: Add an alias interface(eth0:0) with mac different than
         primary interface's mac
 
         @Feature: Multi Network Support
@@ -241,12 +242,12 @@ class Multinetwork(UITestCase):
         interface should be same as of primary interface
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_add_alias_interface_2(self):
-        """@Test:  Add an alias interface(eth0:0) without selecting virtual nic
+    @tier3
+    def test_negative_add_alias_interface_without_nic(self):
+        """@Test: Add an alias interface(eth0:0) without selecting virtual nic
 
         @Feature: Multi Network Support
 
@@ -266,12 +267,12 @@ class Multinetwork(UITestCase):
         same mac
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_add_alias_interface_3(self):
-        """@Test:  Add an alias interface(eth0:0) without defining
+    @tier3
+    def test_negative_add_alias_interface_without_attached_to(self):
+        """@Test: Add an alias interface(eth0:0) without defining
         'attached_to' interface under 'Virtual Nic'
 
         @Feature: Multi Network Support
@@ -294,12 +295,12 @@ class Multinetwork(UITestCase):
         option to create alias interface
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_add_alias_interface_4(self):
-        """@Test:  Add an alias interface(eth0:0) when bootMode set to 'DHCP'
+    @tier3
+    def test_negative_add_alias_interface_with_dhcp_bootmode(self):
+        """@Test: Add an alias interface(eth0:0) when bootMode set to 'DHCP'
         mode under selected subnet
 
         @Feature: Multi Network Support
@@ -325,12 +326,12 @@ class Multinetwork(UITestCase):
         interface in 'DHCP' mode.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_add_alias_interface_5(self):
-        """@Test:  Add an alias interface(eth0:0) when bootMode set to 'Static'
+    @tier3
+    def test_positive_add_alias_with_static_bootmode(self):
+        """@Test: Add an alias interface(eth0:0) when bootMode set to 'Static'
         mode under selected subnet
 
         @Feature: Multi Network Support
@@ -357,12 +358,12 @@ class Multinetwork(UITestCase):
         under /etc/sysconfig/network-scripts/ifcfg-<interface_name>
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_add_alias_interface_6(self):
-        """@Test:  Add an interface with same identifier of exiting interface
+    @tier3
+    def test_negative_add_alias_interface_same(self):
+        """@Test: Add an interface with same identifier of exiting interface
         Like interfaces eth0, eth0:0 already exists and now create new
         interface with eth0:0 identifier
 
@@ -388,12 +389,12 @@ class Multinetwork(UITestCase):
         @Assert: Validation error should be raised on UI
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_delete_alias_interface(self):
-        """@Test:  Delete an alias interface
+    @tier3
+    def test_positive_delete_alias_interface(self):
+        """@Test: Delete an alias interface
 
         @Feature: Multi Network Support
 
@@ -408,11 +409,11 @@ class Multinetwork(UITestCase):
         @Assert: Interface should be deleted successfully
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_add_bond_interface_1(self):
+    @tier3
+    def test_positive_add_bond_interface_using_two_existing(self):
         """@Test: Add bond interface using existing two interfaces
 
         @Feature: Multi Network Support
@@ -437,11 +438,11 @@ class Multinetwork(UITestCase):
         @Assert: Interface should be configured successfully with name bond0
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_add_bond_interface_2(self):
+    @tier3
+    def test_negative_add_bond_interface_without_mac(self):
         """@Test: Add bond interface using existing two interfaces without
         specifying mac
 
@@ -468,11 +469,11 @@ class Multinetwork(UITestCase):
         create bond interface without mac
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_add_bond_interface_3(self):
+    @tier3
+    def test_positive_add_bond_interface_without_attached_device(self):
         """@Test: Add bond interface without specifying attached devices
 
         @Feature: Multi Network Support
@@ -498,11 +499,11 @@ class Multinetwork(UITestCase):
         any device to it.
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_add_bond_interface_4(self):
+    @tier3
+    def test_positive_add_bond_interface(self):
         """@Test: Add bond interface with one alias interface
 
         @Feature: Multi Network Support
@@ -529,11 +530,11 @@ class Multinetwork(UITestCase):
         attached to eth0 eth0:0
 
         @Status: Manual
-
         """
 
     @stubbed()
-    def test_add_bmc_interface_1(self):
+    @tier3
+    def test_positive_add_bmc_interface(self):
         """@Test: Add bmc interface
 
         @Feature: Multi Network Support
@@ -561,7 +562,8 @@ class Multinetwork(UITestCase):
         """
 
     @stubbed()
-    def test_add_bmc_interface_2(self):
+    @tier3
+    def test_positive_add_bmc_interface_without_mac(self):
         """@Test: Add bmc interface without mac
 
         @Feature: Multi Network Support
@@ -584,5 +586,4 @@ class Multinetwork(UITestCase):
         @Assert: UI should raise validation error
 
         @Status: Manual
-
         """

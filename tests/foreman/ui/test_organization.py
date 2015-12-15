@@ -12,7 +12,14 @@ from robottelo.datafactory import (
     invalid_names_list,
     invalid_values_list,
 )
-from robottelo.decorators import run_only_on, skip_if_bug_open, stubbed
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    skip_if_not_set,
+    stubbed,
+    tier1,
+    tier2,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_lifecycle_environment, make_org
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -49,22 +56,19 @@ def valid_env_names():
     ]
 
 
-class Org(UITestCase):
+class OrganizationTestCase(UITestCase):
     """Implements Organization tests in UI"""
 
     # Tests for issues
 
-    @skip_if_bug_open('bugzilla', 1177610)
-    def test_auto_search(self):
+    @tier1
+    def test_positive_search_autocomplete(self):
         """@test: Search for an organization can be auto-completed by partial
         name
 
         @feature: Organizations
 
         @assert: Auto search for created organization works as intended
-
-        @BZ: 1177610
-
         """
         org_name = gen_string('alpha')
         part_string = org_name[:3]
@@ -76,15 +80,13 @@ class Org(UITestCase):
                 search_key='name')
             self.assertIsNotNone(auto_search)
 
-    # Positive Create
-
-    def test_positive_create_with_different_names(self):
+    @tier1
+    def test_positive_create_with_name(self):
         """@test: Create organization with valid name only.
 
         @feature: Organizations
 
         @assert: Organization is created, label is auto-generated
-
         """
         with Session(self.browser) as session:
             for org_name in generate_strings_list():
@@ -93,13 +95,13 @@ class Org(UITestCase):
                     self.assertIsNotNone(self.org.search(org_name))
 
     @stubbed('parent_org feature is disabled currently')
+    @tier2
     def test_positive_create_with_parent(self):
         """@test: Create organization with valid name, label, parent_org, desc.
 
         @feature: Organizations
 
         @assert: organization is created.
-
         """
         with Session(self.browser) as session:
             for parent_name in generate_strings_list():
@@ -115,14 +117,13 @@ class Org(UITestCase):
                     )
                     self.assertIsNotNone(self.org.search(org_name))
 
-    # As label cannot contain chars other than ascii alpha numerals, '_', '-'.
-    def test_positive_create_with_diff_names_and_labels(self):
+    @tier1
+    def test_positive_create_with_unmatched_name_label(self):
         """@test: Create organization with valid unmatching name and label only
 
         @feature: Organizations
 
         @assert: organization is created, label does not match name
-
         """
         with Session(self.browser) as session:
             for label in valid_labels():
@@ -137,14 +138,13 @@ class Org(UITestCase):
                         locators['org.label']).get_attribute('value')
                     self.assertNotEqual(name, label)
 
-    # As label cannot contain chars other than ascii alpha numerals, '_', '-'.
-    def test_positive_create_with_same_names_and_labels(self):
+    @tier1
+    def test_positive_create_with_same_name_and_label(self):
         """@test: Create organization with valid matching name and label only.
 
         @feature: Organizations
 
         @assert: organization is created, label matches name
-
         """
         with Session(self.browser) as session:
             for item in valid_labels():
@@ -158,7 +158,8 @@ class Org(UITestCase):
                     self.assertEqual(name, label)
 
     @skip_if_bug_open('bugzilla', 1079482)
-    def test_positive_create_with_auto_gen_label(self):
+    @tier1
+    def test_positive_create_with_auto_populated_label(self):
         """@test: Create organization with valid name. Check that organization
         label is auto-populated
 
@@ -167,7 +168,6 @@ class Org(UITestCase):
         @assert: organization is created, label is auto-generated
 
         @BZ: 1079482
-
         """
         with Session(self.browser) as session:
             for org_name in generate_strings_list():
@@ -180,13 +180,13 @@ class Org(UITestCase):
                     label_value = label.get_attribute('value')
                     self.assertIsNotNone(label_value)
 
-    def test_positive_create_with_both_location_and_org(self):
+    @tier2
+    def test_positive_create_with_both_loc_and_org(self):
         """@test: Select both organization and location.
 
         @feature: Organizations
 
         @assert: Both organization and location are selected.
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -201,14 +201,14 @@ class Org(UITestCase):
                     self.assertEqual(organization, name)
                     self.assertEqual(location, name)
 
-    def test_negative_create_with_different_names(self):
+    @tier1
+    def test_negative_create(self):
         """@test: Try to create organization and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
         @feature: Organizations Negative Tests
 
         @assert: organization is not created
-
         """
         with Session(self.browser) as session:
             for org_name in invalid_values_list(interface='ui'):
@@ -218,14 +218,14 @@ class Org(UITestCase):
                         common_locators['name_haserror'])
                     self.assertIsNotNone(error)
 
+    @tier1
     def test_negative_create_with_same_name(self):
-        """@test: Create organization with valid values, then create a new one
-        with same values.
+        """@test: Create organization with valid names, then create a new one
+        with same names.
 
         @feature: Organizations Negative Test.
 
         @assert: organization is not created
-
         """
         with Session(self.browser) as session:
             for org_name in generate_strings_list():
@@ -237,15 +237,13 @@ class Org(UITestCase):
                         common_locators['name_haserror'])
                     self.assertIsNotNone(error)
 
-    # Positive Delete
-
+    @tier1
     def test_positive_delete(self):
         """@test: Create organization with valid values then delete it.
 
         @feature: Organizations Positive Delete test.
 
         @assert: Organization is deleted successfully
-
         """
         with Session(self.browser):
             for org_name in generate_strings_list():
@@ -254,14 +252,15 @@ class Org(UITestCase):
                     entities.Organization(name=org_name).create()
                     self.org.delete(org_name)
 
-    def test_positive_delete_bz1225588(self):
+    @skip_if_not_set('fake_manifest')
+    @tier2
+    def test_verify_bugzilla_1225588(self):
         """@test: Create Organization with valid values and upload manifest.
         Then try to delete that organization.
 
         @feature: Organization Positive Delete Test.
 
         @assert: Organization is deleted successfully.
-
         """
         org_name = gen_string('alphanumeric')
         org = entities.Organization(name=org_name).create()
@@ -282,15 +281,16 @@ class Org(UITestCase):
                     break
             self.assertIsNone(status)
 
-    def test_manifest_refresh_bz1259248(self):
+    @skip_if_not_set('fake_manifest')
+    @tier2
+    def test_verify_bugzilla_1259248(self):
         """@test: Create organization with valid manifest. Download debug
         certificate for that organization and refresh added manifest for few
         times in a row
 
         @feature: Organizations.
 
-        @assert: Scenario passed without any issues in application
-
+        @assert: Scenario passed successfully
         """
         org = entities.Organization().create()
         sub = entities.Subscription(organization=org)
@@ -310,17 +310,13 @@ class Org(UITestCase):
         finally:
             sub.delete_manifest(data={'organization_id': org.id})
 
-    # Negative Delete
-
-    # Positive Update
-
-    def test_positive_update_with_different_names(self):
+    @tier1
+    def test_positive_update_name(self):
         """@test: Create organization with valid values then update its name.
 
         @feature: Organizations Positive Update test.
 
         @assert: Organization name is updated successfully
-
         """
         org_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -332,8 +328,7 @@ class Org(UITestCase):
                     self.assertIsNotNone(self.org.search(new_name))
                     org_name = new_name  # for next iteration
 
-    # Negative Update
-
+    @tier1
     def test_negative_update(self):
         """@test: Create organization with valid values then try to update it
         using incorrect name values
@@ -341,7 +336,6 @@ class Org(UITestCase):
         @feature: Organizations Negative Update test.
 
         @assert: Organization name is not updated
-
         """
         org_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -354,19 +348,15 @@ class Org(UITestCase):
                         common_locators['name_haserror'])
                     self.assertIsNotNone(error)
 
-    # Miscellaneous
-
-    # Associations
-
     @run_only_on('sat')
-    def test_remove_domain(self):
+    @tier2
+    def test_positive_remove_domain(self):
         """@test: Add a domain to an organization and remove it by organization
         name and domain name.
 
         @feature: Organizations Disassociate domain.
 
         @assert: the domain is removed from the organization
-
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -393,14 +383,14 @@ class Org(UITestCase):
                     # 'Selected Items' list.
                     self.assertIsNotNone(element)
 
-    def test_remove_user(self):
+    @tier2
+    def test_positive_remove_user(self):
         """@test: Create admin users then add user and remove it
         by using the organization name.
 
         @feature: Organizations Disassociate user.
 
         @assert: The user is added then removed from the organization
-
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -435,14 +425,14 @@ class Org(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_hostgroup(self):
+    @tier2
+    def test_positive_remove_hostgroup(self):
         """@test: Add a hostgroup and remove it by using the organization
         name and hostgroup name.
 
         @feature: Organizations Remove Hostgroup.
 
         @assert: hostgroup is added to organization then removed.
-
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -477,7 +467,8 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    def test_add_smartproxy_1(self):
+    @tier2
+    def test_positive_add_smartproxy(self):
         """@test: Add a smart proxy by using org and smartproxy name
 
         @feature: Organizations
@@ -485,19 +476,16 @@ class Org(UITestCase):
         @assert: smartproxy is added
 
         @status: manual
-
         """
 
-        pass
-
     @run_only_on('sat')
-    def test_add_subnet(self):
+    @tier2
+    def test_positive_add_subnet(self):
         """@test: Add a subnet using organization name and subnet name.
 
         @feature: Organizations associate subnet.
 
         @assert: subnet is added.
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -521,13 +509,13 @@ class Org(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_add_domain(self):
+    @tier2
+    def test_positive_add_domain(self):
         """@test: Add a domain to an organization.
 
         @feature: Organizations associate domain.
 
         @assert: Domain is added to organization.
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -545,14 +533,14 @@ class Org(UITestCase):
                         (strategy, value % domain_name))
                     self.assertIsNotNone(element)
 
-    def test_add_user(self):
+    @tier2
+    def test_positive_add_user(self):
         """@test: Create different types of users then add user using
         organization name.
 
         @feature: Organizations associate user.
 
         @assert: User is added to organization.
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -576,14 +564,14 @@ class Org(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_add_hostgroup(self):
+    @tier2
+    def test_positive_add_hostgroup(self):
         """@test: Add a hostgroup by using the organization
         name and hostgroup name.
 
         @feature: Organizations associate host-group.
 
         @assert: hostgroup is added to organization
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -603,14 +591,14 @@ class Org(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_add_location(self):
+    @tier2
+    def test_positive_add_location(self):
         """@test: Add a location by using the organization name and location
         name
 
         @feature: Organizations associate location.
 
         @assert: location is added to organization.
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -629,14 +617,14 @@ class Org(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_computeresource(self):
+    @tier2
+    def test_positive_remove_compresource(self):
         """@test: Remove compute resource using the organization name and
         compute resource name.
 
         @feature: Organizations dis-associate compute-resource.
 
         @assert: compute resource is added then removed.
-
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -674,13 +662,13 @@ class Org(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_medium(self):
+    @tier2
+    def test_positive_remove_medium(self):
         """@test: Remove medium by using organization name and medium name.
 
         @feature: Organizations disassociate installation media.
 
         @assert: medium is added then removed.
-
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -715,15 +703,13 @@ class Org(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_configtemplate(self):
+    @tier2
+    def test_positive_remove_template(self):
         """@test: Remove config template.
 
         @feature: Organizations dissociate config templates.
 
-        @assert: configtemplate is added then removed.
-
-        @BZ: 1129612
-
+        @assert: Config Template is added and then removed.
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -752,13 +738,13 @@ class Org(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_add_environment(self):
+    @tier2
+    def test_positive_add_environment(self):
         """@test: Add environment by using organization name and env name.
 
         @feature: Organizations associate environment.
 
-        @assert: environment is added.
-
+        @assert: Environment is added.
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -778,7 +764,8 @@ class Org(UITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    def test_remove_smartproxy_1(self):
+    @tier2
+    def test_positive_remove_smartproxy(self):
         """@test: Remove smartproxy by using organization name and smartproxy
         name
 
@@ -787,20 +774,17 @@ class Org(UITestCase):
         @assert: smartproxy is added then removed
 
         @status: manual
-
         """
 
-        pass
-
     @run_only_on('sat')
-    def test_add_computeresource(self):
+    @tier2
+    def test_positive_add_compresource(self):
         """@test: Add compute resource using the organization
         name and compute resource name.
 
         @feature: Organizations associate compute resource.
 
         @assert: compute resource is added.
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -824,13 +808,13 @@ class Org(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_add_medium(self):
+    @tier2
+    def test_positive_add_medium(self):
         """@test: Add medium by using the organization name and medium name.
 
         @feature: Organizations associate medium.
 
         @assert: medium is added.
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -854,16 +838,14 @@ class Org(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_add_configtemplate(self):
+    @tier2
+    def test_positive_add_template(self):
         """@test: Add config template by using organization name and
         config template name.
 
         @feature: Organizations associate config template.
 
         @assert: config template is added
-
-        @BZ: 1129612
-
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -882,13 +864,13 @@ class Org(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_environment(self):
+    @tier2
+    def test_positive_remove_environment(self):
         """@test: Remove environment by using org & environment name.
 
         @feature: Organizations dis-associate environment.
 
         @assert: environment is removed from Organization.
-
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -917,13 +899,13 @@ class Org(UITestCase):
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    def test_remove_subnet(self):
+    @tier2
+    def test_positive_remove_subnet(self):
         """@test: Remove subnet by using organization name and subnet name.
 
         @feature: Organizations dis-associate subnet.
 
         @assert: subnet is added then removed.
-
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']

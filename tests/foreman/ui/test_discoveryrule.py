@@ -51,7 +51,7 @@ class DiscoveryRuleTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create Discovery Rule with invalid names
 
         @Feature: Foreman Discovery

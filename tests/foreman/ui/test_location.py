@@ -5,7 +5,7 @@ from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
 from robottelo.config import settings
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.constants import (
     ANY_CONTEXT,
     INSTALL_MEDIUM_URL,
@@ -52,7 +52,6 @@ class LocationTestCase(UITestCase):
 
     # Auto Search
 
-    @skip_if_bug_open('bugzilla', 1177610)
     @run_only_on('sat')
     @tier1
     def test_positive_auto_search(self):
@@ -61,9 +60,6 @@ class LocationTestCase(UITestCase):
         @feature: Locations
 
         @assert: Created location can be auto search by its partial name
-
-        @BZ: 1177610
-
         """
         loc_name = gen_string('alpha')
         with Session(self.browser) as session:

@@ -1,12 +1,12 @@
 # -*- encoding: utf-8 -*-
 """Test class for Users UI"""
 
-from robottelo.decorators import stubbed
+from robottelo.decorators import stubbed, tier1
 from robottelo.test import UITestCase
 
 
-class MyAccount(UITestCase):
-    """ Implements Users tests in UI
+class MyAccountTestCase(UITestCase):
+    """Implements Users tests in UI
 
     [1] Positive Name variations - Alpha, Numeric, Alphanumeric, Symbols,
     Latin1, Multibyte, Max length,  Min length, Max_db_size, html, css,
@@ -18,7 +18,8 @@ class MyAccount(UITestCase):
     """
 
     @stubbed()
-    def test_positive_update_my_account_1(self):
+    @tier1
+    def test_positive_update_firstname(self):
         """@Test: Update Firstname in My Account
 
         @Feature: My Account - Positive Update
@@ -29,12 +30,11 @@ class MyAccount(UITestCase):
         @Assert: Current User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
-    def test_positive_update_my_account_2(self):
+    @tier1
+    def test_positive_update_surname(self):
         """@Test: Update Surname in My Account
 
         @Feature: My Account - Positive Update
@@ -45,12 +45,11 @@ class MyAccount(UITestCase):
         @Assert: Current User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
-    def test_positive_update_my_account_3(self):
+    @tier1
+    def test_positive_update_email(self):
         """@Test: Update Email Address in My Account
 
         @Feature: My Account - Positive Update
@@ -61,12 +60,11 @@ class MyAccount(UITestCase):
         @Assert: Current User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
-    def test_positive_update_my_account_4(self):
+    @tier1
+    def test_positive_update_language(self):
         """@Test: Update Language in My Account
 
         @Feature: My Account - Positive Update
@@ -77,12 +75,11 @@ class MyAccount(UITestCase):
         @Assert: Current User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
-    def test_positive_update_my_account_5(self):
+    @tier1
+    def test_positive_update_password(self):
         """@Test: Update Password/Verify fields in My Account
 
         @Feature: My Account - Positive Update
@@ -93,12 +90,11 @@ class MyAccount(UITestCase):
         @Assert: User is updated
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
-    def test_negative_update_my_account_1(self):
+    @tier1
+    def test_negative_update_firstname(self):
         """@Test: Update My Account with invalid FirstName
 
         @Feature: My Account - Negative Update
@@ -109,12 +105,11 @@ class MyAccount(UITestCase):
         @Assert: User is not updated. Appropriate error shown.
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
-    def test_negative_update_my_account_2(self):
+    @tier1
+    def test_negative_update_surname(self):
         """@Test: Update My Account with invalid Surname
 
         @Feature: My Account - Negative Update
@@ -125,12 +120,11 @@ class MyAccount(UITestCase):
         @Assert: User is not updated. Appropriate error shown.
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
-    def test_negative_update_my_account_3(self):
+    @tier1
+    def test_negative_update_email(self):
         """@Test: Update My Account with invalid Email Address
 
         @Feature: My Account - Negative Update
@@ -141,12 +135,11 @@ class MyAccount(UITestCase):
         @Assert: User is not updated. Appropriate error shown.
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
-    def test_negative_update_my_account_4(self):
+    @tier1
+    def test_negative_update_password(self):
         """@Test: Update My Account with invalid Password/Verify fields
 
         @Feature: My Account - Negative Update
@@ -158,12 +151,11 @@ class MyAccount(UITestCase):
         @Assert: User is not updated. Appropriate error shown.
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
-    def test_negative_update_my_account_5(self):
+    @tier1
+    def test_negative_update_password_mismatch(self):
         """@Test: Update My Account with non-matching values in Password and
         verify fields
 
@@ -176,12 +168,11 @@ class MyAccount(UITestCase):
         @Assert: User is not updated. Appropriate error shown.
 
         @Status: Manual
-
         """
-        pass
 
     @stubbed()
-    def test_negative_update_my_account_6(self):
+    @tier1
+    def test_negative_update(self):
         """@Test: [UI ONLY] Attempt to update all info in My Accounts page and
         Cancel
 
@@ -195,6 +186,4 @@ class MyAccount(UITestCase):
         @Assert: User is not updated.
 
         @Status: Manual
-
         """
-        pass

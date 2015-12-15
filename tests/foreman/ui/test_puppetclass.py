@@ -3,22 +3,23 @@
 
 from nailgun import entities
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
 
-class PuppetClasses(UITestCase):
+class PuppetClassTestCase(UITestCase):
     """Implements puppet classes tests in UI."""
 
     @run_only_on('sat')
-    def test_update_positive(self):
-        """@Test: Create new puppet-class
+    @tier1
+    def test_positive_update_description(self):
+        """@Test: Create new puppet-class and update its description to a valid
+        one
 
         @Feature: Puppet-Classes - Positive Update
 
-        @Assert: Puppet-Classes is updated.
-
+        @Assert: Puppet-Classes is updated successfully.
         """
         class_name = 'foreman_scap_client'
         param_name = 'ca file'
@@ -39,13 +40,13 @@ class PuppetClasses(UITestCase):
                     )
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete(self):
-        """@Test: Create new puppet-class
+        """@Test: Create new puppet-class and then delete it
 
         @Feature: Puppet-Classes - Positive delete
 
-        @Assert: Puppet-Class is deleted
-
+        @Assert: Puppet-Class is deleted successfully.
         """
         with Session(self.browser):
             for name in valid_data_list():

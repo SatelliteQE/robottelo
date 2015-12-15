@@ -1,5 +1,5 @@
 """Test module for System Registration UI"""
-from robottelo.decorators import stubbed
+from robottelo.decorators import stubbed, tier3
 from robottelo.test import UITestCase
 
 
@@ -7,7 +7,8 @@ class SystemRegistrationTestCase(UITestCase):
     """Tests for System Registration UI"""
 
     @stubbed()
-    def test_registered_system_get_pushed_content(self):
+    @tier3
+    def test_positive_get_pushed_content(self):
         # variations: content types - RH rpms/errata; custom content rpms;
         # puppet modules
         """@test: assure content types can be pushed down to client via UI
@@ -17,11 +18,11 @@ class SystemRegistrationTestCase(UITestCase):
         @assert: content is installed on client system
 
         @status: Manual
-
         """
 
     @stubbed()
-    def test_registered_system_can_be_listed_ui(self):
+    @tier3
+    def test_positive_list_system_for_org(self):
         """@test: perform a system list for a given org
 
         @feature: system registration
@@ -29,11 +30,11 @@ class SystemRegistrationTestCase(UITestCase):
         @assert: newly registered system can be found in Systems UI
 
         @status: Manual
-
         """
 
     @stubbed()
-    def test_system_deregister_ui(self):
+    @tier3
+    def test_positive_deregister_system(self):
         """@test: delete system via Systems UI
 
         @feature: system registration
@@ -41,11 +42,11 @@ class SystemRegistrationTestCase(UITestCase):
         @assert: after deleting, system no longer appears in system UI.
 
         @status: Manual
-
         """
 
     @stubbed()
-    def test_compliance_green(self):
+    @tier3
+    def test_positive_compliance_green(self):
         """@test: system with appropriate entitlements for subscriptions
 
         @feature: system registration
@@ -53,11 +54,11 @@ class SystemRegistrationTestCase(UITestCase):
         @assert: compliance status is green in UI
 
         @status: Manual
-
         """
 
     @stubbed()
-    def test_compliance_red(self):
+    @tier3
+    def test_positive_compliance_red(self):
         """@test: system without appropriate entitlements for subscriptions
 
         @feature: system registration
@@ -65,11 +66,11 @@ class SystemRegistrationTestCase(UITestCase):
         @assert: compliance status is red in UI
 
         @status: Manual
-
         """
 
     @stubbed()
-    def test_compliance_yellow(self):
+    @tier3
+    def test_positive_compliance_yellow(self):
         """@test: system with some, but not all, appropriate entitlements for
         subscriptions
 
@@ -78,5 +79,4 @@ class SystemRegistrationTestCase(UITestCase):
         @assert: compliance status is yellow in UI
 
         @status: Manual
-
         """

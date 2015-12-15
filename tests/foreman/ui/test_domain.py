@@ -123,7 +123,7 @@ class DomainTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@Test: Try to create domain and use whitespace, blank, tab symbol or
         too long string of different types as its name value
 

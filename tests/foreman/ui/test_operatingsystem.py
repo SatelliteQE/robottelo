@@ -6,7 +6,7 @@ from nailgun import entities
 from robottelo.constants import (
     INSTALL_MEDIUM_URL, PARTITION_SCRIPT_DATA_FILE)
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -41,22 +41,22 @@ def valid_os_parameters():
     ]
 
 
-class OperatingSys(UITestCase):
+class OperatingSystemTestCase(UITestCase):
     """Implements Operating system tests from UI"""
 
     @classmethod
     def setUpClass(cls):
-        super(OperatingSys, cls).setUpClass()
+        super(OperatingSystemTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
     @run_only_on('sat')
-    def test_create_os_with_different_names(self):
+    @tier1
+    def test_positive_create_with_name(self):
         """@Test: Create a new OS using different string types as a name
 
         @Feature: OS - Positive Create
 
         @Assert: OS is created
-
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -72,13 +72,13 @@ class OperatingSys(UITestCase):
                     self.assertIsNotNone(self.operatingsys.search(name))
 
     @run_only_on('sat')
-    def test_create_os_with_random_params(self):
+    @tier1
+    def test_positive_create(self):
         """@Test: Create a new OS with different data values
 
         @Feature: OS - Positive Create
 
         @Assert: OS is created
-
         """
         with Session(self.browser) as session:
             for test_data in valid_os_parameters():
@@ -97,13 +97,13 @@ class OperatingSys(UITestCase):
                         test_data['desc']))
 
     @run_only_on('sat')
-    def test_negative_create_os_invalid_name(self):
+    @tier1
+    def test_negative_create_with_invalid_name(self):
         """@Test: OS - Create a new OS with invalid name
 
         @Feature: Create a new OS - Negative
 
         @Assert: OS is not created
-
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -120,14 +120,14 @@ class OperatingSys(UITestCase):
                         common_locators['name_haserror']))
 
     @run_only_on('sat')
-    def test_negative_create_os_with_long_desc(self):
+    @tier1
+    def test_negative_create_with_too_long_description(self):
         """@Test: OS - Create a new OS with description containing
         256 characters
 
         @Feature: Create a new OS - Negative
 
         @Assert: OS is not created
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -145,14 +145,14 @@ class OperatingSys(UITestCase):
             self.assertIsNone(self.operatingsys.search(name))
 
     @run_only_on('sat')
-    def test_negative_create_os_with_wrong_major_version(self):
+    @tier1
+    def test_negative_create_with_invalid_major_version(self):
         """@Test: OS - Create a new OS with incorrect major version value
         (More than 5 characters, empty value, negative number)
 
         @Feature: Create a new OS - Negative
 
         @Assert: OS is not created
-
         """
         with Session(self.browser) as session:
             for major_version in gen_string('numeric', 6), '', '-6':
@@ -171,14 +171,14 @@ class OperatingSys(UITestCase):
                     self.assertIsNone(self.operatingsys.search(name))
 
     @run_only_on('sat')
-    def test_negative_create_os_with_wrong_minor_version(self):
+    @tier1
+    def test_negative_create_with_invalid_minor_version(self):
         """@Test: OS - Create a new OS with incorrect minor version value
         (More than 16 characters and negative number)
 
         @Feature: Create a new OS - Negative
 
         @Assert: OS is not created
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -198,14 +198,13 @@ class OperatingSys(UITestCase):
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1283548)
-    def test_negative_create_os_with_same_name_and_version(self):
+    @tier2
+    def test_negative_create_with_same_name_and_version(self):
         """@Test: OS - Create a new OS with same name and version
 
         @Feature: Create a new OS - Negative
 
         @Assert: OS is not created
-
-
         """
         name = gen_string('alpha')
         major_version = gen_string('numeric', 1)
@@ -232,27 +231,27 @@ class OperatingSys(UITestCase):
                                  (common_locators['haserror']))
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete(self):
         """@Test: Delete an existing OS
 
         @Feature: OS - Positive Delete
 
-        @Assert: OS is deleted
-
+        @Assert: OS is deleted successfully
         """
         os_name = entities.OperatingSystem().create().name
         with Session(self.browser):
             self.operatingsys.delete(os_name)
 
     @run_only_on('sat')
-    def test_update_os_basic_params(self):
+    @tier1
+    def test_positive_update(self):
         """@Test: Update OS name, major_version, minor_version, os_family
         and arch
 
         @Feature: OS - Positive Update
 
         @Assert: OS is updated
-
         """
         os_name = entities.OperatingSystem().create().name
         with Session(self.browser):
@@ -271,13 +270,13 @@ class OperatingSys(UITestCase):
                     os_name = test_data['name']
 
     @run_only_on('sat')
-    def test_update_os_medium(self):
+    @tier1
+    def test_positive_update_medium(self):
         """@Test: Update OS medium
 
         @Feature: OS - Positive Update
 
         @Assert: OS is updated
-
         """
         medium_name = gen_string('alpha')
         entities.Media(
@@ -293,15 +292,14 @@ class OperatingSys(UITestCase):
             self.assertEqual(medium_name, result_obj['medium'])
 
     @run_only_on('sat')
-    def test_update_os_partition_table(self):
+    @tier1
+    def test_positive_update_ptable(self):
         """@Test: Update OS partition table
 
         @Feature: OS - Positive Update
 
         @Assert: OS is updated
-
         """
-
         ptable = gen_string('alpha', 4)
         script_file = get_data_file(PARTITION_SCRIPT_DATA_FILE)
         with open(script_file, 'r') as file_contents:
@@ -317,14 +315,13 @@ class OperatingSys(UITestCase):
             self.assertEqual(ptable, result_obj['ptable'])
 
     @run_only_on('sat')
-    def test_update_os_template(self):
+    @tier1
+    def test_positive_update_template(self):
         """@Test: Update provisioning template
 
         @Feature: OS - Positive Update
 
         @Assert: OS is updated
-
-
         """
         os_name = gen_string('alpha')
         template_name = gen_string('alpha')
@@ -341,13 +338,13 @@ class OperatingSys(UITestCase):
             self.assertEqual(template_name, result_obj['template'])
 
     @run_only_on('sat')
-    def test_positive_set_os_parameter(self):
-        """@Test: Set OS parameter
+    @tier2
+    def test_positive_set_parameter(self):
+        """@Test: Set Operating System parameter
 
         @Feature: OS - Positive Update
 
-        @Assert: OS is updated
-
+        @Assert: OS is updated with new parameter
         """
         with Session(self.browser):
             try:
@@ -360,13 +357,13 @@ class OperatingSys(UITestCase):
                 self.fail(err)
 
     @run_only_on('sat')
-    def test_positive_set_os_parameter_with_blank_value(self):
+    @tier2
+    def test_positive_set_parameter_with_blank_value(self):
         """@Test: Set OS parameter with blank value
 
         @Feature: OS - Positive update
 
         @Assert: Parameter is created with blank value
-
         """
         with Session(self.browser):
             try:
@@ -379,13 +376,13 @@ class OperatingSys(UITestCase):
                 self.fail(err)
 
     @run_only_on('sat')
-    def test_remove_os_parameter(self):
+    @tier2
+    def test_positive_remove_parameter(self):
         """@Test: Remove selected OS parameter
 
         @Feature: OS - Positive Update
 
-        @Assert: OS is updated
-
+        @Assert: Expected OS parameter is removed
         """
         param_name = gen_string('alpha', 4)
         os_name = entities.OperatingSystem().create().name
@@ -398,13 +395,13 @@ class OperatingSys(UITestCase):
                 self.fail(err)
 
     @run_only_on('sat')
-    def test_negative_set_os_parameter_same_values(self):
+    @tier2
+    def test_negative_set_parameter_same_values(self):
         """@Test: Set same OS parameter again as it was set earlier
 
         @Feature: OS - Negative Update
 
-        @Assert: Proper error should be raised, Name already taken
-
+        @Assert: Proper error should be raised - Name is already taken
         """
         param_name = gen_string('alpha', 4)
         param_value = gen_string('alpha', 3)
@@ -421,13 +418,13 @@ class OperatingSys(UITestCase):
             ))
 
     @run_only_on('sat')
-    def test_negative_set_os_parameter_with_blank_value(self):
+    @tier2
+    def test_negative_set_parameter_with_blank_name_and_value(self):
         """@Test: Set OS parameter with blank name and value
 
         @Feature: OS - Negative Update
 
-        @Assert: Proper error should be raised, Name can't contain whitespaces
-
+        @Assert: Proper error should be raised - Name can't contain whitespaces
         """
         with Session(self.browser):
             try:
@@ -440,13 +437,13 @@ class OperatingSys(UITestCase):
             ))
 
     @run_only_on('sat')
-    def test_negative_set_os_parameter_with_long_values(self):
+    @tier2
+    def test_negative_set_parameter_with_too_long_values(self):
         """@Test: Set OS parameter with name and value exceeding 255 characters
 
         @Feature: OS - Negative Update
 
         @Assert: Proper error should be raised, Name should contain a value
-
         """
         os_name = entities.OperatingSystem().create().name
         with Session(self.browser):
