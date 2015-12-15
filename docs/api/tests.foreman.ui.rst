@@ -158,30 +158,30 @@
 
 .. automodule:: tests.foreman.ui.test_oscapcontent
 
-:mod:`tests.foreman.ui.test_operatingsys`
+:mod:`tests.foreman.ui.test_operatingsystem`
+--------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_operatingsystem
+
+:mod:`tests.foreman.ui.test_organization`
 -----------------------------------------
 
-.. automodule:: tests.foreman.ui.test_operatingsys
-
-:mod:`tests.foreman.ui.test_org`
---------------------------------
-
-.. automodule:: tests.foreman.ui.test_org
+.. automodule:: tests.foreman.ui.test_organization
 
 :mod:`tests.foreman.ui.test_partitiontable`
 -------------------------------------------
 
 .. automodule:: tests.foreman.ui.test_partitiontable
 
-:mod:`tests.foreman.ui.test_products`
+:mod:`tests.foreman.ui.test_product`
 -------------------------------------
 
-.. automodule:: tests.foreman.ui.test_products
+.. automodule:: tests.foreman.ui.test_product
 
-:mod:`tests.foreman.ui.test_puppet_classes`
+:mod:`tests.foreman.ui.test_puppetclass`
 -------------------------------------------
 
-.. automodule:: tests.foreman.ui.test_puppet_classes
+.. automodule:: tests.foreman.ui.test_puppetclass
 
 :mod:`tests.foreman.ui.test_repository`
 ---------------------------------------
@@ -193,10 +193,10 @@
 
 .. automodule:: tests.foreman.ui.test_role
 
-:mod:`tests.foreman.ui.test_settings`
+:mod:`tests.foreman.ui.test_setting`
 -------------------------------------
 
-.. automodule:: tests.foreman.ui.test_settings
+.. automodule:: tests.foreman.ui.test_setting
 
 :mod:`tests.foreman.ui.test_sso`
 --------------------------------

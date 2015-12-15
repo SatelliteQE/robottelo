@@ -4,22 +4,23 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.datafactory import generate_strings_list, invalid_values_list
+from robottelo.decorators import tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_role
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-class Role(UITestCase):
+class RoleTestCase(UITestCase):
     """Implements Roles tests from UI"""
 
-    def test_create_role_basic(self):
-        """@Test: Create new role
+    @tier1
+    def test_positive_create_with_name(self):
+        """@Test: Create new role using different names
 
         @Feature: Role - Positive Create
 
-        @Assert: Role is created
-
+        @Assert: Role is created successfully
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=10):
@@ -27,13 +28,13 @@ class Role(UITestCase):
                     make_role(session, name=name)
                     self.assertIsNotNone(self.role.search(name))
 
-    def test_negative_create_role_invalid_names(self):
-        """@Test: Create new role with invalid names
+    @tier1
+    def test_negative_create_with_invalid_name(self):
+        """@Test: Create new role using invalid names
 
         @Feature: Role - Negative Create
 
         @Assert: Role is not created
-
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -42,13 +43,13 @@ class Role(UITestCase):
                     self.assertIsNotNone(session.nav.wait_until_element(
                         common_locators['name_haserror']))
 
+    @tier1
     def test_positive_delete(self):
         """@Test: Delete an existing role
 
         @Feature: Role - Positive Delete
 
-        @Assert: Role is deleted
-
+        @Assert: Role is deleted successfully
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=10):
@@ -56,13 +57,13 @@ class Role(UITestCase):
                     make_role(session, name=name)
                     self.role.delete(name)
 
-    def test_update_role_name(self):
-        """@Test: Update role name
+    @tier1
+    def test_positive_update_name(self):
+        """@Test: Update existing role name
 
         @Feature: Role - Positive Update
 
         @Assert: Role is updated
-
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -74,13 +75,13 @@ class Role(UITestCase):
                     self.assertIsNotNone(self.role.search(new_name))
                     name = new_name  # for next iteration
 
-    def test_update_role_permission(self):
-        """@Test: Update role permissions
+    @tier1
+    def test_positive_update_permission(self):
+        """@Test: Update existing role permissions
 
         @Feature: Role - Positive Update
 
         @Assert: Role is updated
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -93,13 +94,13 @@ class Role(UITestCase):
                 permission_list=['view_architectures', 'create_architectures'],
             )
 
-    def test_update_role_org(self):
-        """@Test: Update organization under selected role
+    @tier1
+    def test_positive_update_org(self):
+        """@Test: Update organization for selected role
 
         @Feature: Role - Positive Update
 
         @Assert: Role is updated
-
         """
         name = gen_string('alpha')
         org = entities.Organization().create()

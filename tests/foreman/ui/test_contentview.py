@@ -105,7 +105,7 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@test: try to create content views using invalid names
 
         @feature: Content Views

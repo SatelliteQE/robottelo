@@ -288,7 +288,7 @@ class DiscoveryTestCase(UITestCase):
 
     @stubbed()
     @tier3
-    def test_positive_create_discovery_rule_with_IP(self):
+    def test_positive_create_discovery_rule_with_simple_query(self):
         """@Test: Create a new discovery rule
 
         Set query as (e.g IP=IP_of_discovered_host)
@@ -305,7 +305,7 @@ class DiscoveryTestCase(UITestCase):
 
     @stubbed()
     @tier3
-    def test_positive_create_discovery_rule_with_cpu_count(self):
+    def test_positive_create_discovery_rule_with_complex_query(self):
         """@Test: Create a new discovery rule with (host_limit = 0)
         that applies to multi hosts.
         Set query as cpu_count = 1 OR mem > 500

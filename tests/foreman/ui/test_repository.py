@@ -17,7 +17,7 @@ from robottelo.constants import (
     VALID_GPG_KEY_FILE,
 )
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.helpers import read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_repository, set_context
@@ -36,12 +36,12 @@ def valid_repo_names_docker_sync():
     ]
 
 
-class Repos(UITestCase):
+class RepositoryTestCase(UITestCase):
     """Implements Repos tests in UI"""
 
     @classmethod
     def setUpClass(cls):  # noqa
-        super(Repos, cls).setUpClass()
+        super(RepositoryTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
         cls.loc = entities.Location().create()
 
@@ -75,13 +75,14 @@ class Repos(UITestCase):
         return result == 'success'
 
     @run_only_on('sat')
-    def test_create_repo_basic(self):
-        """@Test: Create repository with minimal input parameters
+    @tier1
+    def test_positive_create_with_name(self):
+        """@Test: Create repository with different names and minimal input
+        parameters
 
         @Feature: Content Repos - Positive Create
 
-        @Assert: Repos is created
-
+        @Assert: Repository is created successfully
         """
         prod = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
@@ -97,18 +98,16 @@ class Repos(UITestCase):
                     self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
-    def test_create_repo_in_different_orgs(self):
+    @tier2
+    def test_positive_create_in_different_orgs(self):
         """@Test: Create repository in two different orgs with same name
-
-        @Assert: Repos is created
 
         @Feature: Content Repos - Positive Create
 
+        @Assert: Repository is created successfully for both organizations
         """
-        # Creates new product_1
-        product_1 = entities.Product(organization=self.organization).create()
-        # Create new product_2 under new organization_2
         org_2 = entities.Organization(name=gen_string('alpha')).create()
+        product_1 = entities.Product(organization=self.organization).create()
         product_2 = entities.Product(organization=org_2).create()
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
@@ -132,13 +131,13 @@ class Repos(UITestCase):
                     self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
-    def test_create_repo_with_checksum(self):
+    @tier1
+    def test_positive_create_repo_with_checksum(self):
         """@Test: Create repository with checksum type as sha256.
 
         @Feature: Content Repos - Positive Create
 
-        @Assert: Repos is created with checksum type as sha256.
-
+        @Assert: Repository is created with expected checksum type.
         """
         checksum = CHECKSUM_TYPE[u'sha256']
         # Creates new product
@@ -158,13 +157,13 @@ class Repos(UITestCase):
                         repo_name, 'checksum', checksum))
 
     @run_only_on('sat')
-    def test_negative_create_with_blank(self):
-        """@Test: Create repository with invalid name
+    @tier1
+    def test_negative_create_with_invalid_name(self):
+        """@Test: Create repository with invalid names
 
         @Feature: Content Repos - Negative Create
 
-        @Assert: Repos is not created
-
+        @Assert: Repository is not created
         """
         # Creates new product
         product = entities.Product(organization=self.organization).create()
@@ -183,13 +182,13 @@ class Repos(UITestCase):
                     self.assertIsNotNone(invalid)
 
     @run_only_on('sat')
+    @tier1
     def test_negative_create_with_same_names(self):
-        """@Test: Create repository with same name
+        """@Test: Try to create two repositories with same name
 
         @Feature: Content Repos - Negative Create with same name
 
-        @Assert: Repos is not created
-
+        @Assert: Repository is not created
         """
         repo_name = gen_string('alphanumeric')
         product = entities.Product(organization=self.organization).create()
@@ -208,18 +207,17 @@ class Repos(UITestCase):
                 name=repo_name,
                 url=FAKE_1_YUM_REPO,
             )
-            invalid = self.products.wait_until_element(
-                common_locators['common_invalid'])
-            self.assertTrue(invalid)
+            self.assertTrue(self.products.wait_until_element(
+                common_locators['common_invalid']))
 
     @run_only_on('sat')
-    def test_positive_update_URL(self):
+    @tier1
+    def test_positive_update_url(self):
         """@Test: Update content repository with new URL
 
         @Feature: Content Repo - Positive Update
 
-        @Assert: Repo is updated with new url
-
+        @Assert: Repository is updated with expected url value
         """
         product = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
@@ -242,13 +240,13 @@ class Repos(UITestCase):
                         repo_name, 'url', FAKE_2_YUM_REPO))
 
     @run_only_on('sat')
-    def test_positive_update_GPG(self):
+    @tier1
+    def test_positive_update_gpg(self):
         """@Test: Update content repository with new gpg-key
 
         @Feature: Content Repo - Positive Update
 
-        @Assert: Repo is updated with new gpg key
-
+        @Assert: Repository is updated with new gpg key
         """
         repo_name = gen_string('alphanumeric')
         key_1_content = read_data_file(VALID_GPG_KEY_FILE)
@@ -282,13 +280,13 @@ class Repos(UITestCase):
                 repo_name, 'gpgkey', gpgkey_2.name))
 
     @run_only_on('sat')
+    @tier1
     def test_positive_update_checksum_type(self):
         """@Test: Update content repository with new checksum type
 
         @Feature: Content Repo - Positive Update of checksum type.
 
-        @Assert: Repo is updated with new checksum type.
-
+        @Assert: Repository is updated with expected checksum type.
         """
         repo_name = gen_string('alphanumeric')
         checksum_default = CHECKSUM_TYPE['default']
@@ -313,13 +311,13 @@ class Repos(UITestCase):
                 repo_name, 'checksum', checksum_update))
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete(self):
-        """@Test: Create content repository and remove it
+        """@Test: Create content repository and then remove it
 
         @Feature: Content Repos - Positive Delete
 
-        @Assert: Repos is Deleted
-
+        @Assert: Repository is deleted successfully
         """
         product = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
@@ -336,13 +334,13 @@ class Repos(UITestCase):
                     self.repository.delete(repo_name)
 
     @run_only_on('sat')
-    def test_discover_repo_via_existing_product(self):
+    @tier2
+    def test_positive_discover_repo_via_existing_product(self):
         """@Test: Create repository via repo-discovery under existing product
 
         @Feature: Content Repos - Discover repo via http URL
 
-        @Assert: Repos is discovered and created
-
+        @Assert: Repository is discovered and created
         """
         discovered_urls = 'fakerepo01/'
         product = entities.Product(organization=self.organization).create()
@@ -356,15 +354,15 @@ class Repos(UITestCase):
             )
 
     @run_only_on('sat')
-    def test_discover_repo_via_new_product(self):
+    @tier2
+    def test_positive_discover_repo_via_new_product(self):
         """@Test: Create repository via repo discovery under new product
 
         @Feature: Content Repos - Discover repo via http URL
 
-        @Assert: Repos is discovered and created
-
+        @Assert: Repository is discovered and created
         """
-        product_name = gen_string('alpha', 8)
+        product_name = gen_string('alpha')
         discovered_urls = 'fakerepo01/'
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
@@ -379,19 +377,19 @@ class Repos(UITestCase):
             self.assertIsNotNone(self.products.search(product_name))
 
     @run_only_on('sat')
-    def test_syncnow_custom_repos_yum(self):
+    @tier2
+    def test_positive_sync_custom_repo_yum(self):
         """@Test: Create Custom yum repos and sync it via the repos page.
 
         @Feature: Custom yum Repos - Sync via repos page
 
-        @Assert: Whether Sync is successful
-
+        @Assert: Sync procedure for specific yum repository is successful
         """
         product = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
-                    # Creates new repository using api
+                    # Creates new yum repository using api
                     entities.Repository(
                         name=repo_name,
                         url=FAKE_1_YUM_REPO,
@@ -406,13 +404,13 @@ class Repos(UITestCase):
                     self.assertTrue(self.prd_sync_is_ok(repo_name))
 
     @run_only_on('sat')
-    def test_syncnow_custom_repos_puppet(self):
+    @tier2
+    def test_positive_sync_custom_repo_puppet(self):
         """@Test: Create Custom puppet repos and sync it via the repos page.
 
         @Feature: Custom puppet Repos - Sync via repos page
 
-        @Assert: Whether Sync is successful
-
+        @Assert: Sync procedure for specific puppet repository is successful
         """
         # Creates new product
         product = entities.Product(organization=self.organization).create()
@@ -435,20 +433,20 @@ class Repos(UITestCase):
                     self.assertTrue(self.prd_sync_is_ok(repo_name))
 
     @run_only_on('sat')
-    def test_syncnow_custom_repos_docker(self):
+    @tier2
+    def test_positive_sync_custom_repo_docker(self):
         """@Test: Create Custom docker repos and sync it via the repos page.
 
         @Feature: Custom docker Repos - Sync via repos page
 
-        @Assert: Whether Sync is successful
-
+        @Assert: Sync procedure for specific docker repository is successful
         """
         # Creates new product
         product = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
             for repo_name in valid_repo_names_docker_sync():
                 with self.subTest(repo_name):
-                            # Creates new puppet repository
+                    # Creates new docker repository
                     entities.Repository(
                         name=repo_name,
                         url=DOCKER_REGISTRY_HUB,

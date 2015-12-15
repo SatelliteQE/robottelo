@@ -6,7 +6,7 @@ from nailgun import entities
 from random import randint
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_syncplan
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -22,21 +22,21 @@ def valid_sync_intervals():
     ]
 
 
-class Syncplan(UITestCase):
+class SyncPlanTestCase(UITestCase):
     """Implements Sync Plan tests in UI"""
 
     @classmethod
     def setUpClass(cls):
-        super(Syncplan, cls).setUpClass()
+        super(SyncPlanTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
-    def test_positive_create_names(self):
+    @tier1
+    def test_positive_create_with_name(self):
         """@Test: Create Sync Plan with valid name values
 
         @Feature: Content Sync Plan - Positive Create
 
         @Assert: Sync Plan is created
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -50,13 +50,13 @@ class Syncplan(UITestCase):
                     )
                     self.assertIsNotNone(self.syncplan.search(name))
 
-    def test_positive_create_descriptions(self):
+    @tier1
+    def test_positive_create_with_description(self):
         """@Test: Create Sync Plan with valid desc values
 
         @Feature: Content Sync Plan - Positive Create
 
         @Assert: Sync Plan is created
-
         """
         with Session(self.browser) as session:
             for desc in generate_strings_list():
@@ -71,13 +71,13 @@ class Syncplan(UITestCase):
                     )
                     self.assertIsNotNone(self.syncplan.search(name))
 
-    def test_positive_create_sync_intervals(self):
+    @tier1
+    def test_positive_create_with_sync_interval(self):
         """@Test: Create Sync Plan with valid sync intervals
 
         @Feature: Content Sync Plan - Positive Create
 
         @Assert: Sync Plan is created
-
         """
         with Session(self.browser) as session:
             for interval in valid_sync_intervals():
@@ -92,13 +92,13 @@ class Syncplan(UITestCase):
                     )
                     self.assertIsNotNone(self.syncplan.search(name))
 
+    @tier2
     def test_positive_create_with_start_time(self):
         """@Test: Create Sync plan with specified start time
 
         @Feature: Content Sync Plan - Positive Create
 
         @Assert: Sync Plan is created with the specified time.
-
         """
         plan_name = gen_string('alpha')
         startdate = datetime.now() + timedelta(minutes=10)
@@ -127,16 +127,13 @@ class Syncplan(UITestCase):
             saved_starttime = str(starttime_text).rpartition(':')[0]
             self.assertEqual(saved_starttime, starttime)
 
-    @skip_if_bug_open('bugzilla', 1246262)
+    @tier2
     def test_positive_create_with_start_date(self):
         """@Test: Create Sync plan with specified start date
 
         @Feature: Content Sync Plan - Positive Create
 
         @Assert: Sync Plan is created with the specified date
-
-        @BZ: 1246262
-
         """
         plan_name = gen_string('alpha')
         startdate = datetime.now() + timedelta(days=10)
@@ -160,13 +157,13 @@ class Syncplan(UITestCase):
             saved_startdate = str(startdate_text).rpartition(',')[0]
             self.assertEqual(saved_startdate, fetch_startdate)
 
-    def test_negative_create_invalid_name(self):
+    @tier1
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create Sync Plan with invalid names
 
         @Feature: Content Sync Plan - Negative Create
 
         @Assert: Sync Plan is not created
-
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -181,13 +178,13 @@ class Syncplan(UITestCase):
                     self.assertIsNotNone(self.syncplan.wait_until_element(
                         common_locators['common_invalid']))
 
+    @tier1
     def test_negative_create_with_same_name(self):
         """@Test: Create Sync Plan with an existing name
 
         @Feature: Content Sync Plan - Positive Create
 
         @Assert: Sync Plan cannot be created with existing name
-
         """
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -203,13 +200,13 @@ class Syncplan(UITestCase):
             self.assertIsNotNone(self.syncplan.wait_until_element(
                 common_locators['common_invalid']))
 
+    @tier1
     def test_positive_update_name(self):
         """@Test: Update Sync plan's name
 
         @Feature: Content Sync Plan - Positive Update name
 
         @Assert: Sync Plan's name is updated
-
         """
         plan_name = gen_string('alpha')
         entities.SyncPlan(
@@ -226,13 +223,13 @@ class Syncplan(UITestCase):
                     self.assertIsNotNone(self.syncplan.search(new_plan_name))
                     plan_name = new_plan_name  # for next iteration
 
+    @tier1
     def test_positive_update_interval(self):
         """@Test: Update Sync plan's interval
 
         @Feature: Content Sync Plan - Positive Update interval
 
         @Assert: Sync Plan's interval is updated
-
         """
         name = gen_string('alpha')
         entities.SyncPlan(
@@ -255,13 +252,13 @@ class Syncplan(UITestCase):
                     ).text
                     self.assertEqual(interval_text, new_interval)
 
+    @tier2
     def test_positive_update_product(self):
         """@Test: Update Sync plan and associate products
 
         @Feature: Content Sync Plan - Positive Update add products
 
         @Assert: Sync Plan has the associated product
-
         """
         strategy, value = locators['sp.prd_select']
         product = entities.Product(organization=self.organization).create()
@@ -284,13 +281,13 @@ class Syncplan(UITestCase):
                         (strategy, value % product.name))
                     self.assertIsNotNone(element)
 
+    @tier2
     def test_positive_update_and_disassociate_product(self):
         """@Test: Update Sync plan and disassociate products
 
         @Feature: Content Sync Plan - Positive Update remove products
 
         @Assert: Sync Plan does not have the associated product
-
         """
         plan_name = gen_string('utf8')
         strategy, value = locators['sp.prd_select']
@@ -321,13 +318,13 @@ class Syncplan(UITestCase):
                 (strategy, value % product.name))
             self.assertIsNotNone(element)
 
+    @tier1
     def test_positive_delete(self):
-        """@Test: Delete a Sync plan
+        """@Test: Delete an existing Sync plan
 
         @Feature: Content Sync Plan - Positive Delete
 
-        @Assert: Sync Plan is deleted
-
+        @Assert: Sync Plan is deleted successfully
         """
         with Session(self.browser) as session:
             for plan_name in generate_strings_list():

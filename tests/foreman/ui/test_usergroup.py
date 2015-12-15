@@ -3,28 +3,29 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import skip_if_bug_open
+from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_usergroup
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-class UserGroup(UITestCase):
+class UserGroupTestCase(UITestCase):
     """Implements UserGroup tests from UI"""
 
     @classmethod
     def setUpClass(cls):
-        super(UserGroup, cls).setUpClass()
+        super(UserGroupTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
     @skip_if_bug_open('bugzilla', 1142588)
-    def test_positive_create_usergroup(self):
-        """@Test: Create new Usergroup
+    @tier1
+    def test_positive_create_with_name(self):
+        """@Test: Create new Usergroup using different names
+
         @Feature: Usergroup - Positive Create
 
-        @Assert: Usergroup is created
-
+        @Assert: Usergroup is created successfully
         """
         user_name = gen_string('alpha')
         password = gen_string('alpha')
@@ -37,13 +38,13 @@ class UserGroup(UITestCase):
                     self.assertIsNotNone(self.usergroup.search(group_name))
 
     @skip_if_bug_open('bugzilla', 1142588)
-    def test_negative_create_usergroup(self):
+    @tier1
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create a new UserGroup with invalid names
 
-        @Feature:  Usergroup - Negative Create
+        @Feature: Usergroup - Negative Create
 
-        @Assert:  Usergroup is not created
-
+        @Assert: Usergroup is not created
         """
         with Session(self.browser) as session:
             for group_name in invalid_values_list(interface='ui'):
@@ -54,13 +55,13 @@ class UserGroup(UITestCase):
                         common_locators['name_haserror']))
                     self.assertIsNone(self.usergroup.search(group_name))
 
-    def test_negative_create_usergroup_with_same_name(self):
+    @tier1
+    def test_negative_create_with_same_name(self):
         """@Test: Create a new UserGroup with same name
 
         @Feature: Usergroup - Negative Create
 
-        @Assert: Usergroup cannot be  created with existing name
-
+        @Assert: Usergroup cannot be created with existing name
         """
         group_name = gen_string('alphanumeric')
         with Session(self.browser) as session:
@@ -73,13 +74,13 @@ class UserGroup(UITestCase):
                 common_locators['name_haserror']))
 
     @skip_if_bug_open('bugzilla', 1142588)
+    @tier1
     def test_positive_delete_empty(self):
         """@Test: Delete an empty Usergroup
 
         @Feature: Usergroup - Positive Delete
 
         @Assert: Usergroup is deleted
-
         """
         with Session(self.browser) as session:
             for group_name in generate_strings_list():
@@ -89,13 +90,13 @@ class UserGroup(UITestCase):
                     self.usergroup.delete(group_name)
 
     @skip_if_bug_open('bugzilla', 1142588)
-    def test_positive_delete(self):
+    @tier2
+    def test_positive_delete_with_user(self):
         """@Test: Delete an Usergroup that contains a user
 
         @Feature: Usergroup - Positive Delete
 
         @Assert: Usergroup is deleted but not the added user
-
         """
         user_name = gen_string('alpha')
         group_name = gen_string('utf8')
@@ -117,13 +118,13 @@ class UserGroup(UITestCase):
             self.assertIsNotNone(self.user.search(user_name))
 
     @skip_if_bug_open('bugzilla', 1142588)
-    def test_update_usergroup(self):
-        """@Test: Update usergroup with name or users
+    @tier1
+    def test_positive_update_name(self):
+        """@Test: Update usergroup with new name
 
         @Feature: Usergroup - Positive Update
 
         @Assert: Usergroup is updated
-
         """
         name = gen_string('alpha')
         user_name = gen_string('alpha')

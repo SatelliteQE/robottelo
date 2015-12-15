@@ -4,7 +4,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -16,23 +16,23 @@ OS_TEMPLATE_DATA_FILE = get_data_file(OS_TEMPLATE_DATA_FILE)
 SNIPPET_DATA_FILE = get_data_file(SNIPPET_DATA_FILE)
 
 
-class Template(UITestCase):
+class TemplateTestCase(UITestCase):
     """Implements Provisioning Template tests from UI"""
 
     @classmethod
     def setUpClass(cls):
-        super(Template, cls).setUpClass()
+        super(TemplateTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
     @run_only_on('sat')
-    def test_positive_create_template(self):
-        """@Test: Create new template
+    @tier1
+    def test_positive_create_with_name(self):
+        """@Test: Create new template using different valid names
 
         @Feature: Template - Positive Create
 
-        @Assert: New provisioning template of type 'provision'
-        should be created successfully
-
+        @Assert: New provisioning template of type 'provision' should be
+        created successfully
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=8):
@@ -46,13 +46,14 @@ class Template(UITestCase):
                     )
                     self.assertIsNotNone(self.template.search(name))
 
-    def test_negative_create_template(self):
+    @run_only_on('sat')
+    @tier1
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create a new template with invalid names
 
         @Feature: Template - Negative Create
 
         @Assert: Template is not created
-
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -68,13 +69,13 @@ class Template(UITestCase):
                         common_locators['name_haserror']))
 
     @run_only_on('sat')
-    def test_negative_create_template_with_same_name(self):
+    @tier1
+    def test_negative_create_with_same_name(self):
         """@Test: Template - Create a new template with same name
 
         @Feature: Template - Negative Create
 
         @Assert: Template is not created
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -97,13 +98,13 @@ class Template(UITestCase):
                 common_locators['name_haserror']))
 
     @run_only_on('sat')
-    def test_negative_create_template_without_type(self):
+    @tier1
+    def test_negative_create_without_type(self):
         """@Test: Template - Create a new template without selecting its type
 
         @Feature: Template - Negative Create
 
         @Assert: Template is not created
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -121,13 +122,13 @@ class Template(UITestCase):
                 )
 
     @run_only_on('sat')
-    def test_negative_create_template_without_upload(self):
+    @tier1
+    def test_negative_create_without_upload(self):
         """@Test: Template - Create a new template without uploading a template
 
         @Feature: Template - Negative Create
 
         @Assert: Template is not created
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -145,13 +146,13 @@ class Template(UITestCase):
                 )
 
     @run_only_on('sat')
-    def test_negative_create_template_with_too_long_audit(self):
+    @tier1
+    def test_negative_create_with_too_long_audit(self):
         """@Test: Create a new template with 256 characters in audit comments
 
         @Feature: Template - Negative Create
 
         @Assert: Template is not created
-
         """
         with Session(self.browser) as session:
             make_templates(
@@ -166,14 +167,14 @@ class Template(UITestCase):
                 common_locators['haserror']))
 
     @run_only_on('sat')
-    def test_positive_create_snippet_template(self):
+    @tier1
+    def test_positive_create_with_snippet_type(self):
         """@Test: Create new template of type snippet
 
         @Feature: Template - Positive Create
 
-        @Assert: New provisioning template of type 'snippet'
-        should be created successfully
-
+        @Assert: New provisioning template of type 'snippet' should be created
+        successfully
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=8):
@@ -188,13 +189,13 @@ class Template(UITestCase):
                     self.assertIsNotNone(self.template.search(name))
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete(self):
-        """@Test: Remove a template
+        """@Test: Delete an existing template
 
         @Feature: Template - Positive Delete
 
-        @Assert: Template is removed successfully
-
+        @Assert: Template is deleted successfully
         """
         with Session(self.browser) as session:
             for template_name in generate_strings_list(length=8):
@@ -207,13 +208,13 @@ class Template(UITestCase):
                     self.template.delete(template_name)
 
     @run_only_on('sat')
-    def test_update_template(self):
+    @tier1
+    def test_positive_update_name_and_type(self):
         """@Test: Update template name and template type
 
         @Feature: Template - Positive Update
 
         @Assert: The template name and type should be updated successfully
-
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -230,15 +231,15 @@ class Template(UITestCase):
             self.assertIsNotNone(self.template.search(new_name))
 
     @run_only_on('sat')
-    def test_update_template_os(self):
-        """@Test: Creates new template, along with two OS's
-        and associate list of OS's with created template
+    @tier1
+    def test_positive_update_os(self):
+        """@Test: Creates new template, along with two OS's and associate list
+        of OS's with created template
 
         @Feature: Template - Positive Update
 
         @Assert: The template should be updated with newly created OS's
         successfully
-
         """
         name = gen_string('alpha')
         new_name = gen_string('alpha')
@@ -258,7 +259,8 @@ class Template(UITestCase):
             self.assertIsNotNone(self.template.search(new_name))
 
     @run_only_on('sat')
-    def test_clone_template(self):
+    @tier2
+    def test_positive_clone(self):
         """@Test: Assure ability to clone a provisioning template
 
         @Feature: Template - Clone
@@ -267,8 +269,7 @@ class Template(UITestCase):
          1.  Go to Provisioning template UI
          2.  Choose a template and attempt to clone it
 
-        @Assert: template is cloned
-
+        @Assert: The template is cloned
         """
         name = gen_string('alpha')
         clone_name = gen_string('alpha')

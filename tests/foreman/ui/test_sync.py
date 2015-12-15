@@ -5,7 +5,7 @@ from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import run_only_on
+from robottelo.decorators import run_only_on, skip_if_not_set, tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
@@ -19,21 +19,21 @@ RHCT = [('rhel', 'rhct6', 'rhct65', 'repo_name',
         ('rhel', 'rhct6', 'rhct6S', 'repo_ver', '6Server')]
 
 
-class Sync(UITestCase):
+class SyncTestCase(UITestCase):
     """Implements Custom Sync tests in UI"""
 
     def setUp(self):  # noqa
-        super(Sync, self).setUp()
+        super(SyncTestCase, self).setUp()
         self.organization = entities.Organization().create()
 
     @run_only_on('sat')
-    def test_sync_custom_repos(self):
+    @tier1
+    def test_positive_sync_custom_repo(self):
         """@Test: Create Content Custom Sync with minimal input parameters
 
         @Feature: Content Custom Sync - Positive Create
 
-        @Assert: Whether Sync is successful
-
+        @Assert: Sync procedure is successful
         """
         # Creates new product
         product = entities.Product(organization=self.organization).create()
@@ -54,13 +54,14 @@ class Sync(UITestCase):
                     # sync.sync_custom_repos returns boolean value
                     self.assertTrue(sync)
 
-    def test_sync_rh_repos(self):
+    @skip_if_not_set('fake_manifest')
+    @tier2
+    def test_positive_sync_rh_repos(self):
         """@Test: Create Content RedHat Sync with two repos.
 
         @Feature: Content RedHat Sync - Positive Create
 
-        @Assert: Whether Syncing RedHat Repos is successful
-
+        @Assert: Sync procedure for RedHat Repos is successful
         """
         repos = self.sync.create_repos_tree(RHCT)
         with open(manifests.clone(), 'rb') as manifest:

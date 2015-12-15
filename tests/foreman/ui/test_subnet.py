@@ -4,7 +4,7 @@
 from fauxfactory import gen_ipaddr, gen_netmask, gen_string
 from nailgun import entities
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import bz_bug_is_open, run_only_on
+from robottelo.decorators import bz_bug_is_open, run_only_on, tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_subnet
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -22,22 +22,22 @@ def valid_long_names():
     ]
 
 
-class Subnet(UITestCase):
+class SubnetTestCase(UITestCase):
     """Implements Subnet tests in UI"""
 
     @classmethod
     def setUpClass(cls):
-        super(Subnet, cls).setUpClass()
+        super(SubnetTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
     @run_only_on('sat')
-    def test_create_subnet_with_different_names(self):
-        """@Test: Create new subnet
+    @tier1
+    def test_positive_create_with_name(self):
+        """@Test: Create new subnet using different names
 
         @Feature: Subnet - Positive Create
 
         @Assert: Subnet is created
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=8):
@@ -51,13 +51,13 @@ class Subnet(UITestCase):
                     self.assertIsNotNone(self.subnet.search(name))
 
     @run_only_on('sat')
-    def test_create_subnet_with_long_strings(self):
+    @tier1
+    def test_positive_create_with_long_name(self):
         """@Test: Create new subnet with 255 characters in name
 
         @Feature: Subnet - Positive Create
 
         @Assert: Subnet is created with 255 chars
-
         """
         with Session(self.browser) as session:
             for test_data in valid_long_names():
@@ -77,13 +77,13 @@ class Subnet(UITestCase):
                         self.subnet.search(test_data['name']))
 
     @run_only_on('sat')
-    def test_create_subnet_with_domain(self):
+    @tier2
+    def test_positive_add_domain(self):
         """@Test: Create new subnet and associate domain with it
 
         @Feature: Subnet - Positive Create
 
         @Assert: Subnet is created with domain associated
-
         """
         strategy1, value1 = common_locators['entity_deselect']
         strategy2, value2 = common_locators['entity_checkbox']
@@ -118,13 +118,13 @@ class Subnet(UITestCase):
                 self.assertIsNotNone()
 
     @run_only_on('sat')
-    def test_create_subnet_negative_invalid_name(self):
+    @tier1
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create new subnet with invalid names
 
         @Feature: Subnet - Negative Create
 
         @Assert: Subnet is not created
-
         """
         with Session(self.browser) as session:
             for name in invalid_values_list(interface='ui'):
@@ -139,13 +139,13 @@ class Subnet(UITestCase):
                         common_locators['haserror']))
 
     @run_only_on('sat')
-    def test_create_subnet_negative_values(self):
+    @tier1
+    def test_negative_create_with_invalid_params(self):
         """@Test: Create new subnet with negative values
 
         @Feature: Subnet - Negative Create.
 
-        @Assert: Subnet is not created with negative values
-
+        @Assert: Subnet is not created
         """
         with Session(self.browser) as session:
             make_subnet(
@@ -169,13 +169,13 @@ class Subnet(UITestCase):
                 locators['subnet.dnssecondary_haserror']))
 
     @run_only_on('sat')
+    @tier1
     def test_positive_delete(self):
-        """@Test: Delete a subnet
+        """@Test: Delete an existing subnet
 
         @Feature: Subnet - Positive Delete
 
         @Assert: Subnet is deleted
-
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=8):
@@ -189,6 +189,7 @@ class Subnet(UITestCase):
                     self.subnet.delete(name)
 
     @run_only_on('sat')
+    @tier1
     def test_negative_delete(self):
         """@Test: Delete subnet. Attempt to delete subnet, but cancel in the
         confirmation dialog box.
@@ -196,7 +197,6 @@ class Subnet(UITestCase):
         @Feature: Subnet - Negative Delete
 
         @Assert: Subnet is not deleted
-
         """
         name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -209,13 +209,13 @@ class Subnet(UITestCase):
             self.subnet.delete(name, really=False)
 
     @run_only_on('sat')
-    def test_update_subnet_with_name(self):
+    @tier1
+    def test_positive_update_name(self):
         """@Test: Update Subnet name
 
         @Feature: Subnet - Positive Update
 
         @Assert: Subnet name is updated
-
         """
         name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -233,13 +233,13 @@ class Subnet(UITestCase):
                     name = new_name  # for next iteration
 
     @run_only_on('sat')
-    def test_update_subnet_with_network(self):
+    @tier1
+    def test_positive_update_network(self):
         """@Test: Update Subnet network
 
         @Feature: Subnet - Positive Update
 
         @Assert: Subnet network is updated
-
         """
         name = gen_string('alpha')
         new_network = gen_ipaddr(ip3=True)
@@ -255,13 +255,13 @@ class Subnet(UITestCase):
             self.assertEqual(new_network, result_object['network'])
 
     @run_only_on('sat')
-    def test_update_subnet_with_mask(self):
+    @tier1
+    def test_positive_update_mask(self):
         """@Test: Update Subnet mask
 
         @Feature: Subnet - Positive Update
 
         @Assert: Subnet mask is updated
-
         """
         name = gen_string('alpha')
         new_mask = gen_netmask(16, 31)
