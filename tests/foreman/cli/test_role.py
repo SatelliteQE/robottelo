@@ -9,17 +9,17 @@ from robottelo.decorators import skip_if_bug_open, stubbed, tier1
 from robottelo.test import CLITestCase
 
 
-class TestRole(CLITestCase):
+class RoleTestCase(CLITestCase):
     """Test class for Roles CLI"""
 
     @skip_if_bug_open('bugzilla', 1138553)
     @tier1
-    def test_positive_create_role_1(self):
-        """@Test: Create new roles and assign to the custom user
+    def test_positive_create_with_name(self):
+        """@Test: Create new roles with provided name
 
         @Feature: Roles
 
-        @Assert: Assert creation of roles
+        @Assert: Role is created and has correct name
 
         @BZ: 1138553
         """
@@ -30,24 +30,24 @@ class TestRole(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1138559)
     @stubbed
-    def test_create_role_permission_1(self):
-        """@test: Create new roles Use different set of permission
+    def test_positive_create_with_permission(self):
+        """@test: Create new role with a set of permission
 
         @feature: Roles
 
-        @assert: Assert creation of roles with set of permission
+        @assert: Role is created and has correct set of permissions
 
         @status: manual
         """
 
     @skip_if_bug_open('bugzilla', 1138553)
     @tier1
-    def test_positive_delete_role_1(self):
-        """@Test: Delete roles after creating them
+    def test_positive_delete_by_id(self):
+        """@Test: Create a new role and then delete role by its ID
 
         @Feature: Roles
 
-        @Assert: Assert deletion of roles
+        @Assert: Role is created and then deleted by its ID
         """
         for name in generate_strings_list(length=10):
             with self.subTest(name):
@@ -59,12 +59,12 @@ class TestRole(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1138553)
     @tier1
-    def test_positive_update_role_1(self):
-        """@Test: Update roles after creating them
+    def test_positive_update_name(self):
+        """@Test: Create new role and update its name
 
         @Feature: Roles
 
-        @Assert: Assert updating of roles
+        @Assert: Role is created and its name is updated
         """
         role = make_role({'name': gen_string('alpha', 15)})
         for new_name in generate_strings_list(length=10):
