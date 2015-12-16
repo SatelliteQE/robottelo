@@ -200,6 +200,28 @@ def valid_hosts_list(domain_length=10):
 
 
 @datacheck
+def valid_hostgroups_list():
+    """Generates a list of valid host group names.
+
+    Note::
+    Host group name max length is 245 chars.
+    220 chars for html as the largest html tag in fauxfactory is 10 chars long,
+    so 245 - (10 chars + 10 chars + '<></>' chars) = 220 chars.
+
+    :return: Returns the valid host group names list
+    """
+    return [
+        gen_string('alphanumeric', random.randint(1, 245)),
+        gen_string('alpha', random.randint(1, 245)),
+        gen_string('cjk', random.randint(1, 245)),
+        gen_string('latin1', random.randint(1, 245)),
+        gen_string('numeric', random.randint(1, 245)),
+        gen_string('utf8', random.randint(1, 245)),
+        gen_string('html', random.randint(1, 220)),
+    ]
+
+
+@datacheck
 def valid_labels_list():
     """Generates a list of valid labels."""
     return [

@@ -14,7 +14,7 @@ from robottelo.cli.factory import (
 from robottelo.datafactory import (
     invalid_id_list,
     invalid_values_list,
-    valid_data_list,
+    valid_hostgroups_list,
 )
 from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
@@ -22,6 +22,7 @@ from robottelo.test import CLITestCase
 
 class TestHostGroup(CLITestCase):
     """Test class for Host Group CLI"""
+
     @tier1
     def test_positive_create(self):
         """@Test: Successfully creates an HostGroup.
@@ -30,7 +31,7 @@ class TestHostGroup(CLITestCase):
 
         @Assert: HostGroup is created.
         """
-        for name in valid_data_list():
+        for name in valid_hostgroups_list():
             with self.subTest(name):
                 hostgroup = make_hostgroup({'name': name})
                 self.assertEqual(hostgroup['name'], name)
@@ -144,7 +145,7 @@ class TestHostGroup(CLITestCase):
         @Assert: HostGroup is updated.
         """
         hostgroup = make_hostgroup()
-        for new_name in valid_data_list():
+        for new_name in valid_hostgroups_list():
             with self.subTest(new_name):
                 HostGroup.update({
                     'id': hostgroup['id'],
@@ -183,7 +184,7 @@ class TestHostGroup(CLITestCase):
 
         @assert: HostGroup is deleted
         """
-        for name in valid_data_list():
+        for name in valid_hostgroups_list():
             with self.subTest(name):
                 hostgroup = make_hostgroup({'name': name})
                 HostGroup.delete({'id': hostgroup['id']})
