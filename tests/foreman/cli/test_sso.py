@@ -5,7 +5,7 @@ from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase
 
 
-class TestSSOCLI(CLITestCase):
+class SingleSignOnTestCase(CLITestCase):
     """Test Class for SSO CLI"""
 
     # Notes for SSO testing:
@@ -19,7 +19,7 @@ class TestSSOCLI(CLITestCase):
     # can be easily added later.
 
     @stubbed()
-    def test_sso_kerberos_cli(self):
+    def test_positive_login_kerberos_user(self):
         """@test: kerberos user can login to CLI
 
         @feature: SSO
@@ -32,7 +32,7 @@ class TestSSOCLI(CLITestCase):
         """
 
     @stubbed()
-    def test_sso_ipa_cli(self):
+    def test_positive_login_ipa_user(self):
         """@test: IPA user can login to CLI
 
         @feature: SSO
@@ -45,7 +45,7 @@ class TestSSOCLI(CLITestCase):
         """
 
     @stubbed()
-    def test_sso_openldap_cli(self):
+    def test_positive_login_openldap_user(self):
         """@test: OpenLDAP user can login to CLI
 
         @feature: SSO
