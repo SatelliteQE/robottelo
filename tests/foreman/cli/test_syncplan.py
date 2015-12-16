@@ -77,7 +77,7 @@ def valid_name_interval_update_tests():
     )
 
 
-class TestSyncPlan(CLITestCase):
+class SyncPlanTestCase(CLITestCase):
     """Sync Plan CLI tests."""
 
     org = None
@@ -86,10 +86,10 @@ class TestSyncPlan(CLITestCase):
     def setUp(self):
         """Tests for Sync Plans via Hammer CLI"""
 
-        super(TestSyncPlan, self).setUp()
+        super(SyncPlanTestCase, self).setUp()
 
-        if TestSyncPlan.org is None:
-            TestSyncPlan.org = make_org(cached=True)
+        if SyncPlanTestCase.org is None:
+            SyncPlanTestCase.org = make_org(cached=True)
 
     def _make_sync_plan(self, options=None):
         """Make a sync plan and asserts its success"""
@@ -103,7 +103,7 @@ class TestSyncPlan(CLITestCase):
         return make_sync_plan(options)
 
     @tier1
-    def test_positive_create_1(self):
+    def test_positive_create_with_name(self):
         """@Test: Check if syncplan can be created with random names
 
         @Feature: Sync Plan
@@ -116,7 +116,7 @@ class TestSyncPlan(CLITestCase):
                 self.assertEqual(new_sync_plan['name'], name)
 
     @tier1
-    def test_positive_create_2(self):
+    def test_positive_create_with_description(self):
         """@Test: Check if syncplan can be created with random description
 
         @Feature: Sync Plan
@@ -129,7 +129,7 @@ class TestSyncPlan(CLITestCase):
                 self.assertEqual(new_sync_plan['description'], desc)
 
     @tier1
-    def test_positive_create_3(self):
+    def test_positive_create_with_interval(self):
         """@Test: Check if syncplan can be created with varied intervals
 
         @Feature: Sync Plan
@@ -149,7 +149,7 @@ class TestSyncPlan(CLITestCase):
                 )
 
     @tier1
-    def test_negative_create_1(self):
+    def test_negative_create_with_name(self):
         """@Test: Check if syncplan can be created with random names
 
         @Feature: Sync Plan
@@ -162,7 +162,7 @@ class TestSyncPlan(CLITestCase):
                     self._make_sync_plan({u'name': name})
 
     @tier1
-    def test_positive_update_1(self):
+    def test_positive_update_description(self):
         """@Test: Check if syncplan description can be updated
 
         @Feature: Sync Plan
@@ -180,7 +180,7 @@ class TestSyncPlan(CLITestCase):
                 self.assertEqual(result['description'], new_desc)
 
     @tier1
-    def test_positive_update_2(self):
+    def test_positive_update_interval(self):
         """@Test: Check if syncplan interval be updated
 
         @Feature: Sync Plan
@@ -201,7 +201,7 @@ class TestSyncPlan(CLITestCase):
                 self.assertEqual(result['interval'], test_data['new-interval'])
 
     @tier1
-    def test_positive_update_3(self):
+    def test_positive_update_sync_date(self):
         """@Test: Check if syncplan sync date can be updated
 
         @Feature: Sync Plan
@@ -245,7 +245,7 @@ class TestSyncPlan(CLITestCase):
         )
 
     @tier1
-    def test_positive_delete_1(self):
+    def test_positive_delete_by_id(self):
         """@Test: Check if syncplan can be created and deleted
 
         @Feature: Sync Plan
@@ -261,7 +261,7 @@ class TestSyncPlan(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1261122)
     @tier1
-    def test_bz1261122_enabled_state_visible(self):
+    def test_verify_bugzilla_1261122(self):
         """@Test: Check if Enabled field is displayed in sync-plan info output
 
         @Feature: Sync Plan Info
