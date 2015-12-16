@@ -11,7 +11,7 @@ from robottelo.decorators import run_only_on, stubbed, tier1, tier2
 from robottelo.test import CLITestCase
 
 
-class ProxyTestCase(CLITestCase):
+class CapsuleTestCase(CLITestCase):
     """Proxy cli tests"""
 
     def setUp(self):
@@ -20,7 +20,7 @@ class ProxyTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_verify_redmine_3875(self):
+    def test_positive_create_with_url(self):
         """@Test: Proxy creation with random URL
 
         @Feature: Smart Proxy
@@ -116,7 +116,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
     """Tests for capsule functionality."""
 
     @stubbed()
-    def test_positive_provision_through_capsule(self):
+    def test_positive_provision(self):
         """@Test: User can provision through a capsule
 
         @Feature: Capsules
@@ -138,7 +138,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """
 
     @stubbed()
-    def test_positive_register_through_capsule(self):
+    def test_positive_register(self):
         """@Test: User can register system through proxy-enabled capsule
 
         @Feature: Capsules
@@ -153,7 +153,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """
 
     @stubbed()
-    def test_positive_deregister_through_capsule(self):
+    def test_positive_unregister(self):
         """@Test: User can unregister system through proxy-enabled capsule
 
         @Feature: Capsules
@@ -168,7 +168,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """
 
     @stubbed()
-    def test_positive_subscribe_content_through_capsule(self):
+    def test_positive_subscribe(self):
         """@Test: User can subscribe system to content through proxy-enabled
         capsule
 
@@ -188,7 +188,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """
 
     @stubbed()
-    def test_positive_consume_content_through_capsule(self):
+    def test_positive_consume_content(self):
         """@Test: User can consume content on system, from a content source,
         through proxy-enabled capsule
 
@@ -210,7 +210,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """
 
     @stubbed()
-    def test_positive_unsusbscribe_content_through_capsule(self):
+    def test_positive_unsubscribe(self):
         """@Test: User can unsubscribe system from content through
         proxy-enabled capsule
 
