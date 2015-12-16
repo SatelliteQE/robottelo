@@ -4,11 +4,11 @@ from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase
 
 
-class TestCapsuleInstaller(CLITestCase):
+class CapsuleInstallerTestCase(CLITestCase):
     """Test class for capsule installer CLI"""
 
     @stubbed()
-    def test_capsule_installer_basic_test(self):
+    def test_positive_basic(self):
         """@Test: perform a basic install of capsule.
 
         @Feature: Capsule Installer
@@ -27,7 +27,7 @@ class TestCapsuleInstaller(CLITestCase):
         """
 
     @stubbed()
-    def test_capsule_installer_qpid(self):
+    def test_positive_option_qpid_router(self):
         """@Test: assure the --qpid-router flag can be used in
         capsule-installer to enable katello-agent functionality via
         remote clients
@@ -46,7 +46,7 @@ class TestCapsuleInstaller(CLITestCase):
         """
 
     @stubbed()
-    def test_capsule_installer_reverse_proxy(self):
+    def test_positive_option_reverse_proxy(self):
         """@Test:  assure the --reverse-proxy flag can be used in
         capsule-installer to enable katello-agent functionality via
         remote clients
@@ -65,7 +65,7 @@ class TestCapsuleInstaller(CLITestCase):
         """
 
     @stubbed()
-    def test_capsule_installer_parent_reverse_proxy_neg(self):
+    def test_negative_invalid_parameters(self):
         """@Test: invalid (non-boolean) parameters cannot be passed to flag
 
         @Feature: Capsule Installer
@@ -83,7 +83,7 @@ class TestCapsuleInstaller(CLITestCase):
         """
 
     @stubbed()
-    def test_capsule_installer_parent_reverse_proxy_port_neg(self):
+    def test_negative_option_parent_reverse_proxy_port(self):
         """@Test: invalid (non-integer) parameters cannot be passed to flag
 
         @Feature: Capsule Installer
@@ -103,8 +103,9 @@ class TestCapsuleInstaller(CLITestCase):
         """
 
     @stubbed()
-    def test_capsule_installer_parent_reverse_proxy_pos(self):
-        """@Test:  valid parameters can be passed to --parent-reverse-proxy (true)
+    def test_positive_option_parent_reverse_proxy(self):
+        """@Test:  valid parameters can be passed to --parent-reverse-proxy
+        (true)
 
         @Feature: Capsule Installer
 
@@ -121,7 +122,7 @@ class TestCapsuleInstaller(CLITestCase):
         """
 
     @stubbed()
-    def test_capsule_installer_parent_reverse_proxy_port_pos(self):
+    def test_positive_option_parent_reverse_proxy_port(self):
         """@Test: valid parameters can be passed to
         --parent-reverse-proxy-port (integer)
 
