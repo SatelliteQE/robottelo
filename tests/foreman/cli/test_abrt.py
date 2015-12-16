@@ -1,11 +1,13 @@
 """Test for abrt report"""
+from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase
 
 
-class TestAbrt(CLITestCase):
+class AbrtTestCase(CLITestCase):
     """Test class for generating abrt report in CLI."""
 
-    def test_abrt_1(self):
+    @stubbed()
+    def test_positive_create_report(self):
         """@test: a crashed program and abrt reports are send
 
         @Feature: Abrt
@@ -24,7 +26,8 @@ class TestAbrt(CLITestCase):
 
         """
 
-    def test_abrt_2(self):
+    @stubbed()
+    def test_positive_create_reports(self):
         """@test: Counts are correct when abrt sends multiple reports
 
         @Feature: Abrt
@@ -42,7 +45,8 @@ class TestAbrt(CLITestCase):
 
         """
 
-    def test_abrt_3(self):
+    @stubbed()
+    def test_positive_update_timer(self):
         """@test: Edit the smart-proxy-abrt timer
 
         @Feature: Abrt
@@ -59,7 +63,8 @@ class TestAbrt(CLITestCase):
 
         """
 
-    def test_abrt_4(self):
+    @stubbed()
+    def test_positive_identify_hostname(self):
         """@test: Identifying the hostnames
 
         @Feature: Abrt
@@ -76,7 +81,8 @@ class TestAbrt(CLITestCase):
 
         """
 
-    def test_abrt_5(self):
+    @stubbed()
+    def test_positive_search_report(self):
         """@test: Able to retrieve reports in CLI
 
         @Feature: Abrt
