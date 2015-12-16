@@ -15,12 +15,12 @@ from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import CLITestCase
 
 
-class TestTemplate(CLITestCase):
+class TemplateTestCase(CLITestCase):
     """Test class for Config Template CLI."""
 
     @run_only_on('sat')
     @tier1
-    def test_create_template_1(self):
+    def test_positive_create_with_name(self):
         """@Test: Check if Template can be created
 
         @Feature: Template - Create
@@ -33,7 +33,7 @@ class TestTemplate(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_update_template_1(self):
+    def test_positive_update_name(self):
         """@Test: Check if Template can be updated
 
         @Feature: Template - Update
@@ -51,7 +51,7 @@ class TestTemplate(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_template_with_loc(self):
+    def test_positive_create_with_loc(self):
         """@Test: Check if Template with Location can be created
 
         @Feature: Template - Create
@@ -64,7 +64,7 @@ class TestTemplate(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_template_locked(self):
+    def test_positive_create_locked(self):
         """@Test: Check that locked Template cannot be created
 
         @Feature: Template - Create
@@ -79,7 +79,7 @@ class TestTemplate(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_template_with_org(self):
+    def test_positive_create_with_org(self):
         """@Test: Check if Template with Organization can be created
 
         @Feature: Template - Create
@@ -95,12 +95,12 @@ class TestTemplate(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_add_operating_system_1(self):
-        """@Test: Check if Template can be assigned operating system
+    def test_positive_add_os_by_id(self):
+        """@Test: Check if operating system can be added to a template
 
         @Feature: Template - Add Operating System
 
-        @Assert: Template has an operating system
+        @Assert: Operating system is added to the template
         """
         new_template = make_template()
         new_os = make_os()
@@ -115,12 +115,12 @@ class TestTemplate(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_remove_operating_system_1(self):
-        """@Test: Check if OS can be removed Template
+    def test_positive_remove_os_by_id(self):
+        """@Test: Check if operating system can be removed from a template
 
         @Feature: Template - Remove Operating System
 
-        @Assert: Template no longer has an operating system
+        @Assert: Operating system is removed from template
         """
         template = make_template()
         new_os = make_os()
@@ -142,7 +142,7 @@ class TestTemplate(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_dump_template_1(self):
+    def test_positive_create_with_content(self):
         """@Test: Check if Template can be created with specific content
 
         @Feature: Template - Create
@@ -161,7 +161,7 @@ class TestTemplate(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_delete_template_1(self):
+    def test_positive_delete_by_id(self):
         """@Test: Check if Template can be deleted
 
         @Feature: Template - Delete
