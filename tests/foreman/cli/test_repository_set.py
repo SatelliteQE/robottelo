@@ -10,11 +10,11 @@ from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
 
-class TestRepositorySet(CLITestCase):
+class RepositorySetTestCase(CLITestCase):
     """Repository Set CLI tests."""
 
     @tier1
-    def test_repositoryset_available_repositories(self):
+    def test_positive_list_available_repositories(self):
         """@Test: List available repositories for repository-set
 
         @Feature: Repository-set
@@ -126,7 +126,7 @@ class TestRepositorySet(CLITestCase):
         )
 
     @tier1
-    def test_repositoryset_enable_by_name(self):
+    def test_positive_enable_by_name(self):
         """@Test: Enable repo from reposet by names of reposet, org and product
 
         @Feature: Repository-set
@@ -161,7 +161,7 @@ class TestRepositorySet(CLITestCase):
         self.assertEqual(enabled, 'true')
 
     @tier1
-    def test_repositoryset_enable_by_label(self):
+    def test_positive_enable_by_label(self):
         """@Test: Enable repo from reposet by org label, reposet and product
         names
 
@@ -197,7 +197,7 @@ class TestRepositorySet(CLITestCase):
         self.assertEqual(enabled, 'true')
 
     @tier1
-    def test_repositoryset_enable_by_id(self):
+    def test_positive_enable_by_id(self):
         """@Test: Enable repo from reposet by IDs of reposet, org and product
 
         @Feature: Repository-set
@@ -241,7 +241,7 @@ class TestRepositorySet(CLITestCase):
         self.assertEqual(enabled, 'true')
 
     @tier1
-    def test_repositoryset_disable_by_name(self):
+    def test_positive_disable_by_name(self):
         """@Test: Disable repo from reposet by names of reposet, org and
         product
 
@@ -284,7 +284,7 @@ class TestRepositorySet(CLITestCase):
         self.assertEqual(enabled, 'false')
 
     @tier1
-    def test_repositoryset_disable_by_label(self):
+    def test_positive_disable_by_label(self):
         """@Test: Disable repo from reposet by org label, reposet and product
         names
 
@@ -327,7 +327,7 @@ class TestRepositorySet(CLITestCase):
         self.assertEqual(enabled, 'false')
 
     @tier1
-    def test_repositoryset_disable_by_id(self):
+    def test_positive_disable_by_id(self):
         """@Test: Disable repo from reposet by IDs of reposet, org and product
 
         @Feature: Repository-set
