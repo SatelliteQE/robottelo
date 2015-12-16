@@ -10,12 +10,12 @@ from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
 
-class TestSubscription(CLITestCase):
+class SubscriptionTestCase(CLITestCase):
     """Manifest CLI tests"""
 
     def setUp(self):
         """Tests for content-view via Hammer CLI"""
-        super(TestSubscription, self).setUp()
+        super(SubscriptionTestCase, self).setUp()
         self.org = make_org()
         self.manifest = manifests.clone()
 
@@ -29,8 +29,8 @@ class TestSubscription(CLITestCase):
         })
 
     @tier1
-    def test_manifest_upload(self):
-        """@Test: upload manifest (positive)
+    def test_positive_manifest_upload(self):
+        """@Test: upload manifest
 
         @Feature: Subscriptions/Manifest Upload
 
@@ -43,8 +43,8 @@ class TestSubscription(CLITestCase):
         )
 
     @tier1
-    def test_manifest_delete(self):
-        """@Test: Delete uploaded manifest (positive)
+    def test_positive_manifest_delete(self):
+        """@Test: Delete uploaded manifest
 
         @Feature: Subscriptions/Manifest Delete
 
@@ -64,8 +64,8 @@ class TestSubscription(CLITestCase):
         )
 
     @tier2
-    def test_enable_manifest_reposet(self):
-        """@Test: enable repository set (positive)
+    def test_positive_enable_manifest_reposet(self):
+        """@Test: enable repository set
 
         @Feature: Subscriptions/Repository Sets
 
@@ -98,8 +98,8 @@ class TestSubscription(CLITestCase):
         })
 
     @tier1
-    def test_manifest_history(self):
-        """@Test: upload manifest (positive) and check history
+    def test_positive_manifest_history(self):
+        """@Test: upload manifest and check history
 
         @Feature: Subscriptions/Manifest History
 
@@ -119,8 +119,8 @@ class TestSubscription(CLITestCase):
         )
 
     @tier1
-    def test_manifest_refresh(self):
-        """@Test: upload manifest (positive) and refresh
+    def test_positive_manifest_refresh(self):
+        """@Test: upload manifest and refresh
 
         @Feature: Subscriptions/Manifest refresh
 
@@ -141,7 +141,7 @@ class TestSubscription(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1226425)
     @tier1
-    def test_invalid_manifest_refresh(self):
+    def test_negative_manifest_refresh(self):
         """@Test: manifest refresh must fail with a cloned manifest
 
         @Feature: Subscriptions/Manifest refresh
