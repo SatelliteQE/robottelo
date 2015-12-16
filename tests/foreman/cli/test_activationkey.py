@@ -30,7 +30,7 @@ from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
 
-class TestActivationKey(CLITestCase):
+class ActivationKeyTestCase(CLITestCase):
     """Activation Key CLI tests"""
     org = None
     library = None
@@ -39,24 +39,24 @@ class TestActivationKey(CLITestCase):
 
     def setUp(self):
         """Tests for activation keys via Hammer CLI"""
-        super(TestActivationKey, self).setUp()
-        if TestActivationKey.org is None:
-            TestActivationKey.org = make_org(cached=True)
+        super(ActivationKeyTestCase, self).setUp()
+        if ActivationKeyTestCase.org is None:
+            ActivationKeyTestCase.org = make_org(cached=True)
 
     @staticmethod
     def update_env():
         """Populate env1 and env2"""
-        if TestActivationKey.env1 is None:
-            TestActivationKey.env1 = make_lifecycle_environment(
-                {u'organization-id': TestActivationKey.org['id']},
+        if ActivationKeyTestCase.env1 is None:
+            ActivationKeyTestCase.env1 = make_lifecycle_environment(
+                {u'organization-id': ActivationKeyTestCase.org['id']},
                 cached=True)
 
     @staticmethod
     def update_library():
         """Populate library"""
-        if TestActivationKey.library is None:
-            TestActivationKey.library = LifecycleEnvironment.info(
-                {'organization-id': TestActivationKey.org['id'],
+        if ActivationKeyTestCase.library is None:
+            ActivationKeyTestCase.library = LifecycleEnvironment.info(
+                {'organization-id': ActivationKeyTestCase.org['id'],
                  'name': 'Library'})
 
     def _make_activation_key(self, options=None):
@@ -75,68 +75,68 @@ class TestActivationKey(CLITestCase):
 
     def _make_public_key(self):
         """Perform all the steps needed to populate an Activation Key"""
-        if TestActivationKey.pub_key is None:
-            TestActivationKey.pub_key = {}
+        if ActivationKeyTestCase.pub_key is None:
+            ActivationKeyTestCase.pub_key = {}
             try:
                 organization_id = make_org()['id']
-                TestActivationKey.pub_key['org_id'] = organization_id
-                TestActivationKey.pub_key['prod_id'] = make_product({
+                ActivationKeyTestCase.pub_key['org_id'] = organization_id
+                ActivationKeyTestCase.pub_key['prod_id'] = make_product({
                     'organization-id': organization_id,
                 })['id']
-                TestActivationKey.pub_key['manifest'] = manifests.clone()
+                ActivationKeyTestCase.pub_key['manifest'] = manifests.clone()
 
-                upload_file(TestActivationKey.pub_key['manifest'])
+                upload_file(ActivationKeyTestCase.pub_key['manifest'])
                 Subscription.upload({
-                    'file': TestActivationKey.pub_key['manifest'],
-                    'organization-id': TestActivationKey.pub_key['org_id'],
+                    'file': ActivationKeyTestCase.pub_key['manifest'],
+                    'organization-id': ActivationKeyTestCase.pub_key['org_id'],
                 })
 
                 # create content view
-                TestActivationKey.pub_key['content_view_id'] = (
+                ActivationKeyTestCase.pub_key['content_view_id'] = (
                     make_content_view({
                         u'organization-id': (
-                            TestActivationKey.pub_key['org_id']),
+                            ActivationKeyTestCase.pub_key['org_id']),
                         u'name': gen_string('alpha'),
                     })['id']
                 )
 
-                TestActivationKey.pub_key['repo_id'] = make_repository({
-                    u'product-id': TestActivationKey.pub_key['prod_id'],
+                ActivationKeyTestCase.pub_key['repo_id'] = make_repository({
+                    u'product-id': ActivationKeyTestCase.pub_key['prod_id'],
                 })['id']
 
                 Repository.synchronize({
-                    'id': TestActivationKey.pub_key['repo_id'],
-                    'organization-id': TestActivationKey.pub_key['org_id'],
+                    'id': ActivationKeyTestCase.pub_key['repo_id'],
+                    'organization-id': ActivationKeyTestCase.pub_key['org_id'],
                 })
 
                 ContentView.add_repository({
-                    u'id': TestActivationKey.pub_key['content_view_id'],
-                    u'repository-id': TestActivationKey.pub_key['repo_id'],
+                    u'id': ActivationKeyTestCase.pub_key['content_view_id'],
+                    u'repository-id': ActivationKeyTestCase.pub_key['repo_id'],
                 })
 
                 ContentView.publish({
-                    u'id': TestActivationKey.pub_key['content_view_id'],
+                    u'id': ActivationKeyTestCase.pub_key['content_view_id'],
                 })
 
-                TestActivationKey.pub_key['key_id'] = make_activation_key({
-                    u'organization-id': TestActivationKey.pub_key['org_id']
+                ActivationKeyTestCase.pub_key['key_id'] = make_activation_key({
+                    u'organization-id': ActivationKeyTestCase.pub_key['org_id']
                 })['id']
 
                 subscription_result = Subscription.list({
-                    'organization-id': TestActivationKey.pub_key['org_id'],
+                    'organization-id': ActivationKeyTestCase.pub_key['org_id'],
                     'order': 'id desc'
                 }, per_page=False)
 
                 ActivationKey.add_subscription({
-                    u'id': TestActivationKey.pub_key['key_id'],
+                    u'id': ActivationKeyTestCase.pub_key['key_id'],
                     u'subscription-id': subscription_result[-1]['id'],
                 })
             except CLIFactoryError as err:
-                TestActivationKey.pub_key = None
+                ActivationKeyTestCase.pub_key = None
                 self.fail(err)
 
     @tier1
-    def test_positive_create_ak_1(self):
+    def test_positive_create_with_name(self):
         """@Test: Create Activation key for all variations of Activation key
         name
 
@@ -158,7 +158,7 @@ class TestActivationKey(CLITestCase):
                 self.assertEqual(new_ackey_name, name)
 
     @tier1
-    def test_positive_create_ak_2(self):
+    def test_positive_create_with_description(self):
         """@Test: Create Activation key for all variations of Description
 
         @Feature: Activation key
@@ -179,7 +179,7 @@ class TestActivationKey(CLITestCase):
                 self.assertEqual(new_ackey_description, desc)
 
     @tier2
-    def test_positive_add_env_1(self):
+    def test_positive_create_with_lce_library(self):
         """@Test: Create Activation key and associate with Library environment
 
         @Feature: Activation key
@@ -203,7 +203,7 @@ class TestActivationKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_add_env_2(self):
+    def test_positive_create_with_lce(self):
         """@Test: Create Activation key and associate with environment
 
         @Feature: Activation key
@@ -226,7 +226,7 @@ class TestActivationKey(CLITestCase):
                 self.assertEqual(new_ackey_env, self.env1['name'])
 
     @tier2
-    def test_positive_create_ak_3(self):
+    def test_positive_create_with_cv(self):
         """@Test: Create Activation key for all variations of Content Views
 
         @Feature: Activation key - Positive Create
@@ -258,14 +258,14 @@ class TestActivationKey(CLITestCase):
                 self.assertEqual(new_ackey['content-view'], name)
 
     @stubbed()
-    def test_positive_create_ak_4(self):
-        """@Test: Create Activation key for all variations of System Groups
+    def test_positive_create_with_host_collection(self):
+        """@Test: Create Activation key for all variations of Host Collections
 
         @Feature: Activation key - Positive Create
 
         @Steps:
 
-        1. Create Activation key for all valid System Groups in [1]
+        1. Create Activation key for all valid host collections in [1]
         using valid Name, Description, Environment, Content View, Usage limit
 
         @Assert: Activation key is created
@@ -275,7 +275,7 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_positive_create_ak_5(self):
+    def test_positive_create_with_usage_limit_default(self):
         """@Test: Create Activation key with default Usage limit (Unlimited)
 
         @Feature: Activation key - Positive Create
@@ -292,7 +292,7 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_positive_create_ak_6(self):
+    def test_positive_create_with_usage_limit_finite(self):
         """@Test: Create Activation key with finite Usage limit
 
         @Feature: Activation key - Positive Create
@@ -309,7 +309,7 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_positive_create_ak_7(self):
+    def test_positive_create_with_minimal_parameters(self):
         """@Test: Create Activation key with minimal input parameters
 
         @Feature: Activation key - Positive Create
@@ -327,7 +327,7 @@ class TestActivationKey(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_create_ak_8(self):
+    def test_positive_create_with_lce_by_name(self):
         """@test: Create Activation key with environment name
 
         @feature: Activation key - Positive Create
@@ -351,7 +351,7 @@ class TestActivationKey(CLITestCase):
         })
 
     @stubbed()
-    def test_negative_create_ak_1(self):
+    def test_negative_create_with_name(self):
         """@Test: Create Activation key with invalid Name
 
         @Feature: Activation key - Negative Create
@@ -368,7 +368,7 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_negative_create_ak_2(self):
+    def test_negative_create_with_description(self):
         """@Test: Create Activation key with invalid Description
 
         @Feature: Activation key - Negative Create
@@ -385,7 +385,7 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_negative_create_ak_3(self):
+    def test_negative_create_with_usage_limit(self):
         """@Test: Create Activation key with invalid Usage Limit
 
         @Feature: Activation key - Negative Create
@@ -534,7 +534,7 @@ class TestActivationKey(CLITestCase):
             ActivationKey.info({'id': activation_key['id']})
 
     @tier1
-    def test_positive_update_ak_1(self):
+    def test_positive_update_name_by_id(self):
         """@Test: Update Activation Key Name in Activation key searching by ID
 
         @Feature: Activation key - Positive Update
@@ -561,7 +561,7 @@ class TestActivationKey(CLITestCase):
                 self.assertEqual(activation_key['name'], name)
 
     @tier1
-    def test_positive_update_ak_2(self):
+    def test_positive_update_name_by_name(self):
         """@Test: Update Activation Key Name in an Activation key searching by
         name
 
@@ -589,7 +589,7 @@ class TestActivationKey(CLITestCase):
                 self.assertEqual(activation_key['name'], name)
 
     @tier1
-    def test_positive_update_ak_3(self):
+    def test_positive_update_description(self):
         """@Test: Update Description in an Activation key
 
         @Feature: Activation key - Positive Update
@@ -617,7 +617,7 @@ class TestActivationKey(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    def test_positive_update_ak4(self):
+    def test_positive_update_lce(self):
         """@Test: Update Environment in an Activation key
 
         @Feature: Activation key - Positive Update
@@ -636,7 +636,7 @@ class TestActivationKey(CLITestCase):
     @tier2
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1109649)
-    def test_positive_update_ak5(self):
+    def test_positive_update_cv(self):
         """@Test: Update Content View in an Activation key
 
         @Feature: Activation key - Positive Update
@@ -669,7 +669,7 @@ class TestActivationKey(CLITestCase):
                     activation_key['content-view'], content_view_name)
 
     @stubbed()
-    def test_positive_update_ak6(self):
+    def test_positive_update_usage_limit_to_finite_number(self):
         """@Test: Update Usage limit from Unlimited to a finite number
 
         @Feature: Activation key - Positive Update
@@ -686,7 +686,7 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_positive_update_ak7(self):
+    def test_positive_update_usage_limit_to_unlimited(self):
         """@Test: Update Usage limit from definite number to Unlimited
 
         @Feature: Activation key - Positive Update
@@ -703,7 +703,7 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_negative_update_ak1(self):
+    def test_negative_update_name(self):
         """@Test: Update invalid name in an activation key
 
         @Feature: Activation key - Negative Update
@@ -720,7 +720,7 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_negative_update_ak2(self):
+    def test_negative_update_description(self):
         """@Test: Update invalid Description in an activation key
 
         @Feature: Activation key - Negative Update
@@ -737,7 +737,7 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_negative_update_ak3(self):
+    def test_negative_update_usage_limit(self):
         """@Test: Update invalid Usage Limit in an activation key
 
         @Feature: Activation key - Negative Update
@@ -754,7 +754,7 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_usage_limit(self):
+    def test_positive_usage_limit(self):
         """@Test: Test that Usage limit actually limits usage
 
         @Feature: Activation key - Usage limit
@@ -763,10 +763,11 @@ class TestActivationKey(CLITestCase):
 
         1. Create Activation key
         2. Update Usage Limit to a finite number
-        3. Register Systems to match the Usage Limit
-        4. Attempt to register an other system after reaching the Usage Limit
+        3. Register Content hosts to match the Usage Limit
+        4. Attempt to register an other Content host after reaching the Usage
+        Limit
 
-        @Assert: System Registration fails. Appropriate error shown
+        @Assert: Content host Registration fails. Appropriate error shown
 
         @Status: Manual
 
@@ -774,7 +775,7 @@ class TestActivationKey(CLITestCase):
 
     @tier2
     @skip_if_bug_open('bugzilla', 1110476)
-    def test_associate_host(self):
+    def test_positive_update_host_collection(self):
         """@Test: Test that host collection can be associated to Activation
         Keys
 
@@ -809,7 +810,7 @@ class TestActivationKey(CLITestCase):
                     activation_key['host-collection'], host_col_name)
 
     @stubbed()
-    def test_associate_product_1(self):
+    def test_positive_update_redhat_product(self):
         """@Test: Test that RH product can be associated to Activation Keys
 
         @Feature: Activation key - Product
@@ -827,7 +828,7 @@ class TestActivationKey(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    def test_associate_product_2(self):
+    def test_positive_update_custom_product(self):
         """@Test: Test that custom product can be associated to Activation Keys
 
         @Feature: Activation key - Product
@@ -845,7 +846,7 @@ class TestActivationKey(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    def test_associate_product_3(self):
+    def test_positive_update_redhat_and_custom_products(self):
         """@Test: Test if RH/Custom product can be associated to Activation key
 
         @Feature: Activation key - Product
@@ -863,7 +864,7 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_delete_manifest(self):
+    def test_positive_delete_manifest(self):
         """@Test: Check if deleting a manifest removes it from Activation key
 
         @Feature: Activation key - Manifest
@@ -881,24 +882,25 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_multiple_aks_to_system(self):
-        """@Test: Check if multiple Activation keys can be attached to a system
+    def test_positive_update_aks_to_chost(self):
+        """@Test: Check if multiple Activation keys can be attached to a
+        Content host
 
-        @Feature: Activation key - System
+        @Feature: Activation key - Content host
 
         @Steps:
 
         1. Create multiple Activation keys
-        2. Attach all the created Activation keys to a System
+        2. Attach all the created Activation keys to a Content host
 
-        @Assert: Multiple Activation keys are attached to a system
+        @Assert: Multiple Activation keys are attached to a Content host
 
         @Status: Manual
 
         """
 
     @stubbed()
-    def test_list_activation_keys_1(self):
+    def test_positive_list_by_name(self):
         """@Test: List Activation key for all variations of Activation key name
 
         @Feature: Activation key - list
@@ -916,7 +918,7 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_list_activation_keys_2(self):
+    def test_positive_list_by_description(self):
         """@Test: List Activation key for all variations of Description
 
         @Feature: Activation key - list
@@ -933,7 +935,7 @@ class TestActivationKey(CLITestCase):
         """
 
     @stubbed()
-    def test_info_activation_keys_1(self):
+    def test_positive_info(self):
         """@Test: Get Activation key info for all variations of Activation key
         name
 
@@ -951,25 +953,8 @@ class TestActivationKey(CLITestCase):
 
         """
 
-    @stubbed()
-    def test_info_activation_keys_2(self):
-        """@Test: Get Activation key info for all variations of Description
-
-        @Feature: Activation key - info
-
-        @Steps:
-
-        1. Create Activation key for all valid Description variation in [1]
-        2. Get info of the Activation key
-
-        @Assert: Activation key info is displayed
-
-        @Status: Manual
-
-        """
-
     @tier1
-    def test_bugzilla_1111723(self):
+    def test_positive_create_using_old_name(self):
         """@test: Create activation key, rename it and create another with the
         initial name
 
@@ -1001,7 +986,7 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(new_activation_key['name'], name)
 
     @tier2
-    def test_remove_hc_by_id(self):
+    def test_positive_remove_host_collection_by_id(self):
         """@Test: Test that hosts associated to Activation Keys can be removed
         using id of that host collection
 
@@ -1039,7 +1024,7 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(len(activation_key['host-collections']), 0)
 
     @tier2
-    def test_remove_hc_by_name(self):
+    def test_positive_remove_host_collection_by_name(self):
         """@Test: Test that hosts associated to Activation Keys can be removed
         using name of that host collection
 
@@ -1089,7 +1074,7 @@ class TestActivationKey(CLITestCase):
                 self.assertEqual(len(activation_key['host-collections']), 0)
 
     @tier2
-    def test_add_subscription(self):
+    def test_positive_add_subscription_by_id(self):
         """@Test: Test that subscription can be added to activation key
 
         @Feature: Activation key - Host
@@ -1121,7 +1106,7 @@ class TestActivationKey(CLITestCase):
         self.assertIn('Subscription added to activation key', result)
 
     @tier1
-    def test_positive_copy_ak1(self):
+    def test_positive_copy_by_parent_id(self):
         """@Test: Copy Activation key for all valid Activation Key name
            variations
 
@@ -1148,7 +1133,7 @@ class TestActivationKey(CLITestCase):
                 self.assertEqual(result[0], u'Activation key copied')
 
     @tier1
-    def test_positive_copy_ak2(self):
+    def test_positive_copy_by_parent_name(self):
         """@Test: Copy Activation key by passing name of parent
 
         @Feature: Activation key copy
@@ -1172,7 +1157,7 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(result[0], u'Activation key copied')
 
     @tier1
-    def test_negative_copy_ak(self):
+    def test_negative_copy_with_same_name(self):
         """@Test: Copy activation key with duplicate name
 
         @Feature: Activation key copy
@@ -1248,7 +1233,7 @@ class TestActivationKey(CLITestCase):
         )
 
     @tier1
-    def test_update_autoattach_1(self):
+    def test_positive_update_autoattach_toggle(self):
         """@Test: Update Activation key with inverse auto-attach value
 
         @Feature: Activation key update / info
@@ -1282,7 +1267,7 @@ class TestActivationKey(CLITestCase):
         self.assertEqual(attach_value, new_value)
 
     @tier1
-    def test_update_autoattach_2(self):
+    def test_positive_update_autoattach(self):
         """@Test: Update Activation key with valid auto-attach values
 
         @Feature: Activation key update / info
@@ -1311,7 +1296,7 @@ class TestActivationKey(CLITestCase):
                     u'Activation key updated', result[0]['message'])
 
     @tier1
-    def test_negative_update_auto_attach(self):
+    def test_negative_update_autoattach(self):
         """@Test: Attempt to update Activation key with bad auto-attach value
 
         @Feature: Activation key update / info
