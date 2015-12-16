@@ -8,7 +8,7 @@ from robottelo.test import CLITestCase
 
 
 # pylint: disable=no-self-use
-class TestSmartClassParameter(CLITestCase):
+class SmartClassParameterTestCase(CLITestCase):
     """Test class for Smart Class Parameter CLI."""
 
     def run_puppet_module(self):
@@ -20,12 +20,12 @@ class TestSmartClassParameter(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_bugzilla_1047794(self):
-        """@Test: Check if SmartClass Paramter Info generates an error
+    def test_positive_list(self):
+        """@Test: Check if SmartClass Paramter ``list`` generates an error
 
-        @Feature: SmartClass Paramter - Info
+        @Feature: SmartClass Paramter
 
-        @Assert: SmartClass Paramter Info does not generate an error
+        @Assert: SmartClass Paramter ``list`` does not generate an error
 
         """
         self.run_puppet_module()
