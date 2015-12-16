@@ -47,12 +47,12 @@ def invalid_missing_attributes():
     )
 
 
-class TestSubnet(CLITestCase):
+class SubnetTestCase(CLITestCase):
     """Subnet CLI tests."""
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_1(self):
+    def test_positive_create_with_name(self):
         """@Test: Check if Subnet can be created with random names
 
         @Feature: Subnet - Create
@@ -66,7 +66,7 @@ class TestSubnet(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_2(self):
+    def test_positive_create_with_address_pool(self):
         """@Test: Create subnet with valid address pool
 
         @Feature: Subnet positive create
@@ -92,7 +92,7 @@ class TestSubnet(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_subnet_with_domain(self):
+    def test_positive_create_with_domain(self):
         """@Test: Check if subnet with domain can be created
 
         @Feature: Subnet - Positive create
@@ -105,7 +105,7 @@ class TestSubnet(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_subnet_with_domains(self):
+    def test_positive_create_with_domains(self):
         """@Test: Check if subnet with different amount of domains can be
         created in the system
 
@@ -124,7 +124,7 @@ class TestSubnet(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_subnet_with_gateway(self):
+    def test_positive_create_with_gateway(self):
         """@Test: Check if subnet with gateway can be created
 
         @Feature: Subnet - Positive create
@@ -138,7 +138,7 @@ class TestSubnet(CLITestCase):
     @skip_if_bug_open('bugzilla', 1213437)
     @run_only_on('sat')
     @tier1
-    def test_create_subnet_with_ipam(self):
+    def test_positive_create_with_ipam(self):
         """@Test: Check if subnet with different ipam types can be created
 
         @Feature: Subnet - Positive create
@@ -156,7 +156,7 @@ class TestSubnet(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_create_1(self):
+    def test_negative_create_with_attributes(self):
         """@Test: Create subnet with invalid or missing required attributes
 
         @Feature: Subnet create
@@ -170,7 +170,7 @@ class TestSubnet(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_create_2(self):
+    def test_negative_create_with_address_pool(self):
         """@Test: Create subnet with invalid address pool range
 
         @Feature: Create subnet negative
@@ -190,7 +190,7 @@ class TestSubnet(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_list(self):
+    def test_positive_list(self):
         """@Test: Check if Subnet can be listed
 
         @Feature: Subnet - List
@@ -207,7 +207,7 @@ class TestSubnet(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_update_1(self):
+    def test_positive_update_name(self):
         """@Test: Check if Subnet name can be updated
 
         @Feature: Subnet - Update
@@ -223,7 +223,7 @@ class TestSubnet(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_update_2(self):
+    def test_positive_update_network_mask(self):
         """@Test: Check if Subnet network and mask can be updated
 
         @Feature: Subnet - Update
@@ -250,7 +250,7 @@ class TestSubnet(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_update_3(self):
+    def test_positive_update_address_pool(self):
         """@Test: Check if Subnet address pool can be updated
 
         @Feature: Subnet - Update
@@ -275,7 +275,7 @@ class TestSubnet(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_update_1(self):
+    def test_negative_update_attributes(self):
         """@Test: Update subnet with invalid or missing required attributes
 
         @Feature: Subnet - Update
@@ -295,7 +295,7 @@ class TestSubnet(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_update_2(self):
+    def test_negative_update_address_pool(self):
         """@Test: Update subnet with invalid address pool
 
         @Feature: Subnet - Update
@@ -318,7 +318,7 @@ class TestSubnet(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_delete_1(self):
+    def test_positive_delete_by_id(self):
         """@Test: Check if Subnet can be deleted
 
         @Feature: Subnet - Delete
