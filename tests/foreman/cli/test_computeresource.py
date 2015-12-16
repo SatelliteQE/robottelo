@@ -92,13 +92,13 @@ def invalid_update_data():
     )
 
 
-class TestComputeResource(CLITestCase):
+class ComputeResourceTestCase(CLITestCase):
     """ComputeResource CLI tests."""
 
     # pylint: disable=no-self-use
     @tier1
     @run_only_on('sat')
-    def test_create(self):
+    def test_positive_create_with_name(self):
         """@Test: Create Compute Resource
 
         @Feature: Compute Resource - Positive Create
@@ -114,7 +114,7 @@ class TestComputeResource(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_info(self):
+    def test_positive_info(self):
         """@Test: Test Compute Resource Info
 
         @Feature: Compute Resource - Info
@@ -133,7 +133,7 @@ class TestComputeResource(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_list(self):
+    def test_positive_list(self):
         """@Test: Test Compute Resource List
 
         @Feature: Compute Resource - List
@@ -154,7 +154,7 @@ class TestComputeResource(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_delete(self):
+    def test_positive_delete_by_name(self):
         """@Test: Test Compute Resource delete
 
         @Feature: Compute Resource - Delete
@@ -175,7 +175,7 @@ class TestComputeResource(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_create_positive_libvirt(self):
+    def test_positive_create_with_libvirt(self):
         """@Test: Test Compute Resource create
 
         @Feature: Compute Resource positive create
@@ -194,7 +194,7 @@ class TestComputeResource(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_create_cr_with_location(self):
+    def test_positive_create_with_loc(self):
         """@Test: Create Compute Resource with location
 
         @Feature: Compute Resource - Location Create
@@ -209,7 +209,7 @@ class TestComputeResource(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_create_cr_with_locations(self):
+    def test_positive_create_with_locs(self):
         """@Test: Create Compute Resource with multiple locations
 
         @Feature: Compute Resource - Location Create
@@ -230,7 +230,7 @@ class TestComputeResource(CLITestCase):
     @tier1
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1214312)
-    def test_create_cr_with_consolepwd(self):
+    def test_positive_create_with_console_password(self):
         """@Test: Create Compute Resource with different values of
         set-console-password parameter
 
@@ -259,7 +259,7 @@ class TestComputeResource(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_create_negative_1(self):
+    def test_negative_create_with_name_description_url(self):
         """@Test: Compute Resource negative create with invalid values
 
         @Feature: Compute Resource create
@@ -280,7 +280,7 @@ class TestComputeResource(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_create_negative_2(self):
+    def test_negative_create_with_same_name(self):
         """@Test: Compute Resource negative create with the same name
 
         @Feature: Compute Resource create
@@ -300,7 +300,7 @@ class TestComputeResource(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_update_positive(self):
+    def test_positive_update_name(self):
         """@Test: Compute Resource positive update
 
         @Feature: Compute Resource update
@@ -337,7 +337,7 @@ class TestComputeResource(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_update_negative(self):
+    def test_negative_update(self):
         """@Test: Compute Resource negative update
 
         @Feature: Compute Resource update
@@ -360,7 +360,7 @@ class TestComputeResource(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_set_console_password_v1(self):
+    def test_positive_create_with_console_password_and_name(self):
         """@Test: Create a compute resource with ``--set-console-password``.
 
         @Feature: Compute Resource
@@ -381,7 +381,7 @@ class TestComputeResource(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_set_console_password_v2(self):
+    def test_positive_update_console_password(self):
         """@Test: Update a compute resource with ``--set-console-password``.
 
         @Feature: Compute Resource
