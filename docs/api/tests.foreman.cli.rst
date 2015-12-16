@@ -148,15 +148,15 @@
 
 .. automodule:: tests.foreman.cli.test_myaccount
 
-:mod:`tests.foreman.cli.test_org`
----------------------------------
+:mod:`tests.foreman.cli.test_organization`
+------------------------------------------
 
-.. automodule:: tests.foreman.cli.test_org
+.. automodule:: tests.foreman.cli.test_organization
 
-:mod:`tests.foreman.cli.test_os`
---------------------------------
+:mod:`tests.foreman.cli.test_operatingsystem`
+---------------------------------------------
 
-.. automodule:: tests.foreman.cli.test_os
+.. automodule:: tests.foreman.cli.test_operatingsystem
 
 :mod:`tests.foreman.cli.test_partitiontable`
 --------------------------------------------
@@ -172,11 +172,6 @@
 -------------------------------------
 
 .. automodule:: tests.foreman.cli.test_product
-
-:mod:`tests.foreman.cli.test_proxy`
------------------------------------
-
-.. automodule:: tests.foreman.cli.test_proxy
 
 :mod:`tests.foreman.cli.test_puppetmodule`
 ------------------------------------------
@@ -198,10 +193,10 @@
 
 .. automodule:: tests.foreman.cli.test_repository_set
 
-:mod:`tests.foreman.cli.test_roles`
------------------------------------
+:mod:`tests.foreman.cli.test_role`
+----------------------------------
 
-.. automodule:: tests.foreman.cli.test_roles
+.. automodule:: tests.foreman.cli.test_role
 
 :mod:`tests.foreman.cli.test_scparam`
 -------------------------------------
