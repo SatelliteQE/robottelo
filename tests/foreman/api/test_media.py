@@ -86,7 +86,7 @@ class MediaTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@Test: Try to create media entity providing an invalid name
 
         @Feature: Media
@@ -100,7 +100,7 @@ class MediaTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_with_url(self):
+    def test_negative_create_with_invalid_url(self):
         """@Test: Try to create media entity providing an invalid URL
 
         @Feature: Media
@@ -112,7 +112,7 @@ class MediaTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_with_os_family(self):
+    def test_negative_create_with_invalid_os_family(self):
         """@Test: Try to create media entity providing an invalid OS family
 
         @Feature: Media

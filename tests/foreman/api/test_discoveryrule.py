@@ -79,7 +79,7 @@ class DiscoveryRuleTestCase(APITestCase):
                     discovery_rule.read()
 
     @tier1
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_too_long_name(self):
         """@Test: Create a discovery rule with more than 255 char in name
 
         @Feature: Foreman Discovery
@@ -95,7 +95,7 @@ class DiscoveryRuleTestCase(APITestCase):
                     self.discovery_rule.create()
 
     @tier1
-    def test_negative_create_with_host_limit(self):
+    def test_negative_create_with_invalid_host_limit(self):
         """@Test: Create a discovery rule with invalid host limit
 
         @Feature: Foreman Discovery
@@ -107,7 +107,7 @@ class DiscoveryRuleTestCase(APITestCase):
             self.discovery_rule.create()
 
     @tier1
-    def test_negative_create_with_priority(self):
+    def test_negative_create_with_invalid_priority(self):
         """@Test: Create a discovery rule with invalid priority
 
         @Feature: Foreman Discovery

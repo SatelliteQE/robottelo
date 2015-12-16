@@ -4,14 +4,16 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import FAKE_0_YUM_REPO
+from robottelo.decorators import tier2
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
 
-class TestContentSearchUI(UITestCase):
+class ContentSearchTestCase(UITestCase):
     """Implement tests for content search via UI"""
 
-    def test_search_content_view(self):
+    @tier2
+    def test_positive_search_in_cv(self):
         """@Test: Create content view with yum repository assigned to it.
         Search for package inside of it
 
@@ -19,7 +21,6 @@ class TestContentSearchUI(UITestCase):
 
         @Assert: Content search functionality works as intended and expected
         package is present inside of content view
-
         """
         # Prepare data for content search
         org = entities.Organization().create()

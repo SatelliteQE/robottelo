@@ -33,11 +33,6 @@
 
 .. automodule:: robottelo.ui.container
 
-:mod:`robottelo.ui.contentenv`
-------------------------------
-
-.. automodule:: robottelo.ui.contentenv
-
 :mod:`robottelo.ui.contentviews`
 --------------------------------
 
@@ -82,6 +77,11 @@
 ----------------------------------
 
 .. automodule:: robottelo.ui.ldapauthsource
+
+:mod:`robottelo.ui.lifecycleenvironment`
+----------------------------------------
+
+.. automodule:: robottelo.ui.lifecycleenvironment
 
 :mod:`robottelo.ui.location`
 ----------------------------

@@ -168,7 +168,7 @@ class DockerRepositoryTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_with_upstream_name(self):
+    def test_negative_create_with_invalid_upstream_name(self):
         """@Test: Create a Docker-type repository with a invalid docker
         upstream name.
 

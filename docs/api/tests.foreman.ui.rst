@@ -8,10 +8,10 @@
 
 .. automodule:: tests.foreman.ui.test_activationkey
 
-:mod:`tests.foreman.ui.test_adusergroups`
+:mod:`tests.foreman.ui.test_adusergroup`
 -----------------------------------------
 
-.. automodule:: tests.foreman.ui.test_adusergroups
+.. automodule:: tests.foreman.ui.test_adusergroup
 
 :mod:`tests.foreman.ui.test_architecture`
 -----------------------------------------
@@ -28,15 +28,10 @@
 
 .. automodule:: tests.foreman.ui.test_computeresource
 
-:mod:`tests.foreman.ui.test_config_groups`
+:mod:`tests.foreman.ui.test_config_group`
 ------------------------------------------
 
-.. automodule:: tests.foreman.ui.test_config_groups
-
-:mod:`tests.foreman.ui.test_contentenv`
----------------------------------------
-
-.. automodule:: tests.foreman.ui.test_contentenv
+.. automodule:: tests.foreman.ui.test_config_group
 
 :mod:`tests.foreman.ui.test_contentsearch`
 ------------------------------------------
@@ -122,6 +117,11 @@
 -------------------------------------------
 
 .. automodule:: tests.foreman.ui.test_ldapauthsource
+
+:mod:`tests.foreman.ui.test_lifecycleenvironment`
+-------------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_lifecycleenvironment
 
 :mod:`tests.foreman.ui.test_location`
 -------------------------------------

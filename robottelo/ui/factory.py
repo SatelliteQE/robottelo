@@ -7,7 +7,6 @@ from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.container import Container
-from robottelo.ui.contentenv import ContentEnvironment
 from robottelo.ui.contentviews import ContentViews
 from robottelo.ui.discoveryrules import DiscoveryRules
 from robottelo.ui.domain import Domain
@@ -17,6 +16,7 @@ from robottelo.ui.hardwaremodel import HardwareModel
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.hosts import Hosts
 from robottelo.ui.ldapauthsource import LdapAuthSource
+from robottelo.ui.lifecycleenvironment import LifecycleEnvironment
 from robottelo.ui.location import Location
 from robottelo.ui.locators import menu_locators
 from robottelo.ui.medium import Medium
@@ -170,7 +170,7 @@ def make_lifecycle_environment(session, org=None, loc=None,
     page = session.nav.go_to_life_cycle_environments
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
-    ContentEnvironment(session.browser).create(**create_args)
+    LifecycleEnvironment(session.browser).create(**create_args)
 
 
 def make_activationkey(session, org=None, loc=None,

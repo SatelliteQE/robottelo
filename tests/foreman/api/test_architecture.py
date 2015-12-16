@@ -69,7 +69,7 @@ class ArchitectureTestCase(APITestCase):
                 self.assertEqual(name, arch.name)
 
     @tier1
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create architecture providing an invalid initial name.
         set.
 

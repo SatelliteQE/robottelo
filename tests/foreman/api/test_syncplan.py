@@ -178,7 +178,7 @@ class SyncPlanCreateTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create a sync plan with an invalid name.
 
         @Assert: A sync plan can not be created with the specified name.
@@ -195,7 +195,7 @@ class SyncPlanCreateTestCase(APITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_create_with_interval(self):
+    def test_negative_create_with_invalid_interval(self):
         """@Test: Create a sync plan with invalid interval specified.
 
         @Assert: A sync plan can not be created with invalid interval specified

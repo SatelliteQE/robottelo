@@ -80,7 +80,7 @@ class ConfigTemplateTestCase(APITestCase):
                 self.assertEqual(name, c_temp.name)
 
     @tier1
-    def test_negative_create_with_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@Test: Create configuration template providing an invalid name.
 
         @Assert: Configuration Template is not created
