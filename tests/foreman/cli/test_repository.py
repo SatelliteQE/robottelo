@@ -38,7 +38,7 @@ from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
 
 
-class TestRepository(CLITestCase):
+class RepositoryTestCase(CLITestCase):
     """Repository CLI tests."""
 
     org = None
@@ -48,13 +48,13 @@ class TestRepository(CLITestCase):
     def setUp(self):
         """Tests for Repository via Hammer CLI"""
 
-        super(TestRepository, self).setUp()
+        super(RepositoryTestCase, self).setUp()
 
-        if TestRepository.org is None:
-            TestRepository.org = make_org(cached=True)
-        if TestRepository.product is None:
-            TestRepository.product = make_product(
-                {u'organization-id': TestRepository.org['id']},
+        if RepositoryTestCase.org is None:
+            RepositoryTestCase.org = make_org(cached=True)
+        if RepositoryTestCase.product is None:
+            RepositoryTestCase.product = make_product(
+                {u'organization-id': RepositoryTestCase.org['id']},
                 cached=True)
 
     def _make_repository(self, options=None):
@@ -68,7 +68,7 @@ class TestRepository(CLITestCase):
         return make_repository(options)
 
     @tier1
-    def test_bugzilla_1189289(self):
+    def test_verify_bugzilla_1189289(self):
         """@Test: Check if repository docker-upstream-name is shown
         in repository info
 
@@ -88,7 +88,7 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_1(self):
+    def test_positive_create_with_name(self):
         """@Test: Check if repository can be created with random names
 
         @Feature: Repository
@@ -101,7 +101,7 @@ class TestRepository(CLITestCase):
                 self.assertEqual(new_repo['name'], name)
 
     @tier1
-    def test_positive_create_2(self):
+    def test_positive_create_with_name_label(self):
         """@Test: Check if repository can be created with random names and
         labels
 
@@ -122,7 +122,7 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_3(self):
+    def test_positive_create_with_yum_repo(self):
         """@Test: Create YUM repository
 
         @Feature: Repository
@@ -140,7 +140,7 @@ class TestRepository(CLITestCase):
                 self.assertEqual(new_repo['content-type'], u'yum')
 
     @tier1
-    def test_positive_create_4(self):
+    def test_positive_create_with_puppet_repo(self):
         """@Test: Create Puppet repository
 
         @Feature: Repository
@@ -159,7 +159,7 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_5(self):
+    def test_positive_create_with_gpg_key_by_id(self):
         """@Test: Check if repository can be created with gpg key ID
 
         @Feature: Repository
@@ -180,7 +180,7 @@ class TestRepository(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1103944)
     @tier1
-    def test_positive_create_6(self):
+    def test_positive_create_with_gpg_key_by_name(self):
         """@Test: Check if repository can be created with gpg key name
 
         @Feature: Repository
@@ -201,7 +201,7 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_7(self):
+    def test_positive_create_publish_via_http(self):
         """@Test: Create repository published via http
 
         @Feature: Repository
@@ -215,7 +215,7 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_8(self):
+    def test_positive_create_publish_via_https(self):
         """@Test: Create repository not published via http
 
         @Feature: Repository
@@ -229,7 +229,7 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_9(self):
+    def test_positive_create_yum_repo_with_checksum_type(self):
         """@Test: Create a YUM repository with a checksum type
 
         @Feature: Repository
@@ -249,7 +249,7 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_docker_repo_1(self):
+    def test_positive_create_docker_repo_with_upstream_name(self):
         """@Test: Create a Docker repository with upstream name.
 
         @Feature: Repository
@@ -270,7 +270,7 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_docker_repo_2(self):
+    def test_positive_create_docker_repo_with_name(self):
         """@Test: Create a Docker repository with a random name.
 
         @Feature: Repository
@@ -292,7 +292,7 @@ class TestRepository(CLITestCase):
                 self.assertEqual(new_repo['name'], name)
 
     @tier1
-    def test_negative_create_1(self):
+    def test_negative_create_with_name(self):
         """@Test: Repository name cannot be 300-characters long
 
         @Feature: Repository
@@ -307,7 +307,7 @@ class TestRepository(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1152237)
     @tier2
-    def test_positive_synchronize_1(self):
+    def test_positive_synchronize_yum_repo(self):
         """@Test: Check if repository can be created and synced
 
         @Feature: Repository
@@ -331,7 +331,7 @@ class TestRepository(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1152237)
     @tier2
-    def test_positive_synchronize_2(self):
+    def test_positive_synchronize_docker_repo(self):
         """@Test: Check if Docker repository can be created and synced
 
         @Feature: Repository
@@ -353,7 +353,7 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_update_1(self):
+    def test_positive_update_url(self):
         """@Test: Update the original url for a repository
 
         @Feature: Repository
@@ -375,7 +375,7 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    def test_positive_update_2(self):
+    def test_positive_update_gpg_key(self):
         """@Test: Update the original gpg key
 
         @Feature: Repository
@@ -387,7 +387,7 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
-    def test_positive_update_3(self):
+    def test_positive_update_published_method(self):
         """@Test: Update the original publishing method
 
         @Feature: Repository
@@ -400,7 +400,7 @@ class TestRepository(CLITestCase):
     @skip_if_bug_open('bugzilla', 1208305)
     @run_only_on('sat')
     @tier1
-    def test_positive_update_4(self):
+    def test_positive_update_checksum_type(self):
         """@Test: Create a YUM repository and update the checksum type
 
         @Feature: Repository
@@ -429,7 +429,7 @@ class TestRepository(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_delete_1(self):
+    def test_positive_delete_by_id(self):
         """@Test: Check if repository can be created and deleted
 
         @Feature: Repository
@@ -444,7 +444,7 @@ class TestRepository(CLITestCase):
                     Repository.info({u'id': new_repo['id']})
 
     @tier1
-    def test_upload_content(self):
+    def test_positive_upload_content(self):
         """@Test: Create repository and upload content
 
         @Feature: Repository
