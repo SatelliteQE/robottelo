@@ -34,6 +34,7 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
+    stubbed,
     tier1,
     tier2,
 )
@@ -397,6 +398,63 @@ class ContentHostTestCase(CLITestCase):
                 u'name': name,
                 u'organization-id': self.NEW_ORG['id'],
             })
+
+    @stubbed()
+    def test_positive_register_with_no_ak(self):
+        """@test: Register Content host to satellite without activation key
+
+        @feature: Content host
+
+        @assert: Content host successfully registered to appropriate org
+
+        @status: Manual
+        """
+
+    @stubbed()
+    def test_negative_register_twice(self):
+        """@test: Attempt to register a Content host twice to Satellite
+
+        @feature: Content host
+
+        @assert: Content host cannot be registered twice
+
+        @status: Manual
+        """
+
+    @stubbed()
+    def test_positive_list(self):
+        """@test: List Content hosts for a given org
+
+        @feature: Content host
+
+        @assert: Content hosts are listed for the given org
+
+        @status: Manual
+        """
+
+    @stubbed()
+    def test_positive_unregister(self):
+        """@test: Unregister Content host
+
+        @feature: Content host
+
+        @assert: After unregistering, Content hosts list for the org does not
+        show the Content host
+
+        @status: Manual
+        """
+
+    @stubbed()
+    def test_negative_unregistered_chost_pull_content(self):
+        """@test: Attempt to retrieve content after Content host has been
+        unregistered from Satellite
+
+        @feature: Content host
+
+        @assert: Content host can no longer retrieve content from satellite
+
+        @status: Manual
+        """
 
 
 class KatelloAgentTestCase(CLITestCase):
