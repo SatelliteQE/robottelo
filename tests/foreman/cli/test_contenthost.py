@@ -41,7 +41,7 @@ from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 
 
-class TestContentHost(CLITestCase):
+class ContentHostTestCase(CLITestCase):
     """content-host CLI tests."""
 
     NEW_ORG = None
@@ -55,39 +55,39 @@ class TestContentHost(CLITestCase):
     @classmethod
     def setUpClass(cls):
         """Tests for Content Host via Hammer CLI"""
-        super(TestContentHost, cls).setUpClass()
-        TestContentHost.NEW_ORG = make_org(cached=True)
-        TestContentHost.NEW_LIFECYCLE = make_lifecycle_environment(
-            {u'organization-id': TestContentHost.NEW_ORG['id']},
+        super(ContentHostTestCase, cls).setUpClass()
+        ContentHostTestCase.NEW_ORG = make_org(cached=True)
+        ContentHostTestCase.NEW_LIFECYCLE = make_lifecycle_environment(
+            {u'organization-id': ContentHostTestCase.NEW_ORG['id']},
             cached=True
         )
-        TestContentHost.LIBRARY = LifecycleEnvironment.info({
-            u'organization-id': TestContentHost.NEW_ORG['id'],
+        ContentHostTestCase.LIBRARY = LifecycleEnvironment.info({
+            u'organization-id': ContentHostTestCase.NEW_ORG['id'],
             u'name': u'Library',
         })
-        TestContentHost.DEFAULT_CV = ContentView.info({
-            u'organization-id': TestContentHost.NEW_ORG['id'],
+        ContentHostTestCase.DEFAULT_CV = ContentView.info({
+            u'organization-id': ContentHostTestCase.NEW_ORG['id'],
             u'name': u'Default Organization View',
         })
-        TestContentHost.NEW_CV = make_content_view({
-            u'organization-id': TestContentHost.NEW_ORG['id'],
+        ContentHostTestCase.NEW_CV = make_content_view({
+            u'organization-id': ContentHostTestCase.NEW_ORG['id'],
         })
-        cv_id = TestContentHost.NEW_CV['id']
+        cv_id = ContentHostTestCase.NEW_CV['id']
         ContentView.publish({u'id': cv_id})
         version_id = ContentView.version_list({
             u'content-view-id': cv_id,
         })[0]['id']
         ContentView.version_promote({
             u'id': version_id,
-            u'to-lifecycle-environment-id': TestContentHost.NEW_LIFECYCLE[
+            u'to-lifecycle-environment-id': ContentHostTestCase.NEW_LIFECYCLE[
                 'id'
             ],
-            u'organization-id': TestContentHost.NEW_ORG['id']
+            u'organization-id': ContentHostTestCase.NEW_ORG['id']
         })
-        TestContentHost.PROMOTED_CV = TestContentHost.NEW_CV
+        ContentHostTestCase.PROMOTED_CV = ContentHostTestCase.NEW_CV
 
     @tier1
-    def test_positive_create_1(self):
+    def test_positive_create_with_name(self):
         """@Test: Check if content host can be created with random names
 
         @Feature: Content Hosts
@@ -107,7 +107,7 @@ class TestContentHost(CLITestCase):
             self.assertEqual(new_system['name'], name)
 
     @tier1
-    def test_positive_create_2(self):
+    def test_positive_create_with_description(self):
         """@Test: Check if content host can be created with random description
 
         @Feature: Content Hosts
@@ -127,7 +127,7 @@ class TestContentHost(CLITestCase):
                 self.assertEqual(new_system['description'], desc)
 
     @tier1
-    def test_positive_create_3(self):
+    def test_positive_create_with_org_name(self):
         """@Test: Check if content host can be created with organization name
 
         @Feature: Content Hosts
@@ -150,7 +150,7 @@ class TestContentHost(CLITestCase):
         )
 
     @tier1
-    def test_positive_create_4(self):
+    def test_positive_create_with_org_label(self):
         """@Test: Check if content host can be created with organization label
 
         @Feature: Content Hosts
@@ -174,7 +174,7 @@ class TestContentHost(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_5(self):
+    def test_positive_create_with_cv_default(self):
         """@Test: Check if content host can be created with content view name
 
         @Feature: Content Hosts
@@ -193,7 +193,7 @@ class TestContentHost(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_create_6(self):
+    def test_positive_create_with_lce_library(self):
         """@Test: Check if content host can be created with lifecycle name
 
         @Feature: Content Hosts
@@ -215,7 +215,7 @@ class TestContentHost(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_create_7(self):
+    def test_positive_create_with_lce(self):
         """@Test: Check if content host can be created with new lifecycle
 
         @Feature: Content Hosts
@@ -237,7 +237,7 @@ class TestContentHost(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_create_8(self):
+    def test_positive_create_with_cv(self):
         """@Test: Check if content host can be created with new content view
 
         @Feature: Content Hosts
@@ -245,23 +245,24 @@ class TestContentHost(CLITestCase):
         @Assert: Content host is created using new published, promoted cv
 
         """
-        if TestContentHost.PROMOTED_CV is None:
+        if ContentHostTestCase.PROMOTED_CV is None:
             self.fail("Couldn't prepare promoted contentview for this test")
 
         new_system = make_content_host({
-            u'content-view-id': TestContentHost.PROMOTED_CV['id'],
-            u'lifecycle-environment-id': TestContentHost.NEW_LIFECYCLE['id'],
+            u'content-view-id': ContentHostTestCase.PROMOTED_CV['id'],
+            u'lifecycle-environment-id':
+                ContentHostTestCase.NEW_LIFECYCLE['id'],
             u'name': gen_string('alpha', 15),
-            u'organization-id': TestContentHost.NEW_ORG['id'],
+            u'organization-id': ContentHostTestCase.NEW_ORG['id'],
         })
         # Assert that content views matches data passed
         self.assertEqual(
             new_system['content-view'],
-            TestContentHost.PROMOTED_CV['name'],
+            ContentHostTestCase.PROMOTED_CV['name'],
         )
 
     @tier1
-    def test_negative_create_1(self):
+    def test_negative_create_with_name(self):
         """@Test: Check if content host can be created with random long names
 
         @Feature: Content Hosts
@@ -281,8 +282,8 @@ class TestContentHost(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_2(self):
-        """@Test: Check if content host can be created with new content view
+    def test_negative_create_with_unpublished_cv(self):
+        """@Test: Check if content host can be created using unpublished cv
 
         @Feature: Content Hosts
 
@@ -290,19 +291,19 @@ class TestContentHost(CLITestCase):
 
         """
         con_view = make_content_view({
-            u'organization-id': TestContentHost.NEW_ORG['id'],
+            u'organization-id': ContentHostTestCase.NEW_ORG['id'],
         })
-        env = TestContentHost.NEW_LIFECYCLE['id']
+        env = ContentHostTestCase.NEW_LIFECYCLE['id']
         with self.assertRaises(CLIFactoryError):
             make_content_host({
                 u'content-view-id': con_view['id'],
                 u'lifecycle-environment-id': env,
                 u'name': gen_string('alpha', 15),
-                u'organization-id': TestContentHost.NEW_ORG['id'],
+                u'organization-id': ContentHostTestCase.NEW_ORG['id'],
             })
 
     @tier1
-    def test_positive_update_1(self):
+    def test_positive_update_name(self):
         """@Test: Check if content host name can be updated
 
         @Feature: Content Hosts
@@ -325,7 +326,7 @@ class TestContentHost(CLITestCase):
                 self.assertEqual(result['name'], new_name)
 
     @tier1
-    def test_positive_update_2(self):
+    def test_positive_update_description(self):
         """@Test: Check if content host description can be updated
 
         @Feature: Content Hosts
@@ -348,7 +349,7 @@ class TestContentHost(CLITestCase):
                 self.assertEqual(result['description'], new_desc)
 
     @tier1
-    def test_positive_delete_1(self):
+    def test_positive_delete_by_id(self):
         """@Test: Check if content host can be created and deleted
 
         @Feature: Content Hosts
@@ -370,7 +371,7 @@ class TestContentHost(CLITestCase):
 
     @tier1
     @skip_if_bug_open('bugzilla', 1154611)
-    def test_bugzilla_1154611(self):
+    def test_negative_create_with_same_name(self):
         """@test: check if Content Host creation does not allow duplicated
         names
 
@@ -398,7 +399,7 @@ class TestContentHost(CLITestCase):
             })
 
 
-class TestCHKatelloAgent(CLITestCase):
+class KatelloAgentTestCase(CLITestCase):
     """Content-host tests, which require VM with installed katello-agent."""
 
     org = None
@@ -407,41 +408,41 @@ class TestCHKatelloAgent(CLITestCase):
     activation_key = None
 
     @classmethod
-    @skip_if_not_set('clients')
+    @skip_if_not_set('clients', 'fake_manifest')
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key
 
         """
-        super(TestCHKatelloAgent, cls).setUpClass()
+        super(KatelloAgentTestCase, cls).setUpClass()
         # Create new org, environment, CV and activation key
-        TestCHKatelloAgent.org = make_org()
-        TestCHKatelloAgent.env = make_lifecycle_environment({
-            u'organization-id': TestCHKatelloAgent.org['id'],
+        KatelloAgentTestCase.org = make_org()
+        KatelloAgentTestCase.env = make_lifecycle_environment({
+            u'organization-id': KatelloAgentTestCase.org['id'],
         })
-        TestCHKatelloAgent.content_view = make_content_view({
-            u'organization-id': TestCHKatelloAgent.org['id'],
+        KatelloAgentTestCase.content_view = make_content_view({
+            u'organization-id': KatelloAgentTestCase.org['id'],
         })
-        TestCHKatelloAgent.activation_key = make_activation_key({
-            u'lifecycle-environment-id': TestCHKatelloAgent.env['id'],
-            u'organization-id': TestCHKatelloAgent.org['id'],
+        KatelloAgentTestCase.activation_key = make_activation_key({
+            u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
         })
         # Add subscription to Satellite Tools repo to activation key
         setup_org_for_a_rh_repo({
             u'product': PRDS['rhel'],
             u'repository-set': REPOSET['rhst7'],
             u'repository': REPOS['rhst7']['name'],
-            u'organization-id': TestCHKatelloAgent.org['id'],
-            u'content-view-id': TestCHKatelloAgent.content_view['id'],
-            u'lifecycle-environment-id': TestCHKatelloAgent.env['id'],
-            u'activationkey-id': TestCHKatelloAgent.activation_key['id'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
+            u'content-view-id': KatelloAgentTestCase.content_view['id'],
+            u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
+            u'activationkey-id': KatelloAgentTestCase.activation_key['id'],
         })
         # Create custom repo, add subscription to activation key
         setup_org_for_a_custom_repo({
             u'url': FAKE_0_YUM_REPO,
-            u'organization-id': TestCHKatelloAgent.org['id'],
-            u'content-view-id': TestCHKatelloAgent.content_view['id'],
-            u'lifecycle-environment-id': TestCHKatelloAgent.env['id'],
-            u'activationkey-id': TestCHKatelloAgent.activation_key['id'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
+            u'content-view-id': KatelloAgentTestCase.content_view['id'],
+            u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
+            u'activationkey-id': KatelloAgentTestCase.activation_key['id'],
         })
 
     def setUp(self):
@@ -449,26 +450,26 @@ class TestCHKatelloAgent(CLITestCase):
         and katello-agent packages
 
         """
-        super(TestCHKatelloAgent, self).setUp()
+        super(KatelloAgentTestCase, self).setUp()
         # Create VM and register content host
         self.client = VirtualMachine(distro='rhel71')
         self.client.create()
         self.client.install_katello_ca()
         # Register content host, install katello-agent
         self.client.register_contenthost(
-            TestCHKatelloAgent.activation_key['name'],
-            TestCHKatelloAgent.org['label']
+            KatelloAgentTestCase.activation_key['name'],
+            KatelloAgentTestCase.org['label']
         )
         self.client.enable_repo(REPOS['rhst7']['id'])
         self.client.install_katello_agent()
 
     def tearDown(self):
         self.client.destroy()
-        super(TestCHKatelloAgent, self).tearDown()
+        super(KatelloAgentTestCase, self).tearDown()
 
     @tier2
     @run_only_on('sat')
-    def test_ch_get_errata_info(self):
+    def test_positive_get_errata_info(self):
         """@Test: Get errata info
 
         @Feature: Content Host - Errata
@@ -483,14 +484,14 @@ class TestCHKatelloAgent(CLITestCase):
         result = ContentHost.errata_info({
             u'content-host': self.client.hostname,
             u'id': FAKE_0_ERRATA_ID,
-            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
         })
         self.assertEqual(result[0]['errata-id'], FAKE_0_ERRATA_ID)
         self.assertEqual(result[0]['packages'], FAKE_0_CUSTOM_PACKAGE)
 
     @tier2
     @run_only_on('sat')
-    def test_ch_apply_errata(self):
+    def test_positive_apply_errata(self):
         """@Test: Apply errata to content host
 
         @Feature: Content Host - Errata
@@ -505,12 +506,12 @@ class TestCHKatelloAgent(CLITestCase):
         ContentHost.errata_apply({
             u'content-host': self.client.hostname,
             u'errata-ids': FAKE_0_ERRATA_ID,
-            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
         })
 
     @tier2
     @run_only_on('sat')
-    def test_ch_package_install(self):
+    def test_positive_install_package(self):
         """@Test: Install package to content host remotely
 
         @Feature: Content Host - Package
@@ -520,7 +521,7 @@ class TestCHKatelloAgent(CLITestCase):
         """
         ContentHost.package_install({
             u'content-host': self.client.hostname,
-            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
             u'packages': FAKE_0_CUSTOM_PACKAGE_NAME,
         })
         result = self.client.run(
@@ -530,7 +531,7 @@ class TestCHKatelloAgent(CLITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_ch_package_remove(self):
+    def test_positive_remove_package(self):
         """@Test: Remove package from content host remotely
 
         @Feature: Content Host - Package
@@ -544,7 +545,7 @@ class TestCHKatelloAgent(CLITestCase):
         )
         ContentHost.package_remove({
             u'content-host': self.client.hostname,
-            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
             u'packages': FAKE_0_CUSTOM_PACKAGE_NAME,
         })
         result = self.client.run(
@@ -554,7 +555,7 @@ class TestCHKatelloAgent(CLITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_ch_package_upgrade(self):
+    def test_positive_upgrade_package(self):
         """@Test: Upgrade content host package remotely
 
         @Feature: Content Host - Package
@@ -565,7 +566,7 @@ class TestCHKatelloAgent(CLITestCase):
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         ContentHost.package_upgrade({
             u'content-host': self.client.hostname,
-            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
             u'packages': FAKE_1_CUSTOM_PACKAGE_NAME,
         })
         result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
@@ -573,7 +574,7 @@ class TestCHKatelloAgent(CLITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_ch_package_upgrade_all(self):
+    def test_positive_upgrade_packages_all(self):
         """@Test: Upgrade all the content host packages remotely
 
         @Feature: Content Host - Package
@@ -585,14 +586,14 @@ class TestCHKatelloAgent(CLITestCase):
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         ContentHost.package_upgrade_all({
             u'content-host': self.client.hostname,
-            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
         })
         result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
         self.assertEqual(result.return_code, 0)
 
     @tier2
     @run_only_on('sat')
-    def test_ch_package_group_install(self):
+    def test_positive_install_package_group(self):
         """@Test: Install package group to content host remotely
 
         @Feature: Content Host - Package group
@@ -603,7 +604,7 @@ class TestCHKatelloAgent(CLITestCase):
         ContentHost.package_group_install({
             u'content-host': self.client.hostname,
             u'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
-            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
         })
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
             result = self.client.run('rpm -q {0}'.format(package))
@@ -611,7 +612,7 @@ class TestCHKatelloAgent(CLITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_ch_package_group_remove(self):
+    def test_positive_remove_package_group(self):
         """@Test: Remove package group from content host remotely
 
         @Feature: Content Host - Package group
@@ -622,7 +623,7 @@ class TestCHKatelloAgent(CLITestCase):
         hammer_args = {
             u'content-host': self.client.hostname,
             u'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
-            u'organization-id': TestCHKatelloAgent.org['id'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
         }
         ContentHost.package_group_install(hammer_args)
         ContentHost.package_group_remove(hammer_args)
