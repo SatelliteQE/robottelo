@@ -13,11 +13,11 @@ from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
-class TestArchitecture(CLITestCase):
+class ArchitectureTestCase(CLITestCase):
     """Architecture CLI related tests."""
 
     @tier1
-    def test_positive_create(self):
+    def test_positive_create_with_name(self):
         """@Test: Successfully creates an Architecture.
 
         @Feature: Architecture
@@ -30,7 +30,7 @@ class TestArchitecture(CLITestCase):
                 self.assertEqual(architecture['name'], name)
 
     @tier1
-    def test_negative_create(self):
+    def test_negative_create_with_name(self):
         """@Test: Don't create an Architecture with invalid data.
 
         @Feature: Architecture
@@ -62,7 +62,7 @@ class TestArchitecture(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_update(self):
+    def test_negative_update_name(self):
         """@test: Create Architecture then fail to update its name
 
         @feature: Architecture
@@ -82,7 +82,7 @@ class TestArchitecture(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_delete(self):
+    def test_positive_delete_by_id(self):
         """@test: Create Architecture with valid values then delete it
         by ID
 
@@ -99,7 +99,7 @@ class TestArchitecture(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_delete(self):
+    def test_negative_delete_by_id(self):
         """@test: Create Architecture then delete it by wrong ID
 
         @feature: Architecture
