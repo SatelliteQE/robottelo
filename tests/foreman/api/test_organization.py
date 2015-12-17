@@ -281,6 +281,38 @@ class OrganizationUpdateTestCase(APITestCase):
         self.assertEqual(len(self.organization.media), 1)
         self.assertEqual(self.organization.media[0].id, media.id)
 
+    @tier2
+    def test_positive_add_hostgroup(self):
+        """@Test: Add a hostgroup to an organization
+
+        @Feature: Organization
+
+        @Assert: Hostgroup is added to organization
+        """
+        org = entities.Organization().create()
+        hostgroup = entities.HostGroup().create()
+        org.hostgroup = [hostgroup]
+        org = org.update(['hostgroup'])
+        self.assertEqual(len(org.hostgroup), 1)
+        self.assertEqual(org.hostgroup[0].id, hostgroup.id)
+
+    @tier2
+    def test_positive_remove_hostgroup(self):
+        """@Test: Add a hostgroup to an organization and then remove it
+
+        @Feature: Organization
+
+        @Assert: Hostgroup is added to organization and then removed
+        """
+        org = entities.Organization().create()
+        hostgroup = entities.HostGroup().create()
+        org.hostgroup = [hostgroup]
+        org = org.update(['hostgroup'])
+        self.assertEqual(len(org.hostgroup), 1)
+        org.hostgroup = []
+        org = org.update(['hostgroup'])
+        self.assertEqual(len(org.hostgroup), 0)
+
     @tier1
     def test_negative_update(self):
         """@Test: Update an organization's attributes with invalid values.
