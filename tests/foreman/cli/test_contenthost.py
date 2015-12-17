@@ -30,7 +30,13 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.datafactory import invalid_values_list, generate_strings_list
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    skip_if_not_set,
+    tier1,
+    tier2,
+)
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
 
@@ -401,6 +407,7 @@ class TestCHKatelloAgent(CLITestCase):
     activation_key = None
 
     @classmethod
+    @skip_if_not_set('clients')
     def setUpClass(cls):
         """Create Org, Lifecycle Environment, Content View, Activation key
 

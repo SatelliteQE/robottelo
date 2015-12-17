@@ -21,7 +21,11 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.decorators import bz_bug_is_open, skip_if_bug_open
+from robottelo.decorators import (
+    bz_bug_is_open,
+    skip_if_bug_open,
+    skip_if_not_set,
+)
 from robottelo.helpers import get_nailgun_config
 from robottelo.vm import VirtualMachine
 from robottelo.test import TestCase
@@ -973,6 +977,7 @@ class TestSmoke(TestCase):
             subnet=subnet
         ).create()
 
+    @skip_if_not_set('clients')
     def test_end_to_end(self):
         """@Test: Perform end to end smoke tests using RH repos.
 

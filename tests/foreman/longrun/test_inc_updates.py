@@ -14,7 +14,7 @@ from robottelo.api.utils import (
 )
 from robottelo.cli.contentview import ContentView as ContentViewCLI
 from robottelo.constants import PRD_SETS
-from robottelo.decorators import run_only_on, skip_if_bug_open
+from robottelo.decorators import run_only_on, skip_if_bug_open, skip_if_not_set
 from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
 
@@ -23,6 +23,7 @@ class TestIncrementalUpdate(TestCase):
     """Tests for the Incremental Update feature"""
 
     @classmethod
+    @skip_if_not_set('clients')
     def setUpClass(cls):
         """Creates all the pre-requisites for the Incremental updates test"""
         super(TestIncrementalUpdate, cls).setUpClass()

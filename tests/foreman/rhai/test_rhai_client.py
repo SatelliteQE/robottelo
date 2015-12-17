@@ -5,6 +5,7 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.decorators import skip_if_not_set
 from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
 
@@ -12,6 +13,7 @@ from robottelo.vm import VirtualMachine
 class RHAIClientTestCase(TestCase):
 
     @classmethod
+    @skip_if_not_set('clients')
     def setUpClass(cls):  # noqa
         super(RHAIClientTestCase, cls).setUpClass()
         # Create a new organization with prefix 'insights'

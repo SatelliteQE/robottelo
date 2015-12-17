@@ -17,6 +17,7 @@ from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
+    skip_if_not_set,
     stubbed,
     tier1,
     tier2,
@@ -400,6 +401,7 @@ class GPGKey(UITestCase):
 
     @run_only_on('sat')
     @tier3
+    @skip_if_not_set('clients')
     def test_positive_consume_content_using_repo(self):
         """@test: Hosts can install packages using gpg key associated with
         single custom repository
