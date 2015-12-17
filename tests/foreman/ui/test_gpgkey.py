@@ -529,7 +529,7 @@ class GPGKey(UITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier3
-    def test_positive_consume_content_using_repo_and_different_keys(self):
+    def test_positive_consume_content_using_repos_and_different_keys(self):
         """@test: Hosts can install packages using different gpg keys
         associated with multiple custom repositories
 
@@ -544,7 +544,7 @@ class GPGKey(UITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier1
-    def test_positive_list_key(self):
+    def test_positive_list(self):
         """@test: Create gpg key and list it
 
         @feature: GPG Keys
@@ -558,7 +558,7 @@ class GPGKey(UITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier1
-    def test_positive_search_key(self):
+    def test_positive_search(self):
         """@test: Create gpg key and search/find it
 
         @feature: GPG Keys
@@ -572,7 +572,7 @@ class GPGKey(UITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier1
-    def test_positive_info_key(self):
+    def test_positive_info(self):
         """@test: Create single gpg key and get its info
 
         @feature: GPG Keys
@@ -596,7 +596,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_associate_with_product_that_has_no_repo(self):
+    def test_positive_add_empty_product(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with empty (no repos) custom product
 
@@ -626,7 +626,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_associate_with_product_that_has_repo(self):
+    def test_positive_add_product_with_repo(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has one repository
 
@@ -664,7 +664,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_associate_with_product_that_has_repos(self):
+    def test_positive_add_product_with_repos(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has more than one repository
 
@@ -709,7 +709,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1085035)
     @run_only_on('sat')
     @tier2
-    def test_positive_associate_with_product_using_repo_discovery(self):
+    def test_positive_add_product_using_repo_discovery(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product using Repo discovery method
 
@@ -744,7 +744,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_associate_with_repo_from_product_with_repo(self):
+    def test_positive_add_repo_from_product_with_repo(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has one repository
 
@@ -785,7 +785,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_associate_with_repo_from_product_with_repos(self):
+    def test_positive_add_repo_from_product_with_repos(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has more than
         one repository
@@ -834,7 +834,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier2
-    def test_positive_associate_with_repos_using_repo_discovery(self):
+    def test_positive_add_repos_using_repo_discovery(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it to repos from custom product using Repo discovery method
 
@@ -847,7 +847,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_update_key_for_product_that_has_no_repo(self):
+    def test_positive_update_key_for_empty_product(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it with empty (no repos) custom product then update the key
 
@@ -885,7 +885,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_update_key_for_product_that_has_repo(self):
+    def test_positive_update_key_for_product_with_repo(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has one repository
         then update the key
@@ -932,7 +932,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_update_key_for_product_that_has_repos(self):
+    def test_positive_update_key_for_product_with_repos(self):
         """@test: Create gpg key with valid name and valid gpg key
         then associate it with custom product that has more than one
         repository then update the key
@@ -1158,7 +1158,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_delete_key_for_product_that_has_no_repo(self):
+    def test_positive_delete_key_for_empty_product(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it with empty (no repos) custom product then delete it
 
@@ -1194,7 +1194,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_delete_key_for_product_that_has_repo(self):
+    def test_positive_delete_key_for_product_with_repo(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it with custom product that has one repository then delete it
 
@@ -1237,7 +1237,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_positive_delete_key_for_product_that_has_repos(self):
+    def test_positive_delete_key_for_product_with_repos(self):
         """@test: Create gpg key with valid name and valid gpg key then
         associate it with custom product that has more than one repository then
         delete it
