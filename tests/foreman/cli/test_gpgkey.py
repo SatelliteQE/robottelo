@@ -70,7 +70,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_redmine_4272(self):
+    def test_verify_redmine_4272(self):
         """@Test: gpg info should display key content
 
         @Feature: GPG Keys
@@ -90,7 +90,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_pos_get_info_by_name(self):
+    def test_positive_get_info_by_name(self):
         """@Test: Create single gpg key and get its info by name
 
         @Feature: GPG Keys
@@ -114,7 +114,7 @@ class TestGPGKey(CLITestCase):
     @skip_if_bug_open('bugzilla', 1172009)
     @run_only_on('sat')
     @tier1
-    def test_pos_create_default_org(self):
+    def test_positive_create_with_default_org(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import using the default created organization
 
@@ -147,7 +147,7 @@ class TestGPGKey(CLITestCase):
     @skip_if_bug_open('bugzilla', 1172009)
     @run_only_on('sat')
     @tier1
-    def test_pos_create_custom_org(self):
+    def test_positive_create_with_custom_org(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import using a new organization
 
@@ -179,7 +179,7 @@ class TestGPGKey(CLITestCase):
     @skip_if_bug_open('bugzilla', 1172009)
     @run_only_on('sat')
     @tier1
-    def test_neg_create_same_name(self):
+    def test_negative_create_with_same_name(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then try to create new one with same name
 
@@ -209,7 +209,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_neg_create_no_gpg_key(self):
+    def test_negative_create_with_no_gpg_key(self):
         """@test: Create gpg key with valid name and no gpg key
 
         @feature: GPG Keys
@@ -226,7 +226,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_neg_create_invalid_name(self):
+    def test_negative_create_with_invalid_name(self):
         """@test: Create gpg key with invalid name and valid gpg key via
         file import
 
@@ -246,7 +246,7 @@ class TestGPGKey(CLITestCase):
     # Positive Delete
     @run_only_on('sat')
     @tier1
-    def test_pos_delete(self):
+    def test_positive_delete(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then delete it
 
@@ -278,26 +278,11 @@ class TestGPGKey(CLITestCase):
                 )
                 self.assertEqual(len(result), 0)
 
-    # Negative Delete
-    @stubbed()
-    @run_only_on('sat')
-    @tier1
-    def test_neg_delete(self):
-        """@test: Create gpg key with valid name and valid gpg key via file
-        import then fail to delete it
-
-        @feature: GPG Keys
-
-        @assert: gpg key is not deleted
-
-        @status: manual
-        """
-
     # Positive Update
 
     @run_only_on('sat')
     @tier1
-    def test_pos_update_name(self):
+    def test_positive_update_name(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then update its name
 
@@ -320,7 +305,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_pos_update_key(self):
+    def test_positive_update_key(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then update its gpg key file
 
@@ -349,7 +334,7 @@ class TestGPGKey(CLITestCase):
     # Negative Update
     @run_only_on('sat')
     @tier1
-    def test_neg_update_name(self):
+    def test_negative_update_name(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then fail to update its name
 
@@ -370,7 +355,7 @@ class TestGPGKey(CLITestCase):
     # Product association
     @run_only_on('sat')
     @tier2
-    def test_key_associate_1(self):
+    def test_positive_add_empty_product(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product
 
@@ -387,7 +372,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_2(self):
+    def test_positive_add_product_with_repo(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
 
@@ -414,7 +399,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_3(self):
+    def test_positive_add_product_with_repos(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
         repository
@@ -447,7 +432,7 @@ class TestGPGKey(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier2
-    def test_key_associate_4(self):
+    def test_positive_add_product_using_repo_discovery(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product using Repo discovery
         method
@@ -461,7 +446,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_5(self):
+    def test_positive_add_repo_from_product_with_repo(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         one repository
@@ -489,7 +474,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_6(self):
+    def test_positive_add_repo_from_product_with_repos(self):
         """@test: Create gpg key via file import and associate with custom repo
 
         GPGKey should contain valid name and valid key and should be associated
@@ -527,7 +512,7 @@ class TestGPGKey(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier2
-    def test_key_associate_7(self):
+    def test_positive_add_repos_using_repo_discovery(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repos from custom product using Repo
         discovery method
@@ -541,7 +526,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_8(self):
+    def test_positive_update_key_for_empty_product(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product then
         update the key
@@ -587,7 +572,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_9(self):
+    def test_positive_update_key_for_product_with_repo(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
         then update the key
@@ -641,7 +626,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_10(self):
+    def test_positive_update_key_for_product_with_repos(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
         repository then update the key
@@ -701,7 +686,7 @@ class TestGPGKey(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier2
-    def test_key_associate_11(self):
+    def test_positive_update_key_for_product_using_repo_discovery(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product using Repo discovery
         method then update the key
@@ -716,7 +701,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_12(self):
+    def test_positive_update_key_for_repo_from_product_with_repo(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         one repository then update the key
@@ -761,7 +746,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_13(self):
+    def test_positive_update_key_for_repo_from_product_with_repos(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         more than one repository then update the key
@@ -818,7 +803,7 @@ class TestGPGKey(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier2
-    def test_key_associate_14(self):
+    def test_positive_update_key_for_repos_using_repo_discovery(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repos from custom product using Repo
         discovery method then update the key
@@ -833,7 +818,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_15(self):
+    def test_positive_delete_key_for_empty_product(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with empty (no repos) custom product
         then delete it
@@ -871,7 +856,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_16(self):
+    def test_positive_delete_key_for_product_with_repo(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has one repository
         then delete it
@@ -921,7 +906,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_17(self):
+    def test_positive_delete_key_for_product_with_repos(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product that has more than one
         repository then delete it
@@ -979,7 +964,7 @@ class TestGPGKey(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier2
-    def test_key_associate_18(self):
+    def test_positive_delete_key_for_product_using_repo_discovery(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it with custom product using Repo discovery
         method then delete it
@@ -994,7 +979,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_19(self):
+    def test_positive_delete_key_for_repo_from_product_with_repo(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         one repository then delete the key
@@ -1040,7 +1025,7 @@ class TestGPGKey(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_key_associate_20(self):
+    def test_positive_delete_key_for_repo_from_product_with_repos(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repository from custom product that has
         more than one repository then delete the key
@@ -1090,7 +1075,7 @@ class TestGPGKey(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier2
-    def test_key_associate_21(self):
+    def test_positive_delete_key_for_repos_using_repo_discovery(self):
         """@test: Create gpg key with valid name and valid gpg key via file
         import then associate it to repos from custom product using Repo
         discovery method then delete the key
@@ -1104,341 +1089,12 @@ class TestGPGKey(CLITestCase):
         @status: manual
         """
 
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_22(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it with empty (no repos)
-        custom product
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_23(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it with custom product that has
-        one repository
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product but not the repository
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_24(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it with custom product that has
-        more than one repository
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product but not the repositories
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_25(self):
-        """@test: Create gpg key with valid name and valid gpg key via text via
-        cut and paste/string then associate it with custom product using
-        Repo discovery method
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product but not the repositories
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_26(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it to repository from custom
-        product that has one repository
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product and the repository
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_27(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it to repository from custom
-        product that has more than one repository
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product and one of the repositories
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_28(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it to repos from custom product
-        using Repo discovery method
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product and all the repositories
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_29(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it with empty (no repos)
-        custom product then update the key
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product before/after update
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_30(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it with custom product that has
-        one repository then update the key
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product before/after update
-        but not the repository
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_31(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it with custom product that has
-        more than one repository then update the key
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product before/after update
-        but not the repositories
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_32(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it with custom product using
-        Repo discovery method then update the key
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product before/after update
-        but not the repositories
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_33(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it to repository from custom
-        product that has one repository then update the key
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product and repository
-        before/after update
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_34(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it to repository from custom
-        product that has more than one repository then update the key
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product and single repository
-        before/after update
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_35(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it to repos from custom product
-        using Repo discovery method then update the key
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product and all repositories
-        before/after update
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_36(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it with empty (no repos) custom
-        product then delete it
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product during creation but
-        removed from product after deletion
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_37(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it with custom product that has
-        one repository then delete it
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product but not the repository
-        during creation but removed from product after deletion
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_38(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it with custom product that has
-        more than one repository then delete it
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product but not the repositories
-        during creation but removed from product after deletion
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_39(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it with custom product using
-        Repo discovery method then delete it
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product but not the repositories
-        during creation but removed from product after deletion
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_40(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it to repository from custom
-        product that has one repository then delete the key
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product and single repository
-        during creation but removed from product and repository after deletion
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_41(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it to repository from custom
-        product that has more than one repository then delete the key
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product and single repository
-        during creation but removed from product and repository after deletion
-
-        @status: manual
-        """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_key_associate_42(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
-        cut and paste/string then associate it to repos from custom product
-        using Repo discovery method then delete the key
-
-        @feature: GPG Keys
-
-        @assert: gpg key is associated with product and all repositories
-        during creation but removed from product and all repositories
-        after deletion
-
-        @status: manual
-        """
-
     # Content
 
     @stubbed()
     @run_only_on('sat')
     @tier3
-    def test_pos_consume_content_single_repo(self):
+    def test_positive_consume_content_using_repo(self):
         """@test: Hosts can install packages using gpg key associated with
         single custom repository
 
@@ -1452,7 +1108,7 @@ class TestGPGKey(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier3
-    def test_pos_consume_content_mult_repos(self):
+    def test_positive_consume_content_using_repos(self):
         """@test: Hosts can install packages using gpg key associated with
         multiple custom repositories
 
@@ -1466,9 +1122,9 @@ class TestGPGKey(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     @tier3
-    def test_pos_consume_content_diff_keys_mult_repos(self):
-        """@test:Hosts can install packages using different gpg keys associated
-        with multiple custom repositories
+    def test_positive_consume_content_using_repos_and_different_keys(self):
+        """@test: Hosts can install packages using different gpg keys
+        associated with multiple custom repositories
 
         @feature: GPG Keys
 
@@ -1479,28 +1135,41 @@ class TestGPGKey(CLITestCase):
 
     # Miscelaneous
 
-    @stubbed()
     @run_only_on('sat')
     @tier1
-    def test_pos_create_list_key(self):
+    def test_positive_list(self):
         """@test: Create gpg key and list it
 
         @feature: GPG Keys
 
         @assert: gpg key is displayed/listed
-
-        @status: manual
         """
+        gpg_key = make_gpg_key({
+            'key': VALID_GPG_KEY_FILE_PATH,
+            'organization-id': self.org['id'],
+        })
+        gpg_keys_list = GPGKey.list({'organization-id': self.org['id']})
+        self.assertIn(gpg_key['id'], [gpg['id'] for gpg in gpg_keys_list])
 
-    @stubbed()
     @run_only_on('sat')
     @tier1
-    def test_pos_create_search_key(self):
+    def test_positive_search(self):
         """@test: Create gpg key and search/find it
 
         @feature: GPG Keys
 
         @assert: gpg key can be found
-
-        @status: manual
         """
+        for name in valid_data_list():
+            with self.subTest(name):
+                gpg_key = make_gpg_key({
+                    'key': VALID_GPG_KEY_FILE_PATH,
+                    'name': name,
+                    'organization-id': self.org['id'],
+                })
+                # Can we find the new object?
+                result = GPGKey.exists(
+                    {'organization-id': self.org['id']},
+                    search=('name', gpg_key['name'])
+                )
+                self.assertEqual(gpg_key['name'], result['name'])
