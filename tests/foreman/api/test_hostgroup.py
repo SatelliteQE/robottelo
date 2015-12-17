@@ -7,9 +7,7 @@ from robottelo.config import settings
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.decorators import (
     skip_if_bug_open,
-    stubbed,
     tier1,
-    tier2,
     tier3,
 )
 from robottelo.helpers import get_data_file
@@ -219,109 +217,3 @@ class HostGroupMissingAttrTestCase(APITestCase):
             1,
             'None of {0} are in {1}'.format(names, self.host_group_attrs)
         )
-
-
-class HostGroupTestCaseStub(APITestCase):
-    """Incomplete tests for host groups.
-
-    When implemented, each of these tests should probably be data-driven. A
-    decorator of this form might be used::
-
-        @data(
-            name is alpha,
-            name is alpha_numeric,
-            name is html,
-            name is latin1,
-            name is numeric,
-            name is utf-8,
-        )
-
-    """
-
-    @stubbed()
-    @tier2
-    def test_positive_remove_by_name_org_name(self):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup and remove it by using the organization
-        name and hostgroup name
-        @assert: hostgroup is added to organization then removed
-        @status: manual
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_remove_by_name_org_id(self):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup and remove it by using the organization
-        ID and hostgroup name
-        @assert: hostgroup is added to organization then removed
-        @status: manual
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_remove_by_id_org_name(self):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup and remove it by using the organization
-        name and hostgroup ID
-        @assert: hostgroup is added to organization then removed
-        @status: manual
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_remove_by_id_org_id(self):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup and remove it by using the organization
-        ID and hostgroup ID
-        @assert: hostgroup is added to organization then removed
-        @status: manual
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_add_hostgroup_by_name_org_name(self):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup by using the organization
-        name and hostgroup name
-        @assert: hostgroup is added to organization
-        @status: manual
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_add_hostgroup_by_name_org_id(self):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup by using the organization
-        ID and hostgroup name
-        @assert: hostgroup is added to organization
-        @status: manual
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_add_hostgroup_by_id_org_name(self):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup by using the organization
-        name and hostgroup ID
-        @assert: hostgroup is added to organization
-        @status: manual
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_add_hostgroup_by_id_org_id(self):
-        """
-        @feature: Organizations
-        @test: Add a hostgroup by using the organization
-        ID and hostgroup ID
-        @assert: hostgroup is added to organization
-        @status: manual
-        """
