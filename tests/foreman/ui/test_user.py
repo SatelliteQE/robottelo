@@ -890,7 +890,7 @@ class UserTestCase(UITestCase):
 
     @stubbed()
     @tier3
-    def test_end_to_end_scenario(self):
+    def test_positive_end_to_end(self):
         """@Test: Create User and perform different operations
 
         @Feature: User - End to End
@@ -911,7 +911,7 @@ class UserTestCase(UITestCase):
 
     @stubbed()
     @tier3
-    def test_end_to_end_scenario_without_org(self):
+    def test_positive_end_to_end_without_org(self):
         """@Test: Create User with no Org assigned and attempt different
         operations
 
