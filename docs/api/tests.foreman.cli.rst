@@ -223,11 +223,6 @@
 
 .. automodule:: tests.foreman.cli.test_syncplan
 
-:mod:`tests.foreman.cli.test_system_registration`
--------------------------------------------------
-
-.. automodule:: tests.foreman.cli.test_system_registration
-
 :mod:`tests.foreman.cli.test_template`
 --------------------------------------
 

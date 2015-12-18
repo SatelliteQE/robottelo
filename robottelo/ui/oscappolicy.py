@@ -2,7 +2,7 @@
 """Implements Open Scap Policy for UI."""
 from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -27,6 +27,8 @@ class OpenScapPolicy(Base):
         if desc:
             self.text_field_update(locators['oscap.desc_policy'], desc)
         self.click(common_locators['submit'])
+        if self.wait_until_element(common_locators['haserror']):
+            return
         if content:
             self.select(locators['oscap.content_policy'], content)
         if profile:
@@ -49,6 +51,50 @@ class OpenScapPolicy(Base):
             self.configure_entity([org], FILTER['policy_org'])
         self.click(common_locators['submit'])
         if host_group:
+            self.configure_entity([host_group], FILTER['policy_hgrp'])
+        self.click(common_locators['submit'])
+
+    def update(self, name, new_name, new_desc=None, content=None, profile=None,
+               period=None, period_value=None, org=None, loc=None,
+               host_group=None):
+        """Updates existing Oscap Policy from UI"""
+        element = self.search(name)
+        if not element:
+            raise UIError('Could not find oscap policy {0}'.format(name))
+        strategy, value = locators['oscap.content_dropdown']
+        self.click((strategy, value % name))
+        strategy, value = locators['oscap.content_edit']
+        self.click((strategy, value % name), waiter_timeout=60)
+        if new_name or new_desc:
+            if new_name:
+                self.text_field_update(locators['oscap.name_policy'], new_name)
+            if new_desc:
+                self.text_field_update(locators['oscap.desc_policy'], new_desc)
+        if content or profile:
+            self.click(tab_locators['oscap.content'])
+            if content:
+                self.select(locators['oscap.content_policy'], content)
+            if profile:
+                self.select(locators['oscap.profile_policy'], profile)
+        if period or period_value:
+            self.click(tab_locators['oscap.schedule'])
+            self.select(locators['oscap.period_policy'], period)
+            if period == 'Weekly':
+                self.select(locators['oscap.weekday_policy'], period_value)
+            elif period == 'Monthly':
+                self.text_field_update(
+                    locators['oscap.dayofmonth_policy'], period_value)
+            else:
+                self.text_field_update(
+                    locators['oscap.custom_policy'], period_value)
+        if loc:
+            self.click(tab_locators['tab_loc'])
+            self.configure_entity([loc], FILTER['policy_loc'])
+        if org:
+            self.click(tab_locators['tab_org'])
+            self.configure_entity([org], FILTER['policy_org'])
+        if host_group:
+            self.click(tab_locators['context.tab_hostgrps'])
             self.configure_entity([host_group], FILTER['policy_hgrp'])
         self.click(common_locators['submit'])
 

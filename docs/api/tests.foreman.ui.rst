@@ -158,6 +158,11 @@
 
 .. automodule:: tests.foreman.ui.test_oscapcontent
 
+:mod:`tests.foreman.ui.test_oscappolicy`
+----------------------------------------
+
+.. automodule:: tests.foreman.ui.test_oscappolicy
+
 :mod:`tests.foreman.ui.test_operatingsystem`
 --------------------------------------------
 
