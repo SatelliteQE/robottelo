@@ -95,12 +95,12 @@ def valid_delete_params():
     ]
 
 
-class TestDomain(CLITestCase):
+class DomainTestCase(CLITestCase):
     """Domain CLI tests"""
 
     @tier1
     @run_only_on('sat')
-    def test_positive_create(self):
+    def test_positive_create_with_name_description(self):
         """@Test: Create domain with valid name and description
 
         @Feature: Domain positive create
@@ -117,7 +117,7 @@ class TestDomain(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_create_domain_with_location(self):
+    def test_positive_create_with_loc(self):
         """@Test: Check if domain with location can be created
 
         @Feature: Domain - Positive create
@@ -131,7 +131,7 @@ class TestDomain(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_create_domain_with_organization(self):
+    def test_positive_create_with_org(self):
         """@Test: Check if domain with organization can be created
 
         @Feature: Domain - Positive create
@@ -245,7 +245,7 @@ class TestDomain(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_delete(self):
+    def test_positive_delete_by_id(self):
         """@test: Create Domain with valid values then delete it
         by ID
 
@@ -262,7 +262,7 @@ class TestDomain(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_delete(self):
+    def test_negative_delete_by_id(self):
         """@test: Create Domain then delete it by wrong ID
 
         @feature: Domain
