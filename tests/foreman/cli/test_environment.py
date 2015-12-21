@@ -19,11 +19,11 @@ from robottelo.decorators import (
 from robottelo.test import CLITestCase
 
 
-class TestEnvironment(CLITestCase):
+class EnvironmentTestCase(CLITestCase):
     """Test class for Environment CLI"""
     @tier2
     @run_only_on('sat')
-    def test_positive_list(self):
+    def test_positive_list_with_name(self):
         """@Test: Test Environment List
 
         @Feature: Environment
@@ -40,7 +40,7 @@ class TestEnvironment(CLITestCase):
                 self.assertEqual(result[0]['name'], name)
 
     @tier1
-    def test_positive_create(self):
+    def test_positive_create_with_name(self):
         """@Test: Successfully creates an Environment.
 
         @Feature: Environment
@@ -53,7 +53,7 @@ class TestEnvironment(CLITestCase):
                 self.assertEqual(environment['name'], name)
 
     @tier1
-    def test_negative_create(self):
+    def test_negative_create_with_name(self):
         """@Test: Don't create an Environment with invalid data.
 
         @Feature: Environment
@@ -67,7 +67,7 @@ class TestEnvironment(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_create_environment_with_location(self):
+    def test_positive_create_with_loc(self):
         """@Test: Check if Environment with Location can be created
 
         @Feature: Environment - Create
@@ -84,7 +84,7 @@ class TestEnvironment(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_create_environment_with_organization(self):
+    def test_positive_create_with_org(self):
         """@Test: Check if Environment with Organization can be created
 
         @Feature: Environment - Create
@@ -101,7 +101,7 @@ class TestEnvironment(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_delete(self):
+    def test_positive_delete_by_id(self):
         """@test: Create Environment with valid values then delete it
         by ID
 
@@ -118,7 +118,7 @@ class TestEnvironment(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_delete(self):
+    def test_negative_delete_by_id(self):
         """@test: Create Environment then delete it by wrong ID
 
         @feature: Environment
@@ -146,7 +146,7 @@ class TestEnvironment(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_update(self):
+    def test_positive_update_name(self):
         """@Test: Update the environment
 
         @Feature: Environment - Update
@@ -165,7 +165,7 @@ class TestEnvironment(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_update(self):
+    def test_negative_update_name(self):
         """@Test: Update the Environment with invalid values
 
         @Feature: Environment
@@ -185,7 +185,7 @@ class TestEnvironment(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_update_location(self):
+    def test_positive_update_loc(self):
         """@Test: Update environment location with new value
 
         @Feature: Environment - Update
@@ -207,7 +207,7 @@ class TestEnvironment(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_update_organization(self):
+    def test_positive_update_org(self):
         """@Test: Update environment organization with new value
 
         @Feature: Environment - Update
@@ -234,7 +234,7 @@ class TestEnvironment(CLITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1219934)
     @run_only_on('sat')
-    def test_sc_params_by_environment_id(self):
+    def test_positive_sc_params_by_id(self):
         """@Test: Check if environment sc-param subcommand works passing
         an environment id
 
@@ -255,7 +255,7 @@ class TestEnvironment(CLITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1219934)
     @run_only_on('sat')
-    def test_sc_params_by_environment_name(self):
+    def test_positive_sc_params_by_name(self):
         """@Test: Check if environment sc-param subcommand works passing
         an environment name
 
