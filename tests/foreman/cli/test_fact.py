@@ -6,13 +6,13 @@ from robottelo.decorators import run_only_on, stubbed, tier1
 from robottelo.test import CLITestCase
 
 
-class TestFact(CLITestCase):
+class FactTestCase(CLITestCase):
     """Fact related tests."""
 
     @stubbed('Need to create facts before we can check them.')
     @run_only_on('sat')
     @tier1
-    def test_list_success(self):
+    def test_positive_list_by_name(self):
         """@Test: Test Fact List
 
         @Feature: Fact - List Positive
@@ -29,7 +29,7 @@ class TestFact(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_list_fail(self):
+    def test_negative_list_by_name(self):
         """@Test: Test Fact List failure
 
         @Feature: Fact - List Negative
