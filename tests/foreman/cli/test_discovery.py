@@ -4,11 +4,11 @@ from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase
 
 
-class Discovery(CLITestCase):
+class DiscoveryTestCase(CLITestCase):
     """Implements Foreman discovery CLI tests."""
 
     @stubbed()
-    def test_host_discovery_facts(self):
+    def test_positive_discovered_host_facts(self):
         """@Test: Check all facts of discovered hosts are correctly displayed
 
         @Feature: Foreman Discovery
@@ -29,7 +29,7 @@ class Discovery(CLITestCase):
         """
 
     @stubbed()
-    def test_provision_discovered_host(self):
+    def test_positive_provision_discovered_host(self):
         """@Test: Provision the discovered host from hammer cli
 
         @Feature: Foreman Discovery
@@ -44,7 +44,7 @@ class Discovery(CLITestCase):
         """
 
     @stubbed()
-    def test_delete_discovered_host(self):
+    def test_positive_delete_discovered_host(self):
         """@Test: Delete the selected discovered host
 
         @Feature: Foreman Discovery
@@ -58,7 +58,7 @@ class Discovery(CLITestCase):
         """
 
     @stubbed()
-    def test_refresh_discovered_host_facts(self):
+    def test_positive_refresh_discovered_host_facts(self):
         """@Test: Refresh the facts of discovered hosts
 
         @Feature: Foreman Discovery
@@ -73,7 +73,7 @@ class Discovery(CLITestCase):
         """
 
     @stubbed()
-    def test_reboot_discovered_host(self):
+    def test_positive_reboot_discovered_host(self):
         """@Test: Reboot discovered hosts
 
         @Feature: Foreman Discovery
@@ -87,7 +87,7 @@ class Discovery(CLITestCase):
         """
 
     @stubbed()
-    def test_auto_provision(self):
+    def test_positive_discover_and_auto_provision(self):
         """@Test: Discover a host and auto-provision it
 
         @Feature: Foreman Discovery
@@ -99,7 +99,7 @@ class Discovery(CLITestCase):
         """
 
     @stubbed()
-    def test_discovery_manager_role(self):
+    def test_positive_assign_discovery_manager_role(self):
         """@Test: Assign 'Discovery_Manager' role to a normal user
 
         @Feature: Foreman Discovery
@@ -113,7 +113,7 @@ class Discovery(CLITestCase):
         """
 
     @stubbed()
-    def test_discovery_role(self):
+    def test_positive_assign_discovery_role(self):
         """@Test: Assign 'Discovery" role to a normal user
 
         @Feature: Foreman Discovery
