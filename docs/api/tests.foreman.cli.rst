@@ -103,11 +103,6 @@
 
 .. automodule:: tests.foreman.cli.test_host_collection
 
-:mod:`tests.foreman.cli.test_host_system_unification`
------------------------------------------------------
-
-.. automodule:: tests.foreman.cli.test_host_system_unification
-
 :mod:`tests.foreman.cli.test_hostgroup`
 ---------------------------------------
 
