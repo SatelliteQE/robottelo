@@ -7,13 +7,13 @@ from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
-class TestGlobalParameter(CLITestCase):
+class GlobalParameterTestCase(CLITestCase):
     """GlobalParameter related CLI tests."""
 
     # pylint: disable=no-self-use
     @run_only_on('sat')
     @tier1
-    def test_set(self):
+    def test_positive_set(self):
         """@Test: Check if Global Param can be set
 
         @Feature: Global Param - Set
@@ -31,7 +31,7 @@ class TestGlobalParameter(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_list(self):
+    def test_positive_list_by_name(self):
         """@Test: Test Global Param List
 
         @Feature: Global Param - List
@@ -52,7 +52,7 @@ class TestGlobalParameter(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_delete(self):
+    def test_positive_delete_by_name(self):
         """@Test: Check if Global Param can be deleted
 
         @Feature: Global Param - Delete
