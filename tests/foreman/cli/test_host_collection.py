@@ -15,7 +15,7 @@ from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.test import CLITestCase
 
 
-class TestHostCollection(CLITestCase):
+class HostCollectionTestCase(CLITestCase):
     """Host Collection CLI tests."""
 
     org = None
@@ -28,41 +28,41 @@ class TestHostCollection(CLITestCase):
     # pylint: disable=unexpected-keyword-arg
     def setUp(self):
         """Tests for Host Collections via Hammer CLI"""
-        super(TestHostCollection, self).setUp()
+        super(HostCollectionTestCase, self).setUp()
 
-        if TestHostCollection.org is None:
-            TestHostCollection.org = make_org(cached=True)
-        if TestHostCollection.new_lifecycle is None:
-            TestHostCollection.new_lifecycle = make_lifecycle_environment(
-                {u'organization-id': TestHostCollection.org['id']},
+        if HostCollectionTestCase.org is None:
+            HostCollectionTestCase.org = make_org(cached=True)
+        if HostCollectionTestCase.new_lifecycle is None:
+            HostCollectionTestCase.new_lifecycle = make_lifecycle_environment(
+                {u'organization-id': HostCollectionTestCase.org['id']},
                 cached=True
             )
-        if TestHostCollection.library is None:
-            TestHostCollection.library = LifecycleEnvironment.info({
-                u'organization-id': TestHostCollection.org['id'],
+        if HostCollectionTestCase.library is None:
+            HostCollectionTestCase.library = LifecycleEnvironment.info({
+                u'organization-id': HostCollectionTestCase.org['id'],
                 u'name': ENVIRONMENT,
             })
-        if TestHostCollection.default_cv is None:
-            TestHostCollection.default_cv = ContentView.info(
-                {u'organization-id': TestHostCollection.org['id'],
+        if HostCollectionTestCase.default_cv is None:
+            HostCollectionTestCase.default_cv = ContentView.info(
+                {u'organization-id': HostCollectionTestCase.org['id'],
                  u'name': DEFAULT_CV}
             )
-        if TestHostCollection.new_cv is None:
-            TestHostCollection.new_cv = make_content_view(
-                {u'organization-id': TestHostCollection.org['id']}
+        if HostCollectionTestCase.new_cv is None:
+            HostCollectionTestCase.new_cv = make_content_view(
+                {u'organization-id': HostCollectionTestCase.org['id']}
             )
-            TestHostCollection.promoted_cv = None
-            cv_id = TestHostCollection.new_cv['id']
+            HostCollectionTestCase.promoted_cv = None
+            cv_id = HostCollectionTestCase.new_cv['id']
             ContentView.publish({u'id': cv_id})
             result = ContentView.version_list({u'content-view-id': cv_id})
             version_id = result[0]['id']
             ContentView.version_promote({
                 u'id': version_id,
-                u'organization-id': TestHostCollection.org['id'],
+                u'organization-id': HostCollectionTestCase.org['id'],
                 u'to-lifecycle-environment-id': (
-                    TestHostCollection.new_lifecycle['id']),
+                    HostCollectionTestCase.new_lifecycle['id']),
             })
-            TestHostCollection.promoted_cv = TestHostCollection.new_cv
+            HostCollectionTestCase.promoted_cv = HostCollectionTestCase.new_cv
 
     def _new_host_collection(self, options=None):
         """Make a host collection and asserts its success"""
@@ -74,7 +74,7 @@ class TestHostCollection(CLITestCase):
         return make_host_collection(options)
 
     @tier1
-    def test_positive_create_1(self):
+    def test_positive_create_with_name(self):
         """@Test: Check if host collection can be created with random names
 
         @Feature: Host Collection
@@ -88,7 +88,7 @@ class TestHostCollection(CLITestCase):
                 self.assertEqual(new_host_col['name'], name)
 
     @tier1
-    def test_positive_create_2(self):
+    def test_positive_create_with_description(self):
         """@Test: Check if host collection can be created with random
         description
 
@@ -103,7 +103,7 @@ class TestHostCollection(CLITestCase):
                 self.assertEqual(new_host_col['description'], desc)
 
     @tier1
-    def test_positive_create_3(self):
+    def test_positive_create_with_limit(self):
         """@Test: Check if host collection can be created with random limits
 
         @Feature: Host Collection
@@ -119,7 +119,7 @@ class TestHostCollection(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1214675)
     @tier1
-    def test_create_hc_with_unlimited_content_hosts(self):
+    def test_positive_create_with_unlimited_chosts(self):
         """@Test: Create Host Collection with different values of
         unlimited-content-hosts parameter
 
@@ -149,7 +149,7 @@ class TestHostCollection(CLITestCase):
                         result['unlimited-content-hosts'], u'false')
 
     @tier1
-    def test_negative_create_1(self):
+    def test_negative_create_with_name(self):
         """@Test: Check if host collection can be created with random names
 
         @Feature: Host Collection
@@ -163,7 +163,7 @@ class TestHostCollection(CLITestCase):
                     self._new_host_collection({'name': name})
 
     @tier1
-    def test_positive_update_1(self):
+    def test_positive_update_name(self):
         """@Test: Check if host collection name can be updated
 
         @Feature: Host Collection
@@ -183,7 +183,7 @@ class TestHostCollection(CLITestCase):
                 self.assertEqual(result['name'], new_name)
 
     @tier1
-    def test_positive_update_2(self):
+    def test_positive_update_description(self):
         """@Test: Check if host collection description can be updated
 
         @Feature: Host Collection
@@ -204,7 +204,7 @@ class TestHostCollection(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1245334)
     @tier1
-    def test_positive_update_3(self):
+    def test_positive_update_limit(self):
         """@Test: Check if host collection limits be updated
 
         @Feature: Host Collection
@@ -226,7 +226,7 @@ class TestHostCollection(CLITestCase):
                 self.assertEqual(result['limit'], limit)
 
     @tier1
-    def test_positive_delete_1(self):
+    def test_positive_delete_by_id(self):
         """@Test: Check if host collection can be created and deleted
 
         @Feature: Host Collection
@@ -245,7 +245,7 @@ class TestHostCollection(CLITestCase):
                     HostCollection.info({'id': new_host_col['id']})
 
     @tier2
-    def test_add_content_host(self):
+    def test_positive_add_chost_by_id(self):
         """@Test: Check if content host can be added to host collection
 
         @Feature: Host Collection
@@ -274,7 +274,7 @@ class TestHostCollection(CLITestCase):
         self.assertGreater(result['total-content-hosts'], no_of_content_host)
 
     @tier2
-    def test_remove_content_host(self):
+    def test_positive_remove_chost_by_id(self):
         """@Test: Check if content host can be removed from host collection
 
         @Feature: Host Collection
@@ -311,7 +311,7 @@ class TestHostCollection(CLITestCase):
         self.assertGreater(no_of_content_host, result['total-content-hosts'])
 
     @tier2
-    def test_content_hosts(self):
+    def test_positive_list_chosts(self):
         """@Test: Check if content hosts added to host collection is listed
 
         @Feature: Host Collection
