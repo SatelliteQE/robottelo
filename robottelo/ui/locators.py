@@ -575,6 +575,12 @@ tab_locators = LocatorDict({
     "subs.import_history": (
         By.XPATH, "//a[contains(@ui-sref,'manifest.history')]"),
 
+    # Oscap Policy
+    "oscap.content": (
+        By.XPATH, "//a[@href='#scap_content']"),
+    "oscap.schedule": (
+        By.XPATH, "//a[contains(@href, 'scap_schedule')]"),
+
     # Subnet
     "subnet.tab_domain": (
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'domains')]"),
@@ -2100,7 +2106,9 @@ locators = LocatorDict({
     "oscap.content_search": (
         By.XPATH, "//input[contains(@data-url, 'auto_complete_search')]"),
     "oscap.content_edit": (
-        By.XPATH, "//td[contains(.,'%s')]/../td/div/span/a"),
+        By.XPATH,
+        ("//td[contains(.,'%s')]/../td/div/ul/li/"
+         "a[contains(@data-id, 'edit')]")),
     "oscap.content_dropdown": (
         By.XPATH,
         ("//td[contains(.,'%s')]/following-sibling::td/div/"

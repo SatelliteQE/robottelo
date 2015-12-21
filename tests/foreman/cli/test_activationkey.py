@@ -765,7 +765,7 @@ class ActivationKeyTestCase(CLITestCase):
         2. Update Usage Limit to a finite number
         3. Register Content hosts to match the Usage Limit
         4. Attempt to register an other Content host after reaching the Usage
-        Limit
+           Limit
 
         @Assert: Content host Registration fails. Appropriate error shown
 

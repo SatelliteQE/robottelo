@@ -61,6 +61,8 @@ class OpenScapContentTestCase(UITestCase):
         2. Provide all the appropriate parameters.
 
         @Assert: Creating content for OpenScap is not successful.
+
+        @BZ: 1289571
         """
         with Session(self.browser) as session:
             for content_name in invalid_values_list(interface='ui'):
