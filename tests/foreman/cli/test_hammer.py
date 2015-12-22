@@ -98,7 +98,7 @@ class HammerCommandsTestCase(CLITestCase):
                 )
 
     @tier1
-    def test_hammer_options(self):
+    def test_positive_all_options(self):
         """@Test: check all provided options for every hammer command
 
         @Feature: Hammer
