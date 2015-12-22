@@ -41,10 +41,10 @@ from robottelo.vm import VirtualMachine
 # (too many public methods) pylint: disable=R0904
 
 
-class TestSmoke(CLITestCase):
+class SmokeTestCase(CLITestCase):
     """End-to-end tests using the ``CLI`` path."""
 
-    def test_find_default_org(self):
+    def test_positive_find_default_org(self):
         """@Test: Check if 'Default Organization' is present
 
         @Feature: Smoke Test
@@ -56,7 +56,7 @@ class TestSmoke(CLITestCase):
         result = self._search(Org, query)
         self.assertEqual(result['name'], DEFAULT_ORG)
 
-    def test_find_default_location(self):
+    def test_positive_find_default_loc(self):
         """@Test: Check if 'Default Location' is present
 
         @Feature: Smoke Test
@@ -68,7 +68,7 @@ class TestSmoke(CLITestCase):
         result = self._search(Location, query)
         self.assertEqual(result['name'], DEFAULT_LOC)
 
-    def test_find_admin_user(self):
+    def test_positive_find_admin_user(self):
         """@Test: Check if Admin User is present
 
         @Feature: Smoke Test
@@ -81,7 +81,7 @@ class TestSmoke(CLITestCase):
         self.assertEqual(result['login'], 'admin')
         self.assertEqual(result['admin'], 'yes')
 
-    def test_foreman_version(self):
+    def test_positive_foreman_version(self):
         """@Test: Check if /usr/share/foreman/VERSION does not contain the
         develop tag.
 
@@ -98,7 +98,7 @@ class TestSmoke(CLITestCase):
         else:
             self.assertIn('develop', u''.join(result.stdout))
 
-    def test_smoke(self):
+    def test_positive_smoke(self):
         """@Test: Check that basic content can be created
 
         * Create a new user with admin permissions
@@ -386,7 +386,7 @@ class TestSmoke(CLITestCase):
         return entity.info(attrs)
 
     @skip_if_not_set('clients')
-    def test_end_to_end(self):
+    def test_positive_end_to_end(self):
         """@Test: Perform end to end smoke tests using RH repos.
 
         1. Create new organization and environment

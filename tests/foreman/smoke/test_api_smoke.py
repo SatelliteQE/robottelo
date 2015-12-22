@@ -667,7 +667,7 @@ API_PATHS = {
 }
 
 
-class TestAvailableURLs(TestCase):
+class AvailableURLsTestCase(TestCase):
     """Tests for ``api/v2``."""
     longMessage = True
 
@@ -675,7 +675,7 @@ class TestAvailableURLs(TestCase):
         """Define commonly-used variables."""
         self.path = '{0}/api/v2'.format(settings.server.get_url())
 
-    def test_get_status_code(self):
+    def test_positive_get_status_code(self):
         """@Test: GET ``api/v2`` and examine the response.
 
         @Feature: API
@@ -691,7 +691,7 @@ class TestAvailableURLs(TestCase):
         self.assertEqual(response.status_code, http_client.OK)
         self.assertIn('application/json', response.headers['content-type'])
 
-    def test_get_links(self):
+    def test_positive_get_links(self):
         """@Test: GET ``api/v2`` and check the links returned.
 
         @Feature: API
@@ -749,10 +749,10 @@ class TestAvailableURLs(TestCase):
         #     ], …}
 
 
-class TestSmoke(TestCase):
+class SmokeTestCase(TestCase):
     """End-to-end tests using the ``API`` path."""
 
-    def test_find_default_org(self):
+    def test_positive_find_default_org(self):
         """@Test: Check if 'Default Organization' is present
 
         @Feature: Smoke Test
@@ -766,7 +766,7 @@ class TestSmoke(TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].name, DEFAULT_ORG)
 
-    def test_find_default_location(self):
+    def test_positive_find_default_loc(self):
         """@Test: Check if 'Default Location' is present
 
         @Feature: Smoke Test
@@ -780,7 +780,7 @@ class TestSmoke(TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].name, DEFAULT_LOC)
 
-    def test_find_admin_user(self):
+    def test_positive_find_admin_user(self):
         """@Test: Check if Admin User is present
 
         @Feature: Smoke Test
@@ -792,7 +792,7 @@ class TestSmoke(TestCase):
         self.assertEqual(len(results), 1)
         self.assertEqual(results[0].login, 'admin')
 
-    def test_ping(self):
+    def test_positive_ping(self):
         """@Test: Check if all services are running
 
         @Feature: Smoke Test
@@ -816,7 +816,7 @@ class TestSmoke(TestCase):
             u'Not all services seem to be up and running!'
         )
 
-    def test_smoke(self):
+    def test_positive_smoke(self):
         """@Test: Check that basic content can be created
 
         1. Create a new user with admin permissions
@@ -978,7 +978,7 @@ class TestSmoke(TestCase):
         ).create()
 
     @skip_if_not_set('clients')
-    def test_end_to_end(self):
+    def test_positive_end_to_end(self):
         """@Test: Perform end to end smoke tests using RH repos.
 
         1. Create new organization and environment
