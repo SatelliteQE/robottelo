@@ -20,11 +20,11 @@ from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
-class TestHostGroup(CLITestCase):
+class HostGroupTestCase(CLITestCase):
     """Test class for Host Group CLI"""
 
     @tier1
-    def test_positive_create(self):
+    def test_positive_create_with_name(self):
         """@Test: Successfully creates an HostGroup.
 
         @Feature: HostGroup
@@ -37,7 +37,7 @@ class TestHostGroup(CLITestCase):
                 self.assertEqual(hostgroup['name'], name)
 
     @tier1
-    def test_negative_create(self):
+    def test_negative_create_with_name(self):
         """@Test: Don't create an HostGroup with invalid data.
 
         @Feature: HostGroup
@@ -51,7 +51,7 @@ class TestHostGroup(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_hostgroup_with_environment(self):
+    def test_positive_create_with_env(self):
         """@Test: Check if hostgroup with environment can be created
 
         @Feature: Hostgroup - Positive create
@@ -65,7 +65,7 @@ class TestHostGroup(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_hostgroup_with_location(self):
+    def test_positive_create_with_loc(self):
         """@Test: Check if hostgroup with location can be created
 
         @Feature: Hostgroup - Positive create
@@ -79,7 +79,7 @@ class TestHostGroup(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_hostgroup_with_operating_system(self):
+    def test_positive_create_with_os(self):
         """@Test: Check if hostgroup with operating system can be created
 
         @Feature: Hostgroup - Create
@@ -93,7 +93,7 @@ class TestHostGroup(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_hostgroup_with_organization(self):
+    def test_positive_create_with_org(self):
         """@Test: Check if hostgroup with organization can be created
 
         @Feature: Hostgroup - Positive create
@@ -107,7 +107,7 @@ class TestHostGroup(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_hostgroup_with_puppet_ca_proxy(self):
+    def test_positive_create_with_puppet_ca_proxy(self):
         """@Test: Check if hostgroup with puppet CA proxy server can be created
 
         @Feature: Hostgroup - Positive create
@@ -121,7 +121,7 @@ class TestHostGroup(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_create_hostgroup_with_puppet_proxy(self):
+    def test_positive_create_with_puppet_proxy(self):
         """@Test: Check if hostgroup with puppet proxy server can be created
 
         @Feature: Hostgroup - Positive create
@@ -156,7 +156,7 @@ class TestHostGroup(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_update(self):
+    def test_negative_update_name(self):
         """@test: Create HostGroup then fail to update its name
 
         @feature: HostGroup
@@ -176,7 +176,7 @@ class TestHostGroup(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_delete(self):
+    def test_positive_delete_by_id(self):
         """@test: Create HostGroup with valid values then delete it
         by ID
 
@@ -193,7 +193,7 @@ class TestHostGroup(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_delete(self):
+    def test_negative_delete_by_id(self):
         """@test: Create HostGroup then delete it by wrong ID
 
         @feature: HostGroup
