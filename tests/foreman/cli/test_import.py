@@ -502,7 +502,7 @@ class TestImport(CLITestCase):
         super(TestImport, cls).tearDownClass()
 
     @tier1
-    def test_import_orgs_default(self):
+    def test_positive_import_orgs_default(self):
         """@test: Import all organizations from the default data set
         (predefined source).
 
@@ -523,7 +523,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_orgs_manifests(self):
+    def test_positive_import_orgs_manifests(self):
         """@test: Import all organizations from the default data set
         (predefined source) and upload manifests for each of them
 
@@ -555,7 +555,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_reimport_orgs_default_negative(self):
+    def test_negative_reimport_orgs_default(self):
         """@test: Try to Import all organizations from the predefined source
         and try to import them again
 
@@ -576,7 +576,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_orgs_recovery(self):
+    def test_positive_import_orgs_recovery(self):
         """@test: Try to Import organizations with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
@@ -626,7 +626,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_merge_orgs(self):
+    def test_positive_merge_orgs(self):
         """@test: Try to Import all organizations and their users from CSV
         to a mapped organization.
 
@@ -664,7 +664,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_users_default(self):
+    def test_positive_import_users_default(self):
         """@test: Import all 3 users from the default data set (predefined
         source).
 
@@ -694,7 +694,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_reimport_users_default_negative(self):
+    def test_negative_reimport_users_default(self):
         """@test: Try to Import all users from the
         predefined source and try to import them again
 
@@ -724,7 +724,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_users_merge(self):
+    def test_positive_import_users_merge(self):
         """@test: Try to Merge users with the same name using 'merge-users'
         option.
 
@@ -763,7 +763,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_users_recovery(self):
+    def test_positive_import_users_recovery(self):
         """@test: Try to Import users with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
@@ -825,7 +825,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_host_collections_default(self):
+    def test_positive_import_host_collections_default(self):
         """@test: Import all System Groups from the default data set
         (predefined source) as the Host Collections.
 
@@ -861,7 +861,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_reimport_host_collections_default_negative(self):
+    def test_negative_reimport_host_collections_default(self):
         """@test: Try to re-import all System Groups from the default data set
         (predefined source) as the Host Collections.
 
@@ -894,7 +894,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_host_collections_recovery(self):
+    def test_positive_import_host_collections_recovery(self):
         """@test: Try to Import Collections with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
@@ -957,7 +957,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_repo_default(self):
+    def test_positive_import_repo_default(self):
         """@test: Import and enable all Repositories from the default data set
         (predefined source)
 
@@ -996,7 +996,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_reimport_repo_negative(self):
+    def test_negative_reimport_repo(self):
         """@test: Import and enable all Repositories from the default data set
         (predefined source), then try to Import Repositories from the same CSV
         again.
@@ -1047,7 +1047,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_repo_recovery(self):
+    def test_positive_import_repo_recovery(self):
         """@test: Try to Import Repos with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
@@ -1110,7 +1110,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_cv_default(self):
+    def test_positive_import_cv_default(self):
         """@test: Import and enable all Content Views from the default data set
         (predefined source)
 
@@ -1154,7 +1154,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_reimport_cv_negative(self):
+    def test_negative_reimport_cv(self):
         """@test: Import and enable all Content Views from the default data set
         (predefined source), then try to Import them from the same CSV
         again.
@@ -1208,7 +1208,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_cv_recovery(self):
+    def test_positive_import_cv_recovery(self):
         """@test: Try to Import Content Views with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
@@ -1281,7 +1281,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_bz1160847_translate_macros(self):
+    def test_positive_translate_macros(self):
         """@test: Check whether all supported Sat5 macros are being properly
         converted to the Puppet facts.
         According to RH Transition Guide (Chapter 3.7.8, Table 3.1)
@@ -1291,6 +1291,7 @@ class TestImport(CLITestCase):
         @assert: Generated .erb file contains correctly formatted puppet facts
 
         """
+        # This bug was originally created to verify BZ 1160847
         # prepare data (craft csv)
         test_data = [
             {
@@ -1395,7 +1396,7 @@ class TestImport(CLITestCase):
         clean_transdata()
 
     @tier1
-    def test_import_enable_rh_repos(self):
+    def test_positive_import_enable_rh_repos(self):
         """@test: Import and enable all red hat repositories from predefined
         dataset
 
@@ -1444,7 +1445,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_reimport_enable_rh_repos_negative(self):
+    def test_negative_reimport_enable_rh_repos(self):
         """@test: Repetitive Import and enable of all red hat repositories from
         the predefined dataset
 
@@ -1489,7 +1490,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_content_hosts_default(self):
+    def test_positive_import_chosts_default(self):
         """@test: Import all content hosts from
         the predefined dataset
 
@@ -1519,7 +1520,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_reimport_content_hosts_negative(self):
+    def test_negative_reimport_chosts(self):
         """@test: Repetitive Import of all content hosts from
         the predefined dataset
 
@@ -1560,7 +1561,7 @@ class TestImport(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1267224)
     @tier1
-    def test_import_content_hosts_recovery_negative(self):
+    def test_negative_import_chosts_recovery(self):
         """@test: Try to invoke usage of a recovery strategy
 
         @feature: Import Content Hosts Recover
@@ -1591,7 +1592,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_snippets_default(self):
+    def test_positive_import_snippets_default(self):
         """@test: Import template snippets from the default data set
         (predefined source)
 
@@ -1629,7 +1630,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_config_files_default(self):
+    def test_positive_import_config_files_default(self):
         """@test: Import all Config Files from the default data set
         (predefined source)
 
@@ -1668,7 +1669,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_reimport_config_files_negative(self):
+    def test_negative_reimport_config_files(self):
         """@test: Repetitive Import of all Config Files from the default
         data set (predefined source)
 
@@ -1711,7 +1712,7 @@ class TestImport(CLITestCase):
                 clean_transdata()
 
     @tier1
-    def test_import_ak_default(self):
+    def test_positive_import_ak_default(self):
         """@test: Import AKs from the default data set
         (predefined source)
 
