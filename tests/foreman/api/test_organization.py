@@ -313,6 +313,49 @@ class OrganizationUpdateTestCase(APITestCase):
         org = org.update(['hostgroup'])
         self.assertEqual(len(org.hostgroup), 0)
 
+    @tier2
+    def test_positive_add_smart_proxy(self):
+        """@Test: Add a smart proxy to an organization
+
+        @Feature: Organization
+
+        @Assert: Smart proxy is successfully added to organization
+        """
+        # Every Satellite has a built-in smart proxy, so let's find it
+        smart_proxies = entities.SmartProxy().search()
+        self.assertGreater(len(smart_proxies), 0)
+        smart_proxy = smart_proxies[0]
+        # By default, newly created organization uses built-in smart proxy,
+        # so we need to remove it first
+        org = entities.Organization().create()
+        org.smart_proxy = []
+        org = org.update(['smart_proxy'])
+        # Verify smart proxy was actually removed
+        self.assertEqual(len(org.smart_proxy), 0)
+        # Add smart proxy to organization
+        org.smart_proxy = [smart_proxy]
+        org = org.update(['smart_proxy'])
+        # Verify smart proxy was actually added
+        self.assertEqual(len(org.smart_proxy), 1)
+        self.assertEqual(org.smart_proxy[0].id, smart_proxy.id)
+
+    @tier2
+    def test_positive_remove_smart_proxy(self):
+        """@Test: Remove a smart proxy from an organization
+
+        @Feature: Organization
+
+        @Assert: Smart proxy is removed from organization
+        """
+        # By default, newly created organization uses built-in smart proxy,
+        # so we can remove it instead of adding and removing some another one
+        org = entities.Organization().create()
+        self.assertGreater(len(org.smart_proxy), 0)
+        org.smart_proxy = []
+        org = org.update(['smart_proxy'])
+        # Verify smart proxy was actually removed
+        self.assertEqual(len(org.smart_proxy), 0)
+
     @tier1
     def test_negative_update(self):
         """@Test: Update an organization's attributes with invalid values.
