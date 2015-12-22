@@ -57,9 +57,8 @@ class RHAITestCase(UITestCase):
         cls.org_name = org.name
 
     @skip_if_not_set('clients')
-    def test_client_registration_to_rhai(self):
-        """@Test: Check for client registration to redhat-access-insights
-        service.
+    def test_positive_register_client_to_rhai(self):
+        """@Test: Check client registration to redhat-access-insights service.
 
         @Feature: RHEL client registration to rhai
 
@@ -80,7 +79,7 @@ class RHAITestCase(UITestCase):
             vm.get('/var/log/redhat-access-insights/redhat-access'
                    '-insights.log', './insights_client_registration.log')
 
-    def test_org_selection_for_rhai(self):
+    def test_negative_org_not_selected(self):
         """@Test: Verify that user attempting to access RHAI is directed to
         select an Organization if there is no organization selected
 
@@ -103,14 +102,14 @@ class RHAITestCase(UITestCase):
             self.assertIn("Organization Selection Required", result)
 
     @skip_if_not_set('clients')
-    def test_unregister_system_from_rhai(self):
+    def test_positive_unregister_client_from_rhai(self):
         """@Test: Verify that 'Unregister' a system from RHAI works correctly
 
-        @Feature: If a machine if unregistered from the RHAI web interface,
-        then the client should be able to use the service.
+        @Feature: If a system is unregistered from the RHAI web interface,
+        then the system should not be able to use the service.
 
-        @Assert: Once the machine is unregistered from the RHAI web interface
-        then the unregistered client machine should return a 1 on running the
+        @Assert: Once the system is unregistered from the RHAI web interface
+        then the unregistered system should return `1` on running the
         service 'redhat-access-insights'
 
         """
