@@ -73,7 +73,7 @@ class HostCollectionTestCase(APITestCase):
                 self.assertEqual(host_collection.max_content_hosts, limit)
 
     @tier1
-    def test_positive_create_with_unlimited_content_hosts(self):
+    def test_positive_create_with_unlimited_chosts(self):
         """@Test: Create host collection with different values of 'unlimited
         content hosts' parameter.
 
@@ -220,7 +220,7 @@ class HostCollectionTestCase(APITestCase):
                     host_collection.update().max_content_hosts, limit)
 
     @tier1
-    def test_positive_update_unlimited_content_hosts(self):
+    def test_positive_update_unlimited_chosts(self):
         """@Test: Check if host collection 'unlimited content hosts' parameter
         can be updated
 
