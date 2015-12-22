@@ -3,7 +3,6 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.decorators import skip_if_not_set, tier1
-from robottelo.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
@@ -26,13 +25,11 @@ class SubscriptionTestCase(UITestCase):
 
         @Assert: Manifest is uploaded successfully
         """
-        manifest_path = manifests.clone()
-        # upload_file function should take care of uploading to sauce labs.
-        upload_file(manifest_path, remote_file=manifest_path)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_red_hat_subscriptions()
-            self.subscriptions.upload(manifest_path)
+            with manifests.clone() as manifest:
+                self.subscriptions.upload(manifest)
             self.assertTrue(self.subscriptions.wait_until_element(
                 common_locators['alert.success']))
 
@@ -45,13 +42,11 @@ class SubscriptionTestCase(UITestCase):
 
         @Assert: Manifest is deleted successfully
         """
-        manifest_path = manifests.clone()
-        # upload_file function should take care of uploading to sauce labs.
-        upload_file(manifest_path, remote_file=manifest_path)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_red_hat_subscriptions()
-            self.subscriptions.upload(manifest_path)
+            with manifests.clone() as manifest:
+                self.subscriptions.upload(manifest)
             self.subscriptions.delete()
             self.assertTrue(self.subscriptions.wait_until_element(
                 common_locators['alert.success']))
@@ -66,13 +61,11 @@ class SubscriptionTestCase(UITestCase):
         @Assert: Manifest is Deleted. Delete button is asserted. Subscriptions
         is asserted
         """
-        manifest_path = manifests.clone()
-        # upload_file function should take care of uploading to sauce labs.
-        upload_file(manifest_path, remote_file=manifest_path)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_red_hat_subscriptions()
-            self.subscriptions.upload(manifest_path)
+            with manifests.clone() as manifest:
+                self.subscriptions.upload(manifest)
             self.subscriptions.delete()
             self.assertTrue(self.subscriptions.wait_until_element(
                 common_locators['alert.success']))

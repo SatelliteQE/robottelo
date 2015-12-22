@@ -262,8 +262,8 @@ class RepositorySyncTestCase(APITestCase):
         @Assert: Repository synced should fetch the data successfully.
         """
         org = entities.Organization().create()
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',
             org_id=org.id,

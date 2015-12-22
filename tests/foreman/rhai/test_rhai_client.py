@@ -22,8 +22,8 @@ class RHAIClientTestCase(TestCase):
         ).create()
 
         # Upload manifest
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
 
         # Create activation key using default CV and library environment
         activation_key = entities.ActivationKey(

@@ -22,7 +22,6 @@ from robottelo.constants import (
     FAKE_6_PUPPET_REPO,
 )
 from robottelo.decorators import bz_bug_is_open, skip_if_not_set
-from robottelo.ssh import upload_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_activationkey,
@@ -275,9 +274,6 @@ class SmokeTestCase(UITestCase):
         activation_key_name = gen_string('alpha', 6)
         env_name = gen_string('alpha', 6)
         repos = self.sync.create_repos_tree(RHVA_REPO_TREE)
-        cloned_manifest_path = manifests.clone()
-        # upload_file function should take care of uploading to sauce labs.
-        upload_file(cloned_manifest_path)
         with Session(self.browser) as session:
             # Create New organization
             make_org(session, org_name=org_name)
@@ -289,7 +285,8 @@ class SmokeTestCase(UITestCase):
             session.nav.go_to_select_org(org_name)
             session.nav.go_to_red_hat_subscriptions()
             # Upload manifest from webui
-            self.subscriptions.upload(cloned_manifest_path)
+            with manifests.clone() as manifest:
+                self.subscriptions.upload(manifest)
             self.assertTrue(session.nav.wait_until_element(
                 common_locators['alert.success']
             ))
@@ -367,7 +364,6 @@ class SmokeTestCase(UITestCase):
 
         """
         activation_key_name = gen_string('alpha')
-        cloned_manifest_path = manifests.clone()
         cv_name = gen_string('alpha')
         env_name = gen_string('alpha')
         org_name = gen_string('alpha')
@@ -377,7 +373,6 @@ class SmokeTestCase(UITestCase):
         repos = self.sync.create_repos_tree(SAT6_TOOLS_TREE)
         rhel_prd = DEFAULT_SUBSCRIPTION_NAME
         rhel6_repo = settings.rhel6_repo
-        upload_file(cloned_manifest_path)
         with Session(self.browser) as session:
             # Create New organization
             make_org(session, org_name=org_name)
@@ -387,7 +382,8 @@ class SmokeTestCase(UITestCase):
             self.assertIsNotNone(self.lifecycleenvironment.search(env_name))
             session.nav.go_to_red_hat_subscriptions()
             # Upload manifest from webui
-            self.subscriptions.upload(cloned_manifest_path)
+            with manifests.clone() as manifest:
+                self.subscriptions.upload(manifest)
             self.assertTrue(session.nav.wait_until_element(
                 common_locators['alert.success']
             ))

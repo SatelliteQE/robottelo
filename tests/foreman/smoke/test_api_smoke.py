@@ -1011,8 +1011,8 @@ class SmokeTestCase(TestCase):
         ).create()
 
         # step 2: Upload manifest
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
         # step 3.1: Enable RH repo and fetch repository_id
         repository = entities.Repository(id=enable_rhrepo_and_fetchid(
             basearch='x86_64',

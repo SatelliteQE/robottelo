@@ -1940,11 +1940,11 @@ def setup_org_for_a_rh_repo(options=None):
     else:
         env_id = options['lifecycle-environment-id']
     # Clone manifest and upload it
-    manifest = manifests.clone()
-    upload_file(manifest, remote_file=manifest)
+    with manifests.clone() as manifest:
+        upload_file(manifest.content, manifest.filename)
     try:
         Subscription.upload({
-            u'file': manifest,
+            u'file': manifest.filename,
             u'organization-id': org_id,
         })
     except CLIReturnCodeError as err:

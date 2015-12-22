@@ -627,8 +627,8 @@ class ActivationKeyTestCase(UITestCase):
             'releasever': '6Server',
         }
         org = entities.Organization().create()
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
         repo1_id = self.enable_sync_redhat_repo(rh_repo1, org.id)
         self.cv_publish_promote(cv1_name, env1_name, repo1_id, org.id)
         repo2_id = self.enable_sync_redhat_repo(rh_repo2, org.id)
@@ -876,8 +876,8 @@ class ActivationKeyTestCase(UITestCase):
         # Create new org to import manifest
         org = entities.Organization().create()
         # Upload manifest
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
         # Helper function to create and promote CV to next environment
         repo_id = self.enable_sync_redhat_repo(rh_repo, org_id=org.id)
         self.cv_publish_promote(cv_name, env_name, repo_id, org.id)
@@ -966,8 +966,8 @@ class ActivationKeyTestCase(UITestCase):
             product=product,
         ).create()
         # Upload manifest
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
         # Enable RH repo and fetch repository_id
         rhel_repo_id = enable_rhrepo_and_fetchid(
             basearch=rh_repo['basearch'],
@@ -1011,8 +1011,8 @@ class ActivationKeyTestCase(UITestCase):
         # Upload manifest
         org = entities.Organization().create()
         sub = entities.Subscription(organization=org)
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
         # Create activation key
         activation_key = entities.ActivationKey(
             organization=org,

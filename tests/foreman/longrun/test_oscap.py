@@ -60,8 +60,8 @@ class OpenScapTestCase(UITestCase):
         cls.env_name = env.name
 
         # step 2: Clone and Upload manifest
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
 
         # step 3: Sync RedHat Sattools RHEL6 ad RHEL7 repository
         repos = [

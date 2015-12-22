@@ -264,8 +264,8 @@ class OrganizationTestCase(UITestCase):
         """
         org_name = gen_string('alphanumeric')
         org = entities.Organization(name=org_name).create()
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
         with Session(self.browser) as session:
             make_lifecycle_environment(session, org_name, name='DEV')
             make_lifecycle_environment(

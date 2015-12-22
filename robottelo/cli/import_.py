@@ -284,10 +284,12 @@ class Import(Base):
         for org in set([rec['organization'] for rec in csv_records]):
             for char in [' ', '.', '#']:
                 org = org.replace(char, '_')
-            man_file = manifests.clone()
-            ssh.upload_file(man_file, u'{0}/{1}.zip'.format(man_dir, org))
+            with manifests.clone() as manifest:
+                ssh.upload_file(
+                    manifest.content,
+                    u'{0}/{1}.zip'.format(man_dir, org)
+                )
             manifest_list.append(u'{0}/{1}.zip'.format(man_dir, org))
-            os.remove(man_file)
         options.update({'upload-manifests-from': man_dir})
 
         result = cls.organization(options)

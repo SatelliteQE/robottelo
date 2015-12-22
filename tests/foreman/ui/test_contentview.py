@@ -69,8 +69,8 @@ class ContentViewTestCase(UITestCase):
             ).create().id
         elif rh_repo:
             # Uploads the manifest and returns the result.
-            with open(manifests.clone(), 'rb') as manifest:
-                upload_manifest(org_id, manifest)
+            with manifests.clone() as manifest:
+                upload_manifest(org_id, manifest.content)
             # Enables the RedHat repo and fetches it's Id.
             repo_id = enable_rhrepo_and_fetchid(
                 basearch=rh_repo['basearch'],

@@ -64,8 +64,8 @@ class SyncTestCase(UITestCase):
         @Assert: Sync procedure for RedHat Repos is successful
         """
         repos = self.sync.create_repos_tree(RHCT)
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(self.organization.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(self.organization.id, manifest.content)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_red_hat_repositories()
