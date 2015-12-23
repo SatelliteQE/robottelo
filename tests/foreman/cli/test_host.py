@@ -71,7 +71,7 @@ class HostCreateTestCase(CLITestCase):
                 )
 
     @tier1
-    def test_positive_create_libvirt_without_mac(self):
+    def test_positive_create_using_libvirt_without_mac(self):
         """@Test: Create a libvirt host and not specify a MAC address.
 
         @Feature: Hosts
@@ -318,7 +318,7 @@ class HostUpdateTestCase(CLITestCase):
         self.assertEqual(self.host['domain'], new_domain['name'])
 
     @tier2
-    def test_positive_update_environment_by_id(self):
+    def test_positive_update_env_by_id(self):
         """@test: A host can be updated with a new environment. Use entities
         ids for association
 
@@ -338,7 +338,7 @@ class HostUpdateTestCase(CLITestCase):
         self.assertEqual(self.host['environment'], new_env['name'])
 
     @tier2
-    def test_positive_update_environment_by_name(self):
+    def test_positive_update_env_by_name(self):
         """@test: A host can be updated with a new environment. Use entities
         names for association
 
@@ -593,13 +593,13 @@ class HostUpdateTestCase(CLITestCase):
         self.assertNotEqual(self.host['operating-system'], new_os['title'])
 
 
-class HostParameterTests(CLITestCase):
+class HostParameterTestCase(CLITestCase):
     """Tests targeting host parameters"""
 
     @classmethod
     def setUpClass(cls):
         """Create host to tests parameters for"""
-        super(HostParameterTests, cls).setUpClass()
+        super(HostParameterTestCase, cls).setUpClass()
         cls.proxies = Proxy.list()
         assert len(cls.proxies) > 0
         cls.puppet_proxy = cls.proxies[0]
@@ -624,7 +624,7 @@ class HostParameterTests(CLITestCase):
         })
 
     @tier1
-    def test_add_parameter_diff_names(self):
+    def test_positive_add_parameter_with_name(self):
         """@Test: Add host parameter with different valid names.
 
         @Feature: Hosts
@@ -644,7 +644,7 @@ class HostParameterTests(CLITestCase):
                 self.assertIn(name, self.host['parameters'].keys())
 
     @tier1
-    def test_add_parameter_diff_values(self):
+    def test_positive_add_parameter_with_value(self):
         """@Test: Add host parameter with different valid values.
 
         @Feature: Hosts
@@ -665,7 +665,7 @@ class HostParameterTests(CLITestCase):
                 self.assertEqual(value, self.host['parameters'][name])
 
     @tier1
-    def test_add_parameter_by_host_name(self):
+    def test_positive_add_parameter_by_host_name(self):
         """@Test: Add host parameter by specifying host name.
 
         @Feature: Hosts
@@ -686,7 +686,7 @@ class HostParameterTests(CLITestCase):
         self.assertEqual(value, self.host['parameters'][name])
 
     @tier1
-    def test_update_parameter_by_host_id(self):
+    def test_positive_update_parameter_by_host_id(self):
         """@Test: Update existing host parameter by specifying host ID.
 
         @Feature: Hosts
@@ -713,7 +713,7 @@ class HostParameterTests(CLITestCase):
                 self.assertEqual(new_value, self.host['parameters'][name])
 
     @tier1
-    def test_update_parameter_by_host_name(self):
+    def test_positive_update_parameter_by_host_name(self):
         """@Test: Update existing host parameter by specifying host name.
 
         @Feature: Hosts
@@ -740,7 +740,7 @@ class HostParameterTests(CLITestCase):
                 self.assertEqual(new_value, self.host['parameters'][name])
 
     @tier1
-    def test_delete_parameter_by_host_id(self):
+    def test_positive_delete_parameter_by_host_id(self):
         """@Test: Delete existing host parameter by specifying host ID.
 
         @Feature: Hosts
@@ -764,7 +764,7 @@ class HostParameterTests(CLITestCase):
                 self.assertNotIn(name, self.host['parameters'].keys())
 
     @tier1
-    def test_delete_parameter_by_host_name(self):
+    def test_posistive_delete_parameter_by_host_name(self):
         """@Test: Delete existing host parameter by specifying host name.
 
         @Feature: Hosts
@@ -788,7 +788,7 @@ class HostParameterTests(CLITestCase):
                 self.assertNotIn(name, self.host['parameters'].keys())
 
     @tier1
-    def test_add_parameter_negative(self):
+    def test_negative_add_parameter(self):
         """@Test: Try to add host parameter with different invalid names.
 
         @Feature: Hosts
