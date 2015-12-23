@@ -43,10 +43,10 @@ from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
 
-class TestSmoke(UITestCase):
+class SmokeTestCase(UITestCase):
     """End-to-end tests using the ``WebUI``."""
 
-    def test_find_default_org(self):
+    def test_positive_find_default_org(self):
         """@Test: Check if :data:`robottelo.constants.DEFAULT_ORG` is present
 
         @Feature: Smoke Test
@@ -60,7 +60,7 @@ class TestSmoke(UITestCase):
                 DEFAULT_ORG
             )
 
-    def test_find_default_location(self):
+    def test_positive_find_default_loc(self):
         """@Test: Check if :data:`robottelo.constants.DEFAULT_LOC` is present
 
         @Feature: Smoke Test
@@ -74,7 +74,7 @@ class TestSmoke(UITestCase):
                 DEFAULT_LOC
             )
 
-    def test_find_admin_user(self):
+    def test_positive_find_admin_user(self):
         """@Test: Check if Admin User is present
 
         @Feature: Smoke Test
@@ -85,7 +85,7 @@ class TestSmoke(UITestCase):
         with Session(self.browser):
             self.assertTrue(self.user.user_admin_role_toggle('admin'))
 
-    def test_smoke(self):
+    def test_positive_smoke(self):
         """@Test: Check that basic content can be created
 
         * Create a new user with admin permissions
@@ -261,7 +261,7 @@ class TestSmoke(UITestCase):
             self.assertIsNotNone(self.hostgroup.search(hostgroup_name))
 
     @skip_if_not_set('clients')
-    def test_end_to_end(self):
+    def test_positive_end_to_end(self):
         """@Test: Perform end to end smoke tests using RH repos.
 
         @Feature: Smoke test
@@ -358,7 +358,7 @@ class TestSmoke(UITestCase):
                 self.assertEqual(result.return_code, 0)
 
     @skip_if_not_set('clients')
-    def test_puppet_install(self):
+    def test_positive_puppet_install(self):
         """@Test: Perform puppet end to end smoke tests using RH repos.
 
         @Feature: Smoke test puppet install and configure on client

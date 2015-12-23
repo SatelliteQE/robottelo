@@ -16,8 +16,8 @@ class SELinuxTestCase(TestCase):
 
     version_regex = re.compile(r'((\d\.?)+[-.]\d)')
 
-    def test_selinux_foreman_module(self):
-        """@Test: SELinux foreman module have the right version
+    def test_positive_foreman_module(self):
+        """@Test: Check if SELinux foreman module has the right version
 
         @Feature: Server health
 
@@ -46,8 +46,8 @@ class SELinuxTestCase(TestCase):
 
         self.assertEqual(rpm_version.replace('-', '.'), semodule_version)
 
-    def test_installer_check_services(self):
-        """@Test: Services services start correctly
+    def test_positive_check_installer_services(self):
+        """@Test: Check if services start correctly
 
         @Feature: Installer
 
@@ -108,7 +108,7 @@ class SELinuxTestCase(TestCase):
                 '{0} responded with {1}'.format(service, server_response)
             )
 
-    def test_installer_logfile_check(self):
+    def test_positive_check_installer_logfile(self):
         """@Test: Look for ERROR or FATAL references in logfiles
 
         @Feature: Installer
