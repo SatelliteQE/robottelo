@@ -1759,8 +1759,7 @@ def activationkey_add_subscription_to_repo(options=None):
 
 
 def setup_org_for_a_custom_repo(options=None):
-    """
-    Sets up Org for the given custom repo by:
+    """Sets up Org for the given custom repo by:
 
     1. Checks if organization and lifecycle environment were given, otherwise
         creates new ones.
@@ -1773,7 +1772,7 @@ def setup_org_for_a_custom_repo(options=None):
         associates it with the content view.
     5. Adds the custom repo subscription to the activation key
 
-    Args::
+    Options::
 
         url - URL to custom repository
         organization-id (optional) - ID of organization to use (or create a new
@@ -1784,6 +1783,9 @@ def setup_org_for_a_custom_repo(options=None):
                                     one if empty)
         activationkey-id (optional) - ID of activation key (or create a new one
                                     if empty)
+
+    :return: A dictionary with the entity ids of Activation key, Content view,
+        Lifecycle Environment, Organization, Product and Repository
 
     """
     if(
@@ -1876,11 +1878,18 @@ def setup_org_for_a_custom_repo(options=None):
         u'organization-id': org_id,
         u'subscription': custom_product['name'],
     })
+    return {
+        u'activationkey-id': activationkey_id,
+        u'content-view-id': cv_id,
+        u'lifecycle-environment-id': env_id,
+        u'organization-id': org_id,
+        u'product-id': custom_product['id'],
+        u'repository-id': custom_repo['id'],
+    }
 
 
 def setup_org_for_a_rh_repo(options=None):
-    """
-    Sets up Org for the given Red Hat repository by:
+    """Sets up Org for the given Red Hat repository by:
 
     1. Checks if organization and lifecycle environment were given, otherwise
         creates new ones.
@@ -1894,7 +1903,7 @@ def setup_org_for_a_rh_repo(options=None):
         associates it with the content view.
     6. Adds the RH repo subscription to the activation key
 
-    Args::
+    Options::
 
         product - RH product name
         repository-set - RH repository set name
@@ -1909,6 +1918,9 @@ def setup_org_for_a_rh_repo(options=None):
                                     one if empty)
         activationkey-id (optional) - ID of activation key (or create a new one
                                     if empty)
+
+    :return: A dictionary with the entity ids of Activation key, Content view,
+        Lifecycle Environment, Organization and Repository
 
     """
     if (
@@ -2038,3 +2050,10 @@ def setup_org_for_a_rh_repo(options=None):
         u'activationkey-id': activationkey_id,
         u'subscription': DEFAULT_SUBSCRIPTION_NAME,
     })
+    return {
+        u'activationkey-id': activationkey_id,
+        u'content-view-id': cv_id,
+        u'lifecycle-environment-id': env_id,
+        u'organization-id': org_id,
+        u'repository-id': rhel_repo['id'],
+    }
