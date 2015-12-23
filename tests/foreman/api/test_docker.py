@@ -184,7 +184,7 @@ class DockerRepositoryTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_create_repos(self):
+    def test_positive_create_repos_using_same_product(self):
         """@Test: Create multiple Docker-type repositories
 
         @Assert: Multiple docker repositories are created with a Docker image
@@ -200,7 +200,7 @@ class DockerRepositoryTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_create_repos_in_products(self):
+    def test_positive_create_repos_using_multiple_products(self):
         """@Test: Create multiple Docker-type repositories on multiple products
 
         @Assert: Multiple docker repositories are created with a Docker image
@@ -445,7 +445,7 @@ class DockerContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_add_docker_repo_to_composite_cv(self):
+    def test_positive_add_docker_repo_to_ccv(self):
         """@Test: Add one Docker-type repository to a composite content view
 
         @Assert: A repository is created with a Docker repository and the
@@ -485,7 +485,7 @@ class DockerContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_add_docker_repos_to_composite_cv(self):
+    def test_positive_add_docker_repos_to_ccv(self):
         """@Test: Add multiple Docker-type repositories to a composite
         content view.
 
@@ -531,7 +531,7 @@ class DockerContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_publish_once_docker_repo(self):
+    def test_positive_publish_with_docker_repo(self):
         """@Test: Add Docker-type repository to content view and publish
         it once.
 
@@ -565,7 +565,7 @@ class DockerContentViewTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1217635)
-    def test_positive_publish_once_docker_repo_composite(self):
+    def test_positive_publish_with_docker_repo_composite(self):
         """@Test: Add Docker-type repository to composite content view and
         publish it once.
 
@@ -616,7 +616,7 @@ class DockerContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_publish_multiple_docker_repo(self):
+    def test_positive_publish_multiple_with_docker_repo(self):
         """@Test: Add Docker-type repository to content view and publish it
         multiple times.
 
@@ -646,7 +646,7 @@ class DockerContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_publish_multiple_docker_repo_composite(self):
+    def test_positive_publish_multiple_with_docker_repo_composite(self):
         """@Test: Add Docker-type repository to content view and publish it
         multiple times.
 
@@ -693,7 +693,7 @@ class DockerContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_promote_docker_repo(self):
+    def test_positive_promote_with_docker_repo(self):
         """@Test: Add Docker-type repository to content view and publish it.
         Then promote it to the next available lifecycle-environment.
 
@@ -725,7 +725,7 @@ class DockerContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_promote_multiple_docker_repo(self):
+    def test_positive_promote_multiple_with_docker_repo(self):
         """@Test: Add Docker-type repository to content view and publish it.
         Then promote it to multiple available lifecycle-environments.
 
@@ -757,7 +757,7 @@ class DockerContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_promote_docker_repo_composite(self):
+    def test_positive_promote_with_docker_repo_composite(self):
         """@Test: Add Docker-type repository to content view and publish it.
         Then add that content view to composite one. Publish and promote that
         composite content view to the next available lifecycle-environment.
@@ -799,7 +799,7 @@ class DockerContentViewTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_promote_multiple_docker_repo_composite(self):
+    def test_positive_promote_multiple_with_docker_repo_composite(self):
         """@Test: Add Docker-type repository to content view and publish it.
         Then add that content view to composite one. Publish and promote that
         composite content view to the multiple available lifecycle-environments
@@ -864,7 +864,7 @@ class DockerActivationKeyTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_add_docker_repo(self):
+    def test_positive_add_docker_repo_cv(self):
         """@Test: Add Docker-type repository to a non-composite content view
         and publish it. Then create an activation key and associate it with the
         Docker content view.
@@ -905,7 +905,7 @@ class DockerActivationKeyTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_add_docker_repo_composite_cv(self):
+    def test_positive_add_docker_repo_ccv(self):
         """@Test:Add Docker-type repository to a non-composite content view and
         publish it. Then add this content view to a composite content view and
         publish it. Create an activation key and associate it with the
@@ -936,7 +936,7 @@ class DockerActivationKeyTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_remove_docker_repo_composite_cv(self):
+    def test_positive_remove_docker_repo_ccv(self):
         """@Test: Add Docker-type repository to a non-composite content view
         and publish it. Then add this content view to a composite content view
         and publish it. Create an activation key and associate it with the
@@ -1005,7 +1005,7 @@ class DockerComputeResourceTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_update(self):
+    def test_positive_update_internal(self):
         """@Test: Create a Docker-based Compute Resource in the Satellite 6
         instance then edit its attributes.
 
@@ -1132,7 +1132,7 @@ class DockerContainerTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_create_compresource(self):
+    def test_positive_create_with_compresource(self):
         """@Test: Create containers for local and external compute resources
 
         @Feature: Docker
@@ -1154,7 +1154,7 @@ class DockerContainerTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1282431)
-    def test_positive_create_cv(self):
+    def test_positive_create_using_cv(self):
         """@Test: Create docker container using custom content view, lifecycle
         environment and docker repository for local and external compute
         resources
@@ -1199,7 +1199,7 @@ class DockerContainerTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_power_compresource(self):
+    def test_positive_power_on_off(self):
         """@Test: Create containers for local and external compute resource,
         then power them on and finally power them off
 
@@ -1227,7 +1227,7 @@ class DockerContainerTestCase(APITestCase):
 
     @tier2
     @run_only_on('sat')
-    def test_positive_read_compresource_logs(self):
+    def test_positive_read_container_log(self):
         """@Test: Create containers for local and external compute resource and
         read their logs
 
@@ -1250,7 +1250,7 @@ class DockerContainerTestCase(APITestCase):
     @stubbed()
     # Return to that case once BZ 1230710 is fixed (with adding
     # DockerRegistryContainer class to Nailgun)
-    def test_positive_create_external_registry(self):
+    def test_positive_create_with_external_registry(self):
         """@Test: Create a container pulling an image from a custom external
         registry
 
@@ -1264,7 +1264,7 @@ class DockerContainerTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_delete_compresource(self):
+    def test_positive_delete(self):
         """@Test: Delete containers in local and external compute resources
 
         @Feature: Docker
@@ -1284,7 +1284,7 @@ class DockerContainerTestCase(APITestCase):
                     container.read()
 
 
-class DockerRegistriesTestCase(APITestCase):
+class DockerRegistryTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
     """
