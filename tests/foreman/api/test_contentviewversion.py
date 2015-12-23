@@ -1,4 +1,6 @@
 """Unit tests for the ``content_view_versions`` paths."""
+import time
+
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
@@ -316,6 +318,17 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
         # seem to create a task so we cannot pool it for status. We
         # should then check that we have some results back before
         # proceeding.
+        # This test sometimes fails in automation since uploading puppet
+        # modules take longer occasionally. To workaround, a delay of 10
+        # seconds is introduced together with polling every 2 seconds
+        for _ in range(5):
+            if len(puppet_modules) == 0:
+                time.sleep(2)
+                puppet_modules = content_view.available_puppet_modules()[
+                    'results']
+            else:
+                break
+        # Do not proceed if puppet module is not uploaded
         self.assertGreater(len(puppet_modules), 0)
         puppet_module = entities.PuppetModule(
             id=puppet_modules[0]['id']
