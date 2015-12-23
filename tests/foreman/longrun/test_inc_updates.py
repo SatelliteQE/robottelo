@@ -19,14 +19,14 @@ from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
 
 
-class TestIncrementalUpdate(TestCase):
+class IncrementalUpdateTestCase(TestCase):
     """Tests for the Incremental Update feature"""
 
     @classmethod
     @skip_if_not_set('clients')
     def setUpClass(cls):
         """Creates all the pre-requisites for the Incremental updates test"""
-        super(TestIncrementalUpdate, cls).setUpClass()
+        super(IncrementalUpdateTestCase, cls).setUpClass()
         # Step 1 - Create a new Organization
         cls.org = Organization(name=gen_alpha()).create()
 
@@ -223,7 +223,7 @@ class TestIncrementalUpdate(TestCase):
         )
 
     @run_only_on('sat')
-    def test_api_inc_update_noapply(self):
+    def test_positive_noapply_api(self):
         """@Test: Check if api incremental update can be done without
         actually applying it
 
@@ -270,7 +270,7 @@ class TestIncrementalUpdate(TestCase):
 
     @skip_if_bug_open('bugzilla', 1259057)
     @run_only_on('sat')
-    def test_cli_inc_update_noapply(self):
+    def test_positive_noapply_cli(self):
         """@Test: Check if cli incremental update can be done without
         actually applying it
 

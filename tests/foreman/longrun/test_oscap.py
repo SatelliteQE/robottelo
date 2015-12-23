@@ -26,7 +26,7 @@ from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
 
-class OpenScap(UITestCase):
+class OpenScapTestCase(UITestCase):
     """Implements Product tests in UI"""
 
     @classmethod
@@ -44,7 +44,7 @@ class OpenScap(UITestCase):
         8. Add product to activation-key
 
         """
-        super(OpenScap, cls).setUpClass()
+        super(OpenScapTestCase, cls).setUpClass()
         repo_values = [
             {'repo': REPOS['rhst6']['name'], 'reposet': REPOSET['rhst6']},
             {'repo': REPOS['rhst7']['name'], 'reposet': REPOSET['rhst7']},
@@ -125,7 +125,7 @@ class OpenScap(UITestCase):
             }})
 
     @run_only_on('sat')
-    def test_oscap_reports(self):
+    def test_positive_upload_to_satellite(self):
         """@Test: Perform end to end oscap test.
 
         @Feature: Oscap End to End.
