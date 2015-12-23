@@ -71,7 +71,7 @@ class UserTestCase(CLITestCase):
                 self.assertIn(lastname, user['name'])
 
     @tier1
-    def test_positive_create_user_with_email(self):
+    def test_positive_create_with_email(self):
         """@Test: Create User for all variations of Email Address
 
         @Feature: User - Positive Create
@@ -347,7 +347,7 @@ class UserTestCase(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1204686)
     @tier1
-    def test_verify_bugzilla_1204686(self):
+    def test_negative_create_with_empty_email(self):
         """@Test: Create User with empty Email Address
 
         @Feature: User - Negative Create
@@ -383,9 +383,9 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_blank_authorized_by_full(self):
-        """@Test: Create User with blank Authorized by but having matching values in
-        Password and verify fields and using valid Username, First Name,
-        Surname, Email Address, Language
+        """@Test: Create User with blank Authorized by but having matching
+        values in Password and verify fields and using valid Username, First
+        Name, Surname, Email Address, Language
 
         @Feature: User - Negative Create Password and verify
 
@@ -718,7 +718,7 @@ class UserTestCase(CLITestCase):
                     User.info({'login': user['login']})
 
     @tier1
-    def test_negative_delete_internal(self):
+    def test_negative_delete_internal_admin(self):
         """@Test: Attempt to delete internal admin user
 
         @Feature: User - Negative Delete
@@ -824,7 +824,7 @@ class UserTestCase(CLITestCase):
 
     @skip_if_bug_open('bugzilla', 1204667)
     @tier1
-    def test_verify_bugzilla_1204667(self):
+    def test_positive_create_with_email_utf8_latin(self):
         """@Test: List User for utf-8,latin variations of Email Address
 
         @Feature: User - list
@@ -871,7 +871,7 @@ class UserTestCase(CLITestCase):
 
     @stubbed()
     @tier3
-    def test_positvie_end_to_end_without_org(self):
+    def test_positive_end_to_end_without_org(self):
         """@Test: Create User with no Org assigned and attempt different
 
         @Feature: User - End to End
