@@ -52,7 +52,7 @@ class RHAIClientTestCase(TestCase):
         cls.ak_name = activation_key.name
         cls.org_name = org.name
 
-    def test_connection_option(self):
+    def test_positive_connection_option(self):
         """@Test: Verify that '--test-connection' option for
         redhat-access-insights client rpm tests the connection with the
         satellite server
