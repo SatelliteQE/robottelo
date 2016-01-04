@@ -121,11 +121,19 @@ def skip_if_not_set(*options):
 
 def stubbed(reason=None):
     """Skips test due to non-implentation or some other reason."""
-
     # Assume 'not implemented' if no reason is given
     if reason is None:
         reason = NOT_IMPLEMENTED
-    return unittest2.skip(reason)
+
+    def wrapper(func):
+        # Replicate the same behaviour as doing:
+        #
+        # @unittest2.skip(reason)
+        # @pytest.mark.stubbed
+        # def func(...):
+        #     ...
+        return unittest2.skip(reason)(pytest.mark.stubbed(func))
+    return wrapper
 
 
 def cacheable(func):
