@@ -9,7 +9,7 @@ FOREMAN_SMOKE_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), smoke)
 FOREMAN_TESTS_PATH=tests/foreman/
 FOREMAN_UI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), ui)
 PYTEST=python -m cProfile -o $@.pstats $$(which py.test)
-PYTEST_OPTS=-v --junit-xml=foreman-results.xml
+PYTEST_OPTS=-v --junit-xml=foreman-results.xml -m 'not stubbed'
 PYTEST_XDIST_OPTS=$(PYTEST_OPTS) -n auto --boxed
 ROBOTTELO_TESTS_PATH=tests/robottelo/
 
