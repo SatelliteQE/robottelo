@@ -405,10 +405,21 @@ class VirtualMachine(object):
             rhel_repo = settings.rhel7_repo
             insights_repo = settings.rhai.insights_client_el7repo
 
+        missing_repos = []
+        if insights_repo is None:
+            missing_repos.append('RHAI client')
+        if rhel_repo is None:
+            missing_repos.append('RHEL')
+        if missing_repos:
+            raise VirtualMachineError(
+                'Missing {0} repository configuration for {1}.'
+                .format(' and '.join(missing_repos), rhel_distro)
+            )
+
         self.configure_rhel_repo(rhel_repo)
 
-        self.run('wget -O /etc/yum.repos.d/insights.repo {0}'.
-                 format(insights_repo))
+        self.run(
+            'wget -O /etc/yum.repos.d/insights.repo {0}'.format(insights_repo))
 
         # Install redhat-access-insights package
         package_name = 'redhat-access-insights'
