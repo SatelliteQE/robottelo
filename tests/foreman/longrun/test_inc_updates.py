@@ -42,8 +42,8 @@ class IncrementalUpdateTestCase(TestCase):
         ).create()
 
         # Step 3: Upload manifest
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(cls.org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(cls.org.id, manifest.content)
 
         # Step 4: Enable repositories - 6Server and rhel6 sat6tools
         rhel_66_repo_id = enable_rhrepo_and_fetchid(

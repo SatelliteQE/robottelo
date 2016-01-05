@@ -95,17 +95,24 @@ def _get_connection(
         logger.info('Destroyed Paramiko client {0}'.format(client_id))
 
 
-def upload_file(local_file, remote_file=None, hostname=None):
-    """Upload a local file to a remote machine. If ``hostname`` is not provided
-    will be used the server.hostname from the cofiguration.
+def upload_file(local_file, remote_file, hostname=None):
+    """Upload a local file to a remote machine
 
+    :param local_file: either a file path or a file-like object to be uploaded.
+    :param remote_file: a remote file path where the uploaded file will be
+        placed.
+    :param hostname: target machine hostname. If not provided will be used the
+        ``server.hostname`` from the configuration.
     """
-    if not remote_file:
-        remote_file = local_file
     with _get_connection(hostname=hostname) as connection:
         try:
             sftp = connection.open_sftp()
-            sftp.put(local_file, remote_file)
+            # Check if local_file is a file-like object and use the proper
+            # paramiko function to upload it to the remote machine.
+            if hasattr(local_file, 'read'):
+                sftp.putfo(local_file, remote_file)
+            else:
+                sftp.put(local_file, remote_file)
         finally:
             sftp.close()
 

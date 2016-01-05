@@ -731,10 +731,10 @@ class ActivationKeyTestCase(CLITestCase):
         @Assert: Deleting subscription removes it from the Activation key
         """
         new_ak = self._make_activation_key()
-        manifest = manifests.clone()
-        upload_file(manifest)
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
         Subscription.upload({
-            'file': manifest,
+            'file': manifest.filename,
             'organization-id': self.org['id'],
         })
         subscription_result = Subscription.list({
@@ -977,12 +977,12 @@ class ActivationKeyTestCase(CLITestCase):
 
         @Assert: Subscription successfully added to activation key
         """
-        manifest = manifests.clone()
-        upload_file(manifest, remote_file=manifest)
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
         org_id = make_org()['id']
         ackey_id = self._make_activation_key()['id']
         Subscription.upload({
-            'file': manifest,
+            'file': manifest.filename,
             'organization-id': org_id,
         })
         subs_id = Subscription.list(
@@ -1064,10 +1064,10 @@ class ActivationKeyTestCase(CLITestCase):
         """
         # Begin test setup
         parent_ak = self._make_activation_key()
-        manifest = manifests.clone()
-        upload_file(manifest, remote_file=manifest)
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
         Subscription.upload({
-            'file': manifest,
+            'file': manifest.filename,
             'organization-id': self.org['id'],
         })
         subscription_result = Subscription.list(

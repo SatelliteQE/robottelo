@@ -25,8 +25,8 @@ class SubscriptionsTestCase(APITestCase):
         @Feature: Subscriptions
         """
         org = entities.Organization().create()
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
 
     @skip_if_not_set('fake_manifest')
     @tier1
@@ -39,8 +39,8 @@ class SubscriptionsTestCase(APITestCase):
         """
         org = entities.Organization().create()
         sub = entities.Subscription(organization=org)
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
         self.assertGreater(len(sub.search()), 0)
         sub.delete_manifest(data={'organization_id': org.id})
         self.assertEqual(len(sub.search()), 0)
@@ -55,9 +55,9 @@ class SubscriptionsTestCase(APITestCase):
         @Feature: Subscriptions
         """
         orgs = [entities.Organization().create() for _ in range(2)]
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(orgs[0].id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(orgs[0].id, manifest.content)
             with self.assertRaises(TaskFailedError):
-                upload_manifest(orgs[1].id, manifest)
+                upload_manifest(orgs[1].id, manifest.content)
         self.assertEqual(
             len(entities.Subscription(organization=orgs[1]).search()), 0)

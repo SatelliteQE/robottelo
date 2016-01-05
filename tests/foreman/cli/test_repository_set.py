@@ -27,10 +27,10 @@ class RepositorySetTestCase(CLITestCase):
 
         # Clone manifest and upload it
         org = make_org()
-        manifest = manifests.clone()
-        upload_file(manifest, remote_file=manifest)
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
         Subscription.upload({
-            u'file': manifest,
+            u'file': manifest.filename,
             u'organization-id': org['id'],
         })
 
@@ -134,10 +134,10 @@ class RepositorySetTestCase(CLITestCase):
         @Assert: Repository was enabled
         """
         org = make_org()
-        manifest = manifests.clone()
-        upload_file(manifest, remote_file=manifest)
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
         Subscription.upload({
-            u'file': manifest,
+            u'file': manifest.filename,
             u'organization-id': org['id'],
         })
         RepositorySet.enable({
@@ -170,10 +170,10 @@ class RepositorySetTestCase(CLITestCase):
         @Assert: Repository was enabled
         """
         org = make_org()
-        manifest = manifests.clone()
-        upload_file(manifest, remote_file=manifest)
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
         Subscription.upload({
-            u'file': manifest,
+            u'file': manifest.filename,
             u'organization-id': org['id'],
         })
         RepositorySet.enable({
@@ -205,10 +205,10 @@ class RepositorySetTestCase(CLITestCase):
         @Assert: Repository was enabled
         """
         org = make_org()
-        manifest = manifests.clone()
-        upload_file(manifest, remote_file=manifest)
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
         Subscription.upload({
-            u'file': manifest,
+            u'file': manifest.filename,
             u'organization-id': org['id'],
         })
         product_id = Product.info({
@@ -250,10 +250,10 @@ class RepositorySetTestCase(CLITestCase):
         @Assert: Repository was disabled
         """
         org = make_org()
-        manifest = manifests.clone()
-        upload_file(manifest, remote_file=manifest)
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
         Subscription.upload({
-            u'file': manifest,
+            u'file': manifest.filename,
             u'organization-id': org['id'],
         })
         RepositorySet.enable({
@@ -293,10 +293,10 @@ class RepositorySetTestCase(CLITestCase):
         @Assert: Repository was disabled
         """
         org = make_org()
-        manifest = manifests.clone()
-        upload_file(manifest, remote_file=manifest)
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
         Subscription.upload({
-            u'file': manifest,
+            u'file': manifest.filename,
             u'organization-id': org['id'],
         })
         RepositorySet.enable({
@@ -335,10 +335,10 @@ class RepositorySetTestCase(CLITestCase):
         @Assert: Repository was disabled
         """
         org = make_org()
-        manifest = manifests.clone()
-        upload_file(manifest, remote_file=manifest)
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
         Subscription.upload({
-            u'file': manifest,
+            u'file': manifest.filename,
             u'organization-id': org['id'],
         })
         product_id = Product.info({

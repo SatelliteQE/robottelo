@@ -143,8 +143,8 @@ class RepositorySetTestCase(APITestCase):
         @Assert: Repository was enabled
         """
         org = entities.Organization().create()
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
         product = entities.Product(
             name=PRDS['rhel'],
             organization=org,
@@ -173,8 +173,8 @@ class RepositorySetTestCase(APITestCase):
         @Assert: Repository was disabled
         """
         org = entities.Organization().create()
-        with open(manifests.clone(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
         product = entities.Product(
             name=PRDS['rhel'],
             organization=org,

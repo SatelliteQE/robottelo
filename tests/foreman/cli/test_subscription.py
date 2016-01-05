@@ -17,16 +17,21 @@ class SubscriptionTestCase(CLITestCase):
         """Tests for content-view via Hammer CLI"""
         super(SubscriptionTestCase, self).setUp()
         self.org = make_org()
-        self.manifest = manifests.clone()
 
     # pylint: disable=no-self-use
-    def _upload_manifest(self, manifest, org_id):
-        """Uploads a manifest file and import it into an organization"""
-        upload_file(manifest, remote_file=manifest)
+    def _upload_manifest(self, org_id, manifest=None):
+        """Uploads a manifest into an organization.
+
+        A cloned manifest will be used if ``manifest`` is None.
+        """
+        if manifest is None:
+            manifest = manifests.clone()
+        upload_file(manifest.content, manifest.filename)
         Subscription.upload({
-            'file': manifest,
+            u'file': manifest.filename,
             'organization-id': org_id,
         })
+        manifest.content.close()
 
     @tier1
     def test_positive_manifest_upload(self):
@@ -36,7 +41,7 @@ class SubscriptionTestCase(CLITestCase):
 
         @Assert: Manifest are uploaded properly
         """
-        self._upload_manifest(self.manifest, self.org['id'])
+        self._upload_manifest(self.org['id'])
         Subscription.list(
             {'organization-id': self.org['id']},
             per_page=False,
@@ -50,7 +55,7 @@ class SubscriptionTestCase(CLITestCase):
 
         @Assert: Manifest are deleted properly
         """
-        self._upload_manifest(self.manifest, self.org['id'])
+        self._upload_manifest(self.org['id'])
         Subscription.list(
             {'organization-id': self.org['id']},
             per_page=False,
@@ -72,7 +77,7 @@ class SubscriptionTestCase(CLITestCase):
         @Assert: you are able to enable and synchronize
         repository contained in a manifest
         """
-        self._upload_manifest(self.manifest, self.org['id'])
+        self._upload_manifest(self.org['id'])
         Subscription.list(
             {'organization-id': self.org['id']},
             per_page=False,
@@ -105,7 +110,7 @@ class SubscriptionTestCase(CLITestCase):
 
         @Assert: Manifest history is shown properly
         """
-        self._upload_manifest(self.manifest, self.org['id'])
+        self._upload_manifest(self.org['id'])
         Subscription.list(
             {'organization-id': self.org['id']},
             per_page=None,
@@ -127,7 +132,7 @@ class SubscriptionTestCase(CLITestCase):
         @Assert: Manifests can be refreshed
         """
         self._upload_manifest(
-            manifests.download_manifest_template(), self.org['id'])
+            self.org['id'], manifests.original_manifest())
         Subscription.list(
             {'organization-id': self.org['id']},
             per_page=False,
@@ -150,7 +155,7 @@ class SubscriptionTestCase(CLITestCase):
 
         @BZ: 1226425
         """
-        self._upload_manifest(self.manifest, self.org['id'])
+        self._upload_manifest(self.org['id'])
         Subscription.list(
             {'organization-id': self.org['id']},
             per_page=False,

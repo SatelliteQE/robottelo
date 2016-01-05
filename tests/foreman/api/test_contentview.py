@@ -909,10 +909,10 @@ class ContentViewRedHatContent(APITestCase):
         super(ContentViewRedHatContent, cls).setUpClass()
 
         cls.org = entities.Organization().create()
-        with open(manifests.clone(), 'rb') as manifest:
+        with manifests.clone() as manifest:
             entities.Subscription().upload(
                 data={'organization_id': cls.org.id},
-                files={'content': manifest},
+                files={'content': manifest.content},
             )
         repo_id = enable_rhrepo_and_fetchid(
             basearch='x86_64',

@@ -78,10 +78,10 @@ class ContentViewTestCase(CLITestCase):
             return
 
         ContentViewTestCase.rhel_content_org = make_org()
-        manifest = manifests.clone()
-        upload_file(manifest)
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
         Subscription.upload({
-            'file': manifest,
+            'file': manifest.filename,
             'organization-id': ContentViewTestCase.rhel_content_org['id'],
         })
 

@@ -1,13 +1,8 @@
-# -*- encoding: utf-8 -*-
-"""
-Implements Manifest functions
-"""
-
+"""Manifest clonning tools.."""
 import json
-import os
 import requests
-import shutil
-import tempfile
+import six
+import time
 import uuid
 import zipfile
 
@@ -17,160 +12,139 @@ from Crypto.Signature import PKCS1_v1_5
 from robottelo.config import settings
 
 
-def get_tempfile():
-    """Creates a temporary file.
+class ManifestCloner(object):
+    """Manifest clonning utility class."""
+    def __init__(self, template=None, signing_key=None):
+        self.template = template
+        self.signing_key = signing_key
 
-    Generates temporary file with mkstemp,
-    closes the handle, and returns the path to temporary file.
+    def _download_manifest_info(self):
+        """Download and cache the manifest information."""
+        self.template = requests.get(settings.fake_manifest.url).content
+        self.signing_key = requests.get(settings.fake_manifest.key_url).content
+        self.signature = PKCS1_v1_5.new(RSA.importKey(self.signing_key))
 
+    def clone(self):
+        """Clones a RedHat-manifest file.
+
+        Change the consumer ``uuid`` and sign the new manifest with
+        signing key. The certificate for the key must be installed on the
+        candlepin server in order to accept uploading the cloned
+        manifest.
+
+        :return: A file-like object (``BytesIO`` on Python 3 and
+            ``StringIO`` on Python 2) with the contents of the cloned
+            manifest.
+        """
+        if self.signing_key is None or self.template is None:
+            self._download_manifest_info()
+
+        template_zip = zipfile.ZipFile(six.BytesIO(self.template))
+        # Extract the consumer_export.zip from the template manifest.
+        consumer_export_zip = zipfile.ZipFile(
+            six.BytesIO(template_zip.read('consumer_export.zip')))
+
+        # Generate a new consumer_export.zip file changing the consumer
+        # uuid.
+        consumer_export = six.BytesIO()
+        with zipfile.ZipFile(consumer_export, 'w') as new_consumer_export_zip:
+            for name in consumer_export_zip.namelist():
+                if name == 'export/consumer.json':
+                    consumer_data = json.loads(
+                        consumer_export_zip.read(name).decode('utf-8'))
+                    consumer_data['uuid'] = six.text_type(uuid.uuid1())
+                    new_consumer_export_zip.writestr(
+                        name,
+                        json.dumps(consumer_data)
+                    )
+                else:
+                    new_consumer_export_zip.writestr(
+                        name,
+                        consumer_export_zip.read(name)
+                    )
+
+        # Generate a new manifest.zip file with the generated
+        # consumer_export.zip and new signature.
+        manifest = six.BytesIO()
+        with zipfile.ZipFile(
+                manifest, 'w', zipfile.ZIP_DEFLATED) as manifest_zip:
+            consumer_export.seek(0)
+            manifest_zip.writestr(
+                'consumer_export.zip',
+                consumer_export.read()
+            )
+            consumer_export.seek(0)
+            manifest_zip.writestr(
+                'signature',
+                self.signature.sign(SHA256.new(consumer_export.read()))
+            )
+        # Make sure that the file-like object is at the beginning and
+        # ready to be read.
+        manifest.seek(0)
+        return manifest
+
+
+# Cache the ManifestCloner in order to avoid downloading the manifest template
+# every single time.
+_manifest_cloner = ManifestCloner()
+
+
+class Manifest(object):
+    """Class that holds the contents of a manifest with a generated filename
+    based on ``time.time``.
+
+    To ensure that the manifest content is closed use this class as a context
+    manager with the ``with`` statement::
+
+        with Manifest() as manifest:
+            # my fancy stuff
     """
-    fd, tempname = tempfile.mkstemp()
-    os.fdopen(fd).close()
-    return tempname
+    def __init__(self, content=None, filename=None):
+        self._content = content
+        self.filename = filename
+
+        if self._content is None:
+            self._content = _manifest_cloner.clone()
+        if self.filename is None:
+            self.filename = u'/tmp/manifest-{0}.zip'.format(int(time.time()))
+
+    @property
+    def content(self):
+        if not self._content.closed:
+            # Make sure that the content is always ready to read
+            self._content.seek(0)
+        return self._content
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, type, value, traceback):
+        if not self.content.closed:
+            self.content.close()
 
 
-def retrieve(url):
-    """Downloads contents of a URL.
+def clone():
+    """Clone the cached manifest and return a ``Manifest`` object.
 
-    Downloads content of the url and saves it to temporary file.
-    Then returns the path to the temporary file.
+    Is hightly recommended to use this with the ``with`` statement to make that
+    the content of the manifest (file-like object) is closed properly::
 
+        with clone() as manifest:
+            # my fancy stuff
     """
-    response = requests.get(url)
-    fd, tempname = tempfile.mkstemp()
-    with os.fdopen(fd, "wb") as temp_file:
-        temp_file.write(response.content)
-    return tempname
+    return Manifest()
 
 
-def download_signing_key():
-    """ Private key to Sign a modified manifest.
+def original_manifest():
+    """Returns a ``Manifest`` object filed with the template manifest.
 
-    Downloads the configured key file to a temporary file and returns the path.
+    Make sure to remove the manifest after its usage otherwiser the Satellite 6
+    server will not accept it anymore on any other organization.
 
+    Is hightly recommended to use this with the ``with`` statement to make that
+    the content of the manifest (file-like object) is closed properly::
+
+        with original_manifest() as manifest:
+            # my fancy stuff
     """
-    return retrieve(settings.fake_manifest.key_url)
-
-
-def download_manifest_template():
-    """ Manifest template used for cloning.
-
-    Downloads the configured manifest file to serve as a template and
-    returns the path.
-
-    """
-    return retrieve(settings.fake_manifest.url)
-
-
-def sign(key_file, file_to_sign):
-    """Performs the signing of the modified manifest file.
-
-    Reads the rsa key file and then proceeds to create signed sha256
-    hash of the data in the file according to PKCS1 1.5 standard.
-
-    :param str key_file: The private key used to sign.
-    :param str file_to_sign: The file name to sign.
-    :return:  Returns binary signature data.
-
-    """
-    with open(key_file) as handle:
-        signature = PKCS1_v1_5.new(RSA.importKey(handle.read()))
-    with open(file_to_sign, "rb") as data:
-        digest = SHA256.new(data.read())
-    return signature.sign(digest)
-
-
-def edit_in_zip(zip_file, file_edit_functions):
-    """Performs the actual editing.
-
-    Reads every file in the zip, and for every path in file_edit_functions
-    dictionary it applies the relevant function on the contents of the file
-    and saves it with new content.
-
-    For example if you had zipfile /tmp/test.zip containing files small.txt,
-    filler.txt and large.txt and you'd want small.txt contain 1 and large.txt
-    contain 1000, you would call
-
-    edit_in_zip("/tmp/test.zip",
-        {'small.txt': lambda x: "1", 'large.txt': lambda x: "1000"})
-
-    :param str zip_file: The zip file to edit.
-    :param dict file_edit_functions: Files & Functions are the key value pairs.
-    :return: None
-
-    """
-    tempdir = tempfile.mkdtemp()
-    tempname = get_tempfile()
-
-    try:
-        with zipfile.ZipFile(zip_file, 'r') as zipread:
-            zipread.extractall(tempdir)
-        for base, _, files in os.walk(tempdir):
-            for ifile in files:
-                if ifile in file_edit_functions:
-                    file_name = os.path.join(base, ifile)
-                    data = None
-                    with open(file_name) as file_to_change:
-                        content = file_to_change.read()
-                        data = file_edit_functions[ifile](
-                            content
-                        )
-                    with open(file_name, 'w') as file_to_change:
-                        file_to_change.write(data)
-        with zipfile.ZipFile(tempname, 'w') as zipwrite:
-            baselen = len(tempdir)
-            for base, _, files in os.walk(tempdir):
-                for ifile in files:
-                    file_name_zip = os.path.join(base, ifile)[baselen:]
-                    file_name = os.path.join(tempdir, file_name_zip[1:])
-                    zipwrite.write(file_name, file_name_zip)
-        shutil.move(tempname, zip_file)
-    finally:
-        shutil.rmtree(tempdir)
-
-
-def edit_consumer(data):
-    """Takes the string-data of the consumer file and updates with new UUID.
-
-    :param str data: Takes in the consumer file name.
-    :return: returns the json with new UUID.
-    :rtype: str
-
-    """
-    content_dict = json.loads(data)
-    content_dict['uuid'] = unicode(uuid.uuid1())
-    return json.dumps(content_dict)
-
-
-def clone(key_path=None, old_path=None):
-    """Clones a RedHat-manifest file.
-
-    Taking a manifest on oldpath, changes the uuid in consumer.json and resigns
-    it with an RSA key. When accompanying certificate is installed on the
-    candlepin server, it allows us to quickly create uploadable
-    copies of the original manifest.
-
-    :param str key_path: This is the private-key to sign the redhat-manifest.
-    :param str old_path: This is the path of the original redhat-manifest.
-    :return: Return the path to the cloned redhat-manifest file.
-    :rtype: str
-
-    """
-    tempdir = tempfile.mkdtemp()
-    consumer_zip_file = os.path.join(tempdir, "consumer_export.zip")
-    if key_path is None:
-        key_path = download_signing_key()
-    if old_path is None:
-        old_path = download_manifest_template()
-    new_path = get_tempfile()
-    shutil.copy(old_path, new_path)
-    with zipfile.ZipFile(new_path) as oldzip:
-        oldzip.extractall(tempdir)
-    edit_in_zip(consumer_zip_file, {"consumer.json": edit_consumer})
-    signature = sign(key_path, consumer_zip_file)
-    with open(os.path.join(tempdir, "signature"), "wb") as sign_file:
-        sign_file.write(signature)
-    with zipfile.ZipFile(new_path, "w") as oldzip:
-        oldzip.write(consumer_zip_file, "/consumer_export.zip")
-        oldzip.write(os.path.join(tempdir, "signature"), "/signature")
-    return new_path
+    return Manifest(six.BytesIO(_manifest_cloner.template))
