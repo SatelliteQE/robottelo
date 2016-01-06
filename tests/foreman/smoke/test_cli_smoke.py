@@ -474,12 +474,14 @@ class SmokeTestCase(CLITestCase):
             {u'organization-id': new_org['id']},
             per_page=False
         )
+        self.assertGreater(len(result), 0)
         # Get the subscription ID from subscriptions list
+        subscription_quantity = 0
         for subscription in result:
             if subscription['name'] == DEFAULT_SUBSCRIPTION_NAME:
                 subscription_id = subscription['id']
                 subscription_quantity = int(subscription['quantity'])
-        self.assertGreater(int(subscription_quantity), 0)
+        self.assertGreater(subscription_quantity, 0)
         # Add the subscriptions to activation-key
         ActivationKey.add_subscription({
             u'id': activation_key['id'],

@@ -5,6 +5,7 @@ from robottelo.cli.factory import make_org
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
+from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
@@ -84,22 +85,15 @@ class SubscriptionTestCase(CLITestCase):
         )
         RepositorySet.enable({
             'basearch': 'x86_64',
-            'name': (
-                'Red Hat Enterprise Virtualization Agents '
-                'for RHEL 6 Workstation (RPMs)'
-            ),
+            'name': REPOSET['rhva6'],
             'organization-id': self.org['id'],
-            'product': 'Red Hat Enterprise Linux Workstation',
-            'releasever': '6Workstation',
+            'product': PRDS['rhel'],
+            'releasever': '6Server',
         })
         Repository.synchronize({
-            'name': (
-                'Red Hat Enterprise Virtualization Agents '
-                'for RHEL 6 Workstation '
-                'RPMs x86_64 6Workstation'
-            ),
+            'name': REPOS['rhva6']['name'],
             'organization-id': self.org['id'],
-            'product': 'Red Hat Enterprise Linux Workstation',
+            'product': PRDS['rhel'],
         })
 
     @tier1
