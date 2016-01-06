@@ -1,11 +1,13 @@
 # -*- encoding: utf-8 -*-
 """Test class for Foreman Discovery"""
-from fauxfactory import gen_string, gen_mac
+from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.config import settings
 from robottelo.decorators import skip_if_not_set, stubbed, tier3
-from robottelo import ssh
+from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.test import UITestCase
+from robottelo.ui.base import UIError
+from robottelo.ui.factory import edit_param
+from robottelo.ui.locators import locators, tab_locators
 from robottelo.ui.session import Session
 from time import sleep
 
@@ -13,20 +15,7 @@ from time import sleep
 class DiscoveryTestCase(UITestCase):
     """Implements Foreman discovery tests in UI."""
 
-    name = gen_string('alpha')
-
-    def _pxe_boot_host(self, mac):
-        """PXE boot a unknown host"""
-        ssh.command(
-            u'virt-install --hvm --network=bridge:{0}, --mac={1} '
-            '--pxe --name {2} --ram=1024 --vcpus=1 --os-type=linux '
-            '--os-variant=rhel7 --disk path={3},size=10 --noautoconsole'
-            .format(settings.vlan_networking.bridge, mac, self.name,
-                    self.image_path),
-            hostname=self.libvirt_host
-        )
-
-    def assertdiscoveredhost(self, hostname):
+    def _assertdiscoveredhost(self, hostname):
         """
         Check if host is visible under 'Discovered Hosts' on UI
 
@@ -40,6 +29,26 @@ class DiscoveryTestCase(UITestCase):
                 discovered_host = self.discoveredhosts.search(hostname)
             else:
                 break
+
+    def _edit_discovery_fact_column_param(self, session, param_value):
+        """
+        Edit the 'discovery_fact_column' parameter from settings menu.
+
+        User can populate a new column on 'Discovered Hosts' page by setting
+        the value of 'discovery_fact_column'
+        """
+        tab_locator = tab_locators['settings.tab_discovered']
+        param_name = 'discovery_fact_column'
+        edit_param(
+            session=session,
+            tab_locator=tab_locator,
+            param_name=param_name,
+            value_type='input',
+            param_value=param_value,
+        )
+        saved_element = self.settings.get_saved_value(
+            tab_locator, param_name)
+        self.assertEqual(param_value, saved_element)
 
     @classmethod
     @skip_if_not_set('vlan_networking')
@@ -56,9 +65,6 @@ class DiscoveryTestCase(UITestCase):
         """
         super(DiscoveryTestCase, cls).setUpClass()
 
-        cls.image_path = u'{0}/{1}.img'.format(
-            settings.compute_resources.libvirt_image_dir, cls.name)
-        cls.libvirt_host = settings.compute_resources.libvirt_hostname
         # Build PXE default template to get default PXE file
         entities.ConfigTemplate().build_pxe_default()
 
@@ -95,29 +101,12 @@ class DiscoveryTestCase(UITestCase):
 
         super(DiscoveryTestCase, cls).tearDownClass()
 
-    def tearDown(self):
-        """Delete the pxe host to free the resources"""
-        ssh.command(
-            'virsh destroy {0}'.format(self.name),
-            hostname=self.libvirt_host
-        )
-        ssh.command(
-            'virsh undefine {0}'.format(self.name),
-            hostname=self.libvirt_host
-        )
-        ssh.command(
-            'virsh vol-delete --pool default {0}'
-            .format(self.image_path),
-            hostname=self.libvirt_host
-        )
-        super(DiscoveryTestCase, self).tearDown()
-
     @tier3
-    def test_positive_discovery(self):
-        """@Test: Discover a host via proxy by setting "proxy.type=proxy" in
+    def test_positive_pxe_based_discovery(self):
+        """@Test: Discover a host via PXE boot by setting "proxy.type=proxy" in
         PXE default
 
-        @Feature: Foreman Discovery
+        @Feature: Foreman Discovery - PXEBased
 
         @Setup: Provisioning should be configured
 
@@ -126,30 +115,59 @@ class DiscoveryTestCase(UITestCase):
         @Assert: Host should be successfully discovered
 
         """
-        mac = gen_mac(multicast=False, locally=True)
-        hostname = 'mac{0}'.format(mac.replace(':', ""))
-        self._pxe_boot_host(mac)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
-            self.assertdiscoveredhost(hostname)
-            self.assertIsNotNone(self.discoveredhosts.search(hostname))
+            with LibvirtGuest() as pxe_host:
+                hostname = pxe_host.guest_name
+                self._assertdiscoveredhost(hostname)
+                self.assertIsNotNone(self.discoveredhosts.search(hostname))
 
-    @stubbed()
     @tier3
-    def test_positive_discovery_facts(self):
-        """@Test: Check all facts of discovered hosts are correctly displayed
+    def test_positive_pxe_less_discovery(self):
+        """@Test: Discover a host via bootable discovery ISO by setting
+        "proxy.type=proxy" in PXE default.
 
-        @Feature: Foreman Discovery
+        @Feature: Foreman Discovery - PXELess
 
         @Setup: Provisioning should be configured
 
-        @Steps: Validate IP, memory, mac etc of discovered host
+        @Steps: Boot a host/VM using discovery ISO
 
-        @Assert: All facts should be displayed correctly
-
-        @Status: Manual
+        @Assert: Host should be successfully discovered
 
         """
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            with LibvirtGuest(boot_iso=True) as pxe_less_host:
+                hostname = pxe_less_host.guest_name
+                self._assertdiscoveredhost(hostname)
+                self.assertIsNotNone(self.discoveredhosts.search(hostname))
+
+    @tier3
+    def test_custom_facts_discovery(self):
+        """@Test: Check if defined custom facts are displayed under host's facts
+
+        @Feature: Foreman Discovery - PXELess
+
+        @Setup: Provisioning should be configured
+
+        @Steps: Validate specified custom facts
+
+        @Assert: All defined custom facts should be displayed correctly
+
+        """
+        param_value = 'myfact'
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            # To show new fact column 'Interfaces' on Discovered Hosts page
+            self._edit_discovery_fact_column_param(session, param_value)
+            with LibvirtGuest(boot_iso=True) as pxe_less_host:
+                hostname = pxe_less_host.guest_name
+                self._assertdiscoveredhost(hostname)
+                element = locators['discoveredhosts.fetch_custom_fact']
+                custom_fact = self.discoveredhosts.fetch_fact_value(
+                    hostname, element)
+                self.assertEqual(u'somevalue', custom_fact)
 
     @stubbed()
     @tier3
@@ -185,7 +203,6 @@ class DiscoveryTestCase(UITestCase):
 
         """
 
-    @stubbed()
     @tier3
     def test_positive_delete(self):
         """@Test: Delete the selected discovered host
@@ -197,15 +214,13 @@ class DiscoveryTestCase(UITestCase):
         @Assert: Selected host should be removed successfully
 
         """
-        mac = gen_mac(multicast=False, locally=True)
-        hostname = 'mac{0}'.format(mac.replace(':', ""))
-        self._pxe_boot_host(mac)
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.org_name)
-            self.assertdiscoveredhost(hostname)
-            self.discoveredhosts.delete(hostname)
+            with LibvirtGuest() as pxe_host:
+                hostname = pxe_host.guest_name
+                self._assertdiscoveredhost(hostname)
+                self.discoveredhosts.delete(hostname)
 
-    @stubbed()
     @tier3
     def test_positive_delete_from_facts(self):
         """@Test: Delete the selected discovered host from facts page
@@ -216,11 +231,15 @@ class DiscoveryTestCase(UITestCase):
 
         @Assert: Selected host should be removed successfully
 
-        @Status: Manual
-
         """
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            with LibvirtGuest() as pxe_host:
+                hostname = pxe_host.guest_name
+                self._assertdiscoveredhost(hostname)
+                self.discoveredhosts.delete_from_facts(hostname)
+                self.assertIsNone(self.discoveredhosts.search(hostname))
 
-    @stubbed()
     @tier3
     def test_positive_delete_multiple(self):
         """@Test: Delete multiple discovered hosts from 'Select Action'
@@ -232,26 +251,58 @@ class DiscoveryTestCase(UITestCase):
 
         @Assert: Selected host should be removed successfully
 
-        @Status: Manual
-
         """
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            with LibvirtGuest() as pxe_1_host:
+                host_1_name = pxe_1_host.guest_name
+                self._assertdiscoveredhost(host_1_name)
+                with LibvirtGuest() as pxe_2_host:
+                    host_2_name = pxe_2_host.guest_name
+                    self._assertdiscoveredhost(host_2_name)
+                    for hostname in [host_1_name, host_2_name]:
+                        host = self.discoveredhosts.search(hostname)
+                        if not host:
+                            raise UIError(
+                                'Could not find the selected discovered host '
+                                '"{0}"'.format(hostname)
+                            )
+                        self.discoveredhosts.navigate_to_entity()
+                        # To delete multiple discovered hosts
+                        self.discoveredhosts.multi_delete()
+                        for hostname in [host_1_name, host_2_name]:
+                            self.assertIsNone(
+                                self.discoveredhosts.search(hostname))
 
-    @stubbed()
     @tier3
     def test_positive_refresh_facts(self):
-        """@Test: Refresh the facts of discovered hosts
+        """@Test: Refresh the facts of discovered host by adding a new NIC.
 
         @Feature: Foreman Discovery
 
         @Setup: Host should already be discovered
 
-        @Assert: Facts should be refreshed successfully
-        ToDo: Need to check what we change on host that its updated with
-        refresh facts
-
-        @Status: Manual
+        @Assert: Facts should be refreshed successfully with new NIC
 
         """
+        param_value = 'interfaces'
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            # To show new fact column 'Interfaces' on Discovered Hosts page
+            self._edit_discovery_fact_column_param(session, param_value)
+            with LibvirtGuest() as pxe_host:
+                hostname = pxe_host.guest_name
+                self._assertdiscoveredhost(hostname)
+                self.assertIsNotNone(self.discoveredhosts.search(hostname))
+                # To add a new network interface on discovered host
+                pxe_host.attach_nic()
+                # To refresh the facts of discovered host,
+                # UI should show newly added interface on refresh_facts
+                self.discoveredhosts.refresh_facts(hostname)
+                element = locators['discoveredhosts.fetch_interfaces']
+                host_interfaces = self.discoveredhosts.fetch_fact_value(
+                    hostname, element)
+                self.assertEqual(u'eth0,eth1,lo', host_interfaces)
 
     @stubbed()
     @tier3
@@ -452,12 +503,11 @@ class DiscoveryTestCase(UITestCase):
 
         """
 
-    @stubbed()
     @tier3
     def test_positive_add_fact_column(self):
         """@Test: Add a new fact column to display on discovered host page
 
-        @Feature: Foreman Discovery
+        @Feature: Foreman Discovery - PXEBased
 
         @Steps:
 
@@ -465,14 +515,24 @@ class DiscoveryTestCase(UITestCase):
 
         2. Edit discovery_fact_coloumn
 
-        3. Add uuid or os
+        3. Add bios_vendor
 
         @Assert: The added fact should be displayed on 'discovered_host' page
         after successful discovery
 
-        @Status: Manual
-
         """
+        param_value = 'bios_vendor'
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            # To show new fact column 'Interfaces' on Discovered Hosts page
+            self._edit_discovery_fact_column_param(session, param_value)
+            with LibvirtGuest() as pxe_host:
+                hostname = pxe_host.guest_name
+                self._assertdiscoveredhost(hostname)
+                element = locators['discoveredhosts.fetch_bios']
+                host_bios = self.discoveredhosts.fetch_fact_value(
+                    hostname, element)
+                self.assertEqual(u'Seabios', host_bios)
 
     @stubbed()
     @tier3
@@ -514,13 +574,12 @@ class DiscoveryTestCase(UITestCase):
 
     @stubbed()
     @tier3
-    def test_positive_discovery_role(self):
-        """@Test: Assign 'Discovery" role to a normal user
+    def test_positive_discovery_reader_role(self):
+        """@Test: Assign 'Discovery Reader" role to a normal user
 
         @Feature: Foreman Discovery
 
-        @Assert: User should be able to view, provision, edit and destroy one
-        or more discovered host
+        @Assert: User should be able to view existing discovered host and rule
 
         @Status: Manual
 

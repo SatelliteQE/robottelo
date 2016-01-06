@@ -2031,8 +2031,30 @@ locators = LocatorDict({
     "discoveredhosts.dropdown": (
         By.XPATH, ("//a[contains(@href,'%s')]"
                    "/following::a[@data-toggle='dropdown']")),
+    "discoveredhosts.refresh_facts": (
+        By.XPATH, ("//a[contains(@href,'%s') and "
+                   "contains(@data-id,'refresh_facts')]")),
     "discoveredhosts.delete": (
         By.XPATH, ("//a[@class='delete' and contains(@data-confirm, '%s')]")),
+    "discoveredhosts.delete_from_facts": (
+        By.XPATH, ("//a[contains(@href,'%s') and contains(.,'Delete')]")),
+    "discoveredhosts.select_all": (By.ID, "check_all"),
+    "discoveredhosts.select_action": (
+        By.XPATH, ("//div[@id='submit_multiple']/a[@data-toggle='dropdown']")),
+    "discoveredhosts.multi_delete": (
+        By.XPATH, ("//a[@href='/discovered_hosts/multiple_destroy']")),
+    "discoveredhosts.fetch_interfaces": (
+        By.XPATH, ("//div[@id='content']/table/tbody/tr[2]/"
+                   "td[contains(.,'eth')]")),
+    "discoveredhosts.fetch_bios": (
+        By.XPATH, ("//div[@id='content']/table/tbody/tr[2]"
+                   "/td[contains(.,'bios')]")),
+    "discoveredhosts.fetch_custom_fact": (
+        By.XPATH, ("//div[@id='content']/table/tbody/tr[2]/"
+                   "td[contains(.,'some')]")),
+    "discoveredhosts.bulk_submit_button": (
+        By.XPATH, ("//div[@id='confirmation-modal']"
+                   "//div[@class='modal-footer']/button[2]")),
 
     # LDAP Authentication
     "ldapsource.new": (

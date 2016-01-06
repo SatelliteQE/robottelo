@@ -360,6 +360,26 @@ class LibvirtHostSettings(FeatureSettings):
         return validation_errors
 
 
+class DiscoveryISOSettings(FeatureSettings):
+    """Discovery ISO name settings definition."""
+    def __init__(self, *args, **kwargs):
+        super(DiscoveryISOSettings, self).__init__(*args, **kwargs)
+        self.discovery_iso = None
+
+    def read(self, reader):
+        """Read discovery iso setting."""
+        self.discovery_iso = reader.get('discovery', 'discovery_iso')
+
+    def validate(self):
+        """Validate discovery iso name setting."""
+        validation_errors = []
+        if self.discovery_iso is None:
+            validation_errors.append(
+                '[discovery] discovery iso name must be provided.'
+            )
+        return validation_errors
+
+
 class OscapSettings(FeatureSettings):
     """Oscap settings definitions."""
     def __init__(self, *args, **kwargs):
@@ -522,6 +542,7 @@ class Settings(object):
         # Features
         self.clients = ClientsSettings()
         self.compute_resources = LibvirtHostSettings()
+        self.discovery = DiscoveryISOSettings()
         self.docker = DockerSettings()
         self.fake_manifest = FakeManifestSettings()
         self.ldap = LDAPSettings()
@@ -559,6 +580,9 @@ class Settings(object):
         if self.reader.has_section('compute_resources'):
             self.compute_resources.read(self.reader)
             self._validation_errors.extend(self.compute_resources.validate())
+        if self.reader.has_section('discovery'):
+            self.discovery.read(self.reader)
+            self._validation_errors.extend(self.discovery.validate())
         if self.reader.has_section('docker'):
             self.docker.read(self.reader)
             self._validation_errors.extend(self.docker.validate())
