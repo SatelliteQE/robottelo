@@ -20,7 +20,14 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.subscription import Subscription
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT, FAKE_0_PUPPET_REPO
+from robottelo.constants import (
+    DEFAULT_CV,
+    ENVIRONMENT,
+    FAKE_0_PUPPET_REPO,
+    PRDS,
+    REPOS,
+    REPOSET,
+)
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
@@ -70,52 +77,46 @@ class ContentViewTestCase(CLITestCase):
     rhel_content_org = None
     rhel_repo_name = None
     rhel_repo = None
-    rhel_product_name = 'Red Hat Enterprise Linux Workstation'
 
     def create_rhel_content(self):
         """Enable/Synchronize rhel content"""
         if ContentViewTestCase.rhel_content_org is not None:
             return
 
-        ContentViewTestCase.rhel_content_org = make_org()
-        with manifests.clone() as manifest:
-            upload_file(manifest.content, manifest.filename)
-        Subscription.upload({
-            'file': manifest.filename,
-            'organization-id': ContentViewTestCase.rhel_content_org['id'],
-        })
-
-        RepositorySet.enable({
-            'name': (
-                'Red Hat Enterprise Virtualization Agents '
-                'for RHEL 6 Workstation (RPMs)'
-            ),
-            'organization-id': ContentViewTestCase.rhel_content_org['id'],
-            'product': 'Red Hat Enterprise Linux Workstation',
-            'releasever': '6Workstation',
-            'basearch': 'x86_64',
-        })
-        ContentViewTestCase.rhel_repo_name = (
-            'Red Hat Enterprise Virtualization Agents '
-            'for RHEL 6 Workstation '
-            'RPMs x86_64 6Workstation'
-        )
-
-        ContentViewTestCase.rhel_repo = Repository.info({
-            u'name': ContentViewTestCase.rhel_repo_name,
-            u'organization-id': self.rhel_content_org['id'],
-            u'product': ContentViewTestCase.rhel_product_name,
-        })
-
         try:
+            ContentViewTestCase.rhel_content_org = make_org()
+            with manifests.clone() as manifest:
+                upload_file(manifest.content, manifest.filename)
+            Subscription.upload({
+                'file': manifest.filename,
+                'organization-id': ContentViewTestCase.rhel_content_org['id'],
+            })
+
+            RepositorySet.enable({
+                'name': REPOSET['rhva6'],
+                'organization-id': ContentViewTestCase.rhel_content_org['id'],
+                'product': PRDS['rhel'],
+                'releasever': '6Server',
+                'basearch': 'x86_64',
+            })
+            ContentViewTestCase.rhel_repo_name = REPOS['rhva6']['name']
+
+            ContentViewTestCase.rhel_repo = Repository.info({
+                u'name': ContentViewTestCase.rhel_repo_name,
+                u'organization-id': self.rhel_content_org['id'],
+                u'product': PRDS['rhel'],
+            })
+
             Repository.synchronize({
                 'name': ContentViewTestCase.rhel_repo_name,
                 'organization-id': ContentViewTestCase.rhel_content_org['id'],
-                'product': ContentViewTestCase.rhel_product_name,
+                'product': PRDS['rhel'],
             })
-        except CLIReturnCodeError as exception:
+        except CLIReturnCodeError:
+            # Make sure to reset rhel_content_org and let the exception
+            # propagate.
             ContentViewTestCase.rhel_content_org = None
-            self.fail("Couldn't synchronize repo\n{0}".format(exception.msg))
+            raise
 
     # pylint: disable=unexpected-keyword-arg
     def setUp(self):
