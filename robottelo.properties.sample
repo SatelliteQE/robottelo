@@ -132,6 +132,15 @@ ssh_key=
 # bridge=BRIDGE_VALUE
 # gateway=GATEWAY_VALUE
 
+# For discovery ISO
+# Discovery ISO name is required for PXE-less discovery tests. ISO's are
+# rebuilt with extra kernel options for unattended pxe-less discovery
+# ISO file names should be like below for downstream_el6 and el7 environments:
+# foreman-discovery-image-3.0.5-3_unattended_down_el7.iso
+# foreman-discovery-image-3.0.5-3_unattended_down_el6.iso
+# [discovery]
+# discovery_iso=DISCOVERY_ISO
+
 # For OSCAP Testing
 # [oscap]
 # content_path=~/ssg-rhel6-ds.xml
