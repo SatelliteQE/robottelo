@@ -69,4 +69,5 @@ class RHAIClientTestCase(TestCase):
                 'redhat-access-insights --test-connection')
             self.logger.info('Return code for --test-connection {0}'.format(
                 test_connection.return_code))
-            self.assertEqual(test_connection.return_code, 0)
+            self.assertEqual(test_connection.return_code, 0,
+                             '--test-connection check was not successful')
