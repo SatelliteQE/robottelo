@@ -1027,3 +1027,81 @@ class UserTestCase(UITestCase):
 
         @Status: Manual
         """
+
+    @stubbed()
+    @tier1
+    def test_positive_set_timezone(self):
+        """Set a new timezone for the user
+
+        @Feature: User timezone
+
+        @Steps:
+
+        1.Navigate to Administer -> Users
+        2.Click on the User
+        3.Select the Timezone Dropdown list
+        4.Try to apply some timezone
+
+        @Assert: User should be able to change timezone
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_dashboard_shows_new_time(self):
+        """Check if the Dashboard shows the time according to the new
+        timezone set
+
+        @Feature: User timezone
+
+        @Steps:
+
+        1.Change the timezone for a user in Administer -> Users tab
+        2.Navigate to Monitor -> Dashboard
+        3.The left corner displays time according to the new timezone set
+
+        @Assert: Dashboard UI displays new time based on the new timezone
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier2
+    def test_positive_logfiles_shows_new_time(self):
+        """Check if the logfiles reflect the new timezone set by
+        the user
+
+        @Feature: User timezone
+
+        @Steps:
+
+        1.Change the timezones for user in Administer -> Users Tab
+        2.Try to modify content view or environment
+        so that the changes are reflected in log file
+        3.Check if log file shows the new timezone set
+
+        @Assert: Logfiles display time according to changed timezone
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier2
+    def test_positive_mails_for_new_timezone(self):
+        """Check if the mails are received according to new
+        timezone set by the user
+
+        @Feature: User timezone
+
+        @Steps:
+
+        1.Change the timezones for user in Administer -> Users tab
+        2.Navigate to Administer -> Users tab
+        3.Make sure under Email Preferences -> Mail Enabled
+        4.Send daily/weekly/monthly mails
+
+        @Assert: Emails are sent according to new timezone set
+
+        @Status: Manual
+        """
