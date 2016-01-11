@@ -803,10 +803,13 @@ class ActivationKeyTestCase(CLITestCase):
         Content host in one command. Here is a command details:
 
         subscription-manager register --help
-        ....
+
+        ...
+
         --activationkey=ACTIVATION_KEYS activation key to use for registration
         (can be specified more than once)
-        ....
+
+        ...
 
         This means that we can re-use `--activationkey` option more than once
         to add different keys
