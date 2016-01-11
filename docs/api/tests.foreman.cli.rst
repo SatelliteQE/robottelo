@@ -43,10 +43,10 @@
 
 .. automodule:: tests.foreman.cli.test_contentviewfilter
 
-:mod:`tests.foreman.cli.test_contentviews`
-------------------------------------------
+:mod:`tests.foreman.cli.test_contentview`
+-----------------------------------------
 
-.. automodule:: tests.foreman.cli.test_contentviews
+.. automodule:: tests.foreman.cli.test_contentview
 
 :mod:`tests.foreman.cli.test_discovery`
 ---------------------------------------

@@ -13,11 +13,6 @@
 
 .. automodule:: tests.foreman.api.test_architecture
 
-:mod:`tests.foreman.api.test_config_template`
----------------------------------------------
-
-.. automodule:: tests.foreman.api.test_config_template
-
 :mod:`tests.foreman.api.test_contentview`
 -----------------------------------------
 
@@ -167,6 +162,11 @@
 --------------------------------------
 
 .. automodule:: tests.foreman.api.test_syncplan
+
+:mod:`tests.foreman.api.test_template`
+--------------------------------------
+
+.. automodule:: tests.foreman.api.test_template
 
 :mod:`tests.foreman.api.test_user`
 ----------------------------------
