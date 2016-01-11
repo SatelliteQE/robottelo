@@ -199,8 +199,10 @@ class SmokeTestCase(UITestCase):
                     common_locators['alert.success']
                 ))
             # Add puppet-module to content-view
-            self.content_views.add_puppet_module(
-                cv_name, 'httpd', filter_term='Latest')
+            if not bz_bug_is_open(1297308):
+                self.content_views.add_puppet_module(
+                    cv_name, 'httpd', filter_term='Latest'
+                )
 
             # Publish content-view
             self.content_views.publish(cv_name)

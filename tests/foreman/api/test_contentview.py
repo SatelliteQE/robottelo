@@ -18,6 +18,7 @@ from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     bz_bug_is_open,
     run_only_on,
+    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -147,6 +148,7 @@ class ContentViewTestCase(APITestCase):
         self.assertEqual(len(content_view.repository), 1)
         self.assertEqual(content_view.repository[0].read().name, yum_repo.name)
 
+    @skip_if_bug_open('bugzilla', 1297308)
     @tier2
     @run_only_on('sat')
     def test_negative_add_puppet_content(self):
