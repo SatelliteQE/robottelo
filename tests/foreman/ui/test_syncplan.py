@@ -173,7 +173,6 @@ class SyncPlanTestCase(UITestCase):
                         org=self.organization.name,
                         name=name,
                         description='invalid name',
-                        submit_validate=False,
                     )
                     self.assertIsNotNone(self.syncplan.wait_until_element(
                         common_locators['common_invalid']))
@@ -195,7 +194,6 @@ class SyncPlanTestCase(UITestCase):
                 org=self.organization.name,
                 name=name,
                 description='with same name',
-                submit_validate=False,
             )
             self.assertIsNotNone(self.syncplan.wait_until_element(
                 common_locators['common_invalid']))
