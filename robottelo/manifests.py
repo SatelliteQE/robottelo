@@ -83,6 +83,19 @@ class ManifestCloner(object):
         manifest.seek(0)
         return manifest
 
+    def original(self):
+        """Returns the original manifest as a file-like object.
+
+        Be aware that using the original manifest and not removing it
+        afterwards will make impossible to import it on any other Organization.
+
+        Make sure to close the returned file-like object in order to clean up
+        the memory used to store it.
+        """
+        if self.signing_key is None or self.template is None:
+            self._download_manifest_info()
+        return six.BytesIO(self.template)
+
 
 # Cache the ManifestCloner in order to avoid downloading the manifest template
 # every single time.
@@ -147,4 +160,4 @@ def original_manifest():
         with original_manifest() as manifest:
             # my fancy stuff
     """
-    return Manifest(six.BytesIO(_manifest_cloner.template))
+    return Manifest(_manifest_cloner.original())
