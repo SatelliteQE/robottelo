@@ -294,8 +294,8 @@ class OrganizationTestCase(UITestCase):
         """
         org = entities.Organization().create()
         sub = entities.Subscription(organization=org)
-        with open(manifests.download_manifest_template(), 'rb') as manifest:
-            upload_manifest(org.id, manifest)
+        with manifests.original_manifest() as manifest:
+            upload_manifest(org.id, manifest.content)
         try:
             with Session(self.browser) as session:
                 for _ in range(3):
