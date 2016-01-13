@@ -30,8 +30,9 @@ class OperatingSystemParameterTestCase(APITestCase):
         @Assert: A parameter is created and can be read afterwards.
         """
         # Check whether OS 1 exists.
-        if (entities.OperatingSystem(id=1).read_raw().status_code == NOT_FOUND
-                and entities.OperatingSystem().create().id != 1):
+        os1 = entities.OperatingSystem(id=1).read_raw()
+        if (os1.status_code == NOT_FOUND and
+                entities.OperatingSystem().create().id != 1):
             self.skipTest(
                 'Cannot execute test, as operating system 1 is not available.'
             )

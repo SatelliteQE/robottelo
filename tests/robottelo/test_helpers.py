@@ -2,18 +2,17 @@
 # (Too many public methods) pylint: disable=R0904
 import six
 import unittest2
-
-if six.PY2:
-    import mock
-else:
-    from unittest import mock
-
 from robottelo.helpers import (
     HostInfoError,
     escape_search,
     get_host_info,
     get_server_version,
 )
+
+if six.PY2:
+    import mock
+else:
+    from unittest import mock
 
 
 class GetServerVersionTestCase(unittest2.TestCase):

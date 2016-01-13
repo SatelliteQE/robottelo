@@ -1,14 +1,13 @@
 """Tests for :mod:`robottelo.vm`."""
 import six
 import unittest2
+from robottelo import ssh
+from robottelo.vm import VirtualMachine, VirtualMachineError
 
 if six.PY2:
     from mock import call, patch
 else:
     from unittest.mock import call, patch
-
-from robottelo import ssh
-from robottelo.vm import VirtualMachine, VirtualMachineError
 
 
 class VirtualMachineTestCase(unittest2.TestCase):
