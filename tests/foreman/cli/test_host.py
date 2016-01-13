@@ -19,7 +19,7 @@ from robottelo.datafactory import (
     valid_data_list,
     valid_hosts_list,
 )
-from robottelo.decorators import tier1, tier2
+from robottelo.decorators import skip_if_not_set, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -70,6 +70,7 @@ class HostCreateTestCase(CLITestCase):
                     result['name'],
                 )
 
+    @skip_if_not_set('compute_resources')
     @tier1
     def test_positive_create_using_libvirt_without_mac(self):
         """@Test: Create a libvirt host and not specify a MAC address.
@@ -79,13 +80,13 @@ class HostCreateTestCase(CLITestCase):
         @Assert: Host is created
         """
         compute_resource = entities.LibvirtComputeResource(
-            url='qemu+tcp://{0}:16509/system'.format(
-                settings.server.hostname
-            ),
+            url='qemu+ssh://root@{0}/system'.format(
+                settings.compute_resources.libvirt_hostname
+            )
         ).create()
         host = entities.Host()
         host.create_missing()
-        Host.create({
+        result = Host.create({
             u'architecture-id': host.architecture.id,
             u'compute-resource-id': compute_resource.id,
             u'domain-id': host.domain.id,
@@ -101,6 +102,8 @@ class HostCreateTestCase(CLITestCase):
             u'puppet-proxy-id': self.puppet_proxy['id'],
             u'root-pass': host.root_pass,
         })
+        self.assertEqual(result['name'], host.name + '.' + host.domain.name)
+        Host.delete({'id': result['id']})
 
 
 class HostDeleteTestCase(CLITestCase):
