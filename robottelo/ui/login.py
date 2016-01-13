@@ -55,6 +55,6 @@ class Login(Base):
         )
         response.raise_for_status()
         return (
-            response.status_code != 302
-            or not response.headers['location'].endswith('/login')
+            response.status_code != 302 or
+            not response.headers['location'].endswith('/login')
         )
