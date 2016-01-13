@@ -471,19 +471,6 @@ class Base(object):
             (strategy, value % context)).is_selected()
         return selected
 
-    def submit_and_validate(self, locator, validation=True):
-        """
-        Submit the page and validate.
-
-        :param str locator: The locator used to submit the page.
-        :param bool validation: Helps enable or disable validation. Needs to be
-            set to False for the negative tests.
-
-        """
-        self.click(locator)
-        if self.wait_until_element(locator) and validation:
-            raise UIPageSubmitionFailed('Page submission failed.')
-
     def is_element_enabled(self, locator):
         """Check whether UI element is enabled or disabled
 
