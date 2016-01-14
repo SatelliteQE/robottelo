@@ -1730,6 +1730,18 @@
                   "value": "NAME"
                 },
                 {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
                   "help": "print help",
                   "name": "help",
                   "shortname": "h",
@@ -1853,6 +1865,18 @@
                   "value": "NAME"
                 },
                 {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ID"
+                },
+                {
                   "help": "print help",
                   "name": "help",
                   "shortname": "h",
@@ -1894,6 +1918,18 @@
                   "name": "name",
                   "shortname": null,
                   "value": "NAME"
+                },
+                {
+                  "help": "Organization name",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "NAME"
+                },
+                {
+                  "help": "Organization ID",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ID"
                 },
                 {
                   "help": "print help",
@@ -4715,6 +4751,12 @@
                       "name": "content-view-id",
                       "shortname": null,
                       "value": "CONTENT_VIEW_ID"
+                    },
+                    {
+                      "help": "erratum: search using the 'Issued On' or 'Updated On' column of the errata. erratum: search using the 'Issued On' or 'Updated On' column of the errata.",
+                      "name": "date-type",
+                      "shortname": null,
+                      "value": "DATE_TYPE"
                     },
                     {
                       "help": "erratum: end date (YYYY-MM-DD)",
@@ -14514,6 +14556,37 @@
           "subcommands": []
         },
         {
+          "description": "Delete parameter for a location.",
+          "name": "delete-parameter",
+          "options": [
+            {
+              "help": "Location name",
+              "name": "location",
+              "shortname": null,
+              "value": "LOCATION_NAME"
+            },
+            {
+              "help": "",
+              "name": "location-id",
+              "shortname": null,
+              "value": "LOCATION_ID"
+            },
+            {
+              "help": "parameter name",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
           "description": "Show a location",
           "name": "info",
           "options": [
@@ -14935,6 +15008,43 @@
               "name": "user-id",
               "shortname": null,
               "value": "USER_ID"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Create or update parameter for a location.",
+          "name": "set-parameter",
+          "options": [
+            {
+              "help": "Location name",
+              "name": "location",
+              "shortname": null,
+              "value": "LOCATION_NAME"
+            },
+            {
+              "help": "",
+              "name": "location-id",
+              "shortname": null,
+              "value": "LOCATION_ID"
+            },
+            {
+              "help": "parameter name",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "parameter value",
+              "name": "value",
+              "shortname": null,
+              "value": "VALUE"
             },
             {
               "help": "print help",
@@ -16194,6 +16304,37 @@
           "subcommands": []
         },
         {
+          "description": "Delete parameter for an organization.",
+          "name": "delete-parameter",
+          "options": [
+            {
+              "help": "parameter name",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "Organization name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "organization ID",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
           "description": "Show organization",
           "name": "info",
           "options": [
@@ -16596,6 +16737,43 @@
               "name": "user-id",
               "shortname": null,
               "value": "USER_ID"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Create or update parameter for an organization.",
+          "name": "set-parameter",
+          "options": [
+            {
+              "help": "parameter name",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "Organization name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "organization ID",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "parameter value",
+              "name": "value",
+              "shortname": null,
+              "value": "VALUE"
             },
             {
               "help": "print help",
