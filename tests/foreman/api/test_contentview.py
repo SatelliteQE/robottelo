@@ -345,7 +345,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
         """@Test: Publish a content view several times.
 
         @Assert: Content view has the correct number of versions after each
-        promotion.
+        publishing operation.
 
         @Feature: ContentView
         """
@@ -804,6 +804,37 @@ class ContentViewPublishPromoteTestCase(APITestCase):
             len(composite_cv.version[0].read().environment),
         )
 
+    @tier2
+    def test_positive_promote_out_of_sequence(self):
+        """Try to publish content view few times in a row and then re-promote
+        first version to default environment
+
+        @Assert: Content view promoted out of sequence properly
+
+        @Feature: ContentView
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        for _ in range(REPEAT):
+            content_view.publish()
+        content_view = content_view.read()
+        # Check that CV is published and has proper number of CV versions.
+        self.assertEqual(len(content_view.version), REPEAT)
+        # After each publish operation application re-assign environment to
+        # latest CV version. Correspondingly, at that moment, first cv version
+        # should have 0 environments and latest should have one ('Library')
+        # assigned to it.
+        self.assertEqual(len(content_view.version[0].read().environment), 0)
+        lce_list = content_view.version[-1].read().environment
+        self.assertEqual(len(lce_list), 1)
+        # Trying to re-promote 'Library' environment from latest version to
+        # first one
+        promote(content_view.version[0], lce_list[0].id, force=True)
+        content_view = content_view.read()
+        # Verify that, according to our plan, first version contains one
+        # environment and latest - 0
+        self.assertEqual(len(content_view.version[0].read().environment), 1)
+        self.assertEqual(len(content_view.version[-1].read().environment), 0)
+
 
 class ContentViewUpdateTestCase(APITestCase):
     """Tests for updating content views."""
@@ -864,22 +895,19 @@ class ContentViewUpdateTestCase(APITestCase):
                 cv = entities.ContentView(id=self.content_view.id).read()
                 self.assertNotEqual(cv.name, new_name)
 
+    @skip_if_bug_open('bugzilla', 1147100)
     @tier1
-    def test_negative_update_attributes(self):
-        """@Test: Update a content view and provide an invalid attribute.
+    def test_negative_update_label(self):
+        """Try to update a content view label with any value
 
-        @Assert: The content view's attributes are not updated.
+        @Assert: The content view label is immutable and cannot be modified
 
         @Feature: ContentView
         """
-        attrs = {'label': gen_utf8(30), 'name': gen_utf8(256)}
-        for key, value in attrs.items():
-            with self.subTest((key, value)):
-                if key == 'label' and bz_bug_is_open(1147100):
-                    continue
-                setattr(self.content_view, key, value)
-                with self.assertRaises(HTTPError):
-                    self.content_view.update({key})
+        with self.assertRaises(HTTPError):
+            entities.ContentView(
+                id=self.content_view.id,
+                label=gen_utf8(30)).update(['label'])
 
 
 class ContentViewDeleteTestCase(APITestCase):
@@ -975,6 +1003,82 @@ class ContentViewRedHatContent(APITestCase):
         ).create()
         self.assertEqual(cv_filter.id, cv_filter_rule.content_view_filter.id)
 
+    @tier2
+    def test_positive_publish_rh(self):
+        """Attempt to publish a content view containing Red Hat content
+
+        @Assert: Content view can be published
+
+        @Feature: Content View
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.repository = [self.repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        self.assertEqual(len(content_view.read().version), 1)
+
+    @tier2
+    def test_positive_publish_rh_custom_spin(self):
+        """Attempt to publish a content view containing Red Hat spin - i.e.,
+        contains filters.
+
+        @Feature: Content Views
+
+        @Assert: Content view can be published
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.repository = [self.repo]
+        content_view = content_view.update(['repository'])
+        entities.RPMContentViewFilter(
+            content_view=content_view,
+            inclusion='true',
+            name=gen_string('alphanumeric'),
+        ).create()
+        content_view.publish()
+        self.assertEqual(len(content_view.read().version), 1)
+
+    @tier2
+    def test_positive_promote_rh(self):
+        """Attempt to promote a content view containing Red Hat content
+
+        @Assert: Content view can be promoted
+
+        @Feature: Content View
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.repository = [self.repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        promote(content_view.read().version[0], lce.id)
+        self.assertEqual(
+            len(content_view.read().version[0].read().environment), 2)
+
+    @tier2
+    def test_positive_promote_rh_custom_spin(self):
+        """Attempt to promote a content view containing Red Hat spin - i.e.,
+        contains filters.
+
+        @Feature: Content Views
+
+        @Assert: Content view can be promoted
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.repository = [self.repo]
+        content_view = content_view.update(['repository'])
+        entities.RPMContentViewFilter(
+            content_view=content_view,
+            inclusion='true',
+            name=gen_string('alphanumeric'),
+        ).create()
+        content_view.publish()
+
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        promote(content_view.read().version[0], lce.id)
+        self.assertEqual(
+            len(content_view.read().version[0].read().environment), 2)
+
 
 class ContentViewTestCaseStub(APITestCase):
     """Incomplete tests for content views."""
@@ -997,183 +1101,6 @@ class ContentViewTestCaseStub(APITestCase):
         # in filter)
         #   * A filter on severity (only content of specific errata
         # severity.
-
-    # Content View: promotions
-    # katello content view promote --label=MyView --env=Dev --org=ACME
-    # katello content view promote --view=MyView --env=Staging --org=ACME
-
-    @tier2
-    @stubbed()
-    def test_positive_promote_rh(self):
-        """
-        @test: attempt to promote a content view containing RH content
-        @feature: Content Views
-        @setup: Multiple environments for an org; RH content synced
-        @assert: Content view can be promoted
-        @status: Manual
-        """
-
-    @tier2
-    @stubbed()
-    def test_positive_promote_rh_custom_spin(self):
-        """
-        @test: attempt to promote a content view containing a custom RH
-        spin - i.e., contains filters.
-        @feature: Content Views
-        @setup: Multiple environments for an org; RH content synced
-        @assert: Content view can be promoted
-        @status: Manual
-        """
-
-    @tier2
-    @stubbed()
-    def test_positive_promote_custom_content(self):
-        """
-        @test: attempt to promote a content view containing custom content
-        @feature: Content Views
-        @setup: Multiple environments for an org; custom content synced
-        @assert: Content view can be promoted
-        """
-
-    @tier2
-    @stubbed()
-    def test_positive_promote_composite(self):
-        """
-        @test: attempt to promote a content view containing custom content
-        @feature: Content Views
-        @setup: Multiple environments for an org; custom content synced
-        @steps: create a composite view containing multiple content types
-        @assert: Content view can be promoted
-        @status: Manual
-        """
-        # Variations:
-        # RHEL, custom content (i.e., google repos), puppet modules
-        # Custom content (i.e., fedora), puppet modules
-        # ...etc.
-
-    @tier2
-    @stubbed()
-    def test_negative_promote_badid(self):
-        """
-        @test: attempt to promote a content view using an invalid id
-        @feature: Content Views
-        @assert: Content views cannot be promoted; handled gracefully
-        """
-        # env = EnvironmentKatello()
-        # created_env = ApiCrud.record_create_recursive(env)
-        # task = ContentViewDefinition._meta.api_class.promote(
-        #     1,
-        #     created_env.id
-        #     )
-        # self.assertIn(
-        #     'errors', task.json,
-        #     "Invalid id shouldn't be promoted")
-
-    # Content Views: publish
-    # katello content definition publish --label=MyView
-
-    @tier2
-    @stubbed()
-    def test_positive_publish_rh(self):
-        """
-        @test: attempt to publish a content view containing RH content
-        @feature: Content Views
-        @setup: Multiple environments for an org; RH content synced
-        @assert: Content view can be published
-        """
-        # See method test_subscribe_system_to_cv in module test_contentview_v2
-
-    @tier2
-    @stubbed()
-    def test_positive_publish_rh_custom_spin(self):
-        """
-        @test: attempt to publish  a content view containing a custom RH
-        spin - i.e., contains filters.
-        @feature: Content Views
-        @setup: Multiple environments for an org; RH content synced
-        @assert: Content view can be published
-        @status: Manual
-        """
-
-    @tier2
-    @stubbed()
-    def test_positive_publish_custom_content(self):
-        """
-        @test: attempt to publish a content view containing custom content
-        @feature: Content Views
-        @setup: Multiple environments for an org; custom content synced
-        @assert: Content view can be published
-        @status: Manual
-        """
-
-    @tier2
-    @stubbed()
-    def test_positive_publish_composite(self):
-        """
-        @test: attempt to publish  a content view containing custom content
-        @feature: Content Views
-        @setup: Multiple environments for an org; custom content synced
-        @assert: Content view can be published
-        @status: Manual
-        """
-        # Variations:
-        # RHEL, custom content (i.e., google repos), puppet modules
-        # Custom content (i.e., fedora), puppet modules
-        # ...etc.
-
-    @tier2
-    @stubbed()
-    def test_negative_publish_badlabel(self):
-        """
-        @test: attempt to publish a content view containing invalid strings
-        @feature: Content Views
-        @setup: Multiple environments for an org; RH content synced
-        @assert: Content view is not published; condition is handled
-        gracefully;
-        no tracebacks
-        @status: Manual
-        """
-        # Variations might be:
-        # zero length, too long, symbols, etc.
-
-    @tier2
-    @stubbed()
-    def test_positive_publish_new_env(self):
-        """
-        @test: when publishing new version to environment, version
-        gets updated
-        @feature: Content Views
-        @setup: Multiple environments for an org; multiple versions
-        of a content view created/published
-        @steps:
-        1. publish a view to an environment noting the CV version
-        2. edit and republish a new version of a CV
-        @assert: Content view version is updated in target environment.
-        @status: Manual
-        """
-        # Dev notes:
-        # If Dev has version x, then when I promote version y into
-        # Dev, version x goes away (ie when I promote version 1 to Dev,
-        # version 3 goes away)
-
-    @tier2
-    @stubbed()
-    def test_positive_publish_source_env(self):
-        """
-        @test: when publishing new version to environment, version
-        gets updated
-        @feature: Content Views
-        @setup: Multiple environments for an org; multiple versions
-        of a content view created/published
-        @steps:
-        1. publish a view to an environment
-        2. edit and republish a new version of a CV
-        @assert: Content view version is updated in source environment.
-        @status: Manual
-        """
-        # Dev notes:
-        # Similarly when I publish version y, version x goes away from
-        # Library (ie when I publish version 2, version 1 disappears)
 
     @tier2
     @stubbed()
