@@ -22,9 +22,10 @@ REDMINE_URL = 'http://projects.theforeman.org'
 tier1 = pytest.mark.tier1
 # Association tests
 tier2 = pytest.mark.tier2
-# Systems integration and long-running tests
+# Systems integration tests
 tier3 = pytest.mark.tier3
-
+# Long running tests
+tier4 = pytest.mark.tier4
 
 # A dict mapping bug IDs to python-bugzilla bug objects.
 _bugzilla = {}

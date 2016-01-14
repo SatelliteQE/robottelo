@@ -19,7 +19,7 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.decorators import run_only_on, skip_if_not_set
+from robottelo.decorators import run_only_on, skip_if_not_set, stubbed, tier4
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context, make_hostgroup, make_oscappolicy
 from robottelo.ui.session import Session
@@ -125,8 +125,9 @@ class OpenScapTestCase(UITestCase):
             }})
 
     @run_only_on('sat')
+    @tier4
     def test_positive_upload_to_satellite(self):
-        """@Test: Perform end to end oscap test.
+        """Perform end to end oscap test and upload reports.
 
         @Feature: Oscap End to End.
 
@@ -238,3 +239,112 @@ class OpenScapTestCase(UITestCase):
                     # Satellite6.
                     session.nav.go_to_reports()
                     self.assertTrue(self.oscapreports.search(host))
+
+    @run_only_on('sat')
+    @stubbed
+    @tier4
+    def test_positive_has_arf_report_summary_page(self):
+        """OSCAP ARF Report now has summary page
+
+        @Feature: Oscap Reports
+
+        @Steps:
+        1. Make sure the oscap report with it's corresponding hostname
+           is visible in the UI.
+        2. Click on the host name to access the oscap report.
+
+        @Assert: Oscap ARF reports should have summary page.
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier4
+    def test_positive_view_full_report_button(self):
+        """'View full Report' button should exist for OSCAP Reports.
+
+        @Feature: Oscap Reports
+
+        @Steps:
+        1. Make sure the oscap report with it's corresponding hostname
+           is visible in the UI.
+        2. Click on the host name to access the oscap report.
+
+        @Assert: Should have 'view full report' button to view the
+        actual HTML report.
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier4
+    def test_positive_download_xml_button(self):
+        """'Download xml' button should exist for OSCAP Reports
+        to be downloaded in xml format.
+
+        @Feature: Oscap Reports
+
+        @Steps:
+        1. Make sure the oscap report with it's corresponding hostname
+           is visible in the UI.
+        2. Click on the host name to access the oscap report.
+
+        @Assert: Should have 'Download xml in bzip' button to download
+        the xml report.
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier4
+    def test_positive_select_oscap_proxy(self):
+        """Oscap-Proxy select box should exist while filling hosts
+        and host-groups form.
+
+        @Feature: Oscap Proxy
+
+        @Steps:
+        1.Choose the Oscap Proxy/capsule appropriately for the host
+          or host-groups.
+
+        @Assert: Should have an Oscap-Proxy select box while filling
+        hosts and host-groups form.
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier4
+    def test_positive_delete_multiple_arf_reports(self):
+        """Multiple arf reports deletion should be possible.
+
+        @Feature: Oscap Reports
+
+        @Steps:
+        1. Run Oscap scans are run for multiple Hosts.
+        2. Make sure the oscap reports with it's corresponding hostnames
+           are visible in the UI.
+        3. Now select multiple reports from the checkbox and delete the
+           reports.
+
+        @Assert: Multiple Oscap ARF reports can be deleted.
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier4
+    def test_positive_reporting_emails_of_oscap_reports(self):
+        """Email Reporting of oscap reports should be possible.
+
+        @Feature: Oscap Reports
+
+        @Assert: Whether email reporting of oscap reports is possible.
+
+        @Status: Manual
+        """
