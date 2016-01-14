@@ -606,7 +606,6 @@ def make_syncplan(session, org=None, loc=None,  force_context=True, **kwargs):
         u'sync_interval': None,
         u'start_hour': None,
         u'start_minute': None,
-        u'submit_validate': True,
     }
     page = session.nav.go_to_sync_plans
     core_factory(create_args, kwargs, session, page,
