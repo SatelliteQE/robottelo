@@ -173,6 +173,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators['alert.success']))
 
+    @skip_if_bug_open('bugzilla', 1297308)
     @run_only_on('sat')
     @tier2
     def test_positive_add_puppet_module(self):
@@ -467,6 +468,7 @@ class ContentViewTestCase(UITestCase):
                     )
                     self.content_views.delete(name)
 
+    @skip_if_bug_open('bugzilla', 1297308)
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier3
@@ -611,6 +613,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success']))
 
+    @skip_if_bug_open('bugzilla', 1297308)
     @run_only_on('sat')
     @tier2
     def test_negative_add_puppet_repo_to_composite(self):
