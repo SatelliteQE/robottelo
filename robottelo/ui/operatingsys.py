@@ -98,10 +98,10 @@ class OperatingSys(Base):
                 )
                 self.click(common_locators['submit'])
             else:
-                raise UIError('Could not create OS without major_version')
+                raise UIError(u'Could not create OS without major_version')
         else:
             raise UIError(
-                'Could not create new operating system "{0}"'.format(name)
+                u'Could not create new operating system "{0}"'.format(name)
             )
 
     def delete(self, os_name, really=True):
@@ -147,7 +147,7 @@ class OperatingSys(Base):
             self.click(common_locators['submit'])
         else:
             raise UIError(
-                'Could not update the operating system "{0}"'.format(os_name)
+                u'Could not update the operating system "{0}"'.format(os_name)
             )
 
     def set_os_parameter(self, os_name, param_name, param_value):
@@ -157,7 +157,7 @@ class OperatingSys(Base):
             element.click()
             self.set_parameter(param_name, param_value)
         else:
-            raise UIError('Could not set parameter "{0}"'.format(param_name))
+            raise UIError(u'Could not set parameter "{0}"'.format(param_name))
 
     def remove_os_parameter(self, os_name, param_name):
         """Remove selected OS parameter."""
@@ -167,7 +167,7 @@ class OperatingSys(Base):
             self.remove_parameter(param_name)
         else:
             raise UIError(
-                'Could not remove parameter "{0}"'.format(param_name)
+                u'Could not remove parameter "{0}"'.format(param_name)
             )
 
     def get_selected_entities(self):
@@ -229,9 +229,9 @@ class OperatingSys(Base):
                 return result
             else:
                 raise UIError(
-                    'Could not find the OS name "{0}"'.format(os_name)
+                    u'Could not find the OS name "{0}"'.format(os_name)
                 )
         else:
             raise UIError(
-                'Could not find the operating system "{0}"'.format(os_name)
+                u'Could not find the operating system "{0}"'.format(os_name)
             )
