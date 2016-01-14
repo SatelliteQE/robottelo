@@ -5,7 +5,13 @@ from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import run_only_on, skip_if_not_set, tier1, tier2
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_not_set,
+    tier1,
+    tier2,
+    stubbed,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
@@ -29,7 +35,7 @@ class SyncTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_sync_custom_repo(self):
-        """@Test: Create Content Custom Sync with minimal input parameters
+        """Create Content Custom Sync with minimal input parameters
 
         @Feature: Content Custom Sync - Positive Create
 
@@ -57,7 +63,7 @@ class SyncTestCase(UITestCase):
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_sync_rh_repos(self):
-        """@Test: Create Content RedHat Sync with two repos.
+        """Create Content RedHat Sync with two repos.
 
         @Feature: Content RedHat Sync - Positive Create
 
@@ -74,3 +80,30 @@ class SyncTestCase(UITestCase):
             sync = self.sync.sync_rh_repos(repos)
             # syn.sync_rh_repos returns boolean values and not objects
             self.assertTrue(sync)
+
+    @stubbed
+    @tier2
+    def test_disconnected_to_connected_sync_rh_repos(self):
+        """Migrating from disconnected to connected satellite.
+
+        @Feature: Sync - Disconnected to Connected
+
+        @Steps:
+        1. Update the link to an internal http link where the content has been
+           extracted from ISO's.
+        2. Import a valid manifest.
+        3. Enable few RedHat repos and Sync them.
+        4. Now let's revert back the link to CDN's default link which is,
+           'https://cdn.redhat.com'.
+        5. Now Navigate to the 'Sync Page' and resync the repos synced earlier.
+
+        @Assert:
+        1. Syncing should work fine without any issues.
+        2. Only the deltas are re-downloaded and not the entire repo.
+           [ Could be an exception when 7Server was earlier pointing to 7.1
+             and current 7Server points to latest 7.2]
+        3. After reverting the link the repos should not be seen in
+           'Others Tab' and should be seen only in 'RPM's Tab'.
+
+        @status: Manual
+        """
