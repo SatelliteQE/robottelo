@@ -26,6 +26,7 @@ from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
+    skip_if_not_set,
     stubbed,
     tier1,
     tier2,
@@ -1135,6 +1136,7 @@ class DockerComputeResourceTestCase(CLITestCase):
     """Tests specific to managing Docker-based Compute Resources."""
 
     @classmethod
+    @skip_if_not_set('docker')
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerComputeResourceTestCase, cls).setUpClass()
@@ -1284,6 +1286,7 @@ class DockerContainersTestCase(CLITestCase):
     """
 
     @classmethod
+    @skip_if_not_set('docker')
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerContainersTestCase, cls).setUpClass()
