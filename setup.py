@@ -25,7 +25,7 @@ setup(
         'pytest',
         'python-bugzilla',
         'requests',
-        'selenium',
+        'selenium<2.49',
         'six',
         'unittest2',
     ],
