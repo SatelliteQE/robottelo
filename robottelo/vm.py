@@ -230,12 +230,15 @@ class VirtualMachine(object):
             raise VirtualMachineError(
                 'Failed to download and install the katello-ca rpm')
 
-    def register_contenthost(self, activation_key, org, releasever=None):
+    def register_contenthost(self, activation_key, org, force=True,
+                             releasever=None):
         """Registers content host on foreman server using activation-key.
 
         :param activation_key: Activation key name to register content host
             with.
         :param org: Organization name to register content host for.
+        :param force: Register the content host even if it's already registered
+        :param releasever: Set a release version
         :return: SSHCommandResult instance filled with the result of the
             registration.
 
@@ -246,7 +249,8 @@ class VirtualMachine(object):
         )
         if releasever is not None:
             cmd += u' --release {0}'.format(releasever)
-        cmd = cmd + u' --force'
+        if force:
+            cmd += u' --force'
         result = self.run(cmd)
         if result.return_code == 0:
             self._subscribed = True
