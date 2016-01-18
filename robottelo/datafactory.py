@@ -253,6 +253,28 @@ def valid_names_list():
 
 
 @datacheck
+def valid_org_names_list():
+    """Generates a list of valid organization names.
+
+    Note::
+    Organization name max length is 242 chars.
+    217 chars for html as the largest html tag in fauxfactory is 10 chars long,
+    so 242 - (10 chars + 10 chars + '<></>' chars) = 217 chars.
+
+    :return: Returns the valid organization names list
+    """
+    return [
+        gen_string('alphanumeric', random.randint(1, 242)),
+        gen_string('alpha', random.randint(1, 242)),
+        gen_string('cjk', random.randint(1, 242)),
+        gen_string('latin1', random.randint(1, 242)),
+        gen_string('numeric', random.randint(1, 242)),
+        gen_string('utf8', random.randint(1, 80)),
+        gen_string('html', random.randint(1, 217)),
+    ]
+
+
+@datacheck
 def valid_usernames_list():
     """Returns a list of valid user names.
 

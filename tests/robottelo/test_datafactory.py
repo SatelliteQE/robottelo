@@ -19,6 +19,7 @@ from robottelo.datafactory import (
     valid_hostgroups_list,
     valid_labels_list,
     valid_names_list,
+    valid_org_names_list,
     valid_usernames_list,
 )
 
@@ -51,6 +52,7 @@ class DataCheckTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_hosts_list()), 3)
         self.assertEqual(len(valid_hostgroups_list()), 7)
         self.assertEqual(len(valid_names_list()), 15)
+        self.assertEqual(len(valid_org_names_list()), 7)
         self.assertEqual(len(valid_usernames_list()), 4)
 
     def test_datacheck_False(self):
@@ -68,6 +70,7 @@ class DataCheckTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_hostgroups_list()), 1)
         self.assertEqual(len(valid_labels_list()), 1)
         self.assertEqual(len(valid_names_list()), 1)
+        self.assertEqual(len(valid_org_names_list()), 1)
         self.assertEqual(len(valid_usernames_list()), 1)
 
     @mock.patch('robottelo.datafactory.gen_string')
@@ -104,8 +107,9 @@ class TestReturnTypes(unittest2.TestCase):
         8. :meth:`robottelo.datafactory.valid_hostgroups_list`
         9. :meth:`robottelo.datafactory.valid_labels_list`
         10. :meth:`robottelo.datafactory.valid_names_list`
-        11. :meth:`robottelo.datafactory.valid_usernames_list`
-        12. :meth:`robottelo.datafactory.invalid_id_list`
+        11. :meth:`robottelo.datafactory.valid_org_names_list`
+        12. :meth:`robottelo.datafactory.valid_usernames_list`
+        13. :meth:`robottelo.datafactory.invalid_id_list`
 
         """
         for item in itertools.chain(
@@ -119,6 +123,7 @@ class TestReturnTypes(unittest2.TestCase):
                 valid_hostgroups_list(),
                 valid_labels_list(),
                 valid_names_list(),
+                valid_org_names_list(),
                 valid_usernames_list(),):
             self.assertIsInstance(item, six.text_type)
         for item in invalid_id_list():
