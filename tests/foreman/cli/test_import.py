@@ -503,7 +503,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_orgs_default(self):
-        """@test: Import all organizations from the default data set
+        """Import all organizations from the default data set
         (predefined source).
 
         @feature: Import Organizations
@@ -524,7 +524,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_orgs_manifests(self):
-        """@test: Import all organizations from the default data set
+        """Import all organizations from the default data set
         (predefined source) and upload manifests for each of them
 
         @feature: Import Organizations including Manifests
@@ -556,7 +556,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_negative_reimport_orgs_default(self):
-        """@test: Try to Import all organizations from the predefined source
+        """Try to Import all organizations from the predefined source
         and try to import them again
 
         @feature: Import Organizations twice
@@ -577,7 +577,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_orgs_recovery(self):
-        """@test: Try to Import organizations with the same name to invoke
+        """Try to Import organizations with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
         @feature: Import Organizations Recover
@@ -627,7 +627,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_merge_orgs(self):
-        """@test: Try to Import all organizations and their users from CSV
+        """Try to Import all organizations and their users from CSV
         to a mapped organization.
 
         @feature: Import User Mapped Org
@@ -665,7 +665,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_users_default(self):
-        """@test: Import all 3 users from the default data set (predefined
+        """Import all 3 users from the default data set (predefined
         source).
 
         @feature: Import Users
@@ -695,7 +695,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_negative_reimport_users_default(self):
-        """@test: Try to Import all users from the
+        """Try to Import all users from the
         predefined source and try to import them again
 
         @feature: Repetitive User Import
@@ -725,7 +725,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_users_merge(self):
-        """@test: Try to Merge users with the same name using 'merge-users'
+        """Try to Merge users with the same name using 'merge-users'
         option.
 
         @feature: Import Users Map-users
@@ -764,7 +764,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_users_recovery(self):
-        """@test: Try to Import users with the same name to invoke
+        """Try to Import users with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
         @feature: Import Users Recover
@@ -826,7 +826,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_host_collections_default(self):
-        """@test: Import all System Groups from the default data set
+        """Import all System Groups from the default data set
         (predefined source) as the Host Collections.
 
         @feature: Import Host-Collections
@@ -862,7 +862,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_negative_reimport_host_collections_default(self):
-        """@test: Try to re-import all System Groups from the default data set
+        """Try to re-import all System Groups from the default data set
         (predefined source) as the Host Collections.
 
         @feature: Repetitive Import Host-Collections
@@ -895,7 +895,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_host_collections_recovery(self):
-        """@test: Try to Import Collections with the same name to invoke
+        """Try to Import Collections with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
         @feature: Import HostCollection Recover
@@ -958,7 +958,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_repo_default(self):
-        """@test: Import and enable all Repositories from the default data set
+        """Import and enable all Repositories from the default data set
         (predefined source)
 
         @feature: Import Enable Repositories
@@ -997,7 +997,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_negative_reimport_repo(self):
-        """@test: Import and enable all Repositories from the default data set
+        """Import and enable all Repositories from the default data set
         (predefined source), then try to Import Repositories from the same CSV
         again.
 
@@ -1048,7 +1048,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_repo_recovery(self):
-        """@test: Try to Import Repos with the same name to invoke
+        """Try to Import Repos with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
         @feature: Import Repository Recover
@@ -1111,7 +1111,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_cv_default(self):
-        """@test: Import and enable all Content Views from the default data set
+        """Import and enable all Content Views from the default data set
         (predefined source)
 
         @feature: Import Enable Content View
@@ -1155,7 +1155,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_negative_reimport_cv(self):
-        """@test: Import and enable all Content Views from the default data set
+        """Import and enable all Content Views from the default data set
         (predefined source), then try to Import them from the same CSV
         again.
 
@@ -1209,7 +1209,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_cv_recovery(self):
-        """@test: Try to Import Content Views with the same name to invoke
+        """Try to Import Content Views with the same name to invoke
         usage of a recovery strategy (rename, map, none)
 
         @feature: Import Content View Recover
@@ -1282,7 +1282,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_translate_macros(self):
-        """@test: Check whether all supported Sat5 macros are being properly
+        """Check whether all supported Sat5 macros are being properly
         converted to the Puppet facts.
         According to RH Transition Guide (Chapter 3.7.8, Table 3.1)
 
@@ -1397,7 +1397,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_enable_rh_repos(self):
-        """@test: Import and enable all red hat repositories from predefined
+        """Import and enable all red hat repositories from predefined
         dataset
 
         @feature: Import Enable RH Repositories
@@ -1446,7 +1446,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_negative_reimport_enable_rh_repos(self):
-        """@test: Repetitive Import and enable of all red hat repositories from
+        """Repetitive Import and enable of all red hat repositories from
         the predefined dataset
 
         @feature: Repetitive Import Enable RH Repositories
@@ -1491,7 +1491,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_chosts_default(self):
-        """@test: Import all content hosts from
+        """Import all content hosts from
         the predefined dataset
 
         @feature: Import Content-host
@@ -1521,7 +1521,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_negative_reimport_chosts(self):
-        """@test: Repetitive Import of all content hosts from
+        """Repetitive Import of all content hosts from
         the predefined dataset
 
         @feature: Repetitive Import Content-host
@@ -1562,7 +1562,7 @@ class TestImport(CLITestCase):
     @skip_if_bug_open('bugzilla', 1267224)
     @tier1
     def test_negative_import_chosts_recovery(self):
-        """@test: Try to invoke usage of a recovery strategy
+        """Try to invoke usage of a recovery strategy
 
         @feature: Import Content Hosts Recover
 
@@ -1593,7 +1593,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_snippets_default(self):
-        """@test: Import template snippets from the default data set
+        """Import template snippets from the default data set
         (predefined source)
 
         @feature: Import Template Snippets
@@ -1631,7 +1631,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_config_files_default(self):
-        """@test: Import all Config Files from the default data set
+        """Import all Config Files from the default data set
         (predefined source)
 
         @feature: Import Config Files
@@ -1670,7 +1670,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_negative_reimport_config_files(self):
-        """@test: Repetitive Import of all Config Files from the default
+        """Repetitive Import of all Config Files from the default
         data set (predefined source)
 
         @feature: Repetitive Import Config Files
@@ -1713,7 +1713,7 @@ class TestImport(CLITestCase):
 
     @tier1
     def test_positive_import_ak_default(self):
-        """@test: Import AKs from the default data set
+        """Import AKs from the default data set
         (predefined source)
 
         @feature: Import AK

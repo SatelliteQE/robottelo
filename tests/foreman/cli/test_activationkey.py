@@ -69,7 +69,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create Activation key for all variations of Activation key
+        """Create Activation key for all variations of Activation key
         name
 
         @Feature: Activation key
@@ -83,7 +83,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_description(self):
-        """@Test: Create Activation key for all variations of Description
+        """Create Activation key for all variations of Description
 
         @Feature: Activation key
 
@@ -99,7 +99,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_default_lce_by_id(self):
-        """@Test: Create Activation key with associated default environment
+        """Create Activation key with associated default environment
 
         @Feature: Activation key
 
@@ -114,7 +114,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_non_default_lce(self):
-        """@Test: Create Activation key with associated custom environment
+        """Create Activation key with associated custom environment
 
         @Feature: Activation key
 
@@ -130,7 +130,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_default_lce_by_name(self):
-        """@test: Create Activation key with associated environment by name
+        """Create Activation key with associated environment by name
 
         @feature: Activation key - Positive Create
 
@@ -145,7 +145,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_create_with_cv(self):
-        """@Test: Create Activation key for all variations of Content Views
+        """Create Activation key for all variations of Content Views
 
         @Feature: Activation key - Positive Create
 
@@ -166,7 +166,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_usage_limit_default(self):
-        """@Test: Create Activation key with default Usage limit (Unlimited)
+        """Create Activation key with default Usage limit (Unlimited)
 
         @Feature: Activation key - Positive Create
 
@@ -177,7 +177,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_usage_limit_default_explicitly(self):
-        """@Test: Create Activation key with default Usage limit (Unlimited)
+        """Create Activation key with default Usage limit (Unlimited)
 
         @Feature: Activation key - Positive Create
 
@@ -188,7 +188,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_usage_limit_finite(self):
-        """@Test: Create Activation key with finite Usage limit
+        """Create Activation key with finite Usage limit
 
         @Feature: Activation key - Positive Create
 
@@ -203,7 +203,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create Activation key with invalid Name
+        """Create Activation key with invalid Name
 
         @Feature: Activation key - Negative Create
 
@@ -218,7 +218,7 @@ class ActivationKeyTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1177158)
     @tier1
     def test_negative_create_with_invalid_description(self):
-        """@Test: Create Activation key with invalid Description
+        """Create Activation key with invalid Description
 
         @Feature: Activation key - Negative Create
 
@@ -232,7 +232,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_usage_limit(self):
-        """@Test: Create Activation key with invalid Usage Limit
+        """Create Activation key with invalid Usage Limit
 
         @Feature: Activation key - Negative Create
 
@@ -249,7 +249,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_name(self):
-        """@Test: Create Activation key and delete it for all variations of
+        """Create Activation key and delete it for all variations of
         Activation key name
 
         @Feature: Activation key - Positive Delete
@@ -272,7 +272,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_by_org_name(self):
-        """@Test: Create Activation key and delete it using organization name
+        """Create Activation key and delete it using organization name
         for which that key was created
 
         @Feature: Activation key - Positive Delete
@@ -290,7 +290,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_by_org_label(self):
-        """@Test: Create Activation key and delete it using organization label
+        """Create Activation key and delete it using organization label
         for which that key was created
 
         @Feature: Activation key - Positive Delete
@@ -308,7 +308,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_delete_with_cv(self):
-        """@Test: Create activation key with content view assigned to it and
+        """Create activation key with content view assigned to it and
         delete it using activation key id
 
         @Feature: Activation key - Positive Delete
@@ -324,7 +324,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_delete_with_lce(self):
-        """@Test: Create activation key with lifecycle environment assigned to
+        """Create activation key with lifecycle environment assigned to
         it and delete it using activation key id
 
         @Feature: Activation key - Positive Delete
@@ -341,7 +341,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name_by_id(self):
-        """@Test: Update Activation Key Name in Activation key searching by ID
+        """Update Activation Key Name in Activation key searching by ID
 
         @Feature: Activation key - Positive Update
 
@@ -361,7 +361,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name_by_name(self):
-        """@Test: Update Activation Key Name in an Activation key searching by
+        """Update Activation Key Name in an Activation key searching by
         name
 
         @Feature: Activation key - Positive Update
@@ -381,7 +381,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_description(self):
-        """@Test: Update Description in an Activation key
+        """Update Description in an Activation key
 
         @Feature: Activation key - Positive Update
 
@@ -401,7 +401,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_update_lce(self):
-        """@Test: Update Environment in an Activation key
+        """Update Environment in an Activation key
 
         @Feature: Activation key - Positive Update
 
@@ -430,7 +430,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_update_cv(self):
-        """@Test: Update Content View in an Activation key
+        """Update Content View in an Activation key
 
         @Feature: Activation key - Positive Update
 
@@ -449,7 +449,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_usage_limit_to_finite_number(self):
-        """@Test: Update Usage limit from Unlimited to a finite number
+        """Update Usage limit from Unlimited to a finite number
 
         @Feature: Activation key - Positive Update
 
@@ -468,7 +468,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_usage_limit_to_unlimited(self):
-        """@Test: Update Usage limit from definite number to Unlimited
+        """Update Usage limit from definite number to Unlimited
 
         @Feature: Activation key - Positive Update
 
@@ -489,7 +489,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_name(self):
-        """@Test: Try to update Activation Key using invalid value for its name
+        """Try to update Activation Key using invalid value for its name
 
         @Feature: Activation key - Negative Update
 
@@ -508,7 +508,7 @@ class ActivationKeyTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1177158)
     @tier1
     def test_negative_update_description(self):
-        """@Test: Try to update Activation Key using invalid value for its
+        """Try to update Activation Key using invalid value for its
         description
 
         @Feature: Activation key - Negative Update
@@ -527,7 +527,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_usage_limit(self):
-        """@Test: Try to update Activation Key using invalid value for its
+        """Try to update Activation Key using invalid value for its
         usage limit attribute
 
         @Feature: Activation key - Negative Update
@@ -546,7 +546,7 @@ class ActivationKeyTestCase(CLITestCase):
     @skip_if_not_set('clients')
     @tier3
     def test_positive_usage_limit(self):
-        """@Test: Test that Usage limit actually limits usage
+        """Test that Usage limit actually limits usage
 
         @Feature: Activation key - Usage limit
 
@@ -590,7 +590,7 @@ class ActivationKeyTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1110476)
     @tier2
     def test_positive_update_host_collection(self):
-        """@Test: Test that host collection can be associated to Activation
+        """Test that host collection can be associated to Activation
         Keys
 
         @Feature: Activation key - Host
@@ -623,7 +623,7 @@ class ActivationKeyTestCase(CLITestCase):
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_add_redhat_product(self):
-        """@Test: Test that RH product can be associated to Activation Keys
+        """Test that RH product can be associated to Activation Keys
 
         @Feature: Activation key - Product
 
@@ -646,7 +646,7 @@ class ActivationKeyTestCase(CLITestCase):
     @run_only_on('sat')
     @tier3
     def test_positive_add_custom_product(self):
-        """@Test: Test that custom product can be associated to Activation Keys
+        """Test that custom product can be associated to Activation Keys
 
         @Feature: Activation key - Product
 
@@ -668,7 +668,7 @@ class ActivationKeyTestCase(CLITestCase):
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_add_redhat_and_custom_products(self):
-        """@Test: Test if RH/Custom product can be associated to Activation key
+        """Test if RH/Custom product can be associated to Activation key
 
         @Feature: Activation key - Product
 
@@ -706,7 +706,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_delete_manifest(self):
-        """@Test: Check if deleting a manifest removes it from Activation key
+        """Check if deleting a manifest removes it from Activation key
 
         @Feature: Activation key - Manifest
 
@@ -724,7 +724,7 @@ class ActivationKeyTestCase(CLITestCase):
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_delete_subscription(self):
-        """@Test: Check if deleting a subscription removes it from Activation key
+        """Check if deleting a subscription removes it from Activation key
 
         @Feature: Activation key - Subscription
 
@@ -765,7 +765,7 @@ class ActivationKeyTestCase(CLITestCase):
     @skip_if_not_set('clients')
     @tier3
     def test_positive_update_aks_to_chost(self):
-        """@Test: Check if multiple Activation keys can be attached to a
+        """Check if multiple Activation keys can be attached to a
         Content host
 
         @Feature: Activation key - Content host
@@ -799,8 +799,8 @@ class ActivationKeyTestCase(CLITestCase):
     @stubbed()
     @tier3
     def test_positive_update_aks_to_chost_in_one_command(self):
-        """@Test: Check if multiple Activation keys can be attached to a
-        Content host in one command. Here is a command details:
+        """Check if multiple Activation keys can be attached to a
+        Content host in one command. Here is a command details
 
         subscription-manager register --help
 
@@ -821,7 +821,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_list_by_name(self):
-        """@Test: List Activation key for all variations of Activation key name
+        """List Activation key for all variations of Activation key name
 
         @Feature: Activation key - list
 
@@ -839,7 +839,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_list_by_cv_id(self):
-        """@Test: List Activation key for provided Content View ID
+        """List Activation key for provided Content View ID
 
         @Feature: Activation key - list
 
@@ -856,7 +856,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_using_old_name(self):
-        """@Test: Create activation key, rename it and create another with the
+        """Create activation key, rename it and create another with the
         initial name
 
         @Feature: Activation key - Positive Create
@@ -881,7 +881,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier2
     def test_positive_remove_host_collection_by_id(self):
-        """@Test: Test that hosts associated to Activation Keys can be removed
+        """Test that hosts associated to Activation Keys can be removed
         using id of that host collection
 
         @Feature: Activation key - Host
@@ -918,7 +918,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier2
     def test_positive_remove_host_collection_by_name(self):
-        """@Test: Test that hosts associated to Activation Keys can be removed
+        """Test that hosts associated to Activation Keys can be removed
         using name of that host collection
 
         @Feature: Activation key - Host
@@ -968,7 +968,7 @@ class ActivationKeyTestCase(CLITestCase):
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_add_subscription_by_id(self):
-        """@Test: Test that subscription can be added to activation key
+        """Test that subscription can be added to activation key
 
         @Feature: Activation key - Subscription
 
@@ -1000,7 +1000,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_copy_by_parent_id(self):
-        """@Test: Copy Activation key for all valid Activation Key name
+        """Copy Activation key for all valid Activation Key name
         variations
 
         @Feature: Activation key copy
@@ -1019,7 +1019,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_copy_by_parent_name(self):
-        """@Test: Copy Activation key by passing name of parent
+        """Copy Activation key by passing name of parent
 
         @Feature: Activation key copy
 
@@ -1035,7 +1035,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_negative_copy_with_same_name(self):
-        """@Test: Copy activation key with duplicate name
+        """Copy activation key with duplicate name
 
         @Feature: Activation key copy
 
@@ -1053,7 +1053,7 @@ class ActivationKeyTestCase(CLITestCase):
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_copy_subscription(self):
-        """@Test: Copy Activation key and verify contents
+        """Copy Activation key and verify contents
 
         @Feature: Activation key copy
 
@@ -1099,7 +1099,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_autoattach_toggle(self):
-        """@Test: Update Activation key with inverse auto-attach value
+        """Update Activation key with inverse auto-attach value
 
         @Feature: Activation key update / info
 
@@ -1125,7 +1125,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_autoattach(self):
-        """@Test: Update Activation key with valid auto-attach values
+        """Update Activation key with valid auto-attach values
 
         @Feature: Activation key update / info
 
@@ -1144,7 +1144,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_autoattach(self):
-        """@Test: Attempt to update Activation key with bad auto-attach value
+        """Attempt to update Activation key with bad auto-attach value
 
         @Feature: Activation key update / info
 
@@ -1168,7 +1168,7 @@ class ActivationKeyTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1180282)
     @tier3
     def test_positive_content_override(self):
-        """@Test: Positive content override
+        """Positive content override
 
         @Feature: Activation key copy
 

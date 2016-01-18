@@ -11,7 +11,7 @@ class PingTestCase(CLITestCase):
 
     @tier1
     def test_positive_ping(self):
-        """@test: hammer ping return code
+        """hammer ping return code
 
         @feature: hammer ping
 

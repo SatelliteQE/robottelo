@@ -18,7 +18,7 @@ class ModelTestCase(CLITestCase):
     """Test class for Model CLI"""
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Successfully creates a Model.
+        """Successfully creates a Model.
 
         @Feature: Model
 
@@ -32,7 +32,7 @@ class ModelTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_vendor_class(self):
-        """@Test: Check if Model can be created with specific vendor class
+        """Check if Model can be created with specific vendor class
 
         @Feature: Model - Positive Create
 
@@ -44,7 +44,7 @@ class ModelTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_name(self):
-        """@Test: Don't create an Model with invalid data.
+        """Don't create an Model with invalid data.
 
         @Feature: Model
 
@@ -57,7 +57,7 @@ class ModelTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Successfully update an Model.
+        """Successfully update an Model.
 
         @Feature: Model
 
@@ -76,7 +76,7 @@ class ModelTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_update_name(self):
-        """@test: Create Model then fail to update its name
+        """Create Model then fail to update its name
 
         @feature: Model
 
@@ -96,7 +96,7 @@ class ModelTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_by_id(self):
-        """@test: Create Model with valid values then delete it
+        """Create Model with valid values then delete it
         by ID
 
         @feature: Model
@@ -113,7 +113,7 @@ class ModelTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_delete_by_id(self):
-        """@test: Create Model then delete it by wrong ID
+        """Create Model then delete it by wrong ID
 
         @feature: Model
 

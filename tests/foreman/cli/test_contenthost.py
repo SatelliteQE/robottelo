@@ -88,7 +88,7 @@ class ContentHostTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Check if content host can be created with random names
+        """Check if content host can be created with random names
 
         @Feature: Content Hosts
 
@@ -108,7 +108,7 @@ class ContentHostTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_description(self):
-        """@Test: Check if content host can be created with random description
+        """Check if content host can be created with random description
 
         @Feature: Content Hosts
 
@@ -128,7 +128,7 @@ class ContentHostTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_org_name(self):
-        """@Test: Check if content host can be created with organization name
+        """Check if content host can be created with organization name
 
         @Feature: Content Hosts
 
@@ -151,7 +151,7 @@ class ContentHostTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_org_label(self):
-        """@Test: Check if content host can be created with organization label
+        """Check if content host can be created with organization label
 
         @Feature: Content Hosts
 
@@ -175,7 +175,7 @@ class ContentHostTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_cv_default(self):
-        """@Test: Check if content host can be created with content view name
+        """Check if content host can be created with content view name
 
         @Feature: Content Hosts
 
@@ -194,7 +194,7 @@ class ContentHostTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_lce_library(self):
-        """@Test: Check if content host can be created with lifecycle name
+        """Check if content host can be created with lifecycle name
 
         @Feature: Content Hosts
 
@@ -216,7 +216,7 @@ class ContentHostTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_lce(self):
-        """@Test: Check if content host can be created with new lifecycle
+        """Check if content host can be created with new lifecycle
 
         @Feature: Content Hosts
 
@@ -238,7 +238,7 @@ class ContentHostTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_cv(self):
-        """@Test: Check if content host can be created with new content view
+        """Check if content host can be created with new content view
 
         @Feature: Content Hosts
 
@@ -263,7 +263,7 @@ class ContentHostTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_name(self):
-        """@Test: Check if content host can be created with random long names
+        """Check if content host can be created with random long names
 
         @Feature: Content Hosts
 
@@ -283,7 +283,7 @@ class ContentHostTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_create_with_unpublished_cv(self):
-        """@Test: Check if content host can be created using unpublished cv
+        """Check if content host can be created using unpublished cv
 
         @Feature: Content Hosts
 
@@ -304,7 +304,7 @@ class ContentHostTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Check if content host name can be updated
+        """Check if content host name can be updated
 
         @Feature: Content Hosts
 
@@ -327,7 +327,7 @@ class ContentHostTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_description(self):
-        """@Test: Check if content host description can be updated
+        """Check if content host description can be updated
 
         @Feature: Content Hosts
 
@@ -350,7 +350,7 @@ class ContentHostTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Check if content host can be created and deleted
+        """Check if content host can be created and deleted
 
         @Feature: Content Hosts
 
@@ -372,7 +372,7 @@ class ContentHostTestCase(CLITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1154611)
     def test_negative_create_with_same_name(self):
-        """@test: check if Content Host creation does not allow duplicated
+        """check if Content Host creation does not allow duplicated
         names
 
         @feature: Contet_Hosts
@@ -400,7 +400,7 @@ class ContentHostTestCase(CLITestCase):
 
     @tier3
     def test_positive_register_with_no_ak(self):
-        """@test: Register Content host to satellite without activation key
+        """Register Content host to satellite without activation key
 
         @feature: Content host
 
@@ -453,7 +453,7 @@ class ContentHostTestCase(CLITestCase):
 
     @tier3
     def test_positive_list(self):
-        """@test: List Content hosts for a given org
+        """List Content hosts for a given org
 
         @feature: Content host
 
@@ -476,7 +476,7 @@ class ContentHostTestCase(CLITestCase):
 
     @tier3
     def test_positive_unregister(self):
-        """@test: Unregister Content host
+        """Unregister Content host
 
         @feature: Content host
 
@@ -575,7 +575,7 @@ class KatelloAgentTestCase(CLITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_get_errata_info(self):
-        """@Test: Get errata info
+        """Get errata info
 
         @Feature: Content Host - Errata
 
@@ -597,7 +597,7 @@ class KatelloAgentTestCase(CLITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_apply_errata(self):
-        """@Test: Apply errata to content host
+        """Apply errata to content host
 
         @Feature: Content Host - Errata
 
@@ -617,7 +617,7 @@ class KatelloAgentTestCase(CLITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_install_package(self):
-        """@Test: Install package to content host remotely
+        """Install package to content host remotely
 
         @Feature: Content Host - Package
 
@@ -637,7 +637,7 @@ class KatelloAgentTestCase(CLITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_remove_package(self):
-        """@Test: Remove package from content host remotely
+        """Remove package from content host remotely
 
         @Feature: Content Host - Package
 
@@ -661,7 +661,7 @@ class KatelloAgentTestCase(CLITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_upgrade_package(self):
-        """@Test: Upgrade content host package remotely
+        """Upgrade content host package remotely
 
         @Feature: Content Host - Package
 
@@ -680,7 +680,7 @@ class KatelloAgentTestCase(CLITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_upgrade_packages_all(self):
-        """@Test: Upgrade all the content host packages remotely
+        """Upgrade all the content host packages remotely
 
         @Feature: Content Host - Package
 
@@ -699,7 +699,7 @@ class KatelloAgentTestCase(CLITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_install_package_group(self):
-        """@Test: Install package group to content host remotely
+        """Install package group to content host remotely
 
         @Feature: Content Host - Package group
 
@@ -718,7 +718,7 @@ class KatelloAgentTestCase(CLITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_remove_package_group(self):
-        """@Test: Remove package group from content host remotely
+        """Remove package group from content host remotely
 
         @Feature: Content Host - Package group
 
@@ -738,7 +738,7 @@ class KatelloAgentTestCase(CLITestCase):
 
     @tier3
     def test_negative_unregister_and_pull_content(self):
-        """@test: Attempt to retrieve content after Content host has been
+        """Attempt to retrieve content after Content host has been
         unregistered from Satellite
 
         @feature: Content host

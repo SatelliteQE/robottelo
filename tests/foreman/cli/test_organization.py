@@ -61,7 +61,7 @@ class OrganizationTestCase(CLITestCase):
     # This Bugzilla bug is private. It is impossible to fetch info about it.
     @tier1
     def test_verify_bugzilla_1078866(self):
-        """@Test: hammer organization <info,list> --help types information
+        """hammer organization <info,list> --help types information
         doubled
 
         @Feature: Organization

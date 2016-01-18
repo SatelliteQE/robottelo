@@ -31,7 +31,7 @@ class PuppetModuleTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1283173)
     @tier1
     def test_positive_list(self):
-        """@Test: Check if puppet-module list retrieves puppet-modules of
+        """Check if puppet-module list retrieves puppet-modules of
         the given org
 
         @Feature: Puppet-module
@@ -45,7 +45,7 @@ class PuppetModuleTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_info(self):
-        """@Test: Check if puppet-module info retrieves info for the given
+        """Check if puppet-module info retrieves info for the given
         puppet-module id
 
         @Feature: Puppet-module

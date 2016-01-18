@@ -28,7 +28,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_verify_bugzilla_1077386(self):
-        """@Test: List subcommand returns standard output
+        """List subcommand returns standard output
 
         @Feature: Lifecycle Environment
 
@@ -50,7 +50,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_verify_bugzilla_1077333(self):
-        """@Test: Search lifecycle environment via its name containing UTF-8
+        """Search lifecycle environment via its name containing UTF-8
         chars
 
         @Feature: Lifecycle Environment
@@ -73,7 +73,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create lifecycle environment with valid name, prior to
+        """Create lifecycle environment with valid name, prior to
         Library
 
         @Feature: Lifecycle Environment
@@ -93,7 +93,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_description(self):
-        """@Test: Create lifecycle environment with valid description prior to
+        """Create lifecycle environment with valid description prior to
         Library
 
         @Feature: Lifecycle Environment
@@ -117,7 +117,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_label(self):
-        """@Test: Create lifecycle environment with valid name and label
+        """Create lifecycle environment with valid name and label
 
         @Feature: Lifecycle Environment
 
@@ -137,7 +137,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_organization_name(self):
-        """@Test: Create lifecycle environment, specifying organization name
+        """Create lifecycle environment, specifying organization name
 
         @Feature: Lifecycle Environment
 
@@ -153,7 +153,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_organization_label(self):
-        """@Test: Create lifecycle environment, specifying organization label
+        """Create lifecycle environment, specifying organization label
 
         @Feature: Lifecycle Environment
 
@@ -169,7 +169,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Create lifecycle environment with valid name, prior to
+        """Create lifecycle environment with valid name, prior to
         Library
 
         @Feature: Lifecycle Environment
@@ -193,7 +193,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
-        """@Test: Create lifecycle environment then update its name
+        """Create lifecycle environment then update its name
 
         @Feature: Lifecycle Environment
 
@@ -221,7 +221,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_description(self):
-        """@Test: Create lifecycle environment then update its description
+        """Create lifecycle environment then update its description
 
         @Feature: Lifecycle Environment
 
@@ -249,7 +249,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positve_list_paths(self):
-        """@Test: List the environment paths under a given organization
+        """List the environment paths under a given organization
 
         @Feature: Lifecycle Environment
 

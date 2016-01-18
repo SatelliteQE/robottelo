@@ -69,7 +69,7 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_verify_bugzilla_1189289(self):
-        """@Test: Check if repository docker-upstream-name is shown
+        """Check if repository docker-upstream-name is shown
         in repository info
 
         @Feature: Repository
@@ -89,7 +89,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Check if repository can be created with random names
+        """Check if repository can be created with random names
 
         @Feature: Repository
 
@@ -102,7 +102,7 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_name_label(self):
-        """@Test: Check if repository can be created with random names and
+        """Check if repository can be created with random names and
         labels
 
         @Feature: Repository
@@ -123,7 +123,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_yum_repo(self):
-        """@Test: Create YUM repository
+        """Create YUM repository
 
         @Feature: Repository
 
@@ -141,7 +141,7 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_puppet_repo(self):
-        """@Test: Create Puppet repository
+        """Create Puppet repository
 
         @Feature: Repository
 
@@ -160,7 +160,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_gpg_key_by_id(self):
-        """@Test: Check if repository can be created with gpg key ID
+        """Check if repository can be created with gpg key ID
 
         @Feature: Repository
 
@@ -181,7 +181,7 @@ class RepositoryTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1103944)
     @tier1
     def test_positive_create_with_gpg_key_by_name(self):
-        """@Test: Check if repository can be created with gpg key name
+        """Check if repository can be created with gpg key name
 
         @Feature: Repository
 
@@ -202,7 +202,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_publish_via_http(self):
-        """@Test: Create repository published via http
+        """Create repository published via http
 
         @Feature: Repository
 
@@ -216,7 +216,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_publish_via_https(self):
-        """@Test: Create repository not published via http
+        """Create repository not published via http
 
         @Feature: Repository
 
@@ -230,7 +230,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_yum_repo_with_checksum_type(self):
-        """@Test: Create a YUM repository with a checksum type
+        """Create a YUM repository with a checksum type
 
         @Feature: Repository
 
@@ -250,7 +250,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_docker_repo_with_upstream_name(self):
-        """@Test: Create a Docker repository with upstream name.
+        """Create a Docker repository with upstream name.
 
         @Feature: Repository
 
@@ -271,7 +271,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_docker_repo_with_name(self):
-        """@Test: Create a Docker repository with a random name.
+        """Create a Docker repository with a random name.
 
         @Feature: Repository
 
@@ -293,7 +293,7 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_name(self):
-        """@Test: Repository name cannot be 300-characters long
+        """Repository name cannot be 300-characters long
 
         @Feature: Repository
 
@@ -308,7 +308,7 @@ class RepositoryTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1152237)
     @tier2
     def test_positive_synchronize_yum_repo(self):
-        """@Test: Check if repository can be created and synced
+        """Check if repository can be created and synced
 
         @Feature: Repository
 
@@ -332,7 +332,7 @@ class RepositoryTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1152237)
     @tier2
     def test_positive_synchronize_docker_repo(self):
-        """@Test: Check if Docker repository can be created and synced
+        """Check if Docker repository can be created and synced
 
         @Feature: Repository
 
@@ -354,7 +354,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_url(self):
-        """@Test: Update the original url for a repository
+        """Update the original url for a repository
 
         @Feature: Repository
 
@@ -376,7 +376,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     def test_positive_update_gpg_key(self):
-        """@Test: Update the original gpg key
+        """Update the original gpg key
 
         @Feature: Repository
 
@@ -388,7 +388,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     def test_positive_update_published_method(self):
-        """@Test: Update the original publishing method
+        """Update the original publishing method
 
         @Feature: Repository
 
@@ -401,7 +401,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_checksum_type(self):
-        """@Test: Create a YUM repository and update the checksum type
+        """Create a YUM repository and update the checksum type
 
         @Feature: Repository
 
@@ -430,7 +430,7 @@ class RepositoryTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Check if repository can be created and deleted
+        """Check if repository can be created and deleted
 
         @Feature: Repository
 
@@ -445,7 +445,7 @@ class RepositoryTestCase(CLITestCase):
 
     @tier1
     def test_positive_upload_content(self):
-        """@Test: Create repository and upload content
+        """Create repository and upload content
 
         @Feature: Repository
 

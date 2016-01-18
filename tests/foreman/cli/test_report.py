@@ -28,7 +28,7 @@ class ReportTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_list(self):
-        """@Test: Test list for Puppet report
+        """Test list for Puppet report
 
         @Feature: Puppet Report
 
@@ -39,7 +39,7 @@ class ReportTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_info(self):
-        """@Test: Test Info for Puppet report
+        """Test Info for Puppet report
 
         @Feature: Puppet Report
 
@@ -55,7 +55,7 @@ class ReportTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Check if Puppet Report can be deleted by its ID
+        """Check if Puppet Report can be deleted by its ID
 
         @Feature: Puppet Report
 

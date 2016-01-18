@@ -335,7 +335,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Try to create content view filter using invalid names only
+        """Try to create content view filter using invalid names only
 
         @Feature: Content View Filter
 
@@ -353,7 +353,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_same_name(self):
-        """@Test: Try to create content view filter using same name twice
+        """Try to create content view filter using same name twice
 
         @Feature: Content View Filter
 
@@ -375,7 +375,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_without_type(self):
-        """@Test: Try to create content view filter without providing required
+        """Try to create content view filter without providing required
         parameter 'type'
 
         @Feature: Content View Filter
@@ -391,7 +391,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_without_cv(self):
-        """@Test: Try to create content view filter without providing content
+        """Try to create content view filter without providing content
         view information which should be used as basis for filter
 
         @Feature: Content View Filter
@@ -407,7 +407,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_invalid_repo_id(self):
-        """@Test: Try to create content view filter using incorrect repository
+        """Try to create content view filter using incorrect repository
 
         @Feature: Content View Filter
 
@@ -586,7 +586,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_with_name(self):
-        """@Test: Try to update content view filter using invalid names only
+        """Try to update content view filter using invalid names only
 
         @Feature: Content View Filter
 
@@ -615,7 +615,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_with_same_name(self):
-        """@Test: Try to update content view filter using name of already
+        """Try to update content view filter using name of already
         existing entity
 
         @Feature: Content View Filter

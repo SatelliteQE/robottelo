@@ -142,7 +142,7 @@ class ContentViewTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_name(self):
-        """@test: create content views with different names
+        """create content views with different names
 
         @feature: Content Views
 
@@ -159,7 +159,7 @@ class ContentViewTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_create_with_invalid_name(self):
-        """@test: create content views with invalid names
+        """create content views with invalid names
 
         @feature: Content Views
 
@@ -177,7 +177,7 @@ class ContentViewTestCase(CLITestCase):
     @run_only_on('sat')
     def test_negative_create_with_org_name(self):
         # Use an invalid org name
-        """@test: Create content view with invalid org name
+        """Create content view with invalid org name
 
         @feature: Content Views
 
@@ -192,7 +192,7 @@ class ContentViewTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_name(self):
-        """@test: Update content view name
+        """Update content view name
 
         @feature: Content Views
 
@@ -219,7 +219,7 @@ class ContentViewTestCase(CLITestCase):
         # in filter)
         # * A filter on severity (only content of specific errata
         # severity.
-        """@test: Edit content views for a rh content
+        """Edit content views for a rh content
 
         @feature: Content Views
 
@@ -233,7 +233,7 @@ class ContentViewTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete_by_id(self):
-        """@test: delete content views
+        """delete content views
 
         @feature: Content Views
 
@@ -249,7 +249,7 @@ class ContentViewTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_empty_cv_by_name_and_verify_files(self):
-        """@Test: Delete empty content view and verify it was actually deleted
+        """Delete empty content view and verify it was actually deleted
         from hard drive.
 
         @Feature: Content View
@@ -289,7 +289,7 @@ class ContentViewTestCase(CLITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1265703)
     def test_positive_delete_with_custom_repo_by_name_and_verify_files(self):
-        """@Test: Delete content view containing custom repo and verify it was
+        """Delete content view containing custom repo and verify it was
         actually deleted from hard drive.
 
         @Feature: Content View
@@ -340,7 +340,7 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_delete_version_by_name(self):
-        """@test: Create content view and publish it. After that try to
+        """Create content view and publish it. After that try to
         disassociate content view from 'Library' environment through
         'remove-from-environment' command and delete content view version from
         that content view. Use content view version name as a parameter.
@@ -371,7 +371,7 @@ class ContentViewTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete_version_by_id(self):
-        """@test: Create content view and publish it. After that try to
+        """Create content view and publish it. After that try to
         disassociate content view from 'Library' environment through
         'remove-from-environment' command and delete content view version from
         that content view. Use content view version id as a parameter. Also,
@@ -417,7 +417,7 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_delete_version_by_id(self):
-        """@test: Create content view and publish it. Try to delete content
+        """Create content view and publish it. Try to delete content
         view version while content view is still associated with lifecycle
         environment
 
@@ -441,7 +441,7 @@ class ContentViewTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_remove_lce_by_id(self):
-        """@Test: Remove content view from lifecycle environment
+        """Remove content view from lifecycle environment
 
         @Feature: Content Views
 
@@ -583,7 +583,7 @@ class ContentViewTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_remove_version_by_id(self):
-        """@Test: Delete content view version using 'remove' command
+        """Delete content view version using 'remove' command
 
         @Feature: Content Views
 
@@ -616,7 +616,7 @@ class ContentViewTestCase(CLITestCase):
         # It shouldn't work - and that is tested in a different case
         # (test_negative_add_puppet_repo). Individual modules from a puppet
         # repo, however, are a valid variation.
-        """@test: create a composite content view
+        """create a composite content view
 
         @feature: Content Views
 
@@ -664,7 +664,7 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_add_rh_repo_by_id(self):
-        """@test: Associate Red Hat content to a content view
+        """Associate Red Hat content to a content view
 
         @feature: Content Views
 
@@ -694,7 +694,7 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_add_rh_repo_by_id_and_create_filter(self):
-        """@test: Associate Red Hat content to a content view and create filter
+        """Associate Red Hat content to a content view and create filter
 
         @feature: Content Views
 
@@ -738,7 +738,7 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_add_custom_repo_by_id(self):
-        """@test: Associate custom content to a Content view
+        """Associate custom content to a Content view
 
         @feature: Content Views
 
@@ -767,7 +767,7 @@ class ContentViewTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_add_custom_repo_by_name(self):
-        """@test: Associate custom content to a content view with name
+        """Associate custom content to a content view with name
 
         @feature: Content Views
 
@@ -797,7 +797,7 @@ class ContentViewTestCase(CLITestCase):
     @run_only_on('sat')
     def test_negative_add_puppet_repo(self):
         # Again, individual modules should be ok.
-        """@test: attempt to associate puppet repos within a custom content
+        """attempt to associate puppet repos within a custom content
         view
 
         @feature: Content Views
@@ -822,7 +822,7 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_add_component_in_non_composite_cv(self):
-        """@test: attempt to associate components in a non-composite content
+        """attempt to associate components in a non-composite content
         view
 
         @feature: Content Views
@@ -857,7 +857,7 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_add_same_yum_repo_twice(self):
-        """@test: attempt to associate the same repo multiple times within a
+        """attempt to associate the same repo multiple times within a
         content view
 
         @feature: Content Views
@@ -898,7 +898,7 @@ class ContentViewTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1222118)
     def test_negative_add_same_puppet_repo_twice(self):
-        """@test: attempt to associate duplicate puppet module(s) within a
+        """attempt to associate duplicate puppet module(s) within a
         content view
 
         @feature: Content Views
@@ -948,7 +948,7 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_promote_rh_content(self):
-        """@test: attempt to promote a content view containing RH content
+        """attempt to promote a content view containing RH content
 
         @feature: Content Views
 
@@ -988,7 +988,7 @@ class ContentViewTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed
     def test_positive_promote_rh_and_custom_content(self):
-        """@test: attempt to promote a content view containing RH content and
+        """attempt to promote a content view containing RH content and
         custom content using filters
 
         @feature: Content Views
@@ -1004,7 +1004,7 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_promote_custom_content(self):
-        """@test: attempt to promote a content view containing custom content
+        """attempt to promote a content view containing custom content
 
         @feature: Content Views
 
@@ -1045,7 +1045,7 @@ class ContentViewTestCase(CLITestCase):
         # RHEL, custom content (i.e., google repos), puppet modules
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
-        """@test: attempt to promote a content view containing custom content
+        """attempt to promote a content view containing custom content
 
         @feature: Content Views
 
@@ -1100,7 +1100,7 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_promote_default_cv(self):
-        """@test: attempt to promote a default content view
+        """attempt to promote a default content view
 
         @feature: Content Views
 
@@ -1125,7 +1125,7 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_promote_with_invalid_lce(self):
-        """@test: attempt to promote a content view using an invalid
+        """attempt to promote a content view using an invalid
         environment
 
         @feature: Content Views
@@ -1162,7 +1162,7 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_publish_rh_content(self):
-        """@test: attempt to publish a content view containing RH content
+        """attempt to publish a content view containing RH content
 
         @feature: Content Views
 
@@ -1197,7 +1197,7 @@ class ContentViewTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed
     def test_positive_publish_rh_and_custom_content(self):
-        """@test: attempt to publish  a content view containing a RH and custom
+        """attempt to publish  a content view containing a RH and custom
         repos and has filters
 
         @feature: Content Views
@@ -1213,7 +1213,7 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_publish_custom_content(self):
-        """@test: attempt to publish a content view containing custom content
+        """attempt to publish a content view containing custom content
 
         @feature: Content Views
 
@@ -1253,7 +1253,7 @@ class ContentViewTestCase(CLITestCase):
         # RHEL, custom content (i.e., google repos), puppet modules
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
-        """@test: attempt to publish a composite content view containing custom
+        """attempt to publish a composite content view containing custom
         content
 
         @feature: Content Views
@@ -1319,7 +1319,7 @@ class ContentViewTestCase(CLITestCase):
         # If Dev has version x, then when I promote version y into
         # Dev, version x goes away (ie when I promote version 1 to Dev,
         # version 3 goes away)
-        """@test: when publishing new version to environment, version
+        """when publishing new version to environment, version
         gets updated
 
         @feature: Content Views
@@ -1405,7 +1405,7 @@ class ContentViewTestCase(CLITestCase):
         # Dev notes:
         # Similarly when I publish version y, version x goes away from
         # Library (ie when I publish version 2, version 1 disappears)
-        """@test: when publishing new version to environment, version
+        """when publishing new version to environment, version
         gets updated
         @feature: Content Views
 
@@ -1496,7 +1496,7 @@ class ContentViewTestCase(CLITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_subscribe_chost_by_id(self):
-        """@test: Attempt to subscribe content host to content view
+        """Attempt to subscribe content host to content view
 
         @feature: Content Views
 
@@ -1527,7 +1527,7 @@ class ContentViewTestCase(CLITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_subscribe_chost_by_id_using_rh_content(self):
-        """@test: Attempt to subscribe content host to content view that has
+        """Attempt to subscribe content host to content view that has
         Red Hat repository assigned to it
 
         @feature: Content Views
@@ -1574,7 +1574,7 @@ class ContentViewTestCase(CLITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_subscribe_chost_by_id_using_rh_content_and_filters(self):
-        """@test: Attempt to subscribe content host to filtered content view
+        """Attempt to subscribe content host to filtered content view
         that has Red Hat repository assigned to it
 
         @feature: Content Views
@@ -1638,7 +1638,7 @@ class ContentViewTestCase(CLITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_subscribe_chost_by_id_using_custom_content(self):
-        """@test: Attempt to subscribe content host to content view that has
+        """Attempt to subscribe content host to content view that has
         custom repository assigned to it
 
         @feature: Content Views
@@ -1682,7 +1682,7 @@ class ContentViewTestCase(CLITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_subscribe_chost_by_id_using_ccv(self):
-        """@test: Attempt to subscribe content host to composite content view
+        """Attempt to subscribe content host to composite content view
 
         @feature: Content Views
 
@@ -1719,7 +1719,7 @@ class ContentViewTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1222118)
     def test_positive_subscribe_chost_by_id_using_puppet_content(self):
-        """@test: Attempt to subscribe content host to content view that has
+        """Attempt to subscribe content host to content view that has
         puppet module assigned to it
 
         @feature: Content Views
@@ -1780,7 +1780,7 @@ class ContentViewTestCase(CLITestCase):
     @stubbed
     def test_positive_copy(self):
         # Dev note: "not implemented yet"
-        """@test: attempt to create a new content view by copying an existing
+        """attempt to create a new content view by copying an existing
         content view
 
         @feature: Content Views
@@ -1794,7 +1794,7 @@ class ContentViewTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed
     def test_positive_restart_dynflow_promote(self):
-        """@test: attempt to restart a failed content view promotion
+        """attempt to restart a failed content view promotion
 
         @feature: Content Views
 
@@ -1811,7 +1811,7 @@ class ContentViewTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed
     def test_positive_restart_dynflow_publish(self):
-        """@test: attempt to restart a failed content view publish
+        """attempt to restart a failed content view publish
 
         @feature: Content Views
 
@@ -1831,7 +1831,7 @@ class ContentViewTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_user_with_no_create_view_cv_permissions(self):
-        """@test: Unauthorized users are not able to create/view content views
+        """Unauthorized users are not able to create/view content views
 
         @feature: Content Views
 
@@ -1867,7 +1867,7 @@ class ContentViewTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     def test_negative_user_with_read_only_cv_permission(self):
-        """@test: Read-only user is able to view content view
+        """Read-only user is able to view content view
 
         @feature: Content Views
 
@@ -1883,7 +1883,7 @@ class ContentViewTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     def test_positive_user_with_all_cv_permissions(self):
-        """@test: A user with all content view permissions is able to create,
+        """A user with all content view permissions is able to create,
         read, modify, promote, publish content views
 
         @feature: Content Views

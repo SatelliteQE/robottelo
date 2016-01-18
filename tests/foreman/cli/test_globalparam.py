@@ -14,7 +14,7 @@ class GlobalParameterTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_set(self):
-        """@Test: Check if Global Param can be set
+        """Check if Global Param can be set
 
         @Feature: Global Param - Set
 
@@ -32,7 +32,7 @@ class GlobalParameterTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_list_by_name(self):
-        """@Test: Test Global Param List
+        """Test Global Param List
 
         @Feature: Global Param - List
 
@@ -53,7 +53,7 @@ class GlobalParameterTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_by_name(self):
-        """@Test: Check if Global Param can be deleted
+        """Check if Global Param can be deleted
 
         @Feature: Global Param - Delete
 

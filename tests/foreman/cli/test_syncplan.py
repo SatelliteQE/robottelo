@@ -104,7 +104,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Check if syncplan can be created with random names
+        """Check if syncplan can be created with random names
 
         @Feature: Sync Plan
 
@@ -117,7 +117,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_description(self):
-        """@Test: Check if syncplan can be created with random description
+        """Check if syncplan can be created with random description
 
         @Feature: Sync Plan
 
@@ -130,7 +130,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_interval(self):
-        """@Test: Check if syncplan can be created with varied intervals
+        """Check if syncplan can be created with varied intervals
 
         @Feature: Sync Plan
 
@@ -150,7 +150,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_name(self):
-        """@Test: Check if syncplan can be created with random names
+        """Check if syncplan can be created with random names
 
         @Feature: Sync Plan
 
@@ -163,7 +163,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_description(self):
-        """@Test: Check if syncplan description can be updated
+        """Check if syncplan description can be updated
 
         @Feature: Sync Plan
 
@@ -181,7 +181,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_interval(self):
-        """@Test: Check if syncplan interval be updated
+        """Check if syncplan interval be updated
 
         @Feature: Sync Plan
 
@@ -202,7 +202,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_sync_date(self):
-        """@Test: Check if syncplan sync date can be updated
+        """Check if syncplan sync date can be updated
 
         @Feature: Sync Plan
 
@@ -246,7 +246,7 @@ class SyncPlanTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Check if syncplan can be created and deleted
+        """Check if syncplan can be created and deleted
 
         @Feature: Sync Plan
 
@@ -262,7 +262,7 @@ class SyncPlanTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1261122)
     @tier1
     def test_verify_bugzilla_1261122(self):
-        """@Test: Check if Enabled field is displayed in sync-plan info output
+        """Check if Enabled field is displayed in sync-plan info output
 
         @Feature: Sync Plan Info
 

@@ -40,7 +40,7 @@ class ProductTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Check if product can be created with random names
+        """Check if product can be created with random names
 
         @Feature: Product
 
@@ -58,7 +58,7 @@ class ProductTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_label(self):
-        """@Test: Check if product can be created with random labels
+        """Check if product can be created with random labels
 
         @Feature: Product
 
@@ -78,7 +78,7 @@ class ProductTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_description(self):
-        """@Test: Check if product can be created with random description
+        """Check if product can be created with random description
 
         @Feature: Product
 
@@ -97,7 +97,7 @@ class ProductTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_gpg_key(self):
-        """@Test: Check if product can be created with gpg key
+        """Check if product can be created with gpg key
 
         @Feature: Product
 
@@ -116,7 +116,7 @@ class ProductTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_sync_plan(self):
-        """@Test: Check if product can be created with sync plan
+        """Check if product can be created with sync plan
 
         @Feature: Product
 
@@ -137,7 +137,7 @@ class ProductTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_name(self):
-        """@Test: Check that only valid names can be used
+        """Check that only valid names can be used
 
         @Feature: Product
 
@@ -153,7 +153,7 @@ class ProductTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_label(self):
-        """@Test: Check that only valid labels can be used
+        """Check that only valid labels can be used
 
         @Feature: Product
 
@@ -172,7 +172,7 @@ class ProductTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_description(self):
-        """@Test: Update the description of a product
+        """Update the description of a product
 
         @Feature: Product
 
@@ -194,7 +194,7 @@ class ProductTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_gpg_key(self):
-        """@Test: Update product's gpg keys
+        """Update product's gpg keys
 
         @Feature: Product
 
@@ -222,7 +222,7 @@ class ProductTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_sync_plan(self):
-        """@Test: Update product's sync plan
+        """Update product's sync plan
 
         @Feature: Product
 
@@ -250,7 +250,7 @@ class ProductTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
-        """@Test: Rename Product back to original name
+        """Rename Product back to original name
 
         @Feature: Product
 
@@ -289,7 +289,7 @@ class ProductTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Check if product can be deleted
+        """Check if product can be deleted
 
         @Feature: Product
 
@@ -312,7 +312,7 @@ class ProductTestCase(CLITestCase):
 
     @tier2
     def test_positive_add_sync_plan_by_id(self):
-        """@Test: Check if a sync plan can be added to a product
+        """Check if a sync plan can be added to a product
 
         @Feature: Product
 
@@ -332,7 +332,7 @@ class ProductTestCase(CLITestCase):
 
     @tier2
     def test_positive_remove_sync_plan_by_id(self):
-        """@Test: Check if a sync plan can be removed from a product
+        """Check if a sync plan can be removed from a product
 
         @Feature: Product
 
@@ -358,7 +358,7 @@ class ProductTestCase(CLITestCase):
 
     @tier2
     def test_positive_sync_by_id(self):
-        """@Test: Check if product can be synchronized by its ID.
+        """Check if product can be synchronized by its ID.
 
         @Feature: Product
 
@@ -379,7 +379,7 @@ class ProductTestCase(CLITestCase):
 
     @tier2
     def test_positive_sync_by_name(self):
-        """@Test: Check if product can be synchronized by its name.
+        """Check if product can be synchronized by its name.
 
         @Feature: Product
 
@@ -400,7 +400,7 @@ class ProductTestCase(CLITestCase):
 
     @tier2
     def test_positive_sync_by_label(self):
-        """@Test: Check if product can be synchronized by its label.
+        """Check if product can be synchronized by its label.
 
         @Feature: Product
 

@@ -9,7 +9,7 @@ class DiscoveryTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_discovered_host_facts(self):
-        """@Test: Check all facts of discovered hosts are correctly displayed
+        """Check all facts of discovered hosts are correctly displayed
 
         @Feature: Foreman Discovery
 
@@ -30,7 +30,7 @@ class DiscoveryTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_provision_discovered_host(self):
-        """@Test: Provision the discovered host from hammer cli
+        """Provision the discovered host from hammer cli
 
         @Feature: Foreman Discovery
 
@@ -45,7 +45,7 @@ class DiscoveryTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_delete_discovered_host(self):
-        """@Test: Delete the selected discovered host
+        """Delete the selected discovered host
 
         @Feature: Foreman Discovery
 
@@ -59,7 +59,7 @@ class DiscoveryTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_refresh_discovered_host_facts(self):
-        """@Test: Refresh the facts of discovered hosts
+        """Refresh the facts of discovered hosts
 
         @Feature: Foreman Discovery
 
@@ -74,7 +74,7 @@ class DiscoveryTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_reboot_discovered_host(self):
-        """@Test: Reboot discovered hosts
+        """Reboot discovered hosts
 
         @Feature: Foreman Discovery
 
@@ -88,7 +88,7 @@ class DiscoveryTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_discover_and_auto_provision(self):
-        """@Test: Discover a host and auto-provision it
+        """Discover a host and auto-provision it
 
         @Feature: Foreman Discovery
 
@@ -100,7 +100,7 @@ class DiscoveryTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_assign_discovery_manager_role(self):
-        """@Test: Assign 'Discovery_Manager' role to a normal user
+        """Assign 'Discovery_Manager' role to a normal user
 
         @Feature: Foreman Discovery
 
@@ -114,7 +114,7 @@ class DiscoveryTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_assign_discovery_role(self):
-        """@Test: Assign 'Discovery" role to a normal user
+        """Assign 'Discovery" role to a normal user
 
         @Feature: Foreman Discovery
 

@@ -39,7 +39,7 @@ class HostCreateTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@test: A host can be created with a random name
+        """A host can be created with a random name
 
         @feature: Hosts
 
@@ -73,7 +73,7 @@ class HostCreateTestCase(CLITestCase):
     @skip_if_not_set('compute_resources')
     @tier1
     def test_positive_create_using_libvirt_without_mac(self):
-        """@Test: Create a libvirt host and not specify a MAC address.
+        """Create a libvirt host and not specify a MAC address.
 
         @Feature: Hosts
 
@@ -137,7 +137,7 @@ class HostDeleteTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Create a host and then delete it by id.
+        """Create a host and then delete it by id.
 
         @Feature: Hosts
 
@@ -149,7 +149,7 @@ class HostDeleteTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_name(self):
-        """@Test: Create a host and then delete it by name.
+        """Create a host and then delete it by name.
 
         @Feature: Hosts
 
@@ -192,7 +192,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_name_by_id(self):
-        """@test: A host can be updated with a new random name. Use id to
+        """A host can be updated with a new random name. Use id to
         access the host
 
         @feature: Hosts
@@ -216,7 +216,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_name_by_name(self):
-        """@test: A host can be updated with a new random name. Use name to
+        """A host can be updated with a new random name. Use name to
         access the host
 
         @feature: Hosts
@@ -243,7 +243,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_mac_by_id(self):
-        """@test: A host can be updated with a new random MAC address. Use id
+        """A host can be updated with a new random MAC address. Use id
         to access the host
 
         @feature: Hosts
@@ -260,7 +260,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_mac_by_name(self):
-        """@test: A host can be updated with a new random MAC address. Use name
+        """A host can be updated with a new random MAC address. Use name
         to access the host
 
         @feature: Hosts
@@ -277,7 +277,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_domain_by_id(self):
-        """@test: A host can be updated with a new domain. Use entities ids for
+        """A host can be updated with a new domain. Use entities ids for
         association
 
         @feature: Hosts
@@ -297,7 +297,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_domain_by_name(self):
-        """@test: A host can be updated with a new domain. Use entities names
+        """A host can be updated with a new domain. Use entities names
         for association
 
         @feature: Hosts
@@ -322,7 +322,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_env_by_id(self):
-        """@test: A host can be updated with a new environment. Use entities
+        """A host can be updated with a new environment. Use entities
         ids for association
 
         @feature: Hosts
@@ -342,7 +342,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_env_by_name(self):
-        """@test: A host can be updated with a new environment. Use entities
+        """A host can be updated with a new environment. Use entities
         names for association
 
         @feature: Hosts
@@ -362,7 +362,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_arch_by_id(self):
-        """@test: A host can be updated with a new architecture. Use entities
+        """A host can be updated with a new architecture. Use entities
         ids for association
 
         @feature: Hosts
@@ -386,7 +386,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_arch_by_name(self):
-        """@test: A host can be updated with a new architecture. Use entities
+        """A host can be updated with a new architecture. Use entities
         names for association
 
         @feature: Hosts
@@ -410,7 +410,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_os_by_id(self):
-        """@test: A host can be updated with a new operating system. Use
+        """A host can be updated with a new operating system. Use
         entities ids for association
 
         @feature: Hosts
@@ -434,7 +434,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_os_by_name(self):
-        """@test: A host can be updated with a new operating system. Use
+        """A host can be updated with a new operating system. Use
         entities names for association
 
         @feature: Hosts
@@ -458,7 +458,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_medium_by_id(self):
-        """@test: A host can be updated with a new medium. Use entities ids for
+        """A host can be updated with a new medium. Use entities ids for
         association
 
         @feature: Hosts
@@ -483,7 +483,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_medium_by_name(self):
-        """@test: A host can be updated with a new medium. Use entities names
+        """A host can be updated with a new medium. Use entities names
         for association
 
         @feature: Hosts
@@ -508,7 +508,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_name(self):
-        """@test: A host can not be updated with invalid or empty name
+        """A host can not be updated with invalid or empty name
 
         @feature: Hosts
 
@@ -532,7 +532,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_mac(self):
-        """@test: A host can not be updated with invalid or empty MAC address
+        """A host can not be updated with invalid or empty MAC address
 
         @feature: Hosts
 
@@ -550,7 +550,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier2
     def test_negative_update_arch(self):
-        """@test: A host can not be updated with a architecture, which does not
+        """A host can not be updated with a architecture, which does not
         belong to host's operating system
 
         @feature: Hosts
@@ -571,7 +571,7 @@ class HostUpdateTestCase(CLITestCase):
 
     @tier2
     def test_negative_update_os(self):
-        """@test: A host can not be updated with a operating system, which is
+        """A host can not be updated with a operating system, which is
         not associated with host's medium
 
         @feature: Hosts
@@ -628,7 +628,7 @@ class HostParameterTestCase(CLITestCase):
 
     @tier1
     def test_positive_add_parameter_with_name(self):
-        """@Test: Add host parameter with different valid names.
+        """Add host parameter with different valid names.
 
         @Feature: Hosts
 
@@ -648,7 +648,7 @@ class HostParameterTestCase(CLITestCase):
 
     @tier1
     def test_positive_add_parameter_with_value(self):
-        """@Test: Add host parameter with different valid values.
+        """Add host parameter with different valid values.
 
         @Feature: Hosts
 
@@ -669,7 +669,7 @@ class HostParameterTestCase(CLITestCase):
 
     @tier1
     def test_positive_add_parameter_by_host_name(self):
-        """@Test: Add host parameter by specifying host name.
+        """Add host parameter by specifying host name.
 
         @Feature: Hosts
 
@@ -690,7 +690,7 @@ class HostParameterTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_parameter_by_host_id(self):
-        """@Test: Update existing host parameter by specifying host ID.
+        """Update existing host parameter by specifying host ID.
 
         @Feature: Hosts
 
@@ -717,7 +717,7 @@ class HostParameterTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_parameter_by_host_name(self):
-        """@Test: Update existing host parameter by specifying host name.
+        """Update existing host parameter by specifying host name.
 
         @Feature: Hosts
 
@@ -744,7 +744,7 @@ class HostParameterTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_parameter_by_host_id(self):
-        """@Test: Delete existing host parameter by specifying host ID.
+        """Delete existing host parameter by specifying host ID.
 
         @Feature: Hosts
 
@@ -768,7 +768,7 @@ class HostParameterTestCase(CLITestCase):
 
     @tier1
     def test_posistive_delete_parameter_by_host_name(self):
-        """@Test: Delete existing host parameter by specifying host name.
+        """Delete existing host parameter by specifying host name.
 
         @Feature: Hosts
 
@@ -792,7 +792,7 @@ class HostParameterTestCase(CLITestCase):
 
     @tier1
     def test_negative_add_parameter(self):
-        """@Test: Try to add host parameter with different invalid names.
+        """Try to add host parameter with different invalid names.
 
         @Feature: Hosts
 

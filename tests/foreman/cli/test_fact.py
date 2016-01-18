@@ -13,7 +13,7 @@ class FactTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_list_by_name(self):
-        """@Test: Test Fact List
+        """Test Fact List
 
         @Feature: Fact - List Positive
 
@@ -30,7 +30,7 @@ class FactTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_list_by_name(self):
-        """@Test: Test Fact List failure
+        """Test Fact List failure
 
         @Feature: Fact - List Negative
 

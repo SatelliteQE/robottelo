@@ -24,7 +24,7 @@ class EnvironmentTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_list_with_name(self):
-        """@Test: Test Environment List
+        """Test Environment List
 
         @Feature: Environment
 
@@ -41,7 +41,7 @@ class EnvironmentTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Successfully creates an Environment.
+        """Successfully creates an Environment.
 
         @Feature: Environment
 
@@ -54,7 +54,7 @@ class EnvironmentTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_name(self):
-        """@Test: Don't create an Environment with invalid data.
+        """Don't create an Environment with invalid data.
 
         @Feature: Environment
 
@@ -68,7 +68,7 @@ class EnvironmentTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_loc(self):
-        """@Test: Check if Environment with Location can be created
+        """Check if Environment with Location can be created
 
         @Feature: Environment - Create
 
@@ -85,7 +85,7 @@ class EnvironmentTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_org(self):
-        """@Test: Check if Environment with Organization can be created
+        """Check if Environment with Organization can be created
 
         @Feature: Environment - Create
 
@@ -102,7 +102,7 @@ class EnvironmentTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete_by_id(self):
-        """@test: Create Environment with valid values then delete it
+        """Create Environment with valid values then delete it
         by ID
 
         @feature: Environment
@@ -119,7 +119,7 @@ class EnvironmentTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_delete_by_id(self):
-        """@test: Create Environment then delete it by wrong ID
+        """Create Environment then delete it by wrong ID
 
         @feature: Environment
 
@@ -133,7 +133,7 @@ class EnvironmentTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete_by_name(self):
-        """@Test: Delete the environment by its name.
+        """Delete the environment by its name.
 
         @Feature: Environment
 
@@ -147,7 +147,7 @@ class EnvironmentTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_name(self):
-        """@Test: Update the environment
+        """Update the environment
 
         @Feature: Environment - Update
 
@@ -166,7 +166,7 @@ class EnvironmentTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_update_name(self):
-        """@Test: Update the Environment with invalid values
+        """Update the Environment with invalid values
 
         @Feature: Environment
 
@@ -186,7 +186,7 @@ class EnvironmentTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_loc(self):
-        """@Test: Update environment location with new value
+        """Update environment location with new value
 
         @Feature: Environment - Update
 
@@ -208,7 +208,7 @@ class EnvironmentTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_org(self):
-        """@Test: Update environment organization with new value
+        """Update environment organization with new value
 
         @Feature: Environment - Update
 
@@ -235,7 +235,7 @@ class EnvironmentTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1219934)
     @run_only_on('sat')
     def test_positive_sc_params_by_id(self):
-        """@Test: Check if environment sc-param subcommand works passing
+        """Check if environment sc-param subcommand works passing
         an environment id
 
         @Feature: Environment
@@ -256,7 +256,7 @@ class EnvironmentTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1219934)
     @run_only_on('sat')
     def test_positive_sc_params_by_name(self):
-        """@Test: Check if environment sc-param subcommand works passing
+        """Check if environment sc-param subcommand works passing
         an environment name
 
         @Feature: Environment

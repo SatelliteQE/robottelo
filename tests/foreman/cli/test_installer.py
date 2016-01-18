@@ -17,7 +17,7 @@ class InstallerTestCase(CLITestCase):
         # devnote:
         # maybe `hammer ping` command might be useful here to check
         # the health status
-        """@test: Services services start correctly
+        """Services services start correctly
 
         @feature: Installer
 
@@ -31,7 +31,7 @@ class InstallerTestCase(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     def test_positive_installer_logfile_check(self):
-        """@test: Look for ERROR or FATAL references in logfiles
+        """Look for ERROR or FATAL references in logfiles
 
         @feature: Installer
 
@@ -48,7 +48,7 @@ class InstallerTestCase(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     def test_positive_installer_check_progress_meter(self):
-        """@test:  Assure progress indicator/meter "works"
+        """ Assure progress indicator/meter "works"
 
         @feature: Installer
 
@@ -61,7 +61,7 @@ class InstallerTestCase(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     def test_positive_server_installer_from_iso(self):
-        """@test:  Can install product from ISO
+        """ Can install product from ISO
 
         @feature: Installer
 
@@ -73,7 +73,7 @@ class InstallerTestCase(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     def test_positive_server_installer_from_repository(self):
-        """@test:  Can install main satellite instance successfully via RPM
+        """ Can install main satellite instance successfully via RPM
 
         @feature: Installer
 
@@ -85,7 +85,7 @@ class InstallerTestCase(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     def test_positive_capsule_installer_from_repository(self):
-        """@test:  Can install capsule successfully via RPM
+        """ Can install capsule successfully via RPM
 
         @feature: Installer
 
@@ -97,7 +97,7 @@ class InstallerTestCase(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     def test_positive_disconnected_util_installer(self):
-        """@test:  Can install  satellite disconnected utility successfully
+        """ Can install  satellite disconnected utility successfully
         via RPM
 
         @feature: Installer
@@ -110,7 +110,7 @@ class InstallerTestCase(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     def test_positive_capsule_installer_and_register(self):
-        """@test: Upon installation, capsule instance self-registers
+        """Upon installation, capsule instance self-registers
         itself to parent instance
 
         @feature: Installer
@@ -124,7 +124,7 @@ class InstallerTestCase(CLITestCase):
     @stubbed()
     @run_only_on('sat')
     def test_positive_installer_clear_data(self):
-        """@test:  User can run installer to clear existing data
+        """ User can run installer to clear existing data
 
         @feature: Installer
 
