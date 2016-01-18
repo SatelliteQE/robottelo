@@ -1,64 +1,86 @@
 # -*- encoding: utf-8 -*-
 """Test class for Users CLI"""
 
-from robottelo.decorators import stubbed
+from fauxfactory import gen_string
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.factory import make_user
+from robottelo.cli.user import User
+from robottelo.datafactory import invalid_emails_list
+from robottelo.decorators import stubbed, tier1
 from robottelo.test import CLITestCase
 
 
 class MyAccountTestCase(CLITestCase):
-    """Implements Users tests in CLI
+    """Implements My Account functionality tests in CLI"""
 
-    [1] Positive Name variations - Alpha, Numeric, Alphanumeric, Symbols,
-    Latin1, Multibyte, Max length,  Min length, Max_db_size, html, css,
-    javascript, url, shell commands, sql, spaces in name
+    @classmethod
+    def setUpClass(cls):
+        """Create a new user for all myaccount tests to not impact the default
+        user
+        """
+        super(MyAccountTestCase, cls).setUpClass()
 
-    [2] Negative Name Variations -  Blank, Greater than Max Length,
-    Lesser than Min Length, Greater than Max DB size
-    """
+        login = gen_string('alphanumeric', 30)
+        password = gen_string('alphanumeric', 30)
+        cls.user = make_user({
+            'login': login,
+            'password': password,
+            'admin': '1',
+        })
+        User.foreman_admin_username = login
+        User.foreman_admin_password = password
 
-    @stubbed()
+    @classmethod
+    def tearDownClass(cls):
+        """Restore User object to previous state"""
+        del User.foreman_admin_username
+        del User.foreman_admin_password
+
+        super(MyAccountTestCase, cls).tearDownClass()
+
+    @tier1
     def test_positive_update_first_name(self):
-        """@Test: Update Firstname in My Account
+        """Update Firstname in My Account
 
         @Feature: My Account - Positive Update
 
-        @Steps:
-        1. Update current User with all variations of Firstname in [1]
-
         @Assert: Current User is updated
-
-        @Status: Manual
         """
+        new_firstname = gen_string('alphanumeric')
+        User.update({'id': self.user['id'], 'firstname': new_firstname})
+        result = User.info({'id': self.user['id']})
+        updated_first_name = result['name'].split(' ')
+        self.assertEqual(updated_first_name[0], new_firstname)
 
-    @stubbed()
+    @tier1
     def test_positive_update_surname(self):
-        """@Test: Update Surname in My Account
+        """Update Surname in My Account
 
         @Feature: My Account - Positive Update
 
-        @Steps:
-        1. Update current User with all variations of Surname in [1]
-
         @Assert: Current User is updated
-
-        @Status: Manual
         """
+        new_lastname = gen_string('alphanumeric')
+        User.update({'id': self.user['id'], 'lastname': new_lastname})
+        result = User.info({'id': self.user['id']})
+        updated_last_name = result['name'].split(' ')
+        self.assertEqual(updated_last_name[1], new_lastname)
 
-    @stubbed()
+    @tier1
     def test_positive_update_email(self):
-        """@Test: Update Email Address in My Account
+        """Update Email Address in My Account
 
         @Feature: My Account - Positive Update
 
-        @Steps:
-        1. Update current User with all variations of Email Address in [1]
-
         @Assert: Current User is updated
-
-        @Status: Manual
         """
+        email = u'{0}@example.com'.format(gen_string('alphanumeric'))
+        User.update({'id': self.user['id'], 'mail': email})
+        result = User.info({'id': self.user['id']})
+        self.assertEqual(result['email'], email)
 
     @stubbed()
+    @tier1
     def test_positive_update_language(self):
         """@Test: Update Language in My Account
 
@@ -72,63 +94,69 @@ class MyAccountTestCase(CLITestCase):
         @Status: Manual
         """
 
-    @stubbed()
+    @tier1
     def test_positive_update_password(self):
-        """@Test: Update Password/Verify fields in My Account
+        """Update Password in My Account
 
         @Feature: My Account - Positive Update
 
-        @Steps:
-        1. Update Password/Verify fields with all variations in [1]
-
         @Assert: User is updated
-
-        @Status: Manual
         """
+        password = gen_string('alphanumeric')
+        User.update({
+            'id': self.user['id'],
+            'password': password,
+        })
+        User.foreman_admin_password = password
+        result = User.info({'id': self.user['id']})
+        self.assertTrue(result)
 
-    @stubbed()
+    @tier1
     def test_negative_update_first_name(self):
-        """@Test: Update My Account with invalid FirstName
+        """Update My Account with invalid FirstName
 
         @Feature: My Account - Negative Update
 
-        @Steps:
-        1. Update Current user with all variations of FirstName in [2]
-
         @Assert: User is not updated. Appropriate error shown.
-
-        @Status: Manual
         """
+        with self.assertRaises(CLIReturnCodeError):
+            User.update({
+                'id': self.user['id'],
+                'firstname': gen_string('alphanumeric', 300),
+            })
 
-    @stubbed()
+    @tier1
     def test_negative_update_surname(self):
-        """@Test: Update My Account with invalid Surname
+        """Update My Account with invalid Surname
 
         @Feature: My Account - Negative Update
 
-        @Steps:
-        1. Update Current user with all variations of Surname in [2]
-
         @Assert: User is not updated. Appropriate error shown.
-
-        @Status: Manual
         """
+        with self.assertRaises(CLIReturnCodeError):
+            User.update({
+                'id': self.user['id'],
+                'lastname': gen_string('alphanumeric', 300),
+            })
 
-    @stubbed()
+    @tier1
     def test_negative_update_email(self):
         """@Test: Update My Account with invalid Email Address
 
         @Feature: My Account - Negative Update
 
-        @Steps:
-        1. Update Current user with all variations of Email Address in [2]
-
         @Assert: User is not updated. Appropriate error shown.
-
-        @Status: Manual
         """
+        for email in invalid_emails_list():
+            with self.subTest(email):
+                with self.assertRaises(CLIReturnCodeError):
+                    User.update({
+                        'login': self.user['login'],
+                        'mail': email,
+                    })
 
     @stubbed()
+    @tier1
     def test_negative_update_password_invalid(self):
         """@Test: Update My Account with invalid Password/Verify fields
 
@@ -137,22 +165,6 @@ class MyAccountTestCase(CLITestCase):
         @Steps:
         1. Update Current user with all variations of Password/Verify fields
         in [2]
-
-        @Assert: User is not updated. Appropriate error shown.
-
-        @Status: Manual
-        """
-
-    @stubbed()
-    def test_negative_update_password_mismatch(self):
-        """@Test: Update My Account with non-matching values in Password and
-
-        @Feature: My Account - Negative Update
-
-        verify fields
-        @Steps:
-        1. Update Current user with non-matching values in Password and verify
-        fields
 
         @Assert: User is not updated. Appropriate error shown.
 
