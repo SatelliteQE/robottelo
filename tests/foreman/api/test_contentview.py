@@ -41,7 +41,7 @@ class ContentViewTestCase(APITestCase):
     @tier3
     @run_only_on('sat')
     def test_positive_subscribe_system(self):
-        """@Test: Subscribe a system to a content view.
+        """Subscribe a system to a content view.
 
         @Feature: ContentView
 
@@ -83,7 +83,7 @@ class ContentViewTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_clone_within_same_env(self):
-        """@Test: attempt to create, publish and promote new content view
+        """attempt to create, publish and promote new content view
         based on existing view within the same environment as the
         original content view
 
@@ -107,7 +107,7 @@ class ContentViewTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_clone_with_diff_env(self):
-        """@Test: attempt to create, publish and promote new content
+        """attempt to create, publish and promote new content
         view based on existing view but promoted to a
         different environment
 
@@ -131,7 +131,7 @@ class ContentViewTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_add_custom_content(self):
-        """@Test: Associate custom content in a view
+        """Associate custom content in a view
 
         @Assert: Custom content assigned and present in content view
 
@@ -152,7 +152,7 @@ class ContentViewTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_add_puppet_content(self):
-        """@Test: Attempt to associate puppet repos within a custom content
+        """Attempt to associate puppet repos within a custom content
         view directly
 
         @Assert: User cannot create a non-composite content view that contains
@@ -177,7 +177,7 @@ class ContentViewTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_add_dupe_repos(self):
-        """@Test: Attempt to associate the same repo multiple times within a
+        """Attempt to associate the same repo multiple times within a
         content view
 
         @Assert: User cannot add repos multiple times to the view
@@ -199,7 +199,7 @@ class ContentViewTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_add_dupe_modules(self):
-        """@Test: Attempt to associate duplicate puppet modules within a
+        """Attempt to associate duplicate puppet modules within a
         content view
 
         @Assert: User cannot add same modules multiple times to the view
@@ -242,7 +242,7 @@ class ContentViewCreateTestCase(APITestCase):
 
     @tier1
     def test_positive_create_composite(self):
-        """@Test: Create composite and non-composite content views.
+        """Create composite and non-composite content views.
 
         @Assert: Creation succeeds and content-view is composite or
         non-composite, respectively.
@@ -260,7 +260,7 @@ class ContentViewCreateTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create empty content-view with random names.
+        """Create empty content-view with random names.
 
         @Assert: Content-view is created and had random name.
 
@@ -275,7 +275,7 @@ class ContentViewCreateTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_description(self):
-        """@Test: Create empty content view with random description.
+        """Create empty content view with random description.
 
         @Assert: Content-view is created and has random description.
 
@@ -292,7 +292,7 @@ class ContentViewCreateTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create content view providing an invalid name.
+        """Create content view providing an invalid name.
 
         @Assert: Content View is not created
 
@@ -342,7 +342,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_publish_multiple(self):
-        """@Test: Publish a content view several times.
+        """Publish a content view several times.
 
         @Assert: Content view has the correct number of versions after each
         publishing operation.
@@ -356,7 +356,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_publish_with_content_multiple(self):
-        """@Test: Give a content view yum packages and publish it repeatedly.
+        """Give a content view yum packages and publish it repeatedly.
 
         @Assert: The yum repo is referenced from the content view, the content
         view can be published several times, and each content view version has
@@ -380,7 +380,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_publish_composite_single_content_once(self):
-        """@Test: Create empty composite view and assign one normal content
+        """Create empty composite view and assign one normal content
         view to it. After that publish that composite content view once.
 
         @Assert: Composite content view is published and corresponding
@@ -398,7 +398,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_publish_composite_multiple_content_once(self):
-        """@Test: Create empty composite view and assign random number of
+        """Create empty composite view and assign random number of
         normal content views to it. After that publish that composite content
         view once.
 
@@ -417,7 +417,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_publish_composite_single_content_multiple(self):
-        """@Test: Create empty composite view and assign one normal content
+        """Create empty composite view and assign one normal content
         view to it. After that publish that composite content view several
         times.
 
@@ -438,7 +438,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_publish_composite_multiple_content_multiple(self):
-        """@Test: Create empty composite view and assign random number of
+        """Create empty composite view and assign random number of
         normal content views to it. After that publish that composite content
         view several times.
 
@@ -459,7 +459,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_publish_with_puppet_once(self):
-        """@Test: Publish a content view that has puppet module once.
+        """Publish a content view that has puppet module once.
 
         @Assert: The puppet module is referenced from the content view, the
         content view can be published once and corresponding version refer to
@@ -483,7 +483,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_publish_with_puppet_multiple(self):
-        """@Test: Publish a content view that has puppet module
+        """Publish a content view that has puppet module
         several times.
 
         @Assert: The puppet module is referenced from the content view, the
@@ -515,7 +515,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_promote_empty_multiple(self):
-        """@Test: Promote a content view version ``REPEAT`` times.
+        """Promote a content view version ``REPEAT`` times.
 
         @Assert: The content view version points to ``REPEAT + 1`` lifecycle
         environments after the promotions.
@@ -539,7 +539,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_promote_with_yum_multiple(self):
-        """@Test: Give a content view a yum repo, publish it once and promote
+        """Give a content view a yum repo, publish it once and promote
         the content view version ``REPEAT + 1`` times.
 
         @Assert: The content view has one repository, the content view version
@@ -571,7 +571,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_promote_with_puppet_once(self):
-        """@Test: Give content view a puppet module. Publish
+        """Give content view a puppet module. Publish
         and promote it once
 
         @Assert: The content view has one puppet module, the content view
@@ -604,7 +604,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_promote_with_puppet_multiple(self):
-        """@Test: Give a content view a puppet module, publish it once and
+        """Give a content view a puppet module, publish it once and
         promote the content view version ``Library + random`` times.
 
         @Assert: The content view has one puppet module, the content view
@@ -643,7 +643,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_add_to_composite(self):
-        """@Test: Create normal content view, publish and add it to a new
+        """Create normal content view, publish and add it to a new
         composite content view
 
         @Assert: Content view can be created and assigned to composite one
@@ -677,7 +677,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_negative_add_components_to_composite(self):
-        """@Test: Attempt to associate components in a non-composite content
+        """Attempt to associate components in a non-composite content
         view
 
         @Assert: User cannot add components to the view
@@ -701,7 +701,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_promote_composite_single_content_once(self):
-        """@Test: Create empty composite view and assign one normal content
+        """Create empty composite view and assign one normal content
         view to it. After that promote that composite content view once.
 
         @Assert: Composite content view version points to
@@ -723,7 +723,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_promote_composite_multiple_content_once(self):
-        """@Test: Create empty composite view and assign random number of
+        """Create empty composite view and assign random number of
         normal content views to it. After that promote that composite
         content view once.
 
@@ -746,7 +746,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_promote_composite_single_content_multiple(self):
-        """@Test: Create empty composite view and assign one normal content
+        """Create empty composite view and assign one normal content
         view to it. After that promote that composite content view
         ``Library + random`` times.
 
@@ -776,7 +776,7 @@ class ContentViewPublishPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_promote_composite_multiple_content_multiple(self):
-        """@Test: Create empty composite view and assign random number of
+        """Create empty composite view and assign random number of
         normal content views to it. After that promote that composite content
         view ``Library + random`` times.
 
@@ -847,7 +847,7 @@ class ContentViewUpdateTestCase(APITestCase):
 
     @tier1
     def test_positive_update_attributes(self):
-        """@Test: Update a content view and provide valid attributes.
+        """Update a content view and provide valid attributes.
 
         @Assert: The update succeeds.
 
@@ -862,7 +862,7 @@ class ContentViewUpdateTestCase(APITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Create content view providing the initial name, then update
+        """Create content view providing the initial name, then update
         its name to another valid name.
 
         @Assert: Content View is created, and its name can be
@@ -878,7 +878,7 @@ class ContentViewUpdateTestCase(APITestCase):
 
     @tier1
     def test_negative_update_name(self):
-        """@Test: Create content view then update its name to an
+        """Create content view then update its name to an
         invalid name.
 
         @Assert: Content View is created, and its name is not
@@ -915,7 +915,7 @@ class ContentViewDeleteTestCase(APITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Create content view and then delete it.
+        """Create content view and then delete it.
 
         @Assert: Content View is successfully deleted.
 
@@ -957,7 +957,7 @@ class ContentViewRedHatContent(APITestCase):
 
     @tier2
     def test_positive_add_rh(self):
-        """@Test: associate Red Hat content in a view
+        """associate Red Hat content in a view
 
         @Assert: RH Content assigned and present in a view
 
@@ -975,7 +975,7 @@ class ContentViewRedHatContent(APITestCase):
 
     @tier2
     def test_positive_add_rh_custom_spin(self):
-        """@Test: Associate Red Hat content in a view and filter it using rule
+        """Associate Red Hat content in a view and filter it using rule
 
         @Feature: Content Views
 
@@ -1089,7 +1089,7 @@ class ContentViewTestCaseStub(APITestCase):
     @stubbed()
     def test_positive_update_rh_custom_spin(self):
         """
-        @test: edit content views for a custom rh spin.  For example,
+        edit content views for a custom rh spin.  For example,
         @feature: Content Views
         modify a filter
         @assert: edited content view save is successful and info is
@@ -1106,7 +1106,7 @@ class ContentViewTestCaseStub(APITestCase):
     @stubbed()
     def test_positive_refresh_errata_new_view_same_env(self):
         """
-        @test: attempt to refresh errata in a new view, based on
+        attempt to refresh errata in a new view, based on
         an existing view, from within the same  environment
         @feature: Content Views
         @assert: Content view can be published
@@ -1117,7 +1117,7 @@ class ContentViewTestCaseStub(APITestCase):
     @stubbed()
     def test_positive_subscribe_system(self):
         """
-        @test: attempt to  subscribe systems to content view(s)
+        attempt to  subscribe systems to content view(s)
         @feature: Content Views
         @assert: Systems can be subscribed to content view(s)
         @status: Manual
@@ -1137,7 +1137,7 @@ class ContentViewTestCaseStub(APITestCase):
     @stubbed()
     def test_positive_subscribe_system_custom_cv(self):
         """
-        @test: attempt to  subscribe systems to content view(s)
+        attempt to  subscribe systems to content view(s)
         @feature: Content Views
         @assert: Systems can be subscribed to content view(s)
         """
@@ -1148,7 +1148,7 @@ class ContentViewTestCaseStub(APITestCase):
     @stubbed()
     def test_positive_restart_promote_via_dynflow(self):
         """
-        @test: attempt to restart a promotion
+        attempt to restart a promotion
         @feature: Content Views
         @steps:
         1. (Somehow) cause a CV promotion to fail.  Not exactly sure how yet.
@@ -1161,7 +1161,7 @@ class ContentViewTestCaseStub(APITestCase):
     @stubbed()
     def test_positive_restart_publish_via_dynflow(self):
         """
-        @test: attempt to restart a publish
+        attempt to restart a publish
         @feature: Content Views
         @steps:
         1. (Somehow) cause a CV publish  to fail.  Not exactly sure how yet.
@@ -1177,7 +1177,7 @@ class ContentViewTestCaseStub(APITestCase):
     @stubbed()
     def test_positive_admin_user_actions(self):
         """
-        @test: attempt to view content views
+        attempt to view content views
         @feature: Content Views
         @setup: create a user with the Content View admin role
         @assert: User with admin role for content view can perform all
@@ -1197,7 +1197,7 @@ class ContentViewTestCaseStub(APITestCase):
     @stubbed()
     def test_positive_readonly_user_actions(self):
         """
-        @test: attempt to view content views
+        attempt to view content views
         @feature: Content Views
         @setup: create a user with the Content View read-only role
         @assert: User with read-only role for content view can perform all
@@ -1218,7 +1218,7 @@ class ContentViewTestCaseStub(APITestCase):
     @stubbed()
     def test_negative_non_admin_user_actions(self):
         """
-        @test: attempt to view content views
+        attempt to view content views
         @feature: Content Views
         @setup: create a user with the Content View admin role
         @assert: User withOUT admin role for content view canNOT perform any
@@ -1238,7 +1238,7 @@ class ContentViewTestCaseStub(APITestCase):
     @stubbed()
     def test_negative_non_readonly_user_actions(self):
         """
-        @test: attempt to view content views
+        attempt to view content views
         @feature: Content Views
         @setup: create a user withOUT the Content View read-only role
         @assert: User withOUT read-only role for content view can perform all

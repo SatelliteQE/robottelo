@@ -31,7 +31,7 @@ class ContentViewVersionCreateTestCase(APITestCase):
 
     @tier2
     def test_positive_create(self):
-        """@Test: Create a content view version.
+        """Create a content view version.
 
         @Assert: Content View Version is created.
 
@@ -50,7 +50,7 @@ class ContentViewVersionCreateTestCase(APITestCase):
 
     @tier2
     def test_negative_create(self):
-        """@Test: Create content view version using the 'Default Content View'.
+        """Create content view version using the 'Default Content View'.
 
         @Assert: Content View Version is not created
 
@@ -92,7 +92,7 @@ class ContentViewVersionPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_promote_valid_environment(self):
-        """@Test: Promote a content view version to 'next in sequence'
+        """Promote a content view version to 'next in sequence'
         lifecycle environment.
 
         @Assert: Promotion succeeds.
@@ -120,7 +120,7 @@ class ContentViewVersionPromoteTestCase(APITestCase):
 
     @tier2
     def test_positive_promote_out_of_sequence_environment(self):
-        """@Test: Promote a content view version to a lifecycle environment
+        """Promote a content view version to a lifecycle environment
         that is 'out of sequence'.
 
         @Assert: The promotion succeeds.
@@ -145,7 +145,7 @@ class ContentViewVersionPromoteTestCase(APITestCase):
 
     @tier2
     def test_negative_promote_valid_environment(self):
-        """@Test: Promote the default content view version.
+        """Promote the default content view version.
 
         @Assert: The promotion fails.
 
@@ -156,7 +156,7 @@ class ContentViewVersionPromoteTestCase(APITestCase):
 
     @tier2
     def test_negative_promote_out_of_sequence_environment(self):
-        """@Test: Promote a content view version to a lifecycle environment
+        """Promote a content view version to a lifecycle environment
         that is 'out of sequence'.
 
         @Assert: The promotion fails.
@@ -182,7 +182,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
     @tier2
     def test_positive_delete(self):
-        """@Test: Create content view and publish it. After that try to
+        """Create content view and publish it. After that try to
         disassociate content view from 'Library' environment through
         'delete_from_environment' command and delete content view version from
         that content view. Add repository and gpg key to initial content view
@@ -229,7 +229,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
     @tier2
     def test_positive_delete_non_default(self):
-        """@Test: Create content view and publish and promote it to new
+        """Create content view and publish and promote it to new
         environment. After that try to disassociate content view from 'Library'
         and one more non-default environments through 'delete_from_environment'
         command and delete content view version from that content view.
@@ -258,7 +258,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 
     @tier2
     def test_negative_delete(self):
-        """@Test: Create content view and publish it. Try to delete content
+        """Create content view and publish it. Try to delete content
         view version while content view is still associated with lifecycle
         environment
 
@@ -283,7 +283,7 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
 
     @tier2
     def test_positive_incremental_update_puppet(self):
-        """@Test: Incrementally update a CVV with a puppet module.
+        """Incrementally update a CVV with a puppet module.
 
         @Assert: The incremental update succeeds with no errors, and the
         content view is given an additional version.

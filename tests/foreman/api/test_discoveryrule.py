@@ -43,7 +43,7 @@ class DiscoveryRuleTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_name(self):
-        """@Test: Create a new discovery rule.
+        """Create a new discovery rule.
 
         Set query as (e.g CPU_Count = 1)
 
@@ -64,7 +64,7 @@ class DiscoveryRuleTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete(self):
-        """@Test: Delete a discovery rule
+        """Delete a discovery rule
 
         @Feature: Foreman Discovery
 
@@ -80,7 +80,7 @@ class DiscoveryRuleTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_too_long_name(self):
-        """@Test: Create a discovery rule with more than 255 char in name
+        """Create a discovery rule with more than 255 char in name
 
         @Feature: Foreman Discovery
 
@@ -96,7 +96,7 @@ class DiscoveryRuleTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_invalid_host_limit(self):
-        """@Test: Create a discovery rule with invalid host limit
+        """Create a discovery rule with invalid host limit
 
         @Feature: Foreman Discovery
 
@@ -108,7 +108,7 @@ class DiscoveryRuleTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_invalid_priority(self):
-        """@Test: Create a discovery rule with invalid priority
+        """Create a discovery rule with invalid priority
 
         @Feature: Foreman Discovery
 
@@ -121,7 +121,7 @@ class DiscoveryRuleTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_name(self):
-        """@Test: Update an existing discovery rule name
+        """Update an existing discovery rule name
 
         @Feature: Foreman Discovery
 
@@ -136,7 +136,7 @@ class DiscoveryRuleTestCase(APITestCase):
 
     @tier1
     def test_positive_update_search_rule(self):
-        """@Test: Update an existing discovery search rule
+        """Update an existing discovery search rule
 
         @Feature: Foreman Discovery
 
@@ -151,7 +151,7 @@ class DiscoveryRuleTestCase(APITestCase):
 
     @tier1
     def test_positive_update_host_limit(self):
-        """@Test: Update an existing rule with valid host limit.
+        """Update an existing rule with valid host limit.
 
         @Feature: Foreman Discovery
 
@@ -166,7 +166,7 @@ class DiscoveryRuleTestCase(APITestCase):
 
     @tier1
     def test_positive_disable(self):
-        """@Test: Disable an existing enabled discovery rule.
+        """Disable an existing enabled discovery rule.
 
         @Feature: Foreman Discovery
 
@@ -182,7 +182,7 @@ class DiscoveryRuleTestCase(APITestCase):
 
     @tier2
     def test_positive_update_rule_hostgroup(self):
-        """@Test: Update host group of an existing rule.
+        """Update host group of an existing rule.
 
         @Feature: Foreman Discovery
 

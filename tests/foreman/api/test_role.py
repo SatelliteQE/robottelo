@@ -36,7 +36,7 @@ class RoleTestCase(APITestCase):
 
     @tier1
     def test_positive_create(self):
-        """@Test: Create a role with name ``name_generator()``.
+        """Create a role with name ``name_generator()``.
 
         @Feature: Role
 
@@ -55,7 +55,7 @@ class RoleTestCase(APITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete a role with name ``name_generator()``.
+        """Delete a role with name ``name_generator()``.
 
         @Feature: Role
 
@@ -77,7 +77,7 @@ class RoleTestCase(APITestCase):
 
     @tier1
     def test_positive_update(self):
-        """@Test: Update a role with and give a name of ``name_generator()``.
+        """Update a role with and give a name of ``name_generator()``.
 
         @Feature: Role
 

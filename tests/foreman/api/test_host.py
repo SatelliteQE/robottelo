@@ -19,7 +19,7 @@ class HostTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_get_search(self):
-        """@Test: GET ``api/v2/hosts`` and specify the ``search`` parameter.
+        """GET ``api/v2/hosts`` and specify the ``search`` parameter.
 
         @Feature: Host
 
@@ -38,7 +38,7 @@ class HostTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_get_per_page(self):
-        """@Test: GET ``api/v2/hosts`` and specify the ``per_page`` parameter.
+        """GET ``api/v2/hosts`` and specify the ``per_page`` parameter.
 
         @Feature: Host
 
@@ -57,7 +57,7 @@ class HostTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_owner_type(self):
-        """@Test: Create a host and specify an ``owner_type``.
+        """Create a host and specify an ``owner_type``.
 
         @Feature: Host
 
@@ -77,7 +77,7 @@ class HostTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_owner_type(self):
-        """@Test: Update a host's ``owner_type``.
+        """Update a host's ``owner_type``.
 
         @Feature: Host
 

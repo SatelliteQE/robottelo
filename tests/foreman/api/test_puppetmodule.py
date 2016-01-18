@@ -28,7 +28,7 @@ class RepositorySearchTestCase(APITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1260206)
     def test_positive_search_no_results(self):
-        """@Test: Search for puppet modules in an empty repository.
+        """Search for puppet modules in an empty repository.
 
         @Assert: No puppet modules are returned.
 
@@ -40,7 +40,7 @@ class RepositorySearchTestCase(APITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1260206)
     def test_positive_search_single_result(self):
-        """@Test: Search for puppet modules in a non-empty repository.
+        """Search for puppet modules in a non-empty repository.
 
         @Assert: Only the modules in that repository are returned.
 
@@ -78,7 +78,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
 
     @tier1
     def test_positive_search_no_results(self):
-        """@Test: Search for puppet modules in an emtpy content view version.
+        """Search for puppet modules in an emtpy content view version.
 
         @Assert: No puppet modules are found.
 
@@ -91,7 +91,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
 
     @tier1
     def test_positive_search_single_result(self):
-        """@Test: Search for puppet modules in a CVV with one puppet module.
+        """Search for puppet modules in a CVV with one puppet module.
 
         @Assert: One puppet module is found.
 

@@ -10,7 +10,7 @@ class EmailTestCase(APITestCase):
     @stubbed()
     @tier1
     def test_positive_enable_and_disable_notification(self):
-        """@Test: Manage user email notification preferences.
+        """Manage user email notification preferences.
 
         @Feature: Email Notification
 

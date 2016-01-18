@@ -24,7 +24,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_positive_create_unlimited_chosts(self):
-        """@Test: Create a plain vanilla activation key.
+        """Create a plain vanilla activation key.
 
         @Assert: An activation key is created and its "unlimited_content_hosts"
         attribute defaults to true.
@@ -37,7 +37,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_positive_create_limited_chosts(self):
-        """@Test: Create an activation key with limited content hosts.
+        """Create an activation key with limited content hosts.
 
         @Assert: Activation key is created, defaults to limited content host
 
@@ -54,7 +54,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create an activation key providing the initial name.
+        """Create an activation key providing the initial name.
 
         @Assert: Activation key is created and contains provided name.
 
@@ -67,7 +67,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_description(self):
-        """@Test: Create an activation key and provide a description.
+        """Create an activation key and provide a description.
 
         @Assert: Created entity contains the provided description.
 
@@ -80,7 +80,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_no_chost_limit(self):
-        """@Test: Create activation key with limited content hosts but no limit
+        """Create activation key with limited content hosts but no limit
         set.
 
         @Assert: Activation key is not created
@@ -92,7 +92,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_invalid_chost_limit(self):
-        """@Test: Create activation key with limited content hosts but with
+        """Create activation key with limited content hosts but with
         invalid limit values.
 
         @Assert: Activation key is not created
@@ -110,7 +110,7 @@ class ActivationKeyTestCase(APITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1156555)
     def test_negative_create_with_no_chost_limit_set_max(self):
-        """@Test Create activation key with unlimited content hosts and set max
+        """Create activation key with unlimited content hosts and set max
         content hosts of varied values.
 
         @Assert: Activation key is not created
@@ -127,7 +127,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create activation key providing an invalid name.
+        """Create activation key providing an invalid name.
 
         @Assert: Activation key is not created
 
@@ -140,7 +140,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_positive_update_limited_chost(self):
-        """@Test: Create activation key then update it to limited content
+        """Create activation key then update it to limited content
         hosts.
 
         @Assert: Activation key is created, updated to limited content host
@@ -160,7 +160,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Create activation key providing the initial name, then update
+        """Create activation key providing the initial name, then update
         its name to another valid name.
 
         @Assert: Activation key is created, and its name can be updated.
@@ -177,7 +177,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_negative_update_limit(self):
-        """@Test: Create activation key then update its limit to invalid value.
+        """Create activation key then update its limit to invalid value.
 
         @Assert:
 
@@ -204,7 +204,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_negative_update_name(self):
-        """@Test: Create activation key then update its name to an invalid name.
+        """Create activation key then update its name to an invalid name.
 
         @Assert: Activation key is created, and its name is not updated.
 
@@ -222,7 +222,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_negative_update_max_chosts(self):
-        """@Test: Create an activation key with ``max_content_hosts == 1``,
+        """Create an activation key with ``max_content_hosts == 1``,
         then update that field with a string value.
 
         @Feature: ActivationKey
@@ -239,7 +239,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier2
     def test_positive_get_releases_status_code(self):
-        """@Test: Get an activation key's releases. Check response format.
+        """Get an activation key's releases. Check response format.
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
 
@@ -258,7 +258,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier2
     def test_positive_get_releases_content(self):
-        """@Test: Get an activation key's releases. Check response contents.
+        """Get an activation key's releases. Check response contents.
 
         @Assert: A list of results is returned.
 
@@ -275,7 +275,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier2
     def test_positive_add_host_collections(self):
-        """@Test: Associate an activation key with several host collections.
+        """Associate an activation key with several host collections.
 
         @Assert:
 
@@ -314,7 +314,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_positive_update_auto_attach(self):
-        """@Test: Create an activation key, then update the auto_attach
+        """Create an activation key, then update the auto_attach
         field with the inverse boolean value.
 
         @Feature: ActivationKey
@@ -330,7 +330,7 @@ class ActivationKeyTestCase(APITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Create activation key and then delete it.
+        """Create activation key and then delete it.
 
         @Assert: Activation key is successfully deleted.
 
@@ -358,7 +358,7 @@ class ActivationKeySearchTestCase(APITestCase):
 
     @tier1
     def test_positive_search_by_org(self):
-        """@Test: Search for all activation keys in an organization.
+        """Search for all activation keys in an organization.
 
         @Assert: Only activation keys in the organization are returned.
 

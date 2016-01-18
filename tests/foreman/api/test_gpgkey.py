@@ -10,7 +10,7 @@ class GPGKeyTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_search_in_org(self):
-        """@Test: Search for a GPG key and specify just ``organization_id``.
+        """Search for a GPG key and specify just ``organization_id``.
 
         @Feature: GPGKey
 

@@ -32,7 +32,7 @@ class SmartProxyMissingAttrTestCase(APITestCase):
 
     @tier1
     def test_positive_update_loc(self):
-        """@Test: Update a smart proxy. Inspect the server's response.
+        """Update a smart proxy. Inspect the server's response.
 
         @Assert: The response contains some value for the ``location`` field.
 
@@ -47,7 +47,7 @@ class SmartProxyMissingAttrTestCase(APITestCase):
 
     @tier1
     def test_positive_update_org(self):
-        """@Test: Update a smart proxy. Inspect the server's response.
+        """Update a smart proxy. Inspect the server's response.
 
         @Assert: The response contains some value for the ``organization``
         field.

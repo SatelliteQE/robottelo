@@ -23,7 +23,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create host collections with different names.
+        """Create host collections with different names.
 
         @Feature: Host Collection
 
@@ -40,7 +40,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_description(self):
-        """@Test: Create host collections with different descriptions.
+        """Create host collections with different descriptions.
 
         @Feature: Host Collection
 
@@ -57,7 +57,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_limit(self):
-        """@Test: Create host collections with different limits.
+        """Create host collections with different limits.
 
         @Feature: Host Collection
 
@@ -74,7 +74,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_unlimited_chosts(self):
-        """@Test: Create host collection with different values of 'unlimited
+        """Create host collection with different values of 'unlimited
         content hosts' parameter.
 
         @Feature: Host Collection
@@ -93,7 +93,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_chost(self):
-        """@Test: Create a host collection that contains a content host.
+        """Create a host collection that contains a content host.
 
         @Feature: Host Collection
 
@@ -108,7 +108,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_chosts(self):
-        """@Test: Create a host collection that contains content hosts.
+        """Create a host collection that contains content hosts.
 
         @Feature: Host Collection
 
@@ -123,7 +123,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier2
     def test_positive_add_chost(self):
-        """@Test: Add content host to host collection.
+        """Add content host to host collection.
 
         @Feature: Host Collection
 
@@ -138,7 +138,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier2
     def test_positive_add_chosts(self):
-        """@Test: Add content hosts to host collection.
+        """Add content hosts to host collection.
 
         @Feature: Host Collection
 
@@ -154,7 +154,7 @@ class HostCollectionTestCase(APITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1203323)
     def test_positive_read_system_ids(self):
-        """@Test: Read a host collection and look at the ``system_ids`` field.
+        """Read a host collection and look at the ``system_ids`` field.
 
         @Feature: Host Collection
 
@@ -172,7 +172,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Check if host collection name can be updated
+        """Check if host collection name can be updated
 
         @Feature: Host Collection
 
@@ -187,7 +187,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier1
     def test_positive_update_description(self):
-        """@Test: Check if host collection description can be updated
+        """Check if host collection description can be updated
 
         @Feature: Host Collection
 
@@ -203,7 +203,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier1
     def test_positive_update_limit(self):
-        """@Test: Check if host collection limit can be updated
+        """Check if host collection limit can be updated
 
         @Feature: Host Collection
 
@@ -221,7 +221,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier1
     def test_positive_update_unlimited_chosts(self):
-        """@Test: Check if host collection 'unlimited content hosts' parameter
+        """Check if host collection 'unlimited content hosts' parameter
         can be updated
 
         @Feature: Host Collection
@@ -245,7 +245,7 @@ class HostCollectionTestCase(APITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1203323)
     def test_positive_update_chost(self):
-        """@Test: Update host collection's content host.
+        """Update host collection's content host.
 
         @Feature: Host Collection
 
@@ -262,7 +262,7 @@ class HostCollectionTestCase(APITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1203323)
     def test_positive_update_chosts(self):
-        """@Test: Update host collection's content hosts.
+        """Update host collection's content hosts.
 
         @Feature: Host Collection
 
@@ -286,7 +286,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Check if host collection can be deleted
+        """Check if host collection can be deleted
 
         @Feature: Host Collection
 
@@ -302,7 +302,7 @@ class HostCollectionTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Try to create host collections with different invalid names
+        """Try to create host collections with different invalid names
 
         @Feature: Host Collection
 

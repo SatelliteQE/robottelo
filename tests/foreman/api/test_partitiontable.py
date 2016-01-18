@@ -36,7 +36,7 @@ class PartitionTableTestCase(APITestCase):
     @skip_if_bug_open('bugzilla', 1229384)
     @tier1
     def test_verify_bugzilla_1229384(self):
-        """@Test: Create Partition table with 1 symbol in name
+        """Create Partition table with 1 symbol in name
 
         @Assert: Partition table was created
 
@@ -51,7 +51,7 @@ class PartitionTableTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create new partition tables using different inputs as a name
+        """Create new partition tables using different inputs as a name
 
         @Assert: Partition table created successfully and has correct name
 
@@ -64,7 +64,7 @@ class PartitionTableTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_layout(self):
-        """@Test: Create new partition tables using different inputs as a
+        """Create new partition tables using different inputs as a
         layout
 
         @Assert: Partition table created successfully and has correct layout
@@ -78,7 +78,7 @@ class PartitionTableTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_os(self):
-        """@Test: Create new partition table with random operating system
+        """Create new partition table with random operating system
 
         @Assert: Partition table created successfully and has correct operating
         system
@@ -91,7 +91,7 @@ class PartitionTableTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Try to create partition table using invalid names only
+        """Try to create partition table using invalid names only
 
         @Assert: Partition table was not created
 
@@ -104,7 +104,7 @@ class PartitionTableTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_empty_layout(self):
-        """@Test: Try to create partition table with empty layout
+        """Try to create partition table with empty layout
 
         @Assert: Partition table was not created
 
@@ -117,7 +117,7 @@ class PartitionTableTestCase(APITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete partition table
+        """Delete partition table
 
         @Assert: Partition table was deleted
 
@@ -130,7 +130,7 @@ class PartitionTableTestCase(APITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Update partition tables with new name
+        """Update partition tables with new name
 
         @Assert: Partition table updated successfully and name was changed
 
@@ -144,7 +144,7 @@ class PartitionTableTestCase(APITestCase):
 
     @tier1
     def test_positive_update_layout(self):
-        """@Test: Update partition table with new layout
+        """Update partition table with new layout
 
         @Assert: Partition table updated successfully and layout was changed
 
@@ -158,7 +158,7 @@ class PartitionTableTestCase(APITestCase):
 
     @tier1
     def test_positive_update_os(self):
-        """@Test: Update partition table with new random operating system
+        """Update partition table with new random operating system
 
         @Assert: Partition table updated successfully and operating system was
         changed
@@ -174,7 +174,7 @@ class PartitionTableTestCase(APITestCase):
 
     @tier1
     def test_negative_update_name(self):
-        """@Test: Try to update partition table using invalid names only
+        """Try to update partition table using invalid names only
 
         @Assert: Partition table was not updated
 
@@ -189,7 +189,7 @@ class PartitionTableTestCase(APITestCase):
 
     @tier1
     def test_negative_update_layout(self):
-        """@Test: Try to update partition table with empty layout
+        """Try to update partition table with empty layout
 
         @Assert: Partition table was not updated
 

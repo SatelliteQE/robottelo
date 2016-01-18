@@ -23,7 +23,7 @@ class FilterTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_permission(self):
-        """@Test: Create a filter and assign it some permissions.
+        """Create a filter and assign it some permissions.
 
         @Assert: The created filter has the assigned permissions.
 
@@ -38,7 +38,7 @@ class FilterTestCase(APITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Create a filter and delete it.
+        """Create a filter and delete it.
 
         @Assert: The deleted filter cannot be feched.
 
@@ -51,7 +51,7 @@ class FilterTestCase(APITestCase):
 
     @tier1
     def test_positive_delete_role(self):
-        """@Test: Create a filter and delete the role it points at.
+        """Create a filter and delete the role it points at.
 
         @Assert: The filter cannot be fetched.
 
