@@ -165,25 +165,22 @@ module::
 
     $ nosetests -m test_positive_create_1 tests.foreman.cli.test_org
 
-Running UI Tests On a Headless Server
--------------------------------------
+Running UI Tests On a Docker Browser
+------------------------------------
 
-It is possible to run UI tests on a headless server. To do this:
+It is possible to run UI tests within a docker container. To do this:
 
-* Install Xvfb. It is provided by the ``xorg-x11-server-Xvfb`` package on
-  Fedora and Red Hat.
-* Install the ``PyVirtualDisplay`` Python package. (It is listed in
-  ``requirements-optional.txt``.)
-* Set ``virtual_display=1`` in the configuration file ``robottelo.properties``.
-* Optionally, set the ``window_manager_command`` option in the configuration
-  file. This option should be set to the name of a window manager executable.
-  For example, ``fluxbox`` or ``openbox`` are suitable values if you have
-  Fluxbox or Openbox installed, respectively. Setting this option causes a
-  window manager to be launched before the web browser, thus allowing the web
-  browser to be maximized.
+* Install docker. It is provided by the ``docker`` package on Fedora and Red
+  Hat. Be aware that the package may call ``docker-io`` on old OS releases.
+* Make sure that docker is up and running and the user that will run robottelo
+  has permission to run docker commands. For more information check the docker
+  installation guide https://docs.docker.com/engine/installation/.
+* Pull the ``selenium/standalone-firefox`` image
+* Set ``docker_browser=true`` at the ``[robottelo]`` section in the configuration file ``robottelo.properties``.
 
-This done, UI tests no longer launch a visible web browser. Instead, UI tests
-launch a web browser within a virtual display.
+Once you've performed these steps, UI tests will no longer launch a web browser
+on your system. Instead, UI tests launch a web browser within a docker
+container.
 
 Miscellany
 ==========

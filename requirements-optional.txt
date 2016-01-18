@@ -13,6 +13,5 @@ pylint
 # For generating documentation.
 sphinx
 
-# For running UI tests in a headless mode
-# PyVirtualDisplay requires xvfb
-PyVirtualDisplay
+# For running UI tests within a docker browser
+docker-py
