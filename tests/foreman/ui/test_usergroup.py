@@ -21,7 +21,7 @@ class UserGroupTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1142588)
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create new Usergroup using different names
+        """Create new Usergroup using different names
 
         @Feature: Usergroup - Positive Create
 
@@ -40,7 +40,7 @@ class UserGroupTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1142588)
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create a new UserGroup with invalid names
+        """Create a new UserGroup with invalid names
 
         @Feature: Usergroup - Negative Create
 
@@ -57,7 +57,7 @@ class UserGroupTestCase(UITestCase):
 
     @tier1
     def test_negative_create_with_same_name(self):
-        """@Test: Create a new UserGroup with same name
+        """Create a new UserGroup with same name
 
         @Feature: Usergroup - Negative Create
 
@@ -76,7 +76,7 @@ class UserGroupTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1142588)
     @tier1
     def test_positive_delete_empty(self):
-        """@Test: Delete an empty Usergroup
+        """Delete an empty Usergroup
 
         @Feature: Usergroup - Positive Delete
 
@@ -92,7 +92,7 @@ class UserGroupTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1142588)
     @tier2
     def test_positive_delete_with_user(self):
-        """@Test: Delete an Usergroup that contains a user
+        """Delete an Usergroup that contains a user
 
         @Feature: Usergroup - Positive Delete
 
@@ -120,7 +120,7 @@ class UserGroupTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1142588)
     @tier1
     def test_positive_update_name(self):
-        """@Test: Update usergroup with new name
+        """Update usergroup with new name
 
         @Feature: Usergroup - Positive Update
 

@@ -36,7 +36,7 @@ class DiscoveryRuleTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create Discovery Rule using different names
+        """Create Discovery Rule using different names
 
         @Feature: Foreman Discovery
 
@@ -52,7 +52,7 @@ class DiscoveryRuleTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create Discovery Rule with invalid names
+        """Create Discovery Rule with invalid names
 
         @Feature: Foreman Discovery
 
@@ -72,7 +72,7 @@ class DiscoveryRuleTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_limit(self):
-        """@Test: Create Discovery Rule with invalid host limit
+        """Create Discovery Rule with invalid host limit
 
         @Feature: Foreman Discovery
 
@@ -93,7 +93,7 @@ class DiscoveryRuleTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
-        """@Test: Create Discovery Rule with name that already exists
+        """Create Discovery Rule with name that already exists
 
         @Feature: Foreman Discovery
 
@@ -113,7 +113,7 @@ class DiscoveryRuleTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_priority(self):
-        """@Test: Create Discovery Rule with invalid priority
+        """Create Discovery Rule with invalid priority
 
         @Feature: Foreman Discovery
 
@@ -132,7 +132,7 @@ class DiscoveryRuleTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_disable(self):
-        """@Test: Disable Discovery Rule while creation
+        """Disable Discovery Rule while creation
 
         @Feature: Foreman Discovery
 
@@ -147,7 +147,7 @@ class DiscoveryRuleTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete Discovery Rule
+        """Delete Discovery Rule
 
         @Feature: Foreman Discovery
 
@@ -164,7 +164,7 @@ class DiscoveryRuleTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
-        """@Test: Update discovery rule name
+        """Update discovery rule name
 
         @Feature: Discovery Rule - Update
 

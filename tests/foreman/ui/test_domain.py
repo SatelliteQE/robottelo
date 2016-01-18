@@ -50,7 +50,7 @@ class DomainTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create a new domain
+        """Create a new domain
 
         @Feature: Domain - Positive Create domain
 
@@ -68,7 +68,7 @@ class DomainTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_long_name(self):
-        """@Test: Create a new domain
+        """Create a new domain
 
         @Feature: Domain - Positive Create domain with 255 chars
 
@@ -86,7 +86,7 @@ class DomainTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete a domain
+        """Delete a domain
 
         @Feature: Domain - Delete
 
@@ -100,7 +100,7 @@ class DomainTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update(self):
-        """@Test: Update a domain with name and description
+        """Update a domain with name and description
 
         @Feature: Domain - Update
 
@@ -124,7 +124,7 @@ class DomainTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Try to create domain and use whitespace, blank, tab symbol or
+        """Try to create domain and use whitespace, blank, tab symbol or
         too long string of different types as its name value
 
         @Feature: Domain - Negative Create
@@ -142,7 +142,7 @@ class DomainTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_set_parameter(self):
-        """@Test: Set parameter name and value for domain
+        """Set parameter name and value for domain
 
         @Feature: Domain - Misc
 
@@ -166,7 +166,7 @@ class DomainTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_set_parameter_long(self):
-        """@Test: Set a parameter in a domain with 255 chars in name and value.
+        """Set a parameter in a domain with 255 chars in name and value.
 
         @Feature: Domain - Misc.
 
@@ -189,7 +189,7 @@ class DomainTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_set_parameter_blank(self):
-        """@Test: Set a parameter in a domain with blank value.
+        """Set a parameter in a domain with blank value.
 
         @Feature: Domain - Misc.
 
@@ -212,7 +212,7 @@ class DomainTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_negative_set_parameter(self):
-        """@Test: Set a parameter in a domain with 256 chars in name and value.
+        """Set a parameter in a domain with 256 chars in name and value.
 
         @Feature: Domain - Misc.
 
@@ -238,7 +238,7 @@ class DomainTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_negative_set_parameter_same(self):
-        """@Test: Again set the same parameter for domain with name and value.
+        """Again set the same parameter for domain with name and value.
 
         @Feature: Domain - Misc.
 
@@ -267,7 +267,7 @@ class DomainTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_parameter(self):
-        """@Test: Remove a selected domain parameter
+        """Remove a selected domain parameter
 
         @Feature: Domain - Misc
 

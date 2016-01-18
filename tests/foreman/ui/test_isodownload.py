@@ -10,7 +10,7 @@ class ISODownloadTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_download(self):
-        """@test: Downloading ISO from export
+        """Downloading ISO from export
 
         @Feature: ISO Downloads
 
@@ -30,7 +30,7 @@ class ISODownloadTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_upload(self):
-        """@test: Uploadng the iso successfully to the sat6 system
+        """Uploadng the iso successfully to the sat6 system
 
         @Feature: ISO Downloads
 
@@ -49,7 +49,7 @@ class ISODownloadTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_mount(self):
-        """@test: Mounting iso to directory accessible to satellite6 works
+        """Mounting iso to directory accessible to satellite6 works
 
         @Feature: ISO Downloads
 
@@ -69,7 +69,7 @@ class ISODownloadTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_validate_cdn_url(self):
-        """@test: Validate that cdn url to file:///path/to/mount works
+        """Validate that cdn url to file path works
 
         @Feature: ISO Downloads
 
@@ -88,7 +88,7 @@ class ISODownloadTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_check_message(self):
-        """@test: Check if proper message is displayed after successful upload
+        """Check if proper message is displayed after successful upload
 
         @Feature: ISO Downloads
 
@@ -108,7 +108,7 @@ class ISODownloadTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_enable_repo(self):
-        """@test: Enable the repositories
+        """Enable the repositories
 
         @Feature: ISO Downloads
 
@@ -130,7 +130,7 @@ class ISODownloadTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_validate_checkboxes(self):
-        """@test: Check if enabling the checkbox works
+        """Check if enabling the checkbox works
 
         @Feature: ISO Downloads
 
@@ -153,7 +153,7 @@ class ISODownloadTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_sync_repos(self):
-        """@test: Sync repos to local iso's
+        """Sync repos to local iso's
 
         @Feature: ISO Downloads
 
@@ -175,7 +175,7 @@ class ISODownloadTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_disable_repo(self):
-        """@test: Disabling the repo works
+        """Disabling the repo works
 
         @Feature: ISO Downloads
 

@@ -63,7 +63,7 @@ class OrganizationTestCase(UITestCase):
 
     @tier1
     def test_positive_search_autocomplete(self):
-        """@test: Search for an organization can be auto-completed by partial
+        """Search for an organization can be auto-completed by partial
         name
 
         @feature: Organizations
@@ -82,7 +82,7 @@ class OrganizationTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@test: Create organization with valid name only.
+        """Create organization with valid name only.
 
         @feature: Organizations
 
@@ -97,7 +97,7 @@ class OrganizationTestCase(UITestCase):
     @stubbed('parent_org feature is disabled currently')
     @tier2
     def test_positive_create_with_parent(self):
-        """@test: Create organization with valid name, label, parent_org, desc.
+        """Create organization with valid name, label, parent_org, desc.
 
         @feature: Organizations
 
@@ -119,7 +119,7 @@ class OrganizationTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_unmatched_name_label(self):
-        """@test: Create organization with valid unmatching name and label only
+        """Create organization with valid unmatching name and label only
 
         @feature: Organizations
 
@@ -140,7 +140,7 @@ class OrganizationTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_same_name_and_label(self):
-        """@test: Create organization with valid matching name and label only.
+        """Create organization with valid matching name and label only.
 
         @feature: Organizations
 
@@ -160,7 +160,7 @@ class OrganizationTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1079482)
     @tier1
     def test_positive_create_with_auto_populated_label(self):
-        """@test: Create organization with valid name. Check that organization
+        """Create organization with valid name. Check that organization
         label is auto-populated
 
         @feature: Organizations
@@ -182,7 +182,7 @@ class OrganizationTestCase(UITestCase):
 
     @tier2
     def test_positive_create_with_both_loc_and_org(self):
-        """@test: Select both organization and location.
+        """Select both organization and location.
 
         @feature: Organizations
 
@@ -203,7 +203,7 @@ class OrganizationTestCase(UITestCase):
 
     @tier1
     def test_negative_create(self):
-        """@test: Try to create organization and use whitespace, blank, tab
+        """Try to create organization and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
         @feature: Organizations Negative Tests
@@ -220,7 +220,7 @@ class OrganizationTestCase(UITestCase):
 
     @tier1
     def test_negative_create_with_same_name(self):
-        """@test: Create organization with valid names, then create a new one
+        """Create organization with valid names, then create a new one
         with same names.
 
         @feature: Organizations Negative Test.
@@ -239,7 +239,7 @@ class OrganizationTestCase(UITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@test: Create organization with valid values then delete it.
+        """Create organization with valid values then delete it.
 
         @feature: Organizations Positive Delete test.
 
@@ -255,7 +255,7 @@ class OrganizationTestCase(UITestCase):
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_verify_bugzilla_1225588(self):
-        """@test: Create Organization with valid values and upload manifest.
+        """Create Organization with valid values and upload manifest.
         Then try to delete that organization.
 
         @feature: Organization Positive Delete Test.
@@ -284,7 +284,7 @@ class OrganizationTestCase(UITestCase):
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_verify_bugzilla_1259248(self):
-        """@test: Create organization with valid manifest. Download debug
+        """Create organization with valid manifest. Download debug
         certificate for that organization and refresh added manifest for few
         times in a row
 
@@ -312,7 +312,7 @@ class OrganizationTestCase(UITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@test: Create organization with valid values then update its name.
+        """Create organization with valid values then update its name.
 
         @feature: Organizations Positive Update test.
 
@@ -330,7 +330,7 @@ class OrganizationTestCase(UITestCase):
 
     @tier1
     def test_negative_update(self):
-        """@test: Create organization with valid values then try to update it
+        """Create organization with valid values then try to update it
         using incorrect name values
 
         @feature: Organizations Negative Update test.
@@ -351,7 +351,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_domain(self):
-        """@test: Add a domain to an organization and remove it by organization
+        """Add a domain to an organization and remove it by organization
         name and domain name.
 
         @feature: Organizations Disassociate domain.
@@ -385,7 +385,7 @@ class OrganizationTestCase(UITestCase):
 
     @tier2
     def test_positive_remove_user(self):
-        """@test: Create admin users then add user and remove it
+        """Create admin users then add user and remove it
         by using the organization name.
 
         @feature: Organizations Disassociate user.
@@ -427,7 +427,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_hostgroup(self):
-        """@test: Add a hostgroup and remove it by using the organization
+        """Add a hostgroup and remove it by using the organization
         name and hostgroup name.
 
         @feature: Organizations Remove Hostgroup.
@@ -469,7 +469,7 @@ class OrganizationTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_positive_add_smartproxy(self):
-        """@test: Add a smart proxy by using org and smartproxy name
+        """Add a smart proxy by using org and smartproxy name
 
         @feature: Organizations
 
@@ -481,7 +481,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_subnet(self):
-        """@test: Add a subnet using organization name and subnet name.
+        """Add a subnet using organization name and subnet name.
 
         @feature: Organizations associate subnet.
 
@@ -511,7 +511,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_domain(self):
-        """@test: Add a domain to an organization.
+        """Add a domain to an organization.
 
         @feature: Organizations associate domain.
 
@@ -535,7 +535,7 @@ class OrganizationTestCase(UITestCase):
 
     @tier2
     def test_positive_add_user(self):
-        """@test: Create different types of users then add user using
+        """Create different types of users then add user using
         organization name.
 
         @feature: Organizations associate user.
@@ -566,7 +566,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_hostgroup(self):
-        """@test: Add a hostgroup by using the organization
+        """Add a hostgroup by using the organization
         name and hostgroup name.
 
         @feature: Organizations associate host-group.
@@ -593,7 +593,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_location(self):
-        """@test: Add a location by using the organization name and location
+        """Add a location by using the organization name and location
         name
 
         @feature: Organizations associate location.
@@ -619,7 +619,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_compresource(self):
-        """@test: Remove compute resource using the organization name and
+        """Remove compute resource using the organization name and
         compute resource name.
 
         @feature: Organizations dis-associate compute-resource.
@@ -664,7 +664,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_medium(self):
-        """@test: Remove medium by using organization name and medium name.
+        """Remove medium by using organization name and medium name.
 
         @feature: Organizations disassociate installation media.
 
@@ -705,7 +705,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_template(self):
-        """@test: Remove config template.
+        """Remove config template.
 
         @feature: Organizations dissociate config templates.
 
@@ -740,7 +740,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_environment(self):
-        """@test: Add environment by using organization name and env name.
+        """Add environment by using organization name and env name.
 
         @feature: Organizations associate environment.
 
@@ -766,7 +766,7 @@ class OrganizationTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_positive_remove_smartproxy(self):
-        """@test: Remove smartproxy by using organization name and smartproxy
+        """Remove smartproxy by using organization name and smartproxy
         name
 
         @feature: Organizations
@@ -779,7 +779,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_compresource(self):
-        """@test: Add compute resource using the organization
+        """Add compute resource using the organization
         name and compute resource name.
 
         @feature: Organizations associate compute resource.
@@ -810,7 +810,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_medium(self):
-        """@test: Add medium by using the organization name and medium name.
+        """Add medium by using the organization name and medium name.
 
         @feature: Organizations associate medium.
 
@@ -840,7 +840,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_template(self):
-        """@test: Add config template by using organization name and
+        """Add config template by using organization name and
         config template name.
 
         @feature: Organizations associate config template.
@@ -866,7 +866,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_environment(self):
-        """@test: Remove environment by using org & environment name.
+        """Remove environment by using org & environment name.
 
         @feature: Organizations dis-associate environment.
 
@@ -901,7 +901,7 @@ class OrganizationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_subnet(self):
-        """@test: Remove subnet by using organization name and subnet name.
+        """Remove subnet by using organization name and subnet name.
 
         @feature: Organizations dis-associate subnet.
 

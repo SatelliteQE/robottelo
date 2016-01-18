@@ -27,7 +27,7 @@ class TemplateTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create new template using different valid names
+        """Create new template using different valid names
 
         @Feature: Template - Positive Create
 
@@ -49,7 +49,7 @@ class TemplateTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create a new template with invalid names
+        """Create a new template with invalid names
 
         @Feature: Template - Negative Create
 
@@ -71,7 +71,7 @@ class TemplateTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
-        """@Test: Template - Create a new template with same name
+        """Template - Create a new template with same name
 
         @Feature: Template - Negative Create
 
@@ -100,7 +100,7 @@ class TemplateTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_without_type(self):
-        """@Test: Template - Create a new template without selecting its type
+        """Template - Create a new template without selecting its type
 
         @Feature: Template - Negative Create
 
@@ -124,7 +124,7 @@ class TemplateTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_without_upload(self):
-        """@Test: Template - Create a new template without uploading a template
+        """Template - Create a new template without uploading a template
 
         @Feature: Template - Negative Create
 
@@ -148,7 +148,7 @@ class TemplateTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_too_long_audit(self):
-        """@Test: Create a new template with 256 characters in audit comments
+        """Create a new template with 256 characters in audit comments
 
         @Feature: Template - Negative Create
 
@@ -169,7 +169,7 @@ class TemplateTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_snippet_type(self):
-        """@Test: Create new template of type snippet
+        """Create new template of type snippet
 
         @Feature: Template - Positive Create
 
@@ -191,7 +191,7 @@ class TemplateTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete an existing template
+        """Delete an existing template
 
         @Feature: Template - Positive Delete
 
@@ -210,7 +210,7 @@ class TemplateTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name_and_type(self):
-        """@Test: Update template name and template type
+        """Update template name and template type
 
         @Feature: Template - Positive Update
 
@@ -233,7 +233,7 @@ class TemplateTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_os(self):
-        """@Test: Creates new template, along with two OS's and associate list
+        """Creates new template, along with two OS's and associate list
         of OS's with created template
 
         @Feature: Template - Positive Update
@@ -261,7 +261,7 @@ class TemplateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_clone(self):
-        """@Test: Assure ability to clone a provisioning template
+        """Assure ability to clone a provisioning template
 
         @Feature: Template - Clone
 

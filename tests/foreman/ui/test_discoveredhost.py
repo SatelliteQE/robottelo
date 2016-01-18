@@ -103,7 +103,7 @@ class DiscoveryTestCase(UITestCase):
 
     @tier3
     def test_positive_pxe_based_discovery(self):
-        """@Test: Discover a host via PXE boot by setting "proxy.type=proxy" in
+        """Discover a host via PXE boot by setting "proxy.type=proxy" in
         PXE default
 
         @Feature: Foreman Discovery - PXEBased
@@ -124,7 +124,7 @@ class DiscoveryTestCase(UITestCase):
 
     @tier3
     def test_positive_pxe_less_discovery(self):
-        """@Test: Discover a host via bootable discovery ISO by setting
+        """Discover a host via bootable discovery ISO by setting
         "proxy.type=proxy" in PXE default.
 
         @Feature: Foreman Discovery - PXELess
@@ -145,7 +145,7 @@ class DiscoveryTestCase(UITestCase):
 
     @tier3
     def test_custom_facts_discovery(self):
-        """@Test: Check if defined custom facts are displayed under host's facts
+        """Check if defined custom facts are displayed under host's facts
 
         @Feature: Foreman Discovery - PXELess
 
@@ -172,7 +172,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_provision(self):
-        """@Test: Provision the selected discovered host by selecting
+        """Provision the selected discovered host by selecting
         'provision' button
 
         @Feature: Foreman Discovery
@@ -189,7 +189,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_provision_from_facts(self):
-        """@Test: Provision the selected discovered host from facts page by
+        """Provision the selected discovered host from facts page by
         clicking 'provision'
 
         @Feature: Foreman Discovery
@@ -205,7 +205,7 @@ class DiscoveryTestCase(UITestCase):
 
     @tier3
     def test_positive_delete(self):
-        """@Test: Delete the selected discovered host
+        """Delete the selected discovered host
 
         @Feature: Foreman Discovery
 
@@ -223,7 +223,7 @@ class DiscoveryTestCase(UITestCase):
 
     @tier3
     def test_positive_delete_from_facts(self):
-        """@Test: Delete the selected discovered host from facts page
+        """Delete the selected discovered host from facts page
 
         @Feature: Foreman Discovery
 
@@ -242,7 +242,7 @@ class DiscoveryTestCase(UITestCase):
 
     @tier3
     def test_positive_delete_multiple(self):
-        """@Test: Delete multiple discovered hosts from 'Select Action'
+        """Delete multiple discovered hosts from 'Select Action'
         drop down
 
         @Feature: Foreman Discovery
@@ -276,7 +276,7 @@ class DiscoveryTestCase(UITestCase):
 
     @tier3
     def test_positive_refresh_facts(self):
-        """@Test: Refresh the facts of discovered host by adding a new NIC.
+        """Refresh the facts of discovered host by adding a new NIC.
 
         @Feature: Foreman Discovery
 
@@ -307,7 +307,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_update_default_org(self):
-        """@Test: Change the default org of more than one discovered hosts
+        """Change the default org of more than one discovered hosts
         from 'Select Action' drop down
 
         @Feature: Foreman Discovery
@@ -323,7 +323,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_update_default_location(self):
-        """@Test: Change the default location of more than one discovered hosts
+        """Change the default location of more than one discovered hosts
         from 'Select Action' drop down
 
         @Feature: Foreman Discovery
@@ -340,7 +340,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_create_discovery_rule_with_simple_query(self):
-        """@Test: Create a new discovery rule
+        """Create a new discovery rule
 
         Set query as (e.g IP=IP_of_discovered_host)
 
@@ -357,7 +357,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_create_discovery_rule_with_complex_query(self):
-        """@Test: Create a new discovery rule with (host_limit = 0)
+        """Create a new discovery rule with (host_limit = 0)
         that applies to multi hosts.
         Set query as cpu_count = 1 OR mem > 500
 
@@ -374,7 +374,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_create_discovery_rule_with_priorities(self):
-        """@Test: Create multiple discovery rules with different priority
+        """Create multiple discovery rules with different priority
 
         @Feature: Foreman Discovery
 
@@ -390,7 +390,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_create_discovery_rule_without_auto_provision(self):
-        """@Test: Create a discovery rule and execute it when
+        """Create a discovery rule and execute it when
         "auto_provisioning" flag set to 'false'
 
         @Feature: Foreman Discovery
@@ -406,7 +406,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_negative_create_discovery_rule(self):
-        """@Test: Create a discovery rule with invalid query
+        """Create a discovery rule with invalid query
         e.g. BIOS = xyz
 
         @Feature: Foreman Discovery
@@ -423,7 +423,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_apply_discovery_rule_multiple(self):
-        """@Test: Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
+        """Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
         provision more than one host with same rule
 
         @Feature: Foreman Discovery
@@ -440,7 +440,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_update_discovery_rule(self):
-        """@Test: Update an existing rule and execute it
+        """Update an existing rule and execute it
 
         @Feature: Foreman Discovery
 
@@ -456,7 +456,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_update_name(self):
-        """@Test: Update the discovered host name and provision it
+        """Update the discovered host name and provision it
 
         @Feature: Foreman Discovery
 
@@ -471,7 +471,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_update_discovery_prefix(self):
-        """@Test: Update the discovery_prefix parameter other than mac
+        """Update the discovery_prefix parameter other than mac
 
         @Feature: Foreman Discovery
 
@@ -493,7 +493,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_auto_provision_all(self):
-        """@Test: Discover a bunch of hosts and auto-provision all
+        """Discover a bunch of hosts and auto-provision all
 
         @Feature: Foreman Discovery
 
@@ -505,7 +505,7 @@ class DiscoveryTestCase(UITestCase):
 
     @tier3
     def test_positive_add_fact_column(self):
-        """@Test: Add a new fact column to display on discovered host page
+        """Add a new fact column to display on discovered host page
 
         @Feature: Foreman Discovery - PXEBased
 
@@ -537,7 +537,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_negative_add_fact(self):
-        """@Test: Add a new fact column with invalid fact to display on
+        """Add a new fact column with invalid fact to display on
         discovered host page
 
         @Feature: Foreman Discovery
@@ -560,7 +560,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_discovery_manager_role(self):
-        """@Test: Assign 'Discovery_Manager' role to a normal user
+        """Assign 'Discovery_Manager' role to a normal user
 
         @Feature: Foreman Discovery
 
@@ -575,7 +575,7 @@ class DiscoveryTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_discovery_reader_role(self):
-        """@Test: Assign 'Discovery Reader" role to a normal user
+        """Assign 'Discovery Reader" role to a normal user
 
         @Feature: Foreman Discovery
 

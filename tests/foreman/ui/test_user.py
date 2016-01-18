@@ -41,7 +41,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_username(self):
-        """@Test: Create User for all variations of Username
+        """Create User for all variations of Username
 
         @Feature: User - Positive Create
 
@@ -55,7 +55,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_first_name(self):
-        """@Test: Create User for all variations of First Name
+        """Create User for all variations of First Name
 
         @Feature: User - Positive Create
 
@@ -70,7 +70,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_surname(self):
-        """@Test: Create User for all variations of Surname
+        """Create User for all variations of Surname
 
         @Feature: User - Positive Create
 
@@ -85,7 +85,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_email(self):
-        """@Test: Create User for all variations of Email Address
+        """Create User for all variations of Email Address
 
         @Feature: User - Positive Create
 
@@ -100,7 +100,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_language(self):
-        """@Test: Create User for all variations of Language
+        """Create User for all variations of Language
 
         @Feature: User - Positive Create
 
@@ -115,7 +115,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_password(self):
-        """@Test: Create User for all variations of Password
+        """Create User for all variations of Password
 
         @Feature: User - Positive Create
 
@@ -143,7 +143,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_create_admin(self):
-        """@Test: Create an Admin user
+        """Create an Admin user
 
         @Feature: User - Positive Create
 
@@ -156,7 +156,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_one_role(self):
-        """@Test: Create User with one role
+        """Create User with one role
 
         @Feature: User - Positive Create
 
@@ -175,7 +175,7 @@ class UserTestCase(UITestCase):
 
     @tier2
     def test_positive_create_with_multiple_roles(self):
-        """@Test: Create User with multiple roles
+        """Create User with multiple roles
 
         @Feature: User - Positive Create
 
@@ -199,7 +199,7 @@ class UserTestCase(UITestCase):
 
     @tier2
     def test_positive_create_with_all_roles(self):
-        """@Test: Create User and assign all available roles to it
+        """Create User and assign all available roles to it
 
         @Feature: User - Positive Create
 
@@ -218,7 +218,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_one_org(self):
-        """@Test: Create User associated to one Org
+        """Create User associated to one Org
 
         @Feature: User - Positive Create
 
@@ -239,7 +239,7 @@ class UserTestCase(UITestCase):
 
     @tier2
     def test_positive_create_with_multiple_orgs(self):
-        """@Test: Create User associated to multiple Orgs
+        """Create User associated to multiple Orgs
 
         @Feature: User - Positive Create
 
@@ -268,7 +268,7 @@ class UserTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_positive_create_in_ldap_modes(self):
-        """@Test: Create User in supported ldap modes - (Active Driectory, IPA,
+        """Create User in supported ldap modes - (Active Driectory, IPA,
         Posix)
 
         @Feature: User - Positive Create
@@ -281,7 +281,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_default_org(self):
-        """@Test: Create User and has default organization associated with it
+        """Create User and has default organization associated with it
 
         @Feature: User - Positive Create.
 
@@ -306,7 +306,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_default_location(self):
-        """@Test: Create User and associate a default Location.
+        """Create User and associate a default Location.
 
         @Feature: User - Positive Create
 
@@ -351,7 +351,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create User with invalid User Name
+        """Create User with invalid User Name
 
         @Feature: User - Negative Create
 
@@ -368,7 +368,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_negative_create_with_invalid_firstname(self):
-        """@Test: Create User with invalid FirstName
+        """Create User with invalid FirstName
 
         @Feature: User - Negative Create
 
@@ -391,7 +391,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_negative_create_with_invalid_surname(self):
-        """@Test: Create User with invalid Surname
+        """Create User with invalid Surname
 
         @Feature: User - Negative Create
 
@@ -414,7 +414,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_negative_create_with_invalid_emails(self):
-        """@Test: Create User with invalid Email Address
+        """Create User with invalid Email Address
 
         @Feature: User - Negative Create
 
@@ -432,7 +432,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_negative_create_with_blank_auth(self):
-        """@Test: Create User with blank value for 'Authorized by' field
+        """Create User with blank value for 'Authorized by' field
 
         @Feature: User - Negative Create
 
@@ -445,7 +445,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_negative_create_with_wrong_pass_confirmation(self):
-        """@Test: Create User with non-matching values in Password and verify
+        """Create User with non-matching values in Password and verify
 
         @Feature: User - Negative Create
 
@@ -463,7 +463,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_update_username(self):
-        """@Test: Update Username in User
+        """Update Username in User
 
         @Feature: User - Positive Update
 
@@ -494,7 +494,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_update_firstname(self):
-        """@Test: Update first name in User
+        """Update first name in User
 
         @Feature: User - Positive Update
 
@@ -510,7 +510,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_update_surname(self):
-        """@Test: Update surname in User
+        """Update surname in User
 
         @Feature: User - Positive Update
 
@@ -526,7 +526,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_update_email(self):
-        """@Test: Update Email Address in User
+        """Update Email Address in User
 
         @Feature: User - Positive Update
 
@@ -542,7 +542,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_update_language(self):
-        """@Test: Update Language in User
+        """Update Language in User
 
         @Feature: User - Positive Update
 
@@ -557,7 +557,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_update_password(self):
-        """@Test: Update password for a user
+        """Update password for a user
 
         @Feature: User - Update
 
@@ -576,7 +576,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_update_to_non_admin(self):
-        """@Test: Convert an user from an admin user to non-admin user
+        """Convert an user from an admin user to non-admin user
 
         @Feature: User - Positive Update
 
@@ -591,7 +591,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_update_to_admin(self):
-        """@Test: Convert a user to an admin user
+        """Convert a user to an admin user
 
         @Feature: User - Positive Update
 
@@ -605,7 +605,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_update_role(self):
-        """@Test: Update role for a user
+        """Update role for a user
 
         @Feature: User - Update
 
@@ -628,7 +628,7 @@ class UserTestCase(UITestCase):
 
     @tier2
     def test_positive_update_with_multiple_roles(self):
-        """@Test: Update User with multiple roles
+        """Update User with multiple roles
 
         @Feature: User - Positive Update
 
@@ -651,7 +651,7 @@ class UserTestCase(UITestCase):
 
     @tier2
     def test_positive_update_with_all_roles(self):
-        """@Test: Update User with all roles
+        """Update User with all roles
 
         @Feature: User - Positive Update
 
@@ -670,7 +670,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_update_org(self):
-        """@Test: Assign a User to an Org
+        """Assign a User to an Org
 
         @Feature: User - Positive Update
 
@@ -691,7 +691,7 @@ class UserTestCase(UITestCase):
 
     @tier2
     def test_positive_update_orgs(self):
-        """@Test: Assign a User to multiple Orgs
+        """Assign a User to multiple Orgs
 
         @Feature: User - Positive Update
 
@@ -714,7 +714,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_negative_update_username(self):
-        """@Test: Update invalid Username in an User
+        """Update invalid Username in an User
 
         @Feature: User - Negative Update
 
@@ -733,7 +733,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_negative_update_firstname(self):
-        """@Test: Update invalid Firstname in an User
+        """Update invalid Firstname in an User
 
         @Feature: User - Negative Update
 
@@ -752,7 +752,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_negative_update_surname(self):
-        """@Test: Update invalid Surname in an User
+        """Update invalid Surname in an User
 
         @Feature: User - Negative Update
 
@@ -771,7 +771,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_negative_update_email(self):
-        """@Test: Update invalid Email Address in an User
+        """Update invalid Email Address in an User
 
         @Feature: User - Negative Update
 
@@ -791,7 +791,7 @@ class UserTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_negative_update_password(self):
-        """@Test: Update different values in Password and verify fields
+        """Update different values in Password and verify fields
 
         @Feature: User - Negative Update
 
@@ -807,7 +807,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_negative_update(self):
-        """@Test: [UI ONLY] Attempt to update User info and Cancel
+        """[UI ONLY] Attempt to update User info and Cancel
 
         @Feature: User - Negative Update
 
@@ -831,7 +831,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_delete_user(self):
-        """@Test: Delete an existing User
+        """Delete an existing User
 
         @Feature: User - Delete
 
@@ -845,7 +845,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_positive_delete_admin(self):
-        """@Test: Delete an admin user
+        """Delete an admin user
 
         @Feature: User - Positive Delete
 
@@ -859,7 +859,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_negative_delete_user(self):
-        """@Test: [UI ONLY] Attempt to delete an User and cancel
+        """[UI ONLY] Attempt to delete an User and cancel
 
         @Feature: User - Negative Delete
 
@@ -874,7 +874,7 @@ class UserTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_negative_delete_last_admin(self):
-        """@Test: Attempt to delete the last remaining admin user
+        """Attempt to delete the last remaining admin user
 
         @Feature: User - Negative Delete
 
@@ -891,7 +891,7 @@ class UserTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_end_to_end(self):
-        """@Test: Create User and perform different operations
+        """Create User and perform different operations
 
         @Feature: User - End to End
 
@@ -912,7 +912,7 @@ class UserTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_end_to_end_without_org(self):
-        """@Test: Create User with no Org assigned and attempt different
+        """Create User with no Org assigned and attempt different
         operations
 
         @Feature: User - End to End
@@ -933,7 +933,7 @@ class UserTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_positive_create_bookmark_default(self):
-        """@Test: Create a bookmark with default values
+        """Create a bookmark with default values
 
         @Feature: Search bookmark - Positive Create
 
@@ -949,7 +949,7 @@ class UserTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_positive_create_bookmark_alter_default(self):
-        """@Test: Create a bookmark by altering the default values
+        """Create a bookmark by altering the default values
 
         @Feature: Search bookmark - Positive Create
 
@@ -965,7 +965,7 @@ class UserTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_positive_create_bookmark_public(self):
-        """@Test: Create a bookmark in public mode
+        """Create a bookmark in public mode
 
         @Feature: Search bookmark - Positive Create
 
@@ -982,7 +982,7 @@ class UserTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_positive_create_bookmark_private(self):
-        """@Test: Create a bookmark in private mode
+        """Create a bookmark in private mode
 
         @Feature: Search bookmark - Positive Create
 
@@ -999,7 +999,7 @@ class UserTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_negative_create_bookmark_with_blank_name(self):
-        """@Test: Create a bookmark with a blank bookmark name
+        """Create a bookmark with a blank bookmark name
 
         @Feature: Search bookmark - Negative Create
 
@@ -1015,7 +1015,7 @@ class UserTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_negative_create_bookmark_with_blank_query(self):
-        """@Test: Create a bookmark with a blank bookmark query
+        """Create a bookmark with a blank bookmark query
 
         @Feature: Search bookmark - Negative Create
 

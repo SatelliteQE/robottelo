@@ -25,7 +25,7 @@ class OpenScapPolicy(UITestCase):
 
     @tier1
     def test_positive_create_with_policy_name(self):
-        """@Test: Create OpenScap Policy.
+        """Create OpenScap Policy.
 
         @Feature: OpenScap Policy - Positive Create.
 
@@ -61,7 +61,7 @@ class OpenScapPolicy(UITestCase):
 
     @tier1
     def test_positive_delete_by_policy_name(self):
-        """@Test: Create OpenScap Policy.
+        """Create OpenScap Policy.
 
         @Feature: OpenScap Policy - Positive Create.
 
@@ -100,7 +100,7 @@ class OpenScapPolicy(UITestCase):
     @skip_if_bug_open('bugzilla', 1293296)
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create OpenScap Policy with negative values.
+        """Create OpenScap Policy with negative values.
 
         @Feature: OpenScap Policy - Negative Create.
 
@@ -137,7 +137,7 @@ class OpenScapPolicy(UITestCase):
 
     @tier1
     def test_positive_update(self):
-        """@Test: Update OpenScap Policy.
+        """Update OpenScap Policy.
 
         @Feature: OpenScap Policy - Positive Update.
 

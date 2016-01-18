@@ -77,7 +77,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create repository with different names and minimal input
+        """Create repository with different names and minimal input
         parameters
 
         @Feature: Content Repos - Positive Create
@@ -100,7 +100,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_create_in_different_orgs(self):
-        """@Test: Create repository in two different orgs with same name
+        """Create repository in two different orgs with same name
 
         @Feature: Content Repos - Positive Create
 
@@ -133,7 +133,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_repo_with_checksum(self):
-        """@Test: Create repository with checksum type as sha256.
+        """Create repository with checksum type as sha256.
 
         @Feature: Content Repos - Positive Create
 
@@ -159,7 +159,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create repository with invalid names
+        """Create repository with invalid names
 
         @Feature: Content Repos - Negative Create
 
@@ -184,7 +184,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_names(self):
-        """@Test: Try to create two repositories with same name
+        """Try to create two repositories with same name
 
         @Feature: Content Repos - Negative Create with same name
 
@@ -213,7 +213,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_url(self):
-        """@Test: Update content repository with new URL
+        """Update content repository with new URL
 
         @Feature: Content Repo - Positive Update
 
@@ -242,7 +242,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_gpg(self):
-        """@Test: Update content repository with new gpg-key
+        """Update content repository with new gpg-key
 
         @Feature: Content Repo - Positive Update
 
@@ -282,7 +282,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_checksum_type(self):
-        """@Test: Update content repository with new checksum type
+        """Update content repository with new checksum type
 
         @Feature: Content Repo - Positive Update of checksum type.
 
@@ -313,7 +313,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Create content repository and then remove it
+        """Create content repository and then remove it
 
         @Feature: Content Repos - Positive Delete
 
@@ -336,7 +336,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_discover_repo_via_existing_product(self):
-        """@Test: Create repository via repo-discovery under existing product
+        """Create repository via repo-discovery under existing product
 
         @Feature: Content Repos - Discover repo via http URL
 
@@ -356,7 +356,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_discover_repo_via_new_product(self):
-        """@Test: Create repository via repo discovery under new product
+        """Create repository via repo discovery under new product
 
         @Feature: Content Repos - Discover repo via http URL
 
@@ -379,7 +379,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_sync_custom_repo_yum(self):
-        """@Test: Create Custom yum repos and sync it via the repos page.
+        """Create Custom yum repos and sync it via the repos page.
 
         @Feature: Custom yum Repos - Sync via repos page
 
@@ -406,7 +406,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_sync_custom_repo_puppet(self):
-        """@Test: Create Custom puppet repos and sync it via the repos page.
+        """Create Custom puppet repos and sync it via the repos page.
 
         @Feature: Custom puppet Repos - Sync via repos page
 
@@ -435,7 +435,7 @@ class RepositoryTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_sync_custom_repo_docker(self):
-        """@Test: Create Custom docker repos and sync it via the repos page.
+        """Create Custom docker repos and sync it via the repos page.
 
         @Feature: Custom docker Repos - Sync via repos page
 

@@ -33,7 +33,7 @@ class SubnetTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create new subnet using different names
+        """Create new subnet using different names
 
         @Feature: Subnet - Positive Create
 
@@ -53,7 +53,7 @@ class SubnetTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_long_name(self):
-        """@Test: Create new subnet with 255 characters in name
+        """Create new subnet with 255 characters in name
 
         @Feature: Subnet - Positive Create
 
@@ -79,7 +79,7 @@ class SubnetTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_domain(self):
-        """@Test: Create new subnet and associate domain with it
+        """Create new subnet and associate domain with it
 
         @Feature: Subnet - Positive Create
 
@@ -120,7 +120,7 @@ class SubnetTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create new subnet with invalid names
+        """Create new subnet with invalid names
 
         @Feature: Subnet - Negative Create
 
@@ -141,7 +141,7 @@ class SubnetTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_params(self):
-        """@Test: Create new subnet with negative values
+        """Create new subnet with negative values
 
         @Feature: Subnet - Negative Create.
 
@@ -171,7 +171,7 @@ class SubnetTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete an existing subnet
+        """Delete an existing subnet
 
         @Feature: Subnet - Positive Delete
 
@@ -191,7 +191,7 @@ class SubnetTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_delete(self):
-        """@Test: Delete subnet. Attempt to delete subnet, but cancel in the
+        """Delete subnet. Attempt to delete subnet, but cancel in the
         confirmation dialog box.
 
         @Feature: Subnet - Negative Delete
@@ -211,7 +211,7 @@ class SubnetTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
-        """@Test: Update Subnet name
+        """Update Subnet name
 
         @Feature: Subnet - Positive Update
 
@@ -235,7 +235,7 @@ class SubnetTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_network(self):
-        """@Test: Update Subnet network
+        """Update Subnet network
 
         @Feature: Subnet - Positive Update
 
@@ -257,7 +257,7 @@ class SubnetTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_mask(self):
-        """@Test: Update Subnet mask
+        """Update Subnet mask
 
         @Feature: Subnet - Positive Update
 

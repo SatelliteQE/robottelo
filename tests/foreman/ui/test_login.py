@@ -23,7 +23,7 @@ class LoginTestCase(UITestCase):
 
     @tier1
     def test_positive_login(self):
-        """@Test: Login as an admin user
+        """Login as an admin user
 
         @Feature: Login - Positive
 
@@ -34,7 +34,7 @@ class LoginTestCase(UITestCase):
 
     @tier1
     def test_negative_login(self):
-        """@Test: Login into application using invalid credentials
+        """Login into application using invalid credentials
 
         @Feature: Login - Negative
 

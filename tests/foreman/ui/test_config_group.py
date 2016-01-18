@@ -19,7 +19,7 @@ class ConfigGroupTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create(self):
-        """@Test: Create new Config-Group
+        """Create new Config-Group
 
         @Feature: Config-Groups - Positive Create
 
@@ -35,7 +35,7 @@ class ConfigGroupTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create(self):
-        """@Test: Try to create config group and use whitespace, blank, tab
+        """Try to create config group and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
         @Feature: Config-Groups - Negative Create
@@ -53,7 +53,7 @@ class ConfigGroupTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update(self):
-        """@Test: Update selected config-group
+        """Update selected config-group
 
         @Feature: Config-Groups - Positive Update
 
@@ -72,7 +72,7 @@ class ConfigGroupTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete selected config-groups
+        """Delete selected config-groups
 
         @Feature: Config-Groups - Positive delete
 

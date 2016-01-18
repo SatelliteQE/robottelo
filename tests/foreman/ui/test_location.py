@@ -55,7 +55,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_auto_search(self):
-        """@test: Can auto-complete search for location by partial name
+        """Can auto-complete search for location by partial name
 
         @feature: Locations
 
@@ -79,7 +79,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@test: Create Location with valid name only
+        """Create Location with valid name only
 
         @feature: Locations
 
@@ -94,7 +94,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_names(self):
-        """@test: Create location with invalid name
+        """Create location with invalid name
 
         @feature: Locations
 
@@ -111,7 +111,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
-        """@test: Create location with valid values, then create a new one
+        """Create location with valid values, then create a new one
         with same values.
 
         @feature: Locations
@@ -130,7 +130,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_create_with_location_and_org(self):
-        """@test: Create and select both organization and location.
+        """Create and select both organization and location.
 
         @feature: Locations
 
@@ -155,7 +155,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
-        """@test: Create Location with valid values then update its name
+        """Create Location with valid values then update its name
 
         @feature: Locations
 
@@ -176,7 +176,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_update_with_too_long_name(self):
-        """@test: Create Location with valid values then fail to update
+        """Create Location with valid values then fail to update
         its name
 
         @feature: Locations
@@ -196,7 +196,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@test: Create location with valid values then delete it.
+        """Create location with valid values then delete it.
 
         @feature: Location Positive Delete test.
 
@@ -212,7 +212,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_subnet(self):
-        """@test: Add a subnet by using location name and subnet name
+        """Add a subnet by using location name and subnet name
 
         @feature: Locations
 
@@ -241,7 +241,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_domain(self):
-        """@test: Add a domain to a Location
+        """Add a domain to a Location
 
         @feature: Locations
 
@@ -266,7 +266,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_user(self):
-        """@test: Create user then add that user by using the location name
+        """Create user then add that user by using the location name
 
         @feature: Locations
 
@@ -300,7 +300,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_check_all_values_hostgroup(self):
-        """@test: check whether host group has the 'All values' checked.
+        """check whether host group has the 'All values' checked.
 
         @feature: Locations
 
@@ -322,7 +322,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_hostgroup(self):
-        """@test: Add a hostgroup by using the location name and hostgroup name
+        """Add a hostgroup by using the location name and hostgroup name
 
         @feature: Locations
 
@@ -346,7 +346,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_org(self):
-        """@test: Add a organization by using the location name
+        """Add a organization by using the location name
 
         @feature: Locations
 
@@ -373,7 +373,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_add_environment(self):
-        """@test: Add environment by using location name and environment name
+        """Add environment by using location name and environment name
 
         @feature: Locations
 
@@ -398,7 +398,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_add_compresource(self):
-        """@test: Add compute resource using the location name and
+        """Add compute resource using the location name and
         compute resource name
 
         @feature: Locations
@@ -427,7 +427,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_medium(self):
-        """@test: Add medium by using the location name and medium name
+        """Add medium by using the location name and medium name
 
         @feature: Locations
 
@@ -456,7 +456,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_check_all_values_template(self):
-        """@test: check whether config template has the 'All values' checked.
+        """check whether config template has the 'All values' checked.
 
         @feature: Locations
 
@@ -475,7 +475,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_template(self):
-        """@test: Add config template by using location name and config
+        """Add config template by using location name and config
         template name.
 
         @feature: Locations
@@ -506,7 +506,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_environment(self):
-        """@test: Remove environment by using location name & environment name
+        """Remove environment by using location name & environment name
 
         @feature: Locations
 
@@ -541,7 +541,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_subnet(self):
-        """@test: Remove subnet by using location name and subnet name
+        """Remove subnet by using location name and subnet name
 
         @feature: Locations
 
@@ -580,7 +580,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_domain(self):
-        """@test: Add a domain to an location and remove it by location name
+        """Add a domain to an location and remove it by location name
         and domain name
 
         @feature: Locations
@@ -616,7 +616,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_user(self):
-        """@test: Create admin users then add user and remove it by using the
+        """Create admin users then add user and remove it by using the
         location name
 
         @feature: Locations
@@ -660,7 +660,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_hostgroup(self):
-        """@test: Add a hostgroup and remove it by using the location name and
+        """Add a hostgroup and remove it by using the location name and
         hostgroup name
 
         @feature: Locations
@@ -695,7 +695,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_compresource(self):
-        """@test: Remove compute resource by using the location name and
+        """Remove compute resource by using the location name and
         compute resource name
 
         @feature: Locations
@@ -734,7 +734,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_medium(self):
-        """@test: Remove medium by using location name and medium name
+        """Remove medium by using location name and medium name
 
         @feature: Locations
 
@@ -774,7 +774,7 @@ class LocationTestCase(UITestCase):
     @tier2
     def test_positive_remove_template(self):
         """
-        @test: Remove config template
+        Remove config template
 
         @feature: Locations
 

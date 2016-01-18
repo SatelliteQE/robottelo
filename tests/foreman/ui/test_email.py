@@ -11,7 +11,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_preferences(self):
-        """@Test: Manage user email notification preferences
+        """Manage user email notification preferences
 
         @Feature: Email Notification
 
@@ -33,7 +33,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_sync_with_enabled_notification(self):
-        """@Test: Receive email after every sync operation
+        """Receive email after every sync operation
 
         @Feature: Email Notification
 
@@ -52,7 +52,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_sync_with_disabled_notification(self):
-        """@Test: Do not receive email after every sync operation
+        """Do not receive email after every sync operation
 
         @Feature: Email Notification
 
@@ -71,7 +71,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_promote_with_enabled_notification(self):
-        """@Test: Receive email after every promote operation
+        """Receive email after every promote operation
 
         @Feature: Email Notification
 
@@ -90,7 +90,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_promote_with_disabled_notification(self):
-        """@Test: Do not receive email after every promote operation
+        """Do not receive email after every promote operation
 
         @Feature: Email Notification
 
@@ -109,7 +109,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_host_with_daily_notification(self):
-        """@Test: Receive daily email with host advisory information
+        """Receive daily email with host advisory information
 
         @Feature: Email Notification
 
@@ -128,7 +128,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_host_with_weekly_notification(self):
-        """@Test: Receive weekly email with host advisory information
+        """Receive weekly email with host advisory information
 
         @Feature: Email Notification
 
@@ -147,7 +147,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_host_with_monthly_notification(self):
-        """@Test: Receive monthly email with host advisory information
+        """Receive monthly email with host advisory information
 
         @Feature: Email Notification
 
@@ -166,7 +166,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_host_with_disabled_notification(self):
-        """@Test: Receive no email with host advisory information
+        """Receive no email with host advisory information
 
         @Feature: Email Notification
 
@@ -185,7 +185,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_puppet_error_with_enabled_notification(self):
-        """@Test: Receive email after puppet error
+        """Receive email after puppet error
 
         @Feature: Email Notification
 
@@ -204,7 +204,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_puppet_error_with_disabled_notification(self):
-        """@Test: Do not receive email after puppet error
+        """Do not receive email after puppet error
 
         @Feature: Email Notification
 
@@ -223,7 +223,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_sync_errata_notification(self):
-        """@Test: Receive 'Katello Sync Errata' notifications - only for
+        """Receive 'Katello Sync Errata' notifications - only for
         repositories and content views that the user has view access to
 
         @Feature: Email Notification
@@ -250,7 +250,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_promote_errata_notification(self):
-        """@Test: Receive 'Katello Promote Errata' notifications - only for
+        """Receive 'Katello Promote Errata' notifications - only for
         repositories and content views that the user has view access to
 
         @Feature: Email Notification
@@ -277,7 +277,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_host_advisory_notification_for_cv_and_repo(self):
-        """@Test: Receive 'Katello Host Advisory' notifications - only for
+        """Receive 'Katello Host Advisory' notifications - only for
         repositories and content views that the user has view access to
 
         @Feature: Email Notification
@@ -303,7 +303,7 @@ class EmailTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_host_advisory_notification_for_host(self):
-        """@Test: Receive 'Katello Host Advisory' notifications - only for
+        """Receive 'Katello Host Advisory' notifications - only for
         content hosts that the user has view access to
 
         @Feature: Email Notification

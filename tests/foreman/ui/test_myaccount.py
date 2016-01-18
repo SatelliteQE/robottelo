@@ -20,7 +20,7 @@ class MyAccountTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_update_firstname(self):
-        """@Test: Update Firstname in My Account
+        """Update Firstname in My Account
 
         @Feature: My Account - Positive Update
 
@@ -35,7 +35,7 @@ class MyAccountTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_update_surname(self):
-        """@Test: Update Surname in My Account
+        """Update Surname in My Account
 
         @Feature: My Account - Positive Update
 
@@ -50,7 +50,7 @@ class MyAccountTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_update_email(self):
-        """@Test: Update Email Address in My Account
+        """Update Email Address in My Account
 
         @Feature: My Account - Positive Update
 
@@ -65,7 +65,7 @@ class MyAccountTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_update_language(self):
-        """@Test: Update Language in My Account
+        """Update Language in My Account
 
         @Feature: My Account - Positive Update
 
@@ -80,7 +80,7 @@ class MyAccountTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_update_password(self):
-        """@Test: Update Password/Verify fields in My Account
+        """Update Password/Verify fields in My Account
 
         @Feature: My Account - Positive Update
 
@@ -95,7 +95,7 @@ class MyAccountTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_negative_update_firstname(self):
-        """@Test: Update My Account with invalid FirstName
+        """Update My Account with invalid FirstName
 
         @Feature: My Account - Negative Update
 
@@ -110,7 +110,7 @@ class MyAccountTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_negative_update_surname(self):
-        """@Test: Update My Account with invalid Surname
+        """Update My Account with invalid Surname
 
         @Feature: My Account - Negative Update
 
@@ -125,7 +125,7 @@ class MyAccountTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_negative_update_email(self):
-        """@Test: Update My Account with invalid Email Address
+        """Update My Account with invalid Email Address
 
         @Feature: My Account - Negative Update
 
@@ -140,7 +140,7 @@ class MyAccountTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_negative_update_password(self):
-        """@Test: Update My Account with invalid Password/Verify fields
+        """Update My Account with invalid Password/Verify fields
 
         @Feature: My Account - Negative Update
 
@@ -156,7 +156,7 @@ class MyAccountTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_negative_update_password_mismatch(self):
-        """@Test: Update My Account with non-matching values in Password and
+        """Update My Account with non-matching values in Password and
         verify fields
 
         @Feature: My Account - Negative Update
@@ -173,7 +173,7 @@ class MyAccountTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_negative_update(self):
-        """@Test: [UI ONLY] Attempt to update all info in My Accounts page and
+        """[UI ONLY] Attempt to update all info in My Accounts page and
         Cancel
 
         @Feature: My Account - Negative Update
