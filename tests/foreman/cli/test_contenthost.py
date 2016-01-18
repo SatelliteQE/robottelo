@@ -34,9 +34,8 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
-    stubbed,
     tier1,
-    tier2,
+    tier3,
 )
 from robottelo.test import CLITestCase
 from robottelo.vm import VirtualMachine
@@ -399,40 +398,83 @@ class ContentHostTestCase(CLITestCase):
                 u'organization-id': self.NEW_ORG['id'],
             })
 
-    @stubbed()
+    @tier3
     def test_positive_register_with_no_ak(self):
         """@test: Register Content host to satellite without activation key
 
         @feature: Content host
 
         @assert: Content host successfully registered to appropriate org
-
-        @status: Manual
         """
+        with VirtualMachine(distro='rhel71') as client:
+            client.install_katello_ca()
+            result = client.run(
+                u'subscription-manager register --org {0} '
+                '--environment {1}/{2} --username {3} --password {4}'
+                .format(
+                    self.NEW_ORG['label'],
+                    self.NEW_LIFECYCLE['label'],
+                    self.PROMOTED_CV['label'],
+                    self.katello_user,
+                    self.katello_passwd
+                )
+            )
+            self.assertEqual(result.return_code, 0)
 
-    @stubbed()
+    @tier3
     def test_negative_register_twice(self):
-        """@test: Attempt to register a Content host twice to Satellite
+        """Attempt to register a Content host twice to Satellite
 
         @feature: Content host
 
         @assert: Content host cannot be registered twice
-
-        @status: Manual
         """
+        activation_key = make_activation_key({
+            'content-view-id': self.PROMOTED_CV['id'],
+            'lifecycle-environment-id': self.NEW_LIFECYCLE['id'],
+            'organization-id': self.NEW_ORG['id'],
+        })
+        with VirtualMachine(distro='rhel71') as client:
+            client.install_katello_ca()
+            client.register_contenthost(
+                activation_key['name'],
+                self.NEW_ORG['label'],
+            )
+            result = client.register_contenthost(
+                activation_key['name'],
+                self.NEW_ORG['label'],
+                force=False,
+            )
+            # Depending on distro version, successful return_code may be 0 or
+            # 1, so we can't verify CH wasn't registered by return_code != 0
+            # check. Verifying return_code == 64 here, which stands for content
+            # host being already registered.
+            self.assertEqual(result.return_code, 64)
 
-    @stubbed()
+    @tier3
     def test_positive_list(self):
         """@test: List Content hosts for a given org
 
         @feature: Content host
 
         @assert: Content hosts are listed for the given org
-
-        @status: Manual
         """
+        activation_key = make_activation_key({
+            'content-view-id': self.PROMOTED_CV['id'],
+            'lifecycle-environment-id': self.NEW_LIFECYCLE['id'],
+            'organization-id': self.NEW_ORG['id'],
+        })
+        with VirtualMachine(distro='rhel71') as client:
+            client.install_katello_ca()
+            client.register_contenthost(
+                activation_key['name'],
+                self.NEW_ORG['label'],
+            )
+            result = ContentHost.list({'organization-id': self.NEW_ORG['id']})
+            self.assertGreaterEqual(len(result), 1)
+            self.assertIn(client.hostname, [chost['name'] for chost in result])
 
-    @stubbed()
+    @tier3
     def test_positive_unregister(self):
         """@test: Unregister Content host
 
@@ -440,21 +482,26 @@ class ContentHostTestCase(CLITestCase):
 
         @assert: After unregistering, Content hosts list for the org does not
         show the Content host
-
-        @status: Manual
         """
-
-    @stubbed()
-    def test_negative_unregistered_chost_pull_content(self):
-        """@test: Attempt to retrieve content after Content host has been
-        unregistered from Satellite
-
-        @feature: Content host
-
-        @assert: Content host can no longer retrieve content from satellite
-
-        @status: Manual
-        """
+        activation_key = make_activation_key({
+            'content-view-id': self.PROMOTED_CV['id'],
+            'lifecycle-environment-id': self.NEW_LIFECYCLE['id'],
+            'organization-id': self.NEW_ORG['id'],
+        })
+        with VirtualMachine(distro='rhel71') as client:
+            client.install_katello_ca()
+            client.register_contenthost(
+                activation_key['name'],
+                self.NEW_ORG['label'],
+            )
+            result = ContentHost.list({'organization-id': self.NEW_ORG['id']})
+            self.assertGreaterEqual(len(result), 1)
+            self.assertIn(client.hostname, [chost['name'] for chost in result])
+            result = client.run('subscription-manager unregister')
+            self.assertEqual(result.return_code, 0)
+            result = ContentHost.list({'organization-id': self.NEW_ORG['id']})
+            self.assertNotIn(
+                client.hostname, [chost['name'] for chost in result])
 
 
 class KatelloAgentTestCase(CLITestCase):
@@ -525,7 +572,7 @@ class KatelloAgentTestCase(CLITestCase):
         self.client.destroy()
         super(KatelloAgentTestCase, self).tearDown()
 
-    @tier2
+    @tier3
     @run_only_on('sat')
     def test_positive_get_errata_info(self):
         """@Test: Get errata info
@@ -547,7 +594,7 @@ class KatelloAgentTestCase(CLITestCase):
         self.assertEqual(result[0]['errata-id'], FAKE_0_ERRATA_ID)
         self.assertEqual(result[0]['packages'], FAKE_0_CUSTOM_PACKAGE)
 
-    @tier2
+    @tier3
     @run_only_on('sat')
     def test_positive_apply_errata(self):
         """@Test: Apply errata to content host
@@ -567,7 +614,7 @@ class KatelloAgentTestCase(CLITestCase):
             u'organization-id': KatelloAgentTestCase.org['id'],
         })
 
-    @tier2
+    @tier3
     @run_only_on('sat')
     def test_positive_install_package(self):
         """@Test: Install package to content host remotely
@@ -587,7 +634,7 @@ class KatelloAgentTestCase(CLITestCase):
         )
         self.assertEqual(result.return_code, 0)
 
-    @tier2
+    @tier3
     @run_only_on('sat')
     def test_positive_remove_package(self):
         """@Test: Remove package from content host remotely
@@ -611,7 +658,7 @@ class KatelloAgentTestCase(CLITestCase):
         )
         self.assertNotEqual(result.return_code, 0)
 
-    @tier2
+    @tier3
     @run_only_on('sat')
     def test_positive_upgrade_package(self):
         """@Test: Upgrade content host package remotely
@@ -630,7 +677,7 @@ class KatelloAgentTestCase(CLITestCase):
         result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
         self.assertEqual(result.return_code, 0)
 
-    @tier2
+    @tier3
     @run_only_on('sat')
     def test_positive_upgrade_packages_all(self):
         """@Test: Upgrade all the content host packages remotely
@@ -649,7 +696,7 @@ class KatelloAgentTestCase(CLITestCase):
         result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
         self.assertEqual(result.return_code, 0)
 
-    @tier2
+    @tier3
     @run_only_on('sat')
     def test_positive_install_package_group(self):
         """@Test: Install package group to content host remotely
@@ -668,7 +715,7 @@ class KatelloAgentTestCase(CLITestCase):
             result = self.client.run('rpm -q {0}'.format(package))
             self.assertEqual(result.return_code, 0)
 
-    @tier2
+    @tier3
     @run_only_on('sat')
     def test_positive_remove_package_group(self):
         """@Test: Remove package group from content host remotely
@@ -688,3 +735,18 @@ class KatelloAgentTestCase(CLITestCase):
         for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
             result = self.client.run('rpm -q {0}'.format(package))
             self.assertNotEqual(result.return_code, 0)
+
+    @tier3
+    def test_negative_unregister_and_pull_content(self):
+        """@test: Attempt to retrieve content after Content host has been
+        unregistered from Satellite
+
+        @feature: Content host
+
+        @assert: Content host can no longer retrieve content from satellite
+        """
+        result = self.client.run('subscription-manager unregister')
+        self.assertEqual(result.return_code, 0)
+        result = self.client.run(
+            'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        self.assertNotEqual(result.return_code, 0)
