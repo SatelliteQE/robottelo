@@ -81,7 +81,7 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
 
     def test_concurrent_synchronization(self):
         """
-        @Test: Synchronize two repos concurrently
+        Synchronize two repos concurrently
 
         @Steps:
 
@@ -210,7 +210,7 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
 
     def test_sequential_synchronization(self):
         """
-        @Test: Synchronize two repos sequentially
+        Synchronize two repos sequentially
 
         @Steps:
 

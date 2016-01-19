@@ -74,7 +74,7 @@ class SmokeTestCase(UITestCase):
             )
 
     def test_positive_find_admin_user(self):
-        """@Test: Check if Admin User is present
+        """Check if Admin User is present
 
         @Feature: Smoke Test
 
@@ -85,7 +85,7 @@ class SmokeTestCase(UITestCase):
             self.assertTrue(self.user.user_admin_role_toggle('admin'))
 
     def test_positive_smoke(self):
-        """@Test: Check that basic content can be created
+        """Check that basic content can be created
 
         * Create a new user with admin permissions
         * Using the new user from above:
@@ -263,7 +263,7 @@ class SmokeTestCase(UITestCase):
 
     @skip_if_not_set('clients')
     def test_positive_end_to_end(self):
-        """@Test: Perform end to end smoke tests using RH repos.
+        """Perform end to end smoke tests using RH repos.
 
         @Feature: Smoke test
 
@@ -358,7 +358,7 @@ class SmokeTestCase(UITestCase):
 
     @skip_if_not_set('clients')
     def test_positive_puppet_install(self):
-        """@Test: Perform puppet end to end smoke tests using RH repos.
+        """Perform puppet end to end smoke tests using RH repos.
 
         @Feature: Smoke test puppet install and configure on client
 
