@@ -199,7 +199,7 @@ class StandardPrepTestCase(TestCase):
         self.logger.debug(repo_list_ids)
 
     def test_standard_prep(self):
-        """@Test: add Manifest to Satellite Server
+        """add Manifest to Satellite Server
 
         @Steps:
 

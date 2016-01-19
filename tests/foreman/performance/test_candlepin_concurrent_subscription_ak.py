@@ -90,7 +90,7 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
         self.logger.info('Subscription added to this activation key.')
 
     def test_subscribe_ak_sequential(self):
-        """@Test: Subscribe system sequentially using 1 virtual machine
+        """Subscribe system sequentially using 1 virtual machine
 
         @Steps:
 
@@ -108,7 +108,7 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
         self.kick_off_ak_test(self.num_threads[0], 5000)
 
     def test_subscribe_ak_2_clients(self):
-        """@Test: Subscribe system concurrently using 2 virtual machines
+        """Subscribe system concurrently using 2 virtual machines
 
         @Steps:
 
@@ -126,7 +126,7 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
         self.kick_off_ak_test(self.num_threads[1], 5000)
 
     def test_subscribe_ak_4_clients(self):
-        """@Test: Subscribe system concurrently using 4 virtual machines
+        """Subscribe system concurrently using 4 virtual machines
 
         @Assert: Restoring where there's no activation key or registration
 
@@ -134,7 +134,7 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
         self.kick_off_ak_test(self.num_threads[2], 5000)
 
     def test_subscribe_ak_6_clients(self):
-        """@Test: Subscribe system concurrently using 6 virtual machines
+        """Subscribe system concurrently using 6 virtual machines
 
         @Assert: Restoring where there's no activation key or registration
 
@@ -142,7 +142,7 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
         self.kick_off_ak_test(self.num_threads[3], 6000)
 
     def test_subscribe_ak_8_clients(self):
-        """@Test: Subscribe system concurrently using 8 virtual machines
+        """Subscribe system concurrently using 8 virtual machines
 
         @Assert: Restoring where there's no activation key or registration
 
@@ -150,7 +150,7 @@ class ConcurrentSubActivationKeyTestCase(ConcurrentTestCase):
         self.kick_off_ak_test(self.num_threads[4], 5000)
 
     def test_subscribe_ak_10_clients(self):
-        """@Test: Subscribe system concurrently using 10 virtual machines
+        """Subscribe system concurrently using 10 virtual machines
 
         @Steps:
 

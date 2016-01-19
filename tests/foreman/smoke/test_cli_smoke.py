@@ -45,7 +45,7 @@ class SmokeTestCase(CLITestCase):
     """End-to-end tests using the ``CLI`` path."""
 
     def test_positive_find_default_org(self):
-        """@Test: Check if 'Default Organization' is present
+        """Check if 'Default Organization' is present
 
         @Feature: Smoke Test
 
@@ -57,7 +57,7 @@ class SmokeTestCase(CLITestCase):
         self.assertEqual(result['name'], DEFAULT_ORG)
 
     def test_positive_find_default_loc(self):
-        """@Test: Check if 'Default Location' is present
+        """Check if 'Default Location' is present
 
         @Feature: Smoke Test
 
@@ -69,7 +69,7 @@ class SmokeTestCase(CLITestCase):
         self.assertEqual(result['name'], DEFAULT_LOC)
 
     def test_positive_find_admin_user(self):
-        """@Test: Check if Admin User is present
+        """Check if Admin User is present
 
         @Feature: Smoke Test
 
@@ -82,7 +82,7 @@ class SmokeTestCase(CLITestCase):
         self.assertEqual(result['admin'], 'yes')
 
     def test_positive_foreman_version(self):
-        """@Test: Check if /usr/share/foreman/VERSION does not contain the
+        """Check if /usr/share/foreman/VERSION does not contain the
         develop tag.
 
         @Feature: Smoke Test
@@ -99,7 +99,7 @@ class SmokeTestCase(CLITestCase):
             self.assertIn('develop', u''.join(result.stdout))
 
     def test_positive_smoke(self):
-        """@Test: Check that basic content can be created
+        """Check that basic content can be created
 
         * Create a new user with admin permissions
         * Using the new user from above:
@@ -387,7 +387,7 @@ class SmokeTestCase(CLITestCase):
 
     @skip_if_not_set('clients')
     def test_positive_end_to_end(self):
-        """@Test: Perform end to end smoke tests using RH repos.
+        """Perform end to end smoke tests using RH repos.
 
         1. Create new organization and environment
         2. Upload manifest

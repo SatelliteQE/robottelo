@@ -676,7 +676,7 @@ class AvailableURLsTestCase(TestCase):
         self.path = '{0}/api/v2'.format(settings.server.get_url())
 
     def test_positive_get_status_code(self):
-        """@Test: GET ``api/v2`` and examine the response.
+        """GET ``api/v2`` and examine the response.
 
         @Feature: API
 
@@ -692,7 +692,7 @@ class AvailableURLsTestCase(TestCase):
         self.assertIn('application/json', response.headers['content-type'])
 
     def test_positive_get_links(self):
-        """@Test: GET ``api/v2`` and check the links returned.
+        """GET ``api/v2`` and check the links returned.
 
         @Feature: API
 
@@ -753,7 +753,7 @@ class SmokeTestCase(TestCase):
     """End-to-end tests using the ``API`` path."""
 
     def test_positive_find_default_org(self):
-        """@Test: Check if 'Default Organization' is present
+        """Check if 'Default Organization' is present
 
         @Feature: Smoke Test
 
@@ -767,7 +767,7 @@ class SmokeTestCase(TestCase):
         self.assertEqual(results[0].name, DEFAULT_ORG)
 
     def test_positive_find_default_loc(self):
-        """@Test: Check if 'Default Location' is present
+        """Check if 'Default Location' is present
 
         @Feature: Smoke Test
 
@@ -781,7 +781,7 @@ class SmokeTestCase(TestCase):
         self.assertEqual(results[0].name, DEFAULT_LOC)
 
     def test_positive_find_admin_user(self):
-        """@Test: Check if Admin User is present
+        """Check if Admin User is present
 
         @Feature: Smoke Test
 
@@ -793,7 +793,7 @@ class SmokeTestCase(TestCase):
         self.assertEqual(results[0].login, 'admin')
 
     def test_positive_ping(self):
-        """@Test: Check if all services are running
+        """Check if all services are running
 
         @Feature: Smoke Test
 
@@ -817,7 +817,7 @@ class SmokeTestCase(TestCase):
         )
 
     def test_positive_smoke(self):
-        """@Test: Check that basic content can be created
+        """Check that basic content can be created
 
         1. Create a new user with admin permissions
         2. Using the new user from above:
@@ -979,7 +979,7 @@ class SmokeTestCase(TestCase):
 
     @skip_if_not_set('clients')
     def test_positive_end_to_end(self):
-        """@Test: Perform end to end smoke tests using RH repos.
+        """Perform end to end smoke tests using RH repos.
 
         1. Create new organization and environment
         2. Clone and upload manifest
