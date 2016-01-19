@@ -524,6 +524,7 @@ class Settings(object):
         self._all_features = None
         self._configured = False
         self._validation_errors = []
+        self.docker_browser = None
         self.locale = None
         self.project = None
         self.reader = None
@@ -534,10 +535,8 @@ class Settings(object):
         self.run_one_datapoint = None
         self.upstream = None
         self.verbosity = None
-        self.virtual_display = None
         self.webdriver = None
         self.webdriver_binary = None
-        self.window_manager_command = None
 
         # Features
         self.clients = ClientsSettings()
@@ -621,6 +620,8 @@ class Settings(object):
 
     def _read_robottelo_settings(self):
         """Read Robottelo's general settings."""
+        self.docker_browser = self.reader.get(
+            'robottelo', 'docker_browser', False, bool)
         self.locale = self.reader.get('robottelo', 'locale', 'en_US.UTF-8')
         self.project = self.reader.get('robottelo', 'project', 'sat')
         self.rhel6_repo = self.reader.get('robottelo', 'rhel6_repo', None)
@@ -636,8 +637,6 @@ class Settings(object):
             INIReader.cast_logging_level('debug'),
             INIReader.cast_logging_level
         )
-        self.virtual_display = self.reader.get(
-            'robottelo', 'virtual_display', False, bool)
         self.webdriver = self.reader.get(
             'robottelo', 'webdriver', 'firefox')
         self.webdriver_binary = self.reader.get(
@@ -648,16 +647,11 @@ class Settings(object):
     def _validate_robottelo_settings(self):
         """Validate Robottelo's general settings."""
         validation_errors = []
-        if self.virtual_display and not self.window_manager_command:
-            validation_errors.append(
-                '[robottelo] virtual_display is enabled, '
-                'window_manager_command must be provided.'
-            )
         webdrivers = ('chrome', 'firefox', 'ie', 'phantomjs', 'remote')
         if self.webdriver not in webdrivers:
             raise ImproperlyConfigured(
                 '[robottelo] webdriver should be one of {0}.'
-                .format(', '.join(webdrivers.keys()))
+                .format(', '.join(webdrivers))
             )
         return validation_errors
 
@@ -760,7 +754,6 @@ class Settings(object):
             'bugzilla',
             'easyprocess',
             'paramiko',
-            'pyvirtualdisplay',
             'requests.packages.urllib3.connectionpool',
             'selenium.webdriver.remote.remote_connection',
         )

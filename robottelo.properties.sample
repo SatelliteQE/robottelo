@@ -47,13 +47,12 @@ ssh_key=
 # Run one datapoint or multiple datapoints for tests
 # run_one_datapoint=false
 
-# Virtual display controls if PyVirtualDisplay should be used to run UI tests
-# when setting it to true then make sure to install required dependencies
-# virtual_display=false
-
-# If virtual_display=true and window_manager_command is set, the window manager
-# command will be run before opening any browser window
-# window_manager_command=
+# docker_browser tells robottelo to use a browser inside a docker
+# container. In order to use this feature make sure that the docker
+# daemon is running locally and has its unix socket published at
+# unix://var/run/docker.sock. Also make sure that the docker image
+# selenium/standalone-firefox is available.
+# docker_browser=false
 
 # Provide link to rhel6/7 repo here, as puppet rpm would require packages from
 # RHEL 6/7 repo and syncing the entire repo on the fly would take longer for

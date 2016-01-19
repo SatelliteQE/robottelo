@@ -7,7 +7,6 @@ to help writing API, CLI and UI tests.
 import csv
 import logging
 import os
-import signal
 import sys
 import unittest2
 
@@ -33,7 +32,7 @@ from robottelo.performance.thread import (
     SubscribeAKThread,
     SubscribeAttachThread
 )
-from robottelo.ui.browser import browser
+from robottelo.ui.browser import browser, DockerBrowser
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
 from robottelo.ui.computeprofile import ComputeProfile
@@ -135,41 +134,14 @@ class UITestCase(TestCase):
         cls.locale = settings.locale
         cls.server_name = settings.server.hostname
 
-        if settings.virtual_display and settings.window_manager_command:
-            # Import from optional requirements
-            from pyvirtualdisplay import Display
-            from easyprocess import EasyProcess, EasyProcessError
-            cls.display = Display(size=(1920, 1080))
-            cls.display.start()
-            cls.logger.debug(
-                'Virtual display started (pid=%d, display="%s")',
-                cls.display.pid,
-                cls.display.display
-            )
-
-            try:
-                cls.window_manager = EasyProcess(
-                    settings.window_manager_command)
-                cls.window_manager.start()
-                cls.logger.debug(
-                    'Window manager started (pid=%d, cmd="%s")',
-                    cls.window_manager.pid,
-                    cls.window_manager.cmd_as_string
-                )
-            except EasyProcessError as err:
-                cls.window_manager = None
-                cls.logger.warning(
-                    'Window manager could not be started. '
-                    'Command: "%s". Error: %s',
-                    settings.window_manager_command,
-                    err
-                )
-        else:
-            cls.display = None
-
     def setUp(self):  # noqa
         """We do want a new browser instance for every test."""
-        self.browser = browser()
+        if settings.docker_browser:
+            self._docker_browser = DockerBrowser()
+            self._docker_browser.start()
+            self.browser = self._docker_browser.webdriver
+        else:
+            self.browser = browser()
         self.browser.maximize_window()
         self.browser.get(settings.server.get_url())
 
@@ -254,38 +226,11 @@ class UITestCase(TestCase):
             # Take screenshot if any exception is raised and the test method is
             # not in the skipped tests.
             self.take_screenshot()
-        self.browser.quit()
+        if settings.docker_browser:
+            self._docker_browser.stop()
+        else:
+            self.browser.quit()
         self.browser = None
-
-    @classmethod
-    def tearDownClass(cls):  # noqa
-        if cls.display is not None:
-            if (cls.window_manager is not None and
-                    cls.window_manager.is_started):
-                cls.logger.debug(
-                    'Killing window manager (pid=%d, cmd="%s")',
-                    cls.window_manager.pid,
-                    cls.window_manager.cmd_as_string
-                )
-                os.kill(cls.window_manager.pid, signal.SIGKILL)
-                _, return_code = os.waitpid(cls.window_manager.pid, 0)
-                cls.logger.debug(
-                    'Window manager killed (pid=%d, cmd="%s", rcode=%d)',
-                    cls.window_manager.pid,
-                    cls.window_manager.cmd_as_string,
-                    return_code
-                )
-            cls.logger.debug(
-                'Stopping virtual display (pid=%d, display="%s"',
-                cls.display.pid,
-                cls.display.display
-            )
-            cls.display.stop()
-            cls.logger.debug(
-                'Virtual display stopped (pid=%d, display="%s"',
-                cls.display.pid,
-                cls.display.display
-            )
 
 
 class ConcurrentTestCase(TestCase):
