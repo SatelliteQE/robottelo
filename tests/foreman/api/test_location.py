@@ -227,6 +227,44 @@ class LocationTestCase(APITestCase):
             location.read()
 
     @tier1
+    def test_negative_create_with_name(self):
+        """Attempt to create new location using invalid names only
+
+        @Assert: Location is not created and expected error is raised
+
+        @Feature: Location
+        """
+        for name in invalid_values_list():
+            with self.subTest(name):
+                with self.assertRaises(HTTPError):
+                    entities.Location(name=name).create()
+
+    @tier1
+    def test_negative_create_with_same_name(self):
+        """Attempt to create new location using name of existing entity
+
+        @Assert: Location is not created and expected error is raised
+
+        @Feature: Location
+        """
+        name = gen_string('alphanumeric')
+        location = entities.Location(name=name).create()
+        self.assertEqual(location.name, name)
+        with self.assertRaises(HTTPError):
+            entities.Location(name=name).create()
+
+    @tier1
+    def test_negative_create_with_domain(self):
+        """Attempt to create new location using non-existent domain identifier
+
+        @Assert: Location is not created and expected error is raised
+
+        @Feature: Location
+        """
+        with self.assertRaises(HTTPError):
+            entities.Location(domain=[gen_integer(10000, 99999)]).create()
+
+    @tier1
     def test_positive_update_name(self):
         """@Test: Update location with new name
 
