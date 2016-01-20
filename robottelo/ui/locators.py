@@ -815,10 +815,25 @@ locators = LocatorDict({
     ),
 
     # Compute Profile
+    "profile.new": (
+        By.XPATH, "//a[contains(@href, '/compute_profiles/new')]"),
+    "profile.name": (By.ID, "compute_profile_name"),
     "profile.select_name": (
         By.XPATH,
         ("//a[contains(@href,'compute_profiles')"
             "and normalize-space(.)='%s']")),
+    "profile.dropdown": (
+        By.XPATH,
+        ("//td/a[contains(., '%s')]"
+         "/following::td/div/a[@data-toggle='dropdown']")),
+    "profile.rename": (
+        By.XPATH,
+        ("//td/a[contains(., '%s')]"
+         "/following::td/div/ul/li/a[text()='Rename']")),
+    "profile.delete": (
+        By.XPATH,
+        ("//td/a[contains(., '%s')]"
+         "/following::td/div/ul/li/a[@class='delete']")),
     "profile.resource_name": (
         By.XPATH,
         ("//a[contains(@href,'compute_resources')"

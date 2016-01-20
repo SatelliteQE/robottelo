@@ -4,6 +4,7 @@ from robottelo.constants import REPO_TYPE, CHECKSUM_TYPE
 from robottelo.helpers import update_dictionary
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
+from robottelo.ui.computeprofile import ComputeProfile
 from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.container import Container
@@ -710,3 +711,11 @@ def make_container(session, org=None, loc=None, force_context=True, **kwargs):
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
     Container(session.browser).create(**create_args)
+
+
+def make_compute_profile(session, **kwargs):
+    """Creates new Compute Profile"""
+    create_args = {u'name': gen_string('alpha')}
+    page = session.nav.go_to_compute_profiles
+    core_factory(create_args, kwargs, session, page)
+    ComputeProfile(session.browser).create(**create_args)
