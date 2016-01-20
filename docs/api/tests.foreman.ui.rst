@@ -23,6 +23,11 @@
 
 .. automodule:: tests.foreman.ui.test_capsule
 
+:mod:`tests.foreman.ui.test_computeprofile`
+-------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_computeprofile
+
 :mod:`tests.foreman.ui.test_computeresource`
 --------------------------------------------
 

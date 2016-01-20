@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 from robottelo.ui.base import Base, UINoSuchElementError
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -14,6 +14,36 @@ class ComputeProfile(Base):
     def _search_locator(self):
         """Specify locator for Compute Profile entity search procedure"""
         return locators['profile.select_name']
+
+    def create(self, name):
+        """Creates new compute profile entity"""
+        self.click(locators['profile.new'])
+        self.wait_until_element(locators['profile.name']).send_keys(name)
+        self.wait_for_ajax()
+        self.click(common_locators['submit'])
+
+    def update(self, old_name, new_name):
+        """Updates existing compute profile entity"""
+        element = self.search(old_name)
+        if element is None:
+            raise UINoSuchElementError(
+                'Could not find compute profile {0}'.format(old_name))
+        if element:
+            strategy, value = locators['profile.dropdown']
+            self.click((strategy, value % old_name))
+            strategy, value = locators['profile.rename']
+            self.click((strategy, value % old_name))
+            self.field_update('profile.name', new_name)
+            self.click(common_locators['submit'])
+
+    def delete(self, name, really=True):
+        """Deletes existing compute profile entity"""
+        self.delete_entity(
+            name,
+            really,
+            locators['profile.delete'],
+            drop_locator=locators['profile.dropdown'],
+        )
 
     def select_resource(self, profile_name, res_name, res_type):
         """Select necessary compute resource from specific compute profile
