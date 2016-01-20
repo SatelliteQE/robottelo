@@ -2,7 +2,7 @@
 """Test class for Foreman Discovery"""
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import skip_if_not_set, stubbed, tier3
+from robottelo.decorators import run_only_on, skip_if_not_set, stubbed, tier3
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -101,6 +101,7 @@ class DiscoveryTestCase(UITestCase):
 
         super(DiscoveryTestCase, cls).tearDownClass()
 
+    @run_only_on('sat')
     @tier3
     def test_positive_pxe_based_discovery(self):
         """Discover a host via PXE boot by setting "proxy.type=proxy" in
@@ -122,16 +123,17 @@ class DiscoveryTestCase(UITestCase):
                 self._assertdiscoveredhost(hostname)
                 self.assertIsNotNone(self.discoveredhosts.search(hostname))
 
+    @run_only_on('sat')
     @tier3
-    def test_positive_pxe_less_discovery(self):
-        """Discover a host via bootable discovery ISO by setting
-        "proxy.type=proxy" in PXE default.
+    def test_positive_pxe_less_with_dhcp_unattended(self):
+        """Discover a host with dhcp via bootable discovery ISO by setting
+        "proxy.type=proxy" in PXE default in unattended mode.
 
         @Feature: Foreman Discovery - PXELess
 
         @Setup: Provisioning should be configured
 
-        @Steps: Boot a host/VM using discovery ISO
+        @Steps: Boot a host/VM using modified discovery ISO.
 
         @Assert: Host should be successfully discovered
 
@@ -143,6 +145,183 @@ class DiscoveryTestCase(UITestCase):
                 self._assertdiscoveredhost(hostname)
                 self.assertIsNotNone(self.discoveredhosts.search(hostname))
 
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_pxe_less_with_dhcp_semiauto(self):
+        """Discover a host with dhcp via bootable discovery ISO in
+        semi-automated mode.
+
+        @Feature: Foreman Discovery - PXELess
+
+        @Setup: Provisioning should be configured
+
+        @Steps: Boot a host/VM using discovery ISO
+
+        @Assert: Host should be successfully discovered
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_pxe_less_with_dhcp_interactively(self):
+        """Discover a host with dhcp via bootable discovery ISO using
+        interactive TUI mode.
+
+        @Feature: Foreman Discovery - PXELess
+
+        @Setup: Provisioning should be configured
+
+        @Steps: Boot a host/VM using discovery ISO
+
+        @Assert: Host should be successfully discovered
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_pxe_less_without_dhcp_interactively(self):
+        """Discover a host with single NIC on a network without DHCP and PXE
+        using ISO image in interactive TUI interface.
+
+        @Feature: Foreman Discovery
+
+        @Assert: Host should be discovered successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_pxe_less_without_dhcp_semiauto(self):
+        """Discover a host with single NIC on a network without DHCP and PXE
+        using ISO image in semi-automated mode.
+
+        @Feature: Foreman Discovery
+
+        @Assert: Host should be discovered successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_pxe_less_without_dhcp_unattended(self):
+        """Discover a host with single NIC on a network without DHCP and PXE
+        using ISO image in unattended mode.
+
+        @Feature: Foreman Discovery
+
+        @Assert: Host should be discovered successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_discover_pxe_less_with_efi_host_interatively(self):
+        """Discover a EFI host with single NIC on a network
+        using ISO image in interactive TUI mode.
+
+        @Feature: Foreman Discovery - PXELess
+
+        @Assert: Host should be discovered successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_discover_pxe_less_with_efi_host_unattended(self):
+        """Discover a EFI host with single NIC on a network
+        using ISO image in unattended mode.
+
+        @Feature: Foreman Discovery - PXELess
+
+        @Assert: Host should be discovered successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_pxe_less_multi_nic_with_dhcp_unattended(self):
+        """Discover a host with multiple NIC on a network with dhcp
+        using ISO image in unattended mode.
+
+        @Feature: Foreman Discovery - PXELess
+
+        @Assert: Host should be discovered successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_pxe_less_multi_nic_with_dhcp_interactively(self):
+        """Discover a host with multiple NIC on a network with dhcp
+        using ISO image in interactive TUI mode.
+
+        @Feature: Foreman Discovery - PXELess
+
+        @Assert: Host should be discovered successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_pxe_less_multi_nic_without_dhcp_interactively(self):
+        """Discover a host with multiple NIC on a network without dhcp
+        using ISO image in interactive TUI mode.
+
+        @Feature: Foreman Discovery - PXELess
+
+        @Assert: Host should be discovered successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_pxe_less_multi_nic_without_dhcp_unattended(self):
+        """Discover a host with multiple NIC on a network without dhcp
+        using ISO image in unattended mode.
+
+        @Feature: Foreman Discovery - PXELess
+
+        @Assert: Host should be discovered successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_pxe_multi_nic_unattended(self):
+        """Discover a host with multiple NIC on a network with dhcp
+        using pxe in unattended mode.
+
+        @Feature: Foreman Discovery - PXEBased
+
+        @Assert: Host should be discovered successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
     @tier3
     def test_custom_facts_discovery(self):
         """Check if defined custom facts are displayed under host's facts
@@ -169,11 +348,12 @@ class DiscoveryTestCase(UITestCase):
                     hostname, element)
                 self.assertEqual(u'somevalue', custom_fact)
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision(self):
         """Provision the selected discovered host by selecting
-        'provision' button
+        'provision' button from 'Discovered Host' page.
 
         @Feature: Foreman Discovery
 
@@ -183,9 +363,9 @@ class DiscoveryTestCase(UITestCase):
         discovered host should be auto removed
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_provision_from_facts(self):
@@ -200,9 +380,9 @@ class DiscoveryTestCase(UITestCase):
         discovered host should be auto removed
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @tier3
     def test_positive_delete(self):
         """Delete the selected discovered host
@@ -221,6 +401,7 @@ class DiscoveryTestCase(UITestCase):
                 self._assertdiscoveredhost(hostname)
                 self.discoveredhosts.delete(hostname)
 
+    @run_only_on('sat')
     @tier3
     def test_positive_delete_from_facts(self):
         """Delete the selected discovered host from facts page
@@ -240,6 +421,7 @@ class DiscoveryTestCase(UITestCase):
                 self.discoveredhosts.delete_from_facts(hostname)
                 self.assertIsNone(self.discoveredhosts.search(hostname))
 
+    @run_only_on('sat')
     @tier3
     def test_positive_delete_multiple(self):
         """Delete multiple discovered hosts from 'Select Action'
@@ -274,11 +456,12 @@ class DiscoveryTestCase(UITestCase):
                             self.assertIsNone(
                                 self.discoveredhosts.search(hostname))
 
+    @run_only_on('sat')
     @tier3
-    def test_positive_refresh_facts(self):
-        """Refresh the facts of discovered host by adding a new NIC.
+    def test_positive_refresh_facts_pxe(self):
+        """Refresh the facts of pxe-based discovered host by adding a new NIC.
 
-        @Feature: Foreman Discovery
+        @Feature: Foreman Discovery - PXEBased
 
         @Setup: Host should already be discovered
 
@@ -304,6 +487,37 @@ class DiscoveryTestCase(UITestCase):
                     hostname, element)
                 self.assertEqual(u'eth0,eth1,lo', host_interfaces)
 
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_refresh_facts_pxe_less(self):
+        """Refresh the facts of pxe-less discovered host by adding a new NIC.
+
+        @Feature: Foreman Discovery - PXELess
+
+        @Setup: Host should already be discovered
+
+        @Assert: Facts should be refreshed successfully with new NIC
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_reboot(self):
+        """Reboot a discovered host.
+
+        @Feature: Foreman Discovery
+
+        @Setup: Host should already be discovered
+
+        @Assert: Host should be successfully rebooted.
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_update_default_org(self):
@@ -317,9 +531,9 @@ class DiscoveryTestCase(UITestCase):
         @Assert: Default org should be successfully changed for multiple hosts
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_update_default_location(self):
@@ -334,13 +548,14 @@ class DiscoveryTestCase(UITestCase):
         hosts
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
-    def test_positive_create_discovery_rule_with_simple_query(self):
-        """Create a new discovery rule
+    def test_positive_provision_host_with_rule(self):
+        """Create a new discovery rule and provision a discovered host using
+        that discovery rule.
 
         Set query as (e.g IP=IP_of_discovered_host)
 
@@ -351,45 +566,46 @@ class DiscoveryTestCase(UITestCase):
         @Assert: Host should reboot and provision
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
-    def test_positive_create_discovery_rule_with_complex_query(self):
+    def test_positive_provision_multi_host_with_rule(self):
         """Create a new discovery rule with (host_limit = 0)
         that applies to multi hosts.
         Set query as cpu_count = 1 OR mem > 500
 
         @Feature: Foreman Discovery
 
-        @Setup: Host should already be discovered
+        @Setup: Multiple hosts should already be discovered in same subnet.
 
         @Assert: All Hosts of same subnet should reboot and provision
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
-    def test_positive_create_discovery_rule_with_priorities(self):
-        """Create multiple discovery rules with different priority
+    def test_positive_provision_with_rule_priority(self):
+        """Create multiple discovery rules with different priority and check
+        rule with highest priority executed first
 
         @Feature: Foreman Discovery
 
         @Setup: Multiple hosts should already be discovered
 
         @Assert: Host with lower count have higher priority
-        and that rule should be executed first
+        and that rule should be executed first.
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
-    def test_positive_create_discovery_rule_without_auto_provision(self):
+    def test_positive_provision_without_auto_provision(self):
         """Create a discovery rule and execute it when
         "auto_provisioning" flag set to 'false'
 
@@ -400,9 +616,9 @@ class DiscoveryTestCase(UITestCase):
         @Assert: Host should not be rebooted automatically
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_negative_create_discovery_rule(self):
@@ -417,12 +633,12 @@ class DiscoveryTestCase(UITestCase):
         'Auto provision'. UI Should raise 'No matching rule found'
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
-    def test_positive_apply_discovery_rule_multiple(self):
+    def test_positive_multi_provision_with_rule_limit(self):
         """Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
         provision more than one host with same rule
 
@@ -434,9 +650,9 @@ class DiscoveryTestCase(UITestCase):
         other rule should already be skipped.
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_update_discovery_rule(self):
@@ -450,9 +666,9 @@ class DiscoveryTestCase(UITestCase):
         executed on discovered host
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_update_name(self):
@@ -465,9 +681,9 @@ class DiscoveryTestCase(UITestCase):
         @Assert: The hostname should be updated and host should be provisioned
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_update_discovery_prefix(self):
@@ -487,9 +703,9 @@ class DiscoveryTestCase(UITestCase):
         prefix in its hostname
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_auto_provision_all(self):
@@ -500,9 +716,9 @@ class DiscoveryTestCase(UITestCase):
         @Assert: All host should be successfully rebooted and provisioned
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @tier3
     def test_positive_add_fact_column(self):
         """Add a new fact column to display on discovered host page
@@ -534,6 +750,7 @@ class DiscoveryTestCase(UITestCase):
                     hostname, element)
                 self.assertEqual(u'Seabios', host_bios)
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_negative_add_fact(self):
@@ -554,9 +771,9 @@ class DiscoveryTestCase(UITestCase):
         after successful discovery and shows 'N/A'
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_discovery_manager_role(self):
@@ -569,9 +786,9 @@ class DiscoveryTestCase(UITestCase):
         delete discovery rules.
 
         @Status: Manual
-
         """
 
+    @run_only_on('sat')
     @stubbed()
     @tier3
     def test_positive_discovery_reader_role(self):
@@ -582,5 +799,48 @@ class DiscoveryTestCase(UITestCase):
         @Assert: User should be able to view existing discovered host and rule
 
         @Status: Manual
+        """
 
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_validate_pxe_less_discovery_status_screen(self):
+        """Validate all the buttons from "Discovery Status" TUI screen of a
+        pxe-less discovered host
+
+        @Feature: Foreman Discovery
+
+        @Assert: All buttons should work
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_negative_validate_network_config_screen(self):
+        """Validate network configuration screen by specifying invalid
+        IP/gateway/DNS address notation.
+
+        @Feature: Foreman Discovery
+
+        @Assert: User should get an error message
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_negative_pxe_less_discovery_without_dhcp(self):
+        """Discover a host via pxe-less and select "Discover using DHCP"
+        interactively when no dhcp is available.
+
+        @Feature: Foreman Discovery - PXELess
+
+        @Assert: User should get an error message "Unable to bring network via
+        DHCP" and click on 'OK' should open the ''Network configuration screen"
+        to manually specify the IP/GW/DNS.
+
+        @Status: Manual
         """
