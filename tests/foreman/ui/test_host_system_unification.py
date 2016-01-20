@@ -19,7 +19,7 @@ class HostSystemUnificationTestCase(UITestCase):
     @run_only_on('sat')
     @tier3
     def test_positive_register_katello_host(self):
-        """@test: Hosts registered to Katello via rhsm appear in foreman
+        """Hosts registered to Katello via rhsm appear in foreman
 
         @feature: Host/System Unification
 
@@ -38,7 +38,7 @@ class HostSystemUnificationTestCase(UITestCase):
     @run_only_on('sat')
     @tier3
     def test_positive_provision_foreman_host(self):
-        """@test: Hosts provisioned via foreman appear in katello
+        """Hosts provisioned via foreman appear in katello
 
         @feature: Host/System Unification
 
@@ -57,7 +57,7 @@ class HostSystemUnificationTestCase(UITestCase):
     @run_only_on('sat')
     @tier3
     def test_positive_rename_foreman_host(self):
-        """@test: Hosts renamed in foreman appear in katello
+        """Hosts renamed in foreman appear in katello
 
         @feature: Host/System Unification
 
@@ -76,7 +76,7 @@ class HostSystemUnificationTestCase(UITestCase):
     @run_only_on('sat')
     @tier3
     def test_positive_rename_katello_host(self):
-        """@test: Hosts renamed in katello via appear in foreman
+        """Hosts renamed in katello via appear in foreman
 
         @feature: Host/System Unification
 
@@ -95,7 +95,7 @@ class HostSystemUnificationTestCase(UITestCase):
     @run_only_on('sat')
     @tier3
     def test_positive_delete_foreman_host(self):
-        """@test: Hosts delete in foreman disappear from both sides of UI
+        """Hosts delete in foreman disappear from both sides of UI
 
         @feature: Host/System Unification
 
@@ -114,7 +114,7 @@ class HostSystemUnificationTestCase(UITestCase):
     @run_only_on('sat')
     @tier3
     def test_positive_delete_katello_host(self):
-        """@test: Hosts delete in katello disappear from both sides of UI
+        """Hosts delete in katello disappear from both sides of UI
 
         @feature: Host/System Unification
 

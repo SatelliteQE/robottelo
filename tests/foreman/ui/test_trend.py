@@ -22,7 +22,7 @@ class TrendTest(UITestCase):
 
     @tier1
     def test_positive_create(self):
-        """@Test: Create new trend
+        """Create new trend
 
         @Feature: Trend - Positive Create
 
@@ -35,7 +35,7 @@ class TrendTest(UITestCase):
 
     @tier1
     def test_positive_update(self):
-        """@Test: Update trend entity value
+        """Update trend entity value
 
         @Feature: Trend - Positive Update
 
@@ -59,7 +59,7 @@ class TrendTest(UITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete existing trend
+        """Delete existing trend
 
         @Feature: Trend - Positive Delete
 

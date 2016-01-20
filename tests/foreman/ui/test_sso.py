@@ -33,7 +33,7 @@ class SingleSignOnTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_sso_kerberos_basic_no_roles(self):
-        """@test: SSO - kerberos (IdM or AD) login (basic) that has no roles
+        """SSO - kerberos (IdM or AD) login (basic) that has no roles
 
         @feature: SSO or External Authentication
 
@@ -53,7 +53,7 @@ class SingleSignOnTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_sso_kerberos_basic_roles(self):
-        """@test: SSO - kerberos (IdM or AD) login (basic) that has roles
+        """SSO - kerberos (IdM or AD) login (basic) that has roles
         assigned.
 
         @feature: SSO or External Authentication
@@ -75,7 +75,7 @@ class SingleSignOnTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_negative_sso_kerberos_user_disabled(self):
-        """@test: Kerberos (IdM or AD) user activity when kerb (IdM or AD)
+        """Kerberos (IdM or AD) user activity when kerb (IdM or AD)
         account has been deleted or deactivated.
 
         @feature: SSO or External Authentication

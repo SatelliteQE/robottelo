@@ -14,7 +14,7 @@ class PuppetClassTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_description(self):
-        """@Test: Create new puppet-class and update its description to a valid
+        """Create new puppet-class and update its description to a valid
         one
 
         @Feature: Puppet-Classes - Positive Update
@@ -42,7 +42,7 @@ class PuppetClassTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Create new puppet-class and then delete it
+        """Create new puppet-class and then delete it
 
         @Feature: Puppet-Classes - Positive delete
 

@@ -23,7 +23,7 @@ class ProductTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create Content Product providing different names and minimal
+        """Create Content Product providing different names and minimal
         input parameters
 
         @Feature: Content Product - Positive Create
@@ -45,7 +45,7 @@ class ProductTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_create_in_different_orgs(self):
-        """@Test: Create Content Product with same name but in another org
+        """Create Content Product with same name but in another org
 
         @Feature: Content Product - Positive Create
 
@@ -68,7 +68,7 @@ class ProductTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create Content Product with invalid names
+        """Create Content Product with invalid names
 
         @Feature: Content Product - Negative Create zero length
 
@@ -90,7 +90,7 @@ class ProductTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
-        """@Test: Create Content Product with same name input parameter
+        """Create Content Product with same name input parameter
 
         @Feature: Content Product - Negative Create with same name
 
@@ -114,7 +114,7 @@ class ProductTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
-        """@Test: Update Content Product name with minimal input parameters
+        """Update Content Product name with minimal input parameters
 
         @Feature: Content Product - Positive Update
 
@@ -139,7 +139,7 @@ class ProductTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_update_to_original_name(self):
-        """@Test: Rename Product back to original name.
+        """Rename Product back to original name.
 
         @Feature: Content Product - Positive Update
 
@@ -164,7 +164,7 @@ class ProductTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_update_with_too_long_name(self):
-        """@Test: Update Content Product with too long input parameters
+        """Update Content Product with too long input parameters
 
         @Feature: Content Product - Negative Update
 
@@ -187,7 +187,7 @@ class ProductTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete Content Product
+        """Delete Content Product
 
         @Feature: Content Product - Positive Delete
 

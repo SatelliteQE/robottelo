@@ -20,7 +20,7 @@ class EnvironmentTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create new environment
+        """Create new environment
 
         @Feature: Environment - Positive Create
 
@@ -35,7 +35,7 @@ class EnvironmentTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_long_name(self):
-        """@Test: Create new environment with 255 chars
+        """Create new environment with 255 chars
 
         @Feature: Environment - Positive Create
 
@@ -57,7 +57,7 @@ class EnvironmentTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create(self):
-        """@Test: Try to create environment and use whitespace, blank, tab
+        """Try to create environment and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
         @Feature: Environment - Negative Create
@@ -76,7 +76,7 @@ class EnvironmentTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update(self):
-        """@Test: Update an environment and associated OS
+        """Update an environment and associated OS
 
         @Feature: Environment - Positive Update
 
@@ -94,7 +94,7 @@ class EnvironmentTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete an environment
+        """Delete an environment
 
         @Feature: Environment - Positive Delete
 

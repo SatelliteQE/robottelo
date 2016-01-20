@@ -39,7 +39,7 @@ class PartitionTableTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create a new partition table
+        """Create a new partition table
 
         @Feature: Partition table - Positive Create
 
@@ -59,7 +59,7 @@ class PartitionTableTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create partition table with invalid names
+        """Create partition table with invalid names
 
         @Feature: Partition table - Negative Create
 
@@ -82,7 +82,7 @@ class PartitionTableTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
-        """@Test: Create a new partition table with same name
+        """Create a new partition table with same name
 
         @Feature: Partition table - Negative Create
 
@@ -103,7 +103,7 @@ class PartitionTableTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_empty_layout(self):
-        """@Test: Create a new partition table with empty layout
+        """Create a new partition table with empty layout
 
         @Feature: Partition table - Negative Create
 
@@ -120,7 +120,7 @@ class PartitionTableTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete a partition table
+        """Delete a partition table
 
         @Feature: Partition table - Positive Delete
 
@@ -146,7 +146,7 @@ class PartitionTableTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update(self):
-        """@Test: Update partition table with its name, layout and OS family
+        """Update partition table with its name, layout and OS family
 
         @Feature: Partition table - Positive Update
 

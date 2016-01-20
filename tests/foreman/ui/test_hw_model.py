@@ -27,7 +27,7 @@ class HardwareModelTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@test: Create new Hardware-Model
+        """Create new Hardware-Model
 
         @feature: Hardware-Model - Positive Create
 
@@ -42,7 +42,7 @@ class HardwareModelTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@test: Create new Hardware-Model with invalid names
+        """Create new Hardware-Model with invalid names
 
         @feature: Hardware-Model - Negative Create
 
@@ -59,7 +59,7 @@ class HardwareModelTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update(self):
-        """@test: Updates the Hardware-Model
+        """Updates the Hardware-Model
 
         @feature: Hardware-Model - Positive Update
 
@@ -85,7 +85,7 @@ class HardwareModelTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@test: Deletes the Hardware-Model
+        """Deletes the Hardware-Model
 
         @feature: Hardware-Model - Positive delete
 

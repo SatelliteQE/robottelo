@@ -17,7 +17,7 @@ class MediumTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create(self):
-        """@Test: Create a new media
+        """Create a new media
 
         @Feature: Media - Positive Create
 
@@ -34,7 +34,7 @@ class MediumTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_too_long_name(self):
-        """@Test: Create a new install media with 256 characters in name
+        """Create a new install media with 256 characters in name
 
         @Feature: Media - Negative Create
 
@@ -51,7 +51,7 @@ class MediumTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_blank_name(self):
-        """@Test: Create a new install media with blank and whitespace in name
+        """Create a new install media with blank and whitespace in name
 
         @Feature: Media - Negative Create
 
@@ -71,7 +71,7 @@ class MediumTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
-        """@Test: Create a new install media with same name
+        """Create a new install media with same name
 
         @Feature: Media - Negative Create
 
@@ -90,7 +90,7 @@ class MediumTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_without_path(self):
-        """@Test: Create a new install media without media URL
+        """Create a new install media without media URL
 
         @Feature: Media - Negative Create
 
@@ -106,7 +106,7 @@ class MediumTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_medium_with_same_path(self):
-        """@Test: Create an install media with an existing URL
+        """Create an install media with an existing URL
 
         @Feature: Media - Negative Create
 
@@ -127,7 +127,7 @@ class MediumTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete a media
+        """Delete a media
 
         @Feature: Media - Delete
 
@@ -142,7 +142,7 @@ class MediumTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update(self):
-        """@Test: Updates Install media with name, path, OS family
+        """Updates Install media with name, path, OS family
 
         @Feature: Media - Update
 

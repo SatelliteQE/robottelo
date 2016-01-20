@@ -27,7 +27,7 @@ class ArchitectureTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_os(self):
-        """@Test: Create a new Architecture with OS
+        """Create a new Architecture with OS
 
         @Feature: Architecture - Positive Create
 
@@ -46,7 +46,7 @@ class ArchitectureTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create a new Architecture with different data
+        """Create a new Architecture with different data
 
         @Feature: Architecture - Positive Create
 
@@ -61,7 +61,7 @@ class ArchitectureTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Try to create architecture and use whitespace, blank, tab
+        """Try to create architecture and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
         @Feature: Architecture - Negative Create
@@ -78,7 +78,7 @@ class ArchitectureTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
-        """@Test: Create a new Architecture with same name
+        """Create a new Architecture with same name
 
         @Feature: Architecture - Negative Create
 
@@ -96,7 +96,7 @@ class ArchitectureTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete an existing Architecture
+        """Delete an existing Architecture
 
         @Feature: Architecture - Delete
 
@@ -114,7 +114,7 @@ class ArchitectureTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name_and_os(self):
-        """@Test: Update Architecture with new name and OS
+        """Update Architecture with new name and OS
 
         @Feature: Architecture - Update
 

@@ -23,7 +23,7 @@ class LDAPAuthSourceTestCase(UITestCase):
 
     @tier1
     def test_positive_create_withad(self):
-        """@Test: Create LDAP authentication with AD
+        """Create LDAP authentication with AD
 
         @Feature: LDAP Authentication - Active Directory - create LDAP AD
 
@@ -57,7 +57,7 @@ class LDAPAuthSourceTestCase(UITestCase):
 
     @tier1
     def test_positive_delete_withad(self):
-        """@Test: Delete LDAP authentication with AD
+        """Delete LDAP authentication with AD
 
         @Feature: LDAP Authentication - Active Directory - delete LDAP AD
 

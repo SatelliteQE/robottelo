@@ -11,7 +11,7 @@ class SystemRegistrationTestCase(UITestCase):
     def test_positive_get_pushed_content(self):
         # variations: content types - RH rpms/errata; custom content rpms;
         # puppet modules
-        """@test: assure content types can be pushed down to client via UI
+        """assure content types can be pushed down to client via UI
 
         @feature: system registration
 
@@ -23,7 +23,7 @@ class SystemRegistrationTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_list_system_for_org(self):
-        """@test: perform a system list for a given org
+        """perform a system list for a given org
 
         @feature: system registration
 
@@ -35,7 +35,7 @@ class SystemRegistrationTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_deregister_system(self):
-        """@test: delete system via Systems UI
+        """delete system via Systems UI
 
         @feature: system registration
 
@@ -47,7 +47,7 @@ class SystemRegistrationTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_compliance_green(self):
-        """@test: system with appropriate entitlements for subscriptions
+        """system with appropriate entitlements for subscriptions
 
         @feature: system registration
 
@@ -59,7 +59,7 @@ class SystemRegistrationTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_compliance_red(self):
-        """@test: system without appropriate entitlements for subscriptions
+        """system without appropriate entitlements for subscriptions
 
         @feature: system registration
 
@@ -71,7 +71,7 @@ class SystemRegistrationTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_compliance_yellow(self):
-        """@test: system with some, but not all, appropriate entitlements for
+        """system with some, but not all, appropriate entitlements for
         subscriptions
 
         @feature: system registration

@@ -32,7 +32,7 @@ class SyncPlanTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create Sync Plan with valid name values
+        """Create Sync Plan with valid name values
 
         @Feature: Content Sync Plan - Positive Create
 
@@ -52,7 +52,7 @@ class SyncPlanTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_description(self):
-        """@Test: Create Sync Plan with valid desc values
+        """Create Sync Plan with valid desc values
 
         @Feature: Content Sync Plan - Positive Create
 
@@ -73,7 +73,7 @@ class SyncPlanTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_sync_interval(self):
-        """@Test: Create Sync Plan with valid sync intervals
+        """Create Sync Plan with valid sync intervals
 
         @Feature: Content Sync Plan - Positive Create
 
@@ -94,7 +94,7 @@ class SyncPlanTestCase(UITestCase):
 
     @tier2
     def test_positive_create_with_start_time(self):
-        """@Test: Create Sync plan with specified start time
+        """Create Sync plan with specified start time
 
         @Feature: Content Sync Plan - Positive Create
 
@@ -129,7 +129,7 @@ class SyncPlanTestCase(UITestCase):
 
     @tier2
     def test_positive_create_with_start_date(self):
-        """@Test: Create Sync plan with specified start date
+        """Create Sync plan with specified start date
 
         @Feature: Content Sync Plan - Positive Create
 
@@ -159,7 +159,7 @@ class SyncPlanTestCase(UITestCase):
 
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create Sync Plan with invalid names
+        """Create Sync Plan with invalid names
 
         @Feature: Content Sync Plan - Negative Create
 
@@ -179,7 +179,7 @@ class SyncPlanTestCase(UITestCase):
 
     @tier1
     def test_negative_create_with_same_name(self):
-        """@Test: Create Sync Plan with an existing name
+        """Create Sync Plan with an existing name
 
         @Feature: Content Sync Plan - Positive Create
 
@@ -200,7 +200,7 @@ class SyncPlanTestCase(UITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Update Sync plan's name
+        """Update Sync plan's name
 
         @Feature: Content Sync Plan - Positive Update name
 
@@ -223,7 +223,7 @@ class SyncPlanTestCase(UITestCase):
 
     @tier1
     def test_positive_update_interval(self):
-        """@Test: Update Sync plan's interval
+        """Update Sync plan's interval
 
         @Feature: Content Sync Plan - Positive Update interval
 
@@ -252,7 +252,7 @@ class SyncPlanTestCase(UITestCase):
 
     @tier2
     def test_positive_update_product(self):
-        """@Test: Update Sync plan and associate products
+        """Update Sync plan and associate products
 
         @Feature: Content Sync Plan - Positive Update add products
 
@@ -281,7 +281,7 @@ class SyncPlanTestCase(UITestCase):
 
     @tier2
     def test_positive_update_and_disassociate_product(self):
-        """@Test: Update Sync plan and disassociate products
+        """Update Sync plan and disassociate products
 
         @Feature: Content Sync Plan - Positive Update remove products
 
@@ -318,7 +318,7 @@ class SyncPlanTestCase(UITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete an existing Sync plan
+        """Delete an existing Sync plan
 
         @Feature: Content Sync Plan - Positive Delete
 

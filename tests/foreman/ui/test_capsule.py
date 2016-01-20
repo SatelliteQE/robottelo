@@ -11,7 +11,7 @@ class CapsuleTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_errata_push(self):
-        """@Test: User can push errata through to a client on
+        """User can push errata through to a client on
         an isolated capsule
 
         @Feature: Capsules
@@ -32,7 +32,7 @@ class CapsuleTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_rpm_push(self):
-        """@Test: User can install a new errata on a client through
+        """User can install a new errata on a client through
         an isolated capsule - this is a satellite-initiated action
 
         @Feature: Capsules
@@ -53,7 +53,7 @@ class CapsuleTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_puppet_push(self):
-        """@Test: user can install new puppet module on a client
+        """user can install new puppet module on a client
         through an isolated capsule
 
         @Feature: Capsules
@@ -73,7 +73,7 @@ class CapsuleTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_chost_selector(self):
-        """@Test: User can choose, or is given an indication within
+        """User can choose, or is given an indication within
         the content hosts UI, any referenced capsule in order to
         learn/setup registration against said capsule(s).
 

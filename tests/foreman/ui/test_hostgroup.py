@@ -16,7 +16,7 @@ class HostgroupTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create new hostgroup
+        """Create new hostgroup
 
         @Feature: Hostgroup - Positive Create
 
@@ -31,7 +31,7 @@ class HostgroupTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create new hostgroup with invalid names
+        """Create new hostgroup with invalid names
 
         @Feature: Hostgroup - Negative Create
 
@@ -47,7 +47,7 @@ class HostgroupTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
-        """@Test: Create new hostgroup with same name
+        """Create new hostgroup with same name
 
         @Feature: Hostgroup - Negative Create
 
@@ -64,7 +64,7 @@ class HostgroupTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete a hostgroup
+        """Delete a hostgroup
 
         @Feature: Hostgroup - Positive Delete
 
@@ -79,7 +79,7 @@ class HostgroupTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update(self):
-        """@Test: Update hostgroup with a new name
+        """Update hostgroup with a new name
 
         @Feature: Hostgroup - Positive Update
 

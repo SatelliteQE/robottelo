@@ -109,7 +109,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_authorize_login_delegation_param(self):
-        """@Test: Updates parameter "authorize_login_delegation" under General
+        """Updates parameter "authorize_login_delegation" under General
         tab
 
         @Feature: Settings - Update Parameters
@@ -135,7 +135,7 @@ class SettingTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1125181)
     @tier1
     def test_positive_update_administrator_param(self):
-        """@Test: Updates parameter "administrator" under General tab
+        """Updates parameter "administrator" under General tab
 
         @Feature: Settings - Update Parameters
 
@@ -161,7 +161,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_authorize_login_delegation_api_param(self):
-        """@Test: Updates parameter "authorize_login_delegation_api" under
+        """Updates parameter "authorize_login_delegation_api" under
         General tab
 
         @Feature: Settings - Update Parameters
@@ -187,7 +187,7 @@ class SettingTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1125156)
     @tier1
     def test_negative_update_entries_per_page_param(self):
-        """@Test: Updates parameter "entries_per_page" under General tab with
+        """Updates parameter "entries_per_page" under General tab with
         invalid values
 
         @Feature: Settings - Negative Update Parameters
@@ -218,7 +218,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_entries_per_page_param(self):
-        """@Test: Updates parameter "entries_per_page" under General tab
+        """Updates parameter "entries_per_page" under General tab
 
         @Feature: Settings - Positive Update Parameters
 
@@ -259,7 +259,7 @@ class SettingTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1125181)
     @tier1
     def test_positive_update_email_reply_address_param(self):
-        """@Test: Updates parameter "email_reply_address" under General tab
+        """Updates parameter "email_reply_address" under General tab
 
         @Feature: Settings - Update Parameters
 
@@ -286,7 +286,7 @@ class SettingTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1156195)
     @tier1
     def test_positive_update_fix_db_cache_param(self):
-        """@Test: Updates parameter "fix_db_cache" under General tab
+        """Updates parameter "fix_db_cache" under General tab
 
         @Feature: Settings - Update Parameters
 
@@ -312,7 +312,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_use_gravatar_param(self):
-        """@Test: Updates parameter "use_gravatar" under General tab
+        """Updates parameter "use_gravatar" under General tab
 
         @Feature: Settings - Update Parameters
 
@@ -337,7 +337,7 @@ class SettingTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1125156)
     @tier1
     def test_negative_update_max_trend_param(self):
-        """@Test: Updates parameter "max_trend" under General tab with invalid
+        """Updates parameter "max_trend" under General tab with invalid
         values
 
         @Feature: Settings - Negative Update Parameters
@@ -368,7 +368,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_max_trend_param(self):
-        """@Test: Updates parameter "max_trend" under General tab
+        """Updates parameter "max_trend" under General tab
 
         @Feature: Settings - Positive Update Parameters
 
@@ -397,7 +397,7 @@ class SettingTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1125156)
     @tier1
     def test_negative_update_idle_timeout_param(self):
-        """@Test: Updates parameter "idle_timeout" under General tab with
+        """Updates parameter "idle_timeout" under General tab with
         invalid values
 
         @Feature: Settings - Negative Update Parameters
@@ -428,7 +428,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_idle_timeout_param(self):
-        """@Test: Updates parameter "idle_timeout" under General tab
+        """Updates parameter "idle_timeout" under General tab
 
         @Feature: Settings - Positive Update Parameters
 
@@ -456,7 +456,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_foreman_url_param(self):
-        """@Test: Updates parameter "foreman_url" under General tab
+        """Updates parameter "foreman_url" under General tab
 
         @Feature: Settings - Update Parameters
 
@@ -481,7 +481,7 @@ class SettingTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1125156)
     @tier1
     def test_negative_update_foreman_url_param(self):
-        """@Test: Updates parameter "foreman_url" under General tab
+        """Updates parameter "foreman_url" under General tab
 
         @Feature: Settings - Negative update Parameters
 
@@ -511,7 +511,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_dynflow_enable_console_param(self):
-        """@Test: Updates parameter "dynflow_enable_console" under ForemanTasks
+        """Updates parameter "dynflow_enable_console" under ForemanTasks
         tab
 
         @Feature: Settings - Update Parameters
@@ -536,7 +536,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_auth_source_user_autocreate_param(self):
-        """@Test: Updates parameter
+        """Updates parameter
         "authorize_login_delegation_auth_source_user_autocreate" under Auth tab
 
         @Feature: Settings - Update Parameters
@@ -561,7 +561,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_login_delegation_logout_url_param(self):
-        """@Test: Updates parameter "login_delegation_logout_url" under Auth
+        """Updates parameter "login_delegation_logout_url" under Auth
         tab
 
         @Feature: Settings - Update Parameters
@@ -586,7 +586,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_oauth_active_param(self):
-        """@Test: Read-only param "oauth_active" under Auth tab shouldn't be
+        """Read-only param "oauth_active" under Auth tab shouldn't be
         updated
 
         @Feature: Settings - Update Parameters
@@ -610,7 +610,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_require_ssl_puppetmasters_param(self):
-        """@Test: Updates parameter "require_ssl_puppetmasters" under Auth tab
+        """Updates parameter "require_ssl_puppetmasters" under Auth tab
 
         @Feature: Settings - Update Parameters
 
@@ -645,7 +645,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_restrict_registered_puppetmasters_param(self):
-        """@Test: Updates parameter "restrict_registered_puppetmasters" under
+        """Updates parameter "restrict_registered_puppetmasters" under
         Auth tab
 
         @Feature: Settings - Update Parameters
@@ -681,7 +681,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_trusted_puppetmaster_hosts_param(self):
-        """@Test: Updates parameter "trusted_puppetmaster_hosts" under Auth tab
+        """Updates parameter "trusted_puppetmaster_hosts" under Auth tab
 
         @Feature: Settings - Update Parameters
 
@@ -706,7 +706,7 @@ class SettingTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1125156)
     @tier1
     def test_negative_update_trusted_puppetmaster_hosts_param(self):
-        """@Test: Updates parameter "trusted_puppetmaster_hosts" under Auth tab
+        """Updates parameter "trusted_puppetmaster_hosts" under Auth tab
 
         @Feature: Settings - Negative update Parameters
 
@@ -736,7 +736,7 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_ignore_puppet_facts_for_provisioning_param(self):
-        """@Test: Updates parameter "ignore_puppet_facts_for_provisioning"
+        """Updates parameter "ignore_puppet_facts_for_provisioning"
         under Provisioning tab
 
         @Feature: Settings - Update Parameters
@@ -762,7 +762,7 @@ class SettingTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_manage_puppetca_param(self):
-        """@Test: Updates parameter "manage_puppetca" under Provisioning tab
+        """Updates parameter "manage_puppetca" under Provisioning tab
 
         @Feature: Settings - Update Parameters
 
@@ -787,7 +787,7 @@ class SettingTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_query_local_nameservers_param(self):
-        """@Test: Updates parameter "query_local_nameservers" under
+        """Updates parameter "query_local_nameservers" under
         Provisioning tab
 
         @Feature: Settings - Update Parameters
@@ -813,7 +813,7 @@ class SettingTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_safemode_render_param(self):
-        """@Test: Updates parameter "safemode_render" under Provisioning tab
+        """Updates parameter "safemode_render" under Provisioning tab
 
         @Feature: Settings - Update Parameters
 
@@ -839,7 +839,7 @@ class SettingTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1125156)
     @tier1
     def test_negative_update_token_duration_param(self):
-        """@Test: Updates parameter "token_duration" under Provisioning tab
+        """Updates parameter "token_duration" under Provisioning tab
         with invalid values
 
         @Feature: Settings - Negative Update Parameters
@@ -871,7 +871,7 @@ class SettingTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_token_duration_param(self):
-        """@Test: Updates param "token_duration" under Provisioning tab
+        """Updates param "token_duration" under Provisioning tab
 
         @Feature: Settings - Positive Update Parameters
 

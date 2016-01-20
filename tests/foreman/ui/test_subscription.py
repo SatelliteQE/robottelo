@@ -19,7 +19,7 @@ class SubscriptionTestCase(UITestCase):
     @skip_if_not_set('fake_manifest')
     @tier1
     def test_positive_upload_basic(self):
-        """@Test: Upload a manifest with minimal input parameters
+        """Upload a manifest with minimal input parameters
 
         @Feature: Manifest/Subscription - Positive Create
 
@@ -36,7 +36,7 @@ class SubscriptionTestCase(UITestCase):
     @skip_if_not_set('fake_manifest')
     @tier1
     def test_positive_delete(self):
-        """@Test: Upload a manifest and then delete it
+        """Upload a manifest and then delete it
 
         @Feature: Manifest/Subscription - Positive Delete
 
@@ -54,7 +54,7 @@ class SubscriptionTestCase(UITestCase):
     @skip_if_not_set('fake_manifest')
     @tier1
     def test_positive_assert_delete_button(self):
-        """@Test: Upload and delete a manifest
+        """Upload and delete a manifest
 
         @Feature: Manifest/Subscription - Positive Delete
 

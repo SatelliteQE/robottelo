@@ -67,7 +67,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
     @tier1
     def test_positive_add_admin_role(self):
-        """@Test: Associate Admin role to User Group.
+        """Associate Admin role to User Group.
         [belonging to external AD User Group.]
 
         @Feature: LDAP Authentication - Active Directory - associate Admin
@@ -103,7 +103,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
     @tier2
     def test_positive_add_foreman_role(self):
-        """@Test: Associate foreman roles to User Group.
+        """Associate foreman roles to User Group.
         [belonging to external AD User Group.]
 
         @Feature: LDAP Authentication - Active Directory - associate foreman
@@ -150,7 +150,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
     @tier2
     def test_positive_add_katello_role(self):
-        """@Test: Associate katello roles to User Group.
+        """Associate katello roles to User Group.
         [belonging to external AD User Group.]
 
         @Feature: LDAP Authentication - Active Directory - associate katello
@@ -197,7 +197,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
     @tier1
     def test_positive_create_external(self):
-        """@Test: Create External AD User Group as per AD group
+        """Create External AD User Group as per AD group
 
         @Feature: LDAP Authentication - Active Directory - create
 
@@ -221,7 +221,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
     @tier1
     def test_negative_create_external_with_same_name(self):
-        """@Test: Create another External AD User Group with same name
+        """Create another External AD User Group with same name
 
         @Feature: LDAP Authentication - Active Directory - create
 
@@ -256,7 +256,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
     @tier1
     def test_negative_create_external_with_invalid_name(self):
-        """@Test: Create External AD User Group with random name
+        """Create External AD User Group with random name
 
         @Feature: LDAP Authentication - Active Directory - create
 
@@ -282,7 +282,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_positive_delete_external(self):
-        """@Test: Delete External AD User Group
+        """Delete External AD User Group
 
         @Feature: LDAP Authentication - Active Directory - delete
 
@@ -305,7 +305,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', '1221971')
     @tier2
     def test_positive_update_external_roles(self):
-        """@test: Added AD UserGroup roles get pushed down to user
+        """Added AD UserGroup roles get pushed down to user
 
         @feature: LDAP Authentication - Active directory - update
 
@@ -385,7 +385,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
     @tier2
     def test_positive_delete_external_roles(self):
-        """@test: Deleted AD UserGroup roles get pushed down to user
+        """Deleted AD UserGroup roles get pushed down to user
 
         @feature: LDAP Authentication - Active directory - update
 
@@ -455,7 +455,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
     @tier2
     def test_positive_update_external_user_roles(self):
-        """@test: Assure that user has roles/can access feature areas for
+        """Assure that user has roles/can access feature areas for
         additional roles assigned outside any roles assigned by his group
 
         @feature: LDAP Authentication - Active directory - update
@@ -538,7 +538,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_positive_add_external_user(self):
-        """@test: New user added to UserGroup at AD side inherits roles in Sat6
+        """New user added to UserGroup at AD side inherits roles in Sat6
 
         @feature: LDAP Authentication - Active directory - update
 

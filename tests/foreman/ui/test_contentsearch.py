@@ -14,7 +14,7 @@ class ContentSearchTestCase(UITestCase):
 
     @tier2
     def test_positive_search_in_cv(self):
-        """@Test: Create content view with yum repository assigned to it.
+        """Create content view with yum repository assigned to it.
         Search for package inside of it
 
         @Feature: Content Search

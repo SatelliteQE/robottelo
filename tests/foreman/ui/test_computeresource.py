@@ -25,7 +25,7 @@ class ComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_libvirt_with_name(self):
-        """@Test: Create a new libvirt Compute Resource using different value
+        """Create a new libvirt Compute Resource using different value
         types as a name
 
         @Feature: Compute Resource - Create
@@ -49,7 +49,7 @@ class ComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_libvirt_with_description(self):
-        """@Test: Create libvirt Compute Resource with description.
+        """Create libvirt Compute Resource with description.
 
         @Feature: Compute Resource - Create
 
@@ -74,7 +74,7 @@ class ComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_libvirt_with_display_type(self):
-        """@Test: Create libvirt Compute Resource with different display types.
+        """Create libvirt Compute Resource with different display types.
 
         @Feature: Compute Resource - Create
 
@@ -99,7 +99,7 @@ class ComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_libvirt_with_console_password(self):
-        """@Test: Create libvirt Compute Resource with checked/unchecked
+        """Create libvirt Compute Resource with checked/unchecked
         console password checkbox
 
         @Feature: Compute Resource - Create
@@ -125,7 +125,7 @@ class ComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_libvirt_with_invalid_name(self):
-        """@Test: Create a new libvirt Compute Resource with incorrect values
+        """Create a new libvirt Compute Resource with incorrect values
         only
 
         @Feature: Compute Resource - Create
@@ -153,7 +153,7 @@ class ComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_libvirt_with_invalid_description(self):
-        """@Test: Create libvirt Compute Resource with incorrect description.
+        """Create libvirt Compute Resource with incorrect description.
 
         @Feature: Compute Resource - Create with long description.
 
@@ -178,7 +178,7 @@ class ComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_libvirt_name(self):
-        """@Test: Update a libvirt Compute Resource name
+        """Update a libvirt Compute Resource name
 
         @Feature: Compute Resource - Update
 
@@ -205,7 +205,7 @@ class ComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_libvirt_organization(self):
-        """@Test: Update a libvirt Compute Resource organization
+        """Update a libvirt Compute Resource organization
 
         @Feature: Compute Resource - Update
 
@@ -233,7 +233,7 @@ class ComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete a Compute Resource
+        """Delete a Compute Resource
 
         @Feature: Compute Resource - Delete
 
@@ -256,7 +256,7 @@ class ComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_access_docker_via_profile(self):
-        """@Test: Try to access docker compute resource via compute profile
+        """Try to access docker compute resource via compute profile
         (1-Small) screen
 
         @Feature: Compute Resource

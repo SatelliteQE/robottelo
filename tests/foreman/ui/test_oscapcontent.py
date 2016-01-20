@@ -25,7 +25,7 @@ class OpenScapContentTestCase(UITestCase):
 
     @tier1
     def test_positive_create(self):
-        """@Test: Create OpenScap content.
+        """Create OpenScap content.
 
         @Feature: OpenScap - Positive Create.
 
@@ -51,7 +51,7 @@ class OpenScapContentTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1289571)
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create OpenScap content with negative values
+        """Create OpenScap content with negative values
 
         @Feature: OpenScap - Negative Create.
 
@@ -78,7 +78,7 @@ class OpenScapContentTestCase(UITestCase):
 
     @tier1
     def test_positive_default(self):
-        """@Test: Check whether OpenScap content exists by default.
+        """Check whether OpenScap content exists by default.
 
         @Feature: OpenScap - Test Default Content.
 
@@ -99,7 +99,7 @@ class OpenScapContentTestCase(UITestCase):
 
     @tier2
     def test_positive_update(self):
-        """@Test: Update OpenScap content.
+        """Update OpenScap content.
 
         @Feature: OpenScap - Positive Update.
 
@@ -127,7 +127,7 @@ class OpenScapContentTestCase(UITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Create OpenScap content and then delete it.
+        """Create OpenScap content and then delete it.
 
         @Feature: OpenScap - Delete.
 

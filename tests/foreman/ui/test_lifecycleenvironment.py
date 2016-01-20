@@ -21,7 +21,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create(self):
-        """@Test: Create content environment with minimal input parameters
+        """Create content environment with minimal input parameters
 
         @Feature: Content Environment - Positive Create
 
@@ -42,7 +42,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_create_chain(self):
-        """@Test: Create Content Environment in a chain
+        """Create Content Environment in a chain
 
         @Feature: Content Environment - Positive Create
 
@@ -71,7 +71,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Create Content Environment and delete it
+        """Create Content Environment and delete it
 
         @Feature: Content Environment - Positive Delete
 
@@ -92,7 +92,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update(self):
-        """@Test: Create Content Environment and update it
+        """Create Content Environment and update it
 
         @Feature: Content Environment - Positive Update
 

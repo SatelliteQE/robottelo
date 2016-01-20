@@ -16,7 +16,7 @@ class RoleTestCase(UITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create new role using different names
+        """Create new role using different names
 
         @Feature: Role - Positive Create
 
@@ -30,7 +30,7 @@ class RoleTestCase(UITestCase):
 
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create new role using invalid names
+        """Create new role using invalid names
 
         @Feature: Role - Negative Create
 
@@ -45,7 +45,7 @@ class RoleTestCase(UITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete an existing role
+        """Delete an existing role
 
         @Feature: Role - Positive Delete
 
@@ -59,7 +59,7 @@ class RoleTestCase(UITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Update existing role name
+        """Update existing role name
 
         @Feature: Role - Positive Update
 
@@ -77,7 +77,7 @@ class RoleTestCase(UITestCase):
 
     @tier1
     def test_positive_update_permission(self):
-        """@Test: Update existing role permissions
+        """Update existing role permissions
 
         @Feature: Role - Positive Update
 
@@ -96,7 +96,7 @@ class RoleTestCase(UITestCase):
 
     @tier1
     def test_positive_update_org(self):
-        """@Test: Update organization for selected role
+        """Update organization for selected role
 
         @Feature: Role - Positive Update
 

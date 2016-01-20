@@ -53,7 +53,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_via_import(self):
-        """@test: Create gpg key with valid name and valid gpg key via file
+        """Create gpg key with valid name and valid gpg key via file
         import
 
         @feature: GPG Keys
@@ -76,7 +76,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_via_paste(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
+        """Create gpg key with valid name and valid gpg key text via
         cut and paste/string
 
         @feature: GPG Keys
@@ -100,7 +100,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_via_import_and_same_name(self):
-        """@test: Create gpg key with valid name and valid gpg key via
+        """Create gpg key with valid name and valid gpg key via
         file import then try to create new one with same name
 
         @feature: GPG Keys
@@ -125,7 +125,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_via_paste_and_same_name(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
+        """Create gpg key with valid name and valid gpg key text via
         cut and paste/string import then try to create new one with same name
 
         @feature: GPG Keys
@@ -149,7 +149,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_without_content(self):
-        """@test: Create gpg key with valid name and no gpg key
+        """Create gpg key with valid name and no gpg key
 
         @feature: GPG Keys
 
@@ -164,7 +164,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_via_import_and_invalid_name(self):
-        """@test: Create gpg key with invalid name and valid gpg key via
+        """Create gpg key with invalid name and valid gpg key via
         file import
 
         @feature: GPG Keys
@@ -191,7 +191,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_via_paste_and_invalid_name(self):
-        """@test: Create gpg key with invalid name and valid gpg key text via
+        """Create gpg key with invalid name and valid gpg key text via
         cut and paste/string
 
         @feature: GPG Keys
@@ -219,7 +219,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_for_imported_content(self):
-        """@test: Create gpg key with valid name and valid gpg key via file
+        """Create gpg key with valid name and valid gpg key via file
         import then delete it
 
         @feature: GPG Keys
@@ -243,7 +243,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_for_pasted_content(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
+        """Create gpg key with valid name and valid gpg key text via
         cut and paste/string then delete it
 
         @feature: GPG Keys
@@ -268,7 +268,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name_for_imported_content(self):
-        """@test: Create gpg key with valid name and valid gpg key via file
+        """Create gpg key with valid name and valid gpg key via file
         import then update its name
 
         @feature: GPG Keys
@@ -294,7 +294,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_file_for_imported_content(self):
-        """@test: Create gpg key with valid name and valid gpg key via file
+        """Create gpg key with valid name and valid gpg key via file
         import then update its gpg key file
 
         @feature: GPG Keys
@@ -320,7 +320,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name_for_pasted_content(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
+        """Create gpg key with valid name and valid gpg key text via
         cut and paste/string then update its name
 
         @feature: GPG Keys
@@ -345,7 +345,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_file_for_pasted_content(self):
-        """@test: Create gpg key with valid name and valid gpg key text via
+        """Create gpg key with valid name and valid gpg key text via
         cut and paste/string then update its gpg key text
 
         @feature: GPG Keys
@@ -372,7 +372,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_update_name_for_imported_content(self):
-        """@test: Create gpg key with valid name and valid gpg key via file
+        """Create gpg key with valid name and valid gpg key via file
         import then fail to update its name
 
         @feature: GPG Keys
@@ -403,7 +403,7 @@ class GPGKey(UITestCase):
     @tier3
     @skip_if_not_set('clients')
     def test_positive_consume_content_using_repo(self):
-        """@test: Hosts can install packages using gpg key associated with
+        """Hosts can install packages using gpg key associated with
         single custom repository
 
         @feature: GPG Keys
@@ -517,7 +517,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier3
     def test_positive_consume_content_using_repos(self):
-        """@test: Hosts can install packages using gpg key associated with
+        """Hosts can install packages using gpg key associated with
         multiple custom repositories
 
         @feature: GPG Keys
@@ -532,7 +532,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier3
     def test_positive_consume_content_using_repos_and_different_keys(self):
-        """@test: Hosts can install packages using different gpg keys
+        """Hosts can install packages using different gpg keys
         associated with multiple custom repositories
 
         @feature: GPG Keys
@@ -547,7 +547,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_list(self):
-        """@test: Create gpg key and list it
+        """Create gpg key and list it
 
         @feature: GPG Keys
 
@@ -561,7 +561,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_search(self):
-        """@test: Create gpg key and search/find it
+        """Create gpg key and search/find it
 
         @feature: GPG Keys
 
@@ -575,7 +575,7 @@ class GPGKey(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_info(self):
-        """@test: Create single gpg key and get its info
+        """Create single gpg key and get its info
 
         @feature: GPG Keys
 
@@ -599,7 +599,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_empty_product(self):
-        """@test: Create gpg key with valid name and valid gpg key
+        """Create gpg key with valid name and valid gpg key
         then associate it with empty (no repos) custom product
 
         @feature: GPG Keys
@@ -629,7 +629,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_product_with_repo(self):
-        """@test: Create gpg key with valid name and valid gpg key
+        """Create gpg key with valid name and valid gpg key
         then associate it with custom product that has one repository
 
         @feature: GPG Keys
@@ -667,7 +667,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_product_with_repos(self):
-        """@test: Create gpg key with valid name and valid gpg key
+        """Create gpg key with valid name and valid gpg key
         then associate it with custom product that has more than one repository
 
         @feature: GPG Keys
@@ -712,7 +712,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_product_using_repo_discovery(self):
-        """@test: Create gpg key with valid name and valid gpg key
+        """Create gpg key with valid name and valid gpg key
         then associate it with custom product using Repo discovery method
 
         @feature: GPG Keys
@@ -747,7 +747,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_repo_from_product_with_repo(self):
-        """@test: Create gpg key with valid name and valid gpg key then
+        """Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has one repository
 
         @feature: GPG Keys
@@ -788,7 +788,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_repo_from_product_with_repos(self):
-        """@test: Create gpg key with valid name and valid gpg key then
+        """Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has more than
         one repository
 
@@ -837,7 +837,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_repos_using_repo_discovery(self):
-        """@test: Create gpg key with valid name and valid gpg key then
+        """Create gpg key with valid name and valid gpg key then
         associate it to repos from custom product using Repo discovery method
 
         @feature: GPG Keys
@@ -850,7 +850,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_empty_product(self):
-        """@test: Create gpg key with valid name and valid gpg key then
+        """Create gpg key with valid name and valid gpg key then
         associate it with empty (no repos) custom product then update the key
 
         @feature: GPG Keys
@@ -888,7 +888,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_product_with_repo(self):
-        """@test: Create gpg key with valid name and valid gpg key
+        """Create gpg key with valid name and valid gpg key
         then associate it with custom product that has one repository
         then update the key
 
@@ -935,7 +935,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_product_with_repos(self):
-        """@test: Create gpg key with valid name and valid gpg key
+        """Create gpg key with valid name and valid gpg key
         then associate it with custom product that has more than one
         repository then update the key
 
@@ -989,7 +989,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_product_using_repo_discovery(self):
-        """@test: Create gpg key with valid name and valid gpg key
+        """Create gpg key with valid name and valid gpg key
         then associate it with custom product using Repo discovery
         method then update the key
 
@@ -1031,7 +1031,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_repo_from_product_with_repo(self):
-        """@test: Create gpg key with valid name and valid gpg key then
+        """Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has one repository
         then update the key
 
@@ -1085,7 +1085,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_repo_from_product_with_repos(self):
-        """@test: Create gpg key with valid name and valid gpg key then
+        """Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has more than
         one repository then update the key
 
@@ -1145,7 +1145,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_update_key_for_repos_using_repo_discovery(self):
-        """@test: Create gpg key with valid name and valid gpg key
+        """Create gpg key with valid name and valid gpg key
         then associate it to repos from custom product
         using Repo discovery method then update the key
 
@@ -1161,7 +1161,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_delete_key_for_empty_product(self):
-        """@test: Create gpg key with valid name and valid gpg key then
+        """Create gpg key with valid name and valid gpg key then
         associate it with empty (no repos) custom product then delete it
 
         @feature: GPG Keys
@@ -1197,7 +1197,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_delete_key_for_product_with_repo(self):
-        """@test: Create gpg key with valid name and valid gpg key then
+        """Create gpg key with valid name and valid gpg key then
         associate it with custom product that has one repository then delete it
 
         @feature: GPG Keys
@@ -1240,7 +1240,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_delete_key_for_product_with_repos(self):
-        """@test: Create gpg key with valid name and valid gpg key then
+        """Create gpg key with valid name and valid gpg key then
         associate it with custom product that has more than one repository then
         delete it
 
@@ -1291,7 +1291,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_delete_key_for_product_using_repo_discovery(self):
-        """@test: Create gpg key with valid name and valid gpg then associate
+        """Create gpg key with valid name and valid gpg then associate
         it with custom product using Repo discovery method then delete it
 
         @feature: GPG Keys
@@ -1332,7 +1332,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_delete_key_for_repo_from_product_with_repo(self):
-        """@test: Create gpg key with valid name and valid gpg key then
+        """Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has one repository
         then delete the key
 
@@ -1379,7 +1379,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_delete_key_for_repo_from_product_with_repos(self):
-        """@test: Create gpg key with valid name and valid gpg key then
+        """Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has more than
         one repository then delete the key
 
@@ -1435,7 +1435,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_delete_key_for_repos_using_repo_discovery(self):
-        """@test: Create gpg key with valid name and valid gpg key then
+        """Create gpg key with valid name and valid gpg key then
         associate it to repos from custom product using Repo discovery method
         then delete the key
 

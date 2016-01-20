@@ -52,7 +52,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create a new OS using different string types as a name
+        """Create a new OS using different string types as a name
 
         @Feature: OS - Positive Create
 
@@ -74,7 +74,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create(self):
-        """@Test: Create a new OS with different data values
+        """Create a new OS with different data values
 
         @Feature: OS - Positive Create
 
@@ -99,7 +99,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: OS - Create a new OS with invalid name
+        """OS - Create a new OS with invalid name
 
         @Feature: Create a new OS - Negative
 
@@ -122,7 +122,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_too_long_description(self):
-        """@Test: OS - Create a new OS with description containing
+        """OS - Create a new OS with description containing
         256 characters
 
         @Feature: Create a new OS - Negative
@@ -147,7 +147,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_major_version(self):
-        """@Test: OS - Create a new OS with incorrect major version value
+        """OS - Create a new OS with incorrect major version value
         (More than 5 characters, empty value, negative number)
 
         @Feature: Create a new OS - Negative
@@ -173,7 +173,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_minor_version(self):
-        """@Test: OS - Create a new OS with incorrect minor version value
+        """OS - Create a new OS with incorrect minor version value
         (More than 16 characters and negative number)
 
         @Feature: Create a new OS - Negative
@@ -200,7 +200,7 @@ class OperatingSystemTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1283548)
     @tier2
     def test_negative_create_with_same_name_and_version(self):
-        """@Test: OS - Create a new OS with same name and version
+        """OS - Create a new OS with same name and version
 
         @Feature: Create a new OS - Negative
 
@@ -233,7 +233,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete an existing OS
+        """Delete an existing OS
 
         @Feature: OS - Positive Delete
 
@@ -246,7 +246,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update(self):
-        """@Test: Update OS name, major_version, minor_version, os_family
+        """Update OS name, major_version, minor_version, os_family
         and arch
 
         @Feature: OS - Positive Update
@@ -272,7 +272,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_medium(self):
-        """@Test: Update OS medium
+        """Update OS medium
 
         @Feature: OS - Positive Update
 
@@ -294,7 +294,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_ptable(self):
-        """@Test: Update OS partition table
+        """Update OS partition table
 
         @Feature: OS - Positive Update
 
@@ -317,7 +317,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_template(self):
-        """@Test: Update provisioning template
+        """Update provisioning template
 
         @Feature: OS - Positive Update
 
@@ -340,7 +340,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_set_parameter(self):
-        """@Test: Set Operating System parameter
+        """Set Operating System parameter
 
         @Feature: OS - Positive Update
 
@@ -359,7 +359,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_set_parameter_with_blank_value(self):
-        """@Test: Set OS parameter with blank value
+        """Set OS parameter with blank value
 
         @Feature: OS - Positive update
 
@@ -378,7 +378,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_parameter(self):
-        """@Test: Remove selected OS parameter
+        """Remove selected OS parameter
 
         @Feature: OS - Positive Update
 
@@ -397,7 +397,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_negative_set_parameter_same_values(self):
-        """@Test: Set same OS parameter again as it was set earlier
+        """Set same OS parameter again as it was set earlier
 
         @Feature: OS - Negative Update
 
@@ -420,7 +420,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_negative_set_parameter_with_blank_name_and_value(self):
-        """@Test: Set OS parameter with blank name and value
+        """Set OS parameter with blank name and value
 
         @Feature: OS - Negative Update
 
@@ -439,7 +439,7 @@ class OperatingSystemTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_negative_set_parameter_with_too_long_values(self):
-        """@Test: Set OS parameter with name and value exceeding 255 characters
+        """Set OS parameter with name and value exceeding 255 characters
 
         @Feature: OS - Negative Update
 

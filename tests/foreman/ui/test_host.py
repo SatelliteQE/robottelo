@@ -280,7 +280,7 @@ class HostTestCase(UITestCase, Base):
     @run_only_on('sat')
     @tier3
     def test_positive_create_libvirt(self):
-        """@Test: Create a new Host on libvirt compute resource
+        """Create a new Host on libvirt compute resource
 
         @Feature: Host - Positive create
 
@@ -309,7 +309,7 @@ class HostTestCase(UITestCase, Base):
     @run_only_on('sat')
     @tier3
     def test_positive_create(self):
-        """@Test: Create a new Host
+        """Create a new Host
 
         @Feature: Host - Positive create
 
@@ -346,7 +346,7 @@ class HostTestCase(UITestCase, Base):
     @run_only_on('sat')
     @tier3
     def test_positive_delete(self):
-        """@Test: Delete a Host
+        """Delete a Host
 
         @Feature: Host - Positive Delete
 
@@ -382,7 +382,7 @@ class HostTestCase(UITestCase, Base):
     @stubbed()
     @tier3
     def test_positive_create_with_user(self):
-        """@Test: Create Host with new user specified
+        """Create Host with new user specified
 
         @Feature: Host - Positive Create
 
@@ -394,7 +394,7 @@ class HostTestCase(UITestCase, Base):
     @stubbed()
     @tier3
     def test_positive_update_with_user(self):
-        """@Test: Update Host with new user specified
+        """Update Host with new user specified
 
         @Feature: Host - Positive Update
 

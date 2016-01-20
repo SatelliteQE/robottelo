@@ -9,7 +9,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_create_policy(self):
-        """@Test: Create policies for OpenScap.
+        """Create policies for OpenScap.
 
         @Feature: OpenScap - Positive Create.
 
@@ -26,7 +26,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_negative_create_policy(self):
-        """@Test: Create policies for OpenScap with 256 chars.
+        """Create policies for OpenScap with 256 chars.
 
         @Feature: OpenScap - Negative Create.
 
@@ -38,7 +38,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_delete_policy(self):
-        """@Test: Delete policies of OpenScap.
+        """Delete policies of OpenScap.
 
         @Feature: OpenScap - Delete.
 
@@ -56,7 +56,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_create_content(self):
-        """@Test: Create OpenScap content.
+        """Create OpenScap content.
 
         @Feature: OpenScap - Positive Create.
 
@@ -73,7 +73,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_negative_create_content(self):
-        """@Test: Create OpenScap content with 256 chars.
+        """Create OpenScap content with 256 chars.
 
         @Feature: OpenScap - Negative Create.
 
@@ -85,7 +85,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_delete_content(self):
-        """@Test: Create OpenScap content and then delete it.
+        """Create OpenScap content and then delete it.
 
         @Feature: OpenScap - Delete
 
@@ -103,7 +103,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier1
     def test_positive_access_oscap_reports(self):
-        """@Test: OpenScap should have it's own Compliance Reporting page.
+        """OpenScap should have it's own Compliance Reporting page.
 
         @Feature: OpenScap - Compliance Reporting.
 
@@ -115,7 +115,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_set_periodic_audit(self):
-        """@Test: Should be able to periodically set OpenScap Audit.
+        """Should be able to periodically set OpenScap Audit.
 
         @Feature: OpenScap - Periodic Audit.
 
@@ -141,7 +141,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_set_custom_periodic_audit(self):
-        """@Test: Should be able to periodically set custom OpenScap Audit.
+        """Should be able to periodically set custom OpenScap Audit.
 
         @Feature: OpenScap - Periodic Audit.
 
@@ -166,7 +166,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_search_audit(self):
-        """@Test: Should be able to search OpenScap audit results.
+        """Should be able to search OpenScap audit results.
 
         @Feature: OpenScap - Search
 
@@ -189,7 +189,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_audit_default_capsule(self):
-        """@Test: OpenScap should be able to audit foreman managed
+        """OpenScap should be able to audit foreman managed
         infrastructure(Reports from default Capsule.)
 
         @Feature: OpenScap - Audit Foreman Infrastructure.
@@ -213,7 +213,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_audit_nondefault_capsule(self):
-        """@Test: OpenScap should be able to audit foreman managed
+        """OpenScap should be able to audit foreman managed
         infrastructure (Reports from Non-Default Capsule)
 
         @Feature: OpenScap - Audit Foreman Infrastructure.
@@ -237,7 +237,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_positive_search_content(self):
-        """@Test: Should be able to search OpenScap content.
+        """Should be able to search OpenScap content.
 
         @Feature: OpenScap - Search.
 
@@ -255,7 +255,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_positive_search_policies(self):
-        """@Test: Should be able to search OpenScap policies.
+        """Should be able to search OpenScap policies.
 
         @Feature: OpenScap - Search.
 
@@ -272,7 +272,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_search_nonaudited_hosts(self):
-        """@Test: Should be able to search Non-Audited Hosts/systems
+        """Should be able to search Non-Audited Hosts/systems
 
         @Feature: OpenScap - Search.
 
@@ -295,7 +295,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_search_noncompliant_hosts(self):
-        """@Test: Should be able to search Non-Compliant "Hosts"/systems
+        """Should be able to search Non-Compliant "Hosts"/systems
 
         @Feature: OpenScap - Search
 
@@ -318,7 +318,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_compare_audit_results(self):
-        """@Test: Should be able to compare multiple audit results of
+        """Should be able to compare multiple audit results of
         "Hosts"/systems.
 
         @Feature: OpenScap - Compare
@@ -343,7 +343,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_assign_policies_for_hosts(self):
-        """@Test: Should be able to assign policies for the hosts.
+        """Should be able to assign policies for the hosts.
 
         @Feature: OpenScap - Assigning policies.
 
@@ -363,7 +363,7 @@ class OpenScapTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_positive_check_dashboard_views(self):
-        """@Test: Dashboard views that can tell Audited/Un-Audited,
+        """Dashboard views that can tell Audited/Un-Audited,
         Compliant/Non-Compliant and trends.
 
         @Feature: OpenScap - Dashboard.

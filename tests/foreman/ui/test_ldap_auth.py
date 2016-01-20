@@ -25,7 +25,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_ipa_basic_no_roles(self):
-        """@test: Login with LDAP Auth- IPA for user with no roles/rights
+        """Login with LDAP Auth- IPA for user with no roles/rights
 
         @feature: LDAP Authentication
 
@@ -45,7 +45,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_ipa_basic_roles(self):
-        """@test: Login with LDAP - IPA for user with roles/rights
+        """Login with LDAP - IPA for user with roles/rights
 
         @feature: LDAP Authentication
 
@@ -65,7 +65,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_ipa_user_disabled(self):
-        """@test: LDAP - IPA user activity when IPA user account has been
+        """LDAP - IPA user activity when IPA user account has been
         deleted or deactivated
 
         @feature: LDAP Authentication
@@ -85,7 +85,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_ad_basic_no_roles(self):
-        """@test: Login with LDAP Auth- AD for user with no roles/rights
+        """Login with LDAP Auth- AD for user with no roles/rights
 
         @feature: LDAP Authentication
 
@@ -105,7 +105,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_ad_basic_roles(self):
-        """@test: Login with LDAP - AD for user with roles/rights
+        """Login with LDAP - AD for user with roles/rights
 
         @feature: LDAP Authentication
 
@@ -125,7 +125,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_ad_user_disabled(self):
-        """@test: LDAP - AD user activity when AD user account has been deleted
+        """LDAP - AD user activity when AD user account has been deleted
         or deactivated
 
         @feature: LDAP Authentication
@@ -145,7 +145,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_openldap_basic_no_roles(self):
-        """@test: Login with LDAP - RHDSLDAP that has no roles / rights
+        """Login with LDAP - RHDSLDAP that has no roles / rights
 
         @feature: LDAP Authentication
 
@@ -165,7 +165,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_rhdsldap_basic_roles(self):
-        """@test: Login with LDAP - RHDS LDAP for user with roles/rights
+        """Login with LDAP - RHDS LDAP for user with roles/rights
         assigned.
 
         @feature: LDAP Authentication
@@ -186,7 +186,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_rhdsldap_user_disabled(self):
-        """@test: LDAP - RHDSLDAP user activity when RHDS ldap account has been
+        """LDAP - RHDSLDAP user activity when RHDS ldap account has been
         deleted or deactivated
 
         @feature: LDAP Authentication
@@ -206,7 +206,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_multiple_ldap_backends(self):
-        """@test: LDAP - multiple LDAP servers kafo instance
+        """LDAP - multiple LDAP servers kafo instance
 
         @feature: LDAP Authentication
 
@@ -232,7 +232,7 @@ class LDAPAuthTestCase(UITestCase):
         # devnote:
         # users have auth_source which could distinguish them, but validation
         # would fail atm
-        """@test: LDAP - multiple LDAP servers colliding namespace
+        """LDAP - multiple LDAP servers colliding namespace
         (e.g "jsmith")
 
         @feature: LDAP Authentication
@@ -260,7 +260,7 @@ class LDAPAuthTestCase(UITestCase):
         # first, worth of testing thou, however if authentication is done by
         # external system (IPA, ...) which can create users in foreman,
         # I'm not sure about result
-        """@test: LDAP - what happens when we have an ldap user named "admin"?
+        """LDAP - what happens when we have an ldap user named "admin"?
 
         @feature: LDAP Authentication
 
@@ -278,7 +278,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_negative_ldap_server_down_before_session(self):
-        """@test: LDAP - what happens when we have an ldap server that goes
+        """LDAP - what happens when we have an ldap server that goes
         down before logging in?
 
         @feature: LDAP Authentication
@@ -297,7 +297,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_negative_ldap_server_down_during_session(self):
-        """@test: LDAP - what happens when we have an ldap server that goes
+        """LDAP - what happens when we have an ldap server that goes
         down after login?
 
         @feature: LDAP Authentication
@@ -317,7 +317,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_usergroup_roles_read(self):
-        """@test: Usergroups: group roles get pushed down to user
+        """Group roles get pushed down to user
 
         @feature: LDAP Authentication
 
@@ -338,7 +338,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_usergroup_roles_update(self):
-        """@test: Usergroups: added UserGroup roles get pushed down to user
+        """Added UserGroup roles get pushed down to user
 
         @feature: LDAP Authentication
 
@@ -359,7 +359,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_usergroup_roles_delete(self):
-        """@test: Usergroups: deleted UserGroup roles get pushed down to user
+        """Deleted UserGroup roles get pushed down to user
 
         @feature: LDAP Authentication
 
@@ -380,7 +380,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_usergroup_additional_user_roles(self):
-        """@test: Assure that user has roles/can access feature areas for
+        """Assure that user has roles/can access feature areas for
         additional roles assigned outside any roles assigned by his group
 
         @feature: LDAP Authentication
@@ -405,7 +405,7 @@ class LDAPAuthTestCase(UITestCase):
     @stubbed()
     @tier3
     def test_positive_ldap_auth_usergroup_user_add(self):
-        """@test: Usergroups: new user added to UserGroup inherits roles
+        """New user added to UserGroup inherits roles
 
         @feature: LDAP Authentication
 

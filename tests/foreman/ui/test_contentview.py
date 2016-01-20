@@ -86,7 +86,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_wth_name(self):
-        """@test: Create content views using different names
+        """Create content views using different names
 
         @feature: Content Views
 
@@ -106,7 +106,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@test: try to create content views using invalid names
+        """try to create content views using invalid names
 
         @feature: Content Views
 
@@ -130,7 +130,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_end_to_end(self):
-        """@test: create content view with yum repo, publish it
+        """create content view with yum repo, publish it
         and promote it to Library +1 env
 
         @feature: Content Views
@@ -177,7 +177,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_puppet_module(self):
-        """@test: create content view with puppet repository
+        """create content view with puppet repository
 
         @feature: Content Views
 
@@ -214,7 +214,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_filter(self):
-        """@test: create empty content views filter and remove it
+        """create empty content views filter and remove it
 
         @feature: Content Views
 
@@ -239,7 +239,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_package_filter(self):
-        """@test: add package to content views filter
+        """add package to content views filter
 
         @feature: Content Views
 
@@ -273,7 +273,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_package_group_filter(self):
-        """@test: add package group to content views filter
+        """add package group to content views filter
 
         @feature: Content Views
 
@@ -306,7 +306,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_errata_filter(self):
-        """@test: add errata to content views filter
+        """add errata to content views filter
 
         @feature: Content Views
 
@@ -336,7 +336,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
-        """@test: Update content views name to valid one.
+        """Update content views name to valid one.
 
         @feature: Content Views
 
@@ -360,7 +360,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_update_name(self):
-        """@test: Try to update content views name to invalid one.
+        """Try to update content views name to invalid one.
 
         @feature: Content Views
 
@@ -383,7 +383,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_description(self):
-        """@test: Update content views description to valid one.
+        """Update content views description to valid one.
 
         @feature: Content Views
 
@@ -409,7 +409,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_update_description(self):
-        """@test: Try to update content views description to invalid one.
+        """Try to update content views description to invalid one.
 
         @feature: Content Views
 
@@ -435,7 +435,7 @@ class ContentViewTestCase(UITestCase):
         # in filter)
         #   * A filter on severity (only content of specific errata
         # severity.
-        """@test: edit content views for a custom rh spin.  For example,
+        """edit content views for a custom rh spin.  For example,
 
         @feature: Content Views
         modify a filter
@@ -450,7 +450,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
-        """@test: Delete content views
+        """Delete content views
 
         @feature: Content Views
 
@@ -477,7 +477,7 @@ class ContentViewTestCase(UITestCase):
         # It shouldn't work - and that is tested in a different case.
         # Individual modules from a puppet repo, however, are a valid
         # variation.
-        """@test: create a composite content views
+        """create a composite content views
 
         @feature: Content Views
 
@@ -540,7 +540,7 @@ class ContentViewTestCase(UITestCase):
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_add_rh_content(self):
-        """@test: Add Red Hat content to a content view
+        """Add Red Hat content to a content view
 
         @feature: Content Views
 
@@ -577,7 +577,7 @@ class ContentViewTestCase(UITestCase):
         # in filter)
         #   * A filter on severity (only content of specific errata
         # severity.
-        """@test: associate Red Hat content in a view
+        """associate Red Hat content in a view
 
         @feature: Content Views
 
@@ -594,7 +594,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_custom_content(self):
-        """@test: associate custom content in a view
+        """associate custom content in a view
 
         @feature: Content Views
 
@@ -618,7 +618,7 @@ class ContentViewTestCase(UITestCase):
     @tier2
     def test_negative_add_puppet_repo_to_composite(self):
         # Again, individual modules should be ok.
-        """@test: attempt to associate puppet repos within a composite
+        """attempt to associate puppet repos within a composite
         content view
 
         @feature: Content Views
@@ -647,7 +647,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_negative_add_components_to_non_composite(self):
-        """@test: attempt to associate components to a non-composite
+        """attempt to associate components to a non-composite
         content view
 
         @feature: Content Views
@@ -675,7 +675,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_negative_add_dupe_repos(self):
-        """@test: attempt to associate the same repo multiple times within a
+        """attempt to associate the same repo multiple times within a
         content view
 
         @feature: Content Views
@@ -704,7 +704,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_negative_add_dupe_modules(self):
-        """@test: attempt to associate duplicate puppet module(s) within a
+        """attempt to associate duplicate puppet module(s) within a
         content view
 
         @feature: Content Views
@@ -719,7 +719,7 @@ class ContentViewTestCase(UITestCase):
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_promote_with_rh_content(self):
-        """@test: attempt to promote a content view containing RH content
+        """attempt to promote a content view containing RH content
 
         @feature: Content Views
 
@@ -763,7 +763,7 @@ class ContentViewTestCase(UITestCase):
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_promote_with_rh_custom_spin(self):
-        """@test: attempt to promote a content view containing a custom RH
+        """attempt to promote a content view containing a custom RH
         spin - i.e., contains filters.
 
         @feature: Content Views
@@ -779,7 +779,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_promote_with_custom_content(self):
-        """@test: attempt to promote a content view containing custom content
+        """attempt to promote a content view containing custom content
 
         @feature: Content Views
 
@@ -818,7 +818,7 @@ class ContentViewTestCase(UITestCase):
         # RHEL, custom content (i.e., google repos), puppet modules
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
-        """@test: attempt to promote composite content view containing custom
+        """attempt to promote composite content view containing custom
         content
 
         @feature: Content Views
@@ -837,7 +837,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_negative_promote_default(self):
-        """@test: attempt to promote a the default content views
+        """attempt to promote a the default content views
 
         @feature: Content Views
 
@@ -851,7 +851,7 @@ class ContentViewTestCase(UITestCase):
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_publish_with_rh_content(self):
-        """@test: attempt to publish a content view containing RH content
+        """attempt to publish a content view containing RH content
 
         @feature: Content Views
 
@@ -886,7 +886,7 @@ class ContentViewTestCase(UITestCase):
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_publish_with_rh_custom_spin(self):
-        """@test: attempt to publish  a content view containing a custom RH
+        """attempt to publish  a content view containing a custom RH
         spin - i.e., contains filters.
 
         @feature: Content Views
@@ -902,7 +902,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_publish_with_custom_content(self):
-        """@test: attempt to publish a content view containing custom content
+        """attempt to publish a content view containing custom content
 
         @feature: Content Views
 
@@ -938,7 +938,7 @@ class ContentViewTestCase(UITestCase):
         # RHEL, custom content (i.e., google repos), puppet modules
         # Custom content (i.e., fedora), puppet modules
         # ...etc.
-        """@test: attempt to publish composite content view containing custom
+        """attempt to publish composite content view containing custom
         content
 
         @feature: Content Views
@@ -959,7 +959,7 @@ class ContentViewTestCase(UITestCase):
         # If Dev has version x, then when I promote version y into
         # Dev, version x goes away (ie when I promote version 1 to Dev,
         # version 3 goes away)
-        """@test: when publishing new version to environment, version
+        """when publishing new version to environment, version
         gets updated
 
         @feature: Content Views
@@ -984,7 +984,7 @@ class ContentViewTestCase(UITestCase):
         # Dev notes:
         # Similarly when I publish version y, version x goes away from
         # Library (ie when I publish version 2, version 1 disappears)
-        """@test: when publishing new version to environment, version
+        """when publishing new version to environment, version
         gets updated
 
         @feature: Content Views
@@ -1005,7 +1005,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_clone_within_same_env(self):
-        """@test: attempt to create new content view based on existing
+        """attempt to create new content view based on existing
         view within environment
 
         @feature: Content Views
@@ -1045,7 +1045,7 @@ class ContentViewTestCase(UITestCase):
     @tier2
     def test_positive_clone_within_diff_env(self):
         # Dev note: "not implemented yet"
-        """@test: attempt to create new content view based on existing
+        """attempt to create new content view based on existing
         view, inside a different environment
 
         @feature: Content Views
@@ -1060,7 +1060,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_refresh_errata_to_new_view_in_same_env(self):
-        """@test: attempt to refresh errata in a new view, based on
+        """attempt to refresh errata in a new view, based on
         an existing view, from within the same  environment
 
         @feature: Content Views
@@ -1085,7 +1085,7 @@ class ContentViewTestCase(UITestCase):
         # * custom content
         # * composite
         # * CVs with puppet modules
-        """@test: attempt to subscribe systems to content view(s)
+        """attempt to subscribe systems to content view(s)
 
         @feature: Content Views
 
@@ -1099,7 +1099,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_restart_promote_via_dynflow(self):
-        """@test: attempt to restart a promotion
+        """attempt to restart a promotion
 
         @feature: Content Views
 
@@ -1117,7 +1117,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_restart_publish_via_dynflow(self):
-        """@test: attempt to restart a publish
+        """attempt to restart a publish
 
         @feature: Content Views
 
@@ -1146,7 +1146,7 @@ class ContentViewTestCase(UITestCase):
         # As such, all variations in here subject to change.
         # Variations:
         #  * Read, Modify, Delete, Promote Publish, Subscribe
-        """@test: attempt to view content views
+        """attempt to view content views
 
         @feature: Content Views
 
@@ -1172,7 +1172,7 @@ class ContentViewTestCase(UITestCase):
         # As such, all variations in here subject to change.
         # Variations:
         #  * Read, Modify,  Promote?, Publish?, Subscribe??
-        """@test: attempt to view content views
+        """attempt to view content views
 
         @feature: Content Views
 
@@ -1197,7 +1197,7 @@ class ContentViewTestCase(UITestCase):
         # As such, all variations in here subject to change.
         # Variations:
         #  * Read, Modify, Delete, Promote Publish, Subscribe
-        """@test: attempt to view content views
+        """attempt to view content views
 
         @feature: Content Views
 
@@ -1223,7 +1223,7 @@ class ContentViewTestCase(UITestCase):
         # As such, all variations in here subject to change.
         # Variations:
         #  * Read, Modify,  Promote?, Publish?, Subscribe??
-        """@test: attempt to view content views
+        """attempt to view content views
 
         @feature: Content Views
 
@@ -1239,7 +1239,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_delete_default_version(self):
-        """@Test: Delete a content-view version associated to 'Library'
+        """Delete a content-view version associated to 'Library'
 
         @Feature: ContentViewVersion
 
@@ -1285,7 +1285,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_delete_non_default_version(self):
-        """@Test: Delete a content-view version associated to non-default
+        """Delete a content-view version associated to non-default
         environment
 
         @Feature: ContentViewVersion
@@ -1320,7 +1320,7 @@ class ContentViewTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_delete_version_with_ak(self):
-        """@Test: Delete a content-view version that had associated activation
+        """Delete a content-view version that had associated activation
         key to it
 
         @Feature: ContentViewVersion
