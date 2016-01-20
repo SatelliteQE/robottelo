@@ -21,7 +21,7 @@ class SmartClassParameterTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_list(self):
-        """@Test: Check if SmartClass Paramter ``list`` generates an error
+        """Check if SmartClass Paramter ``list`` generates an error
 
         @Feature: SmartClass Paramter
 

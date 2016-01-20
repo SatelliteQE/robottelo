@@ -36,7 +36,7 @@ class SubscriptionTestCase(CLITestCase):
 
     @tier1
     def test_positive_manifest_upload(self):
-        """@Test: upload manifest
+        """upload manifest
 
         @Feature: Subscriptions/Manifest Upload
 
@@ -50,7 +50,7 @@ class SubscriptionTestCase(CLITestCase):
 
     @tier1
     def test_positive_manifest_delete(self):
-        """@Test: Delete uploaded manifest
+        """Delete uploaded manifest
 
         @Feature: Subscriptions/Manifest Delete
 
@@ -71,7 +71,7 @@ class SubscriptionTestCase(CLITestCase):
 
     @tier2
     def test_positive_enable_manifest_reposet(self):
-        """@Test: enable repository set
+        """enable repository set
 
         @Feature: Subscriptions/Repository Sets
 
@@ -98,7 +98,7 @@ class SubscriptionTestCase(CLITestCase):
 
     @tier1
     def test_positive_manifest_history(self):
-        """@Test: upload manifest and check history
+        """upload manifest and check history
 
         @Feature: Subscriptions/Manifest History
 
@@ -119,7 +119,7 @@ class SubscriptionTestCase(CLITestCase):
 
     @tier1
     def test_positive_manifest_refresh(self):
-        """@Test: upload manifest and refresh
+        """upload manifest and refresh
 
         @Feature: Subscriptions/Manifest refresh
 
@@ -141,7 +141,7 @@ class SubscriptionTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1226425)
     @tier1
     def test_negative_manifest_refresh(self):
-        """@Test: manifest refresh must fail with a cloned manifest
+        """manifest refresh must fail with a cloned manifest
 
         @Feature: Subscriptions/Manifest refresh
 

@@ -82,7 +82,7 @@ class MyAccountTestCase(CLITestCase):
     @stubbed()
     @tier1
     def test_positive_update_language(self):
-        """@Test: Update Language in My Account
+        """Update Language in My Account
 
         @Feature: My Account - Positive Update
 
@@ -141,7 +141,7 @@ class MyAccountTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_email(self):
-        """@Test: Update My Account with invalid Email Address
+        """Update My Account with invalid Email Address
 
         @Feature: My Account - Negative Update
 
@@ -158,7 +158,7 @@ class MyAccountTestCase(CLITestCase):
     @stubbed()
     @tier1
     def test_negative_update_password_invalid(self):
-        """@Test: Update My Account with invalid Password/Verify fields
+        """Update My Account with invalid Password/Verify fields
 
         @Feature: My Account - Negative Update
 

@@ -32,7 +32,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_verify_redmine_4547(self):
-        """@test: Search for newly created OS by name
+        """Search for newly created OS by name
 
         @feature: Operating System - Search
 
@@ -51,7 +51,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_list(self):
-        """@test: Displays list for operating system
+        """Displays list for operating system
 
         @feature: Operating System
 
@@ -69,7 +69,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_info_by_id(self):
-        """@test: Displays info for operating system by its ID
+        """Displays info for operating system by its ID
 
         @feature: Operating System
 
@@ -87,7 +87,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@test: Create Operating System for all variations of name
+        """Create Operating System for all variations of name
 
         @feature: Operating System
 
@@ -101,7 +101,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_arch_medium_ptable(self):
-        """@test: Create an OS pointing to an arch, medium and partition table.
+        """Create an OS pointing to an arch, medium and partition table.
 
         @feature: Operating System
 
@@ -129,7 +129,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_name(self):
-        """@test: Create Operating System using invalid names
+        """Create Operating System using invalid names
 
         @feature: Operating System
 
@@ -143,7 +143,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
-        """@test: Positive update of operating system name
+        """Positive update of operating system name
 
         @feature: Operating System
 
@@ -163,7 +163,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_major_version(self):
-        """@test: Update an Operating System's major version.
+        """Update an Operating System's major version.
 
         @feature: Operating System
 
@@ -184,7 +184,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_update_name(self):
-        """@test: Negative update of system name
+        """Negative update of system name
 
         @feature: Operating System
 
@@ -204,7 +204,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_by_id(self):
-        """@test: Successfully deletes Operating System by its ID
+        """Successfully deletes Operating System by its ID
 
         @feature: Operating System
 
@@ -220,7 +220,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_delete_by_id(self):
-        """@test: Delete Operating System using invalid data
+        """Delete Operating System using invalid data
 
         @feature: Operating System
 
@@ -240,7 +240,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_arch(self):
-        """@test: Add Architecture to operating system
+        """Add Architecture to operating system
 
         @feature: Operating System
 
@@ -259,7 +259,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_template(self):
-        """@test: Add provisioning template to operating system
+        """Add provisioning template to operating system
 
         @feature: Operating System
 
@@ -279,7 +279,7 @@ class OperatingSystemTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_ptable(self):
-        """@test: Add partition table to operating system
+        """Add partition table to operating system
 
         @feature: Operating System
 

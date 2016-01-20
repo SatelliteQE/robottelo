@@ -20,7 +20,7 @@ class SingleSignOnTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_login_kerberos_user(self):
-        """@test: kerberos user can login to CLI
+        """kerberos user can login to CLI
 
         @feature: SSO
 
@@ -33,7 +33,7 @@ class SingleSignOnTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_login_ipa_user(self):
-        """@test: IPA user can login to CLI
+        """IPA user can login to CLI
 
         @feature: SSO
 
@@ -46,7 +46,7 @@ class SingleSignOnTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_login_openldap_user(self):
-        """@test: OpenLDAP user can login to CLI
+        """OpenLDAP user can login to CLI
 
         @feature: SSO
 

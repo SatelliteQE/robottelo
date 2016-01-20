@@ -15,7 +15,7 @@ class RoleTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1138553)
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create new roles with provided name
+        """Create new roles with provided name
 
         @Feature: Roles
 
@@ -31,7 +31,7 @@ class RoleTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1138559)
     @stubbed
     def test_positive_create_with_permission(self):
-        """@test: Create new role with a set of permission
+        """Create new role with a set of permission
 
         @feature: Roles
 
@@ -43,7 +43,7 @@ class RoleTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1138553)
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Create a new role and then delete role by its ID
+        """Create a new role and then delete role by its ID
 
         @Feature: Roles
 
@@ -60,7 +60,7 @@ class RoleTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1138553)
     @tier1
     def test_positive_update_name(self):
-        """@Test: Create new role and update its name
+        """Create new role and update its name
 
         @Feature: Roles
 

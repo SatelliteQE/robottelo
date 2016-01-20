@@ -75,7 +75,7 @@ class HostCollectionTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Check if host collection can be created with random names
+        """Check if host collection can be created with random names
 
         @Feature: Host Collection
 
@@ -89,7 +89,7 @@ class HostCollectionTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_description(self):
-        """@Test: Check if host collection can be created with random
+        """Check if host collection can be created with random
         description
 
         @Feature: Host Collection
@@ -104,7 +104,7 @@ class HostCollectionTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_limit(self):
-        """@Test: Check if host collection can be created with random limits
+        """Check if host collection can be created with random limits
 
         @Feature: Host Collection
 
@@ -120,7 +120,7 @@ class HostCollectionTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1214675)
     @tier1
     def test_positive_create_with_unlimited_chosts(self):
-        """@Test: Create Host Collection with different values of
+        """Create Host Collection with different values of
         unlimited-content-hosts parameter
 
         @Feature: Host Collection - Unlimited Content Hosts
@@ -150,7 +150,7 @@ class HostCollectionTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_name(self):
-        """@Test: Check if host collection can be created with random names
+        """Check if host collection can be created with random names
 
         @Feature: Host Collection
 
@@ -164,7 +164,7 @@ class HostCollectionTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Check if host collection name can be updated
+        """Check if host collection name can be updated
 
         @Feature: Host Collection
 
@@ -184,7 +184,7 @@ class HostCollectionTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_description(self):
-        """@Test: Check if host collection description can be updated
+        """Check if host collection description can be updated
 
         @Feature: Host Collection
 
@@ -205,7 +205,7 @@ class HostCollectionTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1245334)
     @tier1
     def test_positive_update_limit(self):
-        """@Test: Check if host collection limits be updated
+        """Check if host collection limits be updated
 
         @Feature: Host Collection
 
@@ -227,7 +227,7 @@ class HostCollectionTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Check if host collection can be created and deleted
+        """Check if host collection can be created and deleted
 
         @Feature: Host Collection
 
@@ -246,7 +246,7 @@ class HostCollectionTestCase(CLITestCase):
 
     @tier2
     def test_positive_add_chost_by_id(self):
-        """@Test: Check if content host can be added to host collection
+        """Check if content host can be added to host collection
 
         @Feature: Host Collection
 
@@ -275,7 +275,7 @@ class HostCollectionTestCase(CLITestCase):
 
     @tier2
     def test_positive_remove_chost_by_id(self):
-        """@Test: Check if content host can be removed from host collection
+        """Check if content host can be removed from host collection
 
         @Feature: Host Collection
 
@@ -312,7 +312,7 @@ class HostCollectionTestCase(CLITestCase):
 
     @tier2
     def test_positive_list_chosts(self):
-        """@Test: Check if content hosts added to host collection is listed
+        """Check if content hosts added to host collection is listed
 
         @Feature: Host Collection
 

@@ -21,7 +21,7 @@ class TemplateTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Check if Template can be created
+        """Check if Template can be created
 
         @Feature: Template - Create
 
@@ -34,7 +34,7 @@ class TemplateTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
-        """@Test: Check if Template can be updated
+        """Check if Template can be updated
 
         @Feature: Template - Update
 
@@ -52,7 +52,7 @@ class TemplateTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_loc(self):
-        """@Test: Check if Template with Location can be created
+        """Check if Template with Location can be created
 
         @Feature: Template - Create
 
@@ -65,7 +65,7 @@ class TemplateTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_locked(self):
-        """@Test: Check that locked Template cannot be created
+        """Check that locked Template cannot be created
 
         @Feature: Template - Create
 
@@ -80,7 +80,7 @@ class TemplateTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_org(self):
-        """@Test: Check if Template with Organization can be created
+        """Check if Template with Organization can be created
 
         @Feature: Template - Create
 
@@ -96,7 +96,7 @@ class TemplateTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_os_by_id(self):
-        """@Test: Check if operating system can be added to a template
+        """Check if operating system can be added to a template
 
         @Feature: Template - Add Operating System
 
@@ -116,7 +116,7 @@ class TemplateTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_os_by_id(self):
-        """@Test: Check if operating system can be removed from a template
+        """Check if operating system can be removed from a template
 
         @Feature: Template - Remove Operating System
 
@@ -143,7 +143,7 @@ class TemplateTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_content(self):
-        """@Test: Check if Template can be created with specific content
+        """Check if Template can be created with specific content
 
         @Feature: Template - Create
 
@@ -162,7 +162,7 @@ class TemplateTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Check if Template can be deleted
+        """Check if Template can be deleted
 
         @Feature: Template - Delete
 

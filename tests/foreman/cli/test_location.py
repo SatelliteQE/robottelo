@@ -47,7 +47,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Try to create location using different value types as a name
+        """Try to create location using different value types as a name
 
         @Feature: Location
 
@@ -62,7 +62,7 @@ class LocationTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1233612)
     @tier1
     def test_positive_create_with_description(self):
-        """@Test: Create new location with custom description
+        """Create new location with custom description
 
         @Feature: Location
 
@@ -76,7 +76,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_user_by_id(self):
-        """@Test: Create new location with assigned user to it. Use user id as
+        """Create new location with assigned user to it. Use user id as
         a parameter
 
         @Feature: Location
@@ -91,7 +91,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_user_by_name(self):
-        """@Test: Create new location with assigned user to it. Use user login
+        """Create new location with assigned user to it. Use user login
         as a parameter
 
         @Feature: Location
@@ -106,7 +106,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_compresource_by_id(self):
-        """@Test: Create new location with compute resource assigned to it. Use
+        """Create new location with compute resource assigned to it. Use
         compute resource id as a parameter
 
         @Feature: Location
@@ -121,7 +121,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_compresource_by_name(self):
-        """@Test: Create new location with compute resource assigned to it. Use
+        """Create new location with compute resource assigned to it. Use
         compute resource name as a parameter
 
         @Feature: Location
@@ -136,7 +136,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_template_by_id(self):
-        """@Test: Create new location with config template assigned to it. Use
+        """Create new location with config template assigned to it. Use
         config template id as a parameter
 
         @Feature: Location
@@ -155,7 +155,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_template_by_name(self):
-        """@Test: Create new location with config template assigned to it. Use
+        """Create new location with config template assigned to it. Use
         config template name as a parameter
 
         @Feature: Location
@@ -174,7 +174,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_domain_by_id(self):
-        """@Test: Create new location with assigned domain to it. Use domain id
+        """Create new location with assigned domain to it. Use domain id
         as a parameter
 
         @Feature: Location
@@ -189,7 +189,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_domain_by_name(self):
-        """@Test: Create new location with assigned domain to it. Use domain
+        """Create new location with assigned domain to it. Use domain
         name as a parameter
 
         @Feature: Location
@@ -204,7 +204,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_subnet_by_id(self):
-        """@Test: Create new location with assigned subnet to it. Use subnet id
+        """Create new location with assigned subnet to it. Use subnet id
         as a parameter
 
         @Feature: Location
@@ -220,7 +220,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_subnet_by_name(self):
-        """@Test: Create new location with assigned subnet to it. Use subnet
+        """Create new location with assigned subnet to it. Use subnet
         name as a parameter
 
         @Feature: Location
@@ -236,7 +236,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_environment_by_id(self):
-        """@Test: Create new location with assigned environment to it. Use
+        """Create new location with assigned environment to it. Use
         environment id as a parameter
 
         @Feature: Location
@@ -251,7 +251,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_environment_by_name(self):
-        """@Test: Create new location with assigned environment to it. Use
+        """Create new location with assigned environment to it. Use
         environment name as a parameter
 
         @Feature: Location
@@ -266,7 +266,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_hostgroup_by_id(self):
-        """@Test: Create new location with assigned host group to it. Use host
+        """Create new location with assigned host group to it. Use host
         group id as a parameter
 
         @Feature: Location
@@ -281,7 +281,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_hostgroup_by_name(self):
-        """@Test: Create new location with assigned host group to it. Use host
+        """Create new location with assigned host group to it. Use host
         group name as a parameter
 
         @Feature: Location
@@ -297,7 +297,7 @@ class LocationTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1234287)
     @tier1
     def test_positive_create_with_medium(self):
-        """@Test: Create new location with assigned media to it.
+        """Create new location with assigned media to it.
 
         @Feature: Location
 
@@ -312,7 +312,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_environments_by_id(self):
-        """@Test: Basically, verifying that location with multiple entities
+        """Basically, verifying that location with multiple entities
         assigned to it by id can be created in the system. Environments were
         chosen for that purpose.
 
@@ -331,7 +331,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_domains_by_name(self):
-        """@Test: Basically, verifying that location with multiple entities
+        """Basically, verifying that location with multiple entities
         assigned to it by name can be created in the system. Domains were
         chosen for that purpose.
 
@@ -352,7 +352,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_name(self):
-        """@Test: Try to create location using invalid names only
+        """Try to create location using invalid names only
 
         @Feature: Location
 
@@ -366,7 +366,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_same_name(self):
-        """@Test: Try to create location using same name twice
+        """Try to create location using same name twice
 
         @Feature: Location
 
@@ -381,7 +381,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_compresource_by_id(self):
-        """@Test: Try to create new location with incorrect compute resource
+        """Try to create new location with incorrect compute resource
         assigned to it. Use compute resource id as a parameter
 
         @Feature: Location
@@ -394,7 +394,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_user_by_name(self):
-        """@Test: Try to create new location with incorrect user assigned to it
+        """Try to create new location with incorrect user assigned to it
         Use user login as a parameter
 
         @Feature: Location
@@ -407,7 +407,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_with_name(self):
-        """@Test: Try to update location using different value types as a name
+        """Try to update location using different value types as a name
 
         @Feature: Location
 
@@ -427,7 +427,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_with_user_by_id(self):
-        """@Test: Create new location with assigned user to it. Try to update
+        """Create new location with assigned user to it. Try to update
         that location and change assigned user on another one. Use user id as a
         parameter
 
@@ -449,7 +449,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_with_subnet_by_name(self):
-        """@Test: Create new location with assigned subnet to it. Try to update
+        """Create new location with assigned subnet to it. Try to update
         that location and change assigned subnet on another one. Use subnet
         name as a parameter
 
@@ -473,7 +473,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_from_compresources_to_compresource(self):
-        """@Test: Create location with multiple (not less than three) compute
+        """Create location with multiple (not less than three) compute
         resources assigned to it. Try to update location and overwrite all
         compute resources with a new single compute resource. Use compute
         resource id as a parameter
@@ -505,7 +505,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_from_hostgroups_to_hostgroups(self):
-        """@Test: Create location with multiple (three) host groups assigned to
+        """Create location with multiple (three) host groups assigned to
         it. Try to update location and overwrite all host groups by new
         multiple (two) host groups. Use host groups name as a parameter
 
@@ -534,7 +534,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_with_name(self):
-        """@Test: Try to update location using invalid names only
+        """Try to update location using invalid names only
 
         @Feature: Location
 
@@ -552,7 +552,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_with_domain_by_id(self):
-        """@Test: Try to update existing location with incorrect domain. Use
+        """Try to update existing location with incorrect domain. Use
         domain id as a parameter
 
         @Feature: Location
@@ -569,7 +569,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_with_template_by_name(self):
-        """@Test: Try to update existing location with incorrect config
+        """Try to update existing location with incorrect config
         template. Use template name as a parameter
 
         @Feature: Location
@@ -586,7 +586,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_name(self):
-        """@Test: Try to delete location using name of that location as a
+        """Try to delete location using name of that location as a
         parameter. Use different value types for testing.
 
         @Feature: Location
@@ -604,7 +604,7 @@ class LocationTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Try to delete location using id of that location as a
+        """Try to delete location using id of that location as a
         parameter
 
         @Feature: Location

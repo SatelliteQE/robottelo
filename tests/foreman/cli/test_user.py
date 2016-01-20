@@ -30,7 +30,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create User for all variations of Username
+        """Create User for all variations of Username
 
         @Feature: User - Positive Create
 
@@ -44,7 +44,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_firstname(self):
-        """@Test: Create User for all variations of First Name
+        """Create User for all variations of First Name
 
         @Feature: User - Positive Create
 
@@ -58,7 +58,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_surname(self):
-        """@Test: Create User for all variations of Surname
+        """Create User for all variations of Surname
 
         @Feature: User - Positive Create
 
@@ -72,7 +72,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_email(self):
-        """@Test: Create User for all variations of Email Address
+        """Create User for all variations of Email Address
 
         @Feature: User - Positive Create
 
@@ -88,7 +88,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_password(self):
-        """@Test: Create User for all variations of Password
+        """Create User for all variations of Password
 
         @Feature: User - Positive Create
 
@@ -102,7 +102,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_admin(self):
-        """@Test: Create an Admin user
+        """Create an Admin user
 
         @Feature: User - Positive Create
 
@@ -113,7 +113,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_default_loc(self):
-        """@Test: Check if user with default location can be created
+        """Check if user with default location can be created
 
         @Feature: User - Positive create
 
@@ -129,7 +129,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_defaut_org(self):
-        """@Test: Check if user with default organization can be created
+        """Check if user with default organization can be created
 
         @Feature: User - Positive create
 
@@ -146,7 +146,7 @@ class UserTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1138553)
     @tier2
     def test_positive_add_role(self):
-        """@Test: Add role to User for all variations of role names
+        """Add role to User for all variations of role names
 
         @Feature: User - Add role
 
@@ -169,7 +169,7 @@ class UserTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1138553)
     @tier2
     def test_positive_remove_role(self):
-        """@Test: Remove role from User for all variations of role names
+        """Remove role from User for all variations of role names
 
         @Feature: User - Remove role
 
@@ -198,7 +198,7 @@ class UserTestCase(CLITestCase):
     @stubbed()
     @tier2
     def test_positive_add_roles(self):
-        """@Test: Add multiple roles to User
+        """Add multiple roles to User
 
         @Feature: User - Add role
 
@@ -210,7 +210,7 @@ class UserTestCase(CLITestCase):
     @stubbed()
     @tier2
     def test_positive_add_all_default_roles(self):
-        """@Test: Create User and assign all available default roles to it
+        """Create User and assign all available default roles to it
 
         @Feature: User - Add role
 
@@ -221,7 +221,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_org(self):
-        """@Test: Create User associated to one Organization
+        """Create User associated to one Organization
 
         @Feature: User - Positive Create
 
@@ -233,7 +233,7 @@ class UserTestCase(CLITestCase):
 
     @tier2
     def test_positive_create_with_orgs(self):
-        """@Test: Create User associated to multiple Organizations
+        """Create User associated to multiple Organizations
 
         @Feature: User - Positive Create
 
@@ -249,7 +249,7 @@ class UserTestCase(CLITestCase):
     @stubbed()
     @tier2
     def test_positive_create_in_ldap_modes(self):
-        """@Test: Create User in supported ldap modes
+        """Create User in supported ldap modes
 
         @Feature: User - Positive Create
 
@@ -264,7 +264,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_invalid_username(self):
-        """@Test: Create User with invalid Username
+        """Create User with invalid Username
 
         @Feature: User - Negative Create
 
@@ -287,7 +287,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_invalid_firstname(self):
-        """@Test: Create User with invalid First Name
+        """Create User with invalid First Name
 
         @Feature: User - Negative Create
 
@@ -307,7 +307,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_invalid_lastname(self):
-        """@Test: Create User with invalid lastname
+        """Create User with invalid lastname
 
         @Feature: User - Negative Create
 
@@ -327,7 +327,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_invalid_email(self):
-        """@Test: Create User with invalid Email Address
+        """Create User with invalid Email Address
 
         @Feature: User - Negative Create
 
@@ -348,7 +348,7 @@ class UserTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1204686)
     @tier1
     def test_negative_create_with_empty_email(self):
-        """@Test: Create User with empty Email Address
+        """Create User with empty Email Address
 
         @Feature: User - Negative Create
 
@@ -368,7 +368,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_blank_authorized_by(self):
-        """@Test: Create User with blank Authorized by
+        """Create User with blank Authorized by
 
         @Feature: User - Negative Create
 
@@ -383,7 +383,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_blank_authorized_by_full(self):
-        """@Test: Create User with blank Authorized by but having matching
+        """Create User with blank Authorized by but having matching
         values in Password and verify fields and using valid Username, First
         Name, Surname, Email Address, Language
 
@@ -401,7 +401,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_firstname(self):
-        """@Test: Update firstname value for existing User
+        """Update firstname value for existing User
 
         @Feature: User - Positive Update
 
@@ -420,7 +420,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_username(self):
-        """@Test: Update username value for existing User
+        """Update username value for existing User
 
         @Feature: User - Positive Update
 
@@ -439,7 +439,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_lastname(self):
-        """@Test: Update Last Name value for existing User
+        """Update Last Name value for existing User
 
         @Feature: User - Positive Update
 
@@ -458,7 +458,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_email(self):
-        """@Test: Update Email Address value for existing User
+        """Update Email Address value for existing User
 
         @Feature: User - Positive Update
 
@@ -477,7 +477,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_password(self):
-        """@Test: Update Password/Verify fields for existing User
+        """Update Password/Verify fields for existing User
 
         @Feature: User - Positive Update
 
@@ -495,7 +495,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_to_non_admin(self):
-        """@Test: Convert an user from an admin user to non-admin user
+        """Convert an user from an admin user to non-admin user
 
         @Feature: User - Positive Update
 
@@ -512,7 +512,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_to_admin(self):
-        """@Test: Convert usual user to an admin user
+        """Convert usual user to an admin user
 
         @Feature: User - Positive Update
 
@@ -530,7 +530,7 @@ class UserTestCase(CLITestCase):
     @stubbed()
     @tier1
     def test_positive_update_role(self):
-        """@Test: Update User with one role
+        """Update User with one role
 
         @Feature: User - Positive Update
 
@@ -542,7 +542,7 @@ class UserTestCase(CLITestCase):
     @stubbed()
     @tier2
     def test_positive_update_roles(self):
-        """@Test: Update User with multiple roles
+        """Update User with multiple roles
 
         @Feature: User - Positive Update
 
@@ -554,7 +554,7 @@ class UserTestCase(CLITestCase):
     @stubbed()
     @tier2
     def test_positive_update_all_roles(self):
-        """@Test: Update User with all roles
+        """Update User with all roles
 
         @Feature: User - Positive Update
 
@@ -565,7 +565,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_org(self):
-        """@Test: Assign a User to an Org
+        """Assign a User to an Org
 
         @Feature: User - Positive Update
 
@@ -582,7 +582,7 @@ class UserTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_orgs(self):
-        """@Test: Assign a User to multiple Orgs
+        """Assign a User to multiple Orgs
 
         @Feature: User - Positive Update
 
@@ -602,7 +602,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_username(self):
-        """@Test: Try to update User using invalid Username
+        """Try to update User using invalid Username
 
         @Feature: User - Negative Update
 
@@ -619,7 +619,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_firstname(self):
-        """@Test: Try to update User using invalid First Name
+        """Try to update User using invalid First Name
 
         @Feature: User - Negative Update
 
@@ -638,7 +638,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_surname(self):
-        """@Test: Try to update User using invalid Last Name
+        """Try to update User using invalid Last Name
 
         @Feature: User - Negative Update
 
@@ -656,7 +656,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_email(self):
-        """@Test: Try to update User using invalid Email Address
+        """Try to update User using invalid Email Address
 
         @Feature: User - Negative Update
 
@@ -673,7 +673,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_name(self):
-        """@Test: Create an user and then delete it using its name
+        """Create an user and then delete it using its name
 
         @Feature: User - Positive Delete
 
@@ -689,7 +689,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Create an user and then delete it using its id
+        """Create an user and then delete it using its id
 
         @Feature: User - Positive Delete
 
@@ -703,7 +703,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_admin(self):
-        """@Test: Delete an admin user
+        """Delete an admin user
 
         @Feature: User - Positive Delete
 
@@ -719,7 +719,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_negative_delete_internal_admin(self):
-        """@Test: Attempt to delete internal admin user
+        """Attempt to delete internal admin user
 
         @Feature: User - Negative Delete
 
@@ -732,7 +732,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_list_username(self):
-        """@Test: List User for all variations of Username
+        """List User for all variations of Username
 
         @Feature: User - list
 
@@ -755,7 +755,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_list_firstname(self):
-        """@Test: List User for all variations of First Name
+        """List User for all variations of First Name
 
         @Feature: User - list
 
@@ -777,7 +777,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_list_surname(self):
-        """@Test: List User for all variations of Surname
+        """List User for all variations of Surname
 
         @Feature: User - list
 
@@ -799,7 +799,7 @@ class UserTestCase(CLITestCase):
 
     @tier1
     def test_positive_list_email(self):
-        """@Test: List User for all variations of Email Address
+        """List User for all variations of Email Address
 
         @Feature: User - list
 
@@ -825,7 +825,7 @@ class UserTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1204667)
     @tier1
     def test_positive_create_with_email_utf8_latin(self):
-        """@Test: List User for utf-8,latin variations of Email Address
+        """List User for utf-8,latin variations of Email Address
 
         @Feature: User - list
 
@@ -851,7 +851,7 @@ class UserTestCase(CLITestCase):
     @stubbed()
     @tier3
     def test_positive_end_to_end(self):
-        """@Test: Create User and perform different operations
+        """Create User and perform different operations
 
         @Feature: User - End to End
 
@@ -872,7 +872,7 @@ class UserTestCase(CLITestCase):
     @stubbed()
     @tier3
     def test_positive_end_to_end_without_org(self):
-        """@Test: Create User with no Org assigned and attempt different
+        """Create User with no Org assigned and attempt different
 
         @Feature: User - End to End
 

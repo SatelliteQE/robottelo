@@ -18,7 +18,7 @@ class ArchitectureTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Successfully creates an Architecture.
+        """Successfully creates an Architecture.
 
         @Feature: Architecture
 
@@ -31,7 +31,7 @@ class ArchitectureTestCase(CLITestCase):
 
     @tier1
     def test_negative_create_with_name(self):
-        """@Test: Don't create an Architecture with invalid data.
+        """Don't create an Architecture with invalid data.
 
         @Feature: Architecture
 
@@ -44,7 +44,7 @@ class ArchitectureTestCase(CLITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Successfully update an Architecture.
+        """Successfully update an Architecture.
 
         @Feature: Architecture
 
@@ -63,7 +63,7 @@ class ArchitectureTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_update_name(self):
-        """@test: Create Architecture then fail to update its name
+        """Create Architecture then fail to update its name
 
         @feature: Architecture
 
@@ -83,7 +83,7 @@ class ArchitectureTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete_by_id(self):
-        """@test: Create Architecture with valid values then delete it
+        """Create Architecture with valid values then delete it
         by ID
 
         @feature: Architecture
@@ -100,7 +100,7 @@ class ArchitectureTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_delete_by_id(self):
-        """@test: Create Architecture then delete it by wrong ID
+        """Create Architecture then delete it by wrong ID
 
         @feature: Architecture
 

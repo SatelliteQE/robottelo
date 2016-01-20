@@ -15,7 +15,7 @@ class RepositorySetTestCase(CLITestCase):
 
     @tier1
     def test_positive_list_available_repositories(self):
-        """@Test: List available repositories for repository-set
+        """List available repositories for repository-set
 
         @Feature: Repository-set
 
@@ -127,7 +127,7 @@ class RepositorySetTestCase(CLITestCase):
 
     @tier1
     def test_positive_enable_by_name(self):
-        """@Test: Enable repo from reposet by names of reposet, org and product
+        """Enable repo from reposet by names of reposet, org and product
 
         @Feature: Repository-set
 
@@ -162,7 +162,7 @@ class RepositorySetTestCase(CLITestCase):
 
     @tier1
     def test_positive_enable_by_label(self):
-        """@Test: Enable repo from reposet by org label, reposet and product
+        """Enable repo from reposet by org label, reposet and product
         names
 
         @Feature: Repository-set
@@ -198,7 +198,7 @@ class RepositorySetTestCase(CLITestCase):
 
     @tier1
     def test_positive_enable_by_id(self):
-        """@Test: Enable repo from reposet by IDs of reposet, org and product
+        """Enable repo from reposet by IDs of reposet, org and product
 
         @Feature: Repository-set
 
@@ -242,7 +242,7 @@ class RepositorySetTestCase(CLITestCase):
 
     @tier1
     def test_positive_disable_by_name(self):
-        """@Test: Disable repo from reposet by names of reposet, org and
+        """Disable repo from reposet by names of reposet, org and
         product
 
         @Feature: Repository-set
@@ -285,7 +285,7 @@ class RepositorySetTestCase(CLITestCase):
 
     @tier1
     def test_positive_disable_by_label(self):
-        """@Test: Disable repo from reposet by org label, reposet and product
+        """Disable repo from reposet by org label, reposet and product
         names
 
         @Feature: Repository-set
@@ -328,7 +328,7 @@ class RepositorySetTestCase(CLITestCase):
 
     @tier1
     def test_positive_disable_by_id(self):
-        """@Test: Disable repo from reposet by IDs of reposet, org and product
+        """Disable repo from reposet by IDs of reposet, org and product
 
         @Feature: Repository-set
 

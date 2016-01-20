@@ -22,7 +22,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name_content(self):
-        """@Test: Create a Partition Table with name and content
+        """Create a Partition Table with name and content
 
         @Assert: Partition Table is created and has correct name and content
 
@@ -33,7 +33,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_content(self):
-        """@Test: Create a Partition Table with content
+        """Create a Partition Table with content
 
         @Feature: Partition Table
 
@@ -47,7 +47,7 @@ class PartitionTableUpdateCreateTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
-        """@Test: Create a Partition Table and update its name
+        """Create a Partition Table and update its name
 
         @Feature: Partition Table
 
@@ -68,7 +68,7 @@ class PartitionTableDeleteTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Create a Partition Table then delete it by its ID
+        """Create a Partition Table then delete it by its ID
 
         @Feature: Partition Table
 
@@ -83,7 +83,7 @@ class PartitionTableDeleteTestCase(CLITestCase):
     # pylint: disable=no-self-use
     @tier2
     def test_positive_add_os_by_id(self):
-        """@Test: Create a partition table then add an operating system to it
+        """Create a partition table then add an operating system to it
 
         @Feature: Partition Table
 
@@ -100,7 +100,7 @@ class PartitionTableDeleteTestCase(CLITestCase):
 
     @tier2
     def test_positive_remove_os_by_id(self):
-        """@Test: Add an operating system to a partition table then remove it
+        """Add an operating system to a partition table then remove it
 
         @Feature: Partition Table
 

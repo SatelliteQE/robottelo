@@ -21,7 +21,7 @@ class CapsuleTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_url(self):
-        """@Test: Proxy creation with random URL
+        """Proxy creation with random URL
 
         @Feature: Smart Proxy
 
@@ -38,7 +38,7 @@ class CapsuleTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Proxy creation with the home proxy
+        """Proxy creation with the home proxy
 
         @Feature: Smart Proxy
 
@@ -52,7 +52,7 @@ class CapsuleTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_delete_by_id(self):
-        """@Test: Proxy deletion with the home proxy
+        """Proxy deletion with the home proxy
 
         @Feature: Smart Proxy
 
@@ -68,7 +68,7 @@ class CapsuleTestCase(CLITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
-        """@Test: Proxy name update with the home proxy
+        """Proxy name update with the home proxy
 
         @Feature: Smart Proxy
 
@@ -90,7 +90,7 @@ class CapsuleTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_refresh_features_by_id(self):
-        """@Test: Refresh smart proxy features, search for proxy by id
+        """Refresh smart proxy features, search for proxy by id
 
         @Feature: Smart Proxy
 
@@ -102,7 +102,7 @@ class CapsuleTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_refresh_features_by_name(self):
-        """@Test: Refresh smart proxy features, search for proxy by name
+        """Refresh smart proxy features, search for proxy by name
 
         @Feature: Smart Proxy
 
@@ -117,7 +117,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_provision(self):
-        """@Test: User can provision through a capsule
+        """User can provision through a capsule
 
         @Feature: Capsules
 
@@ -139,7 +139,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_register(self):
-        """@Test: User can register system through proxy-enabled capsule
+        """User can register system through proxy-enabled capsule
 
         @Feature: Capsules
 
@@ -154,7 +154,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_unregister(self):
-        """@Test: User can unregister system through proxy-enabled capsule
+        """User can unregister system through proxy-enabled capsule
 
         @Feature: Capsules
 
@@ -169,7 +169,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_subscribe(self):
-        """@Test: User can subscribe system to content through proxy-enabled
+        """User can subscribe system to content through proxy-enabled
         capsule
 
         @Feature: Capsules
@@ -189,7 +189,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_consume_content(self):
-        """@Test: User can consume content on system, from a content source,
+        """User can consume content on system, from a content source,
         through proxy-enabled capsule
 
         @Feature: Capsules
@@ -211,7 +211,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_unsubscribe(self):
-        """@Test: User can unsubscribe system from content through
+        """User can unsubscribe system from content through
         proxy-enabled capsule
 
         @Feature: Capsules
@@ -233,7 +233,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_reregister_with_capsule_cert(self):
-        """@Test: system can register via capsule using cert provided by
+        """system can register via capsule using cert provided by
         the capsule itself.
 
         @Feature: Capsules
@@ -255,7 +255,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_ssl_capsule(self):
-        """@Test: Assure SSL functionality for capsules
+        """Assure SSL functionality for capsules
 
         @Feature: Capsules
 
@@ -275,7 +275,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_enable_bmc(self):
-        """@Test: Enable BMC feature on smart-proxy
+        """Enable BMC feature on smart-proxy
 
         @Feature: Capsules
 

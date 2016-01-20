@@ -11,7 +11,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_install_by_hc_id_and_org_id(self):
-        """@Test: Using hc-id and org id to install an erratum in a hc
+        """Using hc-id and org id to install an erratum in a hc
 
         @Feature: Errata
 
@@ -30,7 +30,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_install_by_hc_id_and_org_name(self):
-        """@Test: Using hc-id and org name to install an erratum in a hc
+        """Using hc-id and org name to install an erratum in a hc
 
         @Feature: Errata
 
@@ -49,7 +49,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_install_by_hc_id_and_org_label(self):
-        """@Test: Use hc-id and org label to install an erratum in a hc
+        """Use hc-id and org label to install an erratum in a hc
 
         @Feature: Errata
 
@@ -68,7 +68,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_install_by_hc_name_and_org_id(self):
-        """@Test: Use hc-name and org id to install an erratum in a hc
+        """Use hc-name and org id to install an erratum in a hc
 
         @Feature: Errata
 
@@ -87,7 +87,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_install_by_hc_name_and_org_name(self):
-        """@Test: Use hc name and org name to install an erratum in a hc
+        """Use hc name and org name to install an erratum in a hc
 
         @Feature: Errata
 
@@ -106,7 +106,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_install_by_hc_name_and_org_label(self):
-        """@Test: Use hc-name and org label to install an erratum in a hc
+        """Use hc-name and org label to install an erratum in a hc
 
         @Feature: Errata
 
@@ -125,7 +125,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @stubbed()
     def test_negative_install_by_hc_id_without_errata_info(self):
-        """@Test: Attempt to install an erratum in a hc using hc-id and not
+        """Attempt to install an erratum in a hc using hc-id and not
         specifying the erratum info
 
         @Feature: Errata
@@ -144,7 +144,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @stubbed()
     def test_negative_install_by_hc_name_without_errata_info(self):
-        """@Test: Attempt to install an erratum in a hc using hc-name and not
+        """Attempt to install an erratum in a hc using hc-name and not
         specifying the erratum info
 
         @Feature: Errata
@@ -164,7 +164,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @stubbed()
     def test_negative_install_without_hc_info(self):
-        """@Test: Attempt to install an erratum in a hc by not specifying hc
+        """Attempt to install an erratum in a hc by not specifying hc
         info
 
         @Feature: Errata
@@ -184,7 +184,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @stubbed()
     def test_negative_install_by_hc_id_without_org_info(self):
-        """@Test: Attempt to install an erratum in a hc using hc-id and not
+        """Attempt to install an erratum in a hc using hc-id and not
         specifying org info
 
         @Feature: Errata
@@ -203,7 +203,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 
     @stubbed()
     def test_negative_install_by_hc_name_without_org_info(self):
-        """@Test: Attempt to install an erratum in a hc without specifying org
+        """Attempt to install an erratum in a hc without specifying org
         info
 
         @Feature: Errata
@@ -224,7 +224,7 @@ class HostCollectionErrataInstallTestCase(CLITestCase):
 class ErrataTestCase(CLITestCase):
     @stubbed()
     def test_positive_list_sort_by_issued_date(self):
-        """@Test: Sort errata by Issued date
+        """Sort errata by Issued date
 
         @Feature: Errata
 
@@ -243,7 +243,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_org_id_and_sort_by_updated_date(self):
-        """@Test: Filter errata by org id and sort by updated date
+        """Filter errata by org id and sort by updated date
 
         @Feature: Errata
 
@@ -262,7 +262,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_org_name_and_sort_by_updated_date(self):
-        """@Test: Filter errata by org name and sort by updated date
+        """Filter errata by org name and sort by updated date
 
         @Feature: Errata
 
@@ -281,7 +281,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_org_label_and_sort_by_updated_date(self):
-        """@Test: Filter errata by org label and sort by updated date
+        """Filter errata by org label and sort by updated date
 
         @Feature: Errata
 
@@ -300,7 +300,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_org_id_and_sort_by_issued_date(self):
-        """@Test: Filter errata by org id and sort by issued date
+        """Filter errata by org id and sort by issued date
 
         @Feature: Errata
 
@@ -319,7 +319,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_org_name_and_sort_by_issued_date(self):
-        """@Test: Filter errata by org name and sort by issued date
+        """Filter errata by org name and sort by issued date
 
         @Feature: Errata
 
@@ -338,7 +338,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_org_label_and_sort_by_issued_date(self):
-        """@Test: Filter errata by org label and sort by issued date
+        """Filter errata by org label and sort by issued date
 
         @Feature: Errata
 
@@ -357,7 +357,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_product_id(self):
-        """@Test: Filter errata by product id
+        """Filter errata by product id
 
         @Feature: Errata
 
@@ -375,7 +375,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_product_id_and_org_id(self):
-        """@Test: Filter errata by product id and Org id
+        """Filter errata by product id and Org id
 
         @Feature: Errata
 
@@ -393,7 +393,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_product_id_and_org_name(self):
-        """@Test: Filter errata by product id and Org name
+        """Filter errata by product id and Org name
 
         @Feature: Errata
 
@@ -411,7 +411,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_product_id_and_org_label(self):
-        """@Test: Filter errata by product id and Org label
+        """Filter errata by product id and Org label
 
         @Feature: Errata
 
@@ -430,7 +430,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_product_name(self):
-        """@Test: Filter errata by product name
+        """Filter errata by product name
 
         @Feature: Errata
 
@@ -448,7 +448,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_product_name_and_org_id(self):
-        """@Test: Filter errata by product name and Org id
+        """Filter errata by product name and Org id
 
         @Feature: Errata
 
@@ -466,7 +466,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_product_name_and_org_name(self):
-        """@Test: Filter errata by product name and Org name
+        """Filter errata by product name and Org name
 
         @Feature: Errata
 
@@ -484,7 +484,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_product_name_and_org_label(self):
-        """@Test: Filter errata by product name and Org label
+        """Filter errata by product name and Org label
 
         @Feature: Errata
 
@@ -503,7 +503,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_org_id(self):
-        """@Test: Filter errata by Org id
+        """Filter errata by Org id
 
         @Feature: Errata
 
@@ -521,7 +521,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_org_name(self):
-        """@Test: Filter errata by Org name
+        """Filter errata by Org name
 
         @Feature: Errata
 
@@ -539,7 +539,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_org_label(self):
-        """@Test: Filter errata by Org label
+        """Filter errata by Org label
 
         @Feature: Errata
 
@@ -557,7 +557,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_filter_by_cve(self):
-        """@Test: Filter errata by CVE
+        """Filter errata by CVE
 
         @Feature: Errata
 
@@ -575,7 +575,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_user_permission(self):
-        """@Test: Show errata only if the User has permissions to view them
+        """Show errata only if the User has permissions to view them
 
         @Feature: Errata
 
@@ -598,7 +598,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_affected_chosts(self):
-        """@Test: View a list of affected content hosts for an erratum
+        """View a list of affected content hosts for an erratum
 
         @Feature: Errata
 
@@ -617,7 +617,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_list_affected_chosts_by_erratum_restrict_flag(self):
-        """@Test: View a list of affected content hosts for an erratum filtered
+        """View a list of affected content hosts for an erratum filtered
         with restrict flags
 
         @Feature: Errata
@@ -644,7 +644,7 @@ class ErrataTestCase(CLITestCase):
 
     @stubbed()
     def test_positive_view_available_count_in_affected_chosts(self):
-        """@Test: Available errata count displayed while viewing a list of
+        """Available errata count displayed while viewing a list of
         Content hosts
 
         @Feature: Errata

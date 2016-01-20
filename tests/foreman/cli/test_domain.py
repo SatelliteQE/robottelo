@@ -101,7 +101,7 @@ class DomainTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_name_description(self):
-        """@Test: Create domain with valid name and description
+        """Create domain with valid name and description
 
         @Feature: Domain positive create
 
@@ -118,7 +118,7 @@ class DomainTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_loc(self):
-        """@Test: Check if domain with location can be created
+        """Check if domain with location can be created
 
         @Feature: Domain - Positive create
 
@@ -132,7 +132,7 @@ class DomainTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_org(self):
-        """@Test: Check if domain with organization can be created
+        """Check if domain with organization can be created
 
         @Feature: Domain - Positive create
 
@@ -146,7 +146,7 @@ class DomainTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_create(self):
-        """@Test: Create domain with invalid values
+        """Create domain with invalid values
 
         @Feature: Domain negative create
 
@@ -161,7 +161,7 @@ class DomainTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update(self):
-        """@Test: Update domain with valid values
+        """Update domain with valid values
 
         @Feature: Domain positive update
 
@@ -183,7 +183,7 @@ class DomainTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_update(self):
-        """@Test: Update domain with invalid values
+        """Update domain with invalid values
 
         @Feature: Domain negative update
 
@@ -203,7 +203,7 @@ class DomainTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_set_parameter(self):
-        """@Test: Domain set-parameter with valid key and value
+        """Domain set-parameter with valid key and value
 
         @Feature: Domain positive set-parameter
 
@@ -225,7 +225,7 @@ class DomainTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_set_parameter(self):
-        """@Test: Domain set-parameter with invalid values
+        """Domain set-parameter with invalid values
 
         @Feature: Domain negative set-parameter
 
@@ -246,7 +246,7 @@ class DomainTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete_by_id(self):
-        """@test: Create Domain with valid values then delete it
+        """Create Domain with valid values then delete it
         by ID
 
         @feature: Domain
@@ -263,7 +263,7 @@ class DomainTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_delete_by_id(self):
-        """@test: Create Domain then delete it by wrong ID
+        """Create Domain then delete it by wrong ID
 
         @feature: Domain
 
@@ -277,7 +277,7 @@ class DomainTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete_parameter(self):
-        """@Test: Domain delete-parameter removes parameter
+        """Domain delete-parameter removes parameter
 
         @Feature: Domain positive delete-parameter
 
