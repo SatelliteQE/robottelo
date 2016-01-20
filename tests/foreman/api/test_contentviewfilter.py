@@ -40,7 +40,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_get_with_no_args(self):
-        """@Test: Issue an HTTP GET to the base content view filters path.
+        """Issue an HTTP GET to the base content view filters path.
 
         @Feature: ContentViewFilter
 
@@ -62,7 +62,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_get_with_bad_args(self):
-        """@Test: Issue an HTTP GET to the base content view filters path.
+        """Issue an HTTP GET to the base content view filters path.
 
         @Feature: ContentViewFilter
 
@@ -249,7 +249,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_create_with_invalid_name(self):
-        """@Test: Try to create content view filter using invalid names only
+        """Try to create content view filter using invalid names only
 
         @Assert: Content view filter was not created
 
@@ -266,7 +266,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_create_with_same_name(self):
-        """@Test: Try to create content view filter using same name twice
+        """Try to create content view filter using same name twice
 
         @Assert: Second content view filter was not created
 
@@ -283,7 +283,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_create_without_cv(self):
-        """@Test: Try to create content view filter without providing content
+        """Try to create content view filter without providing content
         view
 
         @Assert: Content view filter is not created
@@ -296,7 +296,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_create_with_invalid_repo_id(self):
-        """@Test: Try to create content view filter using incorrect repository
+        """Try to create content view filter using incorrect repository
         id
 
         @Assert: Content view filter is not created
@@ -312,7 +312,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_delete_by_id(self):
-        """@Test: Delete content view filter
+        """Delete content view filter
 
         @Assert: Content view filter was deleted
 
@@ -328,7 +328,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_update_name(self):
-        """@Test: Update content view filter with new name
+        """Update content view filter with new name
 
         @Assert: Content view filter updated successfully and name was changed
 
@@ -345,7 +345,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_update_description(self):
-        """@Test: Update content view filter with new description
+        """Update content view filter with new description
 
         @Assert: Content view filter updated successfully and description was
         changed
@@ -489,7 +489,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_update_name(self):
-        """@Test: Try to update content view filter using invalid names only
+        """Try to update content view filter using invalid names only
 
         @Assert: Content view filter was not updated
 
@@ -507,7 +507,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_update_same_name(self):
-        """@Test: Try to update content view filter's name to already used one
+        """Try to update content view filter's name to already used one
 
         @Assert: Content view filter was not updated
 
@@ -528,7 +528,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_update_cv_by_id(self):
-        """@Test: Try to update content view filter using incorrect content
+        """Try to update content view filter using incorrect content
         view ID
 
         @Assert: Content view filter was not updated
@@ -545,7 +545,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_update_repo_by_id(self):
-        """@Test: Try to update content view filter using incorrect repository
+        """Try to update content view filter using incorrect repository
         ID
 
         @Assert: Content view filter was not updated
@@ -594,7 +594,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1242534)
     def test_positive_search_erratum(self):
-        """@Test: Search for an erratum content view filter's rules.
+        """Search for an erratum content view filter's rules.
 
         @Assert: The search completes with no errors.
 
@@ -607,7 +607,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
 
     @tier1
     def test_positive_search_package_group(self):
-        """@Test: Search for an package group content view filter's rules.
+        """Search for an package group content view filter's rules.
 
         @Assert: The search completes with no errors.
 
@@ -620,7 +620,7 @@ class ContentViewFilterSearchTestCase(APITestCase):
 
     @tier1
     def test_positive_search_rpm(self):
-        """@Test: Search for an rpm content view filter's rules.
+        """Search for an rpm content view filter's rules.
 
         @Assert: The search completes with no errors.
 

@@ -20,7 +20,7 @@ class HostGroupTestCase(APITestCase):
     @tier3
     @skip_if_bug_open('bugzilla', 1222118)
     def test_verify_bugzilla_1107708(self):
-        """@Test: Host that created from HostGroup entity with PuppetClass
+        """Host that created from HostGroup entity with PuppetClass
         assigned to it should inherit such puppet class information under
         'all_puppetclasses' field
 
@@ -172,7 +172,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
     @tier1
     def test_positive_get_content_source(self):
-        """@Test: Read a host group. Inspect the server's response.
+        """Read a host group. Inspect the server's response.
 
         @Assert: The response contains some value for the ``content_source``
         field.
@@ -188,7 +188,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
     @tier1
     def test_positive_get_cv(self):
-        """@Test: Read a host group. Inspect the server's response.
+        """Read a host group. Inspect the server's response.
 
         @Assert: The response contains some value for the ``content_view``
         field.
@@ -204,7 +204,7 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
     @tier1
     def test_positive_get_lce(self):
-        """@Test: Read a host group. Inspect the server's response.
+        """Read a host group. Inspect the server's response.
 
         @Assert: The response contains some value for the
         ``lifecycle_environment`` field.

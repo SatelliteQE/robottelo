@@ -41,7 +41,7 @@ class ProductTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_name_and_description(self):
-        """@Test: Create a product and provide a name or description.
+        """Create a product and provide a name or description.
 
         @Assert: A product is created with the provided attributes.
 
@@ -56,7 +56,7 @@ class ProductTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_create_with_gpg(self):
-        """@Test: Create a product and provide a GPG key.
+        """Create a product and provide a GPG key.
 
         @Assert: A product is created with the specified GPG key.
 
@@ -89,7 +89,7 @@ class ProductUpdateTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_name_and_description(self):
-        """@Test: Update a product with a new name or description.
+        """Update a product with a new name or description.
 
         @Assert: The given attributes are used.
 
@@ -107,7 +107,7 @@ class ProductUpdateTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_name_to_original(self):
-        """@Test: Rename Product back to original name
+        """Rename Product back to original name
 
         @Feature: Product
 
@@ -136,7 +136,7 @@ class RepositorySetTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_reposet_enable(self):
-        """@Test: Enable repo from reposet
+        """Enable repo from reposet
 
         @Feature: Repository-set
 
@@ -166,7 +166,7 @@ class RepositorySetTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_reposet_disable(self):
-        """@Test: Disable repo from reposet
+        """Disable repo from reposet
 
         @Feature: Repository-set
 

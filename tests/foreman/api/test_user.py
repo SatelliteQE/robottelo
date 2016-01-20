@@ -45,7 +45,7 @@ class UserTestCase(APITestCase):
 
     @tier1
     def test_positive_create(self):
-        """@Test: Create a user with attributes ``attrs`` and delete it.
+        """Create a user with attributes ``attrs`` and delete it.
 
         @Assert: The created user has the given attributes.
 
@@ -59,7 +59,7 @@ class UserTestCase(APITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Create a user with attributes ``attrs`` and delete it.
+        """Create a user with attributes ``attrs`` and delete it.
 
         @Assert: The user cannot be fetched after deletion.
 
@@ -74,7 +74,7 @@ class UserTestCase(APITestCase):
 
     @tier1
     def test_positive_update_admin(self):
-        """@Test: Update a user and provide the ``admin`` attribute.
+        """Update a user and provide the ``admin`` attribute.
 
         @Assert: The user's ``admin`` attribute is updated.
 
@@ -100,7 +100,7 @@ class UserRoleTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_role(self):
-        """@Test: Create a user with the ``role`` attribute.
+        """Create a user with the ``role`` attribute.
 
         @Assert: A user is created with the given role(s) and the default
         'Anonymous' role.
@@ -121,7 +121,7 @@ class UserRoleTestCase(APITestCase):
 
     @tier1
     def test_positive_update(self):
-        """@Test: Update an existing user and give it roles.
+        """Update an existing user and give it roles.
 
         @Assert: The user has whatever roles are given, plus the 'Anonymous'
         role.

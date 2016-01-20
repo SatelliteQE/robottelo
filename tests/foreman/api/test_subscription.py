@@ -18,7 +18,7 @@ class SubscriptionsTestCase(APITestCase):
     @skip_if_not_set('fake_manifest')
     @tier1
     def test_positive_create(self):
-        """@Test: Upload a manifest.
+        """Upload a manifest.
 
         @Assert: Manifest is uploaded successfully
 
@@ -31,7 +31,7 @@ class SubscriptionsTestCase(APITestCase):
     @skip_if_not_set('fake_manifest')
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete an Uploaded manifest.
+        """Delete an Uploaded manifest.
 
         @Assert: Manifest is Deleted successfully
 
@@ -48,7 +48,7 @@ class SubscriptionsTestCase(APITestCase):
     @skip_if_not_set('fake_manifest')
     @tier1
     def test_negative_upload(self):
-        """@Test: Upload the same manifest to two organizations.
+        """Upload the same manifest to two organizations.
 
         @Assert: The manifest is not uploaded to the second organization.
 

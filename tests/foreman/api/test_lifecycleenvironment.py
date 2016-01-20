@@ -25,7 +25,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_name(self):
-        """@Test: Create lifecycle environment with valid name only
+        """Create lifecycle environment with valid name only
 
         @Feature: Lifecycle Environment
 
@@ -42,7 +42,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_description(self):
-        """@Test: Create lifecycle environment with valid description
+        """Create lifecycle environment with valid description
 
         @Feature: Lifecycle Environment
 
@@ -58,7 +58,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_prior(self):
-        """@Test: Create lifecycle environment with valid name, prior to
+        """Create lifecycle environment with valid name, prior to
         Library
 
         @Feature: Lifecycle Environment
@@ -73,7 +73,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create lifecycle environment providing an invalid name
+        """Create lifecycle environment providing an invalid name
 
         @Feature: Lifecycle Environment
 
@@ -87,7 +87,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_name(self):
-        """@Test: Create lifecycle environment providing the initial name, then
+        """Create lifecycle environment providing the initial name, then
         update its name to another valid name.
 
         @Feature: Lifecycle Environment
@@ -104,7 +104,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_update_description(self):
-        """@Test: Create lifecycle environment providing the initial
+        """Create lifecycle environment providing the initial
         description, then update its description to another one.
 
         @Feature: Lifecycle Environment
@@ -123,7 +123,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_update_name(self):
-        """@Test: Update lifecycle environment providing an invalid name
+        """Update lifecycle environment providing an invalid name
 
         @Feature: Lifecycle Environment
 
@@ -145,7 +145,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete(self):
-        """@Test: Create lifecycle environment and then delete it.
+        """Create lifecycle environment and then delete it.
 
         @Feature: Lifecycle Environment
 
@@ -159,7 +159,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_search_in_org(self):
-        """@Test: Search for a lifecycle environment and specify an org ID.
+        """Search for a lifecycle environment and specify an org ID.
 
         @Feature: Lifecycle Environment
 

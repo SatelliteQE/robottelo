@@ -18,7 +18,7 @@ class ConfigTemplateTestCase(APITestCase):
     @tier2
     @skip_if_bug_open('bugzilla', 1202564)
     def test_positive_build_pxe_default(self):
-        """@Test: Call the "build_pxe_default" path.
+        """Call the "build_pxe_default" path.
 
         @Assert: The response is a JSON payload.
 
@@ -34,7 +34,7 @@ class ConfigTemplateTestCase(APITestCase):
 
     @tier2
     def test_positive_add_orgs(self):
-        """@Test: Associate a config template with organizations.
+        """Associate a config template with organizations.
 
         @Assert: Config template is associated with organization
 
@@ -68,7 +68,7 @@ class ConfigTemplateTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create a configuration template providing the initial name.
+        """Create a configuration template providing the initial name.
 
         @Assert: Configuration Template is created and contains provided name.
 
@@ -81,7 +81,7 @@ class ConfigTemplateTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create configuration template providing an invalid name.
+        """Create configuration template providing an invalid name.
 
         @Assert: Configuration Template is not created
 
@@ -94,7 +94,7 @@ class ConfigTemplateTestCase(APITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Create configuration template providing the initial name,
+        """Create configuration template providing the initial name,
         then update its name to another valid name.
 
         @Assert: Configuration Template is created, and its name can be
@@ -112,7 +112,7 @@ class ConfigTemplateTestCase(APITestCase):
 
     @tier1
     def test_negative_update_name(self):
-        """@Test: Create configuration template then update its name to an
+        """Create configuration template then update its name to an
         invalid name.
 
         @Assert: Configuration Template is created, and its name is not
@@ -131,7 +131,7 @@ class ConfigTemplateTestCase(APITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Create configuration template and then delete it.
+        """Create configuration template and then delete it.
 
         @Assert: Configuration Template is successfully deleted.
 

@@ -14,7 +14,7 @@ class ArchitectureTestCase(APITestCase):
     @tier2
     @skip_if_bug_open('bugzilla', 1151220)
     def test_positive_post_hash(self):
-        """@Test: Do not wrap API calls in an extra hash.
+        """Do not wrap API calls in an extra hash.
 
         @Assert: It is possible to associate an activation key with an
         organization.
@@ -41,7 +41,7 @@ class ArchitectureTestCase(APITestCase):
 
     @tier2
     def test_positive_add_os(self):
-        """@Test: Create an architecture and associate it with an OS.
+        """Create an architecture and associate it with an OS.
 
         @Assert: The architecture can be created, and the association can be
         read back from the server.
@@ -57,7 +57,7 @@ class ArchitectureTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create an architecture providing the initial name.
+        """Create an architecture providing the initial name.
 
         @Assert: Architecture is created and contains provided name.
 
@@ -70,7 +70,7 @@ class ArchitectureTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create architecture providing an invalid initial name.
+        """Create architecture providing an invalid initial name.
         set.
 
         @Assert: Architecture is not created
@@ -84,7 +84,7 @@ class ArchitectureTestCase(APITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Create architecture then update its name to another
+        """Create architecture then update its name to another
         valid name.
 
         @Assert: Architecture is created, and its name can be updated.
@@ -102,7 +102,7 @@ class ArchitectureTestCase(APITestCase):
 
     @tier1
     def test_negative_update_name(self):
-        """@Test: Create architecture then update its name to an invalid name.
+        """Create architecture then update its name to an invalid name.
 
         @Assert: Architecture is created, and its name is not updated.
 
@@ -119,7 +119,7 @@ class ArchitectureTestCase(APITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Create architecture and then delete it.
+        """Create architecture and then delete it.
 
         @Assert: architecture is successfully deleted.
 

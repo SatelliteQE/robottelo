@@ -47,7 +47,7 @@ class SyncPlanTestCase(APITestCase):
 
     @tier1
     def test_positive_get_routes(self):
-        """@Test: Issue an HTTP GET response to both available routes.
+        """Issue an HTTP GET response to both available routes.
 
         @Assert: The same response is returned.
 
@@ -91,7 +91,7 @@ class SyncPlanCreateTestCase(APITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_enabled_disabled(self):
-        """@Test: Create sync plan with different 'enabled' field values.
+        """Create sync plan with different 'enabled' field values.
 
         @Assert: A sync plan is created, 'enabled' field has correct value.
 
@@ -108,7 +108,7 @@ class SyncPlanCreateTestCase(APITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create a sync plan with a random name.
+        """Create a sync plan with a random name.
 
         @Assert: A sync plan is created with the specified name.
 
@@ -125,7 +125,7 @@ class SyncPlanCreateTestCase(APITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_description(self):
-        """@Test: Create a sync plan with a random description.
+        """Create a sync plan with a random description.
 
         @Assert: A sync plan is created with the specified description.
 
@@ -142,7 +142,7 @@ class SyncPlanCreateTestCase(APITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_interval(self):
-        """@Test: Create a sync plan with a random interval.
+        """Create a sync plan with a random interval.
 
         @Assert: A sync plan is created with the specified interval.
 
@@ -159,7 +159,7 @@ class SyncPlanCreateTestCase(APITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_sync_date(self):
-        """@Test: Create a sync plan and update its sync date.
+        """Create a sync plan and update its sync date.
 
         @Assert: A sync plan can be created with a random sync date.
 
@@ -179,7 +179,7 @@ class SyncPlanCreateTestCase(APITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create a sync plan with an invalid name.
+        """Create a sync plan with an invalid name.
 
         @Assert: A sync plan can not be created with the specified name.
 
@@ -196,7 +196,7 @@ class SyncPlanCreateTestCase(APITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_interval(self):
-        """@Test: Create a sync plan with invalid interval specified.
+        """Create a sync plan with invalid interval specified.
 
         @Assert: A sync plan can not be created with invalid interval specified
 
@@ -213,7 +213,7 @@ class SyncPlanCreateTestCase(APITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_empty_interval(self):
-        """@Test: Create a sync plan with no interval specified.
+        """Create a sync plan with no interval specified.
 
         @Assert: A sync plan can not be created with no interval specified.
 
@@ -238,7 +238,7 @@ class SyncPlanUpdateTestCase(APITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_enabled(self):
-        """@Test: Create sync plan and update it with opposite 'enabled' value.
+        """Create sync plan and update it with opposite 'enabled' value.
 
         @Assert: Sync plan is updated with different 'enabled' value.
 
@@ -259,7 +259,7 @@ class SyncPlanUpdateTestCase(APITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
-        """@Test: Create a sync plan and update its name.
+        """Create a sync plan and update its name.
 
         @Assert: A sync plan is created and its name can be updated with the
         specified name.
@@ -275,7 +275,7 @@ class SyncPlanUpdateTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_description(self):
-        """@Test: Create a sync plan and update its description.
+        """Create a sync plan and update its description.
 
         @Assert: A sync plan is created and its description can be updated with
         the specified description.
@@ -297,7 +297,7 @@ class SyncPlanUpdateTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_interval(self):
-        """@Test: Create a sync plan and update its interval.
+        """Create a sync plan and update its interval.
 
         @Assert: A sync plan is created and its interval can be updated with
         the specified interval.
@@ -322,7 +322,7 @@ class SyncPlanUpdateTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_sync_date(self):
-        """@Test: Updated sync plan's sync date.
+        """Updated sync plan's sync date.
 
         @Assert: Sync date is updated with the specified sync date.
 
@@ -343,7 +343,7 @@ class SyncPlanUpdateTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_update_name(self):
-        """@Test: Try to update a sync plan with an invalid name.
+        """Try to update a sync plan with an invalid name.
 
         @Assert: A sync plan can not be updated with the specified name.
 
@@ -359,7 +359,7 @@ class SyncPlanUpdateTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_update_interval(self):
-        """@Test: Try to update a sync plan with invalid interval.
+        """Try to update a sync plan with invalid interval.
 
         @Assert: A sync plan can not be updated with empty interval specified.
 
@@ -387,7 +387,7 @@ class SyncPlanProductTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_add_product(self):
-        """@Test: Create a sync plan and add one product to it.
+        """Create a sync plan and add one product to it.
 
         @Assert: A sync plan can be created and one product can be added to it.
 
@@ -403,7 +403,7 @@ class SyncPlanProductTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_add_products(self):
-        """@Test: Create a sync plan and add two products to it.
+        """Create a sync plan and add two products to it.
 
         @Assert: A sync plan can be created and two products can be added to
         it.
@@ -428,7 +428,7 @@ class SyncPlanProductTestCase(APITestCase):
     @skip_if_bug_open('bugzilla', 1199150)
     @run_only_on('sat')
     def test_positive_remove_product(self):
-        """@Test: Create a sync plan with two products and then remove one
+        """Create a sync plan with two products and then remove one
         product from it.
 
         @Assert: A sync plan can be created and one product can be removed from
@@ -452,7 +452,7 @@ class SyncPlanProductTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_remove_products(self):
-        """@Test: Create a sync plan with two products and then remove both
+        """Create a sync plan with two products and then remove both
         products from it.
 
         @Assert: A sync plan can be created and both products can be removed
@@ -477,7 +477,7 @@ class SyncPlanProductTestCase(APITestCase):
     @skip_if_bug_open('bugzilla', 1199150)
     @run_only_on('sat')
     def test_positive_repeatedly_add_remove(self):
-        """@Test: Repeatedly add and remove a product from a sync plan.
+        """Repeatedly add and remove a product from a sync plan.
 
         @Assert: A task is returned which can be used to monitor the additions
         and removals.
@@ -511,7 +511,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_synchronize_product(self):
-        """@Test: Create a sync plan with one product and sync it.
+        """Create a sync plan with one product and sync it.
 
         @Assert: A sync plan is created with one product and product can be
         synchronized.
@@ -523,7 +523,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_synchronize_products(self):
-        """@Test: Create a sync plan with two products and sync them.
+        """Create a sync plan with two products and sync them.
 
         @Assert: A sync plan is created with one product and products can be
         synchronized.
@@ -544,7 +544,7 @@ class SyncPlanDeleteTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_delete_one_product(self):
-        """@Test: Create a sync plan with one product and delete it.
+        """Create a sync plan with one product and delete it.
 
         @Assert: A sync plan is created with one product and sync plan can be
         deleted.
@@ -561,7 +561,7 @@ class SyncPlanDeleteTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_delete_products(self):
-        """@Test: Create a sync plan with two products and delete them.
+        """Create a sync plan with two products and delete them.
 
         @Assert: A sync plan is created with one product and sync plan can be
         deleted.
@@ -582,7 +582,7 @@ class SyncPlanDeleteTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_delete_synced_product(self):
-        """@Test: Create a sync plan with one synced product and delete it.
+        """Create a sync plan with one synced product and delete it.
 
         @Assert: A sync plan is created with one synced product and sync plan
         can be deleted.

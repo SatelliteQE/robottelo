@@ -12,7 +12,7 @@ class ForemanTaskTestCase(APITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1131702)
     def test_negative_fetch_non_existent_task(self):
-        """@Test: Fetch a non-existent task.
+        """Fetch a non-existent task.
 
         @Assert: An HTTP 4XX or 5XX message is returned.
 
@@ -26,7 +26,7 @@ class ForemanTaskTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_get_summary(self):
-        """@Test: Get a summary of foreman tasks.
+        """Get a summary of foreman tasks.
 
         @Assert: A list of dicts is returned.
 

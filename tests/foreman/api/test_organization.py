@@ -40,7 +40,7 @@ class OrganizationTestCase(APITestCase):
 
     @tier1
     def test_positive_create_text_plain(self):
-        """@Test Create an organization using a 'text/plain' content-type.
+        """Create an organization using a 'text/plain' content-type.
 
         @Assert: HTTP 415 is returned.
 
@@ -60,7 +60,7 @@ class OrganizationTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_auto_label(self):
-        """@Test: Create an organization and provide a name.
+        """Create an organization and provide a name.
 
         @Assert: The organization has the provided attributes and an
         auto-generated label.
@@ -73,7 +73,7 @@ class OrganizationTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_custom_label(self):
-        """@Test: Create an org and provide a name and identical label.
+        """Create an org and provide a name and identical label.
 
         @Assert: The organization has the provided attributes.
 
@@ -90,7 +90,7 @@ class OrganizationTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_name_and_label(self):
-        """@Test: Create an organization and provide a name and label.
+        """Create an organization and provide a name and label.
 
         @Assert: The organization has the provided attributes.
 
@@ -105,7 +105,7 @@ class OrganizationTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_name_and_description(self):
-        """@Test: Create an organization and provide a name and description.
+        """Create an organization and provide a name and description.
 
         @Assert: The organization has the provided attributes and an
         auto-generated label.
@@ -128,7 +128,7 @@ class OrganizationTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_name_label_description(self):
-        """@Test: Create an org and provide a name, label and description.
+        """Create an org and provide a name, label and description.
 
         @Assert: The organization has the provided name, label and description.
 
@@ -145,7 +145,7 @@ class OrganizationTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_invalid_name(self):
-        """@Test: Create an org with an incorrect name.
+        """Create an org with an incorrect name.
 
         @Assert: The organization cannot be created.
 
@@ -158,7 +158,7 @@ class OrganizationTestCase(APITestCase):
 
     @tier1
     def test_negative_create_with_same_name(self):
-        """@Test: Create two organizations with identical names.
+        """Create two organizations with identical names.
 
         @Assert: The second organization cannot be created.
 
@@ -170,7 +170,7 @@ class OrganizationTestCase(APITestCase):
 
     @tier1
     def test_positive_search(self):
-        """@Test: Create an organization, then search for it by name.
+        """Create an organization, then search for it by name.
 
         @Assert: Searching returns at least one result.
 
@@ -196,7 +196,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Update an organization's name with valid values.
+        """Update an organization's name with valid values.
 
         @Assert: The organization's name is updated.
 
@@ -210,7 +210,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
     @tier1
     def test_positive_update_description(self):
-        """@Test: Update an organization's description with valid values.
+        """Update an organization's description with valid values.
 
         @Assert: The organization's description is updated.
 
@@ -224,7 +224,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
     @tier1
     def test_positive_update_name_and_description(self):
-        """@Test: Update an organization with new name and description.
+        """Update an organization with new name and description.
 
         @Assert: The organization's name and description are updated.
 
@@ -240,7 +240,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
     @tier2
     def test_positive_update_user(self):
-        """@Test: Update an organization, associate user with it.
+        """Update an organization, associate user with it.
 
         @Assert: User is associated with organization.
 
@@ -254,7 +254,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
     @tier2
     def test_positive_update_subnet(self):
-        """@Test: Update an organization, associate subnet with it.
+        """Update an organization, associate subnet with it.
 
         @Assert: Subnet is associated with organization.
 
@@ -269,7 +269,7 @@ class OrganizationUpdateTestCase(APITestCase):
     @tier2
     @skip_if_bug_open('bugzilla', 1230865)
     def test_positive_add_media(self):
-        """@Test: Update an organization and associate it with a media.
+        """Update an organization and associate it with a media.
 
         @Assert: An organization is associated with a media.
 
@@ -283,7 +283,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
     @tier2
     def test_positive_add_hostgroup(self):
-        """@Test: Add a hostgroup to an organization
+        """Add a hostgroup to an organization
 
         @Feature: Organization
 
@@ -298,7 +298,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
     @tier2
     def test_positive_remove_hostgroup(self):
-        """@Test: Add a hostgroup to an organization and then remove it
+        """Add a hostgroup to an organization and then remove it
 
         @Feature: Organization
 
@@ -315,7 +315,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
     @tier2
     def test_positive_add_smart_proxy(self):
-        """@Test: Add a smart proxy to an organization
+        """Add a smart proxy to an organization
 
         @Feature: Organization
 
@@ -341,7 +341,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
     @tier2
     def test_positive_remove_smart_proxy(self):
-        """@Test: Remove a smart proxy from an organization
+        """Remove a smart proxy from an organization
 
         @Feature: Organization
 
@@ -358,7 +358,7 @@ class OrganizationUpdateTestCase(APITestCase):
 
     @tier1
     def test_negative_update(self):
-        """@Test: Update an organization's attributes with invalid values.
+        """Update an organization's attributes with invalid values.
 
         @Assert: The organization's attributes are not updated.
 
@@ -380,7 +380,7 @@ class OrganizationUpdateTestCase(APITestCase):
     @tier2
     @skip_if_bug_open('bugzilla', 1103157)
     def test_verify_bugzilla_1103157(self):
-        """@Test: Create organization and add two compute resources one by one
+        """Create organization and add two compute resources one by one
         using different transactions and different users to see that they
         actually added, but not overwrite each other
 

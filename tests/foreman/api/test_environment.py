@@ -30,7 +30,7 @@ class EnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_name(self):
-        """@Test: Create an environment and provide a valid name.
+        """Create an environment and provide a valid name.
 
         @Feature: Environment
 
@@ -44,7 +44,7 @@ class EnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_org(self):
-        """@Test: Create an environment and assign it to new organization.
+        """Create an environment and assign it to new organization.
 
         @Feature: Environment
 
@@ -62,7 +62,7 @@ class EnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_loc(self):
-        """@Test: Create an environment and assign it to new location.
+        """Create an environment and assign it to new location.
 
         @Feature: Environment
 
@@ -80,7 +80,7 @@ class EnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_create_with_too_long_name(self):
-        """@Test: Create an environment and provide an invalid name.
+        """Create an environment and provide an invalid name.
 
         @Feature: Environment
 
@@ -94,7 +94,7 @@ class EnvironmentTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_create_with_invalid_characters(self):
-        """@Test: Create an environment and provide an illegal name.
+        """Create an environment and provide an illegal name.
 
         @Feature: Environment
 
@@ -109,7 +109,7 @@ class EnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_name(self):
-        """@Test: Create environment entity providing the initial name, then
+        """Create environment entity providing the initial name, then
         update its name to another valid name.
 
         @Feature: Environment
@@ -126,7 +126,7 @@ class EnvironmentTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_update_org(self):
-        """@Test: Update environment and assign it to a new organization
+        """Update environment and assign it to a new organization
 
         @Feature: Environment
 
@@ -142,7 +142,7 @@ class EnvironmentTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_update_loc(self):
-        """@Test: Update environment and assign it to a new location
+        """Update environment and assign it to a new location
 
         @Feature: Environment
 
@@ -158,7 +158,7 @@ class EnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_negative_update_name(self):
-        """@Test: Create environment entity providing the initial name, then
+        """Create environment entity providing the initial name, then
         try to update its name to invalid one.
 
         @Feature: Environment
@@ -175,7 +175,7 @@ class EnvironmentTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete(self):
-        """@Test: Create new environment entity and then delete it.
+        """Create new environment entity and then delete it.
 
         @Feature: Environment
 
@@ -209,7 +209,7 @@ class MissingAttrEnvironmentTestCase(APITestCase):
 
     @tier2
     def test_location(self):
-        """@Test: Update an environment. Inspect the server's response.
+        """Update an environment. Inspect the server's response.
 
         @Assert: The response contains some value for the ``location`` field.
 
@@ -224,7 +224,7 @@ class MissingAttrEnvironmentTestCase(APITestCase):
 
     @tier2
     def test_organization(self):
-        """@Test: Update an environment. Inspect the server's response.
+        """Update an environment. Inspect the server's response.
 
         @Assert: The response contains some value for the ``organization``
         field.

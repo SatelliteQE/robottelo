@@ -12,7 +12,7 @@ class ErrataTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_install(self):
-        """@Test: Install errata in a host-collection
+        """Install errata in a host-collection
 
         @Feature: Errata
 
@@ -30,7 +30,7 @@ class ErrataTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_list(self):
-        """@Test: View all errata specific to an Org
+        """View all errata specific to an Org
 
         @Feature: Errata
 
@@ -48,7 +48,7 @@ class ErrataTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_list_updated(self):
-        """@Test: View all errata in an Org sorted by Updated
+        """View all errata in an Org sorted by Updated
 
         @Feature: Errata
 
@@ -66,7 +66,7 @@ class ErrataTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_filter_by_cve(self):
-        """@Test: Filter errata by CVE
+        """Filter errata by CVE
 
         @Feature: Errata
 
@@ -84,7 +84,7 @@ class ErrataTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_list_affected_systems(self):
-        """@Test: View a list of affected content hosts for an erratum
+        """View a list of affected content hosts for an erratum
 
         @Feature: Errata
 
@@ -103,7 +103,7 @@ class ErrataTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_filter_by_affected_systems(self):
-        """@Test: Filter errata list based on affected content hosts
+        """Filter errata list based on affected content hosts
 
         @Feature: Errata
 
@@ -121,7 +121,7 @@ class ErrataTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_sort_by_issued_date(self):
-        """@Test: Filter errata by issued date
+        """Filter errata by issued date
 
         @Feature: Errata
 
@@ -139,7 +139,7 @@ class ErrataTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_filter_by_envs(self):
-        """@Test: Filter applicable errata for a content host by current and
+        """Filter applicable errata for a content host by current and
         Library environments
 
         @Feature: Errata
@@ -162,7 +162,7 @@ class ErrataTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_get_count_for_chost(self):
-        """@Test: Available errata count when retrieving Content host
+        """Available errata count when retrieving Content host
 
         @Feature: Errata
 
@@ -183,7 +183,7 @@ class ErrataTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_get_diff_for_cv_envs(self):
-        """@Test: Generate a difference in errata between a set of environments
+        """Generate a difference in errata between a set of environments
         for a content view
 
         @Feature: Errata
@@ -206,7 +206,7 @@ class ErrataTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_incremental_update_apply_to_envs_cvs(self):
-        """@Test: Select multiple errata and apply them to multiple content
+        """Select multiple errata and apply them to multiple content
         views in multiple environments
 
         @Feature: Errata
@@ -229,7 +229,7 @@ class ErrataTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_incremental_update_query_envs_cvs(self):
-        """@Test: Query a subset of environments or content views to push new
+        """Query a subset of environments or content views to push new
         errata
 
         @Feature: Errata
@@ -251,7 +251,7 @@ class ErrataTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_incremental_update_apply_packages_to_envs_cvs(self):
-        """@Test: Select multiple packages and apply them to multiple content
+        """Select multiple packages and apply them to multiple content
         views in multiple environments
 
         @Feature: Errata

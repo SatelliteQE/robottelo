@@ -38,7 +38,7 @@ class LocationTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_name(self):
-        """@Test: Create new locations using different inputs as a name
+        """Create new locations using different inputs as a name
 
         @Assert: Location created successfully and has expected and correct
         name
@@ -52,7 +52,7 @@ class LocationTestCase(APITestCase):
 
     @tier1
     def test_positive_create_with_description(self):
-        """@Test: Create new location with custom description
+        """Create new location with custom description
 
         @Assert: Location created successfully and has expected and correct
         description
@@ -65,7 +65,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_create_with_user(self):
-        """@Test: Create new location with assigned user to it
+        """Create new location with assigned user to it
 
         @Assert: Location created successfully and has correct user assigned to
         it with expected login name
@@ -79,7 +79,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_create_with_libvirt_compresource(self):
-        """@Test: Create new location with Libvirt compute resource assigned to
+        """Create new location with Libvirt compute resource assigned to
         it
 
         @Assert: Location created successfully and has correct Libvirt compute
@@ -95,7 +95,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_create_with_docker_compresource(self):
-        """@Test: Create new location with Docker compute resource assigned to
+        """Create new location with Docker compute resource assigned to
         it
 
         @Assert: Location created successfully and has correct Docker compute
@@ -111,7 +111,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_create_with_template(self):
-        """@Test: Create new location with config template assigned to it
+        """Create new location with config template assigned to it
 
         @Assert: Location created successfully and list of config templates
         assigned to that location should contain expected one
@@ -128,7 +128,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_create_with_domain(self):
-        """@Test: Create new location with assigned domain to it
+        """Create new location with assigned domain to it
 
         @Assert: Location created successfully and has correct and expected
         domain assigned to it
@@ -141,7 +141,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_create_with_subnet(self):
-        """@Test: Create new location with assigned subnet to it
+        """Create new location with assigned subnet to it
 
         @Assert: Location created successfully and has correct subnet with
         expected network address assigned to it
@@ -155,7 +155,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_create_with_env(self):
-        """@Test: Create new location with assigned environment to it
+        """Create new location with assigned environment to it
 
         @Assert: Location created successfully and has correct and expected
         environment assigned to it
@@ -168,7 +168,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_create_with_hostgroup(self):
-        """@Test: Create new location with assigned host group to it
+        """Create new location with assigned host group to it
 
         @Assert: Location created successfully and has correct and expected
         host group assigned to it
@@ -181,7 +181,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_create_with_org(self):
-        """@Test: Create new location with assigned organization to it
+        """Create new location with assigned organization to it
 
         @Assert: Location created successfully and has correct organization
         assigned to it with expected title
@@ -195,7 +195,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_create_with_orgs(self):
-        """@Test: Basically, verifying that location with multiple entities
+        """Basically, verifying that location with multiple entities
         assigned to it can be created in the system. Organizations were chosen
         for that purpose
 
@@ -215,7 +215,7 @@ class LocationTestCase(APITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """@Test: Delete location
+        """Delete location
 
         @Assert: Location was deleted
 
@@ -266,7 +266,7 @@ class LocationTestCase(APITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Update location with new name
+        """Update location with new name
 
         @Assert: Location updated successfully and name was changed
 
@@ -280,7 +280,7 @@ class LocationTestCase(APITestCase):
 
     @tier1
     def test_positive_update_description(self):
-        """@Test: Update location with new description
+        """Update location with new description
 
         @Assert: Location updated successfully and description was changed
 
@@ -297,7 +297,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_update_user(self):
-        """@Test: Update location with new user
+        """Update location with new user
 
         @Assert: Location updated successfully and has correct user assigned
 
@@ -310,7 +310,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_update_libvirt_compresource(self):
-        """@Test: Update location with new Libvirt compute resource
+        """Update location with new Libvirt compute resource
 
         @Assert: Location updated successfully and has correct Libvirt compute
         resource assigned
@@ -331,7 +331,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_update_docker_compresource(self):
-        """@Test: Update location with new Docker compute resource
+        """Update location with new Docker compute resource
 
         @Assert: Location updated successfully and has correct Docker compute
         resource assigned
@@ -352,7 +352,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_update_template(self):
-        """@Test: Update location with new config template
+        """Update location with new config template
 
         @Assert: Location updated successfully and has correct config template
         assigned
@@ -374,7 +374,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_update_domain(self):
-        """@Test: Update location with new domain
+        """Update location with new domain
 
         @Assert: Location updated successfully and has correct domain assigned
 
@@ -389,7 +389,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_update_subnet(self):
-        """@Test: Update location with new subnet
+        """Update location with new subnet
 
         @Assert: Location updated successfully and has correct subnet assigned
 
@@ -404,7 +404,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_update_env(self):
-        """@Test: Update location with new environment
+        """Update location with new environment
 
         @Assert: Location updated successfully and has correct environment
         assigned
@@ -423,7 +423,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_update_hostgroup(self):
-        """@Test: Update location with new host group
+        """Update location with new host group
 
         @Assert: Location updated successfully and has correct host group
         assigned
@@ -442,7 +442,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_update_org(self):
-        """@Test: Update location with new organization
+        """Update location with new organization
 
         @Assert: Location updated successfully and has correct organization
         assigned
@@ -461,7 +461,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_positive_update_orgs(self):
-        """@Test: Update location with with multiple organizations
+        """Update location with with multiple organizations
 
         @Assert: Location created successfully and has correct organizations
         assigned
@@ -481,7 +481,7 @@ class LocationTestCase(APITestCase):
 
     @tier1
     def test_negative_update_name(self):
-        """@Test: Try to update location using invalid names only
+        """Try to update location using invalid names only
 
         @Assert: Location is not updated
 
@@ -499,7 +499,7 @@ class LocationTestCase(APITestCase):
 
     @tier2
     def test_negative_update_domain(self):
-        """@Test: Try to update existing location with incorrect domain. Use
+        """Try to update existing location with incorrect domain. Use
         domain id
 
         @Assert: Location is not updated

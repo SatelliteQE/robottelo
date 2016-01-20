@@ -16,7 +16,7 @@ class RedHatSubscriptionManagerTestCase(APITestCase):
 
     @tier1
     def test_positive_path(self):
-        """@Test: Check whether the path exists.
+        """Check whether the path exists.
 
         @Feature: Red Hat Subscription Manager
 

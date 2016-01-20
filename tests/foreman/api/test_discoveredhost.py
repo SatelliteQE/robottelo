@@ -37,7 +37,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_list_all(self):
-        """@Test: List all discovered hosts
+        """List all discovered hosts
 
         @Feature: Foreman Discovery
 
@@ -56,7 +56,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_show(self):
-        """@Test: Show a specific discovered hosts
+        """Show a specific discovered hosts
 
         @Feature: Foreman Discovery
 
@@ -75,7 +75,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_create(self):
-        """@Test: Create a discovered hosts
+        """Create a discovered hosts
 
         @Feature: Foreman Discovery
 
@@ -94,7 +94,7 @@ class DiscoveryTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_upload_facts(self):
-        """@Test: Upload fake facts to create a discovered host
+        """Upload fake facts to create a discovered host
 
         @Feature: Foreman Discovery
 
@@ -113,7 +113,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_provision(self):
-        """@Test: Provision a discovered hosts
+        """Provision a discovered hosts
 
         @Feature: Foreman Discovery
 
@@ -132,7 +132,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_delete(self):
-        """@Test: Delete a discovered hosts
+        """Delete a discovered hosts
 
         @Feature: Foreman Discovery
 
@@ -151,7 +151,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_auto_provision(self):
-        """@Test: Auto provision a host by executing discovery rules
+        """Auto provision a host by executing discovery rules
 
         @Feature: Foreman Discovery
 
@@ -170,7 +170,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_auto_provision_all(self):
-        """@Test: Auto provision all host by executing discovery rules
+        """Auto provision all host by executing discovery rules
 
         @Feature: Foreman Discovery
 
@@ -189,7 +189,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_refresh_facts(self):
-        """@Test: Refreshing the facts of discovered host
+        """Refreshing the facts of discovered host
 
         @Feature: Foreman Discovery
 
@@ -212,7 +212,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_reboot(self):
-        """@Test: Rebooting a discovered host
+        """Rebooting a discovered host
 
         @Feature: Foreman Discovery
 
@@ -231,7 +231,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_create_discovery_rule_with_simple_query(self):
-        """@Test: Create a new discovery rule
+        """Create a new discovery rule
 
         Set query as (e.g IP=IP_of_discovered_host)
 
@@ -247,7 +247,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_create_discovery_rule_with_complex_query(self):
-        """@Test: Create a new discovery rule with (host_limit = 0)
+        """Create a new discovery rule with (host_limit = 0)
         that applies to multi hosts.
         Set query as cpu_count = 1 OR mem > 500
 
@@ -263,7 +263,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_create_discovery_rule_with_priority(self):
-        """@Test: Create multiple discovery rules with different priority
+        """Create multiple discovery rules with different priority
 
         @Feature: Foreman Discovery
 
@@ -278,7 +278,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_create_discovery_rule_with_host_limit(self):
-        """@Test: Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
+        """Create a discovery rule (CPU_COUNT = 2) with host limit 1 and
         provision more than one host with same rule
 
         @Feature: Foreman Discovery
@@ -294,7 +294,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_update_discovery_rule_execute(self):
-        """@Test: Update an existing rule and execute it
+        """Update an existing rule and execute it
 
         @Feature: Foreman Discovery
 
@@ -309,7 +309,7 @@ class DiscoveryTestCase(APITestCase):
     @stubbed()
     @tier3
     def test_positive_update_discovery_rule_provision(self):
-        """@Test: Update the discovered host name and provision it
+        """Update the discovered host name and provision it
 
         @Feature: Foreman Discovery
 

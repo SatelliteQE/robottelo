@@ -43,7 +43,7 @@ class PermissionTestCase(APITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_search_by_name(self):
-        """@test: Search for a permission by name.
+        """Search for a permission by name.
 
         @feature: Permissions
 
@@ -66,7 +66,7 @@ class PermissionTestCase(APITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_search_by_resource_type(self):
-        """@test: Search for permissions by resource type.
+        """Search for permissions by resource type.
 
         @feature: Permissions
 
@@ -97,7 +97,7 @@ class PermissionTestCase(APITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_search(self):
-        """@test: search with no parameters return all permissions
+        """search with no parameters return all permissions
 
         @feature: Permission
 
@@ -201,7 +201,7 @@ class UserRoleTestCase(APITestCase):
 
     @tier1
     def test_positive_check_create(self):
-        """@Test: Check whether the "create_*" role has an effect.
+        """Check whether the "create_*" role has an effect.
 
         @Assert: A user cannot create an entity when missing the "create_*"
         role, and they can create an entity when given the "create_*" role.
@@ -220,7 +220,7 @@ class UserRoleTestCase(APITestCase):
 
     @tier1
     def test_positive_check_read(self):
-        """@Test: Check whether the "view_*" role has an effect.
+        """Check whether the "view_*" role has an effect.
 
         @Assert: A user cannot read an entity when missing the "view_*" role,
         and they can read an entity when given the "view_*" role.
@@ -238,7 +238,7 @@ class UserRoleTestCase(APITestCase):
 
     @tier1
     def test_positive_check_delete(self):
-        """@Test: Check whether the "destroy_*" role has an effect.
+        """Check whether the "destroy_*" role has an effect.
 
         @Assert: A user cannot read an entity with missing the "destroy_*"
         role, and they can read an entity when given the "destroy_*" role.
@@ -260,7 +260,7 @@ class UserRoleTestCase(APITestCase):
 
     @tier1
     def test_positive_check_update(self):
-        """@Test: Check whether the "edit_*" role has an effect.
+        """Check whether the "edit_*" role has an effect.
 
         @Assert: A user cannot update an entity when missing the "edit_*" role,
         and they can update an entity when given the "edit_*" role.

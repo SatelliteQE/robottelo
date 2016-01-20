@@ -145,7 +145,7 @@ class EntityTestCase(APITestCase):
 
     @tier1
     def test_positive_get_status_code(self):
-        """@Test: GET an entity-dependent path.
+        """GET an entity-dependent path.
 
         @Feature: Test multiple API paths
 
@@ -179,7 +179,7 @@ class EntityTestCase(APITestCase):
 
     @tier1
     def test_negative_get_unauthorized(self):
-        """@Test: GET an entity-dependent path without credentials.
+        """GET an entity-dependent path without credentials.
 
         @Feature: Test multiple API paths
 
@@ -202,7 +202,7 @@ class EntityTestCase(APITestCase):
 
     @tier1
     def test_positive_post_status_code(self):
-        """@Test: Issue a POST request and check the returned status code.
+        """Issue a POST request and check the returned status code.
 
         @Feature: Test multiple API paths
 
@@ -234,7 +234,7 @@ class EntityTestCase(APITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1122257)
     def test_negative_post_unauthorized(self):
-        """@Test: POST to an entity-dependent path without credentials.
+        """POST to an entity-dependent path without credentials.
 
         @Feature: Test multiple API paths
 
@@ -260,7 +260,7 @@ class EntityIdTestCase(APITestCase):
 
     @tier1
     def test_positive_get_status_code(self):
-        """@Test: Create an entity and GET it.
+        """Create an entity and GET it.
 
         @Feature: Test multiple API paths
 
@@ -286,7 +286,7 @@ class EntityIdTestCase(APITestCase):
 
     @tier1
     def test_positive_put_status_code(self):
-        """@Test Issue a PUT request and check the returned status code.
+        """Issue a PUT request and check the returned status code.
 
         @Feature: Test multiple API paths
 
@@ -324,7 +324,7 @@ class EntityIdTestCase(APITestCase):
 
     @tier1
     def test_positive_delete_status_code(self):
-        """@Test Issue an HTTP DELETE request and check the returned status
+        """Issue an HTTP DELETE request and check the returned status
         code.
 
         @Feature: Test multiple API paths
@@ -380,7 +380,7 @@ class DoubleCheckTestCase(APITestCase):
 
     @tier1
     def test_positive_put_and_get_requests(self):
-        """@Test: Update an entity, then read it back.
+        """Update an entity, then read it back.
 
         @Feature: Test multiple API paths
 
@@ -422,7 +422,7 @@ class DoubleCheckTestCase(APITestCase):
 
     @tier1
     def test_positive_post_and_get_requests(self):
-        """@Test: Create an entity, then read it back.
+        """Create an entity, then read it back.
 
         @Feature: Test multiple API paths
 
@@ -452,7 +452,7 @@ class DoubleCheckTestCase(APITestCase):
 
     @tier1
     def test_positive_delete_and_get_requests(self):
-        """@Test: Issue an HTTP DELETE request and GET the deleted entity.
+        """Issue an HTTP DELETE request and GET the deleted entity.
 
         @Feature: Test multiple API paths
 
@@ -495,7 +495,7 @@ class EntityReadTestCase(APITestCase):
 
     @tier1
     def test_positive_entity_read(self):
-        """@Test: Create an entity and get it using
+        """Create an entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
         @Feature: Test multiple API paths
@@ -521,7 +521,7 @@ class EntityReadTestCase(APITestCase):
 
     @tier1
     def test_positive_architecture_read(self):
-        """@Test: Create an arch that points to an OS, and read the arch.
+        """Create an arch that points to an OS, and read the arch.
 
         @Feature: Test multiple API paths
 
@@ -538,7 +538,7 @@ class EntityReadTestCase(APITestCase):
 
     @tier1
     def test_positive_syncplan_read(self):
-        """@Test: Create a SyncPlan and read it back using
+        """Create a SyncPlan and read it back using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
         @Feature: Test multiple API paths.
@@ -557,7 +557,7 @@ class EntityReadTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_osparameter_read(self):
-        """@Test: Create an OperatingSystemParameter and get it using
+        """Create an OperatingSystemParameter and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
         @Feature: Test multiple API paths
@@ -579,7 +579,7 @@ class EntityReadTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_permission_read(self):
-        """@Test: Create an Permission entity and get it using
+        """Create an Permission entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
         @Feature: Test multiple API paths
@@ -593,7 +593,7 @@ class EntityReadTestCase(APITestCase):
 
     @tier1
     def test_positive_media_read(self):
-        """@Test: Create a media pointing at an OS and read the media.
+        """Create a media pointing at an OS and read the media.
 
         @Feature: Test multiple API paths
 

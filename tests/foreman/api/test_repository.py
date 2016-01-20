@@ -74,7 +74,7 @@ class RepositoryTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create(self):
-        """@Test: Create a repository and provide valid attributes.
+        """Create a repository and provide valid attributes.
 
         @Assert: A repository is created with the given attributes.
 
@@ -94,7 +94,7 @@ class RepositoryTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_create_with_gpg(self):
-        """@Test: Create a repository and provide a GPG key ID.
+        """Create a repository and provide a GPG key ID.
 
         @Assert: A repository is created with the given GPG key ID.
 
@@ -120,7 +120,7 @@ class RepositoryTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_create_same_name_different_orgs(self):
-        """@Test: Create two repos with the same name in two organizations.
+        """Create two repos with the same name in two organizations.
 
         @Assert: The two repositories are successfully created and use the
         given name.
@@ -135,7 +135,7 @@ class RepositoryTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete(self):
-        """@Test: Create a repository with attributes ``attrs`` and delete it.
+        """Create a repository with attributes ``attrs`` and delete it.
 
         @Assert: The repository cannot be fetched after deletion.
 
@@ -154,7 +154,7 @@ class RepositoryTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_update_gpg(self):
-        """@Test: Create a repository and update its GPGKey
+        """Create a repository and update its GPGKey
 
         @Assert: The updated repository points to a new GPG key.
 
@@ -182,7 +182,7 @@ class RepositoryTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_update_contents(self):
-        """@Test: Create a repository and upload RPM contents.
+        """Create a repository and upload RPM contents.
 
         @Assert: The repository's contents include one RPM.
 
@@ -197,7 +197,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier2
     def test_positive_synchronize(self):
-        """@Test: Create a repo and sync it.
+        """Create a repo and sync it.
 
         @Assert: The repo has more than one RPM.
 
@@ -220,7 +220,7 @@ class RepositoryUpdateTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update(self):
-        """@Test: Create a repository and update its attributes.
+        """Create a repository and update its attributes.
 
         @Assert: The repository's attributes are updated.
 
@@ -255,7 +255,7 @@ class RepositorySyncTestCase(APITestCase):
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     def test_positive_redhat_synchronize(self):
-        """@Test: Sync RedHat Repository.
+        """Sync RedHat Repository.
 
         @Feature: Repositories
 
@@ -287,7 +287,7 @@ class DockerRepositoryTestCase(APITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_create(self):
-        """@Test: Create a Docker-type repository
+        """Create a Docker-type repository
 
         @Assert: A repository is created with a Docker repository.
 
@@ -315,7 +315,7 @@ class DockerRepositoryTestCase(APITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1217603)
     def test_positive_synchronize(self):
-        """@Test: Create and sync a Docker-type repository
+        """Create and sync a Docker-type repository
 
         @Assert: A repository is created with a Docker repository
         and it is synchronized.
@@ -342,7 +342,7 @@ class DockerRepositoryTestCase(APITestCase):
 
     @tier1
     def test_positive_update_name(self):
-        """@Test: Update a repository's name.
+        """Update a repository's name.
 
         @Assert: The repository's name is updated.
 
