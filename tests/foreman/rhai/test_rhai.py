@@ -58,7 +58,7 @@ class RHAITestCase(UITestCase):
 
     @skip_if_not_set('clients')
     def test_positive_register_client_to_rhai(self):
-        """@Test: Check client registration to redhat-access-insights service.
+        """Check client registration to redhat-access-insights service.
 
         @Feature: RHEL client registration to rhai
 
@@ -80,7 +80,7 @@ class RHAITestCase(UITestCase):
                    '-insights.log', './insights_client_registration.log')
 
     def test_negative_org_not_selected(self):
-        """@Test: Verify that user attempting to access RHAI is directed to
+        """Verify that user attempting to access RHAI is directed to
         select an Organization if there is no organization selected
 
         @Feature: In order to use Access Insights, user must select an
@@ -103,7 +103,7 @@ class RHAITestCase(UITestCase):
 
     @skip_if_not_set('clients')
     def test_positive_unregister_client_from_rhai(self):
-        """@Test: Verify that 'Unregister' a system from RHAI works correctly
+        """Verify that 'Unregister' a system from RHAI works correctly
 
         @Feature: If a system is unregistered from the RHAI web interface,
         then the system should not be able to use the service.

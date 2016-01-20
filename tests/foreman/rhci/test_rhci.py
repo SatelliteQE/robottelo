@@ -42,7 +42,7 @@ class RHCIDeploymentTestCase(APITestCase):
             deployment.delete()
 
     def test_positive_create_deployment(self):
-        """@Test: Create a simple deployment.
+        """Create a simple deployment.
 
         @Assert: An RHCI deployment is created with a random name.
 
@@ -70,7 +70,7 @@ class RHCIDeploymentTestCase(APITestCase):
                 self.to_delete.append(deployment)
 
     def test_positive_update_name(self):
-        """@Test: Update a deployment's name.
+        """Update a deployment's name.
 
         @Assert: An RHCI deployment is updated with a random name.
 
@@ -97,7 +97,7 @@ class RHCIDeploymentTestCase(APITestCase):
                 self.to_delete.append(deployment)
 
     def test_positive_delete_deployment(self):
-        """@Test: Create and delete a simple deployment.
+        """Create and delete a simple deployment.
 
         @Assert: An RHCI deployment is deleted.
 

@@ -38,7 +38,7 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
         return result.stdout
 
     def test_delete_sequential(self):
-        """@Test: Delete subscriptions using 1 thread
+        """Delete subscriptions using 1 thread
 
         @Steps:
 
@@ -54,7 +54,7 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
         self.kick_off_del_test(self.num_threads[0])
 
     def test_delete_2_clients(self):
-        """@Test: Delete subscriptions concurrently using 2 threads
+        """Delete subscriptions concurrently using 2 threads
 
         @Steps:
 
@@ -71,7 +71,7 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
         self.kick_off_del_test(self.num_threads[1])
 
     def test_delete_4_clients(self):
-        """@Test: Delete subscriptions concurrently using 4 threads
+        """Delete subscriptions concurrently using 4 threads
 
         @Assert: Restoring from database would have 5k registered systems.
 
@@ -79,7 +79,7 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
         self.kick_off_del_test(self.num_threads[2])
 
     def test_delete_6_clients(self):
-        """@Test: Delete subscriptions concurrently using 6 threads
+        """Delete subscriptions concurrently using 6 threads
 
         @Assert: Restoring from database would have 5k registered systems.
 
@@ -87,7 +87,7 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
         self.kick_off_del_test(self.num_threads[3])
 
     def test_delete_8_clients(self):
-        """@Test: Delete subscriptions concurrently using 8 threads
+        """Delete subscriptions concurrently using 8 threads
 
         @Assert: Restoring from database would have 5k registered systems.
 
@@ -95,7 +95,7 @@ class ConcurrentDeleteTestCase(ConcurrentTestCase):
         self.kick_off_del_test(self.num_threads[4])
 
     def test_delete_10_clients(self):
-        """@Test: Delete subscriptions concurrently using 10 virtual machines
+        """Delete subscriptions concurrently using 10 virtual machines
 
         @Steps:
 

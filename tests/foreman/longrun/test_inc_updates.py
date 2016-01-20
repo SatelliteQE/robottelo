@@ -224,7 +224,7 @@ class IncrementalUpdateTestCase(TestCase):
 
     @run_only_on('sat')
     def test_positive_noapply_api(self):
-        """@Test: Check if api incremental update can be done without
+        """Check if api incremental update can be done without
         actually applying it
 
         @Feature: Incremental Update
@@ -271,7 +271,7 @@ class IncrementalUpdateTestCase(TestCase):
     @skip_if_bug_open('bugzilla', 1259057)
     @run_only_on('sat')
     def test_positive_noapply_cli(self):
-        """@Test: Check if cli incremental update can be done without
+        """Check if cli incremental update can be done without
         actually applying it
 
         @Feature: Incremental Update

@@ -38,7 +38,7 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
             'subscription {0} id is: {1}'.format(sub_name, self.sub_id))
 
     def test_subscribe_ak_sequential(self):
-        """@Test: Subscribe system sequentially using 1 virtual machine
+        """Subscribe system sequentially using 1 virtual machine
 
         @Steps:
 
@@ -53,7 +53,7 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
         self.kick_off_ak_test(self.num_threads[0], 5000)
 
     def test_register_attach_2_clients(self):
-        """@Test: Subscribe system concurrently using 2 virtual machines
+        """Subscribe system concurrently using 2 virtual machines
 
         @Steps:
 
@@ -68,7 +68,7 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
         self.kick_off_att_test(self.num_threads[1], 5000)
 
     def test_register_attach_4_clients(self):
-        """@Test: Subscribe system concurrently using 4 virtual machines
+        """Subscribe system concurrently using 4 virtual machines
 
         @Assert: Restoring from database without any registered systems.
 
@@ -76,7 +76,7 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
         self.kick_off_att_test(self.num_threads[2], 5000)
 
     def test_register_attach_6_clients(self):
-        """@Test: Subscribe system concurrently using 6 virtual machines
+        """Subscribe system concurrently using 6 virtual machines
 
         @Assert: Restoring from database without any registered systems.
 
@@ -84,7 +84,7 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
         self.kick_off_att_test(self.num_threads[3], 6000)
 
     def test_register_attach_8_clients(self):
-        """@Test: Subscribe system concurrently using 8 virtual machines
+        """Subscribe system concurrently using 8 virtual machines
 
         @Assert: Restoring from database without any registered systems.
 
@@ -92,7 +92,7 @@ class ConcurrentSubAttachTestCase(ConcurrentTestCase):
         self.kick_off_att_test(self.num_threads[4], 5000)
 
     def test_register_attach_10_clients(self):
-        """@Test: Subscribe system concurrently using 10 virtual machines
+        """Subscribe system concurrently using 10 virtual machines
 
         @Steps:
 
