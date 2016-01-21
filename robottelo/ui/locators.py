@@ -2144,8 +2144,7 @@ locators = LocatorDict({
         By.XPATH, "//input[contains(@data-url, 'auto_complete_search')]"),
     "oscap.content_edit": (
         By.XPATH,
-        ("//td[contains(.,'%s')]/../td/div/ul/li/"
-         "a[contains(@data-id, 'edit')]")),
+        ("//td[contains(.,'%s')]/../td/div/span/a")),
     "oscap.content_dropdown": (
         By.XPATH,
         ("//td[contains(.,'%s')]/following-sibling::td/div/"
