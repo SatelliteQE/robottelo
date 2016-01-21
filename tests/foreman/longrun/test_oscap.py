@@ -167,7 +167,6 @@ class OpenScapTestCase(UITestCase):
             },
         ]
         with Session(self.browser) as session:
-            self.puppetclasses.import_scap_client_puppet_classes()
             set_context(session, org=ANY_CONTEXT['org'])
             # Creates oscap content for both rhel6 and rhel7
             for content in [rhel6_content, rhel7_content]:
