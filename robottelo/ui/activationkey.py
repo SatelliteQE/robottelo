@@ -19,12 +19,6 @@ class ActivationKey(Base):
         """Specify locator for Activation Key entity search procedure"""
         return locators['ak.ak_name']
 
-    def set_limit(self, limit):
-        """Sets the finite limit of activation key."""
-        self.click(locators['ak.usage_limit_checkbox'])
-        if limit != 'Unlimited':
-            self.field_update('ak.usage_limit', limit)
-
     def create(self, name, env, limit=None, description=None,
                content_view=None):
         """Creates new activation key from UI."""

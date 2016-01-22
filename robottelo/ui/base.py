@@ -415,6 +415,14 @@ class Base(object):
         self.text_field_update(edit_text_loc, entity_value)
         self.click(save_loc)
 
+    def set_limit(self, limit):
+        """Specify content host limit value for host collection or activation
+        key entities.
+        """
+        self.click(common_locators['usage_limit_checkbox'])
+        if limit != 'Unlimited':
+            self.text_field_update(common_locators['usage_limit'], limit)
+
     def auto_complete_search(self, go_to_page, entity_locator, partial_name,
                              name, search_key):
         """

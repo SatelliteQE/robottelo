@@ -270,7 +270,7 @@ class ActivationKeyTestCase(UITestCase):
                         name=name,
                         env=ENVIRONMENT,
                     )
-                    self.assertIsNotNone(self.products.wait_until_element(
+                    self.assertIsNotNone(self.activationkey.wait_until_element(
                         common_locators['common_invalid']))
                     self.assertIsNone(self.activationkey.search(name))
 
@@ -320,7 +320,7 @@ class ActivationKeyTestCase(UITestCase):
                         limit=limit,
                     )
                     self.assertIsNotNone(self.activationkey.wait_until_element(
-                        locators['ak.invalid_limit']))
+                        common_locators['invalid_limit']))
                     self.assertIsNone(self.activationkey.search(name))
 
     @tier1
@@ -716,7 +716,7 @@ class ActivationKeyTestCase(UITestCase):
             for new_name in invalid_names_list():
                 with self.subTest(new_name):
                     self.activationkey.update(name, new_name)
-                    self.assertIsNotNone(self.products.wait_until_element(
+                    self.assertIsNotNone(self.activationkey.wait_until_element(
                         common_locators['alert.error']))
                     self.assertIsNone(self.activationkey.search(new_name))
 
