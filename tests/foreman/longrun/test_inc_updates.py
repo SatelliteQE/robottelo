@@ -14,7 +14,12 @@ from robottelo.api.utils import (
 )
 from robottelo.cli.contentview import ContentView as ContentViewCLI
 from robottelo.constants import PRD_SETS
-from robottelo.decorators import run_only_on, skip_if_bug_open, skip_if_not_set
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    skip_if_not_set,
+    tier4,
+)
 from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
 
@@ -223,6 +228,7 @@ class IncrementalUpdateTestCase(TestCase):
         )
 
     @run_only_on('sat')
+    @tier4
     def test_positive_noapply_api(self):
         """Check if api incremental update can be done without
         actually applying it
@@ -270,6 +276,7 @@ class IncrementalUpdateTestCase(TestCase):
 
     @skip_if_bug_open('bugzilla', 1259057)
     @run_only_on('sat')
+    @tier4
     def test_positive_noapply_cli(self):
         """Check if cli incremental update can be done without
         actually applying it

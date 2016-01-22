@@ -2,7 +2,6 @@
 
 FOREMAN_API_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), api)
 FOREMAN_CLI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), cli)
-FOREMAN_LONGRUN_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), longrun)
 FOREMAN_RHAI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhai)
 FOREMAN_RHCI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhci)
 FOREMAN_SMOKE_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), smoke)
@@ -28,6 +27,7 @@ help:
 	@echo "  test-foreman-tier1         to run Foreman deployment tier1 tests"
 	@echo "  test-foreman-tier2         to run Foreman deployment tier2 tests"
 	@echo "  test-foreman-tier3         to run Foreman deployment tier3 tests"
+	@echo "  test-foreman-tier4         to run Foreman deployment tier4 tests"
 	@echo "  test-foreman-api           to test a Foreman deployment API"
 	@echo "  test-foreman-api-threaded  to do the above with threading."
 	@echo "                             Requires pytest-xdist"
@@ -73,9 +73,6 @@ test-foreman-cli:
 test-foreman-cli-threaded:
 	$(PYTEST) $(PYTEST_XDIST_OPTS) $(FOREMAN_CLI_TESTS_PATH)
 
-test-foreman-longrun:
-	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_LONGRUN_TESTS_PATH)
-
 test-foreman-rhai:
 	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_RHAI_TESTS_PATH)
 
@@ -100,6 +97,9 @@ test-foreman-tier2:
 test-foreman-tier3:
 	$(PYTEST) $(PYTEST_XDIST_OPTS) -m 'not stubbed and tier3' $(FOREMAN_TIERS_TESTS_PATH)
 
+test-foreman-tier4:
+	$(PYTEST) $(PYTEST_XDIST_OPTS) -m 'not stubbed and tier4' $(FOREMAN_TIERS_TESTS_PATH)
+
 graph-entities:
 	scripts/graph_entities.py | dot -Tsvg -o entities.svg
 
@@ -111,5 +111,6 @@ lint:
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
         test-robottelo-coverage test-foreman-api test-foreman-cli \
         test-foreman-rhai test-foreman-rhci test-foreman-tier1 \
-        test-foreman-tier2 test-foreman-tier3 test-foreman-ui \
-        test-foreman-ui-xvfb test-foreman-smoke graph-entities lint
+        test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
+        test-foreman-ui test-foreman-ui-xvfb test-foreman-smoke \
+        graph-entities lint
