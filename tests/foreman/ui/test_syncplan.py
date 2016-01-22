@@ -6,7 +6,7 @@ from nailgun import entities
 from random import randint
 from robottelo.constants import SYNC_INTERVAL
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import tier1, tier2
+from robottelo.decorators import run_only_on, stubbed, tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_syncplan
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -334,3 +334,16 @@ class SyncPlanTestCase(UITestCase):
                     ).create()
                     session.nav.go_to_select_org(self.organization.name)
                     self.syncplan.delete(plan_name)
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_create_ostree_sync_plan(self):
+        """Create a sync plan for ostree contents.
+
+        @Feature: ostree sync plan
+
+        @Assert: sync plan should be created successfully
+
+        @Status: Manual
+        """

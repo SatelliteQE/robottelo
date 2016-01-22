@@ -108,3 +108,33 @@ class SyncTestCase(UITestCase):
 
         @status: Manual
         """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_sync_custom_ostree_repo(self):
+        """Create custom ostree repository and sync it.
+
+        @Feature: Custom ostree repository sync
+
+        @Assert: ostree repo should be synced successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_sync_rh_ostree_repo(self):
+        """Sync CDN based ostree repository .
+
+        @Feature: RH ostree repository sync
+
+        @Steps:
+        1. Import a valid manifest
+        2. Enable the OStree repo and sync it
+
+        @Assert: ostree repo should be synced successfully from CDN
+
+        @Status: Manual
+        """
