@@ -1370,3 +1370,240 @@ class ContentViewTestCase(UITestCase):
             session.nav.go_to_content_views()
             self.content_views.delete_version(cv.name, version)
             self.content_views.validate_version_deleted(cv.name, version)
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_add_custom_ostree(self):
+        """Create a CV with custom ostree contents
+
+        @Feature: Content View
+
+        @Assert: CV should be created successfully with custom ostree contents
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_add_rh_ostree(self):
+        """Create a CV with RH ostree contents
+
+        @Feature: Content View
+
+        @Assert: CV should be created successfully with RH ostree contents
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_remove_custom_ostree(self):
+        """Create a CV with custom ostree contents and remove the
+        contents.
+
+        @Feature: Content View
+
+        @Assert: Content should be removed and CV should be updated
+        successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_remove_rh_ostree(self):
+        """Create a CV with RH ostree contents and remove the
+        contents.
+
+        @Feature: Content View
+
+        @Assert: Content should be removed and CV should be updated
+        successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_create_with_custom_ostree_other_contents(self):
+        """Create a CV with custom ostree contents and other custom yum, puppet
+        repos.
+
+        @Feature: Content View
+
+        @Assert: CV should be created successfully with all custom contents
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_create_with_rh_ostree_other_contents(self):
+        """Create a CV with RH ostree contents and other RH yum repos.
+
+        @Feature: Content View
+
+        @Assert: CV should be created successfully with all custom contents
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_publish_with_custom_ostree(self):
+        """Create a CV with custom ostree contents and publish it.
+
+        @Feature: Content View
+
+        @Assert: CV should be published with OStree contents
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_remove_published_custom_ostree_version(self):
+        """Remove published custom ostree contents version from selected CV.
+
+        @Feature: Content View
+
+        @Assert: Published version with OStree contents should be removed
+        successfully.
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_promote_with_custom_ostree(self):
+        """Create a CV with custom ostree contents and publish, promote it
+        to next environment.
+
+        @Feature: Content View
+
+        @Assert: CV should be promoted with custom OStree contents
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_remove_promoted_custom_ostree_contents(self):
+        """Remove promoted custom ostree contents from selected environment of
+        CV.
+
+        @Feature: Content View
+
+        @Assert: Promoted custom OStree contents should be removed successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_publish_promote_with_custom_ostree_and_other(self):
+        """Create a CV with ostree as well as yum and puppet type contents and
+        publish and promote them to next environment.
+
+        @Feature: Content View
+
+        @Assert: CV should be published and promoted with custom OStree and all
+        other contents
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_remove_published_version_of_mixed_contents(self):
+        """Remove mixed(ostree, yum, puppet, docker) published content version
+        from selected CV.
+
+        @Feature: Content View
+
+        @Assert: Published version with mixed(ostree, yum, puppet, docker)
+        contents should be removed successfully.
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_publish_with_rh_ostree(self):
+        """Create a CV with RH ostree contents and publish it.
+
+        @Feature: Content View
+
+        @Assert: CV should be published with RH OStree contents
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_remove_published_rh_ostree_version(self):
+        """Remove published rh ostree contents version from selected CV.
+
+        @Feature: Content View
+
+        @Assert: Published version with RH OStree contents should be removed
+        successfully.
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_promote_with_rh_ostree(self):
+        """Create a CV with RH ostree contents and publish, promote it
+        to next environment.
+
+        @Feature: Content View
+
+        @Assert: CV should be promoted with RH OStree contents
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_remove_promoted_rh_ostree_contents(self):
+        """Remove promoted rh ostree contents from selected environment of CV.
+
+        @Feature: Content View
+
+        @Assert: Promoted rh OStree contents should be removed successfully
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_publish_promote_with_rh_ostree_and_other(self):
+        """Create a CV with rh ostree as well as rh yum and puppet type contents and
+        publish, promote them to next environment.
+
+        @Feature: Content View
+
+        @Assert: CV should be published and promoted with rh ostree and all
+        other contents
+
+        @Status: Manual
+        """

@@ -17,7 +17,7 @@ from robottelo.constants import (
     VALID_GPG_KEY_FILE,
 )
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, stubbed, tier1, tier2
 from robottelo.helpers import read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_repository, set_context
@@ -457,3 +457,44 @@ class RepositoryTestCase(UITestCase):
                         session, product.name, repo_name,)
                     # prd_sync_is_ok returns boolean values and not objects
                     self.assertTrue(self.prd_sync_is_ok(repo_name))
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_create_custom_ostree_repo(self):
+        """Create Custom ostree repository.
+
+        @Feature: Custom ostree repository
+
+        @Assert: Create custom ostree repository should be successful
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_delete_custom_ostree_repo(self):
+        """Delete custom ostree repository.
+
+        @Feature: Custom ostree repository
+
+        @Assert: Delete custom ostree repository should be successful
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_update_custom_ostree_repo(self):
+        """Update custom ostree repository.
+
+        @Feature: Custom ostree repository
+
+        @Steps: Update repo name and URL
+
+        @Assert: URL and name should be updated successfully
+
+        @Status: Manual
+        """
