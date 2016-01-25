@@ -5,7 +5,7 @@ from nailgun import entities, entity_mixins
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import ENVIRONMENT
-from robottelo.decorators import run_only_on, stubbed, tier3
+from robottelo.decorators import run_only_on, skip_if_not_set, stubbed, tier3
 from robottelo.test import UITestCase
 from robottelo.ui.base import Base
 from robottelo.ui.factory import make_host
@@ -19,6 +19,7 @@ class HostTestCase(UITestCase, Base):
     hostname = gen_string('numeric')
 
     @classmethod
+    @skip_if_not_set('vlan_networking', 'compute_resources')
     def setUpClass(cls):
         """Steps required to create a real host on libvirt
 
@@ -104,6 +105,8 @@ class HostTestCase(UITestCase, Base):
         )[0]
         cls.proxy.location = [cls.loc]
         cls.proxy = cls.proxy.update(['location'])
+        cls.proxy.organization = [cls.org]
+        cls.proxy = cls.proxy.update(['organization'])
 
         # Search for domain and associate org, location
         _, _, domain = settings.server.hostname.partition('.')
@@ -121,7 +124,7 @@ class HostTestCase(UITestCase, Base):
         # Search if subnet is defined with given network.
         # If so, just update its relevant fields otherwise,
         # Create new subnet
-        network = '192.168.100.0'
+        network = settings.vlan_networking.subnet
         cls.subnet = entities.Subnet().search(
             query={u'search': u'network={0}'.format(network)}
         )
@@ -134,21 +137,21 @@ class HostTestCase(UITestCase, Base):
             cls.subnet.dhcp = cls.proxy
             cls.subnet.tftp = cls.proxy
             cls.subnet.discovery = cls.proxy
-            cls.subnet = cls.subnet.update(
-                ['domain',
-                 'discovery',
-                 'dhcp',
-                 'dns',
-                 'location',
-                 'organization',
-                 'tftp']
-            )
+            cls.subnet = cls.subnet.update([
+                'domain',
+                'discovery',
+                'dhcp',
+                'dns',
+                'location',
+                'organization',
+                'tftp',
+            ])
         else:
             # Create new subnet
             cls.subnet = entities.Subnet(
                 name=gen_string('alpha'),
                 network=network,
-                mask=u'255.255.255.0',
+                mask=settings.vlan_networking.netmask,
                 domain=[cls.domain],
                 location=[cls.loc],
                 organization=[cls.org],
@@ -161,11 +164,10 @@ class HostTestCase(UITestCase, Base):
         # Search if Libvirt compute-resource already exists
         # If so, just update its relevant fields otherwise,
         # Create new compute-resource with 'libvirt' provider.
-        resource_url = u'qemu+tcp://{0}:16509/system'.format(
-            settings.server.hostname
+        resource_url = u'qemu+ssh://root@{0}/system'.format(
+            settings.compute_resources.libvirt_hostname
         )
         cls.computeresource = entities.LibvirtComputeResource(
-            provider='libvirt',
             url=resource_url
         ).search()
         if len(cls.computeresource) >= 1:
@@ -232,12 +234,6 @@ class HostTestCase(UITestCase, Base):
         cls.arch = entities.Architecture().search(
             query={u'search': u'name="x86_64"'}
         )[0]
-        # Update the OS to associate arch, ptable, templates
-        cls.os.architecture = [cls.arch]
-        cls.os.ptable = [cls.ptable]
-        cls.os.config_template = [cls.provisioning_template]
-        cls.os.config_template = [cls.pxe_template]
-        cls.os = cls.os.update(['architecture', 'config_template', 'ptable'])
 
         # Get the media and update its location
         cls.media = entities.Media().search(
@@ -245,6 +241,19 @@ class HostTestCase(UITestCase, Base):
         )[0]
         cls.media.location = [cls.loc]
         cls.media = cls.media.update(['location'])
+        # Update the OS to associate arch, ptable, templates
+        cls.os.architecture = [cls.arch]
+        cls.os.ptable = [cls.ptable]
+        cls.os.config_template = [cls.provisioning_template]
+        cls.os.config_template = [cls.pxe_template]
+        cls.os.medium = [cls.media]
+        cls.os = cls.os.update([
+            'architecture',
+            'config_template',
+            'ptable',
+            'medium',
+        ])
+
         # Create Hostgroup
         cls.host_group = entities.HostGroup(
             architecture=cls.arch,
@@ -296,9 +305,10 @@ class HostTestCase(UITestCase, Base):
                 name=self.hostname,
                 host_group=self.host_group.name,
                 resource=resource,
-                root_pwd=root_pwd,
                 memory="1 GB",
-                network_type="Virtual (NAT)",
+                network_type="Physical (Bridge)",
+                network=settings.vlan_networking.bridge,
+                root_pwd=root_pwd,
             )
             self.scroll_page()
             search = self.hosts.search(
