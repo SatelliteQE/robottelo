@@ -9,7 +9,7 @@
 .. automodule:: tests.foreman.ui.test_activationkey
 
 :mod:`tests.foreman.ui.test_adusergroup`
------------------------------------------
+----------------------------------------
 
 .. automodule:: tests.foreman.ui.test_adusergroup
 
@@ -34,7 +34,7 @@
 .. automodule:: tests.foreman.ui.test_computeresource
 
 :mod:`tests.foreman.ui.test_config_group`
-------------------------------------------
+-----------------------------------------
 
 .. automodule:: tests.foreman.ui.test_config_group
 
@@ -44,12 +44,12 @@
 .. automodule:: tests.foreman.ui.test_contentsearch
 
 :mod:`tests.foreman.ui.test_contentview`
------------------------------------------
+----------------------------------------
 
 .. automodule:: tests.foreman.ui.test_contentview
 
 :mod:`tests.foreman.ui.test_discoveredhost`
---------------------------------------------
+-------------------------------------------
 
 .. automodule:: tests.foreman.ui.test_discoveredhost
 
@@ -189,14 +189,19 @@
 .. automodule:: tests.foreman.ui.test_partitiontable
 
 :mod:`tests.foreman.ui.test_product`
--------------------------------------
+------------------------------------
 
 .. automodule:: tests.foreman.ui.test_product
 
 :mod:`tests.foreman.ui.test_puppetclass`
--------------------------------------------
+----------------------------------------
 
 .. automodule:: tests.foreman.ui.test_puppetclass
+
+:mod:`tests.foreman.ui.test_remoteexecution`
+--------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_remoteexecution
 
 :mod:`tests.foreman.ui.test_repository`
 ---------------------------------------
@@ -209,7 +214,7 @@
 .. automodule:: tests.foreman.ui.test_role
 
 :mod:`tests.foreman.ui.test_setting`
--------------------------------------
+------------------------------------
 
 .. automodule:: tests.foreman.ui.test_setting
 
