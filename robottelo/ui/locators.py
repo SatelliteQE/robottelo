@@ -616,6 +616,22 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'roles')]"),
     "usergroups.tab_external": (
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'external')]"),
+
+    # Host Collections
+    "hostcollection.details": (
+        By.XPATH, "//a[contains(@href, 'info')]/span"),
+    "hostcollection.content_hosts": (
+        By.XPATH, "//a[contains(@href, 'content-hosts')]/span"),
+    "hostcollection.tab_ch_add": (
+        By.XPATH,
+        "//a[contains(@href, 'add-content-hosts') and "
+        "contains(@ui-sref, 'host-collections.details.content-hosts.add')]"),
+    "hostcollection.tab_ch_remove": (
+        By.XPATH,
+        "//a[contains(@href, 'content-hosts') and "
+        "contains(@ui-sref, 'host-collections.details.content-hosts.list')]"),
+    "hostcollection.collection_actions": (
+        By.XPATH, "//a[contains(@href, 'actions')]/span"),
 })
 
 common_locators = LocatorDict({
@@ -717,7 +733,15 @@ common_locators = LocatorDict({
     "all_values_selection": (
         By.XPATH,
         ("//div[@class='ms-selection']//ul[@class='ms-list']/li"
-         "/span[contains(.,'%s')]/.."))
+         "/span[contains(.,'%s')]/..")),
+    "usage_limit": (
+        By.XPATH, "//input[contains(@ng-model, 'max_content_hosts')]"),
+    "usage_limit_checkbox": (
+        By.XPATH,
+        "//input[contains(@ng-model, 'unlimited_content_hosts')]"),
+    "invalid_limit": (
+        By.XPATH,
+        "//input[@id='max_content_hosts' and contains(@class, 'ng-invalid')]"),
 })
 
 locators = LocatorDict({
@@ -1373,14 +1397,6 @@ locators = LocatorDict({
         ("//input[@ng-model='item.selected']"
          "/parent::label[contains(@class, 'active')]")),
     "ak.content_view": (By.ID, "content_view_id"),
-    "ak.usage_limit_checkbox": (
-        By.XPATH,
-        "//input[@ng-model='activationKey.unlimited_content_hosts']"),
-    "ak.usage_limit": (
-        By.XPATH, "//input[@ng-model='activationKey.max_content_hosts']"),
-    "ak.invalid_limit": (
-        By.XPATH,
-        "//input[@id='max_content_hosts' and contains(@class, 'ng-invalid')]"),
     "ak.close": (
         By.XPATH,
         "//button[@ui-sref='activation-keys.index']"),
@@ -2279,4 +2295,68 @@ locators = LocatorDict({
         By.XPATH,
         "//div[@class='tab-content']/div[contains(@class, 'active')]//"
         "td[@id='%s']/../td/span[contains(@class, 'label-')]"),
+
+    # Host Collections
+    "hostcollection.new": (
+        By.XPATH, "//button[@ui-sref='host-collections.new.form']"),
+    "hostcollection.select_name": (
+        By.XPATH,
+        "//tr[contains(@ng-repeat, 'hostCollection')]"
+        "/td/a[contains(., '%s')]"),
+    "hostcollection.edit_name": (
+        By.XPATH, "//form[@bst-edit-text='hostCollection.name']//div/span/i"),
+    "hostcollection.edit_name_text": (
+        By.XPATH,
+        "//form[@bst-edit-text='hostCollection.name']/div/input"),
+    "hostcollection.save_name": (
+        By.XPATH,
+        ("//form[@bst-edit-text='hostCollection.name']"
+         "//button[@ng-click='save()']")),
+    "hostcollection.name_field": (
+        By.XPATH,
+        "//form[@bst-edit-text='hostCollection.name']//div"
+        "/span[contains(., '%s')]"),
+    "hostcollection.edit_description": (
+        By.XPATH,
+        "//form[@bst-edit-textarea='hostCollection.description']//div/span/i"),
+    "hostcollection.edit_description_text": (
+        By.XPATH,
+        ("//form[@bst-edit-textarea='hostCollection.description']"
+         "/div/textarea")),
+    "hostcollection.save_description": (
+        By.XPATH,
+        ("//form[@bst-edit-textarea='hostCollection.description']"
+         "//button[@ng-click='save()']")),
+    "hostcollection.description_field": (
+        By.XPATH,
+        "//form[@bst-edit-textarea='hostCollection.description']//div"
+        "/span[contains(., '%s')]"),
+    "hostcollection.edit_limit": (
+        By.XPATH,
+        ("//div[@bst-edit-custom='hostCollection.max_content_hosts']"
+         "//div/span/i")),
+    "hostcollection.save_limit": (
+        By.XPATH,
+        ("//div[@bst-edit-custom='hostCollection.max_content_hosts']"
+         "//button[@ng-click='save()']")),
+    "hostcollection.limit_field": (
+        By.XPATH,
+        "//div[@bst-edit-custom='hostCollection.max_content_hosts']"
+        "//span[text()='%s']"),
+    "hostcollection.remove": (
+        By.XPATH, "//button[@ng-click='openModal()']"),
+    "hostcollection.copy": (
+        By.XPATH, "//button[@ng-click='showCopy = true']"),
+    "hostcollection.copy_name": (By.ID, "copy_name"),
+    "hostcollection.copy_create": (
+        By.XPATH, "//button[@ng-click='copy(copyName)']"),
+    "hostcollection.select_ch": (
+        By.XPATH,
+        ("//div[contains(@bst-table, 'HostsTable')]"
+         "//td[contains(normalize-space(.), '%s')]"
+         "/preceding-sibling::td[@class='row-select']"
+         "/input[@type='checkbox']")),
+    "hostcollection.add_content_host": (
+        By.XPATH,
+        "//button[contains(@ng-click, 'addSelected')]"),
 })

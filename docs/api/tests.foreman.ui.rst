@@ -98,6 +98,11 @@
 
 .. automodule:: tests.foreman.ui.test_host_system_unification
 
+:mod:`tests.foreman.ui.test_hostcollection`
+-------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_hostcollection
+
 :mod:`tests.foreman.ui.test_hostgroup`
 --------------------------------------
 

@@ -63,6 +63,11 @@
 
 .. automodule:: robottelo.ui.hardwaremodel
 
+:mod:`robottelo.ui.hostcollection`
+----------------------------------
+
+.. automodule:: robottelo.ui.hostcollection
+
 :mod:`robottelo.ui.hostgroup`
 -----------------------------
 

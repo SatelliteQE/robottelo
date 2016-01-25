@@ -14,6 +14,7 @@ from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hardwaremodel import HardwareModel
+from robottelo.ui.hostcollection import HostCollection
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.hosts import Hosts
 from robottelo.ui.ldapauthsource import LdapAuthSource
@@ -719,3 +720,17 @@ def make_compute_profile(session, **kwargs):
     page = session.nav.go_to_compute_profiles
     core_factory(create_args, kwargs, session, page)
     ComputeProfile(session.browser).create(**create_args)
+
+
+def make_host_collection(
+        session, org=None, loc=None, force_context=True, **kwargs):
+    """Creates Host Collection"""
+    create_args = {
+        u'name': None,
+        u'limit': None,
+        u'description': None,
+    }
+    page = session.nav.go_to_host_collections
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc, force_context=force_context)
+    HostCollection(session.browser).create(**create_args)

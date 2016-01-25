@@ -47,6 +47,7 @@ from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
 from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hardwaremodel import HardwareModel
+from robottelo.ui.hostcollection import HostCollection
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.hosts import Hosts
 from robottelo.ui.ldapauthsource import LdapAuthSource
@@ -160,6 +161,7 @@ class UITestCase(TestCase):
         self.environment = Environment(self.browser)
         self.gpgkey = GPGKey(self.browser)
         self.hardwaremodel = HardwareModel(self.browser)
+        self.hostcollection = HostCollection(self.browser)
         self.hostgroup = Hostgroup(self.browser)
         self.hosts = Hosts(self.browser)
         self.ldapauthsource = LdapAuthSource(self.browser)
