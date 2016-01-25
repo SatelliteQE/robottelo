@@ -48,10 +48,10 @@
 
 .. automodule:: tests.foreman.cli.test_contentview
 
-:mod:`tests.foreman.cli.test_discovery`
----------------------------------------
+:mod:`tests.foreman.cli.test_discoveredhost`
+--------------------------------------------
 
-.. automodule:: tests.foreman.cli.test_discovery
+.. automodule:: tests.foreman.cli.test_discoveredhost
 
 :mod:`tests.foreman.cli.test_docker`
 ------------------------------------
