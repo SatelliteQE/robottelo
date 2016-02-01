@@ -412,3 +412,95 @@ class HostTestCase(UITestCase, Base):
 
         @Status: Manual
         """
+
+    @stubbed()
+    @tier3
+    def test_positive_provision_atomic_host(self):
+        """Provision an atomic host on libvirt and register it with satellite
+
+        @Feature: Atomic Host
+
+        @Assert: Atomic host should be provisioned and listed under
+        content-hosts/Hosts
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_register_pre_installed_atomic_host(self):
+        """Register a pre-installed atomic host with satellite using admin
+        credentials
+
+        @Feature: Atomic Host
+
+        @Assert: Atomic host should be registered successfully and listed under
+        content-hosts/Hosts
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_register_pre_installed_atomic_host_using_ak(self):
+        """Register a pre-installed atomic host with satellite using activation
+        key
+
+        @Feature: Atomic Host
+
+        @Assert: Atomic host should be registered successfully and listed under
+        content-hosts/Hosts
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_delete_atomic_host(self):
+        """Delete a provisioned atomic host
+
+        @Feature: Atomic Host
+
+        @Assert: Atomic host should be deleted successfully and shouldn't be
+        listed under hosts/content-hosts
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_bulk_delete_atomic_host(self):
+        """Delete a multiple atomic hosts
+
+        @Feature: Atomic Host
+
+        @Assert: All selected atomic hosts should be deleted successfully
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_update_atomic_host_cv(self):
+        """Update atomic-host with a new environment and content-view
+
+        @Feature: Atomic Host
+
+        @Assert: Atomic host should be updated with new content-view
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_execute_cmd_on_atomic_host_with_job_templates(self):
+        """Execute ostree/atomic commands on provisioned atomic host with job
+        templates
+
+        @Feature: Atomic Host
+
+        @Assert: Ostree/atomic commands should be executed successfully via job
+        templates
+
+        @Status: Manual
+        """
