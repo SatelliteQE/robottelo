@@ -84,7 +84,7 @@ class Sync(Base):
     def create_repos_tree(self, repos):
         """Creates list of dictionary.
 
-        Creates a list of dynamic hierarchial dictonary of repositories.  A
+        Creates a list of dynamic hierarchical repository dictionaries. A
         sample data which needs to be passed can be fetched from constants::
 
             RHEL, RHCT e.t.c
