@@ -523,7 +523,7 @@ class Base(object):
         return element_type
 
     def click(self, locator, wait_for_ajax=True,
-              ajax_timeout=30, waiter_timeout=12, scroll=False):
+              ajax_timeout=30, waiter_timeout=12, scroll=True):
         """Locate the element described by the ``locator`` and click on it.
 
         :param locator: The locator that describes the element.
@@ -534,6 +534,8 @@ class Base(object):
         :param waiter_timeout: The amount of time that wait_until_element
             should wait. That value should be specified when non-default delay
             is needed (e.g. long run procedures)
+        :param scroll: Decide whether scroll to element in case it is located
+            out of the page
         :raise: UINoSuchElementError if the element could not be found.
 
         """
@@ -543,24 +545,30 @@ class Base(object):
                 '{0}: element with locator {1} not found while trying to click'
                 .format(type(self).__name__, locator)
             )
-        # Required since from seleniume 2.48.0. which makes Selenium more
+        # Required since from selenium 2.48.0. which makes Selenium more
         # closely resemble a user when interacting with elements.
         # Scrolling element into view before attempting to click solves this.
+        # Behaviour can be changed with new selenium versions, so it is
+        # necessary to validate that functionality in case click method stopped
+        # to work as intended
         if scroll:
             self.scroll_into_view(element)
         element.click()
         if wait_for_ajax:
             self.wait_for_ajax(ajax_timeout)
 
-    def select(self, locator, value, wait_for_ajax=True, timeout=30):
+    def select(
+            self, locator, value, wait_for_ajax=True, timeout=30, scroll=True):
         """Select the element described by the ``locator``.
 
         :param locator: The locator that describes the element.
-        :oaram value: The value to select from the dropdown
+        :param value: The value to select from the dropdown
         :param wait_for_ajax: Flag that indicates if should wait for AJAX after
             clicking on the element
         :param timeout: The amount of time that wait_fox_ajax should wait. This
             will have effect if ``wait_fox_ajax`` parameter is ``True``.
+        :param scroll: Decide whether scroll to element in case it is located
+            out of the page
         :raise: UINoSuchElementError if the element could not be found.
 
         """
@@ -570,6 +578,8 @@ class Base(object):
                 '{0}: element with locator {1} not found while trying to '
                 'select'.format(type(self).__name__, locator)
             )
+        if scroll:
+            self.scroll_into_view(element)
         Select(element).select_by_visible_text(value)
         if wait_for_ajax:
             self.wait_for_ajax(timeout)
