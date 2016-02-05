@@ -78,6 +78,10 @@ class User(Base):
         # The following fields are not available via LDAP auth
         if self.wait_until_element(locators['users.email']):
             self.field_update('users.email', email)
+        if locale:
+            Select(
+                self.find_element(locators['users.language'])
+            ).select_by_value(locale)
         # If authorized_by is None, click submit.
         # For use in negative create tests.
         if authorized_by:
@@ -86,22 +90,18 @@ class User(Base):
             if self.wait_until_element(
                     locators['users.password_confirmation']):
                 self.field_update('users.password_confirmation', password2)
-            if locale:
-                Select(
-                    self.find_element(locators['users.language'])
-                ).select_by_value(locale)
-            if edit:
-                self._configure_user(
-                    roles=roles,
-                    locations=locations,
-                    organizations=organizations,
-                    default_org=default_org,
-                    default_loc=default_loc,
-                    select=select
-                )
-            if admin:
-                self.click(tab_locators['users.tab_roles'])
-                self.click(locators['users.admin_role'])
+        if edit:
+            self._configure_user(
+                roles=roles,
+                locations=locations,
+                organizations=organizations,
+                default_org=default_org,
+                default_loc=default_loc,
+                select=select
+            )
+        if admin:
+            self.click(tab_locators['users.tab_roles'])
+            self.click(locators['users.admin_role'])
         if submit:
             self.click(common_locators['submit'])
         else:
