@@ -163,7 +163,7 @@ class DockerBrowser(object):
             return
         self._client.stop(self.container['Id'])
         self._client.wait(self.container['Id'])
-        self._client.remove_container(self.container['Id'])
+        self._client.remove_container(self.container['Id'], force=True)
 
     def __enter__(self):
         self.start()
