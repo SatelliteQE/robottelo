@@ -30,6 +30,25 @@ class SubscriptionsTestCase(APITestCase):
 
     @skip_if_not_set('fake_manifest')
     @tier1
+    def test_positive_refresh(self):
+        """Upload a manifest and refresh it afterwards.
+
+        @Assert: Manifest is refreshed successfully
+
+        @Feature: Subscriptions
+        """
+        org = entities.Organization().create()
+        sub = entities.Subscription(organization=org)
+        with manifests.original_manifest() as manifest:
+            upload_manifest(org.id, manifest.content)
+        try:
+            sub.refresh_manifest(data={'organization_id': org.id})
+            self.assertGreater(len(sub.search()), 0)
+        finally:
+            sub.delete_manifest(data={'organization_id': org.id})
+
+    @skip_if_not_set('fake_manifest')
+    @tier1
     def test_positive_delete(self):
         """Delete an Uploaded manifest.
 
