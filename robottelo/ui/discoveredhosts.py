@@ -75,9 +75,9 @@ class DiscoveredHosts(Base):
                 .format(hostname)
             )
         strategy, value = locators['discoveredhosts.dropdown']
-        self.click((strategy, value % hostname), wait_for_ajax=False)
+        self.click((strategy, value % hostname))
         strategy, value = locators['discoveredhosts.refresh_facts']
-        self.click((strategy, value % hostname), wait_for_ajax=False)
+        self.click((strategy, value % hostname))
 
     def fetch_fact_value(self, hostname, element):
         """Fetch the value of selected fact from discovered hosts page"""

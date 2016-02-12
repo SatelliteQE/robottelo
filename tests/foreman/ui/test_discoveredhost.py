@@ -19,11 +19,11 @@ class DiscoveryTestCase(UITestCase):
         """
         Check if host is visible under 'Discovered Hosts' on UI
 
-        Introduced a delay of 100secs by polling every 10 secs to see if
+        Introduced a delay of 120secs by polling every 10 secs to see if
         unknown host gets discovered and become visible on UI
         """
         discovered_host = self.discoveredhosts.search(hostname)
-        for _ in range(10):
+        for _ in range(12):
             if discovered_host is None:
                 sleep(10)
                 discovered_host = self.discoveredhosts.search(hostname)
