@@ -74,10 +74,7 @@ class HostTestCase(APITestCase):
             with self.subTest(owner_type):
                 if owner_type == 'Usergroup' and bz_bug_is_open(1203865):
                     continue  # instead of skip for compatibility with py.test
-                host = entities.Host()
-                host.create_missing()
-                host.owner_type = owner_type
-                host = host.create(create_missing=False)
+                host = entities.Host(owner_type=owner_type).create()
                 self.assertEqual(host.owner_type, owner_type)
 
     @run_only_on('sat')
@@ -109,10 +106,7 @@ class HostTestCase(APITestCase):
         """
         for name in valid_hosts_list():
             with self.subTest(name):
-                host = entities.Host()
-                host.create_missing()
-                host.name = name
-                host = host.create(create_missing=False)
+                host = entities.Host(name=name).create()
                 self.assertEqual(
                     host.name,
                     '{0}.{1}'.format(name, host.domain.read().name).lower()
@@ -127,11 +121,8 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected IP address
         """
-        host = entities.Host()
         ip_addr = gen_ipaddr()
-        host.create_missing()
-        host.ip = ip_addr
-        host = host.create(create_missing=False)
+        host = entities.Host(ip=ip_addr).create()
         self.assertEqual(host.ip, ip_addr)
 
     @run_only_on('sat')
@@ -143,14 +134,17 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected hostgroup assigned
         """
-        host = entities.Host()
-        host.create_missing()
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
         hostgroup = entities.HostGroup(
-            location=[host.location],
-            organization=[host.organization],
+            location=[loc],
+            organization=[org],
         ).create()
-        host.hostgroup = hostgroup
-        host = host.create(create_missing=False)
+        host = entities.Host(
+            hostgroup=hostgroup,
+            location=loc,
+            organization=org,
+        ).create()
         self.assertEqual(host.hostgroup.read().name, hostgroup.name)
 
     @run_only_on('sat')
@@ -162,11 +156,8 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected puppet proxy assigned
         """
-        host = entities.Host()
-        host.create_missing()
         proxy = entities.SmartProxy().search()[0]
-        host.puppet_proxy = proxy
-        host = host.create(create_missing=False)
+        host = entities.Host(puppet_proxy=proxy).create()
         self.assertEqual(host.puppet_proxy.read().name, proxy.name)
 
     @run_only_on('sat')
@@ -178,11 +169,8 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected puppet CA proxy assigned
         """
-        host = entities.Host()
-        host.create_missing()
         proxy = entities.SmartProxy().search()[0]
-        host.puppet_ca_proxy = proxy
-        host = host.create(create_missing=False)
+        host = entities.Host(puppet_ca_proxy=proxy).create()
         self.assertEqual(host.puppet_ca_proxy.read().name, proxy.name)
 
     @run_only_on('sat')
@@ -194,11 +182,8 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected subnet assigned
         """
-        host = entities.Host()
-        host.create_missing()
         subnet = entities.Subnet().create()
-        host.subnet = subnet
-        host = host.create(create_missing=False)
+        host = entities.Host(subnet=subnet).create()
         self.assertEqual(host.subnet.read().name, subnet.name)
 
     @run_only_on('sat')
@@ -210,14 +195,17 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected compute resource assigned
         """
-        host = entities.Host()
-        host.create_missing()
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
         compresource = entities.LibvirtComputeResource(
-            location=[host.location],
-            organization=[host.organization],
+            location=[loc],
+            organization=[org],
         ).create()
-        host.compute_resource = compresource
-        host = host.create(create_missing=False)
+        host = entities.Host(
+            compute_resource=compresource,
+            location=loc,
+            organization=org,
+        ).create()
         self.assertEqual(host.compute_resource.read().name, compresource.name)
 
     @run_only_on('sat')
@@ -229,11 +217,8 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected model assigned
         """
-        host = entities.Host()
-        host.create_missing()
         model = entities.Model().create()
-        host.model = model
-        host = host.create(create_missing=False)
+        host = entities.Host(model=model).create()
         self.assertEqual(host.model.read().name, model.name)
 
     @run_only_on('sat')
@@ -245,12 +230,11 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected user assigned
         """
-        host = entities.Host()
-        host.create_missing()
         user = entities.User().create()
-        host.owner_type = 'User'
-        host.owner = user
-        host = host.create(create_missing=False)
+        host = entities.Host(
+            owner=user,
+            owner_type='User',
+        ).create()
         self.assertEqual(host.owner.read().login, user.login)
 
     @run_only_on('sat')
@@ -263,10 +247,7 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected 'build' parameter value
         """
-        host = entities.Host()
-        host.create_missing()
-        host.build = True
-        host = host.create(create_missing=False)
+        host = entities.Host(build=True).create()
         self.assertEqual(host.build, True)
 
     @run_only_on('sat')
@@ -280,10 +261,7 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected 'enabled' parameter value
         """
-        host = entities.Host()
-        host.create_missing()
-        host.enabled = False
-        host = host.create(create_missing=False)
+        host = entities.Host(enabled=False).create()
         self.assertEqual(host.enabled, False)
 
     @run_only_on('sat')
@@ -297,10 +275,7 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected managed parameter value
         """
-        host = entities.Host()
-        host.create_missing()
-        host.managed = True
-        host = host.create(create_missing=False)
+        host = entities.Host(managed=True).create()
         self.assertEqual(host.managed, True)
 
     @run_only_on('sat')
@@ -314,10 +289,7 @@ class HostTestCase(APITestCase):
         """
         for comment in valid_data_list():
             with self.subTest(comment):
-                host = entities.Host()
-                host.create_missing()
-                host.comment = comment
-                host = host.create(create_missing=False)
+                host = entities.Host(comment=comment).create()
                 self.assertEqual(host.comment, comment)
 
     @run_only_on('sat')
@@ -329,11 +301,8 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected compute profile assigned
         """
-        host = entities.Host()
-        host.create_missing()
         profile = entities.ComputeProfile().create()
-        host.compute_profile = profile
-        host = host.create(create_missing=False)
+        host = entities.Host(compute_profile=profile).create()
         self.assertEqual(host.compute_profile.read().name, profile.name)
 
     @run_only_on('sat')
@@ -345,7 +314,7 @@ class HostTestCase(APITestCase):
 
         @assert: Host is deleted
         """
-        host = entities.Host().create(create_missing=True)
+        host = entities.Host().create()
         host.delete()
         with self.assertRaises(HTTPError):
             host.read()
@@ -489,10 +458,7 @@ class HostTestCase(APITestCase):
 
         @assert: A host is updated with a new IP address
         """
-        host = entities.Host()
-        host.create_missing()
-        host.ip = gen_ipaddr()
-        host = host.create(create_missing=False)
+        host = entities.Host(ip=gen_ipaddr()).create()
         new_ip = gen_ipaddr()
         host.ip = new_ip
         host = host.update(['ip'])
@@ -507,13 +473,17 @@ class HostTestCase(APITestCase):
 
         @assert: A host is updated with a new hostgroup
         """
-        host = entities.Host()
-        host.create_missing()
-        host.hostgroup = entities.HostGroup(
-            location=[host.location],
-            organization=[host.organization],
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
+        hostgroup = entities.HostGroup(
+            location=[loc],
+            organization=[org],
         ).create()
-        host = host.create(create_missing=False)
+        host = entities.Host(
+            hostgroup=hostgroup,
+            location=loc,
+            organization=org,
+        ).create()
         new_hostgroup = entities.HostGroup(
             location=[host.location],
             organization=[host.organization],
@@ -531,9 +501,7 @@ class HostTestCase(APITestCase):
 
         @assert: A host is updated with a new puppet proxy
         """
-        host = entities.Host()
-        host.create_missing()
-        host = host.create(create_missing=False)
+        host = entities.Host().create()
         new_proxy = entities.SmartProxy().search()[0]
         host.puppet_proxy = new_proxy
         host = host.update(['puppet_proxy'])
@@ -548,9 +516,7 @@ class HostTestCase(APITestCase):
 
         @assert: A host is updated with a new puppet CA proxy
         """
-        host = entities.Host()
-        host.create_missing()
-        host = host.create(create_missing=False)
+        host = entities.Host().create()
         new_proxy = entities.SmartProxy().search()[0]
         host.puppet_ca_proxy = new_proxy
         host = host.update(['puppet_ca_proxy'])
@@ -565,10 +531,7 @@ class HostTestCase(APITestCase):
 
         @assert: A host is updated with a new subnet
         """
-        host = entities.Host()
-        host.create_missing()
-        host.subnet = entities.Subnet().create()
-        host = host.create(create_missing=False)
+        host = entities.Host(subnet=entities.Subnet().create()).create()
         new_subnet = entities.Subnet().create()
         host.subnet = new_subnet
         host = host.update(['subnet'])
@@ -583,13 +546,17 @@ class HostTestCase(APITestCase):
 
         @assert: A host is updated with a new compute resource
         """
-        host = entities.Host()
-        host.create_missing()
-        host.compute_resource = entities.LibvirtComputeResource(
-            location=[host.location],
-            organization=[host.organization],
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
+        compute_resource = entities.LibvirtComputeResource(
+            location=[loc],
+            organization=[org],
         ).create()
-        host = host.create(create_missing=False)
+        host = entities.Host(
+            compute_resource=compute_resource,
+            location=loc,
+            organization=org,
+        ).create()
         new_compresource = entities.LibvirtComputeResource(
             location=[host.location],
             organization=[host.organization],
@@ -608,10 +575,7 @@ class HostTestCase(APITestCase):
 
         @assert: A host is updated with a new model
         """
-        host = entities.Host()
-        host.create_missing()
-        host.model = entities.Model().create()
-        host = host.create(create_missing=False)
+        host = entities.Host(model=entities.Model().create()).create()
         new_model = entities.Model().create()
         host.model = new_model
         host = host.update(['model'])
@@ -626,11 +590,10 @@ class HostTestCase(APITestCase):
 
         @assert: A host is updated with a new user
         """
-        host = entities.Host()
-        host.create_missing()
-        host.owner = entities.User().create()
-        host.owner_type = 'User'
-        host = host.create(create_missing=False)
+        host = entities.Host(
+            owner=entities.User().create(),
+            owner_type='User',
+        ).create()
         new_user = entities.User().create()
         host.owner = new_user
         host = host.update(['owner'])
@@ -648,10 +611,7 @@ class HostTestCase(APITestCase):
         """
         for build in (True, False):
             with self.subTest(build):
-                host = entities.Host()
-                host.create_missing()
-                host.build = build
-                host = host.create(create_missing=False)
+                host = entities.Host(build=build).create()
                 host.build = not build
                 host = host.update(['build'])
                 self.assertEqual(host.build, not build)
@@ -669,10 +629,7 @@ class HostTestCase(APITestCase):
         """
         for enabled in (True, False):
             with self.subTest(enabled):
-                host = entities.Host()
-                host.create_missing()
-                host.enabled = enabled
-                host = host.create(create_missing=False)
+                host = entities.Host(enabled=enabled).create()
                 host.enabled = not enabled
                 host = host.update(['enabled'])
                 self.assertEqual(host.enabled, not enabled)
@@ -690,10 +647,7 @@ class HostTestCase(APITestCase):
         """
         for managed in (True, False):
             with self.subTest(managed):
-                host = entities.Host()
-                host.create_missing()
-                host.managed = managed
-                host = host.create(create_missing=False)
+                host = entities.Host(managed=managed).create()
                 host.managed = not managed
                 host = host.update(['managed'])
                 self.assertEqual(host.managed, not managed)
@@ -709,10 +663,7 @@ class HostTestCase(APITestCase):
         """
         for new_comment in valid_data_list():
             with self.subTest(new_comment):
-                host = entities.Host()
-                host.create_missing()
-                host.comment = gen_string('alpha')
-                host = host.create(create_missing=False)
+                host = entities.Host(comment=gen_string('alpha')).create()
                 host.comment = new_comment
                 host = host.update(['comment'])
                 self.assertEqual(host.comment, new_comment)
@@ -726,10 +677,9 @@ class HostTestCase(APITestCase):
 
         @assert: A host is updated with a new compute profile
         """
-        host = entities.Host()
-        host.create_missing()
-        host.compute_profile = entities.ComputeProfile().create()
-        host = host.create(create_missing=False)
+        host = entities.Host(
+            compute_profile=entities.ComputeProfile().create(),
+        ).create()
         new_cprofile = entities.ComputeProfile().create()
         host.compute_profile = new_cprofile
         host = host.update(['compute_profile'])
