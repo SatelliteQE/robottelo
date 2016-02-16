@@ -68,16 +68,21 @@ class RHAITestCase(UITestCase):
         """
         # Register a VM to Access Insights Service
         with VirtualMachine(distro='rhel67') as vm:
-            vm.configure_rhai_client(self.ak_name, self.org_label, 'rhel67')
+            try:
+                vm.configure_rhai_client(self.ak_name, self.org_label,
+                                         'rhel67')
 
-            with Session(self.browser) as session:
-                # view clients registered to Red Hat Access Insights
-                session.nav.go_to_select_org(self.org_name)
-                Navigator(self.browser).go_to_insights_systems()
-                result = self.rhai.view_registered_systems()
-                self.assertIn("1", result, 'Registered clients are not listed')
-            vm.get('/var/log/redhat-access-insights/redhat-access'
-                   '-insights.log', './insights_client_registration.log')
+                with Session(self.browser) as session:
+                    # view clients registered to Red Hat Access Insights
+                    session.nav.go_to_select_org(self.org_name)
+                    Navigator(self.browser).go_to_insights_systems()
+                    result = self.rhai.view_registered_systems()
+                    self.assertIn("1", result,
+                                  'Registered clients are not listed')
+            finally:
+                vm.get('/var/log/redhat-access-insights/'
+                       'redhat-access-insights.log',
+                       './insights_client_registration.log')
 
     def test_negative_org_not_selected(self):
         """Verify that user attempting to access RHAI is directed to
@@ -115,31 +120,35 @@ class RHAITestCase(UITestCase):
         """
         # Register a VM to Access Insights Service
         with VirtualMachine(distro='rhel71') as vm:
-            vm.configure_rhai_client(self.ak_name, self.org_label, 'rhel71')
+            try:
+                vm.configure_rhai_client(self.ak_name, self.org_label,
+                                         'rhel71')
 
-            with Session(self.browser) as session:
-                session.nav.go_to_select_org(self.org_name)
-                Navigator(self.browser).go_to_insights_systems()
-                # Click on the unregister icon 'X' in the table against the
-                # registered system listed.
-                strategy, value = locators['insights.unregister_system']
-                session.nav.click(
-                    (strategy, value % vm.hostname),
-                    wait_for_ajax=True,
-                    ajax_timeout=40,
-                )
+                with Session(self.browser) as session:
+                    session.nav.go_to_select_org(self.org_name)
+                    Navigator(self.browser).go_to_insights_systems()
+                    # Click on the unregister icon 'X' in the table against the
+                    # registered system listed.
+                    strategy, value = locators['insights.unregister_system']
+                    session.nav.click(
+                        (strategy, value % vm.hostname),
+                        wait_for_ajax=True,
+                        ajax_timeout=40,
+                    )
 
-                # Confirm selection for clicking on 'Yes' to unregister the
-                # system
-                session.nav.click(
-                    locators['insights.unregister_button']
-                )
-                self.browser.refresh()
-                time.sleep(60)
-                self.browser.refresh()
+                    # Confirm selection for clicking on 'Yes' to unregister the
+                    # system
+                    session.nav.click(
+                        locators['insights.unregister_button']
+                    )
+                    self.browser.refresh()
+                    time.sleep(60)
+                    self.browser.refresh()
 
-            result = vm.run('redhat-access-insights')
-            self.assertEqual(result.return_code, 1,
-                             "System has not been unregistered")
-            vm.get('/var/log/redhat-access-insights/redhat-access'
-                   '-insights.log', './insights_unregister.log')
+                result = vm.run('redhat-access-insights')
+                self.assertEqual(result.return_code, 1,
+                                 "System has not been unregistered")
+            finally:
+                vm.get('/var/log/redhat-access-insights/'
+                       'redhat-access-insights.log',
+                       './insights_unregister.log')
