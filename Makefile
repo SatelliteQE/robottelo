@@ -34,7 +34,7 @@ help:
 	@echo "  test-foreman-cli           to test a Foreman deployment CLI"
 	@echo "  test-foreman-cli-threaded  to do the above with threading."
 	@echo "                             Requires pytest-xdist"
-	@echo "  test-foreman-rhai          to test Red Hat Access Insights plugin"
+	@echo "  test-foreman-rhai          to test Red Hat Insights plugin"
 	@echo "  test-foreman-rhci          to test a Foreman deployment w/RHCI plugin"
 	@echo "  test-foreman-ui            to test a Foreman deployment UI"
 	@echo "  test-foreman-ui-xvfb       to test a Foreman deployment UI using xvfb-run"
@@ -74,7 +74,7 @@ test-foreman-cli-threaded:
 	$(PYTEST) $(PYTEST_XDIST_OPTS) $(FOREMAN_CLI_TESTS_PATH)
 
 test-foreman-rhai:
-	$(PYTEST) -s $(PYTEST_OPTS) $(FOREMAN_RHAI_TESTS_PATH)
+	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_RHAI_TESTS_PATH)
 
 test-foreman-rhci:
 	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_RHCI_TESTS_PATH)
