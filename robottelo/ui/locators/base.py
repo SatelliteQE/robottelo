@@ -231,10 +231,6 @@ locators = LocatorDict({
     "profile.resource_form": (By.XPATH, "//form[@id='new_compute_attribute']"),
 
     # Compute Resource
-    # Some locator values can be duplicated. That was performed more because of
-    # bad application design rather than wrong test automation implementation.
-    # Also, that will prevent unnecessary confusion in all these provider type
-    # fields and much easier maintenance in case of any changes to DOM
     "resource.new": (
         By.XPATH, "//a[contains(@href, '/compute_resources/new')]"),
     "resource.name": (By.ID, "compute_resource_name"),
@@ -305,29 +301,38 @@ locators = LocatorDict({
     "resource.get_by_name": (
         By.XPATH,
         "//a[not(contains(@href, 'search')) and contains(@href, '%s')]"),
-    "resource.vm.power_button": (
+
+    # Locators under compute-resources vm tab.
+    "resource.vm_power_button": (
         By.XPATH,
-        "//table[contains(@id, 'DataTables')]//a[contains(@data-id, '%s')"
-        "and .='%s']/../../td[6]//a"),
-    "resource.vm.delete_button_dropdown": (
+        "//a[contains(@href,'power') and contains(@data-confirm, '%s')]"),
+    "resource.vm_delete_button_dropdown": (
         By.XPATH,
-        "//table[contains(@id, 'DataTables')]//a[contains(@data-id, '%s')"
-        "and .='%s']/../../td[6]//a[2]"),
-    "resource.vm.delete_button": (
+        ("//a[contains(@href,'power') and contains(@data-confirm, '%s')]"
+         "/../a[@data-toggle='dropdown']")),
+    "resource.vm_delete_button": (
         By.XPATH,
-        "//table[contains(@id, 'DataTables')]//a[contains(@data-id, '%s')"
-        "and .='%s']/../../td[5]//a[.='Delete']"),
-    "resource.image.add": (By.XPATH, "//a[.='New Image']"),
-    "resource.image.name": (By.ID, "image_name"),
-    "resource.image.operatingsystem": (
+        ("//a[contains(@href,'power') and contains(@data-confirm, '%s')]"
+         "/../ul/li/a[contains(.,'Delete')]")),
+    "resource.vm_list": (
+        By.XPATH,
+        "//div[@id='vms']//tbody/tr/td/a"),
+
+    # Locators under compute-resources image tab.
+    "resource.image_add": (By.XPATH, "//a[.='New Image']"),
+    "resource.image_name": (By.ID, "image_name"),
+    "resource.image_operatingsystem": (
         By.XPATH, "//select[@id='image_operatingsystem_id']"),
-    "resource.image.architecture": (
+    "resource.image_architecture": (
         By.XPATH, "//select[@id='image_architecture_id']"),
-    "resource.image.username": (By.ID, "image_username"),
-    "resource.image.password": (By.ID, "image_password"),
-    "resource.image.image": (By.XPATH, "//input[@id='image_uuid']"),
-    "resource.image.submit": (
+    "resource.image_username": (By.ID, "image_username"),
+    "resource.image_password": (By.ID, "image_password"),
+    "resource.image_uuid": (By.XPATH, "//input[@id='image_uuid']"),
+    "resource.image_submit": (
         By.XPATH, "//input[@data-id='aid_create_image']"),
+    "resource.image_list": (
+        By.XPATH,
+        "//div[@id='images_list']//tbody/tr/td[1]"),
 
     # Content Hosts
     "contenthost.select_name": (

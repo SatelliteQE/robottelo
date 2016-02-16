@@ -391,6 +391,93 @@ class FakeCapsuleSettings(FeatureSettings):
             validation_errors.append(
                 '[fake_capsules] port_range option must be provided.'
             )
+
+
+class RHEVSettings(FeatureSettings):
+    """RHEV settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(RHEVSettings, self).__init__(*args, **kwargs)
+        # Compute Resource Information
+        self.hostname = None
+        self.username = None
+        self.password = None
+        self.datacenter = None
+        self.vm_name = None
+        # Image Information
+        self.image_os = None
+        self.image_arch = None
+        self.image_username = None
+        self.image_password = None
+        self.image_name = None
+
+    def read(self, reader):
+        """Read rhev settings."""
+        # Compute Resource Information
+        self.hostname = reader.get('rhev', 'hostname')
+        self.username = reader.get('rhev', 'username')
+        self.password = reader.get('rhev', 'password')
+        self.datacenter = reader.get('rhev', 'datacenter')
+        self.vm_name = reader.get('rhev', 'vm_name')
+        # Image Information
+        self.image_os = reader.get('rhev', 'image_os')
+        self.image_arch = reader.get('rhev', 'image_arch')
+        self.image_username = reader.get('rhev', 'image_username')
+        self.image_password = reader.get('rhev', 'image_password')
+        self.image_name = reader.get('rhev', 'image_name')
+
+    def validate(self):
+        """Validate rhev settings."""
+        validation_errors = []
+        if not all(vars(self).values()):
+            validation_errors.append(
+                'All [rhev] hostname, username, password, datacenter, '
+                'vm_name, image_name, image_os, image_arch, image_usernam, '
+                'image_name options must be provided.'
+            )
+        return validation_errors
+
+
+class VmWareSettings(FeatureSettings):
+    """VmWare settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(VmWareSettings, self).__init__(*args, **kwargs)
+        # Compute Resource Information
+        self.vcenter = None
+        self.username = None
+        self.password = None
+        self.datacenter = None
+        self.vm_name = None
+        # Image Information
+        self.image_os = None
+        self.image_arch = None
+        self.image_username = None
+        self.image_password = None
+        self.image_name = None
+
+    def read(self, reader):
+        """Read vmware settings."""
+        # Compute Resource Information
+        self.vcenter = reader.get('vmware', 'hostname')
+        self.username = reader.get('vmware', 'username')
+        self.password = reader.get('vmware', 'password')
+        self.datacenter = reader.get('vmware', 'datacenter')
+        self.vm_name = reader.get('vmware', 'vm_name')
+        # Image Information
+        self.image_os = reader.get('vmware', 'image_os')
+        self.image_arch = reader.get('vmware', 'image_arch')
+        self.image_username = reader.get('vmware', 'image_username')
+        self.image_password = reader.get('vmware', 'image_password')
+        self.image_name = reader.get('vmware', 'image_name')
+
+    def validate(self):
+        """Validate vmware settings."""
+        validation_errors = []
+        if not all(vars(self).values()):
+            validation_errors.append(
+                'All [vmware] hostname, username, password, datacenter, '
+                'vm_name, image_name, image_os, image_arch, image_usernam, '
+                'image_name options must be provided.'
+            )
         return validation_errors
 
 
@@ -603,9 +690,11 @@ class Settings(object):
         self.oscap = OscapSettings()
         self.performance = PerformanceSettings()
         self.rhai = RHAISettings()
+        self.rhev = RHEVSettings()
         self.transition = TransitionSettings()
         self.vlan_networking = VlanNetworkSettings()
         self.upgrade = UpgradeSettings()
+        self.vmware = VmWareSettings()
 
     def configure(self):
         """Read the settings file and parse the configuration.
@@ -659,6 +748,9 @@ class Settings(object):
         if self.reader.has_section('rhai'):
             self.rhai.read(self.reader)
             self._validation_errors.extend(self.rhai.validate())
+        if self.reader.has_section('rhev'):
+            self.rhev.read(self.reader)
+            self._validation_errors.extend(self.rhev.validate())
         if self.reader.has_section('transition'):
             self.transition.read(self.reader)
             self._validation_errors.extend(self.transition.validate())
@@ -668,6 +760,9 @@ class Settings(object):
         if self.reader.has_section('upgrade'):
             self.upgrade.read(self.reader)
             self._validation_errors.extend(self.upgrade.validate())
+        if self.reader.has_section('vmware'):
+            self.vmware.read(self.reader)
+            self._validation_errors.extend(self.vmware.validate())
 
         if self._validation_errors:
             raise ImproperlyConfigured(
