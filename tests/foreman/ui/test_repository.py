@@ -334,6 +334,32 @@ class RepositoryTestCase(UITestCase):
                     self.repository.delete(repo_name)
 
     @run_only_on('sat')
+    @stubbed
+    @tier2
+    def test_negative_delete_puppet_repo_associated_with_cv(self):
+        """Delete a puppet repo associated with a content view - BZ#1271000
+
+        @Feature: Content Product - Delete repo
+
+        @Steps:
+
+        1. Create a new product
+        2. Create a new puppet repo, no sync source
+        3. Upload a puppet module (say ntpd) to repo
+        4. Create a CV, go to add puppet modules page
+        5. Add latest version of the puppet module from Step 3
+        6. View puppet repo details, it should show "Latest (Currently X.Y.Z)"
+        7. Go back to product, drill down into repo and delete the puppet
+        module from Step 3
+        8. Go back to same CV puppet module details page
+
+        @Assert: Proper error message saying that the puppet module version is
+        not found
+
+        @Status: Manual
+        """
+
+    @run_only_on('sat')
     @tier2
     def test_positive_discover_repo_via_existing_product(self):
         """Create repository via repo-discovery under existing product
