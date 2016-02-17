@@ -1,12 +1,90 @@
 # -*- encoding: utf-8 -*-
 """Test class for Smart/Puppet Class Parameter"""
 
-from robottelo.decorators import run_only_on, stubbed, tier1, tier3
+from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
 from robottelo.test import CLITestCase
 
 
 class SmartClassParametersTestCase(CLITestCase):
     """Implements Smart Class Parameter tests in CLI"""
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_list_parameters_by_host_name(self):
+        """List all the parameters included in specific Host by its name.
+
+        @feature: Class Parameters - List
+
+        @assert: Parameters listed for specific Host.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_list_parameters_by_host_id(self):
+        """List all the parameters included in specific Host by its id.
+
+        @feature: Class Parameters - List
+
+        @assert: Parameters listed for specific Host.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_list_parameters_by_hostgroup_name(self):
+        """List all the parameters included in specific HostGroup by its name.
+
+        @feature: Class Parameters - List
+
+        @assert: Parameters listed for specific HostGroup.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_list_parameters_by_hostgroup_id(self):
+        """List all the parameters included in specific HostGroup by id.
+
+        @feature: Class Parameters - List
+
+        @assert: Parameters listed for specific HostGroup.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_list_parameters_by_puppetclass_name(self):
+        """List all the parameters for specific puppet class by name.
+
+        @feature: Class Parameters - List
+
+        @assert: Parameters listed for specific Puppet class.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_list_parameters_by_puppetclass_id(self):
+        """List all the parameters for specific puppet class by id.
+
+        @feature: Class Parameters - List
+
+        @assert: Parameters listed for specific Puppet class.
+
+        @status: Manual
+        """
 
     @run_only_on('sat')
     @stubbed()
@@ -804,6 +882,25 @@ class SmartClassParametersTestCase(CLITestCase):
 
     @run_only_on('sat')
     @stubbed()
+    @tier2
+    def test_positive_remove_matcher(self):
+        """Removal of matcher from parameter.
+
+        @feature: Class Parameters - Matcher
+
+        @steps:
+
+        1. Override the parameter and create a matcher
+        for some attribute.
+        2. Remove the matcher created in step 1.
+
+        @assert: The matcher removed from parameter.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
     @tier3
     def test_positive_impact_parameter_delete_attribute(self):
         """Impact on parameter after deleting associated attribute.
@@ -822,6 +919,90 @@ class SmartClassParametersTestCase(CLITestCase):
         1.  The matcher for deleted attribute removed from parameter.
         2.  On recreating attribute, the matcher should not
         reappear in parameter.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_hide_parameter_default_value(self):
+        """Hide the default value of parameter.
+
+        @feature: Class Parameters - Value Hiding
+
+        @steps:
+
+        1. Set the override flag for the parameter.
+        2. Set some valid default value.
+        3. Set 'Hidden Value' to true.
+
+        @assert: The 'hidden value' set to true for that parameter.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_unhide_parameter_default_value(self):
+        """Unhide the default value of parameter.
+
+        @feature: Class Parameters - Value Hiding
+
+        @steps:
+
+        1. Set the override flag for the parameter.
+        2. Set some valid default value.
+        3. Set 'Hidden Value' to true and submit.
+        4. After hiding, set the 'Hidden Value' to false.
+
+        @assert: The 'hidden value' set to false for that parameter.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_update_hidden_value_in_parameter(self):
+        """Update the hidden default value of parameter.
+
+        @feature: Class Parameters - Value Hiding
+
+        @steps:
+
+        1. Set the override flag for the parameter.
+        2. Set some valid default value.
+        3. Set 'Hidden Value' to true and submit.
+        4. Now in hidden state, update the default value.
+
+        @assert:
+
+        1. The parameter default value is updated.
+        2. The 'hidden value' displayed as true for that parameter.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_hide_empty_default_value(self):
+        """Hiding the empty default value.
+
+        @feature: Class Parameters - Value Hiding
+
+        @steps:
+
+        1. Set the override flag for the parameter.
+        2. Don't set any default value/Set empty value.
+        3. Set 'Hidden Value' to true and submit.
+
+        @assert:
+
+        1. The 'hidden value' set to true for that parameter.
+        2. The default value is still empty on hide.
 
         @status: Manual
         """
