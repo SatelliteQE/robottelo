@@ -531,6 +531,8 @@ class Settings(object):
         self.rhel6_repo = None
         self.rhel7_repo = None
         self.screenshots_path = None
+        self.sauce_key = None
+        self.sauce_user = None
         self.server = ServerSettings()
         self.run_one_datapoint = None
         self.upstream = None
@@ -639,6 +641,10 @@ class Settings(object):
         )
         self.webdriver = self.reader.get(
             'robottelo', 'webdriver', 'firefox')
+        self.sauce_key = self.reader.get(
+            'robottelo', 'sauce_key', None)
+        self.sauce_user = self.reader.get(
+            'robottelo', 'sauce_user', None)
         self.webdriver_binary = self.reader.get(
             'robottelo', 'webdriver_binary', None)
         self.window_manager_command = self.reader.get(

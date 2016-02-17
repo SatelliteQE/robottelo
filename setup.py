@@ -25,6 +25,7 @@ setup(
         'pytest',
         'python-bugzilla',
         'requests',
+        'sauceclient',
         'selenium<2.49',
         'six',
         'unittest2',
