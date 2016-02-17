@@ -238,6 +238,35 @@ class HostTestCase(APITestCase):
         self.assertEqual(host.owner.read().login, user.login)
 
     @run_only_on('sat')
+    @tier2
+    def test_positive_create_with_usergroup(self):
+        """Create a host with user group specified
+
+        @feature: Hosts
+
+        @assert: A host is created with expected user group assigned
+        """
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
+        role = entities.Role().create()
+        user = entities.User(
+            location=[loc],
+            organization=[org],
+            role=[role],
+        ).create()
+        usergroup = entities.UserGroup(
+            role=[role],
+            user=[user],
+        ).create()
+        host = entities.Host(
+            location=loc,
+            organization=org,
+            owner=usergroup,
+            owner_type='Usergroup',
+        ).create()
+        self.assertEqual(host.owner.read().name, usergroup.name)
+
+    @run_only_on('sat')
     @tier1
     def test_positive_create_with_build_parameter(self):
         """Create a host with 'build' parameter specified.
@@ -598,6 +627,41 @@ class HostTestCase(APITestCase):
         host.owner = new_user
         host = host.update(['owner'])
         self.assertEqual(host.owner.read().login, new_user.login)
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_update_usergroup(self):
+        """Update a host with a new user group
+
+        @feature: Hosts
+
+        @assert: A host is updated with a new user group
+        """
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
+        role = entities.Role().create()
+        user = entities.User(
+            location=[loc],
+            organization=[org],
+            role=[role],
+        ).create()
+        usergroup = entities.UserGroup(
+            role=[role],
+            user=[user],
+        ).create()
+        host = entities.Host(
+            location=loc,
+            organization=org,
+            owner=usergroup,
+            owner_type='Usergroup',
+        ).create()
+        new_usergroup = entities.UserGroup(
+            role=[role],
+            user=[user],
+        ).create()
+        host.owner = new_usergroup
+        host = host.update(['owner'])
+        self.assertEqual(host.owner.read().name, new_usergroup.name)
 
     @run_only_on('sat')
     @tier1
