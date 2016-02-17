@@ -4,6 +4,7 @@
 from fauxfactory import gen_string
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.task import Task
 from robottelo.cli.factory import (
     make_gpg_key,
     make_org,
@@ -24,6 +25,8 @@ from robottelo.constants import (
     FAKE_4_PUPPET_REPO,
     FAKE_4_YUM_REPO,
     FAKE_5_PUPPET_REPO,
+    FAKE_5_YUM_REPO,
+    FAKE_7_PUPPET_REPO,
     RPM_TO_UPLOAD,
 )
 from robottelo.decorators import (
@@ -33,7 +36,12 @@ from robottelo.decorators import (
     tier1,
     tier2,
 )
-from robottelo.datafactory import valid_data_list, invalid_values_list
+from robottelo.datafactory import (
+    invalid_http_credentials,
+    invalid_values_list,
+    valid_data_list,
+    valid_http_credentials,
+)
 from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
 
@@ -155,6 +163,45 @@ class RepositoryTestCase(CLITestCase):
                     u'url': url,
                 })
                 self.assertEqual(new_repo['url'], url)
+                self.assertEqual(new_repo['content-type'], u'puppet')
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_auth_yum_repo(self):
+        """Create YUM repository with basic HTTP authentication
+
+        @Feature: Repository
+
+        @Assert: YUM repository is created
+        """
+        url = FAKE_5_YUM_REPO
+        for creds in valid_http_credentials(url_encoded=True):
+            url_encoded = url.format(creds['login'], creds['pass'])
+            with self.subTest(url):
+                new_repo = self._make_repository({
+                    u'content-type': u'yum',
+                    u'url': url_encoded
+                })
+                self.assertEqual(new_repo['url'], url_encoded)
+                self.assertEqual(new_repo['content-type'], u'yum')
+
+    @tier1
+    def test_positive_create_with_auth_puppet_repo(self):
+        """Create Puppet repository with basic HTTP authentication
+
+        @Feature: Repository
+
+        @Assert: Puppet repository is created
+        """
+        url = FAKE_7_PUPPET_REPO
+        for creds in valid_http_credentials(url_encoded=True):
+            url_encoded = url.format(creds['login'], creds['pass'])
+            with self.subTest(url):
+                new_repo = self._make_repository({
+                    u'content-type': u'puppet',
+                    u'url': url_encoded
+                })
+                self.assertEqual(new_repo['url'], url_encoded)
                 self.assertEqual(new_repo['content-type'], u'puppet')
 
     @run_only_on('sat')
@@ -304,6 +351,36 @@ class RepositoryTestCase(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     self._make_repository({u'name': name})
 
+    @tier1
+    def test_negative_create_with_auth_url_with_special_characters(self):
+        """Verify that repository URL cannot contain unquoted special characters
+
+        @Feature: Repository
+
+        @Assert: Repository cannot be created
+        """
+        # get a list of valid credentials without quoting them
+        for cred in [creds for creds in valid_http_credentials()
+                     if creds['quote'] is True]:
+            with self.subTest(cred):
+                url = FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])
+                with self.assertRaises(CLIFactoryError):
+                    self._make_repository({u'url': url})
+
+    @tier1
+    def test_negative_create_with_auth_url_too_long(self):
+        """Verify that repository URL length is limited
+
+        @Feature: Repository
+
+        @Assert: Repository cannot be created
+        """
+        for cred in invalid_http_credentials():
+            with self.subTest(cred):
+                url = FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])
+                with self.assertRaises(CLIFactoryError):
+                    self._make_repository({u'url': url})
+
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1152237)
     @tier2
@@ -319,6 +396,91 @@ class RepositoryTestCase(CLITestCase):
                 new_repo = self._make_repository({
                     u'content-type': u'yum',
                     u'url': url,
+                })
+                # Assertion that repo is not yet synced
+                self.assertEqual(new_repo['sync']['status'], 'Not Synced')
+                # Synchronize it
+                Repository.synchronize({'id': new_repo['id']})
+                # Verify it has finished
+                new_repo = Repository.info({'id': new_repo['id']})
+                self.assertEqual(new_repo['sync']['status'], 'Finished')
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1152237)
+    @tier2
+    def test_positive_synchronize_auth_yum_repo(self):
+        """Check if secured repository can be created and synced
+
+        @Feature: HTTP Authentication Repository
+
+        @Assert: Repository is created and synced
+        """
+        url = FAKE_5_YUM_REPO
+        for creds in [cred for cred in valid_http_credentials(url_encoded=True)
+                      if cred['http_valid']]:
+            url_encoded = url.format(
+                creds['login'], creds['pass']
+            )
+            with self.subTest(url):
+                new_repo = self._make_repository({
+                    u'content-type': u'yum',
+                    u'url': url_encoded,
+                })
+                # Assertion that repo is not yet synced
+                self.assertEqual(new_repo['sync']['status'], 'Not Synced')
+                # Synchronize it
+                Repository.synchronize({'id': new_repo['id']})
+                # Verify it has finished
+                new_repo = Repository.info({'id': new_repo['id']})
+                self.assertEqual(new_repo['sync']['status'], 'Finished')
+
+    @run_only_on('sat')
+    @tier2
+    def test_negative_synchronize_auth_yum_repo(self):
+        """Check if secured repo fails to synchronize with invalid credentials
+
+        @Feature: HTTP Authentication Repository
+
+        @Assert: Repository is created but synchronization fails
+        """
+        url = FAKE_5_YUM_REPO
+        for creds in [cred for cred in valid_http_credentials(url_encoded=True)
+                      if not cred['http_valid']]:
+            url_encoded = url.format(
+                creds['login'], creds['pass']
+            )
+            with self.subTest(url):
+                new_repo = self._make_repository({
+                    u'content-type': u'yum',
+                    u'url': url_encoded,
+                })
+                # Try to synchronize it
+                repo_sync = Repository.synchronize(
+                    {'id': new_repo['id'], u'async': True}
+                )
+                Task.progress({u'id': repo_sync[0]['id']})
+                self.assertEqual(
+                    Task.progress({u'id': repo_sync[0]['id']})[0],
+                    u'Yum Metadata: Unauthorized'
+                )
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1152237)
+    @tier2
+    def test_positive_synchronize_auth_puppet_repo(self):
+        """Check if secured puppet repository can be created and synced
+
+        @Feature: HTTP Authentication Puppet Repository
+
+        @Assert: Repository is created and synced
+        """
+        url = FAKE_7_PUPPET_REPO
+        for creds in valid_http_credentials(url_encoded=True):
+            url_encoded = url.format(creds['login'], creds['pass'])
+            with self.subTest(url):
+                new_repo = self._make_repository({
+                    u'content-type': u'yum',
+                    u'url': url_encoded,
                 })
                 # Assertion that repo is not yet synced
                 self.assertEqual(new_repo['sync']['status'], 'Not Synced')
@@ -361,8 +523,15 @@ class RepositoryTestCase(CLITestCase):
         @Assert: Repository url is updated
         """
         new_repo = self._make_repository()
-        for url in (FAKE_4_YUM_REPO, FAKE_1_PUPPET_REPO, FAKE_2_PUPPET_REPO,
-                    FAKE_3_PUPPET_REPO, FAKE_2_YUM_REPO):
+        # generate repo URLs with all valid credentials
+        auth_repos = [
+            repo.format(creds['login'], creds['pass'])
+            for creds in valid_http_credentials(url_encoded=True)
+            for repo in (FAKE_5_YUM_REPO, FAKE_7_PUPPET_REPO)
+        ]
+
+        for url in [FAKE_4_YUM_REPO, FAKE_1_PUPPET_REPO, FAKE_2_PUPPET_REPO,
+                    FAKE_3_PUPPET_REPO, FAKE_2_YUM_REPO] + auth_repos:
             with self.subTest(url):
                 # Update the url
                 Repository.update({
@@ -372,6 +541,63 @@ class RepositoryTestCase(CLITestCase):
                 # Fetch it again
                 result = Repository.info({'id': new_repo['id']})
                 self.assertEqual(result['url'], url)
+
+    @run_only_on('sat')
+    @tier1
+    def test_negative_update_auth_url_with_special_characters(self):
+        """Verify that repository URL credentials cannot be updated to contain
+        the forbidden characters
+
+        @Feature: Repository
+
+        @Assert: Repository url not updated
+        """
+        new_repo = self._make_repository()
+        # get auth repos with credentials containing unquoted special chars
+        auth_repos = [
+            repo.format(cred['login'], cred['pass'])
+            for cred in valid_http_credentials() if cred['quote']
+            for repo in (FAKE_5_YUM_REPO, FAKE_7_PUPPET_REPO)
+        ]
+
+        for url in auth_repos:
+            with self.subTest(url):
+                with self.assertRaises(CLIReturnCodeError):
+                    Repository.update({
+                        u'id': new_repo['id'],
+                        u'url': url,
+                    })
+                # Fetch it again
+                result = Repository.info({'id': new_repo['id']})
+                self.assertEqual(result['url'], new_repo['url'])
+
+    @run_only_on('sat')
+    @tier1
+    def test_negative_update_auth_url_too_long(self):
+        """Update the original url for a repository to value which is too long
+
+        @Feature: Repository
+
+        @Assert: Repository url not updated
+        """
+        new_repo = self._make_repository()
+        # generate repo URLs with all invalid credentials
+        auth_repos = [
+            repo.format(cred['login'], cred['pass'])
+            for cred in invalid_http_credentials()
+            for repo in (FAKE_5_YUM_REPO, FAKE_7_PUPPET_REPO)
+        ]
+
+        for url in auth_repos:
+            with self.subTest(url):
+                with self.assertRaises(CLIReturnCodeError):
+                    Repository.update({
+                        u'id': new_repo['id'],
+                        u'url': url,
+                    })
+                # Fetch it again
+                result = Repository.info({'id': new_repo['id']})
+                self.assertEqual(result['url'], new_repo['url'])
 
     @run_only_on('sat')
     @stubbed()

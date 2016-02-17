@@ -7,6 +7,7 @@ from fauxfactory import gen_string, gen_integer
 
 from robottelo.config import settings
 from robottelo.decorators import bz_bug_is_open
+from six.moves.urllib.parse import quote_plus
 
 
 class InvalidArgumentError(Exception):
@@ -288,3 +289,130 @@ def valid_usernames_list():
         gen_string("alphanumeric"),
         gen_string("numeric"),
     ]
+
+
+def valid_http_credentials(url_encoded=False):
+    """Returns a list of valid credentials for HTTP authentication
+    The credentials dictionary contains the following keys:
+    login - a username
+    pass - a password
+    quote - a Bool flag stating whether the credentials include special chars
+    http_valid - a Bool flag stating whether the HTTP authentication will pass
+    successfully on the server
+
+    :param url_encoded: flag for quoting special characters
+    :return: A list of dictionaries with user and password credentials
+    """
+    credentials = [
+        {
+            u'login': 'admin',
+            u'pass': 'changeme',
+            u'quote': False,
+            u'http_valid': True,
+        },
+        {
+            u'login': '@dmin',
+            u'pass': 'changeme',
+            u'quote': True,
+            u'http_valid': True,
+        },
+        {
+            u'login': 'adm/n',
+            u'pass': 'changeme',
+            u'quote': False,
+            u'http_valid': True,
+        },
+        {
+            u'login': 'admin2',
+            u'pass': 'ch@ngeme',
+            u'quote': True,
+            u'http_valid': True,
+        },
+        {
+            u'login': 'admin3',
+            u'pass': 'chan:eme',
+            u'quote': False,
+            u'http_valid': True,
+        },
+        {
+            u'login': 'admin4',
+            u'pass': 'chan/eme',
+            u'quote': True,
+            u'http_valid': True,
+        },
+        {
+            u'login': 'admin5',
+            u'pass': 'ch@n:eme',
+            u'quote': True,
+            u'http_valid': True,
+        },
+        {
+            u'login': '0',
+            u'pass': 'mypassword',
+            u'quote': False,
+            u'http_valid': True,
+        },
+        {
+            u'login': '0123456789012345678901234567890123456789',
+            u'pass': 'changeme',
+            u'quote': False,
+            u'http_valid': True,
+        },
+        {
+            u'login': 'admin',
+            u'pass': '',
+            u'quote': False,
+            u'http_valid': False,
+        },
+        {
+            u'login': '',
+            u'pass': 'mypassword',
+            u'quote': False,
+            u'http_valid': False,
+        },
+        {
+            u'login': '',
+            u'pass': '',
+            u'quote': False,
+            u'http_valid': False,
+        },
+        {
+            u'login': gen_string('alpha', 10),
+            u'pass': gen_string('alpha', 10),
+            u'quote': False,
+            u'http_valid': False,
+        },
+        {
+            u'login': gen_string('alphanumeric', 10),
+            u'pass': gen_string('alphanumeric', 10),
+            u'quote': False,
+            u'http_valid': False,
+        },
+    ]
+    if url_encoded:
+        return [{
+                u'login': quote_plus(cred['login'], ''),
+                u'pass': quote_plus(cred['pass'], ''),
+                u'http_valid': cred['http_valid'],
+                } for cred in credentials]
+    else:
+        return credentials
+
+
+def invalid_http_credentials(url_encoded=False):
+    """Returns a list of invalid credentials for HTTP authentication
+
+    :param url_encoded: flag for quoting special characters
+    :return: A list of dictionaries with user and password credentials
+    """
+    credentials = [
+        {u'login': gen_string('alpha', 300), u'pass': ''},
+        {u'login': gen_string('alpha', 300),
+         u'pass': gen_string('alpha', 300)},
+    ]
+    if url_encoded:
+        return [{u'login': quote_plus(cred['login'], ''),
+                u'pass': quote_plus(cred['pass'], '')} for cred in credentials
+                ]
+    else:
+        return credentials
