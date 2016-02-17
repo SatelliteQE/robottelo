@@ -138,6 +138,11 @@
 
 .. automodule:: tests.foreman.api.test_repository
 
+:mod:`tests.foreman.api.test_repository_set`
+--------------------------------------------
+
+.. automodule:: tests.foreman.api.test_repository_set
+
 :mod:`tests.foreman.api.test_rhsm`
 ----------------------------------
 
