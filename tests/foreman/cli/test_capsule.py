@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Test class for the capsule CLI."""
 import random
+import re
 
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.base import CLIReturnCodeError
@@ -14,13 +15,9 @@ from robottelo.test import CLITestCase
 class CapsuleTestCase(CLITestCase):
     """Proxy cli tests"""
 
-    def setUp(self):
-        """Skipping tests until we can create ssh tunnels"""
-        self.skipTest('Skipping tests until we can create ssh tunnels')
-
     @run_only_on('sat')
     @tier1
-    def test_positive_create_with_url(self):
+    def test_negative_create_with_url(self):
         """Proxy creation with random URL
 
         @Feature: Smart Proxy
@@ -97,7 +94,14 @@ class CapsuleTestCase(CLITestCase):
         @Assert: Proxy features are refreshed
         """
         proxy = make_proxy()
-        Proxy.refresh_features({u'id': proxy['id']})
+        # parse the port number so we can reopen the SSH tunnel
+        port_regexp = re.search(u':([0-9]+)', proxy['url'])
+        if port_regexp:
+            port = port_regexp.group(1)
+            with default_url_on_new_port(9090, port):
+                Proxy.refresh_features({u'id': proxy['id']})
+        else:
+            raise ValueError('Unable to parse port number from proxy URL')
 
     @run_only_on('sat')
     @tier2
@@ -109,7 +113,14 @@ class CapsuleTestCase(CLITestCase):
         @Assert: Proxy features are refreshed
         """
         proxy = make_proxy()
-        Proxy.refresh_features({u'name': proxy['name']})
+        # parse the port number so we can reopen the SSH tunnel
+        port_regexp = re.search(u':([0-9]+)', proxy['url'])
+        if port_regexp:
+            port = port_regexp.group(1)
+            with default_url_on_new_port(9090, port):
+                Proxy.refresh_features({u'name': proxy['name']})
+        else:
+            raise ValueError('Unable to parse port number from proxy URL')
 
 
 class CapsuleIntegrationTestCase(CLITestCase):
