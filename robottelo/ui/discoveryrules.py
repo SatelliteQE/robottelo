@@ -10,7 +10,7 @@ class DiscoveryRules(Base):
     """Manipulates Discovery Rules from UI"""
 
     def _configure_discovery(self, hostname=None, host_limit=None,
-                             priority=None, enabled=False):
+                             priority=None, enabled=True):
         """Configures various parameters for discovery rule."""
         if hostname:
             self.text_field_update(
@@ -27,11 +27,10 @@ class DiscoveryRules(Base):
                 locators['discoveryrules.priority'],
                 priority
             )
-        if enabled:
-            self.click(locators['discoveryrules.enabled'])
+        self.assign_value(locators['discoveryrules.enabled'], enabled)
 
     def create(self, name, search_rule, hostgroup, hostname=None,
-               host_limit=None, priority=None, enabled=False):
+               host_limit=None, priority=None, enabled=True):
         """Creates new discovery rule from UI"""
         self.click(locators['discoveryrules.new'])
         if not self.wait_until_element(locators['discoveryrules.name']):
@@ -65,7 +64,6 @@ class DiscoveryRules(Base):
     def search(self, name):
         """Searches existing discovery rule from UI. It is necessary to use
         custom search as we don't have both search bar and search button there.
-
         """
         self.navigate_to_entity()
         strategy, value = self._search_locator()
@@ -80,7 +78,7 @@ class DiscoveryRules(Base):
         )
 
     def update(self, name, new_name=None, search_rule=None, hostgroup=None,
-               hostname=None, host_limit=None, priority=None, enabled=False):
+               hostname=None, host_limit=None, priority=None, enabled=True):
         """Update an existing discovery rule from UI."""
         element = self.search(name)
         if not element:
@@ -88,7 +86,7 @@ class DiscoveryRules(Base):
                 'Could not update the discovery rule "{0}"'.format(name)
             )
         element.click()
-        if new_name:
+        if new_name is not None:
             if self.wait_until_element(locators['discoveryrules.name']):
                 self.field_update('discoveryrules.name', new_name)
         if search_rule:
@@ -96,7 +94,39 @@ class DiscoveryRules(Base):
                 self.field_update('discoveryrules.search', search_rule)
         if hostgroup:
             Select(
-                self.find_element(locators['discoveryrules.hostgroup'])
+                self.wait_until_element(locators['discoveryrules.hostgroup'])
             ).select_by_visible_text(hostgroup)
         self._configure_discovery(hostname, host_limit, priority, enabled)
         self.click(common_locators['submit'])
+
+    def get_attribute_value(self, name, attribute_name, element_type='field'):
+        """Get corresponding Discovery Rule attribute value
+
+        :param str name: Discovery Rule name
+        :param str attribute_name: Discovery Rule attribute to be read
+            (supported attributes: 'search', 'hostgroup', 'hostname',
+            'host_limit', 'priority', 'enabled')
+        :param str element_type: Specify expected type of attribute to be read
+            (supported types: 'field', 'select' and 'checkbox')
+        :return str result: Return attribute value to be asserted further on
+            the test level
+
+        """
+        discovery_rule = self.search(name)
+        if discovery_rule is None:
+            raise UIError(
+                u'Could not find discovery rule "{0}" to verify'.format(name))
+        discovery_rule.click()
+        self.wait_for_ajax()
+        element = self.wait_until_element(
+            locators['discoveryrules.{0}'.format(attribute_name)])
+        if element_type == 'field':
+            result = element.get_attribute('value')
+        elif element_type == 'select':
+            result = Select(element).first_selected_option.text
+        elif element_type == 'checkbox':
+            result = element.is_selected()
+        else:
+            raise ValueError(
+                u'"{0}" type is not currently supported.'.format(element_type))
+        return result

@@ -405,15 +405,14 @@ def make_host(session, org=None, loc=None, force_context=True, **kwargs):
 def make_discoveryrule(session, org=None, loc=None, force_context=True,
                        **kwargs):
     """Creates a discovery rule"""
-
     create_args = {
         u'name': None,
-        u'search_rule': "cpu_count = 1",
+        u'search_rule': 'cpu_count = 1',
         u'hostgroup': None,
         u'hostname': None,
         u'host_limit': None,
         u'priority': None,
-        u'enabled': False,
+        u'enabled': True,
     }
     page = session.nav.go_to_discovery_rules
     core_factory(create_args, kwargs, session, page,
