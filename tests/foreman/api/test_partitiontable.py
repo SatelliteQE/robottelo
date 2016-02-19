@@ -4,7 +4,7 @@ A full API reference for patition tables can be found here:
 http://theforeman.org/api/apidoc/v2/ptables.html
 
 """
-from fauxfactory import gen_integer, gen_string
+from fauxfactory import gen_integer
 from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
@@ -18,25 +18,13 @@ from robottelo.decorators import skip_if_bug_open, tier1
 from robottelo.test import APITestCase
 
 
-def valid_single_character_names():
-    """Returns a tuple of single character names"""
-    return(
-        gen_string('alphanumeric', 1),
-        gen_string('alpha', 1),
-        gen_string('cjk', 1),
-        gen_string('latin1', 1),
-        gen_string('numeric', 1),
-        gen_string('utf8', 1),
-    )
-
-
 class PartitionTableTestCase(APITestCase):
     """Tests for the ``ptables`` path."""
 
     @skip_if_bug_open('bugzilla', 1229384)
     @tier1
-    def test_verify_bugzilla_1229384(self):
-        """Create Partition table with 1 symbol in name
+    def test_positive_create_with_one_character_name(self):
+        """Create Partition table with 1 character in name
 
         @Assert: Partition table was created
 
@@ -44,7 +32,7 @@ class PartitionTableTestCase(APITestCase):
 
         @BZ: 1229384
         """
-        for name in valid_single_character_names():
+        for name in generate_strings_list(length=1):
             with self.subTest(name):
                 ptable = entities.PartitionTable(name=name).create()
                 self.assertEqual(ptable.name, name)
