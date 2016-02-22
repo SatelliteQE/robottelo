@@ -3,7 +3,12 @@
 from fauxfactory import gen_string
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import bz_bug_is_open, run_only_on, tier1
+from robottelo.decorators import (
+    bz_bug_is_open,
+    run_only_on,
+    skip_if_bug_open,
+    tier1,
+)
 from robottelo.helpers import read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_partitiontable
@@ -35,6 +40,29 @@ def valid_partition_table_update_names():
 
 class PartitionTableTestCase(UITestCase):
     """Implements the partition table tests from UI"""
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1229384)
+    @tier1
+    def test_positive_create_with_one_character_name(self):
+        """Create a Partition table with 1 character in name
+
+        @Assert: Partition table is created
+
+        @Feature: Partition Table - Positive Create
+
+        @BZ: 1229384
+        """
+        with Session(self.browser) as session:
+            for name in generate_strings_list(length=1):
+                with self.subTest(name):
+                    make_partitiontable(
+                        session,
+                        name=name,
+                        layout=read_data_file(PARTITION_SCRIPT_DATA_FILE),
+                        os_family='Red Hat'
+                    )
+                    self.assertIsNotNone(self.partitiontable.search(name))
 
     @run_only_on('sat')
     @tier1
