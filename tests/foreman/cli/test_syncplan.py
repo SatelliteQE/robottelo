@@ -145,8 +145,8 @@ class SyncPlanTestCase(CLITestCase):
             except AssertionError:
                 sleep(30)
         else:
-                raise AssertionError(
-                    'Repository contains invalid number of content entities')
+            raise AssertionError(
+                'Repository contains invalid number of content entities')
 
     @tier1
     def test_positive_create_with_name(self):
@@ -504,11 +504,11 @@ class SyncPlanTestCase(CLITestCase):
             'sync-date': datetime.utcnow().strftime("%Y-%m-%d %H:%M:%S"),
         })
         RepositorySet.enable({
-                'name': REPOSET['rhva6'],
-                'organization-id': org['id'],
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
-                'basearch': 'x86_64',
+            'name': REPOSET['rhva6'],
+            'organization-id': org['id'],
+            'product': PRDS['rhel'],
+            'releasever': '6Server',
+            'basearch': 'x86_64',
         })
         product = Product.info({
             'name': PRDS['rhel'],
@@ -558,11 +558,11 @@ class SyncPlanTestCase(CLITestCase):
                         .strftime("%Y-%m-%d %H:%M:%S"),
         })
         RepositorySet.enable({
-                'name': REPOSET['rhva6'],
-                'organization-id': org['id'],
-                'product': PRDS['rhel'],
-                'releasever': '6Server',
-                'basearch': 'x86_64',
+            'name': REPOSET['rhva6'],
+            'organization-id': org['id'],
+            'product': PRDS['rhel'],
+            'releasever': '6Server',
+            'basearch': 'x86_64',
         })
         product = Product.info({
             'name': PRDS['rhel'],

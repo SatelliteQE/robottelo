@@ -4,11 +4,15 @@ A full API reference for sync plans can be found here:
 http://www.katello.org/docs/api/apidoc/sync_plans.html
 
 """
+import random
 from datetime import datetime, timedelta
 from fauxfactory import gen_string
 from nailgun import client, entities
 from random import sample
+from robottelo import manifests
+from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
+from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from requests.exceptions import HTTPError
 from robottelo.decorators import (
@@ -17,8 +21,10 @@ from robottelo.decorators import (
     stubbed,
     tier1,
     tier2,
+    tier4
 )
 from robottelo.test import APITestCase
+from time import sleep
 
 
 def valid_sync_dates():
@@ -493,43 +499,299 @@ class SyncPlanProductTestCase(APITestCase):
             self.assertEqual(len(syncplan.read().product), 0)
 
 
-@stubbed()
 class SyncPlanSynchronizeTestCase(APITestCase):
     """Tests specific to synchronizing sync plans."""
 
     @classmethod
     def setUpClass(cls):
-        """Create an organization and products which can be re-used in
-        tests."""
+        """Create an organization which can be re-used in tests."""
         super(SyncPlanSynchronizeTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
-        cls.products = [
-            entities.Product(organization=cls.org).create() for _ in range(2)
+
+    def validate_repo_content(
+            self, repo, content_types, after_sync=True, max_attempts=10):
+        """Check whether corresponding content is present in repository before
+        or after synchronization is performed
+
+        :param repo: Repository entity instance to be validated
+        :param content_types: List of repository content entities that
+            should be validated (e.g. package, erratum, puppet_module)
+        :param bool after_sync: Specify whether you perform validation before
+            synchronization procedure is happened or after
+        :param int max_attempts: That value is basically introduced for slow
+            systems when user sure that sync procedure can take more than 300
+            seconds (30*10 where 10 is a default value for max_attempts
+            variable)
+
+        """
+        for _ in range(max_attempts):
+            try:
+                repo = repo.read()
+                for content in content_types:
+                    if after_sync:
+                        self.assertGreater(repo.content_counts[content], 0)
+                    else:
+                        self.assertFalse(repo.content_counts[content])
+                break
+            except AssertionError:
+                sleep(30)
+        else:
+            raise AssertionError(
+                'Repository contains invalid number of content entities')
+
+    # This Bugzilla bug is private. It is impossible to fetch info about it.
+    @stubbed('Unstub when BZ1279539 is fixed')
+    @tier2
+    def test_negative_synchronize_custom_product_current_sync_date(self):
+        """Verify product won't get synced immediately after adding association
+        with a sync plan which has already been started
+
+        @Assert: Product was not synchronized
+
+        @Feature: Sync Plan
+
+        @BZ: 1279539
+        """
+        sync_plan = entities.SyncPlan(
+            organization=self.org,
+            enabled=True,
+            sync_date=datetime.utcnow(),
+        ).create()
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(product=product).create()
+        # Verify product is not synced and doesn't have any content
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'], after_sync=False)
+        # Associate sync plan with product
+        sync_plan.add_products(data={'product_ids': [product.id]})
+        # Verify product was not synced right after it was added to sync plan
+        with self.assertRaises(AssertionError):
+            self.validate_repo_content(
+                repo,
+                ['erratum', 'package', 'package_group'],
+                max_attempts=5,
+            )
+
+    @stubbed('Unstub when BZ1279539 is fixed')
+    @tier4
+    def test_positive_synchronize_custom_product_current_sync_date(self):
+        """Create a sync plan with current datetime as a sync date, add a
+        custom product and verify the product gets synchronized on the next
+        sync occurrence
+
+        @Assert: Product is synchronized successfully.
+
+        @Feature: SyncPlan
+
+        @BZ: 1279539
+        """
+        interval = 60 * 60  # 'hourly' sync interval in seconds
+        sync_plan = entities.SyncPlan(
+            organization=self.org,
+            enabled=True,
+            interval=u'hourly',
+            sync_date=datetime.utcnow(),
+        ).create()
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(product=product).create()
+        # Associate sync plan with product
+        sync_plan.add_products(data={'product_ids': [product.id]})
+        # Wait half of expected time
+        sleep(interval / 2)
+        # Verify product is not synced and doesn't have any content
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'], after_sync=False)
+        # Wait the rest of expected time
+        sleep(interval / 2)
+        # Verify product was synced successfully
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'])
+
+    @tier4
+    def test_positive_synchronize_custom_product_future_sync_date(self):
+        """Create a sync plan with sync date in a future and sync one custom
+        product with it automatically.
+
+        @Assert: Product is synchronized successfully.
+
+        @Feature: SyncPlan
+        """
+        delay = 10 * 60  # delay for sync date in seconds
+        sync_plan = entities.SyncPlan(
+            organization=self.org,
+            enabled=True,
+            sync_date=datetime.utcnow() + timedelta(seconds=delay),
+        ).create()
+        product = entities.Product(organization=self.org).create()
+        repo = entities.Repository(product=product).create()
+        # Verify product is not synced and doesn't have any content
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'], after_sync=False)
+        # Associate sync plan with product
+        sync_plan.add_products(data={'product_ids': [product.id]})
+        # Wait half of expected time
+        sleep(delay/2)
+        # Verify product has not been synced yet
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'], after_sync=False)
+        # Wait the rest of expected time
+        sleep(delay/2)
+        # Verify product was synced successfully
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'])
+
+    @tier2
+    def test_positive_synchronize_custom_products_future_sync_date(self):
+        """Create a sync plan with sync date in a future and sync multiple
+        custom products with multiple repos automatically.
+
+        @Assert: Products are synchronized successfully.
+
+        @Feature: SyncPlan
+        """
+        delay = 10 * 60  # delay for sync date in seconds
+        sync_plan = entities.SyncPlan(
+            organization=self.org,
+            enabled=True,
+            sync_date=datetime.utcnow() + timedelta(seconds=delay),
+        ).create()
+        products = [
+            entities.Product(organization=self.org).create()
+            for _ in range(random.randint(3, 5))
         ]
+        repos = [
+            entities.Repository(product=product).create()
+            for product in products
+            for _ in range(random.randint(2, 3))
+        ]
+        # Verify products have not been synced yet
+        for repo in repos:
+            self.validate_repo_content(
+                repo,
+                ['erratum', 'package', 'package_group'],
+                after_sync=False,
+            )
+        # Associate sync plan with products
+        sync_plan.add_products(data={
+            'product_ids': [product.id for product in products]})
+        # Wait half of expected time
+        sleep(delay/2)
+        # Verify products has not been synced yet
+        for repo in repos:
+            self.validate_repo_content(
+                repo,
+                ['erratum', 'package', 'package_group'],
+                after_sync=False,
+            )
+        # Wait the rest of expected time
+        sleep(delay/2)
+        # Verify product was synced successfully
+        for repo in repos:
+            self.validate_repo_content(
+                repo, ['erratum', 'package', 'package_group'])
 
-    @stubbed()
-    @run_only_on('sat')
+    @stubbed('Unstub when BZ1279539 is fixed')
+    @tier4
+    def test_positive_synchronize_rh_product_current_sync_date(self):
+        """Create a sync plan with current datetime as a sync date, add a
+        RH product and verify the product gets synchronized on the next sync
+        occurrence
+
+        @Assert: Product is synchronized successfully.
+
+        @Feature: SyncPlan
+
+        @BZ: 1279539
+        """
+        interval = 60 * 60  # 'hourly' sync interval in seconds
+        org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            entities.Subscription().upload(
+                data={'organization_id': org.id},
+                files={'content': manifest.content},
+            )
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=PRDS['rhel'],
+            repo=REPOS['rhst7']['name'],
+            reposet=REPOSET['rhst7'],
+            releasever=None,
+        )
+        product = entities.Product(
+            name=PRDS['rhel'],
+            organization=org,
+        ).search()[0]
+        repo = entities.Repository(id=repo_id).read()
+        sync_plan = entities.SyncPlan(
+            organization=org,
+            enabled=True,
+            interval=u'hourly',
+            sync_date=datetime.utcnow(),
+        ).create()
+        # Associate sync plan with product
+        sync_plan.add_products(data={'product_ids': [product.id]})
+        # Wait half of expected time
+        sleep(interval / 2)
+        # Verify product has not been synced yet
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'], after_sync=False)
+        # Wait the rest of expected time
+        sleep(interval / 2)
+        # Verify product was synced successfully
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'])
+
     @tier2
-    def test_positive_synchronize_product(self):
-        """Create a sync plan with one product and sync it.
+    def test_positive_synchronize_rh_product_future_sync_date(self):
+        """Create a sync plan with sync date in a future and sync one RH
+        product with it automatically.
 
-        @Assert: A sync plan is created with one product and product can be
-        synchronized.
+        @Assert: Product is synchronized successfully.
 
         @Feature: SyncPlan
         """
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_positive_synchronize_products(self):
-        """Create a sync plan with two products and sync them.
-
-        @Assert: A sync plan is created with one product and products can be
-        synchronized.
-
-        @Feature: SyncPlan
-        """
+        delay = 10 * 60  # delay for sync date in seconds
+        org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            entities.Subscription().upload(
+                data={'organization_id': org.id},
+                files={'content': manifest.content},
+            )
+        sync_plan = entities.SyncPlan(
+            organization=org,
+            enabled=True,
+            interval=u'hourly',
+            sync_date=datetime.utcnow() + timedelta(seconds=delay),
+        ).create()
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=PRDS['rhel'],
+            repo=REPOS['rhst7']['name'],
+            reposet=REPOSET['rhst7'],
+            releasever=None,
+        )
+        product = entities.Product(
+            name=PRDS['rhel'],
+            organization=org,
+        ).search()[0]
+        repo = entities.Repository(id=repo_id).read()
+        # Associate sync plan with product
+        sync_plan.add_products(data={'product_ids': [product.id]})
+        # Verify product is not synced and doesn't have any content
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'], after_sync=False)
+        # Wait half of expected time
+        sleep(delay/2)
+        # Verify product has not been synced yet
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'], after_sync=False)
+        # Wait the rest of expected time
+        sleep(delay/2)
+        # Verify product was synced successfully
+        self.validate_repo_content(
+            repo, ['erratum', 'package', 'package_group'])
 
 
 class SyncPlanDeleteTestCase(APITestCase):
