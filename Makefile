@@ -74,7 +74,7 @@ test-foreman-cli-threaded:
 	$(PYTEST) $(PYTEST_XDIST_OPTS) $(FOREMAN_CLI_TESTS_PATH)
 
 test-foreman-rhai:
-	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_RHAI_TESTS_PATH)
+	$(PYTEST) -s $(PYTEST_OPTS) $(FOREMAN_RHAI_TESTS_PATH)
 
 test-foreman-rhci:
 	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_RHCI_TESTS_PATH)
