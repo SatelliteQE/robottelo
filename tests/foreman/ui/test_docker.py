@@ -1256,6 +1256,7 @@ class DockerContainerTestCase(UITestCase):
     @skip_if_bug_open('bugzilla', 1282431)
     @skip_if_bug_open('bugzilla', 1273958)
     @run_only_on('sat')
+    @tier2
     def test_positive_delete(self):
         """Delete containers in local and external compute resources
 
@@ -1278,6 +1279,34 @@ class DockerContainerTestCase(UITestCase):
                     self.container.delete(compute_resource.name, name)
                     self.assertIsNone(
                         self.container.search(compute_resource.name, name))
+
+    # BZ 1266842 is a private bug, so we cannot fetch information about it
+    @stubbed('Unstub when BZ1266842 is fixed')
+    @run_only_on('sat')
+    @tier2
+    def test_positive_delete_using_api_call(self):
+        """Create and delete containers using direct API calls and verify
+        result of these operations through UI interface
+
+        @Feature: Docker
+
+        @Assert: The docker containers are deleted successfully and are not
+        present on UI
+        """
+        for compute_resource in (self.cr_internal, self.cr_external):
+            with self.subTest(compute_resource.url):
+                # Create and delete docker container using API
+                container = entities.DockerHubContainer(
+                    command='top',
+                    compute_resource=compute_resource,
+                    organization=[self.organization],
+                ).create()
+                container.delete()
+                # Check result of delete operation on UI
+                with Session(self.browser) as session:
+                    set_context(session, org=self.organization.name)
+                    self.assertIsNone(self.container.search(
+                        compute_resource.name, container.name))
 
 
 class DockerRegistryTestCase(UITestCase):
