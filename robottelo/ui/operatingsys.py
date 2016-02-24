@@ -120,63 +120,46 @@ class OperatingSys(Base):
                template=None):
         """Update all entities(arch, Partition table, medium) of OS from UI."""
         element = self.search(os_name)
-
-        if element:
-            element.click()
-            if new_name:
-                if self.wait_until_element(locators['operatingsys.name']):
-                    self.field_update('operatingsys.name', new_name)
-            if major_version:
-                if self.wait_until_element(
-                        locators['operatingsys.major_version']):
-                    self.field_update(
-                        'operatingsys.major_version', major_version)
-            self._configure_os(
-                archs,
-                ptables,
-                mediums,
-                select,
-                minor_version,
-                description,
-                os_family,
-                template,
-                arch_list=new_archs,
-                ptable_list=new_ptables,
-                medium_list=new_mediums
-            )
-            self.click(common_locators['submit'])
-        else:
-            raise UIError(
-                u'Could not update the operating system "{0}"'.format(os_name)
-            )
+        self.click(element)
+        if new_name:
+            if self.wait_until_element(locators['operatingsys.name']):
+                self.field_update('operatingsys.name', new_name)
+        if major_version:
+            if self.wait_until_element(
+                    locators['operatingsys.major_version']):
+                self.field_update(
+                    'operatingsys.major_version', major_version)
+        self._configure_os(
+            archs,
+            ptables,
+            mediums,
+            select,
+            minor_version,
+            description,
+            os_family,
+            template,
+            arch_list=new_archs,
+            ptable_list=new_ptables,
+            medium_list=new_mediums
+        )
+        self.click(common_locators['submit'])
 
     def set_os_parameter(self, os_name, param_name, param_value):
         """Add new OS parameter."""
         element = self.search(os_name)
-        if element:
-            element.click()
-            self.set_parameter(param_name, param_value)
-        else:
-            raise UIError(u'Could not set parameter "{0}"'.format(param_name))
+        self.click(element)
+        self.set_parameter(param_name, param_value)
 
     def remove_os_parameter(self, os_name, param_name):
         """Remove selected OS parameter."""
         element = self.search(os_name)
-        if element:
-            element.click()
-            self.remove_parameter(param_name)
-        else:
-            raise UIError(
-                u'Could not remove parameter "{0}"'.format(param_name)
-            )
+        self.click(element)
+        self.remove_parameter(param_name)
 
     def get_selected_entities(self):
         """Function to get selected elements (either it is a check-box or
         selection list).
-
         """
-
-        entity_value = None
         selected_element = self.wait_until_element(
             common_locators['selected_entity'])
         checked_element = self.find_element(common_locators['checked_entity'])
@@ -189,49 +172,41 @@ class OperatingSys(Base):
     def get_os_entities(self, os_name, entity_name=None):
         """Assert OS name, minor, major_version, os_family, template, media,
         and partition table to validate results.
-
         """
-
-        result = None
         name_loc = locators['operatingsys.name']
         major_ver_loc = locators['operatingsys.major_version']
         minor_ver_loc = locators['operatingsys.minor_version']
         os_family_loc = locators['operatingsys.family']
 
         element = self.search(os_name)
-        if element:
-            element.click()
-            if self.wait_until_element(locators['operatingsys.name']):
-                result = dict([('name', None), ('major', None),
-                               ('minor', None), ('os_family', None),
-                               ('ptable', None), ('template', None),
-                               ('medium', None)])
-                result['name'] = self.find_element(
-                    name_loc).get_attribute('value')
-                result['major'] = self.find_element(
-                    major_ver_loc).get_attribute('value')
-                result['minor'] = self.find_element(
-                    minor_ver_loc).get_attribute('value')
-                result['os_family'] = Select(
-                    self.find_element(os_family_loc)
+        self.click(element)
+        if self.wait_until_element(locators['operatingsys.name']):
+            result = dict([('name', None), ('major', None),
+                           ('minor', None), ('os_family', None),
+                           ('ptable', None), ('template', None),
+                           ('medium', None)])
+            result['name'] = self.find_element(
+                name_loc).get_attribute('value')
+            result['major'] = self.find_element(
+                major_ver_loc).get_attribute('value')
+            result['minor'] = self.find_element(
+                minor_ver_loc).get_attribute('value')
+            result['os_family'] = Select(
+                self.find_element(os_family_loc)
+            ).first_selected_option.text
+            if entity_name == 'ptable':
+                self.click(tab_locators['operatingsys.tab_ptable'])
+                result['ptable'] = self.get_selected_entities()
+            elif entity_name == 'medium':
+                self.click(tab_locators['operatingsys.tab_medium'])
+                result['medium'] = self.get_selected_entities()
+            elif entity_name == 'template':
+                self.click(tab_locators['operatingsys.tab_templates'])
+                result['template'] = Select(
+                    self.find_element(locators['operatingsys.template'])
                 ).first_selected_option.text
-                if entity_name == 'ptable':
-                    self.click(tab_locators['operatingsys.tab_ptable'])
-                    result['ptable'] = self.get_selected_entities()
-                elif entity_name == 'medium':
-                    self.click(tab_locators['operatingsys.tab_medium'])
-                    result['medium'] = self.get_selected_entities()
-                elif entity_name == 'template':
-                    self.click(tab_locators['operatingsys.tab_templates'])
-                    result['template'] = Select(
-                        self.find_element(locators['operatingsys.template'])
-                    ).first_selected_option.text
-                return result
-            else:
-                raise UIError(
-                    u'Could not find the OS name "{0}"'.format(os_name)
-                )
+            return result
         else:
             raise UIError(
-                u'Could not find the operating system "{0}"'.format(os_name)
+                u'Could not find the OS name "{0}"'.format(os_name)
             )
