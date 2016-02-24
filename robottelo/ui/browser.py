@@ -37,7 +37,13 @@ def browser():
     elif webdriver_name == 'phantomjs':
         return webdriver.PhantomJS(service_args=['--ignore-ssl-errors=true'])
     elif webdriver_name == 'remote':
-        return webdriver.Remote()
+        return webdriver.Remote(
+            command_executor=(
+                'http://{0}:{1}@ondemand.saucelabs.com/wd/hub'
+                .format(settings.sauce_user, settings.sauce_key)
+            ),
+            desired_capabilities=webdriver.DesiredCapabilities.FIREFOX
+        )
 
 
 class DockerBrowser(object):

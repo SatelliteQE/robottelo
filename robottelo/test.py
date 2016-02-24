@@ -7,6 +7,7 @@ to help writing API, CLI and UI tests.
 import csv
 import logging
 import os
+import sauceclient
 import sys
 import unittest2
 
@@ -78,6 +79,8 @@ from robottelo.ui.template import Template
 from robottelo.ui.trend import Trend
 from robottelo.ui.usergroup import UserGroup
 from robottelo.ui.user import User
+
+from selenium.webdriver import remote
 
 SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
 
@@ -222,6 +225,24 @@ class UITestCase(TestCase):
     def tearDown(self):  # noqa
         """Make sure to close the browser after each test."""
         skipped = False
+
+        # SauceLabs has no way to determine whether test passed or
+        # failed automatically, so we explicitly 'tell' it
+        if settings.webdriver.lower() == 'remote':
+            # create a sauceclient object to report pass/fail results
+            sc = sauceclient.SauceClient(
+                settings.sauce_user, settings.sauce_key)
+
+            result = self.defaultTestResult()
+            if result.failures or result.errors:
+                if isinstance(self.browser, remote.webdriver.WebDriver):
+                    sc.jobs.update_job(
+                        self.browser.session_id, name=str(self), passed=False)
+            else:
+                if isinstance(self.browser, remote.webdriver.WebDriver):
+                    sc.jobs.update_job(
+                        self.browser.session_id, name=str(self), passed=True)
+
         if len(self._outcome.skipped) > 0:
             skipped = self in self._outcome.skipped[-1]
         if sys.exc_info()[0] is not None and not skipped:
