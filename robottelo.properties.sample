@@ -38,8 +38,23 @@ ssh_key=
 # upstream=true
 # Logging verbosity, one of debug, info, warning, error, critical
 # verbosity=debug
-# Selenium webdriver to use
+
+# browser tells robottelo which browser to use when testing UI. Valid values
+# are:
+# * selenium
+# * docker: to use a browser inside a docker container. In order to use this
+#   feature make sure that the docker daemon is running locally and has its
+#   unix socket published at unix://var/run/docker.sock. Also make sure that
+#   the docker image selenium/standalone-firefox is available.
+# * saucelabs: makes robottelo run tests on SauceLabs. The saucelabs_user and
+#   saucelabs_key are required and the browser used is the same specified on
+#   webdriver.  Supported values for webdriver are firefox, chrome and ie, the
+#   other valid webdriver values are going to be translated to firefox.
+# browser=selenium
+
+# Webdriver to use. Valid values are chrome, firefox, ie, phantomjs
 # webdriver=firefox
+
 # Binary location for selected wedriver
 # webdriver_binary=/usr/bin/firefox
 # webdriver_binary=/usr/bin/chromedriver
@@ -47,12 +62,8 @@ ssh_key=
 # Run one datapoint or multiple datapoints for tests
 # run_one_datapoint=false
 
-# docker_browser tells robottelo to use a browser inside a docker
-# container. In order to use this feature make sure that the docker
-# daemon is running locally and has its unix socket published at
-# unix://var/run/docker.sock. Also make sure that the docker image
-# selenium/standalone-firefox is available.
-# docker_browser=false
+# saucelabs_user=
+# saucelabs_key=
 
 # Provide link to rhel6/7 repo here, as puppet rpm would require packages from
 # RHEL 6/7 repo and syncing the entire repo on the fly would take longer for

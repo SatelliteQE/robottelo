@@ -15,6 +15,7 @@ class BrowserTestCase(unittest2.TestCase):
         self.webdriver_patcher = mock.patch('robottelo.ui.browser.webdriver')
         self.settings = self.settings_patcher.start()
         self.webdriver = self.webdriver_patcher.start()
+        self.settings.browser = 'selenium'
 
     def tearDown(self):
         self.settings_patcher.stop()

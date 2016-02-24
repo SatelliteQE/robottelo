@@ -176,11 +176,29 @@ It is possible to run UI tests within a docker container. To do this:
   has permission to run docker commands. For more information check the docker
   installation guide https://docs.docker.com/engine/installation/.
 * Pull the ``selenium/standalone-firefox`` image
-* Set ``docker_browser=true`` at the ``[robottelo]`` section in the configuration file ``robottelo.properties``.
+* Set ``browser=docker`` at the ``[robottelo]`` section in the configuration
+  file ``robottelo.properties``.
 
 Once you've performed these steps, UI tests will no longer launch a web browser
 on your system. Instead, UI tests launch a web browser within a docker
 container.
+
+Running UI Tests On SauceLabs
+-----------------------------
+
+It is possible to run UI tests on SauceLabs. To do this:
+
+* Set ``browser=saucelabs`` at the ``[robottelo]`` section in the configuration
+  file ``robottelo.properties``.
+* Select the browser type by setting ``webdriver`` at the ``[robottelo]``
+  section in the configuration file. Valid values are ``firefox``, ``chrome``
+  and ``ie``.
+* Fill ``saucelabs_user`` and ``saucelabs_key`` at the ``[robottelo]`` section
+  in the configuration file with your Sauce OnDemand credentials.
+* If the machine where Satellite 6 is installed is on a VPN or behind a
+  firewall make sure to have SauceConnect running.
+* Optional: install ``sauceclient`` python package if you want robottelo to
+  report test success or failure back to SauceLabs.
 
 Miscellany
 ==========

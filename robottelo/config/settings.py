@@ -524,13 +524,15 @@ class Settings(object):
         self._all_features = None
         self._configured = False
         self._validation_errors = []
-        self.docker_browser = None
+        self.browser = None
         self.locale = None
         self.project = None
         self.reader = None
         self.rhel6_repo = None
         self.rhel7_repo = None
         self.screenshots_path = None
+        self.saucelabs_key = None
+        self.saucelabs_user = None
         self.server = ServerSettings()
         self.run_one_datapoint = None
         self.upstream = None
@@ -620,8 +622,8 @@ class Settings(object):
 
     def _read_robottelo_settings(self):
         """Read Robottelo's general settings."""
-        self.docker_browser = self.reader.get(
-            'robottelo', 'docker_browser', False, bool)
+        self.browser = self.reader.get(
+            'robottelo', 'browser', 'selenium')
         self.locale = self.reader.get('robottelo', 'locale', 'en_US.UTF-8')
         self.project = self.reader.get('robottelo', 'project', 'sat')
         self.rhel6_repo = self.reader.get('robottelo', 'rhel6_repo', None)
@@ -639,6 +641,10 @@ class Settings(object):
         )
         self.webdriver = self.reader.get(
             'robottelo', 'webdriver', 'firefox')
+        self.saucelabs_user = self.reader.get(
+            'robottelo', 'saucelabs_user', None)
+        self.saucelabs_key = self.reader.get(
+            'robottelo', 'saucelabs_key', None)
         self.webdriver_binary = self.reader.get(
             'robottelo', 'webdriver_binary', None)
         self.window_manager_command = self.reader.get(
@@ -647,12 +653,29 @@ class Settings(object):
     def _validate_robottelo_settings(self):
         """Validate Robottelo's general settings."""
         validation_errors = []
+        browsers = ('selenium', 'docker', 'saucelabs')
         webdrivers = ('chrome', 'firefox', 'ie', 'phantomjs', 'remote')
+        if self.browser not in browsers:
+            validation_errors.append(
+                '[robottelo] browser should be one of {0}.'
+                .format(', '.join(browsers))
+            )
         if self.webdriver not in webdrivers:
-            raise ImproperlyConfigured(
+            validation_errors.append(
                 '[robottelo] webdriver should be one of {0}.'
                 .format(', '.join(webdrivers))
             )
+        if self.browser == 'saucelabs':
+            if self.saucelabs_user is None:
+                validation_errors.append(
+                    '[robottelo] saucelabs_user must be provided when '
+                    'browser is saucelabs.'
+                )
+            if self.saucelabs_key is None:
+                validation_errors.append(
+                    '[robottelo] saucelabs_key must be provided when '
+                    'browser is saucelabs.'
+                )
         return validation_errors
 
     @property
