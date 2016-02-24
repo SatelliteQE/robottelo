@@ -15,3 +15,6 @@ sphinx
 
 # For running UI tests within a docker browser
 docker-py
+
+# For reporting test results on SauceLabs
+sauceclient

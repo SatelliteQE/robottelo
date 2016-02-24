@@ -10,6 +10,13 @@ import os
 import sys
 import unittest2
 
+try:
+    import sauceclient
+except ImportError:
+    # Optional requirement, if installed robottelo will report results back to
+    # saucelabs.
+    sauceclient = None
+
 from datetime import datetime
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
@@ -79,7 +86,7 @@ from robottelo.ui.trend import Trend
 from robottelo.ui.usergroup import UserGroup
 from robottelo.ui.user import User
 
-SAUCE_URL = "http://%s:%s@ondemand.saucelabs.com:80/wd/hub"
+from selenium.webdriver import remote
 
 
 class TestCase(unittest2.TestCase):
@@ -137,7 +144,7 @@ class UITestCase(TestCase):
 
     def setUp(self):  # noqa
         """We do want a new browser instance for every test."""
-        if settings.docker_browser:
+        if settings.browser == 'docker':
             self._docker_browser = DockerBrowser()
             self._docker_browser.start()
             self.browser = self._docker_browser.webdriver
@@ -222,13 +229,25 @@ class UITestCase(TestCase):
     def tearDown(self):  # noqa
         """Make sure to close the browser after each test."""
         skipped = False
+
+        # SauceLabs has no way to determine whether test passed or failed
+        # automatically, so we explicitly 'tell' it
+        if settings.browser == 'saucelabs' and sauceclient:
+            sc = sauceclient.SauceClient(
+                settings.saucelabs_user, settings.saucelabs_key)
+            result = self.defaultTestResult()
+            passed = not (result.failures or result.errors)
+            if isinstance(self.browser, remote.webdriver.WebDriver):
+                sc.jobs.update_job(
+                    self.browser.session_id, name=str(self), passed=passed)
+
         if len(self._outcome.skipped) > 0:
             skipped = self in self._outcome.skipped[-1]
         if sys.exc_info()[0] is not None and not skipped:
             # Take screenshot if any exception is raised and the test method is
             # not in the skipped tests.
             self.take_screenshot()
-        if settings.docker_browser:
+        if settings.browser == 'docker':
             self._docker_browser.stop()
         else:
             self.browser.quit()
