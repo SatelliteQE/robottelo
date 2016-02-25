@@ -20,7 +20,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.datafactory import valid_data_list, invalid_values_list
-from robottelo.decorators import skip_if_bug_open, stubbed, tier1, tier2, tier4
+from robottelo.decorators import skip_if_bug_open, stubbed, tier1, tier4
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from time import sleep
@@ -322,7 +322,7 @@ class SyncPlanTestCase(CLITestCase):
 
     # This Bugzilla bug is private. It is impossible to fetch info about it.
     @stubbed('Unstub when BZ1279539 is fixed')
-    @tier1
+    @tier4
     def test_negative_synchronize_custom_product_current_sync_date(self):
         """Verify product won't get synced immediately after adding association
         with a sync plan which has already been started
@@ -427,7 +427,7 @@ class SyncPlanTestCase(CLITestCase):
         self.validate_repo_content(
             repo, ['errata', 'package-groups', 'packages'])
 
-    @tier2
+    @tier4
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.

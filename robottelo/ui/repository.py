@@ -147,7 +147,10 @@ class Repos(Base):
             )
         repo_element.click()
         self.wait_for_ajax()
-        if field_name in ['url', 'gpgkey', 'checksum', 'upstream']:
+        if field_name in [
+            'checksum', 'errata', 'gpgkey', 'package_groups', 'packages',
+            'upstream', 'url',
+        ]:
             return (self.wait_until_element(locators[
                 'repo.fetch_' + field_name]).text == expected_field_value)
         return False

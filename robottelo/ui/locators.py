@@ -1260,7 +1260,7 @@ locators = LocatorDict({
                    "/div/textarea")),
     "prd.sync_plan_edit": (
         By.XPATH, ("//form[@selector='product.sync_plan_id']"
-                   "//i[contains(@class,'icon-edit')]")),
+                   "//i[contains(@class,'fa-edit')]")),
     "prd.sync_plan_update": (
         By.XPATH, ("//form[@selector='product.sync_plan_id']"
                    "/div/select")),
@@ -1383,6 +1383,15 @@ locators = LocatorDict({
     "repo.fetch_upstream": (
         By.XPATH, ("//form[@bst-edit-text='repository.docker_upstream_name']"
                    "/div[@class='bst-edit']/div/span[2]")),
+    "repo.fetch_packages": (
+        By.XPATH, "//td[span[text()='Packages']]/following-sibling::td",
+    ),
+    "repo.fetch_errata": (
+        By.XPATH, "//td[span[text()='Errata']]/following-sibling::td",
+    ),
+    "repo.fetch_package_groups": (
+        By.XPATH, "//td[span[text()='Package Groups']]/following-sibling::td",
+    ),
     "repo.result_spinner": (
         By.XPATH,
         "//i[@ng-show='task.pending' and contains(@class, 'icon-spinner')]"),
