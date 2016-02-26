@@ -475,7 +475,8 @@ class RepositoryTestCase(CLITestCase):
         @Assert: Repository is created and synced
         """
         url = FAKE_7_PUPPET_REPO
-        for creds in valid_http_credentials(url_encoded=True):
+        for creds in [cred for cred in valid_http_credentials(url_encoded=True)
+                      if cred['http_valid']]:
             url_encoded = url.format(creds['login'], creds['pass'])
             with self.subTest(url):
                 new_repo = self._make_repository({
