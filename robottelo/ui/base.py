@@ -522,11 +522,12 @@ class Base(object):
                 element_type = 'checkbox'
         return element_type
 
-    def click(self, locator, wait_for_ajax=True,
+    def click(self, target, wait_for_ajax=True,
               ajax_timeout=30, waiter_timeout=12, scroll=True):
-        """Locate the element described by the ``locator`` and click on it.
+        """Locate the element described by the ``target`` and click on it.
 
-        :param locator: The locator that describes the element.
+        :param tuple || WebElement target: Could be either locator that
+            describes the element or element itself.
         :param wait_for_ajax: Flag that indicates if should wait for AJAX after
             clicking on the element
         :param ajax_timeout: The amount of time that wait_fox_ajax should wait.
@@ -539,11 +540,14 @@ class Base(object):
         :raise: UINoSuchElementError if the element could not be found.
 
         """
-        element = self.wait_until_element(locator, timeout=waiter_timeout)
+        if isinstance(target, tuple):
+            element = self.wait_until_element(target, timeout=waiter_timeout)
+        else:
+            element = target
         if element is None:
             raise UINoSuchElementError(
-                '{0}: element with locator {1} not found while trying to click'
-                .format(type(self).__name__, locator)
+                '{0}: element was not found while trying to click'
+                .format(type(self).__name__)
             )
         # Required since from selenium 2.48.0. which makes Selenium more
         # closely resemble a user when interacting with elements.
