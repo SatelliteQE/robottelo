@@ -30,7 +30,6 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
-    stubbed,
     tier1,
     tier2,
 )
@@ -972,7 +971,6 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
-    @stubbed("Needs to be re-worked!")
     def test_positive_add_capsule_by_name(self):
         """Add a capsule to organization by its name
 
@@ -990,7 +988,6 @@ class OrganizationTestCase(CLITestCase):
         self.assertIn(proxy['name'], org['smart-proxies'])
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_add_capsule_by_id(self):
         """Add a capsule to organization by its ID
@@ -998,12 +995,17 @@ class OrganizationTestCase(CLITestCase):
         @feature: Organization
 
         @assert: Capsule is added to the org
-
-        @status: manual
         """
+        org = make_org()
+        proxy = make_proxy()
+        Org.add_smart_proxy({
+            'name': org['name'],
+            'smart-proxy-id': proxy['id'],
+        })
+        org = Org.info({'name': org['name']})
+        self.assertIn(proxy['name'], org['smart-proxies'])
 
     @run_only_on('sat')
-    @stubbed("Needs to be re-worked!")
     @tier2
     def test_positive_remove_capsule_by_name(self):
         """Remove a capsule from organization by its name
