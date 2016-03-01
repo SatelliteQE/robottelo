@@ -3,7 +3,6 @@ from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class ComputeResource(Base):
@@ -47,9 +46,7 @@ class ComputeResource(Base):
 
         """
         if provider_type:
-            Select(
-                self.find_element(locators['resource.provider_type'])
-            ).select_by_visible_text(provider_type)
+            self.select(locators['resource.provider_type'], provider_type)
         if parameter_list is None:
             return
         for parameter_name, parameter_value, parameter_type in parameter_list:
@@ -62,9 +59,7 @@ class ComputeResource(Base):
                 self.text_field_update(
                     locators[param_locator], parameter_value)
             elif parameter_type == 'select':
-                Select(
-                    self.find_element(locators[param_locator])
-                ).select_by_visible_text(parameter_value)
+                self.select(locators[param_locator], parameter_value)
             elif parameter_type == 'checkbox':
                 if (self.find_element(locators[param_locator]).is_selected() !=
                         parameter_value):

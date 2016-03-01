@@ -25,11 +25,9 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.factory import make_location, make_compute_resource
 from robottelo.config import settings
-from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
 from robottelo.test import CLITestCase
-
-LIBVIRT_URL = 'qemu+tcp://{}:16509/system'.format(settings.server.hostname)
 
 
 def valid_name_desc_data():
@@ -95,6 +93,13 @@ def invalid_update_data():
 class ComputeResourceTestCase(CLITestCase):
     """ComputeResource CLI tests."""
 
+    @classmethod
+    def setUpClass(cls):
+        super(ComputeResourceTestCase, cls).setUpClass()
+        cls.current_libvirt_url = (
+            LIBVIRT_RESOURCE_URL % settings.server.hostname
+        )
+
     # pylint: disable=no-self-use
     @tier1
     @run_only_on('sat')
@@ -109,7 +114,7 @@ class ComputeResourceTestCase(CLITestCase):
         ComputeResource.create({
             'name': gen_string(str_type='alpha'),
             'provider': 'Libvirt',
-            'url': LIBVIRT_URL,
+            'url': self.current_libvirt_url,
         })
 
     @tier1
@@ -126,7 +131,7 @@ class ComputeResourceTestCase(CLITestCase):
         compute_resource = make_compute_resource({
             'name': name,
             'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': LIBVIRT_URL,
+            'url': self.current_libvirt_url,
         })
         # factory already runs info, just check the data
         self.assertEquals(compute_resource['name'], name)
@@ -143,7 +148,7 @@ class ComputeResourceTestCase(CLITestCase):
         """
         comp_res = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': LIBVIRT_URL,
+            'url': self.current_libvirt_url,
         })
         self.assertTrue(comp_res['name'])
         result_list = ComputeResource.list({
@@ -164,7 +169,7 @@ class ComputeResourceTestCase(CLITestCase):
         """
         comp_res = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': LIBVIRT_URL,
+            'url': self.current_libvirt_url,
         })
         self.assertTrue(comp_res['name'])
         ComputeResource.delete({'name': comp_res['name']})
