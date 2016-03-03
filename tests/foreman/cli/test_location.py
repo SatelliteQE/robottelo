@@ -12,13 +12,14 @@ from robottelo.cli.factory import (
     make_hostgroup,
     make_location,
     make_medium,
+    make_proxy,
     make_subnet,
     make_template,
     make_user,
 )
 from robottelo.cli.location import Location
 from robottelo.datafactory import invalid_values_list
-from robottelo.decorators import skip_if_bug_open, tier1
+from robottelo.decorators import skip_if_bug_open, run_only_on, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -43,7 +44,7 @@ def valid_loc_data_list():
 
 class LocationTestCase(CLITestCase):
     """Tests for Location via Hammer CLI"""
-    # TODO Add coverage for smart_proxy and realm once we can create ssh tunnel
+    # TODO Add coverage for realms as soon as they're supported
 
     @tier1
     def test_positive_create_with_name(self):
@@ -583,6 +584,86 @@ class LocationTestCase(CLITestCase):
                 'config-templates': gen_string('utf8', 80),
                 'id': loc['id'],
             })
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_add_capsule_by_name(self):
+        """Add a capsule to organization by its name
+
+        @Feature: Organization
+
+        @Assert: Capsule is added to the org
+        """
+        loc = make_location()
+        proxy = make_proxy()
+        Location.add_smart_proxy({
+            'name': loc['name'],
+            'smart-proxy': proxy['name'],
+        })
+        loc = Location.info({'name': loc['name']})
+        self.assertIn(proxy['name'], loc['smart-proxies'])
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_add_capsule_by_id(self):
+        """Add a capsule to organization by its ID
+
+        @feature: Organization
+
+        @assert: Capsule is added to the org
+        """
+        loc = make_location()
+        proxy = make_proxy()
+        Location.add_smart_proxy({
+            'name': loc['name'],
+            'smart-proxy-id': proxy['id'],
+        })
+        loc = Location.info({'name': loc['name']})
+        self.assertIn(proxy['name'], loc['smart-proxies'])
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_capsule_by_id(self):
+        """Remove a capsule from organization by its id
+
+        @Feature: Organization
+
+        @Assert: Capsule is removed from the org
+        """
+        loc = make_location()
+        proxy = make_proxy()
+        Location.add_smart_proxy({
+            'id': loc['id'],
+            'smart-proxy-id': proxy['id'],
+        })
+        Location.remove_smart_proxy({
+            'id': loc['id'],
+            'smart-proxy-id': proxy['id'],
+        })
+        loc = Location.info({'id': loc['id']})
+        self.assertNotIn(proxy['name'], loc['smart-proxies'])
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_remove_capsule_by_name(self):
+        """Remove a capsule from organization by its name
+
+        @Feature: Organization
+
+        @Assert: Capsule is removed from the org
+        """
+        loc = make_location()
+        proxy = make_proxy()
+        Location.add_smart_proxy({
+            'name': loc['name'],
+            'smart-proxy': proxy['name'],
+        })
+        Location.remove_smart_proxy({
+            'name': loc['name'],
+            'smart-proxy': proxy['name'],
+        })
+        loc = Location.info({'name': loc['name']})
+        self.assertNotIn(proxy['name'], loc['smart-proxies'])
 
     @tier1
     def test_positive_delete_by_name(self):
