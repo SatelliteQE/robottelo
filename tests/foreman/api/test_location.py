@@ -8,6 +8,7 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
+from robottelo.cli.factory import make_proxy
 from robottelo.decorators import tier1, tier2
 from robottelo.datafactory import invalid_values_list
 from robottelo.test import APITestCase
@@ -34,7 +35,7 @@ def valid_loc_data_list():
 
 class LocationTestCase(APITestCase):
     """Tests for the ``locations`` path."""
-    # TODO Add coverage for media, smart_proxy, realms once they implemented
+    # TODO Add coverage for media, realms as soon as they're implemented
 
     @tier1
     def test_positive_create_with_name(self):
@@ -212,6 +213,20 @@ class LocationTestCase(APITestCase):
         self.assertEqual(len(location.organization), orgs_amount)
         for org in location.organization:
             self.assertIn(org.id, org_ids)
+
+    @tier2
+    def test_positive_create_with_capsule(self):
+        """Create new location with assigned capsule to it
+
+        @Assert: Location created successfully and has correct capsule assigned
+        to it
+
+        @Feature: Location
+        """
+        proxy = entities.SmartProxy(id=make_proxy()['id']).search()[0]
+        location = entities.Location(smart_proxy=[proxy]).create()
+        self.assertEqual(location.smart_proxy[0].id, proxy.id)
+        self.assertEqual(location.smart_proxy[0].read().name, proxy.name)
 
     @tier1
     def test_positive_delete(self):
@@ -479,6 +494,22 @@ class LocationTestCase(APITestCase):
             set([org.id for org in location.organization]),
         )
 
+    @tier2
+    def test_positive_update_capsule(self):
+        """Update location with new capsule
+
+        @Assert: Location updated successfully and has correct capsule assigned
+
+        @Feature: Location - Update
+        """
+        proxy = entities.SmartProxy(id=make_proxy()['id']).search()[0]
+        location = entities.Location(smart_proxy=[proxy]).create()
+        new_proxy = entities.SmartProxy(id=make_proxy()['id']).search()[0]
+        location.smart_proxy = [new_proxy]
+        location = location.update(['smart_proxy'])
+        self.assertEqual(location.smart_proxy[0].id, new_proxy.id)
+        self.assertEqual(location.smart_proxy[0].read().name, new_proxy.name)
+
     @tier1
     def test_negative_update_name(self):
         """Try to update location using invalid names only
@@ -516,3 +547,17 @@ class LocationTestCase(APITestCase):
                 location.update(['domain']).domain[0].id,
                 domain.id
             )
+
+    @tier2
+    def test_positive_remove_capsule(self):
+        """Remove a capsule from location
+
+        @Assert: Capsule was removed successfully
+
+        @Feature: Location - Update
+        """
+        proxy = entities.SmartProxy(id=make_proxy()['id']).search()[0]
+        location = entities.Location(smart_proxy=[proxy]).create()
+        location.smart_proxy = []
+        location = location.update(['smart_proxy'])
+        self.assertEqual(len(location.smart_proxy), 0)

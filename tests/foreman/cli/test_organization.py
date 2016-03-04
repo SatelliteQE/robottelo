@@ -1007,6 +1007,28 @@ class OrganizationTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier2
+    def test_positive_remove_capsule_by_id(self):
+        """Remove a capsule from organization by its id
+
+        @Feature: Organization
+
+        @Assert: Capsule is removed from the org
+        """
+        org = make_org()
+        proxy = make_proxy()
+        Org.add_smart_proxy({
+            'id': org['id'],
+            'smart-proxy-id': proxy['id'],
+        })
+        Org.remove_smart_proxy({
+            'id': org['id'],
+            'smart-proxy-id': proxy['id'],
+        })
+        org = Org.info({'id': org['id']})
+        self.assertNotIn(proxy['name'], org['smart-proxies'])
+
+    @run_only_on('sat')
+    @tier2
     def test_positive_remove_capsule_by_name(self):
         """Remove a capsule from organization by its name
 
@@ -1024,6 +1046,8 @@ class OrganizationTestCase(CLITestCase):
             'name': org['name'],
             'smart-proxy': proxy['name'],
         })
+        org = Org.info({'name': org['name']})
+        self.assertNotIn(proxy['name'], org['smart-proxies'])
 
     # Negative Create
 
