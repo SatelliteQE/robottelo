@@ -4,7 +4,7 @@ import random
 
 from fauxfactory import gen_string
 from nailgun import client, entities
-from robottelo import helpers, manifests
+from robottelo import manifests
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
     promote,
@@ -23,8 +23,6 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
-    skip_if_bug_open,
-    skip_if_not_set,
 )
 from robottelo.helpers import get_nailgun_config
 from robottelo.vm import VirtualMachine
@@ -749,13 +747,13 @@ class AvailableURLsTestCase(TestCase):
         #     ], …}
 
 
-class SmokeTestCase(TestCase):
+class EndToEndTestCase(TestCase):
     """End-to-end tests using the ``API`` path."""
 
     def test_positive_find_default_org(self):
         """Check if 'Default Organization' is present
 
-        @Feature: Smoke Test
+        @Feature: End to End Test
 
         @Assert: 'Default Organization' is found
 
@@ -769,7 +767,7 @@ class SmokeTestCase(TestCase):
     def test_positive_find_default_loc(self):
         """Check if 'Default Location' is present
 
-        @Feature: Smoke Test
+        @Feature: End to End Test
 
         @Assert: 'Default Location' is found
 
@@ -783,7 +781,7 @@ class SmokeTestCase(TestCase):
     def test_positive_find_admin_user(self):
         """Check if Admin User is present
 
-        @Feature: Smoke Test
+        @Feature: End to End Test
 
         @Assert: Admin User is found and has Admin role
 
@@ -795,7 +793,7 @@ class SmokeTestCase(TestCase):
     def test_positive_ping(self):
         """Check if all services are running
 
-        @Feature: Smoke Test
+        @Feature: End to End Test
 
         @Assert: Overall and individual services status should be 'ok'.
 
@@ -816,45 +814,43 @@ class SmokeTestCase(TestCase):
             u'Not all services seem to be up and running!'
         )
 
-    def test_positive_smoke(self):
-        """Check that basic content can be created
+    def test_positive_end_to_end(self):
+        """Perform end to end smoke tests using RH and custom repos.
 
         1. Create a new user with admin permissions
         2. Using the new user from above
             1. Create a new organization
-            2. Create two new lifecycle environments
-            3. Create a custom product
-            4. Create a custom YUM repository
-            5. Create a custom PUPPET repository
-            6. Synchronize both custom repositories
-            7. Create a new content view
-            8. Associate both repositories to new content view
-            9. Publish content view
-            10. Promote content view to both lifecycles
-            11. Create a new libvirt compute resource
-            12. Create a new subnet
-            13. Create a new domain
-            14. Create a new hostgroup and associate previous entities to it
+            2. Clone and upload manifest
+            3. Create a new lifecycle environment
+            4. Create a custom product
+            5. Create a custom YUM repository
+            6. Create a custom PUPPET repository
+            7. Enable a RedHat repository
+            8. Synchronize the three repositories
+            9. Create a new content view
+            10. Associate the three repositories to new content view
+            11. Publish content view
+            12. Promote content view to the lifecycle environment
+            13. Create a new activation key
+            14. Add the products to the activation key
+            15. Create a new libvirt compute resource
+            16. Create a new subnet
+            17. Create a new domain
+            18. Create a new hostgroup and associate previous entities to it
+            19. Create new virtualmachine
+            20. Pull rpm from Foreman server and install on client
+            21. Register client with foreman server using activation-key
+            22. Install rpm on client
 
-        @Feature: Smoke Test
+        @Feature: End to End Test
 
-        @Assert: All entities are created and associated.
+        @Assert: All tests should succeed and Content should be successfully
+        fetched by client.
 
         """
-        # prep work
-        #
-        # FIXME: Use a larger charset when authenticating users.
-        #
-        # It is possible to create a user with a wide range of characters. (see
-        # the "User" entity). However, Foreman supports only HTTP Basic
-        # authentication, and the requests lib enforces the latin1 charset in
-        # this auth mode. We then further restrict ourselves to the
-        # alphanumeric charset, because Foreman complains about incomplete
-        # multi-byte chars when latin1 chars are used.
+        # step 1: Create a new user with admin permissions
         login = gen_string('alphanumeric')
         password = gen_string('alphanumeric')
-
-        # step 1: Create a new user with admin permissions
         entities.User(admin=True, login=login, password=password).create()
 
         # step 2.1: Create a new organization
@@ -862,21 +858,20 @@ class SmokeTestCase(TestCase):
         server_config.auth = (login, password)
         org = entities.Organization(server_config).create()
 
-        # step 2.2: Create 2 new lifecycle environments
+        # step 2.2: Clone and upload manifest
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+
+        # step 2.3: Create a new lifecycle environment
         le1 = entities.LifecycleEnvironment(
             server_config,
             organization=org
         ).create()
-        le2 = entities.LifecycleEnvironment(
-            server_config,
-            organization=org,
-            prior=le1,
-        ).create()
 
-        # step 2.3: Create a custom product
+        # step 2.4: Create a custom product
         prod = entities.Product(server_config, organization=org).create()
 
-        # step 2.4: Create custom YUM repository
+        # step 2.5: Create custom YUM repository
         repo1 = entities.Repository(
             server_config,
             product=prod,
@@ -884,7 +879,7 @@ class SmokeTestCase(TestCase):
             url=GOOGLE_CHROME_REPO
         ).create()
 
-        # step 2.5: Create custom PUPPET repository
+        # step 2.6: Create custom PUPPET repository
         repo2 = entities.Repository(
             server_config,
             product=prod,
@@ -892,25 +887,33 @@ class SmokeTestCase(TestCase):
             url=FAKE_0_PUPPET_REPO
         ).create()
 
-        # step 2.6: Synchronize both repositories
-        for repo in [repo1, repo2]:
+        # step 2.7: Enable a RedHat repository
+        repo3 = entities.Repository(id=enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=org.id,
+            product=PRDS['rhel'],
+            repo=REPOS['rhva6']['name'],
+            reposet=REPOSET['rhva6'],
+            releasever='6Server',
+        ))
+
+        # step 2.8: Synchronize the three repositories
+        for repo in [repo1, repo2, repo3]:
             repo.sync()
 
-        # step 2.7: Create content view
+        # step 2.9: Create content view
         content_view = entities.ContentView(
             server_config,
             organization=org
         ).create()
 
-        # step 2.8: Associate YUM repository to new content view
-        content_view.repository = [repo1]
+        # step 2.10: Associate the three repositories to new content view
+        content_view.repository = [repo1, repo3]
         content_view = content_view.update(['repository'])
-
-        # Fetch all available puppet modules
+        # fetch all available puppet modules
         puppet_mods = content_view.available_puppet_modules()
         self.assertGreater(puppet_mods['results'], 0)
-
-        # Select a random puppet module from the results
+        # select a random puppet module from the results
         puppet_module = random.choice(puppet_mods['results'])
         # ... and associate it to the content view
         puppet = entities.ContentViewPuppetModule(
@@ -923,53 +926,68 @@ class SmokeTestCase(TestCase):
             puppet_module['name'],
         )
 
-        # step 2.9: Publish content view
+        # step 2.11: Publish content view
         content_view.publish()
 
-        # step 2.10: Promote content view to both lifecycles
+        # step 2.12: Promote content view to the lifecycle environment
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
         cv_version = content_view.version[0].read()
         self.assertEqual(len(cv_version.environment), 1)
         promote(cv_version, le1.id)
-        # Check that content view exists in 2 lifecycles
+        # check that content view exists in lifecycle
         content_view = content_view.read()
         self.assertEqual(len(content_view.version), 1)
         cv_version = cv_version.read()
-        self.assertEqual(len(cv_version.environment), 2)
-        promote(cv_version, le2.id)
-        # Check that content view exists in 2 lifecycles
-        content_view = content_view.read()
-        self.assertEqual(len(content_view.version), 1)
-        cv_version = cv_version.read()
-        self.assertEqual(len(cv_version.environment), 3)
+
+        # step 2.13: Create a new activation key
+        activation_key_name = gen_string('alpha')
+        activation_key = entities.ActivationKey(
+            name=activation_key_name,
+            environment=le1,
+            organization=org,
+            content_view=content_view,
+        ).create()
+        # step 2.14: Add the products to the activation key
+        for sub in entities.Subscription(organization=org).search():
+            if sub.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
+                activation_key.add_subscriptions(data={
+                    'quantity': 1,
+                    'subscription_id': sub.id,
+                })
+                break
+        # step 2.14.1: Enable product content
+        activation_key.content_override(data={'content_override': {
+            u'content_label': u'rhel-6-server-rhev-agent-rpms',
+            u'value': u'1',
+        }})
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
         content_host = entities.System(
             server_config,
             content_view=content_view,
-            environment=le2
+            environment=le1
         ).create()
-        # Check that content view matches what we passed
+        # check that content view matches what we passed
         self.assertEqual(content_host.content_view.id, content_view.id)
-        # Check that lifecycle environment matches
-        self.assertEqual(content_host.environment.id, le2.id)
+        # check that lifecycle environment matches
+        self.assertEqual(content_host.environment.id, le1.id)
 
-        # step 2.11: Create a new libvirt compute resource
+        # step 2.15: Create a new libvirt compute resource
         entities.LibvirtComputeResource(
             server_config,
             url=u'qemu+tcp://{0}:16509/system'.format(
                 settings.server.hostname),
         ).create()
 
-        # step 2.12: Create a new subnet
+        # step 2.16: Create a new subnet
         subnet = entities.Subnet(server_config).create()
 
-        # step 2.13: Create a new domain
+        # step 2.17: Create a new domain
         domain = entities.Domain(server_config).create()
 
-        # step 2.14: Create a new hostgroup and associate previous entities to
+        # step 2.18: Create a new hostgroup and associate previous entities to
         # it
         entities.HostGroup(
             server_config,
@@ -977,105 +995,17 @@ class SmokeTestCase(TestCase):
             subnet=subnet
         ).create()
 
-    @skip_if_not_set('clients')
-    def test_positive_end_to_end(self):
-        """Perform end to end smoke tests using RH repos.
-
-        1. Create new organization and environment
-        2. Clone and upload manifest
-        3. Sync a RedHat repository
-        4. Create content-view
-        5. Add repository to contet-view
-        6. Promote/publish content-view
-        7. Create an activation-key
-        8. Add product to activation-key
-        9. Create new virtualmachine
-        10. Pull rpm from Foreman server and install on client
-        11. Register client with foreman server using activation-key
-        12. Install rpm on client
-
-        @Feature: Smoke test
-
-        @Assert: All tests should succeed and Content should be successfully
-        fetched by client
-
-        """
-        activation_key_name = gen_string('alpha')
-
-        # step 1.1: Create a new organization
-        org = entities.Organization().create()
-
-        # step 1.2: Create new lifecycle environments
-        lifecycle_env = entities.LifecycleEnvironment(
-            organization=org
-        ).create()
-
-        # step 2: Upload manifest
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
-        # step 3.1: Enable RH repo and fetch repository_id
-        repository = entities.Repository(id=enable_rhrepo_and_fetchid(
-            basearch='x86_64',
-            org_id=org.id,
-            product=PRDS['rhel'],
-            repo=REPOS['rhva6']['name'],
-            reposet=REPOSET['rhva6'],
-            releasever='6Server',
-        ))
-        # step 3.2: sync repository
-        repository.sync()
-
-        # step 4: Create content view
-        content_view = entities.ContentView(organization=org).create()
-
-        # step 5: Associate repository to new content view
-        content_view.repository = [repository]
-        content_view = content_view.update(['repository'])
-
-        # step 6.1: Publish content view
-        content_view.publish()
-
-        # step 6.2: Promote content view to lifecycle_env
-        content_view = content_view.read()
-        self.assertEqual(len(content_view.version), 1)
-        promote(content_view.version[0], lifecycle_env.id)
-
-        # step 7: Create activation key
-        activation_key = entities.ActivationKey(
-            name=activation_key_name,
-            environment=lifecycle_env,
-            organization=org,
-            content_view=content_view,
-        ).create()
-        # step 7.1: Walk through the list of subscriptions.
-        # Find the "Red Hat Employee Subscription" and attach it to the
-        # recently-created activation key.
-        for sub in entities.Subscription(organization=org).search():
-            if sub.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
-                # 'quantity' must be 1, not subscription['quantity']. Greater
-                # values produce this error: "RuntimeError: Error: Only pools
-                # with multi-entitlement product subscriptions can be added to
-                # the activation key with a quantity greater than one."
-                activation_key.add_subscriptions(data={
-                    'quantity': 1,
-                    'subscription_id': sub.id,
-                })
-                break
-        # step 7.2: Enable product content
-        activation_key.content_override(data={'content_override': {
-            u'content_label': u'rhel-6-server-rhev-agent-rpms',
-            u'value': u'1',
-        }})
-
-        # Create VM
+        # step 2.19: Create a new virtualmachine
         package_name = 'python-kitchen'
         with VirtualMachine(distro='rhel66') as vm:
+            # step 2.20: Pull rpm from Foreman server and install on client
             vm.install_katello_ca()
+            # step 2.21: Register client with foreman server using act keys
             result = vm.register_contenthost(activation_key_name, org.label)
             self.assertEqual(result.return_code, 0)
-            # Install contents from sat6 server
+            # step 2.22: Install rpm on client
             result = vm.run('yum install -y {0}'.format(package_name))
             self.assertEqual(result.return_code, 0)
-            # Verify if package is installed by query it
+            # verify that the package is installed by querying it
             result = vm.run('rpm -q {0}'.format(package_name))
             self.assertEqual(result.return_code, 0)
