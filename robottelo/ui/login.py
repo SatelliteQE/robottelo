@@ -45,7 +45,7 @@ class Login(Base):
             for cookie in self.browser.get_cookies()
         )
         # construct the link to the Dashboard web page
-        url_root = settings.server.get_url() + '/dashboard'
+        url_root = settings.server.get_url() + '/about'
 
         response = requests.get(
             url_root,

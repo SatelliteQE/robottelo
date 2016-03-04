@@ -20,6 +20,7 @@ class Navigator(Base):
                 "arguments[0].click();",
                 tertiary_element,
             )
+        self.browser.refresh()
         self.wait_for_ajax()
 
     def go_to_dashboard(self):

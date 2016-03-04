@@ -2,7 +2,6 @@
 from robottelo.constants import CHECKSUM_TYPE, REPO_TYPE
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators, tab_locators
-from selenium.webdriver.support.select import Select
 
 
 class Repos(Base):
@@ -26,14 +25,12 @@ class Repos(Base):
         # label takes long time for 256 char test, hence timeout of 60 sec
         self.wait_for_ajax(timeout=60)
         if repo_type:
-            type_ele = self.find_element(locators['repo.type'])
-            Select(type_ele).select_by_visible_text(repo_type)
+            self.select(locators['repo.type'], repo_type)
         repo_checksum_element = self.find_element(locators['repo.checksum'])
         if repo_checksum_element:
-            Select(repo_checksum_element).select_by_visible_text(repo_checksum)
+            self.select(locators['repo.checksum'], repo_checksum)
         if gpg_key:
-            type_ele = self.find_element(common_locators['gpg_key'])
-            Select(type_ele).select_by_visible_text(gpg_key)
+            self.select(common_locators['gpg_key'], gpg_key)
         if url:
             self.text_field_update(locators['repo.url'], url)
         if upstream_repo_name:
@@ -63,14 +60,11 @@ class Repos(Base):
             self.click(common_locators['save'])
         if new_repo_checksum:
             self.click(locators['repo.checksum_edit'])
-            type_ele = self.find_element(locators['repo.checksum_update'])
-            Select(type_ele).select_by_visible_text(new_repo_checksum)
+            self.select(locators['repo.checksum_update'], new_repo_checksum)
             self.click(common_locators['save'])
         if new_gpg_key:
             self.click(locators['repo.gpg_key_edit'])
-            gpgkey_update_loc = locators['repo.gpg_key_update']
-            type_ele = self.wait_until_element(gpgkey_update_loc)
-            Select(type_ele).select_by_visible_text(new_gpg_key)
+            self.select(locators['repo.gpg_key_update'], new_gpg_key)
             self.click(common_locators['save'])
         if http:
             self.click(locators['repo.via_http_edit'])
@@ -128,14 +122,10 @@ class Repos(Base):
             self.click(locators['repo.new_product'])
             self.text_field_update(locators['repo.new_product_name'], product)
             if gpg_key:
-                Select(
-                    self.find_element(locators['repo.gpgkey_in_discover'])
-                ).select_by_visible_text(gpg_key)
+                self.select(locators['repo.gpgkey_in_discover'], gpg_key)
         else:
             self.click(locators['repo.existing_product'])
-            Select(
-                self.find_element(locators['repo.select_exist_product'])
-            ).select_by_visible_text(product)
+            self.select(locators['repo.select_exist_product'], product)
         self.click(locators['repo.create'])
 
     def validate_field(self, name, field_name, expected_field_value):

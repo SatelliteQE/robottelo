@@ -561,32 +561,46 @@ class Base(object):
         if wait_for_ajax:
             self.wait_for_ajax(ajax_timeout)
 
-    def select(
-            self, locator, value, wait_for_ajax=True, timeout=30, scroll=True):
-        """Select the element described by the ``locator``.
+    def select(self, locator, list_value, wait_for_ajax=True, timeout=30,
+               scroll=True):
+        """Select the element described by the ``locator``. Current method
+        supports both classical <select> tags and newer jquery-select elements
 
-        :param locator: The locator that describes the element.
-        :param value: The value to select from the dropdown
+        :param locator: The locator that describes the select list element.
+        :param list_value: The value to select from the dropdown
         :param wait_for_ajax: Flag that indicates if should wait for AJAX after
             clicking on the element
         :param timeout: The amount of time that wait_fox_ajax should wait. This
             will have effect if ``wait_fox_ajax`` parameter is ``True``.
         :param scroll: Decide whether scroll to element in case it is located
             out of the page
-        :raise: UINoSuchElementError if the element could not be found.
 
         """
-        element = self.wait_until_element(locator)
-        if element is None:
-            raise UINoSuchElementError(
-                '{0}: element with locator {1} not found while trying to '
-                'select'.format(type(self).__name__, locator)
+        # Check whether our select list element has <select> tag
+        if self.element_type(locator) == 'select':
+            element = self.find_element(locator)
+            if scroll:
+                self.scroll_into_view(element)
+            Select(element).select_by_visible_text(list_value)
+            if wait_for_ajax:
+                self.wait_for_ajax(timeout)
+        # If no - treat it like jquery select list
+        else:
+            self.click(
+                locator,
+                wait_for_ajax=wait_for_ajax,
+                ajax_timeout=timeout,
+                scroll=scroll,
             )
-        if scroll:
-            self.scroll_into_view(element)
-        Select(element).select_by_visible_text(value)
-        if wait_for_ajax:
-            self.wait_for_ajax(timeout)
+            self.text_field_update(
+                common_locators['select_list_search_box'], list_value)
+            strategy, value = common_locators['entity_select_list']
+            self.click(
+                (strategy, value % list_value),
+                wait_for_ajax=wait_for_ajax,
+                ajax_timeout=timeout,
+                scroll=scroll,
+            )
 
     def perform_action_chain_move(self, locator):
         """Moving the mouse to the middle of an element specified by locator
@@ -602,7 +616,9 @@ class Base(object):
                 'Cannot move cursor to {0}: element with locator {1}'
                 .format(type(self).__name__, locator)
             )
+        self.scroll_into_view(element)
         ActionChains(self.browser).move_to_element(element).perform()
+        self.wait_for_ajax()
 
     def perform_action_chain_move_by_offset(self, x=0, y=0):
         """Moving the mouse to an offset from current mouse position

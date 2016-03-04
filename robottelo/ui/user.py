@@ -4,7 +4,6 @@ from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class User(Base):
@@ -44,8 +43,7 @@ class User(Base):
                 entity_select=select
             )
             if default_loc:
-                loc_element = self.find_element(locators['users.default_loc'])
-                Select(loc_element).select_by_visible_text(default_loc)
+                self.select(locators['users.default_loc'], default_loc)
         if organizations or new_organizations:
             self.configure_entity(
                 organizations,
@@ -55,8 +53,7 @@ class User(Base):
                 entity_select=select,
             )
             if default_org:
-                org_element = self.find_element(locators['users.default_org'])
-                Select(org_element).select_by_visible_text(default_org)
+                self.select(locators['users.default_org'], default_org)
 
     def create(self, username=None, email=None, password1=None, password2=None,
                authorized_by='INTERNAL', locale=None, first_name=None,
@@ -71,20 +68,13 @@ class User(Base):
             self.field_update('users.firstname', first_name)
         if last_name:
             self.field_update('users.lastname', last_name)
-        if self.wait_until_element(locators['users.authorized_by']):
-            Select(
-                self.find_element(locators['users.authorized_by'])
-            ).select_by_visible_text(authorized_by)
         # The following fields are not available via LDAP auth
         if self.wait_until_element(locators['users.email']):
             self.field_update('users.email', email)
         if locale:
-            Select(
-                self.find_element(locators['users.language'])
-            ).select_by_value(locale)
-        # If authorized_by is None, click submit.
-        # For use in negative create tests.
+            self.select(locators['users.language_dropdown'], locale)
         if authorized_by:
+            self.select(locators['users.authorized_by'], authorized_by)
             if self.wait_until_element(locators['users.password']):
                 self.field_update('users.password', password1)
             if self.wait_until_element(
@@ -142,9 +132,7 @@ class User(Base):
         if last_name:
             self.field_update('users.lastname', last_name)
         if locale:
-            Select(
-                self.find_element(locators['users.language'])
-            ).select_by_value(locale)
+            self.select(locators['users.language_dropdown'], locale)
         if password:
             self.field_update('users.password', password)
             self.field_update('users.password_confirmation', password)
@@ -218,8 +206,11 @@ class User(Base):
                 )
 
         element.click()
-        if (self.wait_until_element(locators[
-                'users.' + field_name]).get_attribute('value') != field_value):
+        if (self.wait_until_element(
+                locators['users.' + field_name]
+                ).get_attribute('value') != field_value and
+            self.wait_until_element(locators[
+                'users.' + field_name]).text != field_value):
             raise UIError(
                 'User "{0}" field in the edit screen has not "{1}" value.'
                 .format(field_name, field_value)

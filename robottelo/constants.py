@@ -258,9 +258,14 @@ DEFAULT_CV = "Default Organization View"
 DEFAULT_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux Server Entry Level, Self-support')
 
-LANGUAGES = ["en", "en_GB",
-             "fr", "gl",
-             "ja", "sv_SE"]
+LANGUAGES = [
+    "zh_TW",
+    "Japanese",
+    "Deutsch",
+    "it",
+    "ko",
+    "sv_SE",
+]
 
 FILTER_CONTENT_TYPE = {
     'package': "Package",
@@ -737,16 +742,18 @@ ROLES = [
     'Access Insights Admin',
     'Access Insights Viewer',
     'Boot disk access',
+    'Compliance manager',
+    'Compliance viewer',
     'Discovery Manager',
     'Discovery Reader',
-    'Edit compliance policies',
     'Edit hosts',
     'Edit partition tables',
     'Red Hat Access Logs',
+    'Remote Execution Manager',
+    'Remote Execution User',
     'Site manager',
     'Tasks Manager',
     'Tasks Reader',
-    'View compliance reports',
     'View hosts',
     'Manager',
     'Viewer',
