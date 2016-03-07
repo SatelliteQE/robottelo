@@ -57,18 +57,18 @@ class Products(Base):
             if new_desc:
                 self.click(locators['prd.desc_edit'])
                 self.text_field_update(locators['prd.desc_update'], new_name)
-                self.click(common_locators['create'])
+                self.click(common_locators['save'])
             if new_gpg_key:
                 self.click(locators['prd.gpg_key_edit'])
                 type_ele = self.find_element(locators['prd.gpg_key_update'])
                 Select(type_ele).select_by_visible_text(new_gpg_key)
                 self.wait_for_ajax()
-                self.click(common_locators['create'])
+                self.click(common_locators['save'])
             if new_sync_plan:
                 self.click(locators['prd.sync_plan_edit'])
                 type_ele = self.find_element(locators['prd.sync_plan_update'])
                 Select(type_ele).select_by_visible_text(new_sync_plan)
-                self.click(common_locators['create'])
+                self.click(common_locators['save'])
 
     def delete(self, name, really=True):
         """Delete a product from UI"""

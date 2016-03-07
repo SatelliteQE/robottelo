@@ -541,7 +541,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
 
     # This Bugzilla bug is private. It is impossible to fetch info about it.
     @stubbed('Unstub when BZ1279539 is fixed')
-    @tier2
+    @tier4
     def test_negative_synchronize_custom_product_current_sync_date(self):
         """Verify product won't get synced immediately after adding association
         with a sync plan which has already been started
@@ -640,7 +640,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
-    @tier2
+    @tier4
     def test_positive_synchronize_custom_products_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
@@ -742,7 +742,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
-    @tier2
+    @tier4
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
