@@ -11,12 +11,11 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_emails_list,
 )
-from robottelo.decorators import stubbed, tier1, tier2, tier3
+from robottelo.decorators import skip_if_bug_open, stubbed, tier1, tier2, tier3
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_user
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
-from selenium.webdriver.support.select import Select
 
 
 def valid_strings(len1=10):
@@ -299,10 +298,9 @@ class UserTestCase(UITestCase):
             element = session.nav.wait_until_element(
                 (strategy, value % org_name))
             self.assertIsNotNone(element)
-            # Fetches currently selected option in a normal select.
-            option = Select(session.nav.find_element(
-                locators['users.default_org'])).first_selected_option
-            self.assertEqual(org_name, option.text)
+            # Check that default organization value was really chosen
+            self.assertEqual(org_name, session.nav.find_element(
+                locators['users.default_org_value']).text)
 
     @tier1
     def test_positive_create_with_default_location(self):
@@ -324,10 +322,9 @@ class UserTestCase(UITestCase):
             element = session.nav.wait_until_element(
                 (strategy, value % loc_name))
             self.assertIsNotNone(element)
-            # Fetches currently selected option in a normal select.
-            option = Select(session.nav.find_element(
-                locators['users.default_loc'])).first_selected_option
-            self.assertEqual(loc_name, option.text)
+            # Check that default location value was really chosen
+            self.assertEqual(loc_name, session.nav.find_element(
+                locators['users.default_loc_value']).text)
 
     @tier1
     def test_negative_create(self):
@@ -829,6 +826,7 @@ class UserTestCase(UITestCase):
             self.assertIsNotNone(self.user.search(username))
             self.assertIsNone(self.user.search(new_username))
 
+    @skip_if_bug_open('bugzilla', 1314894)
     @tier1
     def test_positive_delete_user(self):
         """Delete an existing User

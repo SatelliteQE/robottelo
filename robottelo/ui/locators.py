@@ -672,6 +672,11 @@ common_locators = LocatorDict({
     "entity_checkbox": (
         By.XPATH,
         "//label[normalize-space(.)='%s']/input[@type='checkbox']"),
+    "entity_select_list": (
+        By.XPATH,
+        "//ul/li/div[normalize-space(.)='%s']"),
+    "select_list_search_box": (
+        By.XPATH, "//div[@id='select2-drop']//input"),
     "name_haserror": (
         By.XPATH,
         ("//label[@for='name']/../../"
@@ -1079,21 +1084,45 @@ locators = LocatorDict({
     "users.firstname": (By.ID, "user_firstname"),
     "users.lastname": (By.ID, "user_lastname"),
     "users.email": (By.ID, "user_mail"),
-    "users.language": (By.ID, "user_locale"),
+    "users.language": (
+        By.XPATH,
+        ("//div[contains(@id, 'user_locale')]/a"
+         "/span[contains(@class, 'chosen')]")),
+    "users.language_dropdown": (
+        By.XPATH,
+        ("//div[contains(@id, 'user_locale')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "users.selected_lang": (
         By.XPATH, ("//select[@id='user_locale']"
                    "/option[@selected='selected']")),
-    "users.authorized_by": (By.ID, "user_auth_source_id"),
+    "users.authorized_by": (
+        By.XPATH,
+        ("//div[contains(@id, 'user_auth_source_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "users.password": (By.ID, "user_password"),
     "users.password_confirmation": (By.ID, "user_password_confirmation"),
     "users.user": (By.XPATH, "//a[contains(., '%s')]"),
     "users.table_value": (By.XPATH, "//td[contains(., '%s')]"),
-    "users.default_org": (By.ID, "user_default_organization_id"),
-    "users.default_loc": (By.ID, "user_default_location_id"),
+    "users.default_org": (
+        By.XPATH,
+        ("//div[contains(@id, 'user_default_organization_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "users.default_org_value": (
+        By.XPATH,
+        ("//div[contains(@id, 'user_default_organization_id')]/a"
+         "/span[contains(@class, 'chosen')]")),
+    "users.default_loc": (
+        By.XPATH,
+        ("//div[contains(@id, 'user_default_location_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "users.default_loc_value": (
+        By.XPATH,
+        ("//div[contains(@id, 'user_default_location_id')]/a"
+         "/span[contains(@id, 'chosen')]")),
     "users.delete": (
         By.XPATH,
         ("//td/a[contains(., '%s')]"
-         "/following::td/a[@class='delete']")),
+         "/following::td/span/a[@class='delete']")),
 
     # users.roles
     "users.admin_role": (By.ID, "user_admin"),
@@ -1295,7 +1324,7 @@ locators = LocatorDict({
     "repo.upstream_name": (By.ID, "docker_upstream_name"),
     "repo.checksum": (By.ID, "checksum_type"),
     "repo.via_http": (By.ID, "unprotected"),
-    "repo.search": (By.XPATH, "//input[@ng-model='repositorySearch']"),
+    "repo.search": (By.XPATH, "//input[@ng-model='detailsTable.searchTerm']"),
     "repo.remove": (
         By.XPATH, "//button[contains(@ng-show, 'canRemove')]"),
     "repo.sync_now": (
