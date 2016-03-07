@@ -93,10 +93,10 @@
 
 .. automodule:: tests.foreman.ui.test_host
 
-:mod:`tests.foreman.ui.test_host_system_unification`
+:mod:`tests.foreman.ui.test_hostunification`
 ----------------------------------------------------
 
-.. automodule:: tests.foreman.ui.test_host_system_unification
+.. automodule:: tests.foreman.ui.test_hostunification
 
 :mod:`tests.foreman.ui.test_hostcollection`
 -------------------------------------------
