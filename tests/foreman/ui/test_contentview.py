@@ -85,7 +85,7 @@ class ContentViewTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_wth_name(self):
+    def test_positive_create_with_name(self):
         """Create content views using different names
 
         @feature: Content Views
