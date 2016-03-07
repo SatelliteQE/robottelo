@@ -49,7 +49,7 @@ class RepositoryTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_positive_create_name(self):
+    def test_positive_create_with_name(self):
         """Create a repository with valid name.
 
         @Assert: A repository is created with the given name.
