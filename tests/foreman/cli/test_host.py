@@ -3,24 +3,51 @@ from fauxfactory import gen_mac, gen_string
 from nailgun import entities
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
+    make_activation_key,
     make_architecture,
+    make_content_view,
     make_domain,
     make_environment,
+    make_lifecycle_environment,
     make_medium,
+    make_org,
     make_os,
+    setup_org_for_a_custom_repo,
+    setup_org_for_a_rh_repo,
 )
 from robottelo.cli.host import Host
 from robottelo.cli.medium import Medium
 from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.proxy import Proxy
 from robottelo.config import settings
+from robottelo.constants import (
+    FAKE_0_CUSTOM_PACKAGE,
+    FAKE_0_CUSTOM_PACKAGE_GROUP,
+    FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_2_CUSTOM_PACKAGE,
+    FAKE_0_ERRATA_ID,
+    FAKE_0_YUM_REPO,
+    PRDS,
+    REPOS,
+    REPOSET,
+)
 from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
     valid_hosts_list,
 )
-from robottelo.decorators import skip_if_not_set, tier1, tier2
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_not_set,
+    tier1,
+    tier2,
+    tier3,
+)
 from robottelo.test import CLITestCase
+from robottelo.vm import VirtualMachine
 
 
 class HostCreateTestCase(CLITestCase):
@@ -810,3 +837,242 @@ class HostParameterTestCase(CLITestCase):
                     })
                 self.host = Host.info({'id': self.host['id']})
                 self.assertNotIn(name, self.host['parameters'].keys())
+
+
+class KatelloAgentTestCase(CLITestCase):
+    """Host tests, which require VM with installed katello-agent."""
+
+    org = None
+    env = None
+    content_view = None
+    activation_key = None
+
+    @classmethod
+    @skip_if_not_set('clients', 'fake_manifest')
+    def setUpClass(cls):
+        """Create Org, Lifecycle Environment, Content View, Activation key
+
+        """
+        super(KatelloAgentTestCase, cls).setUpClass()
+        # Create new org, environment, CV and activation key
+        KatelloAgentTestCase.org = make_org()
+        KatelloAgentTestCase.env = make_lifecycle_environment({
+            u'organization-id': KatelloAgentTestCase.org['id'],
+        })
+        KatelloAgentTestCase.content_view = make_content_view({
+            u'organization-id': KatelloAgentTestCase.org['id'],
+        })
+        KatelloAgentTestCase.activation_key = make_activation_key({
+            u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
+        })
+        # Add subscription to Satellite Tools repo to activation key
+        setup_org_for_a_rh_repo({
+            u'product': PRDS['rhel'],
+            u'repository-set': REPOSET['rhst7'],
+            u'repository': REPOS['rhst7']['name'],
+            u'organization-id': KatelloAgentTestCase.org['id'],
+            u'content-view-id': KatelloAgentTestCase.content_view['id'],
+            u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
+            u'activationkey-id': KatelloAgentTestCase.activation_key['id'],
+        })
+        # Create custom repo, add subscription to activation key
+        setup_org_for_a_custom_repo({
+            u'url': FAKE_0_YUM_REPO,
+            u'organization-id': KatelloAgentTestCase.org['id'],
+            u'content-view-id': KatelloAgentTestCase.content_view['id'],
+            u'lifecycle-environment-id': KatelloAgentTestCase.env['id'],
+            u'activationkey-id': KatelloAgentTestCase.activation_key['id'],
+        })
+
+    def setUp(self):
+        """Create VM, subscribe it to satellite-tools repo, install katello-ca
+        and katello-agent packages
+
+        """
+        super(KatelloAgentTestCase, self).setUp()
+        # Create VM and register content host
+        self.client = VirtualMachine(distro='rhel71')
+        self.client.create()
+        self.client.install_katello_ca()
+        # Register content host, install katello-agent
+        self.client.register_contenthost(
+            KatelloAgentTestCase.activation_key['name'],
+            KatelloAgentTestCase.org['label']
+        )
+        self.host = Host.info({'name': self.client.hostname})
+        self.client.enable_repo(REPOS['rhst7']['id'])
+        self.client.install_katello_agent()
+
+    def tearDown(self):
+        self.client.destroy()
+        super(KatelloAgentTestCase, self).tearDown()
+
+    @tier3
+    @run_only_on('sat')
+    def test_positive_get_errata_info(self):
+        """Get errata info
+
+        @Feature: Host - Errata
+
+        @Assert: Errata info was displayed
+
+        """
+        self.client.download_install_rpm(
+            FAKE_0_YUM_REPO,
+            FAKE_0_CUSTOM_PACKAGE
+        )
+        result = Host.errata_info({
+            u'host-id': self.host['id'],
+            u'id': FAKE_0_ERRATA_ID,
+        })
+        self.assertEqual(result[0]['errata-id'], FAKE_0_ERRATA_ID)
+        self.assertEqual(result[0]['packages'], FAKE_0_CUSTOM_PACKAGE)
+
+    @tier3
+    @run_only_on('sat')
+    def test_positive_apply_errata(self):
+        """Apply errata to a host
+
+        @Feature: Host - Errata
+
+        @Assert: Errata is scheduled for installation
+
+        """
+        self.client.download_install_rpm(
+            FAKE_0_YUM_REPO,
+            FAKE_0_CUSTOM_PACKAGE
+        )
+        Host.errata_apply({
+            u'errata-ids': FAKE_0_ERRATA_ID,
+            u'host-id': self.host['id'],
+        })
+
+    @tier3
+    @run_only_on('sat')
+    def test_positive_install_package(self):
+        """Install a package to a host remotely
+
+        @Feature: Host - Package
+
+        @Assert: Package was successfully installed
+
+        """
+        Host.package_install({
+            u'host-id': self.host['id'],
+            u'packages': FAKE_0_CUSTOM_PACKAGE_NAME,
+        })
+        result = self.client.run(
+            'rpm -q {0}'.format(FAKE_0_CUSTOM_PACKAGE_NAME)
+        )
+        self.assertEqual(result.return_code, 0)
+
+    @tier3
+    @run_only_on('sat')
+    def test_positive_remove_package(self):
+        """Remove a package from a host remotely
+
+        @Feature: Host - Package
+
+        @Assert: Package was successfully removed
+
+        """
+        self.client.download_install_rpm(
+            FAKE_0_YUM_REPO,
+            FAKE_0_CUSTOM_PACKAGE
+        )
+        Host.package_remove({
+            u'host-id': self.host['id'],
+            u'packages': FAKE_0_CUSTOM_PACKAGE_NAME,
+        })
+        result = self.client.run(
+            'rpm -q {0}'.format(FAKE_0_CUSTOM_PACKAGE_NAME)
+        )
+        self.assertNotEqual(result.return_code, 0)
+
+    @tier3
+    @run_only_on('sat')
+    def test_positive_upgrade_package(self):
+        """Upgrade a host package remotely
+
+        @Feature: Host - Package
+
+        @Assert: Package was successfully upgraded
+
+        """
+        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        Host.package_upgrade({
+            u'host-id': self.host['id'],
+            u'packages': FAKE_1_CUSTOM_PACKAGE_NAME,
+        })
+        result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
+        self.assertEqual(result.return_code, 0)
+
+    @tier3
+    @run_only_on('sat')
+    def test_positive_upgrade_packages_all(self):
+        """Upgrade all the host packages remotely
+
+        @Feature: Host - Package
+
+        @Assert: Packages (at least 1 with newer version available) were
+        successfully upgraded
+
+        """
+        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        Host.package_upgrade_all({'host-id': self.host['id']})
+        result = self.client.run('rpm -q {0}'.format(FAKE_2_CUSTOM_PACKAGE))
+        self.assertEqual(result.return_code, 0)
+
+    @tier3
+    @run_only_on('sat')
+    def test_positive_install_package_group(self):
+        """Install a package group to a host remotely
+
+        @Feature: Host - Package group
+
+        @Assert: Package group was successfully installed
+
+        """
+        Host.package_group_install({
+            u'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+            u'host-id': self.host['id'],
+        })
+        for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
+            result = self.client.run('rpm -q {0}'.format(package))
+            self.assertEqual(result.return_code, 0)
+
+    @tier3
+    @run_only_on('sat')
+    def test_positive_remove_package_group(self):
+        """Remove a package group from a host remotely
+
+        @Feature: Host - Package group
+
+        @Assert: Package group was successfully removed
+
+        """
+        hammer_args = {
+            u'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+            u'host-id': self.host['id'],
+        }
+        Host.package_group_install(hammer_args)
+        Host.package_group_remove(hammer_args)
+        for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
+            result = self.client.run('rpm -q {0}'.format(package))
+            self.assertNotEqual(result.return_code, 0)
+
+    @tier3
+    def test_negative_unregister_and_pull_content(self):
+        """Attempt to retrieve content after host has been unregistered from
+        Satellite
+
+        @feature: Host
+
+        @assert: Host can no longer retrieve content from satellite
+        """
+        result = self.client.run('subscription-manager unregister')
+        self.assertEqual(result.return_code, 0)
+        result = self.client.run(
+            'yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        self.assertNotEqual(result.return_code, 0)

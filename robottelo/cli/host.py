@@ -14,15 +14,20 @@ Subcommands::
     create                        Create a host
     delete                        Delete a host
     delete-parameter              Delete parameter for a host.
+    errata                        Manage errata on your hosts
     facts                         List all fact values
     info                          Show a host
+    interface                     View and manage host's network interfaces
     list                          List all hosts
+    package                       Manage packages on your hosts
+    package-group                 Manage package-groups on your hosts
     puppet-classes                List all Puppet classes
     puppetrun                     Force a Puppet agent run on the host
     reboot                        Reboot a host
     reports                       List all reports
     sc-params                     List all smart class parameters
     set-parameter                 Create or update parameter for a host.
+    smart-variables               List all smart variables
     start                         Power a host on
     status                        Get status of host
     stop                          Power a host off
@@ -39,6 +44,27 @@ class Host(Base):
     """
 
     command_base = 'host'
+
+    @classmethod
+    def errata_apply(cls, options):
+        """Schedule errata for installation"""
+        cls.command_sub = 'errata apply'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def errata_info(cls, options):
+        """Retrieve a single errata for a system"""
+        cls.command_sub = 'errata info'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def errata_list(cls, options):
+        """List errata available for the content host."""
+        cls.command_sub = 'errata list'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
 
     @classmethod
     def facts(cls, options=None):
@@ -68,6 +94,48 @@ class Host(Base):
             facts = result
 
         return facts
+
+    @classmethod
+    def package_install(cls, options):
+        """Install packages remotely."""
+        cls.command_sub = 'package install'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def package_remove(cls, options):
+        """Uninstall packages remotely."""
+        cls.command_sub = 'package remove'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def package_upgrade(cls, options):
+        """Update packages remotely."""
+        cls.command_sub = 'package upgrade'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def package_upgrade_all(cls, options):
+        """Update all packages remotely."""
+        cls.command_sub = 'package upgrade-all'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def package_group_install(cls, options):
+        """Install package groups remotely."""
+        cls.command_sub = 'package-group install'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def package_group_remove(cls, options):
+        """Uninstall package groups remotely."""
+        cls.command_sub = 'package-group remove'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
 
     @classmethod
     def puppetrun(cls, options=None):
