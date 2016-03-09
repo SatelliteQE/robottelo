@@ -877,8 +877,7 @@ locators = LocatorDict({
     "resource.new": (
         By.XPATH, "//a[contains(@href, '/compute_resources/new')]"),
     "resource.name": (By.ID, "compute_resource_name"),
-    "resource.provider_type": (
-        By.XPATH, "//select[@id='compute_resource_provider']"),
+    "resource.provider_type": (By.ID, "s2id_compute_resource_provider"),
     "resource.description": (By.ID, "compute_resource_description"),
     "resource.url": (By.XPATH, "//input[@id='compute_resource_url']"),
     "resource.display_type": (By.ID, "compute_resource_display_type"),

@@ -13,6 +13,11 @@
 
 .. automodule:: tests.foreman.api.test_architecture
 
+:mod:`tests.foreman.api.test_computeresource`
+---------------------------------------------
+
+.. automodule:: tests.foreman.api.test_computeresource
+
 :mod:`tests.foreman.api.test_contentview`
 -----------------------------------------
 
