@@ -4,7 +4,6 @@
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class OptionError(ValueError):
@@ -45,10 +44,9 @@ class Settings(Base):
         self.click((strategy, value % param_name))
 
         if value_type == 'dropdown':
-            Select(
-                self.find_element(locators['settings.select_value'])
-            ).select_by_value(param_value)
+            self.select(locators['settings.select_value'], param_value)
         elif value_type == 'input':
+            self.wait_until_element(locators['settings.input_value'])
             self.field_update('settings.input_value', param_value)
         else:
             raise OptionError('Please input appropriate value type')

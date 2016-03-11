@@ -4,7 +4,6 @@ from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class UserGroup(Base):
@@ -40,9 +39,8 @@ class UserGroup(Base):
                 locators['usergroups.ext_usergroup_name'],
                 ext_usergrp
             )
-            Select(
-                self.find_element(locators['usergroups.ext_authsource_id'])
-            ).select_by_visible_text(ext_authsourceid)
+            self.select(
+                locators['usergroups.ext_authsource_id'], ext_authsourceid)
         self.click(common_locators['submit'])
 
     def delete(self, name, really=True):

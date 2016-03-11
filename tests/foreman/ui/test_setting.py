@@ -109,14 +109,13 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_authorize_login_delegation_param(self):
-        """Updates parameter "authorize_login_delegation" under General
-        tab
+        """Updates parameter "authorize_login_delegation" under Auth tab
 
         @Feature: Settings - Update Parameters
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_general']
+        tab_locator = tab_locators['settings.tab_auth']
         param_name = 'authorize_login_delegation'
         with Session(self.browser) as session:
             for param_value in valid_boolean_values():
@@ -161,14 +160,13 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_authorize_login_delegation_api_param(self):
-        """Updates parameter "authorize_login_delegation_api" under
-        General tab
+        """Updates parameter "authorize_login_delegation_api" under Auth tab
 
         @Feature: Settings - Update Parameters
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_general']
+        tab_locator = tab_locators['settings.tab_auth']
         param_name = 'authorize_login_delegation_api'
         with Session(self.browser) as session:
             for param_value in valid_boolean_values():
@@ -428,13 +426,13 @@ class SettingTestCase(UITestCase):
 
     @tier1
     def test_positive_update_idle_timeout_param(self):
-        """Updates parameter "idle_timeout" under General tab
+        """Updates parameter "idle_timeout" under Auth tab
 
         @Feature: Settings - Positive Update Parameters
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_general']
+        tab_locator = tab_locators['settings.tab_auth']
         param_name = 'idle_timeout'
         with Session(self.browser) as session:
             for param_value in valid_maxtrend_timeout_values():
@@ -609,15 +607,15 @@ class SettingTestCase(UITestCase):
                         )
 
     @tier1
-    def test_positive_update_require_ssl_puppetmasters_param(self):
-        """Updates parameter "require_ssl_puppetmasters" under Auth tab
+    def test_positive_update_require_ssl_smart_proxies_param(self):
+        """Updates parameter "require_ssl_smart_proxies" under Auth tab
 
         @Feature: Settings - Update Parameters
 
         @Assert: Parameter is updated successfully
         """
         tab_locator = tab_locators['settings.tab_auth']
-        param_name = 'require_ssl_puppetmasters'
+        param_name = 'require_ssl_smart_proxies'
         value_type = 'dropdown'
         with Session(self.browser) as session:
             for param_value in valid_boolean_values():
@@ -644,8 +642,8 @@ class SettingTestCase(UITestCase):
                     )
 
     @tier1
-    def test_positive_update_restrict_registered_puppetmasters_param(self):
-        """Updates parameter "restrict_registered_puppetmasters" under
+    def test_positive_update_restrict_registered_smart_proxies_param(self):
+        """Updates parameter "restrict_registered_smart_proxies" under
         Auth tab
 
         @Feature: Settings - Update Parameters
@@ -653,7 +651,7 @@ class SettingTestCase(UITestCase):
         @Assert: Parameter is updated successfully
         """
         tab_locator = tab_locators['settings.tab_auth']
-        param_name = 'restrict_registered_puppetmasters'
+        param_name = 'restrict_registered_smart_proxies'
         value_type = 'dropdown'
         with Session(self.browser) as session:
             for param_value in valid_boolean_values():

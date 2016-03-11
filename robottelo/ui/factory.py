@@ -117,7 +117,6 @@ def make_org(session, **kwargs):
 
     create_args = {
         u'org_name': None,
-        u'parent_org': None,
         u'label': None,
         u'desc': None,
         u'users': None,
@@ -522,9 +521,10 @@ def make_partitiontable(session, org=None, loc=None, force_context=True,
     """Creates new Partition table from webUI"""
 
     create_args = {
+        u'custom_really': True,
         u'name': None,
-        u'layout': None,
-        u'os_family': None
+        u'os_family': None,
+        u'template_path': None,
     }
     page = session.nav.go_to_partition_tables
     core_factory(create_args, kwargs, session, page,

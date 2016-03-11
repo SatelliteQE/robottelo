@@ -578,7 +578,7 @@ class Base(object):
         """
         # Check whether our select list element has <select> tag
         if self.element_type(locator) == 'select':
-            element = self.find_element(locator)
+            element = self.wait_until_element(locator)
             if scroll:
                 self.scroll_into_view(element)
             Select(element).select_by_visible_text(list_value)

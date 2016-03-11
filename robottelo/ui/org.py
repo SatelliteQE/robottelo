@@ -5,7 +5,6 @@ from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class Org(Base):
@@ -82,15 +81,12 @@ class Org(Base):
                                   new_entity_list=new_locations,
                                   entity_select=select)
 
-    def create(self, org_name=None, parent_org=None, label=None, desc=None,
-               users=None, proxies=None, subnets=None, resources=None,
-               medias=None, templates=None, domains=None, envs=None,
-               hostgroups=None, locations=None, select=True):
+    def create(self, org_name=None, label=None, desc=None, users=None,
+               proxies=None, subnets=None, resources=None, medias=None,
+               templates=None, domains=None, envs=None, hostgroups=None,
+               locations=None, select=True):
         """Create Organization in UI."""
         self.click(locators['org.new'])
-        if parent_org:
-            type_element = self.wait_until_element(locators['org.parent'])
-            Select(type_element).select_by_visible_text(parent_org)
         if self.wait_until_element(locators['org.name']):
             self.field_update('org.name', org_name)
         if label:
@@ -109,14 +105,13 @@ class Org(Base):
                                 select=select)
             self.click(common_locators['submit'])
 
-    def update(self, org_name, new_parent_org=None, new_name=None, users=None,
-               proxies=None, subnets=None, resources=None, medias=None,
-               templates=None, domains=None, envs=None, hostgroups=None,
-               locations=None, new_locations=None,
-               new_users=None, new_proxies=None, new_subnets=None,
-               new_resources=None, new_medias=None, new_templates=None,
-               new_domains=None, new_envs=None, new_hostgroups=None,
-               select=False, new_desc=None):
+    def update(self, org_name, new_name=None, users=None, proxies=None,
+               subnets=None, resources=None, medias=None, templates=None,
+               domains=None, envs=None, hostgroups=None, locations=None,
+               new_locations=None, new_users=None, new_proxies=None,
+               new_subnets=None, new_resources=None, new_medias=None,
+               new_templates=None, new_domains=None, new_envs=None,
+               new_hostgroups=None, select=False, new_desc=None):
         """Update Organization in UI."""
         org_object = self.search(org_name)
         self.wait_for_ajax()
@@ -128,9 +123,6 @@ class Org(Base):
         if new_name:
             if self.wait_until_element(locators['org.name']):
                 self.field_update('org.name', new_name)
-        if new_parent_org:
-            type_element = self.find_element(locators['org.parent'])
-            Select(type_element).select_by_visible_text(new_parent_org)
         if new_desc:
             self.field_update('org.desc', new_desc)
         self._configure_org(

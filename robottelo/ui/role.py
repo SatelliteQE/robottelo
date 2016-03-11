@@ -4,7 +4,6 @@ from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class Role(Base):
@@ -55,10 +54,8 @@ class Role(Base):
             self.click((strategy, value % name))
             self.click(locators['roles.add_permission'])
             if resource_type:
-                Select(
-                    self.find_element(
-                        locators['roles.select_resource_type'])
-                ).select_by_visible_text(resource_type)
+                self.select(
+                    locators['roles.select_resource_type'], resource_type)
                 if permission_list:
                     self.configure_entity(
                         permission_list, FILTER['role_permission'])

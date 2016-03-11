@@ -4,7 +4,6 @@
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class Trend(Base):
@@ -23,15 +22,9 @@ class Trend(Base):
         self.click(locators['trend.new'])
 
         if self.wait_until_element(locators['trend.type']):
-            Select(
-                self.find_element(locators['trend.type'])
-            ).select_by_visible_text(trend_type)
-
+            self.select(locators['trend.type'], trend_type)
             if trendable is not None:
-                Select(
-                    self.find_element(locators['trend.trendable'])
-                ).select_by_visible_text(trendable)
-
+                self.select(locators['trend.trendable'], trendable)
             if name is not None and trendable is not None:
                 self.find_element(locators['trend.name']).send_keys(name)
 
