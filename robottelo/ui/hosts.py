@@ -1,9 +1,8 @@
 """Utilities to manipulate hosts via UI."""
 from robottelo.constants import RESOURCE_DEFAULT
-from robottelo.ui.base import Base, UIError
+from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class Hosts(Base):
@@ -19,70 +18,43 @@ class Hosts(Base):
         strategy2, value2 = locators['host.select_puppetclass']
         # Host tab
         if lifecycle_env:
-            Select(
-                self.wait_until_element(locators['host.lifecycle_env'])
-            ).select_by_visible_text(lifecycle_env)
+            self.select(locators['host.lifecycle_env'], lifecycle_env)
         if cv:
-            Select(
-                self.wait_until_element(locators['host.cv'])
-            ).select_by_visible_text(cv)
+            self.select(locators['host.cv'], cv)
         if reset_puppetenv:
             self.click(locators['host.reset_puppetenv'])
         if host_group:
-            Select(
-                self.wait_until_element(locators['host.group'])
-            ).select_by_visible_text(host_group)
+            self.select(locators['host.group'], host_group)
         elif env and not host_group:
             # As selecting hostgroup changes env
-            Select(
-                self.wait_until_element(locators['host.environment'])
-            ).select_by_visible_text(env)
+            self.select(locators['host.environment'], env)
         if puppet_ca:
-            Select(
-                self.wait_until_element(locators['host.puppet_ca'])
-            ).select_by_visible_text(puppet_ca)
+            self.select(locators['host.puppet_ca'], puppet_ca)
         if puppet_master:
-            Select(
-                self.wait_until_element(locators['host.puppet_master'])
-            ).select_by_visible_text(puppet_master)
+            self.select(locators['host.puppet_master'], puppet_master)
         # Network tab
         if domain or mac or subnet or ip_addr:
             self.click(tab_locators['host.tab_network'])
         if domain:
-            Select(
-                self.wait_until_element(locators['host.domain'])
-            ).select_by_visible_text(domain)
+            self.select(locators['host.domain'], domain)
         if mac:
             self.wait_until_element(locators['host.mac']).send_keys(mac)
         if subnet:
-            Select(
-                self.wait_until_element(locators['host.subnet'])
-            ).select_by_visible_text(subnet)
+            self.select(locators['host.subnet'], subnet)
         if ip_addr:
             self.wait_until_element(locators['host.ip']).send_keys(ip_addr)
         # Operating system tab
         self.wait_for_ajax()
         if arch or os or media or ptable or custom_ptable or root_pwd:
-            self.scroll_page()
             self.click(tab_locators['host.tab_os'])
         if arch:
-            Select(
-                self.wait_until_element(locators['host.arch'])
-            ).select_by_visible_text(arch)
-            self.wait_for_ajax()
+            self.select(locators['host.arch'], arch)
         if os:
-            Select(
-                self.wait_until_element(locators['host.os'])
-            ).select_by_visible_text(os)
-            self.wait_for_ajax()
+            self.select(locators['host.os'], os)
         if media:
-            Select(
-                self.wait_until_element(locators['host.media'])
-            ).select_by_visible_text(media)
+            self.select(locators['host.media'], media)
         if ptable:
-            Select(
-                self.wait_until_element(locators['host.ptable'])
-            ).select_by_visible_text(ptable)
+            self.select(locators['host.ptable'], ptable)
         if custom_ptable:
             self.wait_until_element(
                 locators['host.custom_ptables']).send_keys(custom_ptable)
@@ -106,20 +78,12 @@ class Hosts(Base):
         self.click(locators['host.new'])
         self.wait_until_element(locators['host.name']).send_keys(name)
         if org is not None:
-            Select(
-                self.find_element(locators['host.org'])
-            ).select_by_visible_text(org)
-            self.wait_for_ajax()
+            self.select(locators['host.org'], org)
         if loc is not None:
-            Select(
-                self.find_element(locators['host.loc'])
-            ).select_by_visible_text(loc)
-            self.wait_for_ajax()
+            self.select(locators['host.loc'], loc)
         if resource is None:
             resource = RESOURCE_DEFAULT
-        Select(
-            self.wait_until_element(locators['host.deploy'])
-        ).select_by_visible_text(resource)
+        self.select(locators['host.deploy'], resource)
         self._configure_hosts(
             arch=arch,
             cv=cv,
@@ -141,20 +105,12 @@ class Hosts(Base):
         )
         if resource != RESOURCE_DEFAULT:
             self.click(tab_locators['host.tab_vm'])
-            Select(
-                self.wait_until_element(locators['host.vm_cpus'])
-            ).select_by_visible_text(cpus)
-            Select(
-                self.wait_until_element(locators['host.vm_memory'])
-            ).select_by_visible_text(memory)
+            self.select(locators['host.vm_cpus'], cpus)
+            self.select(locators['host.vm_memory'], memory)
         if network_type is not None:
-            Select(
-                self.wait_until_element(locators['host.network_type'])
-            ).select_by_visible_text(network_type)
+            self.select(locators['host.network_type'], network_type)
         if network is not None:
-            Select(
-                self.wait_until_element(locators['host.network'])
-            ).select_by_visible_text(network)
+            self.select(locators['host.network'], network)
         self.click(common_locators['submit'])
 
     def update(self, arch=None, cv=None, custom_ptable=None, domain=None,
@@ -165,9 +121,7 @@ class Hosts(Base):
                root_pwd=None, subnet=None):
         """Updates a Host."""
         element = self.search(name)
-        if element is None:
-            raise UIError(u'Could not update the host {0}'.format(name))
-        element.click()
+        self.click(element)
         self.click(locators['host.edit'])
         if new_name:
             self.wait_until_element(locators['host.name'])
@@ -220,7 +174,5 @@ class Hosts(Base):
         if org:
             self.click(locators['host.assign_org'])
             self.click(locators['host.fix_mismatch'])
-            Select(
-                self.wait_until_element(locators['host.select_org'])
-            ).select_by_visible_text(org)
+            self.select(locators['host.select_org'], org)
         self.click(locators['host.bulk_submit'])

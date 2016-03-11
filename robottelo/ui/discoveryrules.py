@@ -1,9 +1,9 @@
 # -*- encoding: utf-8 -*-
 """Implements Discovery Rules from UI."""
+from robottelo.decorators import bz_bug_is_open
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class DiscoveryRules(Base):
@@ -36,20 +36,8 @@ class DiscoveryRules(Base):
         if not self.wait_until_element(locators['discoveryrules.name']):
             raise UIError(u'Could not create new discovery "{0}"'.format(name))
         self.text_field_update(locators['discoveryrules.name'], name)
-        if not search_rule:
-            raise UIError(
-                u'Could not create new discovery rule "{0}",'
-                'without search_rule'.format(search_rule)
-            )
         self.text_field_update(locators['discoveryrules.search'], search_rule)
-        if not hostgroup:
-            raise UIError(
-                u'Could not create new discovery rule "{0}", without'
-                'hostgroup'.format(search_rule)
-            )
-        Select(
-            self.find_element(locators['discoveryrules.hostgroup'])
-        ).select_by_visible_text(hostgroup)
+        self.select(locators['discoveryrules.hostgroup_dropdown'], hostgroup)
         self._configure_discovery(hostname, host_limit, priority, enabled)
         self.click(common_locators['submit'])
 
@@ -65,8 +53,14 @@ class DiscoveryRules(Base):
         """Searches existing discovery rule from UI. It is necessary to use
         custom search as we don't have both search bar and search button there.
         """
+        if not bz_bug_is_open(1233135):
+            raise DeprecationWarning(
+                'Search box is implemented. Use generic search method'
+            )
         self.navigate_to_entity()
         strategy, value = self._search_locator()
+        if len(name) > 32:
+            strategy, value = common_locators['select_filtered_entity']
         return self.wait_until_element((strategy, value % name))
 
     def delete(self, name, really=True):
@@ -81,11 +75,7 @@ class DiscoveryRules(Base):
                hostname=None, host_limit=None, priority=None, enabled=True):
         """Update an existing discovery rule from UI."""
         element = self.search(name)
-        if not element:
-            raise UIError(
-                'Could not update the discovery rule "{0}"'.format(name)
-            )
-        element.click()
+        self.click(element)
         if new_name is not None:
             if self.wait_until_element(locators['discoveryrules.name']):
                 self.field_update('discoveryrules.name', new_name)
@@ -93,9 +83,8 @@ class DiscoveryRules(Base):
             if self.wait_until_element(locators['discoveryrules.search']):
                 self.field_update('discoveryrules.search', search_rule)
         if hostgroup:
-            Select(
-                self.wait_until_element(locators['discoveryrules.hostgroup'])
-            ).select_by_visible_text(hostgroup)
+            self.select(
+                locators['discoveryrules.hostgroup_dropdown'], hostgroup)
         self._configure_discovery(hostname, host_limit, priority, enabled)
         self.click(common_locators['submit'])
 
@@ -113,17 +102,13 @@ class DiscoveryRules(Base):
 
         """
         discovery_rule = self.search(name)
-        if discovery_rule is None:
-            raise UIError(
-                u'Could not find discovery rule "{0}" to verify'.format(name))
-        discovery_rule.click()
-        self.wait_for_ajax()
+        self.click(discovery_rule)
         element = self.wait_until_element(
             locators['discoveryrules.{0}'.format(attribute_name)])
         if element_type == 'field':
             result = element.get_attribute('value')
         elif element_type == 'select':
-            result = Select(element).first_selected_option.text
+            result = element.text
         elif element_type == 'checkbox':
             result = element.is_selected()
         else:

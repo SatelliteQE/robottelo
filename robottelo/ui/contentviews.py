@@ -6,7 +6,6 @@ import time
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class ContentViews(Base):
@@ -69,13 +68,10 @@ class ContentViews(Base):
     def move_affected_components(self, env, cv):
         """Move affected components to another environment or content view.
         Activation keys and content hosts are examples of affected components.
-
         """
         strategy, value = locators['contentviews.change_env']
         self.click((strategy, value % env))
-        Select(
-            self.find_element(locators['contentviews.change_cv'])
-        ).select_by_visible_text(cv)
+        self.select(locators['contentviews.change_cv'], cv)
         self.click(locators['contentviews.next_button'])
 
     def delete_version(self, name, version):
@@ -103,7 +99,7 @@ class ContentViews(Base):
         return locators["contentviews.key_name"]
 
     def search_filter(self, cv_name, filter_name):
-        """uses search box to locate the filters"""
+        """Uses search box to locate the filters"""
         element = self.search(cv_name)
         if not element:
             raise UINoSuchElementError(
@@ -154,7 +150,6 @@ class ContentViews(Base):
 
         When 'add_repo' Flag is set then add_repository will be performed,
         otherwise remove_repository
-
         """
         element = self.search(cv_name)
         if not element:
@@ -206,7 +201,6 @@ class ContentViews(Base):
     def check_progress_bar_status(self, version):
         """Checks the status of progress bar while publishing and promoting the
         CV to next environment
-
         """
         timer = time.time() + 60 * 10
         strategy, value = locators['contentviews.publish_progress']
@@ -225,7 +219,6 @@ class ContentViews(Base):
     def publish(self, cv_name, comment=None):
         """Publishes to create new version of CV and promotes the contents to
         'Library' environment
-
         """
         element = self.search(cv_name)
         if not element:
@@ -276,7 +269,6 @@ class ContentViews(Base):
 
         Filter_term can be used to filter the module by 'author'
         or by 'version'.
-
         """
         element = self.search(cv_name)
         if not element:
@@ -300,7 +292,6 @@ class ContentViews(Base):
         """Add or Remove content-views to/from selected composite view.
         When 'is_add' Flag is set then add_contentView will be performed,
         otherwise remove_contentView
-
         """
         element = self.search(composite_cv)
 
@@ -340,7 +331,6 @@ class ContentViews(Base):
                    content_type, filter_type, description=None):
         """Creates content-view filter of given 'type'(include/exclude) and
         'content-type'(package/package-group/errata)
-
         """
         element = self.search(cv_name)
         if not element:
@@ -359,20 +349,13 @@ class ContentViews(Base):
         self.find_element(
             common_locators['name']).send_keys(filter_name)
         if content_type:
-            Select(
-                self.find_element(
-                    locators['contentviews.content_type'])
-            ).select_by_visible_text(content_type)
-            self.wait_for_ajax()
+            self.select(locators['contentviews.content_type'], content_type)
         else:
             raise UIError(
                 'Could not create filter without content type'
             )
         if filter_type:
-            Select(
-                self.find_element(locators['contentviews.type'])
-            ).select_by_visible_text(filter_type)
-            self.wait_for_ajax()
+            self.select(locators['contentviews.type'], filter_type)
         else:
             raise UIError(
                 'Could not create filter without specifying filter '
@@ -416,7 +399,6 @@ class ContentViews(Base):
 
         'value2' should only be used with type 'Range' to define range of
         versions.
-
         """
         if version_type == 'Equal To':
             self.find_element(
@@ -444,9 +426,8 @@ class ContentViews(Base):
             self.find_element(
                 locators['contentviews.input_pkg_name']
             ).send_keys(package_name)
-            Select(self.find_element(
-                locators['contentviews.select_pkg_version'])
-            ).select_by_visible_text(version_type)
+            self.select(
+                locators['contentviews.select_pkg_version'], version_type)
             if not version_type == 'All Versions':
                 self.select_package_version_value(
                     version_type, value, max_value)
@@ -464,7 +445,6 @@ class ContentViews(Base):
                                             package_groups, is_add=True):
         """Add/Remove package groups to/from selected filter for
         inclusion/Exclusion.
-
         """
         self.go_to_filter_page(cv_name, filter_name)
         if is_add:
@@ -561,7 +541,6 @@ class ContentViews(Base):
     def validate_version_cannot_be_deleted(self, name, version):
         """Check that version cannot be deleted from selected CV, because it
         has activation key or content host assigned to it
-
         """
         element = self.search(name)
 

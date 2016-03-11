@@ -1,10 +1,10 @@
 # -*- encoding: utf-8 -*-
 """Implements Activation keys UI."""
+from robottelo.constants import DEFAULT_CV
 from robottelo.helpers import escape_search
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class ActivationKey(Base):
@@ -40,13 +40,9 @@ class ActivationKey(Base):
                     .format(name)
                 )
             if content_view:
-                Select(
-                    self.find_element(locators['ak.content_view'])
-                ).select_by_visible_text(content_view)
+                self.select(locators['ak.content_view'], content_view)
             else:
-                Select(
-                    self.find_element(locators['ak.content_view'])
-                ).select_by_value('0')
+                self.select(locators['ak.content_view'], DEFAULT_CV)
             self.click(common_locators['create'])
         else:
             raise UIError(
@@ -114,9 +110,8 @@ class ActivationKey(Base):
                 # purpose and hence no else required here
                 if self.wait_until_element(locators['ak.edit_content_view']):
                     self.click(locators['ak.edit_content_view'])
-                Select(
-                    self.find_element(locators['ak.edit_content_view_select'])
-                ).select_by_visible_text(content_view)
+                self.select(
+                    locators['ak.edit_content_view_select'], content_view)
                 self.click(locators['ak.save_cv'])
         else:
             raise UIError(
@@ -162,11 +157,10 @@ class ActivationKey(Base):
         self.click(tab_locators['ak.tab_prd_content'])
         for repo in repos:
             self.click((strategy, value % repo))
-            repo_select = self.wait_until_element((strategy1, value1 % repo))
             if enable:
-                Select(repo_select).select_by_visible_text('Override to Yes')
+                self.select((strategy1, value1 % repo), 'Override to Yes')
             else:
-                Select(repo_select).select_by_visible_text('Override to No')
+                self.select((strategy1, value1 % repo), 'Override to No')
             self.click(common_locators['save'], ajax_timeout=60)
             # FIXME: check for the success message
 

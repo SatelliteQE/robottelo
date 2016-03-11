@@ -3,7 +3,6 @@
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class LdapAuthSource(Base):
@@ -33,9 +32,7 @@ class LdapAuthSource(Base):
                 self.click(locators['ldapserver.ldaps'])
             if port:
                 self.field_update('ldapserver.port', port)
-            Select(
-                self.find_element(locators['ldapserver.server_type'])
-            ).select_by_visible_text(server_type)
+            self.select(locators['ldapserver.server_type'], server_type)
         self.click(tab_locators['ldapserver.tab_account'])
         if self.wait_until_element(locators['ldapserver.acc_user']) is None:
             raise UINoSuchElementError(u'Could not select the attributes Tab.')

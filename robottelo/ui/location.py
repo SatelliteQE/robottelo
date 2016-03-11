@@ -4,18 +4,17 @@ from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UINoSuchElementError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class Location(Base):
     """Implements CRUD functions for UI"""
 
     def navigate_to_entity(self):
-        """Navigate to ContentViews entity page"""
+        """Navigate to Locations entity page"""
         Navigator(self.browser).go_to_loc()
 
     def _search_locator(self):
-        """Specify locator for ContentViews entity search procedure"""
+        """Specify locator for Locations entity search procedure"""
         return locators['location.select_name']
 
     def _configure_location(self, users=None, proxies=None, subnets=None,
@@ -92,8 +91,7 @@ class Location(Base):
             raise UINoSuchElementError('Could not create new location.')
         self.field_update('location.name', name)
         if parent:
-            Select(self.find_element(
-                locators['location.parent'])).select_by_visible_text(parent)
+            self.select(locators['location.parent'], parent)
         self.click(common_locators['submit'])
         edit_locator = self.wait_until_element(
             locators['location.proceed_to_edit'])
@@ -120,11 +118,7 @@ class Location(Base):
                select=False):
         """Update Location in UI."""
         org_object = self.search(loc_name)
-        self.wait_for_ajax()
-        if org_object is None:
-            raise UINoSuchElementError(
-                'Unable to find the location {0} for update.'.format(loc_name))
-        org_object.click()
+        self.click(org_object)
         if new_name:
             if self.wait_until_element(locators['location.name']):
                 self.field_update('location.name', new_name)

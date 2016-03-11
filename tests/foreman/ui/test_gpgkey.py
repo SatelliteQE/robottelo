@@ -423,12 +423,12 @@ class GPGKey(UITestCase):
         ).create()
         # step2: Creates new product without selecting GPGkey
         product = entities.Product(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         # step3: Creates new repository with GPGKey
         repo = entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             url=FAKE_1_YUM_REPO,
             product=product,
             gpg_key=gpgkey,
@@ -452,7 +452,7 @@ class GPGKey(UITestCase):
         act_key = entities.ActivationKey(
             content_view=content_view,
             environment=lc_env,
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         for sub in entities.Subscription(
@@ -615,7 +615,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         # Creates new product and associate GPGKey with it
         entities.Product(
             gpg_key=gpg_key,
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         with Session(self.browser) as session:
@@ -646,12 +646,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         # Creates new product and associate GPGKey with it
         product = entities.Product(
             gpg_key=gpg_key,
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         # Creates new repository without GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             url=FAKE_1_YUM_REPO,
             product=product,
         ).create()
@@ -684,18 +684,18 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         # Creates new product and associate GPGKey with it
         product = entities.Product(
             gpg_key=gpg_key,
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         # Creates new repository_1 without GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             product=product,
             url=FAKE_1_YUM_REPO,
         ).create()
         # Creates new repository_2 without GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             product=product,
             url=FAKE_2_YUM_REPO,
         ).create()
@@ -737,7 +737,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 ['fakerepo01/'],
                 gpg_key=name,
                 new_product=True,
-                product=gen_string('alpha', 8),
+                product=gen_string('alpha'),
             )
             for product in (True, False):
                 self.assertIsNotNone(
@@ -763,12 +763,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         # Creates new product without selecting GPGkey
         product = entities.Product(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         # Creates new repository with GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             url=FAKE_1_YUM_REPO,
             product=product,
             gpg_key=gpg_key,
@@ -805,19 +805,19 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         # Creates new product without selecting GPGkey
         product = entities.Product(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         # Creates new repository with GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             url=FAKE_1_YUM_REPO,
             product=product,
             gpg_key=gpg_key,
         ).create()
         # Creates new repository without GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             url=FAKE_2_YUM_REPO,
             product=product,
         ).create()
@@ -858,7 +858,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         @assert: gpg key is associated with product before/after update
         """
         name = get_random_gpgkey_name()
-        new_name = gen_string('alpha', 8)
+        new_name = gen_string('alpha')
         gpg_key = entities.GPGKey(
             content=self.key_content,
             name=name,
@@ -867,7 +867,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         # Creates new product and associate GPGKey with it
         product = entities.Product(
             gpg_key=gpg_key,
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         with Session(self.browser) as session:
@@ -906,17 +906,17 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         # Creates new product and associate GPGKey with it
         product = entities.Product(
             gpg_key=gpg_key,
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         # Creates new repository without GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             product=product,
             url=FAKE_1_YUM_REPO,
         ).create()
 
-        new_name = gen_string('alpha', 8)
+        new_name = gen_string('alpha')
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_gpg_keys()
@@ -953,23 +953,23 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         # Creates new product and associate GPGKey with it
         product = entities.Product(
             gpg_key=gpg_key,
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         # Creates new repository_1 without GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             product=product,
             url=FAKE_1_YUM_REPO,
         ).create()
         # Creates new repository_2 without GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             product=product,
             url=FAKE_2_YUM_REPO,
         ).create()
 
-        new_name = gen_string('alpha', 8)
+        new_name = gen_string('alpha')
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_gpg_keys()
@@ -1016,7 +1016,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                 ['fakerepo01/'],
                 gpg_key=name,
                 new_product=True,
-                product=gen_string('alpha', 8),
+                product=gen_string('alpha'),
             )
             for product in (True, False):
                 self.assertIsNotNone(
@@ -1048,18 +1048,18 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         # Creates new product without selecting GPGkey
         product = entities.Product(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         # Creates new repository with GPGKey
         entities.Repository(
             gpg_key=gpg_key,
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             product=product,
             url=FAKE_1_YUM_REPO,
         ).create()
 
-        new_name = gen_string('alpha', 8)
+        new_name = gen_string('alpha')
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_gpg_keys()
@@ -1102,24 +1102,24 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         # Creates new product without selecting GPGkey
         product = entities.Product(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         # Creates new repository_1 with GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             url=FAKE_1_YUM_REPO,
             product=product,
             gpg_key=gpg_key,
         ).create()
         # Creates new repository_2 without GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             product=product,
             url=FAKE_2_YUM_REPO,
         ).create()
 
-        new_name = gen_string('alpha', 8)
+        new_name = gen_string('alpha')
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_gpg_keys()
@@ -1178,7 +1178,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         # Creates new product and associate GPGKey with it
         product = entities.Product(
             gpg_key=gpg_key,
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         with Session(self.browser) as session:
@@ -1214,12 +1214,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         # Creates new product and associate GPGKey with it
         product = entities.Product(
             gpg_key=gpg_key,
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         # Creates new repository without GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             url=FAKE_1_YUM_REPO,
             product=product,
         ).create()
@@ -1258,18 +1258,18 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         # Creates new product and associate GPGKey with it
         product = entities.Product(
             gpg_key=gpg_key,
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         # Creates new repository_1 without GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             product=product,
             url=FAKE_1_YUM_REPO,
         ).create()
         # Creates new repository_2 without GPGKey
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             product=product,
             url=FAKE_2_YUM_REPO,
         ).create()
@@ -1303,7 +1303,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         @BZ: 1085035
         """
         name = get_random_gpgkey_name()
-        product_name = gen_string('alpha', 8)
+        product_name = gen_string('alpha')
         entities.GPGKey(
             content=self.key_content,
             name=name,
@@ -1349,12 +1349,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         # Creates new product without selecting GPGkey
         product = entities.Product(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         # Creates new repository with GPGKey
         repo = entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             url=FAKE_1_YUM_REPO,
             product=product,
             gpg_key=gpg_key,
@@ -1397,18 +1397,18 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         # Creates new product without GPGKey association
         product = entities.Product(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             organization=self.organization,
         ).create()
         # Creates new repository_1 with GPGKey association
         repo1 = entities.Repository(
             gpg_key=gpg_key,
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             product=product,
             url=FAKE_1_YUM_REPO,
         ).create()
         entities.Repository(
-            name=gen_string('alpha', 8),
+            name=gen_string('alpha'),
             product=product,
             url=FAKE_2_YUM_REPO,
             # notice that we're not making this repo point to the GPG key
