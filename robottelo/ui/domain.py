@@ -3,7 +3,6 @@
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class Domain(Base):
@@ -16,8 +15,7 @@ class Domain(Base):
             if self.wait_until_element(locators['domain.description']):
                 self.field_update('domain.description', description)
         if dns_proxy:
-            element = self.find_element(locators['domain.dns_proxy'])
-            Select(element).select_by_visible_text(dns_proxy)
+            self.select(locators['domain.dns_proxy'], dns_proxy)
         self.click(common_locators['submit'])
 
     def create(self, name, description=None, dns_proxy=None):
@@ -52,38 +50,20 @@ class Domain(Base):
                dns_proxy=None):
         """Update an existing domain's name, description and dns_proxy."""
         element = self.search(old_description)
+        self.click(element)
+        if self.wait_until_element(locators['domain.name']):
+            self.field_update('domain.name', new_name)
+        self._configure_domain(description, dns_proxy)
 
-        if element:
-            element.click()
-            if self.wait_until_element(locators['domain.name']):
-                self.field_update('domain.name', new_name)
-            self._configure_domain(description, dns_proxy)
-        else:
-            raise UIError(
-                'Could not update the domain "{0}"'.format(old_description)
-            )
-
-    def set_domain_parameter(self, domain_description, param_name,
-                             param_value):
+    def set_domain_parameter(
+            self, domain_description, param_name, param_value):
         """Add new parameter for domain."""
         element = self.search(domain_description)
-
-        if element:
-            element.click()
-            self.set_parameter(param_name, param_value)
-        else:
-            raise UIError(
-                'Could not set parameter "{0}"'.format(param_name)
-            )
+        self.click(element)
+        self.set_parameter(param_name, param_value)
 
     def remove_domain_parameter(self, domain_description, param_name):
         """Remove new parameter from domain."""
         element = self.search(domain_description)
-
-        if element:
-            element.click()
-            self.remove_parameter(param_name)
-        else:
-            raise UIError(
-                'Could not remove parameter "{0}"'.format(param_name)
-            )
+        self.click(element)
+        self.remove_parameter(param_name)

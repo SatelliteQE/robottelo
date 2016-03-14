@@ -753,7 +753,10 @@ locators = LocatorDict({
 
     # Locations
     "location.new": (By.XPATH, "//a[@data-id='aid_locations_new']"),
-    "location.parent": (By.ID, "location_parent_id"),
+    "location.parent": (
+        By.XPATH,
+        ("//div[contains(@id, 'location_parent_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "location.name": (By.ID, "location_name"),
     "location.assign_all": (
         By.XPATH, "//a[contains(@data-id,'assign_all_hosts')]"),
@@ -762,7 +765,7 @@ locators = LocatorDict({
         "//a[@class='btn btn-default' and contains(@href, '/edit')]"),
     "location.select_name": (
         By.XPATH,
-        "//a[contains(@href,'locations')]/span[contains(.,'%s')]"),
+        "//td/a[contains(@href,'locations')]/span[contains(.,'%s')]"),
     "location.delete": (
         By.XPATH,
         "//a[@class='delete' and contains(@data-confirm, '%s')]"),
@@ -941,9 +944,18 @@ locators = LocatorDict({
         By.XPATH, "//a[contains(@href,'%s') and contains(.,'Clone')]"),
     "host.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
-    "host.group": (By.ID, "host_hostgroup_id"),
-    "host.deploy": (By.ID, "host_compute_resource_id"),
-    "host.environment": (By.ID, "host_environment_id"),
+    "host.group": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_hostgroup_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.deploy": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_compute_resource_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.environment": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_environment_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "host.dropdown": (
         By.XPATH,
         ("//a[contains(@href,'%s')]"
@@ -952,8 +964,14 @@ locators = LocatorDict({
         By.XPATH,
         ("//input[contains(@id,'host_ids')]"
          "/../../td[@class='ellipsis']/a[contains(@href,'%s')]")),
-    "host.lifecycle_env": (By.ID, "host_lifecycle_environment_id"),
-    "host.cv": (By.ID, "host_content_view_id"),
+    "host.lifecycle_env": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_lifecycle_environment_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.cv": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_content_view_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "host.reset_puppetenv": (By.ID, "reset_puppet_environment"),
 
     # host.network
@@ -963,17 +981,41 @@ locators = LocatorDict({
     "host.ip": (By.ID, "host_ip"),
 
     # host.os
-    "host.arch": (By.ID, "host_architecture_id"),
-    "host.os": (By.ID, "host_operatingsystem_id"),
-    "host.org": (By.ID, "host_organization_id"),
-    "host.loc": (By.ID, "host_location_id"),
+    "host.arch": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_architecture_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.os": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_operatingsystem_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.org": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_organization_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.loc": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_location_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "host.edit": (By.XPATH,
                   "//a[@class='btn btn-default' and contains(@href,'edit')]"),
-    "host.puppet_ca": (By.ID, "host_puppet_ca_proxy_id"),
-    "host.puppet_master": (By.ID, "host_puppet_proxy_id"),
+    "host.puppet_ca": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_puppet_ca_proxy_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.puppet_master": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_puppet_proxy_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "host.provision": (By.ID, "host_build"),
-    "host.media": (By.ID, "host_medium_id"),
-    "host.ptable": (By.ID, "host_ptable_id"),
+    "host.media": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_medium_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.ptable": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_ptable_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "host.custom_ptables": (By.ID, "host_disk"),
     "host.root_pass": (By.ID, "host_root_pass"),
     "host.provision_template": (
@@ -981,12 +1023,24 @@ locators = LocatorDict({
         "//div[contains(.,'Provisioning Templates')]/../div/a[@class='btn']"),
 
     # host.vm (NOTE:- visible only when selecting a compute resource)
-    "host.vm_cpus": (By.ID, "host_compute_attributes_cpus"),
-    "host.vm_memory": (By.ID, "host_compute_attributes_memory"),
+    "host.vm_cpus": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_compute_attributes_cpus')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.vm_memory": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_compute_attributes_memory')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "host.network_type": (
-        By.ID, "host_compute_attributes_nics_attributes_0_type"),
+        By.XPATH,
+        ("//div[contains("
+         "@id, 'host_compute_attributes_nics_attributes_0_type')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "host.network": (
-        By.ID, "host_compute_attributes_nics_attributes_0_bridge"),
+        By.XPATH,
+        ("//div[contains("
+         "@id, 'host_compute_attributes_nics_attributes_0_bridge')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "host.vm_start": (By.ID, "host_compute_attributes_start"),
     "host.vm_addstorage": (
         By.XPATH, "//fieldset[@id='storage_volumes']/a"),
@@ -1178,7 +1232,10 @@ locators = LocatorDict({
     "medium.new": (By.XPATH, "//a[contains(@href, '/media/new')]"),
     "medium.name": (By.ID, "medium_name"),
     "medium.path": (By.ID, "medium_path"),
-    "medium.os_family": (By.ID, "medium_os_family"),
+    "medium.os_family": (
+        By.XPATH,
+        ("//div[contains(@id, 'medium_os_family')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "medium.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "medium.medium_name": (By.XPATH, "//a[contains(., '%s')]"),
 
@@ -1186,7 +1243,10 @@ locators = LocatorDict({
     "domain.new": (By.XPATH, "//a[contains(@href, '/domains/new')]"),
     "domain.name": (By.ID, "domain_name"),
     "domain.description": (By.ID, "domain_fullname"),
-    "domain.dns_proxy": (By.ID, "domain_dns_id"),
+    "domain.dns_proxy": (
+        By.XPATH,
+        ("//div[contains(@id, 'domain_dns_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "domain.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "domain.domain_description": (By.XPATH, "//a[contains(., '%s')]"),
 
@@ -2077,8 +2137,14 @@ locators = LocatorDict({
         By.XPATH, "//input[@id='discovery_rule_name']"),
     "discoveryrules.search": (
         By.XPATH, "//input[@id='search']"),
+    "discoveryrules.hostgroup_dropdown": (
+        By.XPATH,
+        ("//div[contains(@id, 'discovery_rule_hostgroup_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "discoveryrules.hostgroup": (
-        By.ID, "discovery_rule_hostgroup_id"),
+        By.XPATH,
+        ("//div[contains(@id, 'discovery_rule_hostgroup_id')]/a"
+         "/span[contains(@class, 'chosen')]")),
     "discoveryrules.hostname": (
         By.ID, "discovery_rule_hostname"),
     "discoveryrules.host_limit": (
@@ -2137,7 +2203,9 @@ locators = LocatorDict({
     "ldapserver.port": (
         By.ID, "auth_source_ldap_port"),
     "ldapserver.server_type": (
-        By.ID, "auth_source_ldap_server_type"),
+        By.XPATH,
+        ("//div[contains(@id, 'auth_source_ldap_server_type')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "ldapserver.loginname": (
         By.ID, "auth_source_ldap_attr_login"),
     "ldapserver.firstname": (
