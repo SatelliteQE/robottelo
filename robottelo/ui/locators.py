@@ -1298,7 +1298,9 @@ locators = LocatorDict({
          "/following::td/div/a[@data-toggle='dropdown']")),
 
     # Subnet Page
-    "subnet.new": (By.XPATH, "//a[@class='btn btn-success']"),
+    "subnet.new": (
+        By.XPATH,
+        "//a[contains(@href, '/subnets/new') and contains(@class, 'btn')]"),
     "subnet.name": (By.ID, "subnet_name"),
     "subnet.network": (By.ID, "subnet_network"),
     "subnet.mask": (By.ID, "subnet_mask"),
