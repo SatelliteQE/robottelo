@@ -2,8 +2,8 @@
 """Base class for all UI operations"""
 
 import logging
+import time
 
-from robottelo.constants import SEARCH_EXCEPTIONS_LIST
 from robottelo.helpers import escape_search
 from robottelo.ui.locators import locators, common_locators
 from selenium.common.exceptions import NoSuchElementException
@@ -115,21 +115,20 @@ class Base(object):
         searchbox.send_keys(u'{0} = {1}'.format(
             search_key, escape_search(element_name)))
         self.click(search_button_locator)
-
+        # Make sure that found element is returned no matter it described by
+        # its own locator or common one (locator can transform depending on
+        # element name length)
         strategy, value = element_locator
-        # If foreman entity and it's length more than 32 chars, and not in
-        # exceptions list use the common locator.
-        if (
-                not self.is_katello and
-                len(element_name) > 32 and
-                type(self).__name__ not in SEARCH_EXCEPTIONS_LIST):
-            strategy, value = common_locators['select_filtered_entity']
-        # Return found element
-        element = self.wait_until_element(
-            (strategy, value % element_name),
-            timeout=self.result_timeout,
-        )
-        return element
+        strategy2, value2 = common_locators['select_filtered_entity']
+        for _ in range(self.result_timeout):
+            element = self.find_element((strategy, value % element_name))
+            if element is not None:
+                return element
+            element2 = self.find_element((strategy2, value2 % element_name))
+            if element2 is not None:
+                return element2
+            time.sleep(1)
+        return None
 
     def handle_alert(self, really):
         """
