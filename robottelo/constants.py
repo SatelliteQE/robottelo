@@ -729,15 +729,6 @@ OSCAP_PROFILE = {
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
 }
 
-SEARCH_EXCEPTIONS_LIST = [
-    'ComputeResource',
-    'Hostgroup',
-    'Location',
-    'OpenScapContent',
-    'OpenScapPolicy',
-    'Org',
-]
-
 ROLES = [
     'Access Insights Admin',
     'Access Insights Viewer',
