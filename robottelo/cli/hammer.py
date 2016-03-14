@@ -85,7 +85,7 @@ def parse_help(output):
                 continue
             if match.group('name') is None:
                 contents['subcommands'][-1]['description'] += (
-                    ' {0}'.format(match.group('description'))
+                    u' {0}'.format(match.group('description'))
                 )
             else:
                 contents['subcommands'].append({
