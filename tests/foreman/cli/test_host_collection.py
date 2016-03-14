@@ -114,18 +114,18 @@ class HostCollectionTestCase(CLITestCase):
         for limit in ('1', '3', '5', '10', '20'):
             with self.subTest(limit):
                 new_host_col = self._new_host_collection(
-                    {'max-content-hosts': limit})
+                    {'max-hosts': limit})
                 self.assertEqual(new_host_col['limit'], str(limit))
 
     @skip_if_bug_open('bugzilla', 1214675)
     @tier1
-    def test_positive_create_with_unlimited_chosts(self):
+    def test_positive_create_with_unlimited_hosts(self):
         """Create Host Collection with different values of
-        unlimited-content-hosts parameter
+        unlimited-hosts parameter
 
-        @Feature: Host Collection - Unlimited Content Hosts
+        @Feature: Host Collection - Unlimited Hosts
 
-        @Assert: Host Collection is created and unlimited-content-hosts
+        @Assert: Host Collection is created and unlimited-hosts
         parameter is set
 
         @BZ: 1214675
@@ -135,7 +135,7 @@ class HostCollectionTestCase(CLITestCase):
             with self.subTest(unlimited):
                 host_collection = make_host_collection({
                     u'organization-id': self.org['id'],
-                    u'unlimited-content-hosts': unlimited,
+                    u'unlimited-hosts': unlimited,
                 })
                 result = HostCollection.info({
                     u'id': host_collection['id'],
@@ -143,10 +143,10 @@ class HostCollectionTestCase(CLITestCase):
                 })
                 if unlimited in (u'True', u'Yes', 1):
                     self.assertEqual(
-                        result['unlimited-content-hosts'], u'true')
+                        result['unlimited-hosts'], u'true')
                 else:
                     self.assertEqual(
-                        result['unlimited-content-hosts'], u'false')
+                        result['unlimited-hosts'], u'false')
 
     @tier1
     def test_negative_create_with_name(self):
@@ -219,7 +219,7 @@ class HostCollectionTestCase(CLITestCase):
             with self.subTest(limit):
                 HostCollection.update({
                     'id': new_host_col['id'],
-                    'max-content-hosts': limit,
+                    'max-hosts': limit,
                     'organization-id': self.org['id'],
                 })
                 result = HostCollection.info({'id': new_host_col['id']})
@@ -245,7 +245,7 @@ class HostCollectionTestCase(CLITestCase):
                     HostCollection.info({'id': new_host_col['id']})
 
     @tier2
-    def test_positive_add_chost_by_id(self):
+    def test_positive_add_host_by_id(self):
         """Check if content host can be added to host collection
 
         @Feature: Host Collection
@@ -261,9 +261,9 @@ class HostCollectionTestCase(CLITestCase):
             u'name': gen_string('alpha', 15),
             u'organization-id': self.org['id'],
         })
-        no_of_content_host = new_host_col['total-content-hosts']
-        HostCollection.add_content_host({
-            u'content-host-ids': new_system['id'],
+        no_of_content_host = new_host_col['total-hosts']
+        HostCollection.add_host({
+            u'hosts': new_system['id'],
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
         })
@@ -271,7 +271,7 @@ class HostCollectionTestCase(CLITestCase):
             u'id': new_host_col['id'],
             u'organization-id': self.org['id']
         })
-        self.assertGreater(result['total-content-hosts'], no_of_content_host)
+        self.assertGreater(result['total-hosts'], no_of_content_host)
 
     @tier2
     def test_positive_remove_chost_by_id(self):
@@ -290,17 +290,17 @@ class HostCollectionTestCase(CLITestCase):
             u'name': gen_string('alpha', 15),
             u'organization-id': self.org['id'],
         })
-        HostCollection.add_content_host({
-            u'content-host-ids': new_system['id'],
+        HostCollection.add_host({
+            u'hosts': new_system['id'],
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
         })
         no_of_content_host = HostCollection.info({
             u'id': new_host_col['id'],
             u'organization-id': self.org['id']
-        })['total-content-hosts']
-        HostCollection.remove_content_host({
-            u'content-host-ids': new_system['id'],
+        })['total-hosts']
+        HostCollection.remove_host({
+            u'hosts': new_system['id'],
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
         })
@@ -308,10 +308,10 @@ class HostCollectionTestCase(CLITestCase):
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
         })
-        self.assertGreater(no_of_content_host, result['total-content-hosts'])
+        self.assertGreater(no_of_content_host, result['total-hosts'])
 
     @tier2
-    def test_positive_list_chosts(self):
+    def test_positive_list_hosts(self):
         """Check if content hosts added to host collection is listed
 
         @Feature: Host Collection
@@ -327,9 +327,9 @@ class HostCollectionTestCase(CLITestCase):
             u'name': gen_string('alpha', 15),
             u'organization-id': self.org['id'],
         })
-        no_of_content_host = new_host_col['total-content-hosts']
-        HostCollection.add_content_host({
-            u'content-host-ids': new_system['id'],
+        no_of_content_host = new_host_col['total-hosts']
+        HostCollection.add_host({
+            u'hosts': new_system['id'],
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
         })
@@ -337,7 +337,7 @@ class HostCollectionTestCase(CLITestCase):
             u'id': new_host_col['id'],
             u'organization-id': self.org['id']
         })
-        self.assertGreater(result['total-content-hosts'], no_of_content_host)
+        self.assertGreater(result['total-hosts'], no_of_content_host)
         result = HostCollection.content_hosts({
             u'name': host_col_name,
             u'organization-id': self.org['id']
