@@ -4,7 +4,6 @@ from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class Template(Base):
@@ -26,13 +25,13 @@ class Template(Base):
         if self.wait_until_element(
                 locators['provision.template_name']) is None:
             raise UINoSuchElementError(
-                'Could not create new provisioning template "{0}"'
+                u'Could not create new provisioning template "{0}"'
                 .format(name)
             )
         self.find_element(locators['provision.template_name']).send_keys(name)
         if not template_path:
             raise UIError(
-                'Could not create blank template "{0}"'.format(name)
+                u'Could not create blank template "{0}"'.format(name)
             )
         self.click(tab_locators['tab_primary'])
         self.find_element(
@@ -46,15 +45,13 @@ class Template(Base):
             ).send_keys(audit_comment)
         if template_type:
             self.click(tab_locators['provision.tab_type'])
-            type_element = self.find_element(
-                locators['provision.template_type'])
-            Select(type_element).select_by_visible_text(template_type)
+            self.select(locators['provision.template_type'], template_type)
         elif snippet:
             self.click(tab_locators['provision.tab_type'])
             self.click(locators['provision.template_snippet'])
         else:
             raise UIError(
-                'Could not create template "{0}" without type'.format(name)
+                u'Could not create template "{0}" without type'.format(name)
             )
         self.scroll_page()
         self.configure_entity(
@@ -70,10 +67,9 @@ class Template(Base):
         element = self.search(name)
         if element is None:
             raise UIError(
-                'Could not update the template "{0}"'.format(name)
+                u'Could not update the template "{0}"'.format(name)
             )
-        element.click()
-        self.wait_for_ajax()
+        self.click(element)
         if new_name:
             self.field_update('provision.template_name', new_name)
         if template_path:
@@ -83,8 +79,7 @@ class Template(Base):
             self.handle_alert(custom_really)
         if template_type:
             self.click(tab_locators['provision.tab_type'])
-            element = self.find_element(locators['provision.template_type'])
-            Select(element).select_by_visible_text(template_type)
+            self.select(locators['provision.template_type'], template_type)
         if clone:
             self.click(locators['provision.template_clone'])
             self.field_update('provision.template_name', new_name)
@@ -101,14 +96,13 @@ class Template(Base):
               os_list=None):
         """Clones a given template."""
         self.search(name)
-        clone = self.wait_until_element(locators['provision.template_clone'])
-        if clone is None:
+        self.click(locators['provision.template_clone'])
+        if self.wait_until_element(
+                locators['provision.template_name']) is None:
             raise UINoSuchElementError(
-                'Could not locate the clone button for template "{0}"'
+                u'Could not clone provisioning template "{0}"'
                 .format(name)
             )
-        clone.click()
-        self.wait_for_ajax()
         self.field_update('provision.template_name', clone_name)
         if template_path:
             self.find_element(
@@ -117,9 +111,7 @@ class Template(Base):
             self.handle_alert(custom_really)
         if template_type:
             self.click(tab_locators['provision.tab_type'])
-            element = self.find_element(
-                locators['provision.template_type'])
-            Select(element).select_by_visible_text(template_type)
+            self.select(locators['provision.template_type'], template_type)
         self.configure_entity(
             os_list,
             FILTER['template_os'],

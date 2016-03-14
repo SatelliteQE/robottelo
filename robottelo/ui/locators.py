@@ -176,11 +176,11 @@ menu_locators = LocatorDict({
     "menu.provisioning_templates": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
-         "//a[@id='menu_item_config_templates']")),
+         "//a[@id='menu_item_provisioning_templates']")),
     "menu.partition_tables": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
-         "//a[@id='menu_item_ptables']")),
+         "//a[@id='menu_item_partition_tables']")),
     "menu.installation_media": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
@@ -798,7 +798,7 @@ locators = LocatorDict({
     # By.XPATH works also with latin1 and html chars, so removed By.LINK_TEXT
     "org.org_name": (
         By.XPATH,
-        "//a[contains(@href,'organizations')]/span[contains(.,'%s')]"),
+        "//td/a[contains(@href,'organizations')]/span[contains(.,'%s')]"),
     "org.dropdown": (
         By.XPATH,
         ("//a[normalize-space(.)='%s' and contains(@href,'organizations')]"
@@ -815,8 +815,14 @@ locators = LocatorDict({
 
     # Trends
     "trend.new": (By.XPATH, "//a[contains(@href, '/trends/new')]"),
-    "trend.type": (By.ID, "trend_trendable_type"),
-    "trend.trendable": (By.ID, "trend_trendable_id"),
+    "trend.type": (
+        By.XPATH,
+        ("//div[contains(@id, 'trend_trendable_type')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "trend.trendable": (
+        By.XPATH,
+        ("//div[contains(@id, 'trend_trendable_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "trend.name": (By.ID, "trend_name"),
     "trend.trend_name": (By.XPATH, "//a[text()='%s']"),
     "trend.edit": (
@@ -837,14 +843,25 @@ locators = LocatorDict({
     "operatingsys.major_version": (By.ID, "operatingsystem_major"),
     "operatingsys.minor_version": (By.ID, "operatingsystem_minor"),
     "operatingsys.description": (By.ID, "operatingsystem_description"),
-    "operatingsys.family": (By.ID, "operatingsystem_family"),
+    "operatingsys.family": (
+        By.XPATH,
+        ("//div[contains(@id, 'operatingsystem_family')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "operatingsys.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
     "operatingsys.operatingsys_name": (By.XPATH, "//a[contains(., '%s')]"),
     "operatingsys.template": (
-        By.ID,
-        "operatingsystem_os_default_templates_attributes_0_config_template_id"
-    ),
+        By.XPATH,
+        ("//div[contains(@id, 'operatingsystem_os_default_templates_attributes"
+         "_0_provisioning_template_id')]/a/span[contains(@class, 'arrow')]")),
+    "operatingsys.fetch_family": (
+        By.XPATH,
+        ("//div[contains(@id, 'operatingsystem_family')]/a"
+         "/span[contains(@class, 'chosen')]")),
+    "operatingsys.fetch_template": (
+        By.XPATH,
+        ("//div[contains(@id, 'operatingsystem_os_default_templates_attributes"
+         "_0_provisioning_template_id')]/a/span[contains(@class, 'chosen')]")),
 
     # Compute Profile
     "profile.new": (
@@ -1073,17 +1090,17 @@ locators = LocatorDict({
 
     # provision.primary
     "provision.template_new": (
-        By.XPATH, "//a[contains(@href, '/config_templates/new')]"),
+        By.XPATH, "//a[contains(@href, '/provisioning_templates/new')]"),
     "provision.template_select": (
         By.XPATH,
-        ("//a[contains(@href, 'config_templates')"
+        ("//a[contains(@href, 'provisioning_templates')"
             "and normalize-space(.)='%s']")),
     "provision.template_name": (
-        By.ID, "config_template_name"),
+        By.ID, "provisioning_template_name"),
     "provision.audit_comment": (
-        By.ID, "config_template_audit_comment"),
+        By.ID, "provisioning_template_audit_comment"),
     "provision.template_template": (
-        By.XPATH, "//input[@id='config_template_template']"),
+        By.XPATH, "//input[@id='template_file']"),
     "provision.template_delete": (
         By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "provision.template_dropdown": (
@@ -1095,9 +1112,11 @@ locators = LocatorDict({
 
     # provision.type
     "provision.template_type": (
-        By.ID, "config_template_template_kind_id"),
+        By.XPATH,
+        ("//div[contains(@id, 'provisioning_template_template_kind_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "provision.template_snippet": (
-        By.ID, "config_template_snippet"),
+        By.ID, "provisioning_template_snippet"),
 
     # provision.association
     "provision.select_os": (
@@ -1197,9 +1216,9 @@ locators = LocatorDict({
          "'external_usergroups_attributes_new')]")),
     "usergroups.ext_authsource_id": (
         By.XPATH,
-        ("//select[not(contains(@id, 'new_external_usergroups')) and "
-         "contains(@name, 'auth_source_id') and contains(@id, "
-         "'external_usergroups_attributes_new')]")),
+        ("//div[contains(@id, 'usergroup_external_usergroups_attributes_"
+         "new_external_usergroups_auth_source_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
 
     # Roles
     "roles.new": (By.XPATH, "//a[contains(@href, '/roles/new')]"),
@@ -1213,7 +1232,9 @@ locators = LocatorDict({
     "roles.add_permission": (
         By.XPATH, "//a[@data-id='aid_filters_new']"),
     "roles.select_resource_type": (
-        By.ID, "filter_resource_type"),
+        By.XPATH,
+        ("//div[contains(@id, 'filter_resource_type')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "roles.role": (By.XPATH, "//a[contains(., '%s')]"),
     "roles.perm_filter": (By.XPATH,
                           "//input[@placeholder='Filter permissions']"),
@@ -1264,10 +1285,17 @@ locators = LocatorDict({
     # Partition Table
     "ptable.new": (By.XPATH, "//a[contains(@href, '/ptables/new')]"),
     "ptable.name": (By.ID, "ptable_name"),
-    "ptable.layout": (By.ID, "ptable_layout"),
-    "ptable.os_family": (By.ID, "ptable_os_family"),
+    "ptable.layout_template": (By.XPATH, "//input[@id='template_file']"),
+    "ptable.os_family": (
+        By.XPATH,
+        ("//div[contains(@id, 'ptable_os_family')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "ptable.delete": (By.XPATH, "//a[contains(@data-confirm, '%s')]"),
     "ptable.ptable_name": (By.XPATH, "//a[normalize-space(.)='%s']"),
+    "ptable.dropdown": (
+        By.XPATH,
+        ("//td/a[normalize-space(.)='%s']"
+         "/following::td/div/a[@data-toggle='dropdown']")),
 
     # Subnet Page
     "subnet.new": (By.XPATH, "//a[@class='btn btn-success']"),
@@ -2086,9 +2114,9 @@ locators = LocatorDict({
         By.XPATH, "//tr/td[contains(., '%s')]"),
     "settings.edit_param": (
         By.XPATH,
-        ("//tr/td[contains(., '%s')]"
-         "/../td[@class='setting_value']"
-         "/span[contains(@class, 'editable')]")),
+        ("//td[span[contains(@data-original-title, '%s')]]/"
+         "following-sibling::td[@class='setting_value']/"
+         "span[contains(@class, 'editable')]")),
     "settings.select_value": (
         By.XPATH,
         ("//select[@name='setting[value]']")),

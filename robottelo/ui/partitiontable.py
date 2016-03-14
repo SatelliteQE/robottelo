@@ -4,7 +4,6 @@
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class PartitionTable(Base):
@@ -21,29 +20,25 @@ class PartitionTable(Base):
     def _configure_partition_table(self, os_family=None):
         """Configures the os family of partition table."""
         if os_family:
-            Select(
-                self.find_element(locators['ptable.os_family'])
-            ).select_by_visible_text(os_family)
+            self.select(locators['ptable.os_family'], os_family)
 
-    def create(self, name, layout=None, os_family=None):
+    def create(self, name, template_path=None, os_family=None,
+               custom_really=True):
         """Creates new partition table from UI."""
         self.click(locators['ptable.new'])
 
-        if self.wait_until_element(locators['ptable.name']):
-            self.find_element(locators['ptable.name']).send_keys(name)
-            if self.wait_until_element(locators['ptable.layout']):
-                self.find_element(locators['ptable.layout']).send_keys(layout)
-                self._configure_partition_table(os_family)
-                self.click(common_locators['submit'])
-            else:
-                raise UIError(
-                    'Could not create partition table "{0}", missing layout'
-                    .format(name)
-                )
-        else:
+        if self.wait_until_element(locators['ptable.name']) is None:
             raise UIError(
-                'Could not create partition table "{0}"'.format(name)
+                u'Could not create partition table "{0}"'.format(name)
             )
+        self.find_element(locators['ptable.name']).send_keys(name)
+        if template_path:
+            self.find_element(
+                locators['ptable.layout_template']
+            ).send_keys(template_path)
+            self.handle_alert(custom_really)
+        self._configure_partition_table(os_family)
+        self.click(common_locators['submit'])
 
     def delete(self, name, really=True):
         """Removes existing partition table from UI."""
@@ -51,23 +46,27 @@ class PartitionTable(Base):
             name,
             really,
             locators['ptable.delete'],
+            drop_locator=locators['ptable.dropdown'],
         )
 
-    def update(self, old_name, new_name=None,
-               new_layout=None, os_family=None):
+    def update(self, old_name, new_name=None, new_template_path=None,
+               new_os_family=None, custom_really=True):
         """Updates partition table name, layout and OS family."""
         element = self.search(old_name)
-
-        if element:
-            element.click()
-            if self.wait_until_element(locators['ptable.name']):
-                self.field_update('ptable.name', new_name)
-            if new_layout:
-                if self.wait_until_element(locators['ptable.layout']):
-                    self.field_update('ptable.layout', new_layout)
-            self._configure_partition_table(os_family)
-            self.click(common_locators['submit'])
-        else:
+        if element is None:
             raise UIError(
-                'Could not update partition table "{0}"'.format(old_name)
+                u'Could not update partition table "{0}"'.format(old_name)
             )
+        self.click(element)
+        if new_name:
+            self.wait_until_element(locators['ptable.name'])
+            self.field_update('ptable.name', new_name)
+        if new_template_path:
+            self.wait_until_element(locators['ptable.layout_template'])
+            self.find_element(
+                locators['ptable.layout_template']
+            ).send_keys(new_template_path)
+            self.handle_alert(custom_really)
+        if new_os_family:
+            self._configure_partition_table(new_os_family)
+        self.click(common_locators['submit'])

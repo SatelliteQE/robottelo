@@ -94,29 +94,6 @@ class OrganizationTestCase(UITestCase):
                     make_org(session, org_name=org_name)
                     self.assertIsNotNone(self.org.search(org_name))
 
-    @stubbed('parent_org feature is disabled currently')
-    @tier2
-    def test_positive_create_with_parent(self):
-        """Create organization with valid name, label, parent_org, desc.
-
-        @feature: Organizations
-
-        @assert: organization is created.
-        """
-        with Session(self.browser) as session:
-            for parent_name in generate_strings_list():
-                with self.subTest(parent_name):
-                    org_name = gen_string('alpha')
-                    make_org(session, org_name=parent_name)
-                    make_org(
-                        session,
-                        org_name=org_name,
-                        label=gen_string('alpha'),
-                        desc=gen_string('alpha'),
-                        parent_org=parent_name
-                    )
-                    self.assertIsNotNone(self.org.search(org_name))
-
     @tier1
     def test_positive_create_with_unmatched_name_label(self):
         """Create organization with valid unmatching name and label only

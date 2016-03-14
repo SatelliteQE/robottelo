@@ -9,11 +9,13 @@ from robottelo.decorators import (
     skip_if_bug_open,
     tier1,
 )
-from robottelo.helpers import read_data_file
+from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_partitiontable
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
+
+PARTITION_SCRIPT_DATA_FILE = get_data_file(PARTITION_SCRIPT_DATA_FILE)
 
 
 def valid_partition_table_names():
@@ -59,7 +61,7 @@ class PartitionTableTestCase(UITestCase):
                     make_partitiontable(
                         session,
                         name=name,
-                        layout=read_data_file(PARTITION_SCRIPT_DATA_FILE),
+                        template_path=PARTITION_SCRIPT_DATA_FILE,
                         os_family='Red Hat'
                     )
                     self.assertIsNotNone(self.partitiontable.search(name))
@@ -79,8 +81,8 @@ class PartitionTableTestCase(UITestCase):
                     make_partitiontable(
                         session,
                         name=name,
-                        layout=read_data_file(PARTITION_SCRIPT_DATA_FILE),
-                        os_family='Red Hat'
+                        template_path=PARTITION_SCRIPT_DATA_FILE,
+                        os_family='Red Hat',
                     )
                     self.assertIsNotNone(self.partitiontable.search(name))
 
@@ -99,8 +101,8 @@ class PartitionTableTestCase(UITestCase):
                     make_partitiontable(
                         session,
                         name=name,
-                        layout=read_data_file(PARTITION_SCRIPT_DATA_FILE),
-                        os_family='Red Hat'
+                        template_path=PARTITION_SCRIPT_DATA_FILE,
+                        os_family='Red Hat',
                     )
                     self.assertIsNotNone(
                         self.partitiontable.wait_until_element(
@@ -117,14 +119,21 @@ class PartitionTableTestCase(UITestCase):
         @Assert: Partition table is not created
         """
         name = gen_string('utf8')
-        layout = read_data_file(PARTITION_SCRIPT_DATA_FILE)
         os_family = 'Red Hat'
         with Session(self.browser) as session:
             make_partitiontable(
-                session, name=name, layout=layout, os_family=os_family)
+                session,
+                name=name,
+                template_path=PARTITION_SCRIPT_DATA_FILE,
+                os_family=os_family,
+            )
             self.assertIsNotNone(self.partitiontable.search(name))
             make_partitiontable(
-                session, name=name, layout=layout, os_family=os_family)
+                session,
+                name=name,
+                template_path=PARTITION_SCRIPT_DATA_FILE,
+                os_family=os_family,
+            )
             self.assertIsNotNone(self.partitiontable.wait_until_element
                                  (common_locators['name_haserror']))
 
@@ -140,7 +149,7 @@ class PartitionTableTestCase(UITestCase):
         name = gen_string('utf8')
         with Session(self.browser) as session:
             make_partitiontable(
-                session, name=name, layout='', os_family='Red Hat')
+                session, name=name, template_path='', os_family='Red Hat')
             self.assertIsNotNone(self.partitiontable.wait_until_element
                                  (common_locators['haserror']))
             self.assertIsNone(self.partitiontable.search(name))
@@ -165,9 +174,10 @@ class PartitionTableTestCase(UITestCase):
                         )
                     name = test_data['name']
                     make_partitiontable(
-                        session, name=name,
-                        layout='test layout',
-                        os_family='Red Hat'
+                        session,
+                        name=name,
+                        template_path=PARTITION_SCRIPT_DATA_FILE,
+                        os_family='Red Hat',
                     )
                     self.partitiontable.delete(name)
 
@@ -185,7 +195,7 @@ class PartitionTableTestCase(UITestCase):
             make_partitiontable(
                 session,
                 name=name,
-                layout='test layout',
+                template_path=PARTITION_SCRIPT_DATA_FILE,
                 os_family='Debian',
             )
             self.assertIsNotNone(self.partitiontable.search(name))
@@ -198,10 +208,10 @@ class PartitionTableTestCase(UITestCase):
                             'data.'.format(bug_id)
                         )
                         self.partitiontable.update(
-                            name,
-                            test_data['new_name'],
-                            read_data_file(PARTITION_SCRIPT_DATA_FILE),
-                            'Red Hat',
+                            old_name=name,
+                            new_name=test_data['new_name'],
+                            new_template_path=PARTITION_SCRIPT_DATA_FILE,
+                            new_os_family='Red Hat',
                         )
                         self.assertIsNotNone(self.partitiontable.search(
                             test_data['new_name']))

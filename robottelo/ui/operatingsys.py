@@ -4,7 +4,6 @@ from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class OperatingSys(Base):
@@ -36,9 +35,7 @@ class OperatingSys(Base):
                     locators['operatingsys.description']):
                 self.field_update('operatingsys.description', description)
         if os_family:
-            Select(
-                self.find_element(locators['operatingsys.family'])
-            ).select_by_visible_text(os_family)
+            self.select(locators['operatingsys.family'], os_family)
         if archs or arch_list:
             self.configure_entity(
                 archs,
@@ -65,9 +62,7 @@ class OperatingSys(Base):
             )
         if template:
             self.click(tab_locators['operatingsys.tab_templates'])
-            Select(
-                self.find_element(locators['operatingsys.template'])
-            ).select_by_visible_text(template)
+            self.select(locators['operatingsys.template'], template)
 
     def create(self, name, major_version=None,
                minor_version=None, description=None, os_family=None,
@@ -176,7 +171,7 @@ class OperatingSys(Base):
         name_loc = locators['operatingsys.name']
         major_ver_loc = locators['operatingsys.major_version']
         minor_ver_loc = locators['operatingsys.minor_version']
-        os_family_loc = locators['operatingsys.family']
+        os_family_loc = locators['operatingsys.fetch_family']
 
         element = self.search(os_name)
         self.click(element)
@@ -191,9 +186,7 @@ class OperatingSys(Base):
                 major_ver_loc).get_attribute('value')
             result['minor'] = self.find_element(
                 minor_ver_loc).get_attribute('value')
-            result['os_family'] = Select(
-                self.find_element(os_family_loc)
-            ).first_selected_option.text
+            result['os_family'] = self.find_element(os_family_loc).text
             if entity_name == 'ptable':
                 self.click(tab_locators['operatingsys.tab_ptable'])
                 result['ptable'] = self.get_selected_entities()
@@ -202,9 +195,8 @@ class OperatingSys(Base):
                 result['medium'] = self.get_selected_entities()
             elif entity_name == 'template':
                 self.click(tab_locators['operatingsys.tab_templates'])
-                result['template'] = Select(
-                    self.find_element(locators['operatingsys.template'])
-                ).first_selected_option.text
+                result['template'] = self.find_element(
+                    locators['operatingsys.fetch_template']).text
             return result
         else:
             raise UIError(

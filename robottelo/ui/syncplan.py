@@ -2,7 +2,6 @@
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
-from selenium.webdriver.support.select import Select
 
 
 class Syncplan(Base):
@@ -34,8 +33,7 @@ class Syncplan(Base):
         self.click(locators['sp.new'])
         self.text_field_update(common_locators['name'], name)
         if sync_interval:
-            type_ele = self.find_element(locators['sp.interval'])
-            Select(type_ele).select_by_visible_text(sync_interval)
+            self.select(locators['sp.interval'], sync_interval)
         if description:
             self.text_field_update(common_locators['description'], description)
             self.wait_for_ajax()
@@ -70,9 +68,7 @@ class Syncplan(Base):
             self.click(common_locators['save'])
         if new_sync_interval:
             self.click(locators['sp.sync_interval_edit'])
-            type_ele = self.wait_until_element(
-                locators['sp.sync_interval_update'])
-            Select(type_ele).select_by_visible_text(new_sync_interval)
+            self.select(locators['sp.sync_interval_update'], new_sync_interval)
             self.click(common_locators['save'])
         if add_products:
             tab_loc = tab_locators['sp.add_prd']
