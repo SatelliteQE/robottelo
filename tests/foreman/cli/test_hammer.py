@@ -10,6 +10,23 @@ from robottelo.test import CLITestCase
 HAMMER_COMMANDS = json.loads(read_data_file('hammer_commands.json'))
 
 
+def _fetch_command_info(command):
+    """Fetch command info from expected commands info dictionary."""
+    info = HAMMER_COMMANDS
+    if command != 'hammer':
+        found = []
+        parts = command.split(' ')[1:]  # exclude hammer
+        for part in parts:
+            for command in info['subcommands']:
+                if command['name'] == part:
+                    found.append(part)
+                    info = command
+                    break
+        if found != parts:
+            return None
+        return info
+
+
 class HammerCommandsTestCase(CLITestCase):
     """Tests for ensuring that  all expected hammer subcommands and its options
     are present.
@@ -18,23 +35,6 @@ class HammerCommandsTestCase(CLITestCase):
     def __init__(self, *args, **kwargs):
         super(HammerCommandsTestCase, self).__init__(*args, **kwargs)
         self.differences = {}
-
-    # pylint: disable=no-self-use
-    def _fetch_command_info(self, command):
-        """Fetch command info from expected commands info dictionary."""
-        info = HAMMER_COMMANDS
-        if command != 'hammer':
-            found = False
-            parts = command.split(' ')[1:]  # exclude hammer
-            for part in parts:
-                for command in info['subcommands']:
-                    if command['name'] == part:
-                        info = command
-                        found = True
-                        break
-            if not found:
-                return None
-        return info
 
     def _traverse_command_tree(self, command):
         """Recursively walk through the hammer commands tree and assert that
@@ -51,10 +51,10 @@ class HammerCommandsTestCase(CLITestCase):
         if 'discovery_rule' in command and bz_bug_is_open(1219610):
             # Adjust the discovery_rule subcommand name. The expected data is
             # already with the naming convetion name
-            expected = self._fetch_command_info(
+            expected = _fetch_command_info(
                 command.replace('discovery_rule', 'discovery-rule'))
         else:
-            expected = self._fetch_command_info(command)
+            expected = _fetch_command_info(command)
         expected_options = set()
         expected_subcommands = set()
 
