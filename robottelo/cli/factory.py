@@ -1046,27 +1046,26 @@ def make_host_collection(options=None):
 
     Options::
 
-        --content-host-ids CONTENT_HOST_IDS  List of content host uuids to be
-                                             in the host collection
         --description DESCRIPTION
         --host-collection-ids HOST_COLLECTION_IDS  Array of content host ids to
                                                    replace the content hosts in
                                                    host collection
-                                                   Comma separated list of vals
-
-        --max-content-hosts MAX_CONTENT_HOSTS Maximum number of content hosts
-                                              in the host collection
-        --name NAME                           Host Collection name
+                                                   Comma separated list of
+                                                   values
+        --hosts HOST_NAMES                         Comma separated list of
+                                                   values
+        --max-hosts MAX_CONTENT_HOSTS              Maximum number of content
+                                                   hosts in the host collection
+        --name NAME                                Host Collection name
         --organization ORGANIZATION_NAME
-        --organization-id ORGANIZATION_ID     organization identifier
+        --organization-id ORGANIZATION_ID          Organization identifier
         --organization-label ORGANIZATION_LABEL
-        --unlimited-content-hosts UNLIMITED_CONTENT_HOSTS Whether or not the
-                                                          host collection may
-                                                          have unlimited
-                                                          content hosts
-                                                          One of true/false,
-                                                          yes/no, 1/0.
-         -h, --help                                       print help
+        --unlimited-hosts UNLIMITED_CONTENT_HOSTS  Whether or not the host
+                                                   collection may have
+                                                   unlimited content hosts
+                                                   One of true/false, yes/no,
+                                                   1/0.
+         -h, --help                                print help
 
     """
     # Organization ID is required
@@ -1075,15 +1074,15 @@ def make_host_collection(options=None):
 
     # Assigning default values for attributes
     args = {
-        u'content-host-ids': None,
         u'description': None,
         u'host-collection-ids': None,
-        u'max-content-hosts': None,
+        u'hosts': None,
+        u'max-hosts': None,
         u'name': gen_string('alpha', 15),
         u'organization': None,
         u'organization-id': None,
         u'organization-label': None,
-        u'unlimited-content-hosts': None,
+        u'unlimited-hosts': None,
     }
 
     return create_object(HostCollection, args, options)

@@ -6,20 +6,23 @@ Usage::
 
 Parameters::
 
-    SUBCOMMAND                    subcommand
-    [ARG] ...                     subcommand arguments
+ SUBCOMMAND                    subcommand
+ [ARG] ...                     subcommand arguments
 
 Subcommands::
 
-    add-content-host              Add content host to the host collection
-    content-hosts                 List content hosts in the host collection
-    copy                          Make copy of a host collection
-    create                        Create a host collection
-    delete                        Destroy a host collection
-    info                          Show a host collection
-    list                          List host collections
-    remove-content-host           Remove content hosts from the host collection
-    update                        Update a host collection
+ add-host                      Add host to the host collection
+ copy                          Make copy of a host collection
+ create                        Create a host collection
+ delete                        Destroy a host collection
+ erratum                       Manipulate errata for a host collection
+ hosts
+ info                          Show a host collection
+ list                          List host collections
+ package                       Manipulate packages for a host collection
+ package-group                 Manipulate package-groups for a host collection
+ remove-host                   Remove hosts from the host collection
+ update                        Update a host collection
 
 """
 
@@ -32,19 +35,19 @@ class HostCollection(Base):
     command_base = 'host-collection'
 
     @classmethod
-    def add_content_host(cls, options=None):
-        """Associate a content-host"""
-        cls.command_sub = 'add-content-host'
+    def add_host(cls, options=None):
+        """Add host to the host collection"""
+        cls.command_sub = 'add-host'
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def remove_content_host(cls, options=None):
-        """Remove a content-host"""
-        cls.command_sub = 'remove-content-host'
+    def remove_host(cls, options=None):
+        """Remove hosts from the host collection"""
+        cls.command_sub = 'remove-host'
         return cls.execute(cls._construct_command(options))
 
     @classmethod
-    def content_hosts(cls, options=None):
+    def hosts(cls, options=None):
         """
         List content-hosts added to the host collection
 
@@ -60,6 +63,6 @@ class HostCollection(Base):
             --organization-id ORGANIZATION_ID
             --organization-label Organization label to search by
         """
-        cls.command_sub = 'content-hosts'
+        cls.command_sub = 'hosts'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
