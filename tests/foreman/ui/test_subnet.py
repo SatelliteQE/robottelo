@@ -6,6 +6,7 @@ from nailgun import entities
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import bz_bug_is_open, run_only_on, tier1, tier2
 from robottelo.test import UITestCase
+from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_subnet
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
@@ -87,7 +88,7 @@ class SubnetTestCase(UITestCase):
         """
         strategy1, value1 = common_locators['entity_deselect']
         strategy2, value2 = common_locators['entity_checkbox']
-        name = gen_string('alpha', 4)
+        name = gen_string('alpha')
         domain = entities.Domain(
             organization=[self.organization]
         ).create()
@@ -101,8 +102,7 @@ class SubnetTestCase(UITestCase):
                 domains=[domain.name],
             )
             subnet = self.subnet.search(name)
-            self.assertIsNotNone(subnet)
-            subnet.click()
+            session.nav.click(subnet)
             session.nav.click(tab_locators['subnet.tab_domain'])
             element = session.nav.wait_until_element(
                 (strategy1, value1 % domain.name))
@@ -110,12 +110,10 @@ class SubnetTestCase(UITestCase):
                 (strategy2, value2 % domain.name))
             # Depending upon the number of domains either, checkbox or
             # selection list appears.
-            if element:
-                self.assertIsNotNone(element)
-            elif checkbox_element:
+            if element is None and checkbox_element is None:
+                raise UIError('Neither checkbox or select list is present')
+            if checkbox_element:
                 self.assertTrue(checkbox_element.is_selected())
-            else:
-                self.assertIsNotNone()
 
     @run_only_on('sat')
     @tier1
