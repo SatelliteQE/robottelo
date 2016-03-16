@@ -153,7 +153,7 @@ def make_activation_key(options=None):
         u'organization': None,
         u'organization-id': None,
         u'organization-label': None,
-        u'unlimited-content-hosts': 'true',
+        u'unlimited-content-hosts': None,
     }
 
     return create_object(ActivationKey, args, options)
