@@ -178,7 +178,7 @@ class SyncPlanCreateTestCase(APITestCase):
                     sync_date=syncdate,
                 ).create()
                 self.assertEqual(
-                    syncdate.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                    syncdate.strftime('%Y-%m-%d %H:%M:%S UTC'),
                     sync_plan.sync_date
                 )
 
@@ -342,7 +342,7 @@ class SyncPlanUpdateTestCase(APITestCase):
             with self.subTest(syncdate):
                 sync_plan.sync_date = syncdate
                 self.assertEqual(
-                    syncdate.strftime('%Y-%m-%dT%H:%M:%SZ'),
+                    syncdate.strftime('%Y-%m-%d %H:%M:%S UTC'),
                     sync_plan.update(['sync_date']).sync_date
                 )
 

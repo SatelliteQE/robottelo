@@ -64,7 +64,7 @@ class TemplateTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_positive_create_locked(self):
+    def test_negative_create_locked(self):
         """Check that locked Template cannot be created
 
         @Feature: Template - Create
