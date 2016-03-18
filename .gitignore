@@ -39,3 +39,9 @@
 /.project
 /.pydevproject
 /.settings/
+
+# for PyCharm.
+/.idea
+
+# For emacs backup files.
+*~
