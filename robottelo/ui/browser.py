@@ -1,4 +1,5 @@
 """Tools to help getting a browser instance to run UI tests."""
+import logging
 import six
 import time
 
@@ -10,6 +11,9 @@ try:
 except ImportError:
     # Let if fail later if not installed
     docker = None
+
+
+LOGGER = logging.getLogger(__name__)
 
 
 class DockerBrowserError(Exception):
@@ -175,6 +179,7 @@ class DockerBrowser(object):
             image='selenium/standalone-firefox',
             ports=[4444],
         )
+        LOGGER.debug('Starting container with ID "%s"', self.container['Id'])
         self._client.start(self.container['Id'])
         self.container.update(
             self._client.port(self.container['Id'], 4444)[0])
@@ -183,6 +188,7 @@ class DockerBrowser(object):
         """Turn off and clean up container from system."""
         if not self.container:
             return
+        LOGGER.debug('Stopping container with ID "%s"', self.container['Id'])
         self._client.stop(self.container['Id'])
         self._client.wait(self.container['Id'])
         self._client.remove_container(self.container['Id'], force=True)
