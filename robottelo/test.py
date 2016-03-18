@@ -7,7 +7,6 @@ to help writing API, CLI and UI tests.
 import csv
 import logging
 import os
-import sys
 import unittest2
 
 try:
@@ -86,7 +85,8 @@ from robottelo.ui.trend import Trend
 from robottelo.ui.usergroup import UserGroup
 from robottelo.ui.user import User
 
-from selenium.webdriver import remote
+
+LOGGER = logging.getLogger(__name__)
 
 
 class TestCase(unittest2.TestCase):
@@ -148,10 +148,15 @@ class UITestCase(TestCase):
             self._docker_browser = DockerBrowser()
             self._docker_browser.start()
             self.browser = self._docker_browser.webdriver
+            self.addCleanup(self._docker_browser.stop)
         else:
             self.browser = browser()
+            self.addCleanup(self.browser.quit)
         self.browser.maximize_window()
         self.browser.get(settings.server.get_url())
+
+        self.addCleanup(self._saucelabs_test_result)
+        self.addCleanup(self.take_screenshot)
 
         # Library methods
         self.activationkey = ActivationKey(self.browser)
@@ -212,46 +217,51 @@ class UITestCase(TestCase):
         user running robottelo have the right permissions to create files and
         directories matching the complete.
         """
-        now = datetime.now()
-        path = os.path.join(
-            settings.screenshots_path,
-            now.strftime('%Y-%m-%d'),
-            type(self).__name__,
-            self._testMethodName,
-        )
-        if not os.path.exists(path):
-            os.makedirs(path)
-        filename = 'screenshot-{0}.png'.format(
-            now.strftime('%Y-%m-%d_%H_%M_%S')
-        )
-        self.browser.save_screenshot(os.path.join(path, filename))
+        if (len(self._outcome.errors) > 0 and
+                self in self._outcome.errors[-1]):
+            # Take screenshot if any exception is raised and the test method is
+            # not in the skipped tests.
+            now = datetime.now()
+            path = os.path.join(
+                settings.screenshots_path,
+                now.strftime('%Y-%m-%d'),
+                type(self).__name__,
+                self._testMethodName,
+            )
+            if not os.path.exists(path):
+                os.makedirs(path)
+            filename = 'screenshot-{0}.png'.format(
+                now.strftime('%Y-%m-%d_%H_%M_%S')
+            )
+            path = os.path.join(path, filename)
+            LOGGER.debug('Saving screenshot %s', path)
+            self.browser.save_screenshot(path)
 
-    def tearDown(self):  # noqa
-        """Make sure to close the browser after each test."""
-        skipped = False
-
-        # SauceLabs has no way to determine whether test passed or failed
-        # automatically, so we explicitly 'tell' it
+    def _saucelabs_test_result(self):
+        """SauceLabs has no way to determine whether test passed or failed
+        automatically, so we explicitly 'tell' it
+        """
         if settings.browser == 'saucelabs' and sauceclient:
             sc = sauceclient.SauceClient(
                 settings.saucelabs_user, settings.saucelabs_key)
-            result = self.defaultTestResult()
-            passed = not (result.failures or result.errors)
-            if isinstance(self.browser, remote.webdriver.WebDriver):
-                sc.jobs.update_job(
-                    self.browser.session_id, name=str(self), passed=passed)
-
-        if len(self._outcome.skipped) > 0:
-            skipped = self in self._outcome.skipped[-1]
-        if sys.exc_info()[0] is not None and not skipped:
-            # Take screenshot if any exception is raised and the test method is
-            # not in the skipped tests.
-            self.take_screenshot()
-        if settings.browser == 'docker':
-            self._docker_browser.stop()
-        else:
-            self.browser.quit()
-        self.browser = None
+            passed = True
+            status = 'passed'
+            if (len(self._outcome.errors) > 0 and
+                    self in self._outcome.errors[-1]):
+                passed = False
+                status = 'failed'
+            if (len(self._outcome.skipped) > 0 and
+                    self in self._outcome.skipped[-1]):
+                passed = None
+                status = 'complete'
+            LOGGER.debug(
+                'Updating SauceLabs job "%s": name "%s" and status "%s"',
+                self.browser.session_id,
+                str(self),
+                status
+            )
+            sc.jobs.update_job(
+                self.browser.session_id, name=str(self), passed=passed)
 
 
 class ConcurrentTestCase(TestCase):
