@@ -43,9 +43,11 @@ class INIReader(object):
     """ConfigParser wrapper able to cast value when reading INI options."""
     # Helper casters
     cast_boolean = casts.Boolean()
+    cast_dict = casts.Dict()
     cast_list = casts.List()
     cast_logging_level = casts.LoggingLevel()
     cast_tuple = casts.Tuple()
+    cast_webdriver_desired_capabilities = casts.WebdriverDesiredCapabilities()
 
     def __init__(self, path):
         self.config_parser = ConfigParser()
@@ -78,6 +80,8 @@ class INIReader(object):
             if cast is not None:
                 if cast is bool:
                     value = self.cast_boolean(value)
+                elif cast is dict:
+                    value = self.cast_dict(value)
                 elif cast is list:
                     value = self.cast_list(value)
                 elif cast is tuple:
@@ -539,6 +543,7 @@ class Settings(object):
         self.verbosity = None
         self.webdriver = None
         self.webdriver_binary = None
+        self.webdriver_desired_capabilities = None
 
         # Features
         self.clients = ClientsSettings()
@@ -647,6 +652,12 @@ class Settings(object):
             'robottelo', 'saucelabs_key', None)
         self.webdriver_binary = self.reader.get(
             'robottelo', 'webdriver_binary', None)
+        self.webdriver_desired_capabilities = self.reader.get(
+            'robottelo',
+            'webdriver_desired_capabilities',
+            None,
+            cast=INIReader.cast_webdriver_desired_capabilities
+        )
         self.window_manager_command = self.reader.get(
             'robottelo', 'window_manager_command', None)
 

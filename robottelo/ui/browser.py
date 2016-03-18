@@ -53,12 +53,15 @@ def browser():
             return webdriver.Remote()
     elif settings.browser == 'saucelabs':
         if webdriver_name == 'chrome':
-            desired_capabilities = webdriver.DesiredCapabilities.CHROME
+            desired_capabilities = webdriver.DesiredCapabilities.CHROME.copy()
         elif webdriver_name == 'ie':
             desired_capabilities = (
-                webdriver.DesiredCapabilities.INTERNETEXPLORER)
+                webdriver.DesiredCapabilities.INTERNETEXPLORER.copy())
         else:
-            desired_capabilities = webdriver.DesiredCapabilities.FIREFOX
+            desired_capabilities = webdriver.DesiredCapabilities.FIREFOX.copy()
+        if settings.webdriver_desired_capabilities:
+            desired_capabilities.update(
+                settings.webdriver_desired_capabilities)
         return webdriver.Remote(
             command_executor=_sauce_ondemand_url(
                 settings.saucelabs_user, settings.saucelabs_key),
