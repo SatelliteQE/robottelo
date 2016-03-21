@@ -182,8 +182,17 @@ class HostTestCase(APITestCase):
 
         @assert: A host is created with expected subnet assigned
         """
-        subnet = entities.Subnet().create()
-        host = entities.Host(subnet=subnet).create()
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
+        subnet = entities.Subnet(
+            location=[loc],
+            organization=[org],
+        ).create()
+        host = entities.Host(
+            location=loc,
+            organization=org,
+            subnet=subnet,
+        ).create()
         self.assertEqual(host.subnet.read().name, subnet.name)
 
     @run_only_on('sat')
@@ -560,8 +569,21 @@ class HostTestCase(APITestCase):
 
         @assert: A host is updated with a new subnet
         """
-        host = entities.Host(subnet=entities.Subnet().create()).create()
-        new_subnet = entities.Subnet().create()
+        org = entities.Organization().create()
+        loc = entities.Location(organization=[org]).create()
+        old_subnet = entities.Subnet(
+            location=[loc],
+            organization=[org],
+        ).create()
+        host = entities.Host(
+            location=loc,
+            organization=org,
+            subnet=old_subnet,
+        ).create()
+        new_subnet = entities.Subnet(
+            location=[loc],
+            organization=[org],
+        ).create()
         host.subnet = new_subnet
         host = host.update(['subnet'])
         self.assertEqual(host.subnet.read().name, new_subnet.name)
