@@ -55,6 +55,7 @@ class Settings(Base):
 
     def get_saved_value(self, tab_locator, param_name):
         """Fetch the updated value to assert"""
+        self.navigate_to_entity()
         if self.wait_until_element(tab_locator):
             self.click(tab_locator)
             strategy, value = locators['settings.edit_param']
