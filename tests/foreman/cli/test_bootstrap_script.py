@@ -5,12 +5,12 @@ from robottelo.test import CLITestCase
 
 
 class BootstrapScriptTestCase(CLITestCase):
-    """Test class for bootstrap scipt."""
+    """Test class for bootstrap script."""
 
-    @stubbed()
     @classmethod
     def setUpClass(cls):
-        """ create VM for testing """
+        """create VM for testing """
+        super(BootstrapScriptTestCase, cls).setUpClass()
 
     @tier1
     @stubbed()
@@ -127,7 +127,7 @@ class BootstrapScriptTestCase(CLITestCase):
         @Steps:
 
         1. create env without available sat tools repo
-           (AK or hostgroup being used dont provide CV having sattools)
+           (AK or hostgroup being used doesn't provide CV that have sattools)
         2. try to register a system
 
         @Assert: ends gracefully, reason displayed to user
