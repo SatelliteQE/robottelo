@@ -58,12 +58,26 @@ ssh_key=
 # Binary location for selected wedriver
 # webdriver_binary=/usr/bin/firefox
 # webdriver_binary=/usr/bin/chromedriver
-# cdn=true
-# Run one datapoint or multiple datapoints for tests
-# run_one_datapoint=false
+
+# webdriver_desired_capabilities accepts extra configuration to be passed to
+# saucelabs in order to configure the test options. You can use the platform
+# configurator (see link below) to get the information about the environment
+# you want to test.
+# https://wiki.saucelabs.com/display/DOCS/Platform+Configurator/
+# Or you can visit
+# https://wiki.saucelabs.com/display/DOCS/Test+Configuration+Options for a
+# complete set of options.
+# PS.: the base DesiredCapabilities dict will be get by the browser
+# specified by webdriver config. If you override browserName then that
+# browser will be used instead.
+#webdriver_desired_capabilities=platform=OS X 10.11,version=44.0,...
 
 # saucelabs_user=
 # saucelabs_key=
+
+# cdn=true
+# Run one datapoint or multiple datapoints for tests
+# run_one_datapoint=false
 
 # Provide link to rhel6/7 repo here, as puppet rpm would require packages from
 # RHEL 6/7 repo and syncing the entire repo on the fly would take longer for
