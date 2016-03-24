@@ -170,6 +170,11 @@ Submodules:
 
 .. automodule:: robottelo.cli.role
 
+:mod:`robottelo.cli.settings`
+-----------------------------
+
+.. automodule:: robottelo.cli.settings
+
 :mod:`robottelo.cli.smartclass`
 -------------------------------
 
