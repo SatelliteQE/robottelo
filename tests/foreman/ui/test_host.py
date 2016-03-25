@@ -4,8 +4,14 @@ from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants import ENVIRONMENT
-from robottelo.decorators import run_only_on, skip_if_not_set, stubbed, tier3
+from robottelo.constants import DEFAULT_CV, ENVIRONMENT
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    skip_if_not_set,
+    stubbed,
+    tier3,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.base import Base
 from robottelo.ui.factory import make_host
@@ -43,7 +49,6 @@ class HostTestCase(UITestCase, Base):
         14. Associate arch, partition table, provisioning/PXE templates with OS
         15. Search for media and associate org/location
         16. Create new host group with all required entities
-
         """
         super(HostTestCase, cls).setUpClass()
         # Create a new Organization and Location
@@ -296,19 +301,24 @@ class HostTestCase(UITestCase, Base):
         @Assert: Host is created
         """
         resource = u'{0} (Libvirt)'.format(self.computeresource.name)
-        root_pwd = gen_string("alpha", 15)
+        root_pwd = gen_string('alpha', 15)
         with Session(self.browser) as session:
             make_host(
                 session,
-                org=self.org_name,
-                loc=self.loc_name,
                 name=self.hostname,
-                host_group=self.host_group.name,
-                resource=resource,
-                memory="1 GB",
-                network_type="Physical (Bridge)",
-                network=settings.vlan_networking.bridge,
-                root_pwd=root_pwd,
+                org=self.org_name,
+                parameters_list=[
+                    ['Host', 'Organization', self.org_name],
+                    ['Host', 'Location', self.loc_name],
+                    ['Host', 'Host group', self.host_group.name],
+                    ['Host', 'Deploy on', resource],
+                    ['Virtual Machine', 'Memory', '1 GB'],
+                    ['Operating System', 'Root password', root_pwd],
+                ],
+                interface_parameters=[
+                    ['Network type', 'Physical (Bridge)'],
+                    ['Network', settings.vlan_networking.bridge],
+                ],
             )
             self.scroll_page()
             search = self.hosts.search(
@@ -317,6 +327,7 @@ class HostTestCase(UITestCase, Base):
             self.assertIsNotNone(search)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1321055)
     @tier3
     def test_positive_create(self):
         """Create a new Host
@@ -330,23 +341,33 @@ class HostTestCase(UITestCase, Base):
         os_name = u'{0} {1}'.format(
             host.operatingsystem.name, host.operatingsystem.major)
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(host.organization.name)
-            self.navigator.go_to_hosts()
-            self.hosts.create(
-                arch=host.architecture.name,
-                domain=host.domain.name,
-                env=host.environment.name,
-                loc=host.location.name,
-                lifecycle_env=ENVIRONMENT,
-                mac=host.mac,
-                media=host.medium.name,
+            make_host(
+                session,
                 name=host.name,
                 org=host.organization.name,
-                os=os_name,
-                ptable=host.ptable.name,
-                root_pwd=host.root_pass,
+                parameters_list=[
+                    ['Host', 'Organization', host.organization.name],
+                    ['Host', 'Location', host.location.name],
+                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
+                    ['Host', 'Content View', DEFAULT_CV],
+                    ['Host', 'Puppet Environment', host.environment.name],
+                    [
+                        'Operating System',
+                        'Architecture',
+                        host.architecture.name
+                    ],
+                    ['Operating System', 'Operating system', os_name],
+                    ['Operating System', 'Media', host.medium.name],
+                    ['Operating System', 'Partition table', host.ptable.name],
+                    ['Operating System', 'Root password', host.root_pass],
+                ],
+                interface_parameters=[
+                    ['Type', 'Interface'],
+                    ['MAC address', host.mac],
+                    ['Domain', host.domain.name],
+                    ['Primary', True],
+                ],
             )
-            self.navigator.go_to_dashboard()
             # confirm the Host appears in the UI
             search = self.hosts.search(
                 u'{0}.{1}'.format(host.name, host.domain.name)
@@ -354,6 +375,60 @@ class HostTestCase(UITestCase, Base):
             self.assertIsNotNone(search)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1321055)
+    @tier3
+    def test_positive_update_name(self):
+        """Create a new Host and update its name to valid one
+
+        @Feature: Host - Positive update
+
+        @Assert: Host is updated successfully
+        """
+        host = entities.Host()
+        host.create_missing()
+        os_name = u'{0} {1}'.format(
+            host.operatingsystem.name, host.operatingsystem.major)
+        host_name = host.name
+        with Session(self.browser) as session:
+            make_host(
+                session,
+                name=host_name,
+                org=host.organization.name,
+                parameters_list=[
+                    ['Host', 'Organization', host.organization.name],
+                    ['Host', 'Location', host.location.name],
+                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
+                    ['Host', 'Content View', DEFAULT_CV],
+                    ['Host', 'Puppet Environment', host.environment.name],
+                    [
+                        'Operating System',
+                        'Architecture',
+                        host.architecture.name],
+                    ['Operating System', 'Operating system', os_name],
+                    ['Operating System', 'Media', host.medium.name],
+                    ['Operating System', 'Partition table', host.ptable.name],
+                    ['Operating System', 'Root password', host.root_pass],
+                ],
+                interface_parameters=[
+                    ['Type', 'Interface'],
+                    ['MAC address', host.mac],
+                    ['Domain', host.domain.name],
+                    ['Primary', True],
+                ],
+            )
+            # confirm the Host appears in the UI
+            search = self.hosts.search(
+                u'{0}.{1}'.format(host_name, host.domain.name)
+            )
+            self.assertIsNotNone(search)
+            new_name = gen_string('alpha')
+            self.hosts.update(host_name, host.domain.name, new_name)
+            new_host_name = (
+                u'{0}.{1}'.format(new_name, host.domain.name)).lower()
+            self.assertIsNotNone(self.hosts.search(new_host_name))
+
+    @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1321055)
     @tier3
     def test_positive_delete(self):
         """Delete a Host
@@ -367,24 +442,33 @@ class HostTestCase(UITestCase, Base):
         os_name = u'{0} {1}'.format(
             host.operatingsystem.name, host.operatingsystem.major)
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(host.organization.name)
-            self.navigator.go_to_hosts()
-            self.hosts.create(
-                arch=host.architecture.name,
-                domain=host.domain.name,
-                env=host.environment.name,
-                loc=host.location.name,
-                lifecycle_env=ENVIRONMENT,
-                mac=host.mac,
-                media=host.medium.name,
+            make_host(
+                session,
                 name=host.name,
                 org=host.organization.name,
-                os=os_name,
-                ptable=host.ptable.name,
-                root_pwd=host.root_pass,
+                parameters_list=[
+                    ['Host', 'Organization', host.organization.name],
+                    ['Host', 'Location', host.location.name],
+                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
+                    ['Host', 'Content View', DEFAULT_CV],
+                    ['Host', 'Puppet Environment', host.environment.name],
+                    [
+                        'Operating System',
+                        'Architecture',
+                        host.architecture.name
+                    ],
+                    ['Operating System', 'Operating system', os_name],
+                    ['Operating System', 'Media', host.medium.name],
+                    ['Operating System', 'Partition table', host.ptable.name],
+                    ['Operating System', 'Root password', host.root_pass],
+                ],
+                interface_parameters=[
+                    ['Type', 'Interface'],
+                    ['MAC address', host.mac],
+                    ['Domain', host.domain.name],
+                    ['Primary', True],
+                ],
             )
-            self.navigator.go_to_dashboard()
-            self.navigator.go_to_hosts()
             # Delete host
             self.hosts.delete(
                 u'{0}.{1}'.format(host.name, host.domain.name))

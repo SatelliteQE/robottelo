@@ -208,11 +208,13 @@ class OpenScapTestCase(UITestCase):
                         org=self.org_name
                     )
                     self.hosts.update(
-                        cv=self.cv_name,
-                        host_group=value['hgrp'],
-                        lifecycle_env=self.env_name,
                         name=host,
-                        reset_puppetenv=True,
+                        parameters_list=[
+                            ['Host', 'Lifecycle Environment', self.env_name],
+                            ['Host', 'Content View', self.cv_name],
+                            ['Host', 'Host Group', value['hgrp']],
+                            ['Host', 'Reset Puppet Environment', True],
+                        ],
                     )
                     session.nav.go_to_hosts()
                     # Run "puppet agent -t" twice so that it detects it's,

@@ -477,15 +477,12 @@ class SmokeTestCase(UITestCase):
                 self.hosts.update_host_bulkactions(host=host, org=org_name)
                 self.hosts.update(
                     name=host,
-                    lifecycle_env=env_name,
-                    cv=cv_name,
-                    reset_puppetenv=True,
-                )
-                session.nav.go_to_hosts()
-                self.hosts.update(
-                    name=host,
-                    reset_puppetenv=False,
-                    puppet_module=puppet_module
+                    parameters_list=[
+                        ['Host', 'Lifecycle Environment', env_name],
+                        ['Host', 'Content View', cv_name],
+                        ['Host', 'Reset Puppet Environment', True],
+                    ],
+                    puppet_classes=[puppet_module]
                 )
                 vm.run(u'puppet agent -t')
                 result = vm.run(u'cat /etc/motd | grep FQDN')

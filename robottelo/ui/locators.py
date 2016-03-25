@@ -398,13 +398,15 @@ tab_locators = LocatorDict({
     # Host
     # Third level UI
 
-    "host.tab_puppet": (By.XPATH, "//a[@href='#puppet_klasses']"),
-    "host.tab_network": (By.XPATH, "//a[@href='#network']"),
-    "host.tab_os": (By.XPATH, "//form[@id='new_host']//a[@href='#os']"),
-    "host.tab_vm": (
+    "host.tab_host": (By.XPATH, "//a[@href='#primary']"),
+    "host.tab_puppet_classes": (By.XPATH, "//a[@href='#puppet_klasses']"),
+    "host.tab_interfaces": (By.XPATH, "//a[@href='#network']"),
+    "host.tab_operating_system": (
+        By.XPATH, "//form[@id='new_host']//a[@href='#os']"),
+    "host.tab_virtual_machine": (
         By.XPATH, "//form[@id='new_host']//a[@href='#compute_resource']"),
     "host.tab_params": (By.XPATH, "//a[@href='#params']"),
-    "host.tab_info": (By.XPATH, "//a[@href='#info']"),
+    "host.tab_additional_information": (By.XPATH, "//a[@href='#info']"),
 
     # Provisioning Templates
     # Third level UI
@@ -953,138 +955,211 @@ locators = LocatorDict({
 
     # Hosts
 
-    # host.primary
+    # Default tab (Host)
     "host.new": (By.XPATH, "//a[contains(@href, '/hosts/new') and "
                            "contains(@class, 'btn')]"),
-    "host.name": (By.ID, "host_name"),
     "host.clone": (
         By.XPATH, "//a[contains(@href,'%s') and contains(.,'Clone')]"),
     "host.delete": (
         By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
-    "host.group": (
-        By.XPATH,
-        ("//div[contains(@id, 'host_hostgroup_id')]/a"
-         "/span[contains(@class, 'arrow')]")),
-    "host.deploy": (
-        By.XPATH,
-        ("//div[contains(@id, 'host_compute_resource_id')]/a"
-         "/span[contains(@class, 'arrow')]")),
-    "host.environment": (
-        By.XPATH,
-        ("//div[contains(@id, 'host_environment_id')]/a"
-         "/span[contains(@class, 'arrow')]")),
     "host.dropdown": (
         By.XPATH,
         ("//a[contains(@href,'%s')]"
          "/../../a[contains(@data-toggle,'dropdown')]")),
+    "host.edit": (By.XPATH,
+                  "//a[@class='btn btn-default' and contains(@href,'edit')]"),
     "host.select_name": (
         By.XPATH,
         ("//input[contains(@id,'host_ids')]"
          "/../../td[@class='ellipsis']/a[contains(@href,'%s')]")),
-    "host.lifecycle_env": (
-        By.XPATH,
-        ("//div[contains(@id, 'host_lifecycle_environment_id')]/a"
-         "/span[contains(@class, 'arrow')]")),
-    "host.cv": (
-        By.XPATH,
-        ("//div[contains(@id, 'host_content_view_id')]/a"
-         "/span[contains(@class, 'arrow')]")),
-    "host.reset_puppetenv": (By.ID, "reset_puppet_environment"),
-
-    # host.network
-    "host.mac": (By.ID, "host_mac"),
-    "host.domain": (By.ID, "host_domain_id"),
-    "host.subnet": (By.ID, "host_subnet_id"),
-    "host.ip": (By.ID, "host_ip"),
-
-    # host.os
-    "host.arch": (
-        By.XPATH,
-        ("//div[contains(@id, 'host_architecture_id')]/a"
-         "/span[contains(@class, 'arrow')]")),
-    "host.os": (
-        By.XPATH,
-        ("//div[contains(@id, 'host_operatingsystem_id')]/a"
-         "/span[contains(@class, 'arrow')]")),
-    "host.org": (
+    "host.name": (By.ID, "host_name"),
+    "host.organization": (
         By.XPATH,
         ("//div[contains(@id, 'host_organization_id')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "host.loc": (
+    "host.location": (
         By.XPATH,
         ("//div[contains(@id, 'host_location_id')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "host.edit": (By.XPATH,
-                  "//a[@class='btn btn-default' and contains(@href,'edit')]"),
+    "host.host_group": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_hostgroup_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.deploy_on": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_compute_resource_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.lifecycle_environment": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_lifecycle_environment_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.content_view": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_content_view_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.puppet_environment": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_environment_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.reset_puppet_environment": (By.ID, "reset_puppet_environment"),
+    "host.content_source": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_content_source')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "host.puppet_ca": (
         By.XPATH,
-        ("//div[contains(@id, 'host_puppet_ca_proxy_id')]/a"
+        ("//div[contains(@id, 'host_puppet_ca_proxy')]/a"
          "/span[contains(@class, 'arrow')]")),
     "host.puppet_master": (
         By.XPATH,
-        ("//div[contains(@id, 'host_puppet_proxy_id')]/a"
+        ("//div[contains(@id, 'host_puppet_proxy')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "host.provision": (By.ID, "host_build"),
+    "host.openscap_proxy": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_openscap_proxy')]/a"
+         "/span[contains(@class, 'arrow')]")),
+
+    # host.puppet_classes
+    "host.select_puppetmodule": (
+        By.XPATH, "//a[contains(.,'%s')]/span[contains(@class, 'glyphicon')]"),
+    "host.select_puppetclass": (
+        By.XPATH,
+        ("//span[contains(.,'%s')]"
+         "/a[not(contains(@data-original-title, '::'))]")),
+
+    # host.interface
+    "host.edit_default_interface": (
+        By.XPATH,
+        "//table[@id='interfaceList']/tbody/tr[1]/td"
+        "/button[contains(@class, 'showModal')]"),
+    "host.interface_type": (
+        By.XPATH,
+        "//div[@id='interfaceModal']//select[contains(@id, '_type')]"),
+    "host.interface_mac_address": (
+        By.XPATH,
+        "//div[@id='interfaceModal']//input[contains(@id, '_mac')]"),
+    "host.interface_device_identifier": (
+        By.XPATH,
+        "//div[@id='interfaceModal']//input[contains(@id, '_identifier')]"),
+    "host.interface_dns_name": (
+        By.XPATH,
+        "//div[@id='interfaceModal']//input[contains(@id, '_name')]"),
+    "host.interface_domain": (
+        By.XPATH,
+        "//div[@id='interfaceModal']//select[contains(@id, '_domain_id')]"),
+    "host.interface_subnet": (
+        By.XPATH,
+        "//div[@id='interfaceModal']//select[contains(@id, '_subnet_id')]"),
+    "host.interface_ip_address": (
+        By.XPATH,
+        "//div[@id='interfaceModal']//input[contains(@id, '_ip')]"),
+    "host.interface_managed": (
+        By.XPATH,
+        "//div[@id='interfaceModal']//input[contains(@id, '_managed')]"),
+    "host.interface_primary": (
+        By.XPATH,
+        "//div[@id='interfaceModal']//input[contains(@id, '_primary')]"),
+    "host.interface_provision": (
+        By.XPATH,
+        "//div[@id='interfaceModal']//input[contains(@id, '_provision')]"),
+    "host.interface_remote_execution": (
+        By.XPATH,
+        "//div[@id='interfaceModal']//input[contains(@id, '_execution')]"),
+    "host.interface_virtual_nic": (
+        By.XPATH,
+        "//div[@id='interfaceModal']//input[contains(@id, '_virtual')]"),
+    "host.network_type": (
+        By.XPATH,
+        ("//div[@id='interfaceModal']"
+         "//select[contains(@id, '_compute_attributes_type')]")),
+    "host.network": (
+        By.XPATH,
+        ("//div[@id='interfaceModal']"
+         "//select[contains(@id, '_compute_attributes_bridge')]")),
+    "host.nic_type": (
+        By.XPATH,
+        ("//div[@id='interfaceModal']"
+         "//select[contains(@id, '_compute_attributes_model')]")),
+    "host.save_interface": (
+        By.XPATH,
+        "//button[contains(@onclick, 'save_interface_modal()')]"),
+
+    # host.os
+    "host.architecture": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_architecture_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.operating_system": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_operatingsystem_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.build_mode": (By.ID, "host_build"),
     "host.media": (
         By.XPATH,
         ("//div[contains(@id, 'host_medium_id')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "host.ptable": (
+    "host.partition_table": (
         By.XPATH,
         ("//div[contains(@id, 'host_ptable_id')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "host.custom_ptables": (By.ID, "host_disk"),
-    "host.root_pass": (By.ID, "host_root_pass"),
-    "host.provision_template": (
+    "host.custom_partition_table": (By.ID, "host_disk"),
+    "host.root_password": (By.ID, "host_root_pass"),
+    "host.provisioning_templates": (
         By.XPATH,
         "//div[contains(.,'Provisioning Templates')]/../div/a[@class='btn']"),
 
+    # host.parameters
+    "host.add_new_host_parameter": (
+        By.XPATH, "//a[contains(., 'Add Parameter')]"),
+    "host.host_parameter_name": (
+        By.XPATH,
+        "(//input[contains(@id, '_name') "
+        "and contains(@name, 'parameters')])[%i]"),
+    "host.host_parameter_value": (
+        By.XPATH,
+        "(//textarea[contains(@id, '_value') "
+        "and contains(@name, 'parameters')])[%i]"),
+
     # host.vm (NOTE:- visible only when selecting a compute resource)
-    "host.vm_cpus": (
+    "host.cpus": (
         By.XPATH,
         ("//div[contains(@id, 'host_compute_attributes_cpus')]/a"
          "/span[contains(@class, 'arrow')]")),
-    "host.vm_memory": (
+    "host.memory": (
         By.XPATH,
         ("//div[contains(@id, 'host_compute_attributes_memory')]/a"
-         "/span[contains(@class, 'arrow')]")),
-    "host.network_type": (
-        By.XPATH,
-        ("//div[contains("
-         "@id, 'host_compute_attributes_nics_attributes_0_type')]/a"
-         "/span[contains(@class, 'arrow')]")),
-    "host.network": (
-        By.XPATH,
-        ("//div[contains("
-         "@id, 'host_compute_attributes_nics_attributes_0_bridge')]/a"
          "/span[contains(@class, 'arrow')]")),
     "host.vm_start": (By.ID, "host_compute_attributes_start"),
     "host.vm_addstorage": (
         By.XPATH, "//fieldset[@id='storage_volumes']/a"),
-    "host.vm_addnic": (
-        By.XPATH, "//fieldset[@id='network_interfaces']/a"),
+
+    # host.additional_information
+    "host.owned_by": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_is_owned_by')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.enabled": (By.ID, "host_enabled"),
+    "host.hardware_model": (
+        By.XPATH,
+        ("//div[contains(@id, 'host_model_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "host.comment": (By.ID, "host_comment"),
 
     # Host 'Select Action'/'Bulk Action.'
     "host.checkbox": (
         By.XPATH,
-        "//span[contains(@data-original-title, '%s')]/../../../td/input"),
+        "//a[contains(@href, '%s')]/../../td/input[@type='checkbox']"),
     "host.select_action": (
         By.XPATH,
         "//div[@id='submit_multiple']/a[contains(@class, 'dropdown-toggle')]"),
     "host.assign_org": (
-        By.XPATH, "//a[contains(@href, 'select_multiple_organization')]"),
+        By.XPATH, "//a[contains(@onclick, 'select_multiple_organization')]"),
     "host.fix_mismatch": (By.ID, "organization_optimistic_import_yes"),
     "host.select_org": (By.ID, "organization_id"),
     "host.bulk_submit": (
         By.XPATH,
         ("//form[contains(@action, 'multiple')]/../../../"
          "div/button[contains(@class,'primary')]")),
-    "host.select_puppetmodule":
-        (By.XPATH, "//a[contains(.,'%s')]/i[contains(@class, 'glyphicon')]"),
-    "host.select_puppetclass": (
-        By.XPATH,
-        ("//span[contains(.,'%s')]"
-         "/a[not(contains(@data-original-title, '::'))]")),
 
     # Provisions
 
