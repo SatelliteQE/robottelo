@@ -2,6 +2,7 @@
 """Test class for Setting Parameter values"""
 
 from fauxfactory import gen_email, gen_string, gen_url
+from random import randint
 from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -50,8 +51,8 @@ def invalid_settings_values():
 def valid_maxtrend_timeout_values():
     """Returns a list of valid maxtrend, timeout values"""
     return [
-        gen_string('numeric', 2),
-        gen_string('numeric', 5),
+        str(randint(10, 99)),
+        str(randint(10000, 99999)),
     ]
 
 
@@ -107,6 +108,29 @@ def invalid_token_duration():
 class SettingTestCase(UITestCase):
     """Implements Boundary tests for Settings menu"""
 
+    def setUp(self):
+        """Initialize test variables"""
+        super(SettingTestCase, self).setUp()
+        self.original_value = None
+        self.param_name = None
+        self.saved_element = None
+        self.tab_locator = None
+        self.value_type = None
+
+    def tearDown(self):
+        """Revert the setting to its default value"""
+        if self.original_value:  # do nothing for skipped test
+            if self.saved_element != self.original_value:
+                with Session(self.browser) as session:
+                    edit_param(
+                        session,
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
+                        param_value=self.original_value,
+                    )
+        super(SettingTestCase, self).tearDown()
+
     @tier1
     def test_positive_update_authorize_login_delegation_param(self):
         """Updates parameter "authorize_login_delegation" under Auth tab
@@ -115,21 +139,24 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_auth']
-        param_name = 'authorize_login_delegation'
+        self.tab_locator = tab_locators['settings.tab_auth']
+        self.param_name = 'authorize_login_delegation'
+        self.value_type = 'dropdown'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='dropdown',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @skip_if_bug_open('bugzilla', 1125181)
     @tier1
@@ -142,21 +169,24 @@ class SettingTestCase(UITestCase):
 
         @BZ: 1125181
         """
-        tab_locator = tab_locators['settings.tab_general']
-        param_name = 'administrator'
+        self.tab_locator = tab_locators['settings.tab_general']
+        self.param_name = 'administrator'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_settings_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @tier1
     def test_positive_update_authorize_login_delegation_api_param(self):
@@ -166,21 +196,24 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_auth']
-        param_name = 'authorize_login_delegation_api'
+        self.tab_locator = tab_locators['settings.tab_auth']
+        self.param_name = 'authorize_login_delegation_api'
+        self.value_type = 'dropdown'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='dropdown',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @skip_if_bug_open('bugzilla', 1125156)
     @tier1
@@ -194,25 +227,28 @@ class SettingTestCase(UITestCase):
 
         @BZ: 1125156
         """
-        tab_locator = tab_locators['settings.tab_general']
-        param_name = 'entries_per_page'
+        self.tab_locator = tab_locators['settings.tab_general']
+        self.param_name = 'entries_per_page'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in invalid_settings_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.assertIsNotNone(
                         session.nav.wait_until_element(
                             common_locators['notif.error'])
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertNotEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertNotEqual(param_value, self.saved_element)
 
     @tier1
     def test_positive_update_entries_per_page_param(self):
@@ -222,37 +258,23 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        param_value = gen_string('numeric', 5)
-        tab_locator = tab_locators['settings.tab_general']
-        param_name = 'entries_per_page'
+        param_value = str(randint(30, 1000))
+        self.tab_locator = tab_locators['settings.tab_general']
+        self.param_name = 'entries_per_page'
+        self.value_type = 'input'
         with Session(self.browser) as session:
-            self.navigator.go_to_settings()
-            original_value = self.settings.get_saved_value(
-                tab_locator, param_name)
-            try:
-                edit_param(
-                    session,
-                    tab_locator=tab_locator,
-                    param_name=param_name,
-                    value_type='input',
-                    param_value=param_value,
-                )
-                saved_element = self.settings.get_saved_value(
-                    tab_locator, param_name)
-                # UI automatically strips leading zeros on save,
-                # e.g. If param_value = '01400' then UI saves it as '1400'
-                # so using 'lstrip' to strip leading zeros from variable
-                # 'param_value' too
-                self.assertEqual(param_value.lstrip('0'), saved_element)
-            finally:
-                # Restore previous value
-                edit_param(
-                    session,
-                    tab_locator=tab_locator,
-                    param_name=param_name,
-                    value_type='input',
-                    param_value=original_value,
-                )
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
+            edit_param(
+                session,
+                tab_locator=self.tab_locator,
+                param_name=self.param_name,
+                value_type=self.value_type,
+                param_value=param_value,
+            )
+            self.saved_element = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
+            self.assertEqual(param_value, self.saved_element)
 
     @skip_if_bug_open('bugzilla', 1125181)
     @tier1
@@ -265,21 +287,24 @@ class SettingTestCase(UITestCase):
 
         @BZ: 1125181
         """
-        tab_locator = tab_locators['settings.tab_general']
-        param_name = 'email_reply_address'
+        self.tab_locator = tab_locators['settings.tab_general']
+        self.param_name = 'email_reply_address'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_settings_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @skip_if_bug_open('bugzilla', 1156195)
     @tier1
@@ -292,21 +317,24 @@ class SettingTestCase(UITestCase):
 
         @BZ: 1156195
         """
-        tab_locator = tab_locators['settings.tab_general']
-        param_name = 'fix_db_cache'
+        self.tab_locator = tab_locators['settings.tab_general']
+        self.param_name = 'fix_db_cache'
+        self.value_type = 'dropdown'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='dropdown',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @tier1
     def test_positive_update_use_gravatar_param(self):
@@ -316,21 +344,24 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_general']
-        param_name = 'use_gravatar'
+        self.tab_locator = tab_locators['settings.tab_general']
+        self.param_name = 'use_gravatar'
+        self.value_type = 'dropdown'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='dropdown',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @skip_if_bug_open('bugzilla', 1125156)
     @tier1
@@ -344,25 +375,28 @@ class SettingTestCase(UITestCase):
 
         @BZ: 1125156
         """
-        tab_locator = tab_locators['settings.tab_general']
-        param_name = 'max_trend'
+        self.tab_locator = tab_locators['settings.tab_general']
+        self.param_name = 'max_trend'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in invalid_settings_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.assertIsNotNone(
                         session.nav.wait_until_element(
                             common_locators['notif.error'])
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertNotEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertNotEqual(param_value, self.saved_element)
 
     @tier1
     def test_positive_update_max_trend_param(self):
@@ -372,25 +406,24 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_general']
-        param_name = 'max_trend'
+        self.tab_locator = tab_locators['settings.tab_general']
+        self.param_name = 'max_trend'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_maxtrend_timeout_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    # UI automatically strips leading zeros on save,
-                    # e.g. If param_value = '01400' then UI saves it as '1400'
-                    # so using lstrip to strip leading zeros from variable
-                    # 'param_value' too
-                    self.assertEqual(param_value.lstrip('0'), saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @skip_if_bug_open('bugzilla', 1125156)
     @tier1
@@ -404,25 +437,28 @@ class SettingTestCase(UITestCase):
 
         @BZ: 1125156
         """
-        tab_locator = tab_locators['settings.tab_general']
-        param_name = 'idle_timeout'
+        self.tab_locator = tab_locators['settings.tab_general']
+        self.param_name = 'idle_timeout'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in invalid_settings_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.assertIsNotNone(
                         session.nav.wait_until_element(
                             common_locators['notif.error'])
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertNotEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertNotEqual(param_value, self.saved_element)
 
     @tier1
     def test_positive_update_idle_timeout_param(self):
@@ -432,25 +468,24 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_auth']
-        param_name = 'idle_timeout'
+        self.tab_locator = tab_locators['settings.tab_auth']
+        self.param_name = 'idle_timeout'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_maxtrend_timeout_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    # UI automatically strips leading zeros on save,
-                    # e.g. If param_value = '01400' then UI saves it as '1400'
-                    # so using lstrip to strip leading zeros from variable
-                    # 'param_value' too
-                    self.assertEqual(param_value.lstrip('0'), saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @tier1
     def test_positive_update_foreman_url_param(self):
@@ -460,21 +495,24 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_general']
-        param_name = 'foreman_url'
+        self.tab_locator = tab_locators['settings.tab_general']
+        self.param_name = 'foreman_url'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_urls():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @skip_if_bug_open('bugzilla', 1125156)
     @tier1
@@ -487,25 +525,28 @@ class SettingTestCase(UITestCase):
 
         @BZ: 1125156
         """
-        tab_locator = tab_locators['settings.tab_general']
-        param_name = 'foreman_url'
+        self.tab_locator = tab_locators['settings.tab_general']
+        self.param_name = 'foreman_url'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in invalid_foreman_urls():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.assertIsNotNone(
                         session.nav.wait_until_element(
                             common_locators['notif.error'])
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertNotEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertNotEqual(param_value, self.saved_element)
 
     @tier1
     def test_positive_update_dynflow_enable_console_param(self):
@@ -516,21 +557,24 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_foremantasks']
-        param_name = 'dynflow_enable_console'
+        self.tab_locator = tab_locators['settings.tab_foremantasks']
+        self.param_name = 'dynflow_enable_console'
+        self.value_type = 'dropdown'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='dropdown',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @tier1
     def test_positive_update_auth_source_user_autocreate_param(self):
@@ -541,21 +585,25 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_auth']
-        param_name = 'authorize_login_delegation_auth_source_user_autocreate'
+        self.tab_locator = tab_locators['settings.tab_auth']
+        self.param_name = ('authorize_login_delegation_auth_source_user'
+                           '_autocreate')
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_login_delegation_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @tier1
     def test_positive_update_login_delegation_logout_url_param(self):
@@ -566,24 +614,27 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_auth']
-        param_name = 'login_delegation_logout_url'
+        self.tab_locator = tab_locators['settings.tab_auth']
+        self.param_name = 'login_delegation_logout_url'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_urls():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @tier1
-    def test_positive_update_oauth_active_param(self):
+    def test_negative_update_oauth_active_param(self):
         """Read-only param "oauth_active" under Auth tab shouldn't be
         updated
 
@@ -591,14 +642,14 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is not editable
         """
-        tab_locator = tab_locators['settings.tab_auth']
+        self.tab_locator = tab_locators['settings.tab_auth']
         with Session(self.browser) as session:
             for param_name in invalid_oauth_active_values():
                 with self.subTest(param_name):
                     with self.assertRaises(UIError) as context:
                         edit_param(
                             session,
-                            tab_locator=tab_locator,
+                            tab_locator=self.tab_locator,
                             param_name=param_name,
                         )
                         self.assertEqual(
@@ -614,32 +665,24 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_auth']
-        param_name = 'require_ssl_smart_proxies'
-        value_type = 'dropdown'
+        self.tab_locator = tab_locators['settings.tab_auth']
+        self.param_name = 'require_ssl_smart_proxies'
+        self.value_type = 'dropdown'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
                 with self.subTest(param_value):
-                    session.nav.go_to_settings()
-                    default_value = self.settings.get_saved_value(
-                        tab_locator, param_name)
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type=value_type,
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
-                    edit_param(
-                        session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type=value_type,
-                        param_value=default_value,
-                    )
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @tier1
     def test_positive_update_restrict_registered_smart_proxies_param(self):
@@ -650,32 +693,26 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_auth']
-        param_name = 'restrict_registered_smart_proxies'
-        value_type = 'dropdown'
+        self.tab_locator = tab_locators['settings.tab_auth']
+        self.param_name = 'restrict_registered_smart_proxies'
+        self.value_type = 'dropdown'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
                 with self.subTest(param_value):
-                    session.nav.go_to_settings()
-                    default_value = self.settings.get_saved_value(
-                        tab_locator, param_name)
+                    self.original_value = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type=value_type,
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
-                    edit_param(
-                        session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type=value_type,
-                        param_value=default_value,
-                    )
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @tier1
     def test_positive_update_trusted_puppetmaster_hosts_param(self):
@@ -685,21 +722,24 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_auth']
-        param_name = 'trusted_puppetmaster_hosts'
+        self.tab_locator = tab_locators['settings.tab_auth']
+        self.param_name = 'trusted_puppetmaster_hosts'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_trusted_puppetmaster_hosts():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @skip_if_bug_open('bugzilla', 1125156)
     @tier1
@@ -712,50 +752,56 @@ class SettingTestCase(UITestCase):
 
         @BZ: 1125156
         """
-        tab_locator = tab_locators['settings.tab_auth']
-        param_name = 'trusted_puppetmaster_hosts'
+        self.tab_locator = tab_locators['settings.tab_auth']
+        self.param_name = 'trusted_puppetmaster_hosts'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.assertIsNotNone(
                         session.nav.wait_until_element(
                             common_locators['notif.error'])
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertNotEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertNotEqual(param_value, self.saved_element)
 
     @tier1
     def test_positive_update_ignore_puppet_facts_for_provisioning_param(self):
-        """Updates parameter "ignore_puppet_facts_for_provisioning"
-        under Provisioning tab
+        """Updates parameter "ignore_puppet_facts_for_provisioning" under
+        Provisioning tab
 
         @Feature: Settings - Update Parameters
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_provisioning']
-        param_name = 'ignore_puppet_facts_for_provisioning'
+        self.tab_locator = tab_locators['settings.tab_provisioning']
+        self.param_name = 'ignore_puppet_facts_for_provisioning'
+        self.value_type = 'dropdown'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='dropdown',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @run_only_on('sat')
     @tier1
@@ -766,21 +812,24 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_provisioning']
-        param_name = 'manage_puppetca'
+        self.tab_locator = tab_locators['settings.tab_provisioning']
+        self.param_name = 'manage_puppetca'
+        self.value_type = 'dropdown'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='dropdown',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @run_only_on('sat')
     @tier1
@@ -792,21 +841,24 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_provisioning']
-        param_name = 'query_local_nameservers'
+        self.tab_locator = tab_locators['settings.tab_provisioning']
+        self.param_name = 'query_local_nameservers'
+        self.value_type = 'dropdown'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='dropdown',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @run_only_on('sat')
     @tier1
@@ -817,21 +869,24 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_provisioning']
-        param_name = 'safemode_render'
+        self.tab_locator = tab_locators['settings.tab_provisioning']
+        self.param_name = 'safemode_render'
+        self.value_type = 'dropdown'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_boolean_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='dropdown',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
 
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1125156)
@@ -846,25 +901,28 @@ class SettingTestCase(UITestCase):
 
         @BZ: 1125156
         """
-        tab_locator = tab_locators['settings.tab_provisioning']
-        param_name = 'token_duration'
+        self.tab_locator = tab_locators['settings.tab_provisioning']
+        self.param_name = 'token_duration'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in invalid_token_duration():
                 with self.subTest(param_value):
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type='input',
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.assertIsNotNone(
                         session.nav.wait_until_element(
                             common_locators['notif.error'])
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertNotEqual(param_value, saved_element)
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertNotEqual(param_value, self.saved_element)
 
     @run_only_on('sat')
     @tier1
@@ -875,33 +933,23 @@ class SettingTestCase(UITestCase):
 
         @Assert: Parameter is updated successfully
         """
-        tab_locator = tab_locators['settings.tab_provisioning']
-        param_name = 'token_duration'
-        value_type = 'input'
+        self.tab_locator = tab_locators['settings.tab_provisioning']
+        self.param_name = 'token_duration'
+        self.value_type = 'input'
         with Session(self.browser) as session:
+            self.original_value = self.settings.get_saved_value(
+                self.tab_locator, self.param_name)
             for param_value in valid_token_duration():
                 with self.subTest(param_value):
-                    session.nav.go_to_settings()
-                    default_value = self.settings.get_saved_value(
-                        tab_locator, param_name)
+                    self.original_value = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
                     edit_param(
                         session,
-                        tab_locator=tab_locator,
-                        param_name=param_name,
-                        value_type=value_type,
+                        tab_locator=self.tab_locator,
+                        param_name=self.param_name,
+                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    saved_element = self.settings.get_saved_value(
-                        tab_locator, param_name)
-                    self.assertEqual(param_value, saved_element)
-                    # This is the time in minutes as for how long installation
-                    # token should be valid; '0' value is to disable it
-                    # Resetting the token_duration to its default value '60'
-                    if saved_element == '0':
-                        edit_param(
-                            session,
-                            tab_locator=tab_locator,
-                            param_name=param_name,
-                            value_type=value_type,
-                            param_value=default_value,
-                        )
+                    self.saved_element = self.settings.get_saved_value(
+                        self.tab_locator, self.param_name)
+                    self.assertEqual(param_value, self.saved_element)
