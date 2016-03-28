@@ -115,12 +115,8 @@ class CLITestCase(TestCase):
     def setUpClass(cls):  # noqa
         """Make sure that we only read configuration values once."""
         super(CLITestCase, cls).setUpClass()
-        cls.hostname = settings.server.hostname
         cls.katello_user = settings.server.admin_username
         cls.katello_passwd = settings.server.admin_password
-        cls.key_filename = settings.server.ssh_key
-        cls.root = settings.server.ssh_username
-        cls.locale = settings.locale
 
     def setUp(self):  # noqa
         """Log test class and method name before each test."""
