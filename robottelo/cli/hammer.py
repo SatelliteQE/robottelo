@@ -98,7 +98,7 @@ def parse_help(output):
                 continue
             if match.group('name') is None:
                 contents['options'][-1]['help'] += (
-                    ' {0}'.format(match.group('help'))
+                    u' {0}'.format(match.group('help'))
                 )
             else:
                 contents['options'].append({
