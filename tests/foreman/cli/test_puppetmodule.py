@@ -60,4 +60,4 @@ class PuppetModuleTestCase(CLITestCase):
                 {'id': return_value[i]['id']},
                 output_format='json'
             )
-            self.assertEqual(result['ID'], return_value[i]['id'])
+            self.assertEqual(result['ID'], int(return_value[i]['id']))
