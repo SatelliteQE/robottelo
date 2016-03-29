@@ -638,11 +638,12 @@ class Base(object):
         :raise: ValueError if the element type is unknown to our code.
 
         """
-        if self.element_type(locator) == 'input':
+        element_type = self.element_type(locator)
+        if element_type == 'input' or element_type == 'textarea':
             self.text_field_update(locator, value)
-        elif self.element_type(locator) == 'select':
+        elif element_type == 'select' or element_type == 'span':
             self.select(locator, value)
-        elif self.element_type(locator) == 'checkbox':
+        elif element_type == 'checkbox':
             state = self.wait_until_element(locator).is_selected()
             if value != state:
                 self.click(locator)

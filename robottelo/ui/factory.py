@@ -369,31 +369,12 @@ def make_hostgroup(session, org=None, loc=None, force_context=True, **kwargs):
 
 def make_host(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a host"""
-
     create_args = {
-        u'arch': None,
-        u'cpus': '1',
-        u'cv': None,
-        u'custom_ptable': None,
-        u'domain': None,
-        u'env': None,
-        u'host_group': None,
-        u'ip_addr': None,
-        u'lifecycle_env': None,
-        u'mac': None,
-        u'media': None,
-        u'memory': '768 MB',
         u'name': None,
-        u'os': None,
-        u'ptable': None,
-        u'puppet_ca': None,
-        u'puppet_master': None,
-        u'reset_puppetenv': True,
-        u'resource': None,
-        u'root_pwd': None,
-        u'subnet': None,
-        u'network_type': None,
-        u'network': None,
+        u'puppet_classes': None,
+        u'interface_parameters': None,
+        u'host_parameters': None,
+        u'parameters_list': None,
     }
     page = session.nav.go_to_hosts
     core_factory(create_args, kwargs, session, page,
