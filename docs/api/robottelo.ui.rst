@@ -18,6 +18,11 @@
 
 .. automodule:: robottelo.ui.base
 
+:mod:`robottelo.ui.bookmark`
+----------------------------
+
+.. automodule:: robottelo.ui.bookmark
+
 :mod:`robottelo.ui.computeresource`
 -----------------------------------
 

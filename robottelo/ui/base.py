@@ -130,6 +130,31 @@ class Base(object):
             time.sleep(1)
         return None
 
+    def create_a_bookmark(self, name=None, query=None, public=None,
+                          searchbox_query=None):
+        """Bookmark a search on current entity page"""
+        self.navigate_to_entity()
+        prefix = 'kt_' if self.is_katello else ''
+        searchbox = self.wait_until_element(
+            common_locators[prefix + 'search'],
+            timeout=self.button_timeout
+        )
+        if searchbox is None:
+            raise UINoSuchElementError('Search box not found.')
+        if searchbox_query is not None:
+            searchbox.clear()
+            searchbox.send_keys(u'{0}'.format(escape_search(searchbox_query)))
+        self.click(common_locators['search_dropdown'])
+        self.click(locators['bookmark.new'])
+        self.wait_until_element(locators['bookmark.name'])
+        if name is not None:
+            self.assign_value(locators['bookmark.name'], name)
+        if query is not None:
+            self.assign_value(locators['bookmark.query'], query)
+        if public is not None:
+            self.assign_value(locators['bookmark.public'], public)
+        self.click(locators['bookmark.create'])
+
     def handle_alert(self, really):
         """
         Handles any alerts

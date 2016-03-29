@@ -41,6 +41,7 @@ from robottelo.performance.thread import (
 from robottelo.ui.browser import browser, DockerBrowser
 from robottelo.ui.activationkey import ActivationKey
 from robottelo.ui.architecture import Architecture
+from robottelo.ui.bookmark import Bookmark
 from robottelo.ui.computeprofile import ComputeProfile
 from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.configgroups import ConfigGroups
@@ -157,6 +158,7 @@ class UITestCase(TestCase):
         # Library methods
         self.activationkey = ActivationKey(self.browser)
         self.architecture = Architecture(self.browser)
+        self.bookmark = Bookmark(self.browser)
         self.container = Container(self.browser)
         self.compute_profile = ComputeProfile(self.browser)
         self.compute_resource = ComputeResource(self.browser)
