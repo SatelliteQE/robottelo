@@ -5,12 +5,14 @@ import six
 import unittest2
 
 from robottelo.config import settings
+from robottelo.constants import STRING_TYPES
 from robottelo.datafactory import (
     generate_strings_list,
     invalid_emails_list,
     invalid_id_list,
     invalid_names_list,
     invalid_values_list,
+    invalid_usernames_list,
     InvalidArgumentError,
     valid_data_list,
     valid_emails_list,
@@ -20,7 +22,7 @@ from robottelo.datafactory import (
     valid_labels_list,
     valid_names_list,
     valid_org_names_list,
-    valid_usernames_list,
+    valid_usernames_list
 )
 
 if six.PY2:
@@ -45,6 +47,7 @@ class DataCheckTestCase(unittest2.TestCase):
         self.assertEqual(len(invalid_emails_list()), 10)
         self.assertEqual(len(invalid_names_list()), 7)
         self.assertEqual(len(invalid_values_list()), 10)
+        self.assertEqual(len(invalid_usernames_list()), 4)
         self.assertEqual(len(valid_labels_list()), 2)
         self.assertEqual(len(valid_data_list()), 7)
         self.assertEqual(len(valid_emails_list()), 8)
@@ -53,7 +56,7 @@ class DataCheckTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_hostgroups_list()), 7)
         self.assertEqual(len(valid_names_list()), 15)
         self.assertEqual(len(valid_org_names_list()), 7)
-        self.assertEqual(len(valid_usernames_list()), 4)
+        self.assertEqual(len(valid_usernames_list()), 6)
 
     def test_datacheck_False(self):
         """Tests if run_one_datapoint=True returns one data point"""
@@ -76,12 +79,11 @@ class DataCheckTestCase(unittest2.TestCase):
     @mock.patch('robottelo.datafactory.gen_string')
     def test_generate_strings_list_remove_str(self, gen_string):
         gen_string.side_effect = lambda str_type, _: str_type
-        str_types = ['alpha', 'numeric', 'alphanumeric', 'latin1', 'utf8',
-                     'cjk', 'html']
+        str_types = STRING_TYPES[:]
         remove_type = random.choice(str_types)
         str_types.remove(remove_type)
         str_types.sort()
-        string_list = generate_strings_list(remove_str=remove_type)
+        string_list = generate_strings_list(exclude_types=[remove_type])
         string_list.sort()
         self.assertEqual(string_list, str_types)
 

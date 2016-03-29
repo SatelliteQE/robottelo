@@ -6,6 +6,7 @@ from functools import wraps
 from fauxfactory import gen_string, gen_integer
 
 from robottelo.config import settings
+from robottelo.constants import STRING_TYPES
 from robottelo.decorators import bz_bug_is_open
 from six.moves.urllib.parse import quote_plus
 
@@ -32,32 +33,37 @@ def datacheck(func):
 
 
 @datacheck
-def generate_strings_list(length=None, remove_str=None, bug_id=None):
+def generate_strings_list(length=None, exclude_types=None, bug_id=None,
+                          min_length=3, max_length=30):
     """Generates a list of different input strings.
 
     :param int length: Specifies the length of the strings to be
         be generated. If the len1 is None then the list is
         returned with string types of random length.
-    :param str remove_str: Specify any specific data point that needs to be
-        removed. Example: remove_str='numeric'.
+    :param list exclude_types: Specify a list of data types to be removed from
+        generated list. example: exclude_types=['html', 'cjk']
     :param int bug_id: Specify any bug id that is associated to the datapoint
         specified in remove_str.  This will be used only when remove_str is
         populated.
+    :param int min_length: Minimum length to be used in integer generator
+    :param int max_length: Maximum length to be used in integer generator
     :returns: A list of various string types.
 
     """
     if length is None:
-        length = gen_integer(3, 30)
+        length = gen_integer(min_length, max_length)
+
     strings = {
         str_type: gen_string(str_type, length)
-        for str_type
-        in (u'alpha', u'numeric', u'alphanumeric',
-            u'latin1', u'utf8', u'cjk', u'html')
+        for str_type in STRING_TYPES
     }
+
     # Handle No bug_id, If some entity doesn't support a str_type.
     # Remove str_type from dictionary only if bug is open.
-    if remove_str and (bug_id is None or bz_bug_is_open(bug_id)):
-        del strings[remove_str]
+    if exclude_types and (bug_id is None or bz_bug_is_open(bug_id)):
+        for item in exclude_types:
+            strings.pop(item, None)
+
     return list(strings.values())
 
 
@@ -92,14 +98,16 @@ def invalid_id_list():
 @datacheck
 def invalid_names_list():
     """Generates a list of invalid names."""
+    return generate_strings_list(300)
+
+
+@datacheck
+def invalid_usernames_list():
     return [
-        gen_string('alphanumeric', 300),
-        gen_string('alpha', 300),
-        gen_string('cjk', 300),
-        gen_string('latin1', 300),
-        gen_string('numeric', 300),
-        gen_string('utf8', 300),
-        gen_string('html', 300),
+        '',
+        'space {0}'.format(gen_string('alpha')),
+        gen_string('alpha', 101),
+        gen_string('html')
     ]
 
 
@@ -277,18 +285,12 @@ def valid_org_names_list():
 
 @datacheck
 def valid_usernames_list():
-    """Returns a list of valid user names.
-
-    Note: utf8 data is being rejected by the satellite server so it is not
-    included
-
-    """
-    return [
-        gen_string("latin1"),
-        gen_string("alpha"),
-        gen_string("alphanumeric"),
-        gen_string("numeric"),
-    ]
+    """Returns a list of valid user names."""
+    return generate_strings_list(
+        exclude_types=['html'],
+        min_length=1,
+        max_length=100
+    )
 
 
 def valid_http_credentials(url_encoded=False):
@@ -377,14 +379,20 @@ def valid_http_credentials(url_encoded=False):
             u'http_valid': False,
         },
         {
-            u'login': gen_string('alpha', 10),
-            u'pass': gen_string('alpha', 10),
+            u'login': gen_string('alpha', gen_integer(1, 100)),
+            u'pass': gen_string('alpha'),
             u'quote': False,
             u'http_valid': False,
         },
         {
-            u'login': gen_string('alphanumeric', 10),
-            u'pass': gen_string('alphanumeric', 10),
+            u'login': gen_string('alphanumeric', gen_integer(1, 100)),
+            u'pass': gen_string('alphanumeric'),
+            u'quote': False,
+            u'http_valid': False,
+        },
+        {
+            u'login': gen_string('utf8', gen_integer(1, 100)),
+            u'pass': gen_string('utf8'),
             u'quote': False,
             u'http_valid': False,
         },

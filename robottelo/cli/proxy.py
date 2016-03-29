@@ -63,7 +63,7 @@ def default_url_on_new_port(oldport, newport):
         channel = transport.open_session()
         channel.exec_command(command)
         # if exit_status appears until command_timeout, throw error
-        for _ in xrange(command_timeout):
+        for _ in range(command_timeout):
             if channel.exit_status_ready():
                 if channel.recv_exit_status() != 0:
                     stderr = u''

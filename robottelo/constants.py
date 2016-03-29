@@ -810,3 +810,8 @@ BOOKMARK_ENTITIES = [
     {'name': 'Role', 'controller': 'roles'},
     {'name': 'SettingTestCase', 'controller': 'settings'},
 ]
+
+STRING_TYPES = [
+    u'alpha', u'numeric', u'alphanumeric',
+    u'latin1', u'utf8', u'cjk', u'html'
+]

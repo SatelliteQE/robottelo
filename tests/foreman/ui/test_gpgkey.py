@@ -31,11 +31,12 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
+GEN_STRING_LIST_ARGS = {"exclude_types": ['numeric'], "bug_id": 1184480}
+
 
 def get_random_gpgkey_name():
     """Creates a random gpgkey name"""
-    return random.choice(
-        generate_strings_list(remove_str='numeric', bug_id=1184480))
+    return random.choice(generate_strings_list(**GEN_STRING_LIST_ARGS))
 
 
 class GPGKey(UITestCase):
@@ -61,8 +62,7 @@ class GPGKey(UITestCase):
         @assert: gpg key is created
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(
-                    remove_str='numeric', bug_id=1184480):
+            for name in generate_strings_list(**GEN_STRING_LIST_ARGS):
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -84,8 +84,7 @@ class GPGKey(UITestCase):
         @assert: gpg key is created
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(
-                    remove_str='numeric', bug_id=1184480):
+            for name in generate_strings_list(**GEN_STRING_LIST_ARGS):
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -172,8 +171,8 @@ class GPGKey(UITestCase):
         @assert: gpg key is not created
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(
-                    length=300, remove_str='numeric', bug_id=1184480):
+            for name in generate_strings_list(length=300,
+                                              **GEN_STRING_LIST_ARGS):
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -199,8 +198,8 @@ class GPGKey(UITestCase):
         @assert: gpg key is not created
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(
-                    length=300, remove_str='numeric', bug_id=1184480):
+            for name in generate_strings_list(length=300,
+                                              **GEN_STRING_LIST_ARGS):
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -227,8 +226,7 @@ class GPGKey(UITestCase):
         @assert: gpg key is deleted
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(
-                    remove_str='numeric', bug_id=1184480):
+            for name in generate_strings_list(**GEN_STRING_LIST_ARGS):
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -251,8 +249,7 @@ class GPGKey(UITestCase):
         @assert: gpg key is deleted
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(
-                    remove_str='numeric', bug_id=1184480):
+            for name in generate_strings_list(**GEN_STRING_LIST_ARGS):
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -390,7 +387,7 @@ class GPGKey(UITestCase):
             )
             self.assertIsNotNone(self.gpgkey.search(name))
             for new_name in generate_strings_list(
-                    length=300, remove_str='numeric', bug_id=1184480):
+                    length=300, **GEN_STRING_LIST_ARGS):
                 with self.subTest(new_name):
                     self.gpgkey.update(name, new_name)
                     self.assertIsNotNone(
