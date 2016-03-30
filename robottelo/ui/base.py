@@ -189,7 +189,7 @@ class Base(object):
         """Delete an added entity, handles both with and without dropdown."""
         searched = self.search(name)
         if not searched:
-            raise UIError('Could not search the entity "{0}"'.format(name))
+            raise UIError(u'Could not search the entity "{0}"'.format(name))
         if self.is_katello:
             searched.click()
             self.wait_for_ajax()
@@ -218,7 +218,7 @@ class Base(object):
                 self.browser.refresh()
             if bool(searched) == really:
                 raise UIError(
-                    'Delete functionality works improperly for "{0}" entity'
+                    u'Delete functionality works improperly for "{0}" entity'
                     .format(name))
         finally:
             self.button_timeout = 15
@@ -545,7 +545,7 @@ class Base(object):
             element = target
         if element is None:
             raise UINoSuchElementError(
-                '{0}: element was not found while trying to click'
+                u'{0}: element was not found while trying to click'
                 .format(type(self).__name__)
             )
         # Required since from selenium 2.48.0. which makes Selenium more
@@ -612,7 +612,7 @@ class Base(object):
         element = self.wait_until_element(locator)
         if element is None:
             raise UINoSuchElementError(
-                'Cannot move cursor to {0}: element with locator {1}'
+                u'Cannot move cursor to {0}: element with locator {1}'
                 .format(type(self).__name__, locator)
             )
         self.scroll_into_view(element)
@@ -649,6 +649,6 @@ class Base(object):
                 self.click(locator)
         else:
             raise ValueError(
-                'Provided locator {0} is not supported by framework'
+                u'Provided locator {0} is not supported by framework'
                 .format(locator)
             )
