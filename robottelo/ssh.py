@@ -41,8 +41,8 @@ def _call_paramiko_sshclient():
 
 
 @contextmanager
-def _get_connection(
-        hostname=None, username=None, key_filename=None, timeout=10):
+def _get_connection(hostname=None, username=None, password=None,
+                    key_filename=None, timeout=10):
     """Yield an ssh connection object.
 
     The connection will be configured with the specified arguments or will
@@ -55,15 +55,18 @@ def _get_connection(
         with _get_connection() as connection:
             ...
 
-    :param str hostname: The hosname of the server to stablish connection. If
-        it is ``None`` ``server.hostname`` from configuration's ``main``
-        section will be used.
+    :param str hostname: The hostname of the server to establish connection. If
+        it is ``None`` ``hostname`` from configuration's ``server`` section
+        will be used.
     :param str username: The username to use when connecting. If it is ``None``
-        ``server.hostname`` from configuration's ``main`` section will be used.
+        ``ssh_username`` from configuration's ``server`` section will be used.
+    :param str password: The password to use when connecting. If it is ``None``
+        ``ssh_password`` from configuration's ``server`` section will be used.
+        Should be applied only in case ``key_filename`` is not set
     :param str key_filename: The path of the ssh private key to use when
-        connecting to the server. If it is ``None`` ``server.hostname`` from
-        configuration's ``main`` section will be used.
-    :param int timeout: Time to wait for stablish the connection.
+        connecting to the server. If it is ``None`` ``key_filename`` from
+        configuration's ``server`` section will be used.
+    :param int timeout: Time to wait for establish the connection.
 
     :return: An SSH connection.
     :rtype: paramiko.SSHClient
@@ -75,6 +78,8 @@ def _get_connection(
         username = settings.server.ssh_username
     if key_filename is None:
         key_filename = settings.server.ssh_key
+    if password is None:
+        password = settings.server.ssh_password
 
     client = _call_paramiko_sshclient()
     client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
@@ -82,9 +87,9 @@ def _get_connection(
         hostname=hostname,
         username=username,
         key_filename=key_filename,
+        password=password,
         timeout=timeout
     )
-
     client_id = hex(id(client))
     try:
         logger.info('Instantiated Paramiko client {0}'.format(client_id))

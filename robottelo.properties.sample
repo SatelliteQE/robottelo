@@ -16,7 +16,7 @@ ssh_key=
 # SSH username
 # ssh_username=root
 
-# SSH password if not using a SSH key to connect (not yet implemented)
+# SSH password if not using a SSH key to connect
 # ssh_password=
 
 # Admin username when accessing API and UI

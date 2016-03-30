@@ -20,7 +20,6 @@ class MockSSHClient(object):
         Whenever a method in this mock class is called, a corresponding counter
         is incremented. For example, if ``connect`` is called, then
         ``connect_`` is incremented by 1.
-
         """
         # These are counters for logging function calls
         self.set_missing_host_key_policy_ = 0
@@ -30,6 +29,7 @@ class MockSSHClient(object):
         self.hostname = None
         self.username = None
         self.key_filename = None
+        self.password = None
 
     def set_missing_host_key_policy(self, policy):  # pylint:disable=W0613
         """A no-op stub method."""
@@ -52,6 +52,7 @@ class MockSSHClient(object):
         self.connect_ += 1
         self.hostname = hostname
         self.username = username
+        self.password = password
         self.key_filename = key_filename
 
     def close(self):
@@ -62,15 +63,15 @@ class MockSSHClient(object):
 class SSHTestCase(TestCase):
     """Tests for module ``robottelo.ssh``."""
     @mock.patch('robottelo.ssh.settings')
-    def test_get_connection(self, settings):
-        """Test method ``_get_connection``.
+    def test_get_connection_key(self, settings):
+        """Test method ``_get_connection`` using key file to connect to the
+        server.
 
         Mock up ``paramiko.SSHClient`` (by overriding method
         ``_call_paramiko_sshclient``) before calling ``_get_connection``.
         Assert that certain parameters are passed to the (mock)
         ``paramiko.SSHClient`` object, and that certain methods on that object
         are called.
-
         """
         ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
 
@@ -87,6 +88,33 @@ class SSHTestCase(TestCase):
             self.assertEqual(connection.hostname, 'example.com')
             self.assertEqual(connection.username, 'nobody')
             self.assertEqual(connection.key_filename, key_filename)
+        self.assertEqual(connection.set_missing_host_key_policy_, 1)
+        self.assertEqual(connection.connect_, 1)
+        self.assertEqual(connection.close_, 1)
+
+    @mock.patch('robottelo.ssh.settings')
+    def test_get_connection_pass(self, settings):
+        """Test method ``_get_connection`` using password of user to connect to
+        the server
+
+        Mock up ``paramiko.SSHClient`` (by overriding method
+        ``_call_paramiko_sshclient``) before calling ``_get_connection``.
+        Assert that certain parameters are passed to the (mock)
+        ``paramiko.SSHClient`` object, and that certain methods on that object
+        are called.
+        """
+        ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
+        settings.server.hostname = 'example.com'
+        settings.server.ssh_username = 'nobody'
+        settings.server.ssh_key = None
+        settings.server.ssh_password = 'test_password'
+        with ssh._get_connection() as connection:  # pylint:disable=W0212
+            self.assertEqual(connection.set_missing_host_key_policy_, 1)
+            self.assertEqual(connection.connect_, 1)
+            self.assertEqual(connection.close_, 0)
+            self.assertEqual(connection.hostname, 'example.com')
+            self.assertEqual(connection.username, 'nobody')
+            self.assertEqual(connection.password, 'test_password')
         self.assertEqual(connection.set_missing_host_key_policy_, 1)
         self.assertEqual(connection.connect_, 1)
         self.assertEqual(connection.close_, 1)
