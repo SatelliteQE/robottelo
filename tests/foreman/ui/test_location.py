@@ -277,7 +277,7 @@ class LocationTestCase(UITestCase):
             # User names does not accept html values
             for user_name in generate_strings_list(
                     length=10,
-                    remove_str='html'):
+                    exclude_types=['html']):
                 with self.subTest(user_name):
                     loc_name = gen_string('alpha')
                     password = gen_string('alpha')
@@ -629,7 +629,7 @@ class LocationTestCase(UITestCase):
             # User names does not accept html values
             for user_name in generate_strings_list(
                     length=10,
-                    remove_str='html'):
+                    exclude_types=['html']):
                 with self.subTest(user_name):
                     loc_name = gen_string('alpha')
                     user = entities.User(

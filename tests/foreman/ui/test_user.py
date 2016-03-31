@@ -330,7 +330,7 @@ class UserTestCase(UITestCase):
     def test_negative_create(self):
         """@Test:[UI ONLY] Enter all User creation details and Cancel
 
-        @Feature: User - Positive Create
+        @Feature: User - Negative Create
 
         @Assert: User is not created
         """

@@ -4,70 +4,102 @@ Each ``APITestCase`` subclass tests a single URL. A full list of URLs to be
 tested can be found here: http://theforeman.org/api/apidoc/v2/users.html
 
 """
-
-from fauxfactory import gen_string
 from nailgun import entities
-from random import randint
 from requests.exceptions import HTTPError
+from robottelo.datafactory import (
+    generate_strings_list,
+    valid_usernames_list,
+    valid_emails_list,
+    invalid_emails_list,
+    invalid_usernames_list,
+    invalid_names_list
+)
 from robottelo.decorators import tier1
 from robottelo.test import APITestCase
-
-
-def _user_attrs():
-    """Returns a tuple of dicts. Each dict contains user attributes.
-
-    Note: Supplying utf8 values for firstname, lastname or login is rejected
-    by Satellite
-    """
-    return (
-        {u'admin': False},
-        {u'admin': True},
-        {u'firstname': gen_string('alphanumeric', randint(1, 50))},
-        {u'firstname': gen_string('alpha', randint(1, 50))},
-        {u'firstname': gen_string('cjk', randint(1, 50))},
-        {u'firstname': gen_string('latin1', randint(1, 50))},
-        {u'firstname': gen_string('numeric', randint(1, 50))},
-        {u'lastname': gen_string('alphanumeric', randint(1, 50))},
-        {u'lastname': gen_string('alpha', randint(1, 50))},
-        {u'lastname': gen_string('cjk', randint(1, 50))},
-        {u'lastname': gen_string('latin1', randint(1, 50))},
-        {u'lastname': gen_string('numeric', randint(1, 50))},
-        {u'login': gen_string('alphanumeric', randint(1, 100))},
-        {u'login': gen_string('alpha', randint(1, 100))},
-        {u'login': gen_string('cjk', randint(1, 100))},
-        {u'login': gen_string('latin1', randint(1, 100))},
-        {u'login': gen_string('numeric', randint(1, 100))},
-    )
 
 
 class UserTestCase(APITestCase):
     """Tests for the ``users`` path."""
 
     @tier1
-    def test_positive_create(self):
-        """Create a user with attributes ``attrs`` and delete it.
+    def test_positive_create_with_username(self):
+        """Create User for all variations of Username
 
-        @Assert: The created user has the given attributes.
+        @Feature: User - Positive Create
 
-        @Feature: User
+        @Assert: User is created
         """
-        for attr in _user_attrs():
-            with self.subTest(attr):
-                user = entities.User(**attr).create()
-                for name, value in attr.items():
-                    self.assertEqual(getattr(user, name), value)
+        for username in valid_usernames_list():
+            with self.subTest(username):
+                user = entities.User(login=username).create()
+                self.assertEqual(user.login, username)
+
+    @tier1
+    def test_positive_create_with_firstname(self):
+        """Create User for all variations of First Name
+
+        @Feature: User - Positive Create
+
+        @Assert: User is created
+        """
+        for firstname in generate_strings_list(
+                exclude_types=['html'], max_length=50):
+            with self.subTest(firstname):
+                user = entities.User(firstname=firstname).create()
+                self.assertEqual(user.firstname, firstname)
+
+    @tier1
+    def test_positive_create_with_lastname(self):
+        """Create User for all variations of Last Name
+
+        @Feature: User - Positive Create
+
+        @Assert: User is created
+        """
+        for lastname in generate_strings_list(
+                exclude_types=['html'], max_length=50):
+            with self.subTest(lastname):
+                user = entities.User(lastname=lastname).create()
+                self.assertEqual(user.lastname, lastname)
+
+    @tier1
+    def test_positive_create_with_email(self):
+        """Create User for all variations of Email
+
+        @Feature: User - Positive Create
+
+        @Assert: User is created
+        """
+        for mail in valid_emails_list():
+            with self.subTest(mail):
+                user = entities.User(mail=mail).create()
+                self.assertEqual(user.mail, mail)
+
+    @tier1
+    def test_positive_create_with_password(self):
+        """Create User for all variations of Password
+
+        @Feature: User - Positive Create
+
+        @Assert: User is created
+        """
+        for password in generate_strings_list(
+                exclude_types=['html'], max_length=50):
+            with self.subTest(password):
+                user = entities.User(password=password).create()
+                self.assertIsNotNone(user)
 
     @tier1
     def test_positive_delete(self):
-        """Create a user with attributes ``attrs`` and delete it.
+        """Create random users and then delete it.
 
         @Assert: The user cannot be fetched after deletion.
 
         @Feature: User
         """
-        for attr in _user_attrs():
-            with self.subTest(attr):
-                user = entities.User(**attr).create()
+        for mail in valid_emails_list():
+            with self.subTest(mail):
+                user = entities.User(mail=mail).create()
                 user.delete()
                 with self.assertRaises(HTTPError):
                     user.read()
@@ -85,6 +117,58 @@ class UserTestCase(APITestCase):
                 user = entities.User(admin=admin_enable).create()
                 user.admin = not admin_enable
                 self.assertEqual(user.update().admin, not admin_enable)
+
+    @tier1
+    def test_negative_create_with_invalid_email(self):
+        """Create User with invalid Email Address
+
+        @Feature: User - Negative Create
+
+        @Assert: User is not created. Appropriate error shown.
+        """
+        for mail in invalid_emails_list():
+            with self.subTest(mail):
+                with self.assertRaises(HTTPError):
+                    entities.User(mail=mail).create()
+
+    @tier1
+    def test_negative_create_with_invalid_username(self):
+        """Create User with invalid Username
+
+        @Feature: User - Negative Create
+
+        @Assert: User is not created. Appropriate error shown.
+        """
+        for invalid_name in invalid_usernames_list():
+            with self.subTest(invalid_name):
+                with self.assertRaises(HTTPError):
+                    entities.User(login=invalid_name).create()
+
+    @tier1
+    def test_negative_create_with_invalid_firstname(self):
+        """Create User with invalid Firstname
+
+        @Feature: User - Negative Create
+
+        @Assert: User is not created. Appropriate error shown.
+        """
+        for invalid_name in invalid_names_list():
+            with self.subTest(invalid_name):
+                with self.assertRaises(HTTPError):
+                    entities.User(firstname=invalid_name).create()
+
+    @tier1
+    def test_negative_create_with_invalid_lastname(self):
+        """Create User with invalid Lastname
+
+        @Feature: User - Negative Create
+
+        @Assert: User is not created. Appropriate error shown.
+        """
+        for invalid_name in invalid_names_list():
+            with self.subTest(invalid_name):
+                with self.assertRaises(HTTPError):
+                    entities.User(lastname=invalid_name).create()
 
 
 class UserRoleTestCase(APITestCase):
