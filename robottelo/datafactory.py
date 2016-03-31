@@ -379,21 +379,21 @@ def valid_http_credentials(url_encoded=False):
             u'http_valid': False,
         },
         {
-            u'login': gen_string('alpha', gen_integer(1, 100)),
+            u'login': gen_string('alpha', gen_integer(1, 512)),
             u'pass': gen_string('alpha'),
             u'quote': False,
             u'http_valid': False,
         },
         {
-            u'login': gen_string('alphanumeric', gen_integer(1, 100)),
+            u'login': gen_string('alphanumeric', gen_integer(1, 512)),
             u'pass': gen_string('alphanumeric'),
             u'quote': False,
             u'http_valid': False,
         },
         {
-            u'login': gen_string('utf8', gen_integer(1, 100)),
+            u'login': gen_string('utf8', gen_integer(1, 50)),
             u'pass': gen_string('utf8'),
-            u'quote': False,
+            u'quote': True,
             u'http_valid': False,
         },
     ]
@@ -414,13 +414,14 @@ def invalid_http_credentials(url_encoded=False):
     :return: A list of dictionaries with user and password credentials
     """
     credentials = [
-        {u'login': gen_string('alpha', 300), u'pass': ''},
-        {u'login': gen_string('alpha', 300),
-         u'pass': gen_string('alpha', 300)},
+        {u'login': gen_string('alpha', 1024), u'pass': ''},
+        {u'login': gen_string('alpha', 512),
+         u'pass': gen_string('alpha', 512)},
+        {u'login': gen_string('utf8', 256), u'pass': gen_string('utf8', 256)},
     ]
     if url_encoded:
         return [{u'login': quote_plus(cred['login'], ''),
-                u'pass': quote_plus(cred['pass'], '')} for cred in credentials
-                ]
+                 u'pass': quote_plus(cred['pass'], '')}
+                for cred in credentials]
     else:
         return credentials
