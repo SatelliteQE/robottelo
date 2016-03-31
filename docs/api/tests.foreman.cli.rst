@@ -227,3 +227,8 @@
 ----------------------------------
 
 .. automodule:: tests.foreman.cli.test_user
+
+:mod:`tests.foreman.cli.test_usergroup`
+---------------------------------------
+
+.. automodule:: tests.foreman.cli.test_usergroup

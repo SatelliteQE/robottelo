@@ -73,8 +73,8 @@ class UserGroup(Base):
         Options:
             --id ID
             --name NAME                                   Name to search by
-            --user-group, --usergroup USER_GROUP_NAME     Name to search by
-            --user-group-id, --usergroup-id USER_GROUP_ID
+            --user-group USER_GROUP_NAME                  Name to search by
+            --user-group-id USER_GROUP_ID
         """
         cls.command_sub = 'add-user-group'
         return cls.execute(
@@ -124,8 +124,8 @@ class UserGroup(Base):
         Options:
             --id ID
             --name NAME                                   Name to search by
-            --user-group, --usergroup USER_GROUP_NAME     Name to search by
-            --user-group-id, --usergroup-id USER_GROUP_ID
+            --user-group USER_GROUP_NAME                  Name to search by
+            --user-group-id USER_GROUP_ID
         """
         cls.command_sub = 'remove-user-group'
         return cls.execute(

@@ -199,3 +199,8 @@ Submodules:
 -------------------------
 
 .. automodule:: robottelo.cli.user
+
+:mod:`robottelo.cli.usergroup`
+------------------------------
+
+.. automodule:: robottelo.cli.usergroup
