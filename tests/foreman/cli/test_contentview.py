@@ -1776,20 +1776,85 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '1')
 
+    @tier2
     @run_only_on('sat')
-    @stubbed
-    def test_positive_copy(self):
-        # Dev note: "not implemented yet"
-        """attempt to create a new content view by copying an existing
-        content view
+    def test_positive_clone_within_same_env(self):
+        """Attempt to create, publish and promote new content view based on
+        existing view within the same environment as the original content view
 
         @feature: Content Views
 
-        @assert: New content view created
-
-        @status: Manual
-
+        @assert: Cloned content view can be published and promoted to the same
+        environment as the original content view
         """
+        org = make_org()
+        cloned_cv_name = gen_string('alpha')
+        lc_env = make_lifecycle_environment({u'organization-id': org['id']})
+        content_view = make_content_view({u'organization-id': org['id']})
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        cvv = content_view['versions'][0]
+        ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': lc_env['id'],
+        })
+        new_cv = ContentView.copy({
+            u'id': content_view['id'],
+            u'name': cloned_cv_name,
+        })[0]
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        cvv = new_cv['versions'][0]
+        ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': lc_env['id'],
+        })
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertIn(
+            {'id': lc_env['id'], 'name': lc_env['name']},
+            new_cv['lifecycle-environments']
+        )
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_clone_with_diff_env(self):
+        """Attempt to create, publish and promote new content view based on
+        existing view but promoted to a different environment
+
+        @Feature: Content Views
+
+        @Assert: Cloned content view can be published and promoted to a
+        different environment as the original content view
+        """
+        org = make_org()
+        cloned_cv_name = gen_string('alpha')
+        lc_env = make_lifecycle_environment({u'organization-id': org['id']})
+        lc_env_cloned = make_lifecycle_environment({
+            u'organization-id': org['id']})
+        content_view = make_content_view({u'organization-id': org['id']})
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        cvv = content_view['versions'][0]
+        ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': lc_env['id'],
+        })
+        new_cv = ContentView.copy({
+            u'id': content_view['id'],
+            u'name': cloned_cv_name,
+        })[0]
+        ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        cvv = new_cv['versions'][0]
+        ContentView.version_promote({
+            u'id': cvv['id'],
+            u'to-lifecycle-environment-id': lc_env_cloned['id'],
+        })
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertIn(
+            {'id': lc_env_cloned['id'], 'name': lc_env_cloned['name']},
+            new_cv['lifecycle-environments']
+        )
 
     @run_only_on('sat')
     @stubbed

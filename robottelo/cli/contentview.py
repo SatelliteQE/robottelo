@@ -12,8 +12,10 @@ Parameters::
 Subcommands::
 
     add-repository                Associate a resource
-    add-version                   Associate a resource
+    add-version                   Update a content view
+    copy                          Copy a content view
     create                        Create a content view
+    delete                        Delete a content view
     filter                        View and manage filters
     info                          Show a content view
     list                          List content views
@@ -52,6 +54,13 @@ class ContentView(Base):
     def add_version(cls, options):
         """Associate version to a selected CV."""
         cls.command_sub = 'add-version'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def copy(cls, options):
+        """Copy existing content-view to a new one"""
+        cls.command_sub = 'copy'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
 
