@@ -1,4 +1,3 @@
-# -*- encoding: utf-8 -*-
 """Smoke tests for the ``API`` end-to-end scenario."""
 import random
 
@@ -25,9 +24,9 @@ from robottelo.decorators import (
     bz_bug_is_open,
 )
 from robottelo.helpers import get_nailgun_config
-from robottelo.vm import VirtualMachine
 from robottelo.test import TestCase
 from six.moves import http_client
+from .utils import AK_CONTENT_LABEL, ClientProvisioningMixin
 # (too many public methods) pylint: disable=R0904
 
 API_PATHS = {
@@ -747,7 +746,7 @@ class AvailableURLsTestCase(TestCase):
         #     ], …}
 
 
-class EndToEndTestCase(TestCase):
+class EndToEndTestCase(TestCase, ClientProvisioningMixin):
     """End-to-end tests using the ``API`` path."""
 
     def test_positive_find_default_org(self):
@@ -837,16 +836,12 @@ class EndToEndTestCase(TestCase):
             16. Create a new subnet
             17. Create a new domain
             18. Create a new hostgroup and associate previous entities to it
-            19. Create new virtualmachine
-            20. Pull rpm from Foreman server and install on client
-            21. Register client with foreman server using activation-key
-            22. Install rpm on client
+            19. Provision a client
 
         @Feature: End to End Test
 
         @Assert: All tests should succeed and Content should be successfully
         fetched by client.
-
         """
         # step 1: Create a new user with admin permissions
         login = gen_string('alphanumeric')
@@ -958,7 +953,7 @@ class EndToEndTestCase(TestCase):
                 break
         # step 2.14.1: Enable product content
         activation_key.content_override(data={'content_override': {
-            u'content_label': u'rhel-6-server-rhev-agent-rpms',
+            u'content_label': AK_CONTENT_LABEL,
             u'value': u'1',
         }})
 
@@ -995,17 +990,5 @@ class EndToEndTestCase(TestCase):
             subnet=subnet
         ).create()
 
-        # step 2.19: Create a new virtualmachine
-        package_name = 'python-kitchen'
-        with VirtualMachine(distro='rhel66') as vm:
-            # step 2.20: Pull rpm from Foreman server and install on client
-            vm.install_katello_ca()
-            # step 2.21: Register client with foreman server using act keys
-            result = vm.register_contenthost(activation_key_name, org.label)
-            self.assertEqual(result.return_code, 0)
-            # step 2.22: Install rpm on client
-            result = vm.run('yum install -y {0}'.format(package_name))
-            self.assertEqual(result.return_code, 0)
-            # verify that the package is installed by querying it
-            result = vm.run('rpm -q {0}'.format(package_name))
-            self.assertEqual(result.return_code, 0)
+        # step 2.19: Provision a client
+        self.client_provisioning(activation_key_name, org.label)
