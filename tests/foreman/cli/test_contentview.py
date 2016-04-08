@@ -456,7 +456,6 @@ class ContentViewTestCase(CLITestCase):
         ContentView.remove({
             u'id': new_cv['id'],
             u'environment-ids': env['id'],
-            u'organization-id': new_org['id'],
         })
         new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(len(new_cv['lifecycle-environments']), 0)
@@ -570,8 +569,7 @@ class ContentViewTestCase(CLITestCase):
 
         ContentView.remove({
             u'environment-ids': env[0]['id'],
-            u'name': source_cv['name'],
-            u'organization': new_org['name'],
+            u'id': source_cv['id'],
             u'system-content-view-id': destination_cv['id'],
             u'system-environment-id': env[1]['id'],
         })
@@ -604,7 +602,6 @@ class ContentViewTestCase(CLITestCase):
         ContentView.remove({
             u'content-view-version-ids': cvv['id'],
             u'id': new_cv['id'],
-            u'organization-id': new_org['id'],
         })
         new_cv = ContentView.info({u'id': new_cv['id']})
         self.assertEqual(len(new_cv['versions']), 0)
