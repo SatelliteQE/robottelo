@@ -260,7 +260,7 @@ DEFAULT_SUBSCRIPTION_NAME = (
 
 LANGUAGES = [
     "zh_TW",
-    "Japanese",
+    "Galego",
     "Deutsch",
     "it",
     "ko",
