@@ -38,9 +38,9 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_name_by_cv_id(self):
-        """Test: Create new content view filter and assign it to existing
-        content view by id. Use different value types as a name and random
-        filter content type as a parameter for this filter
+        """Create new content view filter and assign it to existing content
+        view by id. Use different value types as a name and random filter
+        content type as a parameter for this filter
 
         @Feature: Content View Filter
 
@@ -69,8 +69,8 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_content_type_by_cv_id(self):
-        """Test: Create new content view filter and assign it to existing
-        content view by id. Use different content types as a parameter
+        """Create new content view filter and assign it to existing content
+        view by id. Use different content types as a parameter
 
         @Feature: Content View Filter
 
@@ -94,8 +94,8 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_positivec_create_with_inclusion_by_cv_id(self):
-        """Test: Create new content view filter and assign it to existing
-        content view by id. Use different inclusions as a parameter
+        """Create new content view filter and assign it to existing content
+        view by id. Use different inclusions as a parameter
 
         @Feature: Content View Filter
 
@@ -121,8 +121,8 @@ class ContentViewFilterTestCase(CLITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1236532)
     def test_positive_create_with_description_by_cv_id(self):
-        """Test: Create new content view filter with description and assign it
-        to existing content view.
+        """Create new content view filter with description and assign it to
+        existing content view.
 
         @Feature: Content View Filter
 
@@ -146,8 +146,8 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_by_cv_name(self):
-        """Test: Create new content view filter and assign it to existing
-        content view by name. Use organization id for reference
+        """Create new content view filter and assign it to existing content
+        view by name. Use organization id for reference
 
         @Feature: Content View Filter
 
@@ -169,8 +169,8 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_by_org_name(self):
-        """Test: Create new content view filter and assign it to existing
-        content view by name. Use organization name for reference
+        """Create new content view filter and assign it to existing content
+        view by name. Use organization name for reference
 
         @Feature: Content View Filter
 
@@ -192,8 +192,8 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_by_org_label(self):
-        """Test: Create new content view filter and assign it to existing
-        content view by name. Use organization label for reference
+        """Create new content view filter and assign it to existing content
+        view by name. Use organization label for reference
 
         @Feature: Content View Filter
 
@@ -215,9 +215,9 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_repo_by_id(self):
-        """Test: Create new content view filter and assign it to existing
-        content view that has repository assigned to it. Use that repository id
-        for proper filter assignment.
+        """Create new content view filter and assign it to existing content
+        view that has repository assigned to it. Use that repository id for
+        proper filter assignment.
 
         @Feature: Content View Filter
 
@@ -242,9 +242,9 @@ class ContentViewFilterTestCase(CLITestCase):
     @tier1
     @skip_if_bug_open('bugzilla', 1228890)
     def test_positive_create_with_repo_by_name(self):
-        """Test: Create new content view filter and assign it to existing
-        content view that has repository assigned to it. Use that repository
-        name for proper filter assignment.
+        """Create new content view filter and assign it to existing content
+        view that has repository assigned to it. Use that repository name for
+        proper filter assignment.
 
         @Feature: Content View Filter
 
@@ -268,9 +268,9 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_original_pkgs(self):
-        """Test: Create new content view filter and assign it to existing
-        content view that has repository assigned to it. Enable 'original
-        packages' option for that filter
+        """Create new content view filter and assign it to existing content
+        view that has repository assigned to it. Enable 'original packages'
+        option for that filter
 
         @Feature: Content View Filter
 
@@ -295,10 +295,10 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_positive_create_with_repos_yum_and_docker(self):
-        """Test: Create new docker repository and add to content view that has
-        yum repo already assigned to it. Create new content view filter and
-        assign it to mentioned content view. Use these repositories id for
-        proper filter assignment.
+        """Create new docker repository and add to content view that has yum
+        repo already assigned to it. Create new content view filter and assign
+        it to mentioned content view. Use these repositories id for proper
+        filter assignment.
 
         @Feature: Content View Filter
 
@@ -424,9 +424,9 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_name(self):
-        """Test: Create new content view filter and assign it to existing
-        content view by id. Try to update that filter using different value
-        types as a name
+        """Create new content view filter and assign it to existing content
+        view by id. Try to update that filter using different value types as a
+        name
 
         @Feature: Content View Filter
 
@@ -456,9 +456,9 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_repo_with_same_type(self):
-        """Test: Create new content view filter and apply it to existing
-        content view that has repository assigned to it. Try to update that
-        filter and change affected repository on another one.
+        """Create new content view filter and apply it to existing content view
+        that has repository assigned to it. Try to update that filter and
+        change affected repository on another one.
 
         @Feature: Content View Filter
 
@@ -502,10 +502,10 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_repo_with_different_type(self):
-        """Test: Create new content view filter and apply it to existing
-        content view that has repository assigned to it. Try to update that
-        filter and change affected repository on another one. That new
-        repository should have another type from initial one (e.g. yum->docker)
+        """Create new content view filter and apply it to existing content view
+        that has repository assigned to it. Try to update that filter and
+        change affected repository on another one. That new repository should
+        have another type from initial one (e.g. yum->docker)
 
         @Feature: Content View Filter
 
@@ -551,9 +551,9 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier2
     def test_positive_update_inclusion(self):
-        """Test: Create new content view filter and assign it to existing
-        content view by id. Try to update that filter and assign opposite
-        inclusion value for it
+        """Create new content view filter and assign it to existing content
+        view by id. Try to update that filter and assign opposite inclusion
+        value for it
 
         @Feature: Content View Filter
 
@@ -644,8 +644,8 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_inclusion(self):
-        """Test: Try to update content view filter and assign incorrect
-        inclusion value for it
+        """Try to update content view filter and assign incorrect inclusion
+        value for it
 
         @Feature: Content View Filter
 
@@ -673,8 +673,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_with_non_existent_repo_id(self):
-        """Test: Try to update content view filter using non-existing
-        repository ID
+        """Try to update content view filter using non-existing repository ID
 
         @Feature: Content View Filter
 
@@ -697,8 +696,8 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_negative_update_with_invalid_repo_id(self):
-        """Test: Try to update filter and assign repository which does not
-        belong to filter content view
+        """Try to update filter and assign repository which does not belong to
+        filter content view
 
         @Feature: Content View Filter
 
@@ -722,9 +721,9 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_name(self):
-        """Test: Create new content view filter and assign it to existing
-        content view by id. Try to delete that filter using different value
-        types as a name
+        """Create new content view filter and assign it to existing content
+        view by id. Try to delete that filter using different value types as a
+        name
 
         @Feature: Content View Filter
 
@@ -754,9 +753,8 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_id(self):
-        """Test: Create new content view filter and assign it to existing
-        content view by id. Try to delete that filter using its id as a
-        parameter
+        """Create new content view filter and assign it to existing content
+        view by id. Try to delete that filter using its id as a parameter
 
         @Feature: Content View Filter
 
@@ -782,9 +780,9 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_positive_delete_by_org_name(self):
-        """Test: Create new content view filter and assign it to existing
-        content view by id. Try to delete that filter using organization and
-        content view names where that filter was applied
+        """Create new content view filter and assign it to existing content
+        view by id. Try to delete that filter using organization and content
+        view names where that filter was applied
 
         @Feature: Content View Filter
 
@@ -814,7 +812,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
     @tier1
     def test_negative_delete_by_name(self):
-        """Test: Try to delete non-existent filter using generated name
+        """Try to delete non-existent filter using generated name
 
         @Feature: Content View Filter
 

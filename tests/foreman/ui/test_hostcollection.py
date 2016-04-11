@@ -261,7 +261,7 @@ class HostCollectionTestCase(UITestCase):
 
     @tier1
     def test_positive_copy(self):
-        """@Test: Create Host Collection and copy it
+        """Create Host Collection and copy it
 
         @Feature: Host Collection - Positive Copy
 

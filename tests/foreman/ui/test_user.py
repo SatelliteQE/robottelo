@@ -328,7 +328,7 @@ class UserTestCase(UITestCase):
 
     @tier1
     def test_negative_create(self):
-        """@Test:[UI ONLY] Enter all User creation details and Cancel
+        """Enter all User creation details and Cancel
 
         @Feature: User - Negative Create
 
