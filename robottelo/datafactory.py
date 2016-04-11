@@ -40,7 +40,7 @@ def generate_strings_list(length=None, exclude_types=None, bug_id=None,
     :param int length: Specifies the length of the strings to be
         be generated. If the len1 is None then the list is
         returned with string types of random length.
-    :param list exclude_types: Specify a list of data types to be removed from
+    :param exclude_types: Specify a list of data types to be removed from
         generated list. example: exclude_types=['html', 'cjk']
     :param int bug_id: Specify any bug id that is associated to the datapoint
         specified in remove_str.  This will be used only when remove_str is
