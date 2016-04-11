@@ -861,7 +861,7 @@ class DockerActivationKeyTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_docker_repo_cv(self):
-        """@Test:Add Docker-type repository to a non-composite content view and
+        """Add Docker-type repository to a non-composite content view and
         publish it. Then create an activation key and associate it with the
         Docker content view.
 
@@ -885,10 +885,9 @@ class DockerActivationKeyTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_docker_repo_cv(self):
-        """@Test:Add Docker-type repository to a non-composite
-        content view and publish it. Create an activation key
-        and associate it with the Docker content view. Then remove
-        this content view from the activation key.
+        """Add Docker-type repository to a non-composite content view and
+        publish it. Create an activation key and associate it with the Docker
+        content view. Then remove this content view from the activation key.
 
         @Feature: Docker
 
@@ -901,7 +900,7 @@ class DockerActivationKeyTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_docker_repo_ccv(self):
-        """@Test:Add Docker-type repository to a non-composite content view and
+        """Add Docker-type repository to a non-composite content view and
         publish it. Then add this content view to a composite content view and
         publish it. Create an activation key and associate it with the
         composite Docker content view.
@@ -937,11 +936,11 @@ class DockerActivationKeyTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_docker_repo_ccv(self):
-        """@Test:Add Docker-type repository to a non-composite
-        content view and publish it. Then add this content view to a composite
-        content view and publish it. Create an activation key and associate it
-        with the composite Docker content view. Then, remove the composite
-        content view from the activation key.
+        """Add Docker-type repository to a non-composite content view and
+        publish it. Then add this content view to a composite content view and
+        publish it. Create an activation key and associate it with the
+        composite Docker content view. Then, remove the composite content view
+        from the activation key.
 
         @Feature: Docker
 
@@ -1062,8 +1061,8 @@ class DockerComputeResourceTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_positive_update_external(self):
-        """@Test:Create a Docker-based Compute Resource using an
-        external Docker-enabled system then edit its attributes.
+        """Create a Docker-based Compute Resource using an external
+        Docker-enabled system then edit its attributes.
 
         @Feature: Docker
 

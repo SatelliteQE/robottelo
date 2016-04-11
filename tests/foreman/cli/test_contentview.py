@@ -463,8 +463,8 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_remove_lce_by_id_and_reassign_ak(self):
-        """Test: Remove content view environment and re-assign activation key
-        to another environment and content view
+        """Remove content view environment and re-assign activation key to
+        another environment and content view
 
         @Feature: Content Views
 
@@ -520,8 +520,8 @@ class ContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_remove_lce_by_id_and_reassign_chost(self):
-        """Test: Remove content view environment and re-assign content host
-        to another environment and content view
+        """Remove content view environment and re-assign content host to
+        another environment and content view
 
         @Feature: Content Views
 

@@ -85,8 +85,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_create_erratum_with_name(self):
-        """Test: Create new erratum content filter using different inputs as
-        a name
+        """Create new erratum content filter using different inputs as a name
 
         @Assert: Content view filter created successfully and has correct name
         and type
@@ -105,8 +104,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_create_pkg_group_with_name(self):
-        """Test: Create new package group content filter using different inputs
-        as a name
+        """Create new package group content filter using different inputs as a name
 
         @Assert: Content view filter created successfully and has correct name
         and type
@@ -125,8 +123,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_create_rpm_with_name(self):
-        """Test: Create new RPM content filter using different inputs as
-        a name
+        """Create new RPM content filter using different inputs as a name
 
         @Assert: Content view filter created successfully and has correct name
         and type
@@ -145,7 +142,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_create_with_inclusion(self):
-        """Test: Create new content view filter with different inclusion values
+        """Create new content view filter with different inclusion values
 
         @Assert: Content view filter created successfully and has correct
         inclusion value
@@ -163,8 +160,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_create_with_description(self):
-        """Test: Create new content filter using different inputs as a
-        description
+        """Create new content filter using different inputs as a description
 
         @Assert: Content view filter created successfully and has correct
         description
@@ -182,7 +178,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_create_with_repo(self):
-        """Test: Create new content filter with repository assigned
+        """Create new content filter with repository assigned
 
         @Assert: Content view filter created successfully and has repository
         assigned
@@ -199,8 +195,8 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_create_with_original_packages(self):
-        """Test: Create new content view filter with different 'original
-        packages' option values
+        """Create new content view filter with different 'original packages'
+        option values
 
         @Assert: Content view filter created successfully and has 'original
         packages' value
@@ -220,9 +216,9 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_create_with_docker_repos(self):
-        """Test: Create new docker repository and add to content view that has
-        yum repo already assigned to it. Create new content view filter and
-        assign it to the content view.
+        """Create new docker repository and add to content view that has yum
+        repo already assigned to it. Create new content view filter and assign
+        it to the content view.
 
         @Assert: Content view filter created successfully and has both
         repositories assigned (yum and docker)
@@ -363,7 +359,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_update_inclusion(self):
-        """Test: Update content view filter with new inclusion value
+        """Update content view filter with new inclusion value
 
         @Assert: Content view filter updated successfully and inclusion value
         was changed
@@ -382,7 +378,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_update_repo(self):
-        """Test: Update content view filter with new repository
+        """Update content view filter with new repository
 
         @Assert: Content view filter updated successfully and has new
         repository assigned
@@ -406,7 +402,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_update_repos(self):
-        """Test: Update content view filter with multiple repositories
+        """Update content view filter with multiple repositories
 
         @Assert: Content view filter updated successfully and has new
         repositories assigned
@@ -437,8 +433,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_update_original_packages(self):
-        """Test: Update content view filter with new 'original packages' option
-        value
+        """Update content view filter with new 'original packages' option value
 
         @Assert: Content view filter updated successfully and 'original
         packages' value was changed
@@ -459,7 +454,7 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_update_repo_with_docker(self):
-        """Test: Update existing content view filter which has yum repository
+        """Update existing content view filter which has yum repository
         assigned with new docker repository
 
         @Assert: Content view filter was updated successfully and has both
@@ -563,8 +558,8 @@ class ContentViewFilterTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_negative_update_repo(self):
-        """Test: Try to update content view filter with new repository which
-        doesn't belong to filter's content view
+        """Try to update content view filter with new repository which doesn't
+        belong to filter's content view
 
         @Assert: Content view filter was not updated
 
