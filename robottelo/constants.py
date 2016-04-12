@@ -394,14 +394,6 @@ PERMISSIONS = {
         'power_compute_resources_vms',
         'console_compute_resources_vms',
     ],
-    'ConfigTemplate': [
-        'view_templates',
-        'create_templates',
-        'edit_templates',
-        'destroy_templates',
-        'deploy_templates',
-        'lock_templates',
-    ],
     'DiscoveryRule': [
         'create_discovery_rules',
         'destroy_discovery_rules',
@@ -509,6 +501,14 @@ PERMISSIONS = {
         'create_operatingsystems',
         'edit_operatingsystems',
         'destroy_operatingsystems',
+    ],
+    'ProvisioningTemplate': [
+        'view_provisioning_templates',
+        'create_provisioning_templates',
+        'edit_provisioning_templates',
+        'destroy_provisioning_templates',
+        'deploy_provisioning_templates',
+        'lock_provisioning_templates',
     ],
     'Ptable': [
         'view_ptables',

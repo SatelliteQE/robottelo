@@ -15,10 +15,11 @@ class FilterTestCase(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Search for config template permissions. Set ``cls.ct_perms``."""
+        """Search for provisioning template permissions. Set ``cls.ct_perms``.
+        """
         super(FilterTestCase, cls).setUpClass()
         cls.ct_perms = (
-            entities.Permission(resource_type='ConfigTemplate').search()
+            entities.Permission(resource_type='ProvisioningTemplate').search()
         )
 
     @tier1
@@ -29,7 +30,7 @@ class FilterTestCase(APITestCase):
 
         @Feature: Filter
         """
-        # Create a filter and assign all ConfigTemplate permissions to it.
+        # Create a filter and assign all ProvisioningTemplate permissions to it
         filter_ = entities.Filter(permission=self.ct_perms).create()
         self.assertListEqual(
             [perm.id for perm in filter_.permission],
@@ -38,9 +39,9 @@ class FilterTestCase(APITestCase):
 
     @tier1
     def test_positive_delete(self):
-        """Create a filter and delete it.
+        """Create a filter and delete it afterwards.
 
-        @Assert: The deleted filter cannot be feched.
+        @Assert: The deleted filter cannot be fetched.
 
         @Feature: Filter
         """
