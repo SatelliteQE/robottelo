@@ -399,8 +399,8 @@ def valid_http_credentials(url_encoded=False):
     ]
     if url_encoded:
         return [{
-                u'login': quote_plus(cred['login'], ''),
-                u'pass': quote_plus(cred['pass'], ''),
+                u'login': quote_plus(cred['login'].encode('utf-8'), ''),
+                u'pass': quote_plus(cred['pass'].encode('utf-8'), ''),
                 u'http_valid': cred['http_valid'],
                 } for cred in credentials]
     else:
