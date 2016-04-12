@@ -63,7 +63,7 @@ def _create_repository(session, org, name, product, upstream_name=None):
     :param str org: Name of Organization where product should be created
     :param str name: Name for the repository
     :param str product: Name of product where repository should be created.
-    :param str upstream_name: A valid name for an existing Docker image.
+    :param str upstream_name: A valid name for an existing upstream repository.
         If ``None`` then defaults to ``busybox``.
 
     """
@@ -116,7 +116,7 @@ class DockerRepositoryTestCase(UITestCase):
 
         @Feature: Docker
 
-        @Assert: A repository is created with a Docker image.
+        @Assert: A repository is created with a Docker upstream repository.
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -139,8 +139,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         @Feature: Docker
 
-        @Assert: Multiple docker repositories are created with a Docker image
-        and they all belong to the same product.
+        @Assert: Multiple docker repositories are created with a Docker
+        upstream repository and they all belong to the same product.
         """
         product = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
@@ -162,8 +162,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         @Feature: Docker
 
-        @Assert: Multiple docker repositories are created with a Docker image
-        and they all belong to their respective products.
+        @Assert: Multiple docker repositories are created with a Docker
+        upstream repository and they all belong to their respective products.
         """
         with Session(self.browser) as session:
             for _ in range(randint(2, 3)):
@@ -211,8 +211,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         @Feature: Docker
 
-        @Assert: A repository is created with a Docker image and that its name
-        can be updated.
+        @Assert: A repository is created with a Docker upstream repository and
+        that its name can be updated.
         """
         with Session(self.browser) as session:
             name = gen_string('alphanumeric')
@@ -239,8 +239,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         @Feature: Docker
 
-        @Assert: A repository is created with a Docker image and that its
-        upstream name can be updated.
+        @Assert: A repository is created with a Docker upstream repository and
+        that its upstream name can be updated.
         """
         with Session(self.browser) as session:
             repo_name = gen_string('alphanumeric')
@@ -270,8 +270,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         @Feature: Docker
 
-        @Assert: A repository is created with a Docker image and that its URL
-        can be updated.
+        @Assert: A repository is created with a Docker upstream repository and
+        that its URL can be updated.
         """
         with Session(self.browser) as session:
             name = gen_string('alphanumeric')
@@ -300,7 +300,8 @@ class DockerRepositoryTestCase(UITestCase):
 
         @Feature: Docker
 
-        @Assert: A repository is created with a Docker image and then deleted.
+        @Assert: A repository is created with a Docker upstream repository and
+        then deleted.
         """
         with Session(self.browser) as session:
             for name in valid_data_list():
@@ -410,8 +411,8 @@ class DockerContentViewTestCase(UITestCase):
 
         @Feature: Docker
 
-        @Assert: Repositories are created with Docker images and the product is
-        added to a non-composite content view.
+        @Assert: Repositories are created with Docker upstream repositories and
+        the product is added to a non-composite content view.
         """
         repos = []
         content_view = entities.ContentView(
@@ -503,9 +504,9 @@ class DockerContentViewTestCase(UITestCase):
 
         @Feature: Docker
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a random number of content views which are then added to a
-        composite content view.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a random number of content views which are
+        then added to a composite content view.
         """
         cvs = []
         with Session(self.browser) as session:
@@ -540,8 +541,9 @@ class DockerContentViewTestCase(UITestCase):
 
         @Feature: Docker
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then published only once.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a content view which is then published only
+        once.
         """
         with Session(self.browser) as session:
             for repo_name in valid_data_list():
@@ -571,9 +573,10 @@ class DockerContentViewTestCase(UITestCase):
 
         @Feature: Docker
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then published only once and then
-        added to a composite content view which is also published only once.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a content view which is then published only
+        once and then added to a composite content view which is also published
+        only once.
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -609,8 +612,9 @@ class DockerContentViewTestCase(UITestCase):
 
         @Feature: Docker
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then published multiple times.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a content view which is then published
+        multiple times.
         """
         repo_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -638,9 +642,9 @@ class DockerContentViewTestCase(UITestCase):
         """Add Docker-type repository to content view and publish it
         multiple times.
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then added to a composite content
-        view which is then published multiple times.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a content view which is then added to a
+        composite content view which is then published multiple times.
 
         @Feature: Docker
 

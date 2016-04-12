@@ -48,7 +48,7 @@ def _make_docker_repo(product_id, name=None, upstream_name=None):
     :param product_id: ID of the ``Product``.
     :param str name: Name for the repository. If ``None`` then a random
         value will be generated.
-    :param str upstream_name: A valid name for an existing Docker image.
+    :param str upstream_name: A valid name of an existing upstream repository.
         If ``None`` then defaults to ``busybox``.
     :return: A ``Repository`` object.
 
@@ -62,16 +62,16 @@ def _make_docker_repo(product_id, name=None, upstream_name=None):
     })
 
 
-class DockerImageTestCase(CLITestCase):
-    """Tests related to docker image command"""
+class DockerManifestTestCase(CLITestCase):
+    """Tests related to docker manifest command"""
 
     @tier2
     def test_positive_read_docker_tags(self):
-        """docker image displays tags information for a docker image
+        """docker manifest displays tags information for a docker manifest
 
         @Feature: Docker
 
-        @Assert: docker image displays tags information for a docker image
+        @Assert: docker manifest displays tags info for a docker manifest
 
         """
         organization = make_org()
@@ -85,18 +85,18 @@ class DockerImageTestCase(CLITestCase):
             u'url': DOCKER_REGISTRY_HUB,
         })
         Repository.synchronize({'id': repository['id']})
-        # Grab all available images related to repository
-        images_list = Docker.image.list({
+        # Grab all available manifests related to repository
+        manifests_list = Docker.manifest.list({
             u'repository-id': repository['id'],
         })
-        # Some images do not have tags associated with it, ignore those because
-        # we want to check the tag information
-        images = [
-            image for image in images_list if int(image['tag-count']) > 0
+        # Some manifests do not have tags associated with it, ignore those
+        # because we want to check the tag information
+        manifests = [
+            m_iter for m_iter in manifests_list if not m_iter['tag'] == ''
         ]
-        for image in images:
-            result = Docker.image.info({'id': image['id']})
-            # Extract the list of repository ids of the available image's tags
+        for manifest in manifests:
+            result = Docker.manifest.info({'id': manifest['id']})
+            # Extract the list of repo ids of the available manifest's tags
             tag_repository_ids = []
             for tag in result['tags']:
                 tag_repository_ids.append(tag['repository-id'])
@@ -121,7 +121,7 @@ class DockerRepositoryTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Create one Docker-type repository
 
-        @Assert: A repository is created with a Docker image.
+        @Assert: A repository is created with a Docker upstream repository.
 
         @Feature: Docker
 
@@ -142,8 +142,8 @@ class DockerRepositoryTestCase(CLITestCase):
     def test_positive_create_repos_using_same_product(self):
         """Create multiple Docker-type repositories
 
-        @Assert: Multiple docker repositories are created with a Docker image
-        and they all belong to the same product.
+        @Assert: Multiple docker repositories are created with a Docker
+        upstream repository and they all belong to the same product.
 
         @Feature: Docker
 
@@ -168,8 +168,8 @@ class DockerRepositoryTestCase(CLITestCase):
         """Create multiple Docker-type repositories on multiple
         products.
 
-        @Assert: Multiple docker repositories are created with a Docker image
-        and they all belong to their respective products.
+        @Assert: Multiple docker repositories are created with a Docker
+        upstream repository and they all belong to their respective products.
 
         @Feature: Docker
 
@@ -202,19 +202,19 @@ class DockerRepositoryTestCase(CLITestCase):
         """
         repo = _make_docker_repo(
             make_product({'organization-id': self.org_id})['id'])
-        self.assertEqual(int(repo['content-counts']['docker-images']), 0)
+        self.assertEqual(int(repo['content-counts']['docker-manifests']), 0)
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertGreaterEqual(
-            int(repo['content-counts']['docker-images']), 1)
+            int(repo['content-counts']['docker-manifests']), 1)
 
     @tier1
     @run_only_on('sat')
     def test_positive_update_name(self):
         """Create a Docker-type repository and update its name.
 
-        @Assert: A repository is created with a Docker image and that its
-        name can be updated.
+        @Assert: A repository is created with a Docker upstream repository and
+        that its name can be updated.
 
         @Feature: Docker
 
@@ -236,8 +236,8 @@ class DockerRepositoryTestCase(CLITestCase):
     def test_positive_update_upstream_name(self):
         """Create a Docker-type repository and update its upstream name.
 
-        @Assert: A repository is created with a Docker image and that its
-        upstream name can be updated.
+        @Assert: A repository is created with a Docker upstream repository and
+        that its upstream name can be updated.
 
         @Feature: Docker
 
@@ -258,8 +258,8 @@ class DockerRepositoryTestCase(CLITestCase):
     def test_positive_update_url(self):
         """Create a Docker-type repository and update its URL.
 
-        @Assert: A repository is created with a Docker image and that its
-        URL can be updated.
+        @Assert: A repository is created with a Docker upstream repository and
+        that its URL can be updated.
 
         @Feature: Docker
 
@@ -279,7 +279,8 @@ class DockerRepositoryTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Create and delete a Docker-type repository
 
-        @Assert: A repository is created with a Docker image and then deleted.
+        @Assert: A repository with a upstream repository is created and then
+        deleted.
 
         @Feature: Docker
 
@@ -392,11 +393,10 @@ class DockerContentViewTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_add_docker_repos_by_id(self):
-        """Add multiple Docker-type repositories to a
-        non-composite content view.
+        """Add multiple Docker-type repositories to a non-composite CV.
 
-        @Assert: Repositories are created with Docker images and the
-        product is added to a non-composite content view.
+        @Assert: Repositories are created with Docker upstream repositories
+        and the product is added to a non-composite content view.
 
         @Feature: Docker
 
@@ -438,7 +438,7 @@ class DockerContentViewTestCase(CLITestCase):
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertGreaterEqual(
-            int(repo['content-counts']['docker-images']), 1)
+            int(repo['content-counts']['docker-manifests']), 1)
         content_view = make_content_view({
             'composite': False,
             'organization-id': self.org_id,
@@ -489,12 +489,11 @@ class DockerContentViewTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_add_docker_repos_by_id_to_ccv(self):
-        """Add multiple Docker-type repositories to a composite
-        content view.
+        """Add multiple Docker-type repositories to a composite content view.
 
-        @Assert: One repository is created with a Docker image and the
-        product is added to a random number of content views which are then
-        added to a composite content view.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a random number of content views which are
+        then added to a composite content view.
 
         @Feature: Docker
 
@@ -539,11 +538,11 @@ class DockerContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_publish_with_docker_repo(self):
-        """Add Docker-type repository to content view and publish
-        it once.
+        """Add Docker-type repository to content view and publish it once.
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then published only once.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a content view which is then published only
+        once.
 
         @Feature: Docker
 
@@ -559,12 +558,11 @@ class DockerContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_publish_with_docker_repo_composite(self):
-        """Add Docker-type repository to composite
-        content view and publish it once.
+        """Add Docker-type repository to composite CV and publish it once.
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then published only once and then
-        added to a composite content view which is also published only once.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a content view which is then published once
+        and added to a composite content view which is also published once.
 
         @Feature: Docker
 
@@ -604,11 +602,12 @@ class DockerContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_publish_multiple_with_docker_repo(self):
-        """Add Docker-type repository to content view and publish it
-        multiple times.
+        """Add Docker-type repository to content view and publish it multiple
+        times.
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then published multiple times.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a content view which is then published
+        multiple times.
 
         @Feature: Docker
 
@@ -626,12 +625,12 @@ class DockerContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_publish_multiple_with_docker_repo_composite(self):
-        """Add Docker-type repository to content view and publish it
-        multiple times.
+        """Add Docker-type repository to content view and publish it multiple
+        times.
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then added to a composite content
-        view which is then published multiple times.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a content view which is then added to a
+        composite content view which is then published multiple times.
 
         @Feature: Docker
 
@@ -693,7 +692,7 @@ class DockerContentViewTestCase(CLITestCase):
         self.assertEqual(len(cvv['lifecycle-environments']), 1)
         ContentView.version_promote({
             'id': cvv['id'],
-            'lifecycle-environment-id': lce['id'],
+            'to-lifecycle-environment-id': lce['id'],
         })
         cvv = ContentView.version_info({
             'id': self.content_view['versions'][0]['id'],
@@ -725,7 +724,7 @@ class DockerContentViewTestCase(CLITestCase):
             lce = make_lifecycle_environment({'organization-id': self.org_id})
             ContentView.version_promote({
                 'id': cvv['id'],
-                'lifecycle-environment-id': lce['id'],
+                'to-lifecycle-environment-id': lce['id'],
             })
             cvv = ContentView.version_info({
                 'id': self.content_view['versions'][0]['id'],
@@ -735,9 +734,8 @@ class DockerContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_promote_with_docker_repo_composite(self):
-        """Add Docker-type repository to composite content view and
-        publish it. Then promote it to the next available
-        lifecycle-environment.
+        """Add Docker-type repository to composite content view and publish it.
+        Then promote it to the next available lifecycle-environment.
 
         @Assert: Docker-type repository is promoted to content view found in
         the specific lifecycle-environment.
@@ -780,7 +778,7 @@ class DockerContentViewTestCase(CLITestCase):
         lce = make_lifecycle_environment({'organization-id': self.org_id})
         ContentView.version_promote({
             'id': comp_content_view['versions'][0]['id'],
-            'lifecycle-environment-id': lce['id'],
+            'to-lifecycle-environment-id': lce['id'],
         })
         cvv = ContentView.version_info({
             'id': comp_content_view['versions'][0]['id'],
@@ -790,9 +788,8 @@ class DockerContentViewTestCase(CLITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_promote_multiple_with_docker_repo_composite(self):
-        """Add Docker-type repository to composite content view and
-        publish it. Then promote it to the multiple available
-        lifecycle-environments.
+        """Add Docker-type repository to composite content view and publish it.
+        Then promote it to the multiple available lifecycle-environments.
 
         @Assert: Docker-type repository is promoted to content view found in
         the specific lifecycle-environments.
@@ -836,7 +833,7 @@ class DockerContentViewTestCase(CLITestCase):
             lce = make_lifecycle_environment({'organization-id': self.org_id})
             ContentView.version_promote({
                 'id': comp_content_view['versions'][0]['id'],
-                'lifecycle-environment-id': lce['id'],
+                'to-lifecycle-environment-id': lce['id'],
             })
             cvv = ContentView.version_info({
                 'id': comp_content_view['versions'][0]['id'],
@@ -878,7 +875,7 @@ class DockerActivationKeyTestCase(CLITestCase):
         })
         ContentView.version_promote({
             'id': cls.content_view['versions'][0]['id'],
-            'lifecycle-environment-id': cls.lce['id'],
+            'to-lifecycle-environment-id': cls.lce['id'],
         })
         cls.cvv = ContentView.version_info({
             'id': cls.content_view['versions'][0]['id'],
@@ -936,13 +933,14 @@ class DockerActivationKeyTestCase(CLITestCase):
             'id': another_cv['id']})
         ContentView.version_promote({
             'id': another_cv['versions'][0]['id'],
-            'lifecycle-environment-id': self.lce['id'],
+            'to-lifecycle-environment-id': self.lce['id'],
         })
 
         ActivationKey.update({
             'id': activation_key['id'],
             'organization-id': self.org['id'],
             'content-view-id': another_cv['id'],
+            'lifecycle-environment-id': self.lce['id'],
         })
         activation_key = ActivationKey.info({
             'id': activation_key['id'],
@@ -991,7 +989,7 @@ class DockerActivationKeyTestCase(CLITestCase):
         })
         ContentView.version_promote({
             'id': comp_cvv['id'],
-            'lifecycle-environment-id': self.lce['id'],
+            'to-lifecycle-environment-id': self.lce['id'],
         })
         activation_key = make_activation_key({
             'content-view-id': comp_content_view['id'],
@@ -1044,7 +1042,7 @@ class DockerActivationKeyTestCase(CLITestCase):
         })
         ContentView.version_promote({
             'id': comp_cvv['id'],
-            'lifecycle-environment-id': self.lce['id'],
+            'to-lifecycle-environment-id': self.lce['id'],
         })
         activation_key = make_activation_key({
             'content-view-id': comp_content_view['id'],
@@ -1064,13 +1062,14 @@ class DockerActivationKeyTestCase(CLITestCase):
             'id': another_cv['id']})
         ContentView.version_promote({
             'id': another_cv['versions'][0]['id'],
-            'lifecycle-environment-id': self.lce['id'],
+            'to-lifecycle-environment-id': self.lce['id'],
         })
 
         ActivationKey.update({
             'id': activation_key['id'],
             'organization-id': self.org['id'],
             'content-view-id': another_cv['id'],
+            'lifecycle-environment-id': self.lce['id'],
         })
         activation_key = ActivationKey.info({
             'id': activation_key['id'],
@@ -1382,8 +1381,8 @@ class DockerContainersTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1230915)
     @skip_if_bug_open('bugzilla', 1269196)
     def test_positive_power_on_off(self):
-        """Create containers for local and external compute resource,
-        then power them on and finally power them off
+        """Create containers for local and external compute resource, then
+        power them on and finally power them off
 
         @Feature: Docker
 
@@ -1414,8 +1413,8 @@ class DockerContainersTestCase(CLITestCase):
     @skip_if_bug_open('bugzilla', 1230915)
     @skip_if_bug_open('bugzilla', 1269208)
     def test_positive_read_container_log(self):
-        """Create containers for local and external compute resource and
-        read their logs
+        """Create containers for local and external compute resource and read
+        their logs
 
         @Feature: Docker
 
@@ -1438,8 +1437,7 @@ class DockerContainersTestCase(CLITestCase):
     @run_only_on('sat')
     @stubbed()
     def test_positive_create_with_external_registry(self):
-        """Create a container pulling an image from a custom external
-        registry
+        """Create a container pulling an image from a custom external registry
 
         @Feature: Docker
 
@@ -1511,8 +1509,8 @@ class DockerRegistryTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_update_name_by_id(self):
-        """Create an external docker registry and update its name. Use
-        registry ID to search by
+        """Create an external docker registry and update its name. Use registry
+        ID to search by
 
         @Feature: Docker
 
@@ -1534,8 +1532,8 @@ class DockerRegistryTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_name_by_name(self):
-        """Create an external docker registry and update its name. Use
-        registry name to search by
+        """Create an external docker registry and update its name. Use registry
+        name to search by
 
         @Feature: Docker
 
@@ -1556,8 +1554,8 @@ class DockerRegistryTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_update_url_by_id(self):
-        """Create an external docker registry and update its URL. Use
-        registry ID to search by
+        """Create an external docker registry and update its URL. Use registry
+        ID to search by
 
         @Feature: Docker
 
@@ -1578,8 +1576,8 @@ class DockerRegistryTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_update_url_by_name(self):
-        """Create an external docker registry and update its URL. Use
-        registry name to search by
+        """Create an external docker registry and update its URL. Use registry
+        name to search by
 
         @Feature: Docker
 
@@ -1599,8 +1597,8 @@ class DockerRegistryTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_update_description_by_id(self):
-        """Create an external docker registry and update its
-        description. Use registry ID to search by
+        """Create an external docker registry and update its description. Use
+        registry ID to search by
 
         @Feature: Docker
 
@@ -1623,8 +1621,8 @@ class DockerRegistryTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_update_description_by_name(self):
-        """Create an external docker registry and update its
-        description. Use registry name to search by
+        """Create an external docker registry and update its description. Use
+        registry name to search by
 
         @Feature: Docker
 
@@ -1647,8 +1645,8 @@ class DockerRegistryTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_update_username_by_id(self):
-        """Create an external docker registry and update its username.
-        Use registry ID to search by
+        """Create an external docker registry and update its username. Use
+        registry ID to search by
 
         @Feature: Docker
 
@@ -1671,8 +1669,8 @@ class DockerRegistryTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_update_username_by_name(self):
-        """Create an external docker registry and update its username.
-        Use registry name to search by
+        """Create an external docker registry and update its username. Use
+        registry name to search by
 
         @Feature: Docker
 
@@ -1695,8 +1693,7 @@ class DockerRegistryTestCase(CLITestCase):
     @run_only_on('sat')
     @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_delete_by_id(self):
-        """Create an external docker registry. Use registry ID to search
-        by
+        """Create an external docker registry. Use registry ID to search by
 
         @Feature: Docker
 
@@ -1713,8 +1710,7 @@ class DockerRegistryTestCase(CLITestCase):
     @tier1
     @run_only_on('sat')
     def test_positive_delete_by_name(self):
-        """Create an external docker registry. Use registry name to
-        search by
+        """Create an external docker registry. Use registry name to search by
 
         @Feature: Docker
 
