@@ -658,6 +658,7 @@ def make_repository(options=None):
         u'checksum-type': None,
         u'content-type': u'yum',
         u'docker-upstream-name': None,
+        u'download-policy': None,
         u'gpg-key': None,
         u'gpg-key-id': None,
         u'label': None,

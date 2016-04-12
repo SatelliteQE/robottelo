@@ -32,6 +32,7 @@ class Repository(Base):
 
     @classmethod
     def create(cls, options=None):
+        """Create a custom repository"""
         cls.command_requires_org = False
 
         try:
@@ -42,7 +43,18 @@ class Repository(Base):
         return result
 
     @classmethod
+    def export(cls, options=None):
+        """Export a repository"""
+        cls.command_sub = 'export'
+        return cls.execute(
+            cls._construct_command(options),
+            output_format='csv',
+            ignore_stderr=True,
+        )
+
+    @classmethod
     def info(cls, options=None):
+        """Show a custom repository"""
         cls.command_requires_org = False
 
         try:
