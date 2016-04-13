@@ -109,7 +109,7 @@ class HostTestCase(APITestCase):
                 host = entities.Host(name=name).create()
                 self.assertEqual(
                     host.name,
-                    '{0}.{1}'.format(name, host.domain.read().name).lower()
+                    '{0}.{1}'.format(name, host.domain.read().name)
                 )
 
     @run_only_on('sat')
@@ -373,7 +373,7 @@ class HostTestCase(APITestCase):
                 host = host.update(['name'])
                 self.assertEqual(
                     host.name,
-                    '{0}.{1}'.format(new_name, host.domain.read().name).lower()
+                    '{0}.{1}'.format(new_name, host.domain.read().name)
                 )
 
     @run_only_on('sat')
