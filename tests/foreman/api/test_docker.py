@@ -98,7 +98,7 @@ def _create_repository(product, name=None, upstream_name=None):
     :param product: A ``Product`` object.
     :param str name: Name for the repository. If ``None`` then a random
         value will be generated.
-    :param str upstream_name: A valid name for an existing Docker image.
+    :param str upstream_name: A valid name of an existing upstream repository.
         If ``None`` then defaults to ``busybox``.
     :return: A ``Repository`` object.
 
@@ -133,7 +133,7 @@ class DockerRepositoryTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create one Docker-type repository
 
-        @Assert: A repository is created with a Docker image.
+        @Assert: A repository is created with a Docker upstream repository.
 
         @Feature: Docker
         """
@@ -187,8 +187,8 @@ class DockerRepositoryTestCase(APITestCase):
     def test_positive_create_repos_using_same_product(self):
         """Create multiple Docker-type repositories
 
-        @Assert: Multiple docker repositories are created with a Docker image
-        and they all belong to the same product.
+        @Assert: Multiple docker repositories are created with a Docker
+        usptream repository and they all belong to the same product.
 
         @Feature: Docker
         """
@@ -203,8 +203,8 @@ class DockerRepositoryTestCase(APITestCase):
     def test_positive_create_repos_using_multiple_products(self):
         """Create multiple Docker-type repositories on multiple products
 
-        @Assert: Multiple docker repositories are created with a Docker image
-        and they all belong to their respective products.
+        @Assert: Multiple docker repositories are created with a Docker
+        upstream repository and they all belong to their respective products.
 
         @Feature: Docker
         """
@@ -233,15 +233,15 @@ class DockerRepositoryTestCase(APITestCase):
         )
         repo.sync()
         repo = repo.read()
-        self.assertGreaterEqual(repo.content_counts['docker_image'], 1)
+        self.assertGreaterEqual(repo.content_counts['docker_manifest'], 1)
 
     @tier1
     @run_only_on('sat')
     def test_positive_update_name(self):
         """Create a Docker-type repository and update its name.
 
-        @Assert: A repository is created with a Docker image and that its
-        name can be updated.
+        @Assert: A repository is created with a Docker upstream repository and
+        that its name can be updated.
 
         @Feature: Docker
         """
@@ -260,8 +260,8 @@ class DockerRepositoryTestCase(APITestCase):
     def test_positive_update_upstream_name(self):
         """Create a Docker-type repository and update its upstream name.
 
-        @Assert: A repository is created with a Docker image and that its
-        upstream name can be updated.
+        @Assert: A repository is created with a Docker upstream repository and
+        that its upstream name can be updated.
 
         @Feature: Docker
         """
@@ -280,8 +280,8 @@ class DockerRepositoryTestCase(APITestCase):
     def test_positive_update_url(self):
         """Create a Docker-type repository and update its URL.
 
-        @Assert: A repository is created with a Docker image and that its
-        URL can be updated.
+        @Assert: A repository is created with a Docker upstream repository and
+        that its URL can be updated.
 
         @Feature: Docker
         """
@@ -301,7 +301,8 @@ class DockerRepositoryTestCase(APITestCase):
     def test_positive_delete(self):
         """Create and delete a Docker-type repository
 
-        @Assert: A repository is created with a Docker image and then deleted.
+        @Assert: A repository is created with a Docker upstream repository and
+        then deleted.
 
         @Feature: Docker
         """
@@ -383,7 +384,7 @@ class DockerContentViewTestCase(APITestCase):
         """Add multiple Docker-type repositories to a
         non-composite content view.
 
-        @Assert: Repositories are created with Docker images and the
+        @Assert: Repositories are created with Docker upstream repos and the
         product is added to a non-composite content view.
 
         @Feature: Docker
@@ -432,7 +433,7 @@ class DockerContentViewTestCase(APITestCase):
             entities.Product(organization=self.org).create())
         repo.sync()
         repo = repo.read()
-        self.assertGreaterEqual(repo.content_counts['docker_image'], 1)
+        self.assertGreaterEqual(repo.content_counts['docker_manifest'], 1)
 
         # Create content view and associate docker repo
         content_view = entities.ContentView(
@@ -489,9 +490,9 @@ class DockerContentViewTestCase(APITestCase):
         """Add multiple Docker-type repositories to a composite
         content view.
 
-        @Assert: One repository is created with a Docker image and the
-        product is added to a random number of content views which are then
-        added to a composite content view.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a random number of content views which are
+        then added to a composite content view.
 
         @Feature: Docker
         """
@@ -532,11 +533,11 @@ class DockerContentViewTestCase(APITestCase):
     @tier2
     @run_only_on('sat')
     def test_positive_publish_with_docker_repo(self):
-        """Add Docker-type repository to content view and publish
-        it once.
+        """Add Docker-type repository to content view and publish it once.
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then published only once.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a content view which is then published
+        only once.
 
         @Feature: Docker
         """
@@ -569,9 +570,10 @@ class DockerContentViewTestCase(APITestCase):
         """Add Docker-type repository to composite content view and
         publish it once.
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then published only once and then
-        added to a composite content view which is also published only once.
+        @Assert: One repository is created with an upstream repository and the
+        product is added to a content view which is then published only once
+        and then added to a composite content view which is also published only
+        once.
 
         @Feature: Docker
         """
@@ -620,8 +622,9 @@ class DockerContentViewTestCase(APITestCase):
         """Add Docker-type repository to content view and publish it
         multiple times.
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then published multiple times.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a content view which is then published
+        multiple times.
 
         @Feature: Docker
         """
@@ -650,9 +653,9 @@ class DockerContentViewTestCase(APITestCase):
         """Add Docker-type repository to content view and publish it
         multiple times.
 
-        @Assert: One repository is created with a Docker image and the product
-        is added to a content view which is then added to a composite content
-        view which is then published multiple times.
+        @Assert: One repository is created with a Docker upstream repository
+        and the product is added to a content view which is then added to a
+        composite content view which is then published multiple times.
 
         @Feature: Docker
         """

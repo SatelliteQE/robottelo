@@ -38,11 +38,14 @@ class Base(object):
         architecture                  Manipulate architectures.
         auth                          Foreman connection login/logout.
         auth-source                   Manipulate auth sources.
+        bootdisk                      Download boot disks
         capsule                       Manipulate capsule
         compute-resource              Manipulate compute resources.
         content-host                  Manipulate content hosts on the server
+        content-report                View Content Reports
         content-view                  Manipulate content views.
-        docker-image                  Manipulate docker images
+        defaults                      Defaults management
+        docker                        Manipulate docker content
         domain                        Manipulate domains.
         environment                   Manipulate environments.
         erratum                       Manipulate errata
@@ -60,6 +63,7 @@ class Base(object):
         model                         Manipulate hardware models.
         organization                  Manipulate organizations
         os                            Manipulate operating system.
+        ostree-branch                 Manipulate ostree branches
         package                       Manipulate packages.
         package-group                 Manipulate package groups
         partition-table               Manipulate partition tables.
@@ -73,7 +77,9 @@ class Base(object):
         repository-set                Manipulate repository sets on the server
         role                          Manage user roles.
         sc-param                      Manipulate smart class parameters.
+        settings                      Change server settings.
         shell                         Interactive shell
+        smart-variable                Manipulate smart variables.
         subnet                        Manipulate subnets.
         subscription                  Manipulate subscriptions.
         sync-plan                     Manipulate sync plans

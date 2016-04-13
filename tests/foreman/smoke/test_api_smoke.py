@@ -235,9 +235,9 @@ API_PATHS = {
         u'/katello/api/repositories/:repository_id/distributions',
         u'/katello/api/repositories/:repository_id/distributions/:id',
     ),
-    u'docker_images': (
-        u'/katello/api/docker_images',
-        u'/katello/api/docker_images/:id',
+    u'docker_manifests': (
+        u'/katello/api/docker_manifests',
+        u'/katello/api/docker_manifests/:id',
     ),
     u'docker_tags': (
         u'/katello/api/docker_tags',
@@ -713,8 +713,8 @@ class AvailableURLsTestCase(TestCase):
 
         if bz_bug_is_open(1166875):
             # The server returns incorrect paths.
-            api_paths['docker_images'].append(u'/katello/api/docker_images')
-            api_paths['docker_images'].remove(u'/katello/api/compare')
+            api_paths['docker_manifests'].append(u'/katello/api/docker_manifests')
+            api_paths['docker_manifests'].remove(u'/katello/api/compare')
             api_paths['docker_tags'].append(u'/katello/api/docker_tags')
             api_paths['docker_tags'].remove(u'/katello/api/compare')
             api_paths['errata'].append(u'/katello/api/errata')

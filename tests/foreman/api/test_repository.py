@@ -685,7 +685,8 @@ class DockerRepositoryTestCase(APITestCase):
             url=DOCKER_REGISTRY_HUB,
         ).create()
         repo.sync()
-        self.assertGreaterEqual(repo.read().content_counts['docker_image'], 1)
+        self.assertGreaterEqual(
+            repo.read().content_counts['docker_manifest'], 1)
 
     @tier1
     @skip_if_bug_open('bugzilla', 1194476)

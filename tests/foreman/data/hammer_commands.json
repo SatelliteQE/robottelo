@@ -7628,8 +7628,8 @@
           ]
         },
         {
-          "description": "Manage docker images",
-          "name": "image",
+          "description": "Manage docker manifests",
+          "name": "manifest",
           "options": [
             {
               "help": "print help",
@@ -7640,11 +7640,11 @@
           ],
           "subcommands": [
             {
-              "description": "Show a docker image",
+              "description": "Show a docker manifest",
               "name": "info",
               "options": [
                 {
-                  "help": "a docker image identifier",
+                  "help": "a docker manifest identifier",
                   "name": "id",
                   "shortname": null,
                   "value": "ID"
@@ -7677,7 +7677,7 @@
               "subcommands": []
             },
             {
-              "description": "List docker_images",
+              "description": "List docker_manifests",
               "name": "list",
               "options": [
                 {
@@ -20111,7 +20111,7 @@
           "name": "remove-content",
           "options": [
             {
-              "help": "Comma separated list of package/puppet module/docker image ids Comma separated list of values.",
+              "help": "Comma separated list of package/puppet module/docker manifest ids Comma separated list of values.",
               "name": "content-ids",
               "shortname": null,
               "value": "CONTENT_IDS"

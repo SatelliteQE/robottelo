@@ -67,14 +67,12 @@ class DockerContainer(Base):
                                                       separated list of values.
             --organizations ORGANIZATION_NAMES        Comma separated list of
                                                       values.
-            --registry-id REGISTRY_ID                 Registry this container
-                                                      will have to use to get
-                                                      the image
+            --registry-id REGISTRY_ID
             --repository-name REPOSITORY_NAME         Name of the repository to
                                                       use to create the
-                                                      container. e.g: centos
+                                                      container. e.g. centos
             --tag TAG                                 Tag to use to create the
-                                                      container. e.g: latest
+                                                      container. e.g. latest
             --tty TTY                                 One of true/false,
                                                       yes/no, 1/0.
 
@@ -219,12 +217,12 @@ class DockerContainer(Base):
         return cls.execute(cls._construct_command(options))
 
 
-class DockerImage(Base):
-    """Manipulates Docker images
+class DockerManifest(Base):
+    """Manipulates Docker manifests
 
     Usage::
 
-        hammer docker image [OPTIONS] SUBCOMMAND [ARG] ...
+        hammer docker manifest [OPTIONS] SUBCOMMAND [ARG] ...
 
     Parameters::
 
@@ -233,74 +231,84 @@ class DockerImage(Base):
 
     Subcommands::
 
-        info                          Show a docker image
-        list                          List docker_images
+        info                          Show a docker manifest
+        list                          List docker_manifests
 
     """
-    command_base = 'docker image'
+    command_base = 'docker manifest'
 
     @classmethod
     def info(cls, options=None):
-        """Gets information about docker images
+        """Gets information about docker manifests
 
         Usage::
 
-            hammer docker image info [OPTIONS]
+            hammer docker manifest info [OPTIONS]
 
         Options::
 
-            --id ID                       a docker image identifier
+            --id ID                       a docker manifest identifier
             --name NAME                   Name to search by
             --repository REPOSITORY_NAME  Repository name to search by
             --repository-id REPOSITORY_ID repository ID
 
         """
-        return super(DockerImage, cls).info(options)
+        return super(DockerManifest, cls).info(options)
 
     @classmethod
     def list(cls, options=None, per_page=True):
-        """List docker images
+        """List docker manifests
 
         Usage::
 
-            hammer docker image list [OPTIONS]
+            hammer docker manifest list [OPTIONS]
 
         Options::
 
-            --content-view CONTENT_VIEW_NAME                    Content view
-                                                                name
-            --content-view-filter CONTENT_VIEW_FILTER_NAME      Name to search
-                                                                by
-            --content-view-filter-id CONTENT_VIEW_FILTER_ID     filter
-                                                                identifier
-            --content-view-id CONTENT_VIEW_ID                   content view
-                                                                numeric
-                                                                identifier
-            --content-view-version CONTENT_VIEW_VERSION_VERSION Content view
-                                                                version number
-            --content-view-version-id CONTENT_VIEW_VERSION_ID   Content view
-                                                                version
-                                                                identifier
-            --environment ENVIRONMENT_NAME                      Name to search
-                                                                by
-            --environment-id ENVIRONMENT_ID
-            --organization ORGANIZATION_NAME                    Organization
-                                                                name to search
-                                                                by
-            --organization-id ORGANIZATION_ID                   organization ID
-            --organization-label ORGANIZATION_LABEL             Organization
-                                                                label to search
-                                                                by
-            --product PRODUCT_NAME                              Product name to
-                                                                search by
-            --product-id PRODUCT_ID                             product numeric
-                                                                identifier
-            --repository REPOSITORY_NAME                        Repository name
-                                                                to search by
-            --repository-id REPOSITORY_ID                       repository ID
+         --by BY                                             Field to sort the
+                                                             results on
+         --content-view CONTENT_VIEW_NAME                    Content view name
+         --content-view-filter CONTENT_VIEW_FILTER_NAME      Name to search by
+         --content-view-filter-id CONTENT_VIEW_FILTER_ID     filter identifier
+         --content-view-id CONTENT_VIEW_ID                   content view
+                                                             numeric identifier
+         --content-view-version CONTENT_VIEW_VERSION_VERSION Content view
+                                                             version number
+         --content-view-version-id CONTENT_VIEW_VERSION_ID   Content view
+                                                             version identifier
+         --full-results FULL_RESULTS                         Whether or not to
+                                                             show all results
+                                                             One of true/false,
+                                                             yes/no, 1/0.
+         --ids IDS                                           ids to filter
+                                                             content by
+                                                             Comma separated
+                                                             list of values.
+         --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME  Name to search by
+         --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID
+         --order ORDER                                       Sort field and
+                                                             order, eg.
+                                                             "name DESC"
+         --organization ORGANIZATION_NAME                    Organization name
+                                                             to search by
+         --organization-id ORGANIZATION_ID                   organization ID
+         --organization-label ORGANIZATION_LABEL             Organization label
+                                                             to search by
+         --page PAGE                                         Page number,
+                                                             starting at 1
+         --per-page PER_PAGE                                 Number of results
+                                                             per page to return
+         --product PRODUCT_NAME                              Product name to
+                                                             search by
+         --product-id PRODUCT_ID                             product numeric
+                                                             identifier
+         --repository REPOSITORY_NAME                        Repository name to
+                                                             search by
+         --repository-id REPOSITORY_ID                       repository ID
+         --search SEARCH                                     Search string
 
         """
-        return super(DockerImage, cls).list(options, per_page)
+        return super(DockerManifest, cls).list(options, per_page)
 
 
 class DockerRegistry(Base):
@@ -502,7 +510,7 @@ class DockerTag(Base):
 
 
 class Docker(Base):
-    """Manipulates Docker images and tags
+    """Manipulates Docker manifests and tags
 
     Usage::
 
@@ -516,15 +524,16 @@ class Docker(Base):
     Subcommands::
 
         container                     Manage docker containers
-        image                         Manage docker images
+        manifest                      Manage docker manifests
+        registry                      Manage docker registries
         tag                           Manage docker tags
 
     """
     command_base = 'docker'
 
     # Shortcuts to docker subcommands. Instead of importing each subcommand
-    # class, import the Docker class and use it like this: Docker.image.list()
+    # class, import the Docker class and use it like this: Docker.tag.list()
     container = DockerContainer
-    image = DockerImage
+    manifest = DockerManifest
     registry = DockerRegistry
     tag = DockerTag
