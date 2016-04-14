@@ -702,6 +702,10 @@ common_locators = LocatorDict({
     "search": (By.ID, "search"),
     "auto_search": (By.XPATH, "//ul[@id='ui-id-1']/li/a[contains(., '%s')]"),
     "search_button": (By.XPATH, "//button[contains(@type,'submit')]"),
+    "search_dropdown": (
+        By.XPATH,
+        ("//button[contains(@class, 'dropdown-toggle')]"
+         "[@data-toggle='dropdown']")),
     "cancel_form": (By.XPATH, "//a[text()='Cancel']"),
     "submit": (By.NAME, "commit"),
     "filter": (By.XPATH,
@@ -752,6 +756,36 @@ common_locators = LocatorDict({
 })
 
 locators = LocatorDict({
+
+    # Bookmarks
+    "bookmark.select_name": (
+        By.XPATH,
+        ("//td[following-sibling::td[text()='%s']]"
+         "/a[contains(@href,'bookmarks')][span[contains(.,'%s')]]")),
+    "bookmark.new": (
+        By.XPATH,
+        ("//ul[contains(@class, 'dropdown-menu')]"
+         "[contains(@class, 'pull-right')]/li"
+         "/a[contains(@ng-click, 'add()') or contains(@id, 'bookmark')]")),
+    "bookmark.name": (By.XPATH, "//input[@id='name' or @id='bookmark_name']"),
+    "bookmark.query": (
+        By.XPATH,
+        ("//*[(@id='query' and @name='query') or "  # can be input or textarea
+         "(@id='bookmark_query' and @name='bookmark[query]')]")),
+    "bookmark.public": (
+        By.XPATH,
+        "//input[@type='checkbox'][@id='public' or @id='bookmark_public']"),
+    "bookmark.create": (
+        By.XPATH,
+        ("//button[(contains(@class, 'btn-primary') and @type='button') or "
+         "(contains(@class, 'btn-danger') and @ng-click='ok()')]")),
+    "bookmark.select_long_name": (
+        By.XPATH,
+        ("//td[following-sibling::td[text()='%s']]"
+         "/a[contains(@href,'bookmarks')][span[@data-original-title='%s']]")),
+    "bookmark.delete": (
+        By.XPATH,
+        "//a[@class='delete' and contains(@data-confirm, '%s')]"),
 
     # Locations
     "location.new": (By.XPATH, "//a[@data-id='aid_locations_new']"),

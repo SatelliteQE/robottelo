@@ -18,6 +18,11 @@
 
 .. automodule:: tests.foreman.ui.test_architecture
 
+:mod:`tests.foreman.ui.test_bookmark`
+-------------------------------------
+
+.. automodule:: tests.foreman.ui.test_bookmark
+
 :mod:`tests.foreman.ui.test_capsule`
 ------------------------------------
 

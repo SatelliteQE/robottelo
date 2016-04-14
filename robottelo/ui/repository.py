@@ -46,7 +46,7 @@ class Repos(Base):
         repo_element = self.search(name)
         if repo_element is None:
             raise UIError(
-                'Unable to find the repository "{0}" for update.'.format(name)
+                u'Unable to find the repository "{0}" for update.'.format(name)
             )
         repo_element.click()
         self.wait_for_ajax()
@@ -133,7 +133,7 @@ class Repos(Base):
         repo_element = self.search(name)
         if repo_element is None:
             raise UIError(
-                'Unable to find the repo "{0}" for validation.'.format(name)
+                u'Unable to find the repo "{0}" for validation.'.format(name)
             )
         repo_element.click()
         self.wait_for_ajax()
