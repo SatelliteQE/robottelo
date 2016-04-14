@@ -12,11 +12,11 @@ class HostCollectionTestCase(APITestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Create content hosts that can be shared by tests."""
+        """Create hosts that can be shared by tests."""
         super(HostCollectionTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
-        cls.systems = [
-            entities.System(organization=cls.org).create()
+        cls.hosts = [
+            entities.Host(organization=cls.org).create()
             for _
             in range(2)
         ]
@@ -67,107 +67,113 @@ class HostCollectionTestCase(APITestCase):
         for limit in (1, 3, 5, 10, 20):
             with self.subTest(limit):
                 host_collection = entities.HostCollection(
-                    max_content_hosts=limit,
+                    max_hosts=limit,
                     organization=self.org,
                 ).create()
-                self.assertEqual(host_collection.max_content_hosts, limit)
+                self.assertEqual(host_collection.max_hosts, limit)
 
     @tier1
-    def test_positive_create_with_unlimited_chosts(self):
-        """Create host collection with different values of 'unlimited
-        content hosts' parameter.
+    def test_positive_create_with_unlimited_hosts(self):
+        """Create host collection with different values of 'unlimited hosts'
+        parameter.
 
         @Feature: Host Collection
 
         @Assert: The host collection was successfully created and has
-        appropriate 'unlimited content hosts' parameter value.
+        appropriate 'unlimited hosts' parameter value.
         """
         for unlimited in (True, False):
             with self.subTest(unlimited):
                 host_collection = entities.HostCollection(
+                    max_hosts=1 if not unlimited else None,
                     organization=self.org,
-                    unlimited_content_hosts=unlimited,
+                    unlimited_hosts=unlimited,
                 ).create()
                 self.assertEqual(
-                    host_collection.unlimited_content_hosts, unlimited)
+                    host_collection.unlimited_hosts, unlimited)
 
+    @skip_if_bug_open('bugzilla', 1325989)
     @tier1
-    def test_positive_create_with_chost(self):
-        """Create a host collection that contains a content host.
+    def test_positive_create_with_host(self):
+        """Create a host collection that contains a host.
 
         @Feature: Host Collection
 
         @Assert: The host collection can be read back, and it includes one
-        content host.
+        host.
         """
         host_collection = entities.HostCollection(
+            host=[self.hosts[0]],
             organization=self.org,
-            system=[self.systems[0]],
         ).create()
-        self.assertEqual(len(host_collection.system), 1)
+        self.assertEqual(len(host_collection.host), 1)
 
+    @skip_if_bug_open('bugzilla', 1325989)
     @tier1
-    def test_positive_create_with_chosts(self):
-        """Create a host collection that contains content hosts.
+    def test_positive_create_with_hosts(self):
+        """Create a host collection that contains hosts.
 
         @Feature: Host Collection
 
         @Assert: The host collection can be read back, and it references two
-        content hosts.
+        hosts.
         """
         host_collection = entities.HostCollection(
+            host=self.hosts,
             organization=self.org,
-            system=self.systems,
         ).create()
-        self.assertEqual(len(host_collection.system), len(self.systems))
+        self.assertEqual(len(host_collection.host), len(self.hosts))
 
+    @skip_if_bug_open('bugzilla', 1325989)
     @tier2
-    def test_positive_add_chost(self):
-        """Add content host to host collection.
+    def test_positive_add_host(self):
+        """Add a host to host collection.
 
         @Feature: Host Collection
 
-        @Assert: Content host was added to the host collection.
+        @Assert: Host was added to the host collection.
         """
         host_collection = entities.HostCollection(
             organization=self.org,
         ).create()
-        host_collection.system = [self.systems[0]]
-        host_collection = host_collection.update(['system'])
-        self.assertEqual(len(host_collection.system), 1)
+        host_collection.host = [self.hosts[0]]
+        host_collection = host_collection.update(['host'])
+        self.assertEqual(len(host_collection.host), 1)
 
+    @skip_if_bug_open('bugzilla', 1325989)
     @tier2
-    def test_positive_add_chosts(self):
-        """Add content hosts to host collection.
+    def test_positive_add_hosts(self):
+        """Add hosts to host collection.
 
         @Feature: Host Collection
 
-        @Assert: Content hosts were added to the host collection.
+        @Assert: Hosts were added to the host collection.
         """
         host_collection = entities.HostCollection(
             organization=self.org,
         ).create()
-        host_collection.system = self.systems
-        host_collection = host_collection.update(['system'])
-        self.assertEqual(len(host_collection.system), len(self.systems))
+        host_collection.host = self.hosts
+        host_collection = host_collection.update(['host'])
+        self.assertEqual(len(host_collection.host), len(self.hosts))
 
-    @tier1
     @skip_if_bug_open('bugzilla', 1203323)
-    def test_positive_read_system_ids(self):
-        """Read a host collection and look at the ``system_ids`` field.
+    @skip_if_bug_open('bugzilla', 1325989)
+    @tier1
+    def test_positive_read_host_ids(self):
+        """Read a host collection and look at the ``host_ids`` field.
 
         @Feature: Host Collection
 
-        @Assert: The ``system_ids`` field matches the system IDs passed in when
+        @Assert: The ``host_ids`` field matches the host IDs passed in when
         creating the host collection.
         """
         host_collection = entities.HostCollection(
+            host=self.hosts,
             organization=self.org,
-            system=self.systems,
         ).create()
         self.assertEqual(
-            frozenset((system.id for system in host_collection.system)),
-            frozenset((system.id for system in self.systems)),
+            frozenset((host.id for host in host_collection.host)),
+            frozenset((host.id for host in self.hosts)),
         )
 
     @tier1
@@ -210,78 +216,81 @@ class HostCollectionTestCase(APITestCase):
         @Assert: Host collection limit was updated
         """
         host_collection = entities.HostCollection(
+            max_hosts=1,
             organization=self.org,
-            unlimited_content_hosts=False,
+            unlimited_hosts=False,
         ).create()
         for limit in (1, 3, 5, 10, 20):
             with self.subTest(limit):
-                host_collection.max_content_hosts = limit
+                host_collection.max_hosts = limit
                 self.assertEqual(
-                    host_collection.update().max_content_hosts, limit)
+                    host_collection.update().max_hosts, limit)
 
     @tier1
-    def test_positive_update_unlimited_chosts(self):
-        """Check if host collection 'unlimited content hosts' parameter
-        can be updated
+    def test_positive_update_unlimited_hosts(self):
+        """Check if host collection 'unlimited hosts' parameter can be updated
 
         @Feature: Host Collection
 
-        @Assert: Host collection 'unlimited content hosts' parameter was
-        updated
+        @Assert: Host collection 'unlimited hosts' parameter was updated
         """
         random_unlimited = choice([True, False])
         host_collection = entities.HostCollection(
+            max_hosts=1 if not random_unlimited else None,
             organization=self.org,
-            unlimited_content_hosts=random_unlimited,
+            unlimited_hosts=random_unlimited,
         ).create()
         for unlimited in (not random_unlimited, random_unlimited):
             with self.subTest(unlimited):
-                host_collection.unlimited_content_hosts = unlimited
+                host_collection.max_hosts = 1 if not unlimited else None
+                host_collection.unlimited_hosts = unlimited
                 host_collection = host_collection.update(
-                    ['unlimited_content_hosts'])
+                    ['max_hosts', 'unlimited_hosts'])
                 self.assertEqual(
-                    host_collection.unlimited_content_hosts, unlimited)
+                    host_collection.unlimited_hosts, unlimited)
 
-    @tier1
     @skip_if_bug_open('bugzilla', 1203323)
+    @skip_if_bug_open('bugzilla', 1325989)
+    @tier1
     def test_positive_update_chost(self):
-        """Update host collection's content host.
+        """Update host collection's host.
 
         @Feature: Host Collection
 
-        @Assert: The host collection was updated with new content host.
+        @Assert: The host collection was updated with a new host.
         """
         host_collection = entities.HostCollection(
+            host=[self.hosts[0]],
             organization=self.org,
-            system=[self.systems[0]],
         ).create()
-        host_collection.system = self.systems[1]
-        host_collection = host_collection.update(['system'])
-        self.assertEqual(host_collection.system[0].id, self.systems[1].id)
+        host_collection.host = self.hosts[1]
+        host_collection = host_collection.update(['host'])
+        self.assertEqual(host_collection.host[0].id, self.hosts[1].id)
 
-    @tier1
     @skip_if_bug_open('bugzilla', 1203323)
-    def test_positive_update_chosts(self):
-        """Update host collection's content hosts.
+    @skip_if_bug_open('bugzilla', 1325989)
+    @tier1
+    def test_positive_update_hosts(self):
+        """Update host collection's hosts.
 
         @Feature: Host Collection
 
-        @Assert: The host collection was updated with new content hosts.
+        @Assert: The host collection was updated with new hosts.
         """
         host_collection = entities.HostCollection(
+            host=self.hosts,
             organization=self.org,
-            system=self.systems,
         ).create()
-        new_systems = [
-            entities.System(organization=self.org).create()
+        new_hosts = [
+            entities.Host(organization=self.org).create()
             for _
             in range(2)
         ]
-        host_collection.system = new_systems
-        host_collection = host_collection.update(['system'])
+        host_collection.host = new_hosts
+        host_collection = host_collection.update(['host'])
         self.assertEqual(
-            {system.id for system in host_collection.system},
-            {system.id for system in new_systems}
+            {host.id for host in host_collection.host},
+            {host.id for host in new_hosts}
         )
 
     @tier1
@@ -293,9 +302,7 @@ class HostCollectionTestCase(APITestCase):
         @Assert: Host collection was successfully deleted
         """
         host_collection = entities.HostCollection(
-            organization=self.org,
-            unlimited_content_hosts=False,
-        ).create()
+            organization=self.org).create()
         host_collection.delete()
         with self.assertRaises(HTTPError):
             host_collection.read()
