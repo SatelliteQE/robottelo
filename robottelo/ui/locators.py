@@ -654,6 +654,12 @@ common_locators = LocatorDict({
         By.XPATH, "//div[contains(@class, 'alert-success')]"),
     "alert.error": (
         By.XPATH, "//div[contains(@class, 'alert-danger')]"),
+    "alert.success_sub_form": (
+        By.XPATH,
+        "//div[@ng-hide]//div[contains(@class, 'alert-success')]"),
+    "alert.error_sub_form": (
+        By.XPATH,
+        "//div[@ng-hide]//div[contains(@class, 'alert-danger')]"),
 
     "selected_entity": (
         By.XPATH,
@@ -742,13 +748,16 @@ common_locators = LocatorDict({
         ("//div[@class='ms-selection']//ul[@class='ms-list']/li"
          "/span[contains(.,'%s')]/..")),
     "usage_limit": (
-        By.XPATH, "//input[contains(@ng-model, 'max_content_hosts')]"),
+        By.XPATH,
+        "//input[contains(@ng-model, 'max')"
+        "and contains(@ng-model, 'hosts')]"),
     "usage_limit_checkbox": (
         By.XPATH,
-        "//input[contains(@ng-model, 'unlimited_content_hosts')]"),
+        "//input[contains(@ng-model, 'unlimited')"
+        "and contains(@ng-model, 'hosts')]"),
     "invalid_limit": (
         By.XPATH,
-        "//input[@id='max_content_hosts' and contains(@class, 'ng-invalid')]"),
+        "//input[contains(@id, 'max') and contains(@class, 'ng-invalid')]"),
 })
 
 locators = LocatorDict({
@@ -2541,15 +2550,15 @@ locators = LocatorDict({
         "/span[contains(., '%s')]"),
     "hostcollection.edit_limit": (
         By.XPATH,
-        ("//div[@bst-edit-custom='hostCollection.max_content_hosts']"
+        ("//div[@bst-edit-custom='hostCollection.max_hosts']"
          "//div/span/i")),
     "hostcollection.save_limit": (
         By.XPATH,
-        ("//div[@bst-edit-custom='hostCollection.max_content_hosts']"
+        ("//div[@bst-edit-custom='hostCollection.max_hosts']"
          "//button[@ng-click='save()']")),
     "hostcollection.limit_field": (
         By.XPATH,
-        "//div[@bst-edit-custom='hostCollection.max_content_hosts']"
+        "//div[@bst-edit-custom='hostCollection.max_hosts']"
         "//span[text()='%s']"),
     "hostcollection.remove": (
         By.XPATH, "//button[@ng-click='openModal()']"),

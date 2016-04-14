@@ -161,7 +161,7 @@ class HostCollectionTestCase(UITestCase):
                     self.hostcollection.update(name, description=new_desc)
                     self.assertIsNotNone(
                         self.hostcollection.wait_until_element(
-                            common_locators['alert.success'])
+                            common_locators['alert.success_sub_form'])
                     )
                     self.assertTrue(self.hostcollection.validate_field_value(
                         name, 'description', new_desc))
@@ -181,7 +181,7 @@ class HostCollectionTestCase(UITestCase):
             self.assertIsNotNone(self.hostcollection.search(name))
             self.hostcollection.update(name, limit='25')
             self.assertIsNotNone(self.hostcollection.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             self.assertTrue(self.hostcollection.validate_field_value(
                 name, 'limit', '25'))
 
@@ -200,7 +200,7 @@ class HostCollectionTestCase(UITestCase):
             self.assertIsNotNone(self.hostcollection.search(name))
             self.hostcollection.update(name, limit='Unlimited')
             self.assertIsNotNone(self.hostcollection.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             self.assertTrue(self.hostcollection.validate_field_value(
                 name, 'limit', 'Unlimited'))
 
@@ -222,7 +222,7 @@ class HostCollectionTestCase(UITestCase):
                     self.hostcollection.update(name, new_name=new_name)
                     self.assertIsNotNone(
                         self.hostcollection.wait_until_element(
-                            common_locators['alert.error'])
+                            common_locators['alert.error_sub_form'])
                     )
 
     @tier1
@@ -296,7 +296,7 @@ class HostCollectionTestCase(UITestCase):
                     self.hostcollection.copy(name, new_name)
                     self.assertIsNotNone(
                         self.hostcollection.wait_until_element(
-                            common_locators['alert.error'])
+                            common_locators['alert.error_sub_form'])
                     )
 
     @tier3
@@ -363,4 +363,4 @@ class HostCollectionTestCase(UITestCase):
             with self.assertRaises(UIError):
                 self.hostcollection.add_content_host(name, new_systems[1])
             self.assertIsNotNone(self.hostcollection.wait_until_element(
-                common_locators['alert.error']))
+                common_locators['alert.error_sub_form']))

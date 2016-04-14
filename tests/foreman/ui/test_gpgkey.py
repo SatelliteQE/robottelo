@@ -285,7 +285,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.search(name))
             self.gpgkey.update(name, new_name)
             self.assertIsNotNone(self.gpgkey.wait_until_element(
-                common_locators['alert.success']
+                common_locators['alert.success_sub_form']
             ))
 
     @run_only_on('sat')
@@ -311,7 +311,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.search(name))
             self.gpgkey.update(name, new_key=new_key_path)
             self.assertIsNotNone(self.gpgkey.wait_until_element(
-                common_locators['alert.success']
+                common_locators['alert.success_sub_form']
             ))
 
     @run_only_on('sat')
@@ -336,7 +336,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.search(name))
             self.gpgkey.update(name, new_name)
             self.assertIsNotNone(self.gpgkey.wait_until_element(
-                common_locators['alert.success']
+                common_locators['alert.success_sub_form']
             ))
 
     @run_only_on('sat')
@@ -361,7 +361,7 @@ class GPGKey(UITestCase):
             self.assertIsNotNone(self.gpgkey.search(name))
             self.gpgkey.update(name, new_key=new_key_path)
             self.assertIsNotNone(self.gpgkey.wait_until_element(
-                common_locators['alert.success']
+                common_locators['alert.success_sub_form']
             ))
 
     # Negative Update
@@ -390,10 +390,9 @@ class GPGKey(UITestCase):
                     length=300, **GEN_STRING_LIST_ARGS):
                 with self.subTest(new_name):
                     self.gpgkey.update(name, new_name)
-                    self.assertIsNotNone(
-                        self.gpgkey.wait_until_element(
-                            common_locators['alert.error'])
-                    )
+                    self.assertIsNotNone(self.gpgkey.wait_until_element(
+                        common_locators['alert.error_sub_form']
+                    ))
                     self.assertIsNone(self.gpgkey.search(new_name))
 
     @run_only_on('sat')
