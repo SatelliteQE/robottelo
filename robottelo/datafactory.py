@@ -420,8 +420,8 @@ def invalid_http_credentials(url_encoded=False):
         {u'login': gen_string('utf8', 256), u'pass': gen_string('utf8', 256)},
     ]
     if url_encoded:
-        return [{u'login': quote_plus(cred['login'], ''),
-                 u'pass': quote_plus(cred['pass'], '')}
+        return [{u'login': quote_plus(cred['login'].encode('utf-8'), ''),
+                 u'pass': quote_plus(cred['pass'].encode('utf-8'), '')}
                 for cred in credentials]
     else:
         return credentials
