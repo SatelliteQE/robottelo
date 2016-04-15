@@ -40,13 +40,13 @@ class ContentViewTestCase(APITestCase):
 
     @tier3
     @run_only_on('sat')
-    def test_positive_subscribe_system(self):
-        """Subscribe a system to a content view.
+    def test_positive_subscribe_host(self):
+        """Subscribe a host to a content view
 
         @Feature: ContentView
 
-        @Assert: It is possible to create a system and set its
-        'content_view_id' attribute.
+        @Assert: It is possible to create a host and set its 'content_view_id'
+        facet attribute
         """
         # organization
         # ├── lifecycle environment
@@ -63,22 +63,24 @@ class ContentViewTestCase(APITestCase):
         self.assertEqual(len(content_view.version), 1)
         promote(content_view.version[0], lc_env.id)
 
-        # Create a system that is subscribed to the published and promoted
-        # content view. Associating this system with the organization and
-        # environment created above is not particularly important, but doing so
-        # means a shorter test where fewer entities are created, as
-        # System.organization and System.environment are required attributes.
-        system = entities.System(
-            content_view=content_view,
-            environment=lc_env,
+        # Create a host that is subscribed to the published and promoted
+        # content view
+        host = entities.Host(
+            content_facet_attributes={
+                'content_view_id': content_view.id,
+                'lifecycle_environment_id': lc_env.id,
+            },
             organization=org,
         ).create()
-
         # See BZ #1151240
-        self.assertEqual(system.content_view.id, content_view.id)
-        self.assertEqual(system.environment.id, lc_env.id)
+        self.assertEqual(
+            host.content_facet_attributes['content_view_id'], content_view.id)
+        self.assertEqual(
+            host.content_facet_attributes['lifecycle_environment_id'],
+            lc_env.id
+        )
         if not bz_bug_is_open(1223494):
-            self.assertEqual(system.organization.id, org.id)
+            self.assertEqual(host.organization.id, org.id)
 
     @tier2
     @run_only_on('sat')
@@ -1115,12 +1117,14 @@ class ContentViewTestCaseStub(APITestCase):
 
     @tier3
     @stubbed()
-    def test_positive_subscribe_system(self):
-        """
-        attempt to  subscribe systems to content view(s)
-        @feature: Content Views
-        @assert: Systems can be subscribed to content view(s)
-        @status: Manual
+    def test_positive_subscribe_host(self):
+        """Attempt to  subscribe hosts to content view(s)
+
+        @Feature: Content Views
+
+        @Assert: Hosts can be subscribed to content view(s)
+
+        @Status: Manual
         """
         # Notes:
         # this should be limited to only those content views
@@ -1135,11 +1139,12 @@ class ContentViewTestCaseStub(APITestCase):
 
     @tier3
     @stubbed()
-    def test_positive_subscribe_system_custom_cv(self):
-        """
-        attempt to  subscribe systems to content view(s)
-        @feature: Content Views
-        @assert: Systems can be subscribed to content view(s)
+    def test_positive_subscribe_host_custom_cv(self):
+        """Attempt to subscribe hosts to content view(s)
+
+        @Feature: Content Views
+
+        @Assert: Hosts can be subscribed to content view(s)
         """
         # This test is implemented in tests/foreman/smoke/test_api_smoke.py.
         # See the end of method TestSmoke.test_smoke.

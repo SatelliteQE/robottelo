@@ -22,8 +22,7 @@ BZ_1118015_ENTITIES = (
     entities.GPGKey, entities.Host, entities.HostCollection,
     entities.HostGroup, entities.LibvirtComputeResource,
     entities.LifecycleEnvironment, entities.OperatingSystem, entities.Product,
-    entities.Repository, entities.Role, entities.Subnet, entities.System,
-    entities.User,
+    entities.Repository, entities.Role, entities.Subnet, entities.User,
 )
 BZ_1154156_ENTITIES = (entities.ConfigTemplate, entities.Host, entities.User)
 BZ_1187366_ENTITIES = (entities.LifecycleEnvironment, entities.Organization)
@@ -57,7 +56,6 @@ def valid_entities():
         entities.Repository,
         entities.Role,
         entities.Subnet,
-        entities.System,
         entities.TemplateKind,
         entities.User,
         entities.UserGroup,
@@ -84,9 +82,6 @@ def _get_readable_attributes(entity):
         del attributes['name']  # FIXME: "Foo" in, "foo.example.com" out.
     if isinstance(entity, entities.User):
         del attributes['password']
-    if isinstance(entity, entities.System) and bz_bug_is_open(1202917):
-        del attributes['facts']
-        del attributes['type']
 
     # Drop foreign key attributes.
     for field_name in attributes.keys():
@@ -159,7 +154,6 @@ class EntityTestCase(APITestCase):
             entities.LifecycleEnvironment,  # need organization_id
             entities.Product,  # need organization_id
             entities.Repository,  # need organization_id
-            entities.System,  # need organization_id
         )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
@@ -471,10 +465,6 @@ class DoubleCheckTestCase(APITestCase):
                 if (entity_cls in BZ_1187366_ENTITIES and
                         bz_bug_is_open(1187366)):
                     self.skipTest('BZ 1187366: Cannot delete orgs or envs.')
-                if entity_cls == entities.System and bz_bug_is_open(1133071):
-                    self.skipTest(
-                        'BZ 1133071: Receive HTTP 400s instead of 404s.'
-                    )
 
                 # Create an entity, delete it and get it.
                 try:
@@ -511,8 +501,6 @@ class EntityReadTestCase(APITestCase):
             with self.subTest(entity_cls):
                 logger.debug('test_entity_read arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
-                if entity_cls == entities.System and bz_bug_is_open(1223494):
-                    self.skipTest('Cannot read all system attributes.')
                 entity_id = entity_cls().create_json()['id']
                 self.assertIsInstance(
                     entity_cls(id=entity_id).read(),

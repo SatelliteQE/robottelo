@@ -20,7 +20,7 @@ class ErrataTestCase(APITestCase):
 
         @Steps:
 
-        1. PUT /katello/api/systems/bulk/update_content
+        1. PUT /katello/api/hosts/bulk/update_content
 
         @Assert: errata is installed in the host-collection.
 
@@ -83,7 +83,7 @@ class ErrataTestCase(APITestCase):
 
     @stubbed()
     @tier3
-    def test_positive_list_affected_systems(self):
+    def test_positive_list_affected_hosts(self):
         """View a list of affected content hosts for an erratum
 
         @Feature: Errata
@@ -92,7 +92,7 @@ class ErrataTestCase(APITestCase):
 
         @Steps:
 
-        1. GET /katello/api/systems
+        1. GET /katello/api/hosts
 
         @Assert: List of affected content hosts for the given erratum is
         retrieved.
@@ -102,7 +102,7 @@ class ErrataTestCase(APITestCase):
 
     @stubbed()
     @tier3
-    def test_positive_filter_by_affected_systems(self):
+    def test_positive_filter_by_affected_hosts(self):
         """Filter errata list based on affected content hosts
 
         @Feature: Errata
@@ -173,7 +173,7 @@ class ErrataTestCase(APITestCase):
 
         @Steps:
 
-        1. GET /katello/api/systems
+        1. GET /katello/api/hosts
 
         @Assert: The available errata count is retrieved.
 
@@ -218,7 +218,7 @@ class ErrataTestCase(APITestCase):
 
         @Steps:
 
-        1. POST /katello/api/systems/bulk/available_incremental_updates
+        1. POST /katello/api/hosts/bulk/available_incremental_updates
 
         @Assert: Selected errata are applied to multiple content views in
         multiple environments.

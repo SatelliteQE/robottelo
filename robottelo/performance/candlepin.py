@@ -105,13 +105,13 @@ class Candlepin(object):
         return cls.get_real_time(result.stderr)
 
     @classmethod
-    def single_delete(cls, uuid, thread_id):
-        """Delete system from subscription"""
+    def single_delete(cls, id, thread_id):
+        """Delete host from subscription"""
         start = time.time()
         response = requests.delete(
             urljoin(
                 settings.server.get_url(),
-                '/katello/api/systems/{0}'.format(uuid)
+                '/katello/api/hosts/{0}'.format(id)
             ),
             auth=settings.server.get_credentials(),
             verify=False
@@ -119,12 +119,12 @@ class Candlepin(object):
 
         if response.status_code != 204:
             LOGGER.error(
-                'Fail to delete {0} on thread-{1}!'.format(uuid, thread_id)
+                'Fail to delete {0} on thread-{1}!'.format(id, thread_id)
             )
             LOGGER.error(response.content)
         else:
             LOGGER.info(
-                "Delete {0} on thread-{1} successful!".format(uuid, thread_id)
+                "Delete {0} on thread-{1} successful!".format(id, thread_id)
             )
         end = time.time()
         LOGGER.info('real  {0}s'.format(end-start))
