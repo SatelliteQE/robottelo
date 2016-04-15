@@ -1468,7 +1468,7 @@ class TestImport(CLITestCase):
                 )
                 clean_transdata()
 
-    @skip_if_bug_open('bugzilla' 1325497)
+    @skip_if_bug_open('bugzilla', 1325497)
     def test_positive_import_chosts_default(self):
         """Import all content hosts from
         the predefined dataset
