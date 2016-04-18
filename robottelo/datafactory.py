@@ -289,7 +289,7 @@ def valid_usernames_list():
     return generate_strings_list(
         exclude_types=['html'],
         min_length=1,
-        max_length=100
+        max_length=50
     )
 
 

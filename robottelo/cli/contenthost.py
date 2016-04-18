@@ -23,11 +23,46 @@ Subcommands::
 
 """
 from robottelo.cli.base import Base
+from robottelo.cli.host import Host
+from robottelo.decorators import bz_bug_is_open
 
 
 class ContentHost(Base):
     """Manipulates Katello engine's content-host command."""
     command_base = 'content-host'
+
+    @classmethod
+    def create(cls, options=None):
+        """Work around host unification not being completed in order to create
+        a new content host which is now a host subscription.
+        """
+        if 'organization-id' in options and options['organization-id']:
+            organization_field = 'organization-id'
+            organization_value = options['organization-id']
+        else:
+            for key, value in options.items():
+                if key.startswith('organization') and value:
+                    organization_field = key
+                    organization_value = value
+        content_host = Host.subscription_register(options)
+        if bz_bug_is_open(1328202):
+            results = ContentHost.list({
+                organization_field: organization_value,
+            })
+            # Content host registration converts the name to lowercase, make
+            # sure to use the same format while matching against the result
+            content_host_name = options.get('name').lower()
+            for result in results:
+                if result['name'] == content_host_name:
+                    content_host = result
+        return ContentHost.info({'id': content_host['id']})
+
+    @classmethod
+    def delete(cls, options=None):
+        """Work around host unification not being completed in order to delete
+        a content host which is now a host subscription.
+        """
+        return Host.subscription_unregister(options)
 
     @classmethod
     def tasks(cls, options=None):

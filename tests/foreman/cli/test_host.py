@@ -236,7 +236,7 @@ class HostUpdateTestCase(CLITestCase):
                 self.assertEqual(
                     u'{0}.{1}'.format(
                         new_name,
-                        self.host['domain'],
+                        self.host['network']['domain'],
                     ).lower(),
                     self.host['name'],
                 )
@@ -257,13 +257,13 @@ class HostUpdateTestCase(CLITestCase):
                     'new-name': new_name,
                 })
                 self.host = Host.info({
-                    'name': u'{0}.{1}'
-                            .format(new_name, self.host['domain']).lower()
+                    'name': u'{0}.{1}'.format(
+                        new_name, self.host['network']['domain']).lower(),
                 })
                 self.assertEqual(
                     u'{0}.{1}'.format(
                         new_name,
-                        self.host['domain'],
+                        self.host['network']['domain'],
                     ).lower(),
                     self.host['name'],
                 )
@@ -283,7 +283,7 @@ class HostUpdateTestCase(CLITestCase):
             'mac': new_mac,
         })
         self.host = Host.info({'id': self.host['id']})
-        self.assertEqual(self.host['mac'], new_mac)
+        self.assertEqual(self.host['network']['mac'], new_mac)
 
     @tier1
     def test_positive_update_mac_by_name(self):
@@ -300,7 +300,7 @@ class HostUpdateTestCase(CLITestCase):
             'name': self.host['name'],
         })
         self.host = Host.info({'name': self.host['name']})
-        self.assertEqual(self.host['mac'], new_mac)
+        self.assertEqual(self.host['network']['mac'], new_mac)
 
     @tier2
     def test_positive_update_domain_by_id(self):
@@ -320,7 +320,7 @@ class HostUpdateTestCase(CLITestCase):
             'id': self.host['id'],
         })
         self.host = Host.info({'id': self.host['id']})
-        self.assertEqual(self.host['domain'], new_domain['name'])
+        self.assertEqual(self.host['network']['domain'], new_domain['name'])
 
     @tier2
     def test_positive_update_domain_by_name(self):
@@ -345,7 +345,7 @@ class HostUpdateTestCase(CLITestCase):
                 new_domain['name'],
             )
         })
-        self.assertEqual(self.host['domain'], new_domain['name'])
+        self.assertEqual(self.host['network']['domain'], new_domain['name'])
 
     @tier2
     def test_positive_update_env_by_id(self):
@@ -552,7 +552,7 @@ class HostUpdateTestCase(CLITestCase):
                 self.assertNotEqual(
                     u'{0}.{1}'.format(
                         new_name,
-                        self.host['domain'],
+                        self.host['network']['domain'],
                     ).lower(),
                     self.host['name'],
                 )
@@ -573,7 +573,7 @@ class HostUpdateTestCase(CLITestCase):
                         'mac': new_mac,
                     })
                     self.host = Host.info({'id': self.host['id']})
-                    self.assertEqual(self.host['mac'], new_mac)
+                    self.assertEqual(self.host['network']['mac'], new_mac)
 
     @tier2
     def test_negative_update_arch(self):
