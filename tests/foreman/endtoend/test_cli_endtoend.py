@@ -9,6 +9,7 @@ from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.domain import Domain
 from robottelo.cli.factory import make_user
+from robottelo.cli.host import Host
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.location import Location
@@ -310,16 +311,33 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
-        content_host = self._create(
-            user,
-            ContentHost,
-            {
-                u'content-view-id': content_view['id'],
-                u'lifecycle-environment-id': lifecycle_environment['id'],
-                u'name': gen_alphanumeric(),
-                u'organization-id': org['id'],
-            }
-        )
+        content_host_name = gen_alphanumeric()
+        content_host = Host.with_user(
+            user['login'],
+            user['password']
+        ).subscription_register({
+            u'content-view-id': content_view['id'],
+            u'lifecycle-environment-id': lifecycle_environment['id'],
+            u'name': content_host_name,
+            u'organization-id': org['id'],
+        })
+        if bz_bug_is_open(1328202):
+            results = ContentHost.with_user(
+                user['login'],
+                user['password']
+            ).list({
+                'organization-id': org['id']
+            })
+            # Content host registration converts the name to lowercase, make
+            # sure to use the same format while matching against the result
+            content_host_name = content_host_name.lower()
+            for result in results:
+                if result['name'] == content_host_name:
+                    content_host = result
+        content_host = ContentHost.with_user(
+            user['login'],
+            user['password']
+        ).info({'id': content_host['id']})
         # check that content view matches what we passed
         self.assertEqual(
             content_host['content-view'],

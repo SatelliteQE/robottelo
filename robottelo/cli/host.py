@@ -267,3 +267,63 @@ class Host(Base):
         result = cls.execute(cls._construct_command(options))
 
         return result
+
+    @classmethod
+    def subscription_register(cls, options=None):
+        """Register a host with subscription and information.
+
+        Usage:
+
+            hammer host subscription register [OPTIONS]
+
+        Options:
+
+            --content-view CONTENT_VIEW_NAME                    Content view
+                                                                name to search
+                                                                by
+            --content-view-id CONTENT_VIEW_ID                   content view
+                                                                numeric
+                                                                identifier
+            --hypervisor-guest-uuids HYPERVISOR_GUEST_UUIDS     UUIDs of the
+                                                                virtual guests
+                                                                from the
+                                                                host&#39;s
+                                                                hypervisor
+                                                                Comma separated
+                                                                list of values.
+            --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME  Lifecycle
+                                                                environment
+                                                                name to search
+                                                                by
+            --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID ID of the
+                                                                environment
+            --name NAME                                         Name of the
+                                                                host
+            --organization ORGANIZATION_NAME                    Organization
+                                                                name to search
+                                                                by
+            --organization-id ORGANIZATION_ID                   organization ID
+            --organization-label ORGANIZATION_LABEL             Organization
+                                                                label to search
+                                                                by
+            --release-version RELEASE_VERSION                   Release version
+                                                                of the content
+                                                                host
+            --service-level SERVICE_LEVEL                       A service level
+                                                                for
+                                                                auto-healing
+                                                                process, e.g.
+                                                                SELF-SUPPORT
+            --uuid UUID                                         UUID to use for
+                                                                registered
+                                                                host, random
+                                                                uuid is
+                                                                generated if
+                                                                not provided
+        """
+        cls.command_sub = 'subscription register'
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
+        if isinstance(result, list):
+            result = result[0]
+        return result

@@ -1057,16 +1057,23 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
-        if not bz_bug_is_open(1318938):
-            content_host = entities.System(
-                server_config,
-                content_view=content_view,
-                environment=le1
-            ).create()
-            # check that content view matches what we passed
-            self.assertEqual(content_host.content_view.id, content_view.id)
-            # check that lifecycle environment matches
-            self.assertEqual(content_host.environment.id, le1.id)
+        content_host = entities.Host(
+            content_facet_attributes={
+                'content_view_id': content_view.id,
+                'lifecycle_environment_id': le1.id,
+            },
+            organization=org,
+        ).create()
+        # check that content view matches what we passed
+        self.assertEqual(
+            content_host.content_facet_attributes['content_view_id'],
+            content_view.id
+        )
+        # check that lifecycle environment matches
+        self.assertEqual(
+            content_host.content_facet_attributes['lifecycle_environment_id'],
+            le1.id
+        )
 
         # step 2.16: Create a new libvirt compute resource
         entities.LibvirtComputeResource(
