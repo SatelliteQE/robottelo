@@ -1468,6 +1468,7 @@ class TestImport(CLITestCase):
                 )
                 clean_transdata()
 
+    @skip_if_bug_open('bugzilla', 1325497)
     def test_positive_import_chosts_default(self):
         """Import all content hosts from
         the predefined dataset
@@ -1684,6 +1685,7 @@ class TestImport(CLITestCase):
                 self.assertEqual(cf_before, cf_after)
                 clean_transdata()
 
+    @skip_if_bug_open('bugzilla', 1325124)
     def test_positive_import_ak_default(self):
         """Import AKs from the default data set
         (predefined source)
