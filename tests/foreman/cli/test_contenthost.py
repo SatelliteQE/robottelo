@@ -76,7 +76,6 @@ class ContentHostTestCase(CLITestCase):
         @Feature: Content Hosts
 
         @Assert: Content host is created and has random name
-
         """
         for name in generate_strings_list(15):
             with self.subTest(name):
@@ -90,33 +89,12 @@ class ContentHostTestCase(CLITestCase):
             self.assertEqual(new_system['name'], name)
 
     @tier1
-    def test_positive_create_with_description(self):
-        """Check if content host can be created with random description
-
-        @Feature: Content Hosts
-
-        @Assert: Content host is created and has random description
-
-        """
-        for desc in generate_strings_list(15):
-            with self.subTest(desc):
-                new_system = make_content_host({
-                    u'description': desc,
-                    u'content-view-id': self.DEFAULT_CV['id'],
-                    u'lifecycle-environment-id': self.LIBRARY['id'],
-                    u'organization-id': self.NEW_ORG['id'],
-                })
-                # Assert that description matches data passed
-                self.assertEqual(new_system['description'], desc)
-
-    @tier1
     def test_positive_create_with_org_name(self):
         """Check if content host can be created with organization name
 
         @Feature: Content Hosts
 
         @Assert: Content host is created using organization name
-
         """
         new_system = make_content_host({
             u'content-view-id': self.DEFAULT_CV['id'],
@@ -139,7 +117,6 @@ class ContentHostTestCase(CLITestCase):
         @Feature: Content Hosts
 
         @Assert: Content host is created using organization label
-
         """
         new_system = make_content_host({
             u'content-view-id': self.DEFAULT_CV['id'],
@@ -163,7 +140,6 @@ class ContentHostTestCase(CLITestCase):
         @Feature: Content Hosts
 
         @Assert: Content host is created using content view name
-
         """
         new_system = make_content_host({
             u'content-view': self.DEFAULT_CV['name'],
@@ -182,7 +158,6 @@ class ContentHostTestCase(CLITestCase):
         @Feature: Content Hosts
 
         @Assert: Content host is created using lifecycle name
-
         """
         new_system = make_content_host({
             u'content-view-id': self.DEFAULT_CV['id'],
@@ -204,7 +179,6 @@ class ContentHostTestCase(CLITestCase):
         @Feature: Content Hosts
 
         @Assert: Content host is created using new lifecycle
-
         """
         new_system = make_content_host({
             u'content-view-id': self.PROMOTED_CV['id'],
@@ -226,7 +200,6 @@ class ContentHostTestCase(CLITestCase):
         @Feature: Content Hosts
 
         @Assert: Content host is created using new published, promoted cv
-
         """
         if ContentHostTestCase.PROMOTED_CV is None:
             self.fail("Couldn't prepare promoted contentview for this test")
@@ -251,7 +224,6 @@ class ContentHostTestCase(CLITestCase):
         @Feature: Content Hosts
 
         @Assert: Content host is not created
-
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -271,7 +243,6 @@ class ContentHostTestCase(CLITestCase):
         @Feature: Content Hosts
 
         @Assert: Content host is not created using new unpublished cv
-
         """
         con_view = make_content_view({
             u'organization-id': ContentHostTestCase.NEW_ORG['id'],
@@ -286,6 +257,7 @@ class ContentHostTestCase(CLITestCase):
             })
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1318686)
     def test_positive_update_name(self):
         """Check if content host name can be updated
 
@@ -293,6 +265,7 @@ class ContentHostTestCase(CLITestCase):
 
         @Assert: Content host is created and name is updated
 
+        @BZ: 1318686
         """
         new_system = make_content_host({
             u'content-view-id': self.DEFAULT_CV['id'],
@@ -309,48 +282,47 @@ class ContentHostTestCase(CLITestCase):
                 self.assertEqual(result['name'], new_name)
 
     @tier1
-    def test_positive_update_description(self):
-        """Check if content host description can be updated
-
-        @Feature: Content Hosts
-
-        @Assert: Content host is created and description is updated
-
-        """
-        new_system = make_content_host({
-            u'content-view-id': self.DEFAULT_CV['id'],
-            u'lifecycle-environment-id': self.LIBRARY['id'],
-            u'organization-id': self.NEW_ORG['id'],
-        })
-        for new_desc in generate_strings_list():
-            with self.subTest(new_desc):
-                ContentHost.update({
-                    u'id': new_system['id'],
-                    u'description': new_desc,
-                })
-                result = ContentHost.info({'id': new_system['id']})
-                self.assertEqual(result['description'], new_desc)
-
-    @tier1
+    @skip_if_bug_open('bugzilla', 1328202)
     def test_positive_delete_by_id(self):
-        """Check if content host can be created and deleted
+        """Check if content host can be created and deleted by passing its ID
 
         @Feature: Content Hosts
 
         @Assert: Content host is created and then deleted
 
+        @BZ: 1328202
         """
         for name in generate_strings_list():
             with self.subTest(name):
-                new_system = make_content_host({
+                content_host = make_content_host({
                     u'content-view-id': self.DEFAULT_CV['id'],
                     u'lifecycle-environment-id': self.LIBRARY['id'],
                     u'name': name,
                     u'organization-id': self.NEW_ORG['id'],
                 })
-                ContentHost.delete({u'id': new_system['id']})
+                ContentHost.delete({u'host-id': content_host['id']})
                 with self.assertRaises(CLIReturnCodeError):
-                    ContentHost.info({'id': new_system['id']})
+                    ContentHost.info({'id': content_host['id']})
+
+    @tier1
+    def test_positive_delete_by_name(self):
+        """Check if content host can be created and deleted by passing its name
+
+        @Feature: Content Hosts
+
+        @Assert: Content host is created and then deleted
+        """
+        for name in generate_strings_list():
+            with self.subTest(name):
+                content_host = make_content_host({
+                    u'content-view-id': self.DEFAULT_CV['id'],
+                    u'lifecycle-environment-id': self.LIBRARY['id'],
+                    u'name': name,
+                    u'organization-id': self.NEW_ORG['id'],
+                })
+                ContentHost.delete({u'host': content_host['name']})
+                with self.assertRaises(CLIReturnCodeError):
+                    ContentHost.info({'id': content_host['id']})
 
     @tier1
     @skip_if_bug_open('bugzilla', 1154611)
@@ -363,7 +335,6 @@ class ContentHostTestCase(CLITestCase):
         @assert: Content Hosts with the same name are not allowed
 
         @bz: 1154611
-
         """
         name = gen_string('alpha', 15)
         result = make_content_host({
@@ -372,7 +343,7 @@ class ContentHostTestCase(CLITestCase):
             u'name': name,
             u'organization-id': self.NEW_ORG['id'],
         })
-        self.assertEqual(result['name'], name)
+        self.assertEqual(result['name'], name.lower())
         with self.assertRaises(CLIFactoryError):
             make_content_host({
                 u'content-view-id': self.DEFAULT_CV['id'],

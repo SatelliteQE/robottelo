@@ -173,7 +173,7 @@ class ActivationKeyTestCase(CLITestCase):
         @Assert: Activation key is created
         """
         new_ak = self._make_activation_key()
-        self.assertEqual(new_ak['content-host-limit'], u'Unlimited')
+        self.assertEqual(new_ak['host-limit'], u'Unlimited')
 
     @tier1
     def test_positive_create_with_usage_limit_finite(self):
@@ -186,7 +186,7 @@ class ActivationKeyTestCase(CLITestCase):
         new_ak = self._make_activation_key({
             u'max-content-hosts': '10',
         })
-        self.assertEqual(new_ak['content-host-limit'], u'10')
+        self.assertEqual(new_ak['host-limit'], u'10')
 
     @run_only_on('sat')
     @tier1
@@ -443,14 +443,14 @@ class ActivationKeyTestCase(CLITestCase):
         @Assert: Activation key is updated
         """
         new_ak = self._make_activation_key()
-        self.assertEqual(new_ak['content-host-limit'], u'Unlimited')
+        self.assertEqual(new_ak['host-limit'], u'Unlimited')
         ActivationKey.update({
             u'max-content-hosts': '2147483647',
             u'name': new_ak['name'],
             u'organization-id': self.org['id'],
         })
         updated_ak = ActivationKey.info({'id': new_ak['id']})
-        self.assertEqual(updated_ak['content-host-limit'], u'2147483647')
+        self.assertEqual(updated_ak['host-limit'], u'2147483647')
 
     @tier1
     def test_positive_update_usage_limit_to_unlimited(self):
@@ -463,14 +463,14 @@ class ActivationKeyTestCase(CLITestCase):
         new_ak = self._make_activation_key({
             u'max-content-hosts': '10',
         })
-        self.assertEqual(new_ak['content-host-limit'], u'10')
+        self.assertEqual(new_ak['host-limit'], u'10')
         ActivationKey.update({
             u'unlimited-content-hosts': '1',
             u'name': new_ak['name'],
             u'organization-id': self.org['id'],
         })
         updated_ak = ActivationKey.info({'id': new_ak['id']})
-        self.assertEqual(updated_ak['content-host-limit'], u'Unlimited')
+        self.assertEqual(updated_ak['host-limit'], u'Unlimited')
 
     @tier1
     def test_negative_update_name(self):

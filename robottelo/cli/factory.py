@@ -803,50 +803,11 @@ def make_sync_plan(options=None):
 
 @cacheable
 def make_content_host(options=None):
-    """
-    Usage::
+    """Register a content host by running ``hammer host subscription
+    register``.
 
-        hammer content-host create [OPTIONS]
-
-    Options::
-
-        --content-view CONTENT_VIEW_NAME                    Content view name
-        --content-view-id CONTENT_VIEW_ID                   content view
-                                                            numeric identifier
-        --description DESCRIPTION                           Description of the
-                                                            content host
-        --guest-ids GUEST_IDS                               IDs of the virtual
-                                                            guests running on
-                                                            this content host
-                                                            Comma separated
-                                                            list of values.
-        --host-collection-ids HOST_COLLECTION_IDS           Specify the host
-                                                            collections as an
-                                                            array
-                                                            Comma separated
-                                                            list of values.
-        --last-checkin LAST_CHECKIN                         Last check-in time
-                                                            of this content
-                                                            host
-        --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME  Name to search by
-        --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID
-        --location LOCATION                                 Physical location
-                                                            of the content host
-        --name NAME                                         Name of the content
-                                                            host
-        --organization ORGANIZATION_NAME                    Organization name
-                                                            to search by
-        --organization-id ORGANIZATION_ID                   organization ID
-        --organization-label ORGANIZATION_LABEL             Organization label
-                                                            to search by
-        --release-ver RELEASE_VER                           Release version of
-                                                            the content host
-        --service-level SERVICE_LEVEL                       A service level for
-                                                            auto-healing
-                                                            process, e.g.
-                                                            SELF-SUPPORT
-        -h, --help                                          print help
-
+    Return the information about the created content host by running ``hammer
+    content-host info``.
     """
     # Organization ID is a required field.
     if not options:
@@ -869,21 +830,17 @@ def make_content_host(options=None):
     args = {
         u'content-view': None,
         u'content-view-id': None,
-        u'description': None,
-        u'guest-ids': None,
-        u'host-collection-ids': None,
-        u'last-checkin': None,
+        u'hypervisor-guest-uuids': None,
         u'lifecycle-environment': None,
         u'lifecycle-environment-id': None,
-        u'location': None,
         u'name': gen_string('alpha', 20),
         u'organization': None,
         u'organization-id': None,
         u'organization-label': None,
-        u'release-ver': None,
+        u'release-version': None,
         u'service-level': None,
+        u'uuid': None,
     }
-
     return create_object(ContentHost, args, options)
 
 

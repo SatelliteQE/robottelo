@@ -327,3 +327,19 @@ class Host(Base):
         if isinstance(result, list):
             result = result[0]
         return result
+
+    @classmethod
+    def subscription_unregister(cls, options=None):
+        """Unregister the host as a subscription consumer.
+
+        Usage:
+
+            hammer host subscription unregister [OPTIONS]
+
+        Options:
+
+            --host HOST_NAME              Name to search by
+            --host-id HOST_ID
+        """
+        cls.command_sub = 'subscription unregister'
+        return cls.execute(cls._construct_command(options))
