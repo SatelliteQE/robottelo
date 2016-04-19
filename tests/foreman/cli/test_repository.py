@@ -624,7 +624,6 @@ class RepositoryTestCase(CLITestCase):
         @Status: manual
         """
 
-    @skip_if_bug_open('bugzilla', 1208305)
     @run_only_on('sat')
     @tier1
     def test_positive_update_checksum_type(self):
@@ -642,7 +641,6 @@ class RepositoryTestCase(CLITestCase):
             u'content-type': content_type
         })
         self.assertEqual(repository['content-type'], content_type)
-        self.assertEqual(repository['checksum-type'], '')
         for checksum_type in u'sha1', u'sha256':
             with self.subTest(checksum_type):
                 # Update the checksum
