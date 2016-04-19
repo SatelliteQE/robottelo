@@ -30,10 +30,9 @@ def get_server_software():
     :rtype: str
 
     """
-    return_code = ssh.command(
-        '[ -f /usr/share/foreman/lib/satellite/version.rb ]'
-    ).return_code
-    return 'downstream' if return_code == 0 else 'upstream'
+    if ssh.command('rpm -q satellite &>/dev/null').return_code == 0:
+        return 'downstream'
+    return 'upstream'
 
 
 def get_server_version():

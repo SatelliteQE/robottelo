@@ -40,9 +40,10 @@ from robottelo.ui.factory import (
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
+from .utils import ClientProvisioningMixin
 
 
-class SmokeTestCase(UITestCase):
+class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
     """End-to-end tests using the ``WebUI``."""
 
     def test_positive_find_default_org(self):
@@ -51,7 +52,6 @@ class SmokeTestCase(UITestCase):
         @Feature: Smoke Test
 
         @Assert: 'Default Organization' is found
-
         """
         with Session(self.browser) as session:
             self.assertEqual(
@@ -65,7 +65,6 @@ class SmokeTestCase(UITestCase):
         @Feature: Smoke Test
 
         @Assert: 'Default Location' is found
-
         """
         with Session(self.browser) as session:
             self.assertEqual(
@@ -79,89 +78,92 @@ class SmokeTestCase(UITestCase):
         @Feature: Smoke Test
 
         @Assert: Admin User is found and has Admin role
-
         """
         with Session(self.browser):
             self.assertTrue(self.user.user_admin_role_toggle('admin'))
 
-    def test_positive_smoke(self):
-        """Check that basic content can be created
+    def test_positive_end_to_end(self):
+        """Perform end to end smoke tests using RH and custom repos.
 
-        * Create a new user with admin permissions
-        * Using the new user from above:
+        1. Create a new user with admin permissions
+        2. Using the new user from above
+            1. Create a new organization
+            2. Clone and upload manifest
+            3. Create a new lifecycle environment
+            4. Create a custom product
+            5. Create a custom YUM repository
+            6. Create a custom PUPPET repository
+            7. Enable a Red Hat repository
+            8. Synchronize the three repositories
+            9. Create a new content view
+            10. Associate the YUM and Red Hat repositories to new content view
+            11. Add a PUPPET module to new content view
+            12. Publish content view
+            13. Promote content view to the lifecycle environment
+            14. Create a new activation key
+            15. Add the products to the activation key
+            16. Create a new libvirt compute resource
+            17. Create a new subnet
+            18. Create a new domain
+            19. Create a new hostgroup and associate previous entities to it
+            20. Provision a client
 
-            * Create a new organization
-            * Create two new lifecycle environments
-            * Create a custom product
-            * Create a custom YUM repository
-            * Create a custom PUPPET repository
-            * Synchronize both custom repositories
-            * Create a new content view
-            * Associate both repositories to new content view
-            * Publish content view
-            * Promote content view to both lifecycles
-            * Create a new libvirt compute resource
-            * Create a new subnet
-            * Create a new domain
-            * Create a new hostgroup and associate previous entities to it
+        @Feature: End to End Test
 
-        @Feature: Smoke Test
-
-        @Assert: All entities are created and associated.
-
+        @Assert: All tests should succeed and Content should be successfully
+        fetched by client.
         """
-        user_name = gen_string('alpha')
-        password = gen_string('alpha')
-        org_name = gen_string('alpha')
-        env_1_name = gen_string('alpha')
-        env_2_name = gen_string('alpha')
-        product_name = gen_string('alpha')
-        yum_repository_name = gen_string('alpha')
-        puppet_repository_name = gen_string('alpha')
-        cv_name = gen_string('alpha')
+        activation_key_name = gen_string('alpha')
         compute_resource_name = gen_string('alpha')
-        subnet_name = gen_string('alpha')
-        domain_name = gen_string('alpha')
-        domain = DOMAIN % domain_name
+        cv_name = gen_string('alpha')
+        domain_name = DOMAIN % gen_string('alpha')
         hostgroup_name = gen_string('alpha')
+        lce_name = gen_string('alpha')
+        org_name = gen_string('alpha')
+        password = gen_string('alpha')
+        product_name = gen_string('alpha')
+        puppet_repository_name = gen_string('alpha')
+        repos = self.sync.create_repos_tree(RHVA_REPO_TREE)
+        subnet_name = gen_string('alpha')
+        username = gen_string('alpha')
+        yum_repository_name = gen_string('alpha')
 
-        # Create new user with admin permissions
+        # step 1: Create a new user with admin permissions
         with Session(self.browser) as session:
             make_user(
                 session,
-                username=user_name,
+                admin=True,
                 password1=password,
-                password2=password
+                password2=password,
+                username=username,
             )
-            self.assertIsNotNone(self.user.search(user_name))
-            self.assertTrue(self.user.user_admin_role_toggle(user_name))
+            self.assertIsNotNone(self.user.search(username))
+            self.assertTrue(self.user.user_admin_role_toggle(username))
 
-        # FIX ME: UI doesn't authenticate user created via UI auto: Issue #1152
-        # Once #1152 is fixed; need to pass user_name and password to Session
-        with Session(self.browser) as session:
-            # Create New organization
+        with Session(self.browser, username, password) as session:
+            # step 2.1: Create a new organization
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
 
-            # Create New Lifecycle environment1
-            make_lifecycle_environment(session, org=org_name, name=env_1_name)
-            self.assertIsNotNone(self.lifecycleenvironment.search(env_1_name))
-            # Create New  Lifecycle environment2
-            make_lifecycle_environment(
-                session,
-                org=org_name,
-                name=env_2_name,
-                prior=env_1_name
-            )
-            self.assertIsNotNone(self.lifecycleenvironment.search(env_2_name))
+            # step 2.2: Clone and upload manifest
+            session.nav.go_to_select_org(org_name)
+            session.nav.go_to_red_hat_subscriptions()
+            with manifests.clone() as manifest:
+                self.subscriptions.upload(manifest)
+            self.assertTrue(session.nav.wait_until_element(
+                common_locators['alert.success']
+            ))
 
-            # Create custom product
+            # step 2.3: Create a new lifecycle environment
+            make_lifecycle_environment(session, org=org_name, name=lce_name)
+            self.assertIsNotNone(self.lifecycleenvironment.search(lce_name))
+
+            # step 2.4: Create a custom product
             make_product(session, org=org_name, name=product_name)
-            product = self.products.search(product_name)
-            self.assertIsNotNone(product)
+            self.assertIsNotNone(self.products.search(product_name))
 
-            # Create a YUM repository
-            product.click()
+            # step 2.5: Create custom YUM repository
+            self.products.search(product_name).click()
             make_repository(
                 session,
                 name=yum_repository_name,
@@ -169,7 +171,7 @@ class SmokeTestCase(UITestCase):
             )
             self.assertIsNotNone(self.repository.search(yum_repository_name))
 
-            # Create a puppet Repository
+            # step 2.6: Create custom PUPPET repository
             self.products.search(product_name).click()
             make_repository(
                 session,
@@ -177,68 +179,97 @@ class SmokeTestCase(UITestCase):
                 url=FAKE_0_PUPPET_REPO,
                 repo_type=REPO_TYPE['puppet']
             )
-            self.assertIsNotNone(self.repository.search(
-                puppet_repository_name
-            ))
+            self.assertIsNotNone(
+                self.repository.search(puppet_repository_name))
 
-            # Sync YUM and puppet repository
+            # step 2.7: Enable a Red Hat repository
+            session.nav.go_to_red_hat_repositories()
+            self.sync.enable_rh_repos(repos)
+
+            # step 2.8: Synchronize the three repositories
             self.navigator.go_to_sync_status()
             self.assertIsNotNone(self.sync.sync_custom_repos(
                 product_name,
                 [yum_repository_name, puppet_repository_name]
             ))
+            self.assertTrue(self.sync.sync_rh_repos(repos))
 
-            # Create new content-view
+            # step 2.9: Create content view
             make_contentview(session, org=org_name, name=cv_name)
             self.assertIsNotNone(self.content_views.search(cv_name))
 
-            # Add YUM repository to content-view
             self.content_views.add_remove_repos(cv_name, [yum_repository_name])
-            if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success']
-                ))
-            # Add puppet-module to content-view
-            if not bz_bug_is_open(1297308):
-                self.content_views.add_puppet_module(
-                    cv_name, 'httpd', filter_term='Latest'
-                )
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']
+            ))
 
-            # Publish content-view
-            self.content_views.publish(cv_name)
-            if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success']
-                ))
-            # Promote content-view to life-cycle environment 1
-            self.content_views.promote(
-                cv_name, version='Version 1', env=env_1_name)
-            if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success']
-                ))
-            # Promote content-view to life-cycle environment 2
-            self.content_views.promote(
-                cv_name, version='Version 1', env=env_2_name)
-            if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success']
-                ))
-            # Create a new libvirt compute resource
-            url = (
-                LIBVIRT_RESOURCE_URL % settings.server.hostname
+            # step 2.10: Associate the YUM and Red Hat repositories to new
+            # content view
+            self.content_views.add_remove_repos(
+                cv_name,
+                [
+                    yum_repository_name,
+                    REPOS['rhva65']['name'],
+                    REPOS['rhva6']['name'],
+                ]
             )
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']
+            ))
+
+            # step 2.11: Add a PUPPET module to new content view
+            self.content_views.add_puppet_module(
+                cv_name, 'httpd', filter_term='Latest')
+
+            # step 2.12: Publish content view
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']
+            ))
+
+            # step 2.13: Promote content view to the lifecycle environment
+            self.content_views.promote(
+                cv_name, version='Version 1', env=lce_name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success']
+            ))
+
+            # step 2.14: Create a new activation key
+            make_activationkey(
+                session,
+                org=org_name,
+                name=activation_key_name,
+                env=lce_name,
+                content_view=cv_name
+            )
+            self.assertIsNotNone(self.activationkey.wait_until_element(
+                common_locators['alert.success']
+            ))
+
+            # step 2.15: Add the products to the activation key
+            self.activationkey.associate_product(
+                activation_key_name, [DEFAULT_SUBSCRIPTION_NAME])
+
+            # step 2.15.1: Enable product content
+            self.activationkey.enable_repos(
+                activation_key_name, [REPOSET['rhva6']])
+
+            # step 2.16: Create a new libvirt compute resource
             make_resource(
                 session,
                 org=org_name,
                 name=compute_resource_name,
                 provider_type=FOREMAN_PROVIDERS['libvirt'],
-                parameter_list=[['URL', url, 'field']],
+                parameter_list=[[
+                    'URL',
+                    LIBVIRT_RESOURCE_URL % settings.server.hostname,
+                    'field'
+                ]],
             )
             self.assertIsNotNone(
                 self.compute_resource.search(compute_resource_name))
 
-            # Create a subnet
+            # step 2.17: Create a new subnet
             make_subnet(
                 session,
                 org=org_name,
@@ -248,113 +279,22 @@ class SmokeTestCase(UITestCase):
             )
             self.assertIsNotNone(self.subnet.search(subnet_name))
 
-            # Create a Domain
+            # step 2.18: Create a new domain
             make_domain(
                 session,
                 org=org_name,
-                name=domain,
-                description=domain
+                name=domain_name,
+                description=domain_name
             )
-            self.assertIsNotNone(self.domain.search(domain))
+            self.assertIsNotNone(self.domain.search(domain_name))
 
-            # Create a HostGroup
+            # step 2.19: Create a new hostgroup and associate previous entities
+            # to it
             make_hostgroup(session, name=hostgroup_name)
             self.assertIsNotNone(self.hostgroup.search(hostgroup_name))
 
-    @skip_if_not_set('clients')
-    def test_positive_end_to_end(self):
-        """Perform end to end smoke tests using RH repos.
-
-        @Feature: Smoke test
-
-        @Assert: All tests should succeed and Content should be successfully
-        fetched by client
-
-        """
-        org_name = gen_string('alpha', 6)
-        cv_name = gen_string('alpha', 6)
-        activation_key_name = gen_string('alpha', 6)
-        env_name = gen_string('alpha', 6)
-        repos = self.sync.create_repos_tree(RHVA_REPO_TREE)
-        with Session(self.browser) as session:
-            # Create New organization
-            make_org(session, org_name=org_name)
-            self.assertIsNotNone(self.org.search(org_name))
-            # Create New Lifecycle environment
-            make_lifecycle_environment(session, org=org_name, name=env_name)
-            self.assertIsNotNone(self.lifecycleenvironment.search(env_name))
-            # Navigate UI to select org and redhat subscription page
-            session.nav.go_to_select_org(org_name)
-            session.nav.go_to_red_hat_subscriptions()
-            # Upload manifest from webui
-            with manifests.clone() as manifest:
-                self.subscriptions.upload(manifest)
-            self.assertTrue(session.nav.wait_until_element(
-                common_locators['alert.success']
-            ))
-            session.nav.go_to_red_hat_repositories()
-            # List of dictionary passed to enable the redhat repos
-            # It selects Product->Reposet-> Repo
-            self.sync.enable_rh_repos(repos)
-            session.nav.go_to_sync_status()
-            # Sync the repos
-            # syn.sync_rh_repos returns boolean values and not objects
-            self.assertTrue(self.sync.sync_rh_repos(repos))
-            # Create new content-view
-            make_contentview(session, org=org_name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
-            # Add YUM repository to content-view
-            self.content_views.add_remove_repos(
-                cv_name,
-                [REPOS['rhva65']['name'], REPOS['rhva6']['name']]
-            )
-            if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success']
-                ))
-            # Publish content-view
-            self.content_views.publish(cv_name)
-            if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success']
-                ))
-
-            # Promote content-view to life-cycle environment 1
-            self.content_views.promote(
-                cv_name, version='Version 1', env=env_name)
-            if not bz_bug_is_open(1191422):
-                self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success']
-                ))
-            # Create Activation-Key
-            make_activationkey(
-                session,
-                org=org_name,
-                name=activation_key_name,
-                env=env_name,
-                content_view=cv_name
-            )
-            self.activationkey.associate_product(
-                activation_key_name, [DEFAULT_SUBSCRIPTION_NAME])
-            self.activationkey.enable_repos(
-                activation_key_name, [REPOSET['rhva6']])
-            if not bz_bug_is_open(1191541):
-                self.assertIsNotNone(self.activationkey.wait_until_element(
-                    common_locators['alert.success']
-                ))
-            # Create VM
-            with VirtualMachine(distro='rhel66') as vm:
-                vm.install_katello_ca()
-                result = vm.register_contenthost(activation_key_name, org_name)
-                self.assertEqual(result.return_code, 0)
-
-                # Install contents from sat6 server
-                package_name = 'python-kitchen'
-                result = vm.run(u'yum install -y {0}'.format(package_name))
-                self.assertEqual(result.return_code, 0)
-                # Verify if package is installed by query it
-                result = vm.run(u'rpm -q {0}'.format(package_name))
-                self.assertEqual(result.return_code, 0)
+        # step 2.20: Provision a client
+        self.client_provisioning(activation_key_name, org_name)
 
     @skip_if_not_set('clients')
     def test_positive_puppet_install(self):
@@ -363,7 +303,6 @@ class SmokeTestCase(UITestCase):
         @Feature: Smoke test puppet install and configure on client
 
         @Assert: Client should get configured by puppet-module.
-
         """
         activation_key_name = gen_string('alpha')
         cv_name = gen_string('alpha')
