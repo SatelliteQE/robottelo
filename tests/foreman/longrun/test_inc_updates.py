@@ -5,8 +5,8 @@ from fauxfactory import gen_alpha
 from nailgun import entity_mixins
 from nailgun.entities import (
     ActivationKey, ContentView, ContentViewFilterRule, ContentViewVersion,
-    Errata, ErratumContentViewFilter, HostCollection, LifecycleEnvironment,
-    Organization, Repository, Subscription, System
+    Errata, ErratumContentViewFilter, Host, HostCollection,
+    LifecycleEnvironment, Organization, Repository, Subscription,
 )
 from robottelo import manifests
 from robottelo.api.utils import (
@@ -186,16 +186,17 @@ class IncrementalUpdateTestCase(TestCase):
         for i in range(1, 3):
             cls.setup_vm(cls.vm[i], rhel_6_partial_ak.name, cls.org.label)
 
-        # Find the content hosts (systems) and save them
-        systems = System(organization=cls.org).search()
-        cls.systems = []
-        cls.partial_systems = []
+        # Find the content hosts and save them
+        hosts = Host(organization=cls.org).search()
+        cls.hosts = []
+        cls.partial_hosts = []
 
-        for system in systems:
-            if system.content_view.read().name == cls.rhel_6_cv.name:
-                cls.systems.append(system)
+        for host in hosts:
+            if (host.read().content_facet_attributes['content_view_name'] ==
+                    cls.rhel_6_cv.name):
+                cls.hosts.append(host)
             else:
-                cls.partial_systems.append(system)
+                cls.partial_hosts.append(host)
 
     @classmethod
     def tearDownClass(cls):
