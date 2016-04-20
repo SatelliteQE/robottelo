@@ -156,12 +156,15 @@ class ContentView(Base):
             --repository-ids REPOSITORY_IDS      Repository ID
             --type TYPE                          type of filter (e.g. rpm,
                                                  package_group, erratum)
-
         """
         cls.command_sub = 'filter create'
         if options is None:
             options = {}
-        return cls.execute(cls._construct_command(options))
+        result = cls.execute(
+            cls._construct_command(options), output_format='csv')
+        if isinstance(result, list):
+            result = result[0]
+        return result
 
     @classmethod
     def filter_update(cls, options):

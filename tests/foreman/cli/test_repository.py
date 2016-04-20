@@ -242,6 +242,7 @@ class RepositoryTestCase(CLITestCase):
                 new_repo = self._make_repository({
                     u'gpg-key': gpg_key['name'],
                     u'name': name,
+                    u'organization-id': self.org['id'],
                 })
                 self.assertEqual(new_repo['gpg-key']['id'], gpg_key['id'])
                 self.assertEqual(new_repo['gpg-key']['name'], gpg_key['name'])

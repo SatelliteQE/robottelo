@@ -209,7 +209,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
                     'id': new_lce['id'],
                     'new-name': new_name,
                     'organization-id': self.org['id'],
-                    'prior': new_lce['prior-lifecycle-environment'],
                 })
                 result = LifecycleEnvironment.info({
                     'id': new_lce['id'],
@@ -237,7 +236,6 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
                     'description': new_desc,
                     'id': new_lce['id'],
                     'organization-id': self.org['id'],
-                    'prior': new_lce['prior-lifecycle-environment'],
                 })
                 result = LifecycleEnvironment.info({
                     'id': new_lce['id'],

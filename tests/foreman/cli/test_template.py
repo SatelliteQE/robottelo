@@ -11,7 +11,7 @@ from robottelo.cli.factory import (
     make_template,
 )
 from robottelo.cli.template import Template
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -64,12 +64,15 @@ class TemplateTestCase(CLITestCase):
 
     @run_only_on('sat')
     @tier1
+    @skip_if_bug_open('bugzilla', 1328976)
     def test_negative_create_locked(self):
         """Check that locked Template cannot be created
 
         @Feature: Template - Create
 
         @Assert: It is not allowed to create locked Template
+
+        @BZ: 1328976
         """
         with self.assertRaises(CLIFactoryError):
             make_template({
