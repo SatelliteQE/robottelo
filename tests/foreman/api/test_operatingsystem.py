@@ -280,6 +280,7 @@ class OperatingSystemTestCase(APITestCase):
 
     @tier1
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1328935)
     def test_negative_create_with_too_long_description(self):
         """Try to create operating system entity providing too long
         description value
@@ -287,6 +288,8 @@ class OperatingSystemTestCase(APITestCase):
         @Feature: Operating System
 
         @Assert: Operating system entity is not created
+
+        @BZ: 1328935
         """
         with self.assertRaises(HTTPError):
             entities.OperatingSystem(
