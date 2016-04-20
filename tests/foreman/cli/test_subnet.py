@@ -10,7 +10,7 @@ from robottelo.cli.factory import make_domain, make_subnet, CLIFactoryError
 from robottelo.cli.subnet import Subnet
 from robottelo.constants import SUBNET_IPAM_TYPES
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
@@ -135,7 +135,6 @@ class SubnetTestCase(CLITestCase):
         subnet = make_subnet({'gateway': gateway})
         self.assertIn(gateway, subnet['gateway'])
 
-    @skip_if_bug_open('bugzilla', 1213437)
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_ipam(self):
@@ -144,8 +143,6 @@ class SubnetTestCase(CLITestCase):
         @Feature: Subnet - Positive create
 
         @Assert: Subnet is created and correct ipam type is assigned
-
-        @BZ: 1213437
         """
         for ipam_type in (SUBNET_IPAM_TYPES['dhcp'],
                           SUBNET_IPAM_TYPES['internal'],

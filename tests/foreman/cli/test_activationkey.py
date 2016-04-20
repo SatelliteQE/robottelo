@@ -1148,7 +1148,6 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertIn(
             u"'--auto-attach': value must be one of", exe.exception.stderr)
 
-    @skip_if_bug_open('bugzilla', 1180282)
     @tier3
     def test_positive_content_override(self):
         """Positive content override
@@ -1161,8 +1160,6 @@ class ActivationKeyTestCase(CLITestCase):
         2. Get the first product's label
         3. Override the product's content enabled state
         4. Verify that the command succeeded
-
-        @BZ: 1180282
 
         @Assert: Activation key content override was successful
         """

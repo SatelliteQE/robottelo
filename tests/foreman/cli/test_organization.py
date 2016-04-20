@@ -29,7 +29,6 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import (
     run_only_on,
-    skip_if_bug_open,
     tier1,
     tier2,
 )
@@ -111,7 +110,6 @@ class OrganizationTestCase(CLITestCase):
                 })
                 self.assertEqual(org['name'], org['label'])
 
-    @skip_if_bug_open('bugzilla', 1142821)
     @tier1
     def test_positive_create_with_unmatched_name_label(self):
         """Create organization with valid unmatching name and label only
@@ -119,8 +117,6 @@ class OrganizationTestCase(CLITestCase):
         @feature: Organization
 
         @assert: organization is created, label does not match name
-
-        @bz: 1142821
         """
         for name in valid_org_names_list():
             with self.subTest(name):
@@ -150,7 +146,6 @@ class OrganizationTestCase(CLITestCase):
                 self.assertEqual(org['name'], name)
                 self.assertEqual(org['description'], desc)
 
-    @skip_if_bug_open('bugzilla', 1142821)
     @tier1
     def test_positive_create_with_name_label_description(self):
         """Create organization with valid name, label and description
@@ -158,8 +153,6 @@ class OrganizationTestCase(CLITestCase):
         @feature: Organization
 
         @assert: organization is created
-
-        @bz: 1142821
         """
         for description in valid_data_list():
             with self.subTest(description):

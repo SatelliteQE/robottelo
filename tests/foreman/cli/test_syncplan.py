@@ -20,7 +20,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.datafactory import valid_data_list, invalid_values_list
-from robottelo.decorators import skip_if_bug_open, stubbed, tier1, tier4
+from robottelo.decorators import stubbed, tier1, tier4
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from time import sleep
@@ -305,16 +305,13 @@ class SyncPlanTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     SyncPlan.info({'id': new_sync_plan['id']})
 
-    @skip_if_bug_open('bugzilla', 1261122)
     @tier1
-    def test_verify_bugzilla_1261122(self):
+    def test_positive_info_enabled_field_is_displayed(self):
         """Check if Enabled field is displayed in sync-plan info output
 
         @Feature: Sync Plan Info
 
         @Assert: Sync plan Enabled state is displayed
-
-        @BZ: 1261122
         """
         new_sync_plan = self._make_sync_plan()
         result = SyncPlan.info({'id': new_sync_plan['id']})
