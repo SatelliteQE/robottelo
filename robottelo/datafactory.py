@@ -195,15 +195,18 @@ def valid_hosts_list(domain_length=10):
     Note::
     Host name format stored in db is 'fqdn=' + host_name + '.' + domain_name
     Host name max length is: 255 - 'fqdn=' - '.' - domain name length
-    (default is 10) = 239 chars (by default).
+    (default is 10) = 239 chars (by default). Name should be transformed into
+    lower case
 
     :param int domain_length: Domain name length (default is 10).
     :return: Returns the valid host names list
     """
     return [
         gen_string(
-            'alphanumeric', random.randint(1, (255 - 6 - domain_length))),
-        gen_string('alpha', random.randint(1, (255 - 6 - domain_length))),
+            'alphanumeric', random.randint(1, (255 - 6 - domain_length))
+        ).lower(),
+        gen_string(
+            'alpha', random.randint(1, (255 - 6 - domain_length))).lower(),
         gen_string('numeric', random.randint(1, (255 - 6 - domain_length))),
     ]
 

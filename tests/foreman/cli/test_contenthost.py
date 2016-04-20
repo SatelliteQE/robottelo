@@ -13,7 +13,11 @@ from robottelo.cli.factory import (
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
-from robottelo.datafactory import invalid_values_list, generate_strings_list
+from robottelo.datafactory import (
+    generate_strings_list,
+    invalid_values_list,
+    valid_hosts_list,
+)
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
@@ -77,7 +81,7 @@ class ContentHostTestCase(CLITestCase):
 
         @Assert: Content host is created and has random name
         """
-        for name in generate_strings_list(15):
+        for name in valid_hosts_list():
             with self.subTest(name):
                 new_system = make_content_host({
                     u'content-view-id': self.DEFAULT_CV['id'],
@@ -165,7 +169,7 @@ class ContentHostTestCase(CLITestCase):
             u'name': gen_string('alpha', 15),
             u'organization-id': self.NEW_ORG['id'],
         })
-        # Assert that lifecycles matches data passed
+        # Assert that lifecycle envs matches data passed
         self.assertEqual(
             new_system['lifecycle-environment'],
             self.LIBRARY['name'],
@@ -244,13 +248,13 @@ class ContentHostTestCase(CLITestCase):
 
         @Assert: Content host is not created using new unpublished cv
         """
-        con_view = make_content_view({
+        cv = make_content_view({
             u'organization-id': ContentHostTestCase.NEW_ORG['id'],
         })
         env = ContentHostTestCase.NEW_LIFECYCLE['id']
         with self.assertRaises(CLIFactoryError):
             make_content_host({
-                u'content-view-id': con_view['id'],
+                u'content-view-id': cv['id'],
                 u'lifecycle-environment-id': env,
                 u'name': gen_string('alpha', 15),
                 u'organization-id': ContentHostTestCase.NEW_ORG['id'],
@@ -272,11 +276,11 @@ class ContentHostTestCase(CLITestCase):
             u'lifecycle-environment-id': self.LIBRARY['id'],
             u'organization-id': self.NEW_ORG['id'],
         })
-        for new_name in generate_strings_list():
+        for new_name in valid_hosts_list():
             with self.subTest(new_name):
                 ContentHost.update({
                     u'id': new_system['id'],
-                    u'name': new_name,
+                    u'new-name': new_name,
                 })
                 result = ContentHost.info({'id': new_system['id']})
                 self.assertEqual(result['name'], new_name)
@@ -312,7 +316,7 @@ class ContentHostTestCase(CLITestCase):
 
         @Assert: Content host is created and then deleted
         """
-        for name in generate_strings_list():
+        for name in valid_hosts_list():
             with self.subTest(name):
                 content_host = make_content_host({
                     u'content-view-id': self.DEFAULT_CV['id'],
@@ -325,25 +329,22 @@ class ContentHostTestCase(CLITestCase):
                     ContentHost.info({'id': content_host['id']})
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1154611)
     def test_negative_create_with_same_name(self):
-        """check if Content Host creation does not allow duplicated
+        """Check if Content Host creation does not allow duplicated
         names
 
-        @feature: Contet_Hosts
+        @Feature: Content Hosts
 
-        @assert: Content Hosts with the same name are not allowed
-
-        @bz: 1154611
+        @Assert: Content Hosts with the same name are not allowed
         """
-        name = gen_string('alpha', 15)
+        name = gen_string('alpha', 15).lower()
         result = make_content_host({
             u'content-view-id': self.DEFAULT_CV['id'],
             u'lifecycle-environment-id': self.LIBRARY['id'],
             u'name': name,
             u'organization-id': self.NEW_ORG['id'],
         })
-        self.assertEqual(result['name'], name.lower())
+        self.assertEqual(result['name'], name)
         with self.assertRaises(CLIFactoryError):
             make_content_host({
                 u'content-view-id': self.DEFAULT_CV['id'],
@@ -356,9 +357,9 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_register_with_no_ak(self):
         """Register Content host to satellite without activation key
 
-        @feature: Content host
+        @Feature: Content Hosts
 
-        @assert: Content host successfully registered to appropriate org
+        @Assert: Content host successfully registered to appropriate org
         """
         with VirtualMachine(distro='rhel71') as client:
             client.install_katello_ca()
@@ -379,9 +380,9 @@ class ContentHostTestCase(CLITestCase):
     def test_negative_register_twice(self):
         """Attempt to register a Content host twice to Satellite
 
-        @feature: Content host
+        @Feature: Content Hosts
 
-        @assert: Content host cannot be registered twice
+        @Assert: Content host cannot be registered twice
         """
         activation_key = make_activation_key({
             'content-view-id': self.PROMOTED_CV['id'],
@@ -409,9 +410,9 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_list(self):
         """List Content hosts for a given org
 
-        @feature: Content host
+        @Feature: Content Hosts
 
-        @assert: Content hosts are listed for the given org
+        @Assert: Content hosts are listed for the given org
         """
         activation_key = make_activation_key({
             'content-view-id': self.PROMOTED_CV['id'],
@@ -424,7 +425,10 @@ class ContentHostTestCase(CLITestCase):
                 activation_key['name'],
                 self.NEW_ORG['label'],
             )
-            result = ContentHost.list({'organization-id': self.NEW_ORG['id']})
+            result = ContentHost.list({
+                'organization-id': self.NEW_ORG['id'],
+                'lifecycle-environment-id': self.NEW_LIFECYCLE['id'],
+            })
             self.assertGreaterEqual(len(result), 1)
             self.assertIn(client.hostname, [chost['name'] for chost in result])
 
@@ -432,10 +436,10 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_unregister(self):
         """Unregister Content host
 
-        @feature: Content host
+        @Feature: Content Hosts
 
-        @assert: After unregistering, Content hosts list for the org does not
-        show the Content host
+        @Assert: After unregistering, content hosts list for the org does not
+        show the content host
         """
         activation_key = make_activation_key({
             'content-view-id': self.PROMOTED_CV['id'],
@@ -448,11 +452,17 @@ class ContentHostTestCase(CLITestCase):
                 activation_key['name'],
                 self.NEW_ORG['label'],
             )
-            result = ContentHost.list({'organization-id': self.NEW_ORG['id']})
+            result = ContentHost.list({
+                'organization-id': self.NEW_ORG['id'],
+                'lifecycle-environment-id': self.NEW_LIFECYCLE['id'],
+            })
             self.assertGreaterEqual(len(result), 1)
             self.assertIn(client.hostname, [chost['name'] for chost in result])
             result = client.run('subscription-manager unregister')
             self.assertEqual(result.return_code, 0)
-            result = ContentHost.list({'organization-id': self.NEW_ORG['id']})
+            result = ContentHost.list({
+                'organization-id': self.NEW_ORG['id'],
+                'lifecycle-environment-id': self.NEW_LIFECYCLE['id'],
+            })
             self.assertNotIn(
                 client.hostname, [chost['name'] for chost in result])

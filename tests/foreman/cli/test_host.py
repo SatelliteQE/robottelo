@@ -93,7 +93,7 @@ class HostCreateTestCase(CLITestCase):
                     u'root-pass': host.root_pass,
                 })
                 self.assertEqual(
-                    '{0}.{1}'.format(name, host.domain.read().name).lower(),
+                    '{0}.{1}'.format(name, host.domain.read().name),
                     result['name'],
                 )
 
@@ -235,10 +235,8 @@ class HostUpdateTestCase(CLITestCase):
                 self.host = Host.info({'id': self.host['id']})
                 self.assertEqual(
                     u'{0}.{1}'.format(
-                        new_name,
-                        self.host['network']['domain'],
-                    ).lower(),
-                    self.host['name'],
+                        new_name, self.host['network']['domain']),
+                    self.host['name']
                 )
 
     @tier1
@@ -258,13 +256,10 @@ class HostUpdateTestCase(CLITestCase):
                 })
                 self.host = Host.info({
                     'name': u'{0}.{1}'.format(
-                        new_name, self.host['network']['domain']).lower(),
-                })
+                        new_name, self.host['network']['domain'])})
                 self.assertEqual(
                     u'{0}.{1}'.format(
-                        new_name,
-                        self.host['network']['domain'],
-                    ).lower(),
+                        new_name, self.host['network']['domain']),
                     self.host['name'],
                 )
 
