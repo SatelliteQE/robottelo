@@ -6,6 +6,8 @@ from random import randint, shuffle
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import (
+    DOCKER_0_EXTERNAL_REGISTRY,
+    DOCKER_1_EXTERNAL_REGISTRY,
     DOCKER_REGISTRY_HUB,
     FOREMAN_PROVIDERS,
     REPO_TYPE,
@@ -1315,7 +1317,6 @@ class DockerContainerTestCase(UITestCase):
 class DockerRegistryTestCase(UITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
-
     """
 
     @run_only_on('sat')
@@ -1333,10 +1334,13 @@ class DockerRegistryTestCase(UITestCase):
                     make_registry(
                         session,
                         name=name,
-                        url=gen_url(subdomain=gen_string('alpha')),
+                        url=DOCKER_0_EXTERNAL_REGISTRY,
                         description=gen_string('utf8'),
                     )
-                    self.assertIsNotNone(self.registry.search(name))
+                    try:
+                        self.assertIsNotNone(self.registry.search(name))
+                    finally:
+                        entities.Registry(name=name).search()[0].delete()
 
     @run_only_on('sat')
     @tier1
@@ -1352,15 +1356,19 @@ class DockerRegistryTestCase(UITestCase):
             make_registry(
                 session,
                 name=name,
-                url=gen_url(subdomain=gen_string('alpha')),
+                url=DOCKER_0_EXTERNAL_REGISTRY,
                 description=gen_string('utf8'),
             )
-            self.assertIsNotNone(self.registry.search(name))
-            for new_name in valid_data_list():
-                with self.subTest(new_name):
-                    self.registry.update(name, new_name=new_name)
-                    self.assertIsNotNone(self.registry.search(new_name))
-                    name = new_name
+            try:
+                registry_entity = entities.Registry(name=name).search()[0]
+                self.assertIsNotNone(self.registry.search(name))
+                for new_name in valid_data_list():
+                    with self.subTest(new_name):
+                        self.registry.update(name, new_name=new_name)
+                        self.assertIsNotNone(self.registry.search(new_name))
+                        name = new_name
+            finally:
+                registry_entity.delete()
 
     @run_only_on('sat')
     @tier1
@@ -1376,15 +1384,18 @@ class DockerRegistryTestCase(UITestCase):
             make_registry(
                 session,
                 name=name,
-                url=gen_url(subdomain=gen_string('alpha')),
+                url=DOCKER_0_EXTERNAL_REGISTRY,
             )
-            self.assertIsNotNone(self.registry.search(name))
-
-            new_url = gen_url(subdomain=gen_string('alpha'))
-            self.registry.update(name, new_url=new_url)
-            self.registry.search(name).click()
-            self.assertIsNotNone(self.registry.wait_until_element(
-                locators['registry.url']).text, new_url)
+            try:
+                registry_entity = entities.Registry(name=name).search()[0]
+                self.assertIsNotNone(self.registry.search(name))
+                new_url = DOCKER_1_EXTERNAL_REGISTRY
+                self.registry.update(name, new_url=new_url)
+                self.registry.search(name).click()
+                self.assertIsNotNone(self.registry.wait_until_element(
+                    locators['registry.url']).text, new_url)
+            finally:
+                registry_entity.delete()
 
     @run_only_on('sat')
     @tier1
@@ -1400,16 +1411,19 @@ class DockerRegistryTestCase(UITestCase):
             make_registry(
                 session,
                 name=name,
-                url=gen_url(subdomain=gen_string('alpha')),
+                url=DOCKER_0_EXTERNAL_REGISTRY,
                 description=gen_string('alphanumeric'),
             )
-            self.assertIsNotNone(self.registry.search(name))
-
-            new_description = gen_string('utf8')
-            self.registry.update(name, new_desc=new_description)
-            self.registry.search(name).click()
-            self.assertIsNotNone(self.registry.wait_until_element(
-                locators['registry.description']).text, new_description)
+            try:
+                registry_entity = entities.Registry(name=name).search()[0]
+                self.assertIsNotNone(self.registry.search(name))
+                new_description = gen_string('utf8')
+                self.registry.update(name, new_desc=new_description)
+                self.registry.search(name).click()
+                self.assertIsNotNone(self.registry.wait_until_element(
+                    locators['registry.description']).text, new_description)
+            finally:
+                registry_entity.delete()
 
     @run_only_on('sat')
     @tier1
@@ -1425,16 +1439,19 @@ class DockerRegistryTestCase(UITestCase):
             make_registry(
                 session,
                 name=name,
-                url=gen_url(subdomain=gen_string('alpha')),
+                url=DOCKER_0_EXTERNAL_REGISTRY,
                 username=gen_string('alphanumeric'),
             )
-            self.assertIsNotNone(self.registry.search(name))
-
-            new_username = gen_string('utf8')
-            self.registry.update(name, new_username=new_username)
-            self.registry.search(name).click()
-            self.assertIsNotNone(self.registry.wait_until_element(
-                locators['registry.username']).text, new_username)
+            try:
+                registry_entity = entities.Registry(name=name).search()[0]
+                self.assertIsNotNone(self.registry.search(name))
+                new_username = gen_string('utf8')
+                self.registry.update(name, new_username=new_username)
+                self.registry.search(name).click()
+                self.assertIsNotNone(self.registry.wait_until_element(
+                    locators['registry.username']).text, new_username)
+            finally:
+                registry_entity.delete()
 
     @run_only_on('sat')
     @tier1
@@ -1451,7 +1468,7 @@ class DockerRegistryTestCase(UITestCase):
                     make_registry(
                         session,
                         name=name,
-                        url=gen_url(subdomain=gen_string('alpha')),
+                        url=DOCKER_0_EXTERNAL_REGISTRY,
                         description=gen_string('utf8'),
                     )
                     self.registry.delete(name)

@@ -6,7 +6,11 @@ from random import randint, shuffle
 from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import (
+    DOCKER_REGISTRY_HUB,
+    DOCKER_0_EXTERNAL_REGISTRY,
+    DOCKER_1_EXTERNAL_REGISTRY,
+)
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
     run_only_on,
@@ -1291,6 +1295,7 @@ class DockerRegistryTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
     """
+    url = DOCKER_0_EXTERNAL_REGISTRY
 
     @tier1
     @run_only_on('sat')
@@ -1303,16 +1308,18 @@ class DockerRegistryTestCase(APITestCase):
         """
         for name in valid_data_list():
             with self.subTest(name):
-                url = gen_url(subdomain=gen_string('alpha'))
                 description = gen_string('alphanumeric')
                 registry = entities.Registry(
                     description=description,
                     name=name,
-                    url=url,
+                    url=self.url,
                 ).create()
-                self.assertEqual(registry.name, name)
-                self.assertEqual(registry.url, url)
-                self.assertEqual(registry.description, description)
+                try:
+                    self.assertEqual(registry.name, name)
+                    self.assertEqual(registry.url, self.url)
+                    self.assertEqual(registry.description, description)
+                finally:
+                    registry.delete()
 
     @tier1
     @run_only_on('sat')
@@ -1323,12 +1330,16 @@ class DockerRegistryTestCase(APITestCase):
 
         @Assert: the external registry is updated with the new name
         """
-        registry = entities.Registry(name=gen_string('alpha')).create()
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                registry.name = new_name
-                registry = registry.update()
-                self.assertEqual(registry.name, new_name)
+        registry = entities.Registry(
+            name=gen_string('alpha'), url=self.url).create()
+        try:
+            for new_name in valid_data_list():
+                with self.subTest(new_name):
+                    registry.name = new_name
+                    registry = registry.update()
+                    self.assertEqual(registry.name, new_name)
+        finally:
+            registry.delete()
 
     @tier2
     @run_only_on('sat')
@@ -1339,13 +1350,15 @@ class DockerRegistryTestCase(APITestCase):
 
         @Assert: the external registry is updated with the new URL
         """
-        url = gen_url(subdomain=gen_string('alpha'))
-        new_url = gen_url(subdomain=gen_string('alpha'))
-        registry = entities.Registry(url=url).create()
-        self.assertEqual(registry.url, url)
-        registry.url = new_url
-        registry = registry.update()
-        self.assertEqual(registry.url, new_url)
+        new_url = DOCKER_1_EXTERNAL_REGISTRY
+        registry = entities.Registry(url=self.url).create()
+        try:
+            self.assertEqual(registry.url, self.url)
+            registry.url = new_url
+            registry = registry.update()
+            self.assertEqual(registry.url, new_url)
+        finally:
+            registry.delete()
 
     @tier2
     @run_only_on('sat')
@@ -1356,12 +1369,15 @@ class DockerRegistryTestCase(APITestCase):
 
         @Assert: the external registry is updated with the new description
         """
-        registry = entities.Registry().create()
-        for new_desc in valid_data_list():
-            with self.subTest(new_desc):
-                registry.description = new_desc
-                registry = registry.update()
-                self.assertEqual(registry.description, new_desc)
+        registry = entities.Registry(url=self.url).create()
+        try:
+            for new_desc in valid_data_list():
+                with self.subTest(new_desc):
+                    registry.description = new_desc
+                    registry = registry.update()
+                    self.assertEqual(registry.description, new_desc)
+        finally:
+            registry.delete()
 
     @tier2
     @run_only_on('sat')
@@ -1377,11 +1393,15 @@ class DockerRegistryTestCase(APITestCase):
         registry = entities.Registry(
             username=username,
             password=gen_string('alpha'),
+            url=self.url,
         ).create()
-        self.assertEqual(registry.username, username)
-        registry.username = new_username
-        registry = registry.update()
-        self.assertEqual(registry.username, new_username)
+        try:
+            self.assertEqual(registry.username, username)
+            registry.username = new_username
+            registry = registry.update()
+            self.assertEqual(registry.username, new_username)
+        finally:
+            registry.delete()
 
     @tier1
     @run_only_on('sat')
@@ -1392,9 +1412,7 @@ class DockerRegistryTestCase(APITestCase):
 
         @Assert: The external registry is deleted successfully
         """
-        for name in valid_data_list():
-            with self.subTest(name):
-                registry = entities.Registry(name=name).create()
-                registry.delete()
-                with self.assertRaises(HTTPError):
-                    registry.read()
+        registry = entities.Registry(url=self.url).create()
+        registry.delete()
+        with self.assertRaises(HTTPError):
+            registry.read()

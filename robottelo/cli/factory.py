@@ -16,7 +16,6 @@ from fauxfactory import (
     gen_mac,
     gen_netmask,
     gen_string,
-    gen_url,
 )
 from os import chmod
 from robottelo import manifests, ssh
@@ -53,6 +52,7 @@ from robottelo.cli.user import User
 from robottelo.cli.usergroup import UserGroup, UserGroupExternal
 from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
+    DOCKER_0_EXTERNAL_REGISTRY,
     FAKE_1_YUM_REPO,
     FOREMAN_PROVIDERS,
     OPERATING_SYSTEMS,
@@ -611,7 +611,7 @@ def make_registry(options=None):
         u'description': None,
         u'name': gen_string('alphanumeric'),
         u'password': None,
-        u'url': gen_url(subdomain=gen_string('alpha')),
+        u'url': DOCKER_0_EXTERNAL_REGISTRY,
         u'username': None,
     }
 
