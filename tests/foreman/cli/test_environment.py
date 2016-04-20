@@ -10,9 +10,7 @@ from robottelo.datafactory import (
     valid_environments_list,
 )
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_only_on,
-    skip_if_bug_open,
     tier1,
     tier2,
 )
@@ -232,7 +230,6 @@ class EnvironmentTestCase(CLITestCase):
         self.assertNotIn(old_org['name'], env['organizations'])
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1219934)
     @run_only_on('sat')
     def test_positive_sc_params_by_id(self):
         """Check if environment sc-param subcommand works passing
@@ -242,18 +239,11 @@ class EnvironmentTestCase(CLITestCase):
 
         @Assert: The command runs without raising an error
 
-        @BZ: 1219934
-
         """
         environment = make_environment()
-        Environment.sc_params({
-            'environment-id': environment['id'],
-        })
-        if not bz_bug_is_open(1219934):
-            self.fail('BZ #1219934 is closed, should assert the content')
+        Environment.sc_params({'environment-id': environment['id']})
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1219934)
     @run_only_on('sat')
     def test_positive_sc_params_by_name(self):
         """Check if environment sc-param subcommand works passing
@@ -263,12 +253,6 @@ class EnvironmentTestCase(CLITestCase):
 
         @Assert: The command runs without raising an error
 
-        @BZ: 1219934
-
         """
         environment = make_environment()
-        Environment.sc_params({
-            'environment': environment['name'],
-        })
-        if not bz_bug_is_open(1219934):
-            self.fail('BZ #1219934 is closed, should assert the content')
+        Environment.sc_params({'environment': environment['name']})

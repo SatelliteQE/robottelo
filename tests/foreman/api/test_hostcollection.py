@@ -156,7 +156,6 @@ class HostCollectionTestCase(APITestCase):
         host_collection = host_collection.update(['host'])
         self.assertEqual(len(host_collection.host), len(self.hosts))
 
-    @skip_if_bug_open('bugzilla', 1203323)
     @skip_if_bug_open('bugzilla', 1325989)
     @tier1
     def test_positive_read_host_ids(self):
@@ -249,7 +248,6 @@ class HostCollectionTestCase(APITestCase):
                 self.assertEqual(
                     host_collection.unlimited_hosts, unlimited)
 
-    @skip_if_bug_open('bugzilla', 1203323)
     @skip_if_bug_open('bugzilla', 1325989)
     @tier1
     def test_positive_update_chost(self):
@@ -267,7 +265,6 @@ class HostCollectionTestCase(APITestCase):
         host_collection = host_collection.update(['host'])
         self.assertEqual(host_collection.host[0].id, self.hosts[1].id)
 
-    @skip_if_bug_open('bugzilla', 1203323)
     @skip_if_bug_open('bugzilla', 1325989)
     @tier1
     def test_positive_update_hosts(self):

@@ -634,8 +634,6 @@ class RepositoryTestCase(CLITestCase):
 
         @Assert: A YUM repository is updated and contains the correct checksum
         type
-
-        @BZ: 1208305
         """
         content_type = u'yum'
         repository = self._make_repository({

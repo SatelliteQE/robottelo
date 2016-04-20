@@ -24,7 +24,6 @@ from robottelo.constants import VALID_GPG_KEY_FILE
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
     run_only_on,
-    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
@@ -111,7 +110,6 @@ class TestGPGKey(CLITestCase):
 
     # Positive Create
 
-    @skip_if_bug_open('bugzilla', 1172009)
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_default_org(self):
@@ -121,8 +119,6 @@ class TestGPGKey(CLITestCase):
         @feature: GPG Keys
 
         @assert: gpg key is created
-
-        @BZ: 1172009
         """
         result = Org.list()
         self.assertGreater(len(result), 0, 'No organization found')
@@ -144,7 +140,6 @@ class TestGPGKey(CLITestCase):
                     result[self.search_key]
                 )
 
-    @skip_if_bug_open('bugzilla', 1172009)
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_custom_org(self):
@@ -154,8 +149,6 @@ class TestGPGKey(CLITestCase):
         @feature: GPG Keys
 
         @assert: gpg key is created
-
-        @BZ: 1172009
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -176,7 +169,6 @@ class TestGPGKey(CLITestCase):
 
     # Negative Create
 
-    @skip_if_bug_open('bugzilla', 1172009)
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
@@ -186,8 +178,6 @@ class TestGPGKey(CLITestCase):
         @feature: GPG Keys
 
         @assert: gpg key is not created
-
-        @BZ: 1172009
         """
         name = gen_string('alphanumeric')
         gpg_key = make_gpg_key({
