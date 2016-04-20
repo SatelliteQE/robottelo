@@ -118,6 +118,7 @@ class HostCollectionTestCase(CLITestCase):
                 self.assertEqual(new_host_col['limit'], str(limit))
 
     @skip_if_bug_open('bugzilla', 1214675)
+    @skip_if_bug_open('bugzilla', 1328925)
     @tier1
     def test_positive_create_with_unlimited_hosts(self):
         """Create Host Collection with different values of
@@ -128,8 +129,7 @@ class HostCollectionTestCase(CLITestCase):
         @Assert: Host Collection is created and unlimited-hosts
         parameter is set
 
-        @BZ: 1214675
-
+        @BZ: 1214675, 1328925
         """
         for unlimited in (u'True', u'Yes', 1, u'False', u'No', 0):
             with self.subTest(unlimited):
@@ -163,6 +163,7 @@ class HostCollectionTestCase(CLITestCase):
                     self._new_host_collection({'name': name})
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1328925)
     def test_positive_update_name(self):
         """Check if host collection name can be updated
 
@@ -170,6 +171,7 @@ class HostCollectionTestCase(CLITestCase):
 
         @Assert: Host collection is created and name is updated
 
+        @BZ: 1328925
         """
         new_host_col = self._new_host_collection()
         for new_name in valid_data_list():
@@ -183,6 +185,7 @@ class HostCollectionTestCase(CLITestCase):
                 self.assertEqual(result['name'], new_name)
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1328925)
     def test_positive_update_description(self):
         """Check if host collection description can be updated
 
@@ -190,6 +193,7 @@ class HostCollectionTestCase(CLITestCase):
 
         @Assert: Host collection is created and description is updated
 
+        @BZ: 1328925
         """
         new_host_col = self._new_host_collection()
         for desc in valid_data_list():
@@ -226,6 +230,7 @@ class HostCollectionTestCase(CLITestCase):
                 self.assertEqual(result['limit'], limit)
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1328925)
     def test_positive_delete_by_id(self):
         """Check if host collection can be created and deleted
 
@@ -233,6 +238,7 @@ class HostCollectionTestCase(CLITestCase):
 
         @Assert: Host collection is created and then deleted
 
+        @BZ: 1328925
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -245,6 +251,7 @@ class HostCollectionTestCase(CLITestCase):
                     HostCollection.info({'id': new_host_col['id']})
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1328925)
     def test_positive_add_host_by_id(self):
         """Check if content host can be added to host collection
 
@@ -252,6 +259,7 @@ class HostCollectionTestCase(CLITestCase):
 
         @Assert: Host collection is created and content-host is added
 
+        @BZ: 1328925
         """
         new_host_col = self._new_host_collection({
             'name': gen_string('alpha', 15)})
@@ -274,6 +282,7 @@ class HostCollectionTestCase(CLITestCase):
         self.assertGreater(result['total-hosts'], no_of_content_host)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1328925)
     def test_positive_remove_chost_by_id(self):
         """Check if content host can be removed from host collection
 
@@ -281,6 +290,7 @@ class HostCollectionTestCase(CLITestCase):
 
         @Assert: Host collection is created and content-host is removed
 
+        @BZ: 1328925
         """
         new_host_col = self._new_host_collection({
             'name': gen_string('alpha', 15)})
@@ -311,6 +321,7 @@ class HostCollectionTestCase(CLITestCase):
         self.assertGreater(no_of_content_host, result['total-hosts'])
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1328925)
     def test_positive_list_hosts(self):
         """Check if content hosts added to host collection is listed
 
@@ -318,6 +329,7 @@ class HostCollectionTestCase(CLITestCase):
 
         @Assert: Content-host added to host-collection is listed
 
+        @BZ: 1328925
         """
         host_col_name = gen_string('alpha', 15)
         new_host_col = self._new_host_collection({'name': host_col_name})

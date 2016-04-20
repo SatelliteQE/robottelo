@@ -188,6 +188,28 @@ class ContentViewTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             ContentView.create({'organization-id': gen_string('alpha')})
 
+    @tier1
+    def test_positive_create_empty_and_verify_files(self):
+        """Create an empty content view and make sure no files are created at
+        /var/lib/pulp/published.
+
+        @Feature: Content View
+
+        @Assert: Content view is published and no file is present at
+        /var/lib/pulp/published.
+        """
+        content_view = make_content_view({'organization-id': self.org['id']})
+        ContentView.publish({u'id': content_view['id']})
+        content_view = ContentView.info({u'id': content_view['id']})
+        # Check content view files presence before deletion
+        result = ssh.command(
+            'find /var/lib/pulp/published -name "*{0}*"'
+            .format(content_view['name'])
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertEqual(len(result.stdout), 0)
+        self.assertEqual(len(content_view['versions']), 1)
+
     # pylint: disable=unexpected-keyword-arg
     @tier1
     @run_only_on('sat')
@@ -246,45 +268,6 @@ class ContentViewTestCase(CLITestCase):
         ContentView.delete({'id': con_view['id']})
         with self.assertRaises(CLIReturnCodeError):
             ContentView.info({'id': con_view['id']})
-
-    @tier1
-    def test_positive_delete_empty_cv_by_name_and_verify_files(self):
-        """Delete empty content view and verify it was actually deleted
-        from hard drive.
-
-        @Feature: Content View
-
-        @Assert: Content view was deleted and pulp folder doesn't contain
-        content view files anymore
-
-        """
-        # Create a content view and publish it
-        content_view = make_content_view({'organization-id': self.org['id']})
-        ContentView.publish({u'id': content_view['id']})
-        content_view = ContentView.info({u'id': content_view['id']})
-        # Check content view files presence before deletion
-        result = ssh.command(
-            'find /var/lib/pulp -name "*{0}*"'.format(content_view['name']))
-        self.assertEqual(result.return_code, 0)
-        self.assertNotEqual(len(result.stdout), 0)
-        self.assertEqual(len(content_view['versions']), 1)
-        # Completely delete the content view
-        ContentView.remove_from_environment({
-            'id': content_view['id'],
-            'lifecycle-environment-id':
-                content_view['lifecycle-environments'][0]['id'],
-        })
-        ContentView.version_delete({
-            'content-view': content_view['name'],
-            'organization': self.org['name'],
-            'version': content_view['versions'][0]['version'],
-        })
-        ContentView.delete({'id': content_view['id']})
-        # Check content view files presence after deletion
-        result = ssh.command(
-            'find /var/lib/pulp -name "*{0}*"'.format(content_view['name']))
-        self.assertEqual(result.return_code, 0)
-        self.assertEqual(len(result.stdout), 0)
 
     @tier1
     @skip_if_bug_open('bugzilla', 1265703)

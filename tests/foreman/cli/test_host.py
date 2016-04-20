@@ -118,7 +118,6 @@ class HostCreateTestCase(CLITestCase):
             u'compute-resource-id': compute_resource.id,
             u'domain-id': host.domain.id,
             u'environment-id': host.environment.id,
-            u'interface': 'type=network',
             u'location-id': host.location.id,  # pylint:disable=no-member
             u'medium-id': host.medium.id,
             u'name': host.name,

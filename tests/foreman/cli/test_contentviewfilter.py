@@ -13,7 +13,7 @@ from robottelo.cli.factory import (
 from robottelo.cli.repository import Repository
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import skip_if_bug_open, tier1, tier2
+from robottelo.decorators import bz_bug_is_open, skip_if_bug_open, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -592,9 +592,10 @@ class ContentViewFilterTestCase(CLITestCase):
 
         @Assert: Content view filter is not updated
 
+        @BZ: 1328943
         """
         cvf_name = gen_string('utf8')
-        ContentView.filter_create({
+        content_view_filter = ContentView.filter_create({
             'content-view-id': self.content_view['id'],
             'name': cvf_name,
             'type': 'rpm',
@@ -607,11 +608,19 @@ class ContentViewFilterTestCase(CLITestCase):
                         'name': cvf_name,
                         'new-name': new_name,
                     })
-                with self.assertRaises(CLIReturnCodeError):
-                    ContentView.filter_info({
+                if bz_bug_is_open(1328943):
+                    result = ContentView.filter_info({
                         u'content-view-id': self.content_view['id'],
-                        u'name': new_name,
+                        u'id': content_view_filter['id'],
                     })
+                    self.assertEqual(
+                        result['name'], content_view_filter['name'])
+                else:
+                    with self.assertRaises(CLIReturnCodeError):
+                        ContentView.filter_info({
+                            u'content-view-id': self.content_view['id'],
+                            u'name': new_name,
+                        })
 
     @tier1
     def test_negative_update_with_same_name(self):
