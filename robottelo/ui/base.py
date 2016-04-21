@@ -426,7 +426,6 @@ class Base(object):
     def remove_parameter(self, param_name):
         """Function to remove parameters for different entities like OS and
         Domain.
-
         """
         self.click(common_locators['parameter_tab'])
         strategy, value = common_locators['parameter_remove']
