@@ -701,7 +701,8 @@ common_locators = LocatorDict({
         "//input[@id='name' and contains(@class,'ng-invalid')]"),
     "common_param_error": (
         By.XPATH,
-        "//div[@class='fields']/span[@class='help-block']"),
+        ("//div[@id='parameters']/span[@class='help-block'"
+         "and string-length(text()) > 10]")),
 
     "cv_filter": (
         By.XPATH, "//input[@ng-model='filterTerm']"),
@@ -725,7 +726,7 @@ common_locators = LocatorDict({
     "parameter_value": (
         By.XPATH, "//textarea[@placeholder='Value' and not(text())]"),
     "parameter_remove": (
-        By.XPATH, "//tr/td/input[@value='%s']/following::td/span/a/i"),
+        By.XPATH, "//tr/td/input[@value='%s']/following::td/a"),
 
     # Katello Common Locators
     "confirm_remove": (

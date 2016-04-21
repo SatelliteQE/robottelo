@@ -120,6 +120,7 @@ class OperatingSystemTestCase(UITestCase):
                         common_locators['name_haserror']))
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1328935)
     @tier1
     def test_negative_create_with_too_long_description(self):
         """OS - Create a new OS with description containing
@@ -197,7 +198,6 @@ class OperatingSystemTestCase(UITestCase):
                     self.assertIsNone(self.operatingsys.search(name))
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1283548)
     @tier2
     def test_negative_create_with_same_name_and_version(self):
         """OS - Create a new OS with same name and version
@@ -307,9 +307,11 @@ class OperatingSystemTestCase(UITestCase):
         entities.PartitionTable(
             name=ptable,
             layout=layout,
+            organization=[self.organization],
         ).create()
         os_name = entities.OperatingSystem().create().name
-        with Session(self.browser):
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
             self.operatingsys.update(os_name, new_ptables=[ptable])
             result_obj = self.operatingsys.get_os_entities(os_name, 'ptable')
             self.assertEqual(ptable, result_obj['ptable'])
