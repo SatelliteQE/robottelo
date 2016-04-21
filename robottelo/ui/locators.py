@@ -2486,7 +2486,8 @@ locators = LocatorDict({
     "container.new": (By.XPATH, "//a[contains(@href, '/containers/new')]"),
     "container.resource_name": (
         By.XPATH,
-        "//select[contains(@id, 'preliminary_compute_resource_id')]"),
+        ("//div[contains(@id, 'preliminary_compute_resource_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "container.next_section": (By.ID, "next"),
     "container.content_view_tab": (By.ID, "katello_tab"),
     "container.content_view_tab_next": (By.ID, "next_katello"),
@@ -2495,11 +2496,25 @@ locators = LocatorDict({
     "container.external_registry_tab": (By.ID, "registry_tab"),
     "container.external_registry_tab_next": (By.ID, "next_registry"),
     "container.lifecycle_environment": (
-        By.XPATH, "//select[@id='kt_environment_id']"),
-    "container.content_view": (By.XPATH, "//select[@id='content_view_id']"),
-    "container.repository": (By.XPATH, "//select[@id='repository_id']"),
-    "container.tag": (By.XPATH, "//select[@id='tag_id']"),
-    "container.capsule": (By.XPATH, "//select[@id='capsule_id']"),
+        By.XPATH,
+        ("//div[contains(@id, 'kt_environment_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "container.content_view": (
+        By.XPATH,
+        ("//div[contains(@id, 'kt_environment_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "container.repository": (
+        By.XPATH,
+        ("//div[contains(@id, 'repository_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "container.tag": (
+        By.XPATH,
+        ("//div[contains(@id, 'tag_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "container.capsule": (
+        By.XPATH,
+        ("//div[contains(@id, 'capsule_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "container.docker_hub_tag": (
         By.ID, "hub_docker_container_wizard_states_image_tag"),
     "container.name": (

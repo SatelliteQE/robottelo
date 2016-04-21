@@ -21,7 +21,11 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
-from robottelo.constants import DOCKER_REGISTRY_HUB
+from robottelo.constants import (
+    DOCKER_0_EXTERNAL_REGISTRY,
+    DOCKER_1_EXTERNAL_REGISTRY,
+    DOCKER_REGISTRY_HUB,
+)
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
     run_only_on,
@@ -1477,38 +1481,35 @@ class DockerContainersTestCase(CLITestCase):
 class DockerRegistryTestCase(CLITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
-
     """
 
     @tier1
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_create_with_name(self):
         """Create an external docker registry
 
         @Feature: Docker
 
         @Assert: the external registry is created
-
-        @BZ: 1259498
-
         """
         for name in valid_data_list():
             with self.subTest(name):
-                url = gen_url(subdomain=gen_string('alpha'))
                 description = gen_string('alphanumeric')
                 registry = make_registry({
                     'description': description,
                     'name': name,
-                    'url': url,
+                    'url': DOCKER_0_EXTERNAL_REGISTRY,
                 })
-                self.assertEqual(registry['name'], name)
-                self.assertEqual(registry['description'], description)
-                self.assertEqual(registry['url'], url)
+                try:
+                    self.assertEqual(registry['name'], name)
+                    self.assertEqual(registry['description'], description)
+                    self.assertEqual(
+                        registry['url'], DOCKER_0_EXTERNAL_REGISTRY)
+                finally:
+                    Docker.registry.delete({'id': registry['id']})
 
     @tier1
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_update_name_by_id(self):
         """Create an external docker registry and update its name. Use registry
         ID to search by
@@ -1516,19 +1517,19 @@ class DockerRegistryTestCase(CLITestCase):
         @Feature: Docker
 
         @Assert: the external registry is updated with the new name
-
-        @BZ: 1259498
-
         """
         registry = make_registry()
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                Docker.registry.update({
-                    'id': registry['id'],
-                    'new-name': new_name,
-                })
-                registry = Docker.registry.info({'id': registry['id']})
-                self.assertEqual(registry['name'], new_name)
+        try:
+            for new_name in valid_data_list():
+                with self.subTest(new_name):
+                    Docker.registry.update({
+                        'id': registry['id'],
+                        'new-name': new_name,
+                    })
+                    registry = Docker.registry.info({'id': registry['id']})
+                    self.assertEqual(registry['name'], new_name)
+        finally:
+            Docker.registry.delete({'id': registry['id']})
 
     @tier1
     @run_only_on('sat')
@@ -1539,21 +1540,22 @@ class DockerRegistryTestCase(CLITestCase):
         @Feature: Docker
 
         @Assert: the external registry is updated with the new name
-
         """
         registry = make_registry()
-        for new_name in valid_data_list():
-            with self.subTest(new_name):
-                Docker.registry.update({
-                    'name': registry['name'],
-                    'new-name': new_name,
-                })
-                registry = Docker.registry.info({'name': new_name})
-                self.assertEqual(registry['name'], new_name)
+        try:
+            for new_name in valid_data_list():
+                with self.subTest(new_name):
+                    Docker.registry.update({
+                        'name': registry['name'],
+                        'new-name': new_name,
+                    })
+                    registry = Docker.registry.info({'name': new_name})
+                    self.assertEqual(registry['name'], new_name)
+        finally:
+            Docker.registry.delete({'id': registry['id']})
 
     @tier1
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_update_url_by_id(self):
         """Create an external docker registry and update its URL. Use registry
         ID to search by
@@ -1561,18 +1563,18 @@ class DockerRegistryTestCase(CLITestCase):
         @Feature: Docker
 
         @Assert: the external registry is updated with the new URL
-
-        @BZ: 1259498
-
         """
         registry = make_registry()
-        new_url = gen_url(subdomain=gen_string('alpha'))
-        Docker.registry.update({
-            'id': registry['id'],
-            'url': new_url,
-        })
-        registry = Docker.registry.info({'id': registry['id']})
-        self.assertEqual(registry['url'], new_url)
+        try:
+            new_url = DOCKER_1_EXTERNAL_REGISTRY
+            Docker.registry.update({
+                'id': registry['id'],
+                'url': new_url,
+            })
+            registry = Docker.registry.info({'id': registry['id']})
+            self.assertEqual(registry['url'], new_url)
+        finally:
+            Docker.registry.delete({'id': registry['id']})
 
     @tier1
     @run_only_on('sat')
@@ -1583,20 +1585,21 @@ class DockerRegistryTestCase(CLITestCase):
         @Feature: Docker
 
         @Assert: the external registry is updated with the new URL
-
         """
         registry = make_registry()
-        new_url = gen_url(subdomain=gen_string('alpha'))
-        Docker.registry.update({
-            'name': registry['name'],
-            'url': new_url,
-        })
-        registry = Docker.registry.info({'name': registry['name']})
-        self.assertEqual(registry['url'], new_url)
+        try:
+            new_url = DOCKER_1_EXTERNAL_REGISTRY
+            Docker.registry.update({
+                'name': registry['name'],
+                'url': new_url,
+            })
+            registry = Docker.registry.info({'name': registry['name']})
+            self.assertEqual(registry['url'], new_url)
+        finally:
+            Docker.registry.delete({'id': registry['id']})
 
     @tier1
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_update_description_by_id(self):
         """Create an external docker registry and update its description. Use
         registry ID to search by
@@ -1604,23 +1607,22 @@ class DockerRegistryTestCase(CLITestCase):
         @Feature: Docker
 
         @Assert: the external registry is updated with the new description
-
-        @BZ: 1259498
-
         """
         registry = make_registry({'description': gen_string('alpha')})
-        for new_desc in valid_data_list():
-            with self.subTest(new_desc):
-                Docker.registry.update({
-                    'description': new_desc,
-                    'id': registry['id'],
-                })
-                registry = Docker.registry.info({'id': registry['id']})
-                self.assertEqual(registry['description'], new_desc)
+        try:
+            for new_desc in valid_data_list():
+                with self.subTest(new_desc):
+                    Docker.registry.update({
+                        'description': new_desc,
+                        'id': registry['id'],
+                    })
+                    registry = Docker.registry.info({'id': registry['id']})
+                    self.assertEqual(registry['description'], new_desc)
+        finally:
+            Docker.registry.delete({'id': registry['id']})
 
     @tier1
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_update_description_by_name(self):
         """Create an external docker registry and update its description. Use
         registry name to search by
@@ -1628,23 +1630,22 @@ class DockerRegistryTestCase(CLITestCase):
         @Feature: Docker
 
         @Assert: the external registry is updated with the new description
-
-        @BZ: 1259498
-
         """
         registry = make_registry({'description': gen_string('alpha')})
-        for new_desc in valid_data_list():
-            with self.subTest(new_desc):
-                Docker.registry.update({
-                    'description': new_desc,
-                    'name': registry['name'],
-                })
-                registry = Docker.registry.info({'name': registry['name']})
-                self.assertEqual(registry['description'], new_desc)
+        try:
+            for new_desc in valid_data_list():
+                with self.subTest(new_desc):
+                    Docker.registry.update({
+                        'description': new_desc,
+                        'name': registry['name'],
+                    })
+                    registry = Docker.registry.info({'name': registry['name']})
+                    self.assertEqual(registry['description'], new_desc)
+        finally:
+            Docker.registry.delete({'id': registry['id']})
 
     @tier1
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_update_username_by_id(self):
         """Create an external docker registry and update its username. Use
         registry ID to search by
@@ -1652,23 +1653,22 @@ class DockerRegistryTestCase(CLITestCase):
         @Feature: Docker
 
         @Assert: the external registry is updated with the new username
-
-        @BZ: 1259498
-
         """
         registry = make_registry({'username': gen_string('alpha')})
-        for new_user in valid_data_list():
-            with self.subTest(new_user):
-                Docker.registry.update({
-                    'id': registry['id'],
-                    'username': new_user,
-                })
-                registry = Docker.registry.info({'id': registry['id']})
-                self.assertEqual(registry['username'], new_user)
+        try:
+            for new_user in valid_data_list():
+                with self.subTest(new_user):
+                    Docker.registry.update({
+                        'id': registry['id'],
+                        'username': new_user,
+                    })
+                    registry = Docker.registry.info({'id': registry['id']})
+                    self.assertEqual(registry['username'], new_user)
+        finally:
+            Docker.registry.delete({'id': registry['id']})
 
     @tier1
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_update_username_by_name(self):
         """Create an external docker registry and update its username. Use
         registry name to search by
@@ -1676,32 +1676,28 @@ class DockerRegistryTestCase(CLITestCase):
         @Feature: Docker
 
         @Assert: the external registry is updated with the new username
-
-        @BZ: 1259498
-
         """
         registry = make_registry({'username': gen_string('alpha')})
-        for new_user in valid_data_list():
-            with self.subTest(new_user):
-                Docker.registry.update({
-                    'name': registry['name'],
-                    'username': new_user,
-                })
-                registry = Docker.registry.info({'name': registry['name']})
-                self.assertEqual(registry['username'], new_user)
+        try:
+            for new_user in valid_data_list():
+                with self.subTest(new_user):
+                    Docker.registry.update({
+                        'name': registry['name'],
+                        'username': new_user,
+                    })
+                    registry = Docker.registry.info({'name': registry['name']})
+                    self.assertEqual(registry['username'], new_user)
+        finally:
+            Docker.registry.delete({'id': registry['id']})
 
     @tier1
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1259498)
     def test_positive_delete_by_id(self):
         """Create an external docker registry. Use registry ID to search by
 
         @Feature: Docker
 
         @Assert: the external registry is created
-
-        @BZ: 1259498
-
         """
         registry = make_registry()
         Docker.registry.delete({'id': registry['id']})
@@ -1716,7 +1712,6 @@ class DockerRegistryTestCase(CLITestCase):
         @Feature: Docker
 
         @Assert: the external registry is created
-
         """
         for name in valid_data_list():
             with self.subTest(name):

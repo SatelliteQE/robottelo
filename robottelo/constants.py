@@ -277,6 +277,8 @@ FILTER_TYPE = {'include': "Include",
                'exclude': "Exclude"}
 
 DOCKER_REGISTRY_HUB = u'https://registry-1.docker.io'
+DOCKER_0_EXTERNAL_REGISTRY = u'https://registry.access.redhat.com'
+DOCKER_1_EXTERNAL_REGISTRY = u'http://satqe-docker-registry.usersys.redhat.com:5000/'  # noqa
 GOOGLE_CHROME_REPO = u'http://dl.google.com/linux/chrome/rpm/stable/x86_64'
 FAKE_0_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo/'
 FAKE_1_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo3/'
