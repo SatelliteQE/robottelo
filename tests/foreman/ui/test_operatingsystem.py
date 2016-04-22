@@ -120,6 +120,7 @@ class OperatingSystemTestCase(UITestCase):
                         common_locators['name_haserror']))
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1328935)
     @tier1
     def test_negative_create_with_too_long_description(self):
         """OS - Create a new OS with description containing

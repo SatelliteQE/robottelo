@@ -53,12 +53,9 @@ def valid_name_desc_data():
 
 
 def invalid_create_data():
-    """Random data for invalid name, description and url"""
+    """Random data for invalid name and url"""
     return(
         {u'name': gen_string('alphanumeric', 256)},
-        {u'description': gen_string('alphanumeric', 256)},
-        {u'name': 'white %s spaces' %
-                  gen_string(str_type='alphanumeric')},
         {u'name': ''},
         {u'url': 'invalid url'},
         {u'url': ''},
@@ -84,7 +81,6 @@ def invalid_update_data():
         {u'new-name': 'white spaces %s' %
                       gen_string(str_type='alphanumeric')},
         {u'new-name': ''},
-        {u'description': gen_string('utf8', 256)},
         {u'url': 'invalid url'},
         {u'url': ''},
     )
@@ -264,19 +260,17 @@ class ComputeResourceTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
-    def test_negative_create_with_name_description_url(self):
+    def test_negative_create_with_name_url(self):
         """Compute Resource negative create with invalid values
 
         @Feature: Compute Resource create
 
         @Assert: Compute resource not created
-
         """
         for options in invalid_create_data():
             with self.subTest(options):
                 with self.assertRaises(CLIReturnCodeError):
                     ComputeResource.create({
-                        u'description': options.get('description', ''),
                         u'name': options.get(
                             'name', gen_string(str_type='alphanumeric')),
                         u'provider': FOREMAN_PROVIDERS['libvirt'],

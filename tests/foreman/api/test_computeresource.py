@@ -11,11 +11,7 @@ from random import randint
 from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.constants import LIBVIRT_RESOURCE_URL
-from robottelo.datafactory import (
-    invalid_names_list,
-    invalid_values_list,
-    valid_data_list,
-)
+from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import tier1, tier2
 from robottelo.test import APITestCase
 
@@ -370,24 +366,6 @@ class ComputeResourceTestCase(APITestCase):
                 organization=[self.org],
                 url=self.current_libvirt_url,
             ).create()
-
-    @tier1
-    def test_negative_create_with_description(self):
-        """Attempt to create compute resources with invalid descriptions
-
-        @Feature: Compute Resource
-
-        @Assert: Compute resources are not created
-        """
-        for description in invalid_names_list():
-            with self.subTest(description):
-                with self.assertRaises(HTTPError):
-                    entities.LibvirtComputeResource(
-                        description=description,
-                        location=[self.loc],
-                        organization=[self.org],
-                        url=self.current_libvirt_url,
-                    ).create()
 
     @tier1
     def test_negative_create_with_url(self):

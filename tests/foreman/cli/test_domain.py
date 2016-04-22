@@ -27,7 +27,6 @@ def valid_create_params():
 def invalid_create_params():
     """Returns a list of invalid domain create parameters"""
     return [
-        {u'description': gen_string(str_type='utf8', length=256)},
         {u'dns-id': '-1'},
         {u'name': gen_string(str_type='utf8', length=256)},
     ]
@@ -52,7 +51,6 @@ def invalid_update_params():
     return [
         {u'name': ''},
         {u'name': gen_string(str_type='utf8', length=256)},
-        {u'description': gen_string(str_type='utf8', length=256)},
         {u'dns-id': '-1'},
     ]
 
