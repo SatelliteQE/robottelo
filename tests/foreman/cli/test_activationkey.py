@@ -202,22 +202,6 @@ class ActivationKeyTestCase(CLITestCase):
                 with self.assertRaises(CLIFactoryError):
                     self._make_activation_key({u'name': name})
 
-    @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1177158)
-    @tier1
-    def test_negative_create_with_invalid_description(self):
-        """Create Activation key with invalid Description
-
-        @Feature: Activation key - Negative Create
-
-        @BZ: 1177158
-
-        @Assert: Activation key is not created. Appropriate error shown.
-        """
-        with self.assertRaises(CLIFactoryError):
-            self._make_activation_key(
-                {u'description': gen_string('alpha', 1001)})
-
     @tier1
     def test_negative_create_with_usage_limit(self):
         """Create Activation key with invalid Usage Limit
@@ -489,26 +473,6 @@ class ActivationKeyTestCase(CLITestCase):
                         u'new-name': name,
                         u'organization-id': self.org['id'],
                     })
-
-    @skip_if_bug_open('bugzilla', 1177158)
-    @tier1
-    def test_negative_update_description(self):
-        """Try to update Activation Key using invalid value for its
-        description
-
-        @Feature: Activation key - Negative Update
-
-        @BZ: 1177158
-
-        @Assert: Activation key is not updated. Appropriate error shown.
-        """
-        new_ak = self._make_activation_key()
-        with self.assertRaises(CLIReturnCodeError):
-            ActivationKey.update({
-                u'id': new_ak['id'],
-                u'description': gen_string('alpha', 1001),
-                u'organization-id': self.org['id'],
-            })
 
     @tier1
     def test_negative_update_usage_limit(self):

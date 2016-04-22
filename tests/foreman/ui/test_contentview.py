@@ -406,26 +406,6 @@ class ContentViewTestCase(UITestCase):
                     self.assertIsNotNone(self.content_views.wait_until_element(
                         common_locators['alert.success']))
 
-    @run_only_on('sat')
-    @tier1
-    def test_negative_update_description(self):
-        """Try to update content views description to invalid one.
-
-        @feature: Content Views
-
-        @assert: Content View is not updated. Appropriate error shown.
-        """
-        name = gen_string('alpha', 8)
-        desc = gen_string('alpha', 15)
-        new_description = gen_string('alpha', 256)
-        with Session(self.browser) as session:
-            make_contentview(session, org=self.organization.name,
-                             name=name, description=desc)
-            self.assertIsNotNone(self.content_views.search(name))
-            self.content_views.update(name, new_description=new_description)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.error']))
-
     @stubbed()
     @run_only_on('sat')
     @tier3

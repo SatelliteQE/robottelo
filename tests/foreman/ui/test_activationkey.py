@@ -21,7 +21,6 @@ from robottelo.constants import (
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_only_on,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -273,31 +272,6 @@ class ActivationKeyTestCase(UITestCase):
                     self.assertIsNotNone(self.activationkey.wait_until_element(
                         common_locators['common_invalid']))
                     self.assertIsNone(self.activationkey.search(name))
-
-    @skip_if_bug_open('bugzilla', 1177158)
-    @tier1
-    def test_negative_create_with_too_long_description(self):
-        """Create Activation key with too long description
-
-        @Feature: Activation key - Negative Create
-
-        @Assert: Activation key is not created. Appropriate error shown.
-
-        @BZ: 1177158
-        """
-        name = gen_string('alpha')
-        description = gen_string('alpha', 1001)
-        with Session(self.browser) as session:
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=name,
-                env=ENVIRONMENT,
-                description=description,
-            )
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['common_haserror']))
-            self.assertIsNone(self.activationkey.search(name))
 
     @tier2
     def test_negative_create_with_invalid_limit(self):
@@ -719,32 +693,6 @@ class ActivationKeyTestCase(UITestCase):
                     self.assertIsNotNone(self.activationkey.wait_until_element(
                         common_locators['alert.error']))
                     self.assertIsNone(self.activationkey.search(new_name))
-
-    @skip_if_bug_open('bugzilla', 1177158)
-    @tier1
-    def test_negative_update_description(self):
-        """Update invalid Description in an activation key
-
-        @Feature: Activation key - Negative Update
-
-        @Assert: Activation key is not updated.  Appropriate error shown.
-
-        @BZ: 1177158
-        """
-        name = gen_string('alpha')
-        new_description = gen_string('alpha', 1001)
-        with Session(self.browser) as session:
-            make_activationkey(
-                session,
-                org=self.organization.name,
-                name=name,
-                env=ENVIRONMENT,
-                description=gen_string('alpha'),
-            )
-            self.assertIsNotNone(self.activationkey.search(name))
-            self.activationkey.update(name, description=new_description)
-            self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.error']))
 
     @tier1
     def test_negative_update_limit(self):

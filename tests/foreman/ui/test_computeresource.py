@@ -152,31 +152,6 @@ class ComputeResourceTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
-    def test_negative_create_libvirt_with_invalid_description(self):
-        """Create libvirt Compute Resource with incorrect description.
-
-        @Feature: Compute Resource - Create with long description.
-
-        @Assert: A libvirt Compute Resource is not created
-        """
-        with Session(self.browser) as session:
-            for description in invalid_names_list():
-                with self.subTest(description):
-                    make_resource(
-                        session,
-                        name=gen_string('alpha'),
-                        provider_type=FOREMAN_PROVIDERS['libvirt'],
-                        parameter_list=[
-                            ['URL', self.current_libvirt_url, 'field'],
-                            ['Description', description, 'field']
-                        ],
-                    )
-                    error_element = session.nav.wait_until_element(
-                        common_locators["haserror"])
-                    self.assertIsNotNone(error_element)
-
-    @run_only_on('sat')
-    @tier1
     def test_positive_update_libvirt_name(self):
         """Update a libvirt Compute Resource name
 
