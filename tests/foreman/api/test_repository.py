@@ -404,8 +404,9 @@ class RepositoryTestCase(APITestCase):
         repo = repo.update()
         self.assertEqual(repo.gpg_key.id, gpg_key_2.id)
 
-    @tier2
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1329292)
+    @tier2
     def test_positive_update_contents(self):
         """Create a repository and upload RPM contents.
 
