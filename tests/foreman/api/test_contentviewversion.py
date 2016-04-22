@@ -8,7 +8,7 @@ from robottelo.constants import (
     PUPPET_MODULE_NTP_PUPPETLABS,
     ZOO_CUSTOM_GPG_KEY,
 )
-from robottelo.decorators import tier2
+from robottelo.decorators import skip_if_bug_open, tier2
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import APITestCase
 
@@ -281,6 +281,7 @@ class ContentViewVersionDeleteTestCase(APITestCase):
 class ContentViewVersionIncrementalTestCase(APITestCase):
     """Tests for content view version promotion."""
 
+    @skip_if_bug_open('bugzilla', 1329292)
     @tier2
     def test_positive_incremental_update_puppet(self):
         """Incrementally update a CVV with a puppet module.
