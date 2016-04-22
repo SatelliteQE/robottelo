@@ -67,6 +67,8 @@ def valid_update_data():
     return(
         {u'new-name': gen_string('utf8', 255)},
         {u'new-name': gen_string('alphanumeric')},
+        {u'new-name': 'white spaces %s' %
+                      gen_string(str_type='alphanumeric')},
         {u'description': gen_string('utf8', 255)},
         {u'description': gen_string('alphanumeric')},
         {u'url': gen_url()},
@@ -78,8 +80,6 @@ def invalid_update_data():
     """Random data for invalid update"""
     return(
         {u'new-name': gen_string('utf8', 256)},
-        {u'new-name': 'white spaces %s' %
-                      gen_string(str_type='alphanumeric')},
         {u'new-name': ''},
         {u'url': 'invalid url'},
         {u'url': ''},
@@ -108,7 +108,7 @@ class ComputeResourceTestCase(CLITestCase):
 
         """
         ComputeResource.create({
-            'name': gen_string(str_type='alpha'),
+            'name': 'cr {0}'.format(gen_string(str_type='alpha')),
             'provider': 'Libvirt',
             'url': self.current_libvirt_url,
         })
