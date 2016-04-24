@@ -12,6 +12,7 @@ from fauxfactory import gen_alphanumeric
 from itertools import chain
 from nailgun import entities
 from requests.exceptions import HTTPError
+from robottelo import ssh
 from robottelo.constants import PERMISSIONS
 from robottelo.decorators import run_only_on, tier1
 from robottelo.helpers import get_nailgun_config, get_server_software
@@ -33,6 +34,14 @@ class PermissionTestCase(APITestCase):
             cls.permissions[None].remove('view_cases')
             cls.permissions[None].remove('view_log_viewer')
             cls.permissions[None].remove('view_search')
+
+        result = ssh.command('rpm -qa | grep rubygem-foreman_openscap')
+        if result.return_code != 0:
+            cls.permissions.pop('ForemanOpenscap::Policy')
+            cls.permissions.pop('ForemanOpenscap::ScapContent')
+            cls.permissions[None].remove('destroy_arf_reports')
+            cls.permissions[None].remove('view_arf_reports')
+            cls.permissions[None].remove('create_arf_reports')
 
         #: e.g. ['Architecture', 'Audit', 'AuthSourceLdap', …]
         cls.permission_resource_types = list(cls.permissions.keys())
