@@ -223,12 +223,12 @@ class UITestCase(TestCase):
             path = os.path.join(
                 settings.screenshots_path,
                 now.strftime('%Y-%m-%d'),
-                type(self).__name__,
-                self._testMethodName,
             )
             if not os.path.exists(path):
                 os.makedirs(path)
-            filename = 'screenshot-{0}.png'.format(
+            filename = '{0}-{1}-screenshot-{2}.png'.format(
+                type(self).__name__,
+                self._testMethodName,
                 now.strftime('%Y-%m-%d_%H_%M_%S')
             )
             path = os.path.join(path, filename)
