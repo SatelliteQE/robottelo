@@ -1,5 +1,5 @@
 """Implements Sync Plans for UI."""
-from robottelo.ui.base import Base, UIError
+from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
@@ -50,13 +50,7 @@ class Syncplan(Base):
                new_sync_interval=None, add_products=None,
                rm_products=None):
         """Updates Sync Plans from UI."""
-        sp_element = self.search(name)
-        if sp_element is None:
-            raise UIError(
-                'Unable to find the sync_plan "{0}" for update.'.format(name)
-            )
-        sp_element.click()
-        self.wait_for_ajax()
+        self.search(name).click()
         self.click(tab_locators['sp.tab_details'])
         if new_name:
             self.click(locators['sp.name_edit'])

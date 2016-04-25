@@ -224,7 +224,7 @@ class ActivationKeyTestCase(UITestCase):
             # add Host Collection
             self.activationkey.add_host_collection(name, host_col.name)
             self.assertIsNotNone(self.activationkey.find_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
             # check added host collection is listed
             self.activationkey.click(tab_locators['ak.host_collections.list'])
@@ -340,6 +340,7 @@ class ActivationKeyTestCase(UITestCase):
                 org=self.organization.name,
                 name=name,
                 env=env_name,
+                content_view=cv_name,
             )
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.delete(name)
@@ -402,7 +403,7 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.associate_product(name, [product_name])
             self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             with VirtualMachine(distro=self.vm_distro) as vm:
                 vm.install_katello_ca()
                 result = vm.register_contenthost(name, self.organization.label)
@@ -480,7 +481,7 @@ class ActivationKeyTestCase(UITestCase):
                 with self.subTest(new_desc):
                     self.activationkey.update(name, description=new_desc)
                     self.assertIsNotNone(self.activationkey.wait_until_element(
-                        common_locators['alert.success']))
+                        common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
@@ -510,7 +511,7 @@ class ActivationKeyTestCase(UITestCase):
             self.assertEqual(ENVIRONMENT, selected_env)
             self.activationkey.update(name, content_view=cv_name, env=env_name)
             self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             selected_env = self.activationkey.get_attribute(name, env_locator)
             self.assertEqual(env_name, selected_env)
 
@@ -555,7 +556,7 @@ class ActivationKeyTestCase(UITestCase):
             self.activationkey.update(
                 name, content_view=cv2_name, env=env2_name)
             self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             selected_cv = self.activationkey.get_attribute(name, cv_locator)
             self.assertEqual(cv2_name, selected_cv)
 
@@ -623,7 +624,7 @@ class ActivationKeyTestCase(UITestCase):
             self.activationkey.update(
                 name, content_view=cv2_name, env=env2_name)
             self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             selected_cv = self.activationkey.get_attribute(name, cv_locator)
             self.assertEqual(cv2_name, selected_cv)
 
@@ -646,7 +647,7 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.update(name, limit='8')
             self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @tier1
     def test_positive_update_limit_to_unlimited(self):
@@ -668,7 +669,7 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.update(name, limit='Unlimited')
             self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @tier1
     def test_negative_update_name(self):
@@ -691,7 +692,7 @@ class ActivationKeyTestCase(UITestCase):
                 with self.subTest(new_name):
                     self.activationkey.update(name, new_name)
                     self.assertIsNotNone(self.activationkey.wait_until_element(
-                        common_locators['alert.error']))
+                        common_locators['alert.error_sub_form']))
                     self.assertIsNone(self.activationkey.search(new_name))
 
     @tier1
@@ -749,7 +750,7 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.update(name, limit=host_limit)
             self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             with VirtualMachine(distro=self.vm_distro) as vm1:
                 with VirtualMachine(distro=self.vm_distro) as vm2:
                     vm1.install_katello_ca()
@@ -840,7 +841,7 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.associate_product(name, [product_subscription])
             self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
@@ -869,7 +870,7 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search(name))
             self.activationkey.associate_product(name, [product_name])
             self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @skip_if_not_set('fake_manifest')
     @run_only_on('sat')
@@ -940,7 +941,7 @@ class ActivationKeyTestCase(UITestCase):
             self.activationkey.associate_product(
                 name, [product_subscription, custom_product_name])
             self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @skip_if_not_set('fake_manifest')
     @tier2
@@ -986,7 +987,7 @@ class ActivationKeyTestCase(UITestCase):
             self.navigator.go_to_red_hat_subscriptions()
             self.subscriptions.delete()
             self.assertIsNotNone(self.subscriptions.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             # Verify the subscription was removed from the activation key
             self.navigator.go_to_activation_keys()
             self.assertIsNone(
@@ -1031,7 +1032,7 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search(key_1_name))
             self.activationkey.associate_product(key_1_name, [product_1_name])
             self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             # Create activation_key_2
             make_activationkey(
                 session,
@@ -1043,7 +1044,7 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.search(key_2_name))
             self.activationkey.associate_product(key_2_name, [product_2_name])
             self.assertIsNotNone(self.activationkey.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             # Create VM
             with VirtualMachine(distro=self.vm_distro) as vm:
                 vm.install_katello_ca()
