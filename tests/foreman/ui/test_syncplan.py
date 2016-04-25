@@ -139,12 +139,7 @@ class SyncPlanTestCase(UITestCase):
         """
         plan_name = gen_string('alpha')
         startdate = datetime.now() + timedelta(minutes=10)
-        # Formatting current_date to web-UI format "%b %d, %Y %I:%M:%S %p" and
-        # removed zero-padded date(%-d) and hrs(%l) as fetching via web-UI
-        # doesn't have it
-        formatted_date_time = startdate.strftime("%b %-d, %Y %-l:%M:%S %p")
-        # Removed the seconds info as it would be too quick to validate via UI.
-        starttime = formatted_date_time.rpartition(':')[0]
+        starttime = startdate.strftime("%Y-%m-%d %H:%M")
         with Session(self.browser) as session:
             make_syncplan(
                 session,
@@ -156,13 +151,11 @@ class SyncPlanTestCase(UITestCase):
             )
             self.assertIsNotNone(self.syncplan.search(plan_name))
             self.syncplan.search(plan_name).click()
-            self.syncplan.wait_for_ajax()
             starttime_text = self.syncplan.wait_until_element(
                 locators['sp.fetch_startdate']).text
             # Removed the seconds info as it would be too quick
             # to validate via UI.
-            saved_starttime = str(starttime_text).rpartition(':')[0]
-            self.assertEqual(saved_starttime, starttime)
+            self.assertEqual(str(starttime_text).rpartition(':')[0], starttime)
 
     @tier2
     def test_positive_create_with_start_date(self):
@@ -175,9 +168,6 @@ class SyncPlanTestCase(UITestCase):
         plan_name = gen_string('alpha')
         startdate = datetime.now() + timedelta(days=10)
         startdate_str = startdate.strftime("%Y-%m-%d")
-        current_date_time = startdate.strftime("%b %-d, %Y %I:%M:%S %p")
-        # validating only for date
-        fetch_startdate = current_date_time.rpartition(',')[0]
         with Session(self.browser) as session:
             make_syncplan(
                 session,
@@ -188,11 +178,10 @@ class SyncPlanTestCase(UITestCase):
             )
             self.assertIsNotNone(self.syncplan.search(plan_name))
             self.syncplan.search(plan_name).click()
-            self.syncplan.wait_for_ajax()
             startdate_text = self.syncplan.wait_until_element(
                 locators['sp.fetch_startdate']).text
-            saved_startdate = str(startdate_text).rpartition(',')[0]
-            self.assertEqual(saved_startdate, fetch_startdate)
+            self.assertEqual(
+                str(startdate_text).partition(' ')[0], startdate_str)
 
     @tier1
     def test_negative_create_with_invalid_name(self):
@@ -277,9 +266,7 @@ class SyncPlanTestCase(UITestCase):
             for new_interval in valid_sync_intervals():
                 with self.subTest(new_interval):
                     session.nav.go_to_select_org(self.organization.name)
-                    session.nav.go_to_sync_plans()
                     self.syncplan.update(name, new_sync_interval=new_interval)
-                    session.nav.go_to_sync_plans()
                     self.syncplan.search(name).click()
                     # Assert updated sync interval
                     interval_text = self.syncplan.wait_until_element(
@@ -297,24 +284,22 @@ class SyncPlanTestCase(UITestCase):
         """
         strategy, value = locators['sp.prd_select']
         product = entities.Product(organization=self.organization).create()
+        plan_name = gen_string('alpha')
+        entities.SyncPlan(
+            name=plan_name,
+            interval=SYNC_INTERVAL['week'],
+            organization=self.organization,
+        ).create()
         with Session(self.browser) as session:
-            for plan_name in generate_strings_list():
-                with self.subTest(plan_name):
-                    entities.SyncPlan(
-                        name=plan_name,
-                        interval=SYNC_INTERVAL['week'],
-                        organization=self.organization,
-                    ).create()
-                    session.nav.go_to_select_org(self.organization.name)
-                    session.nav.go_to_sync_plans()
-                    self.syncplan.update(
-                        plan_name, add_products=[product.name])
-                    self.syncplan.search(plan_name).click()
-                    # Assert product is associated with sync plan
-                    self.syncplan.click(tab_locators['sp.tab_products'])
-                    element = self.syncplan.wait_until_element(
-                        (strategy, value % product.name))
-                    self.assertIsNotNone(element)
+            session.nav.go_to_select_org(self.organization.name)
+            self.syncplan.update(
+                plan_name, add_products=[product.name])
+            self.syncplan.search(plan_name).click()
+            # Assert product is associated with sync plan
+            self.syncplan.click(tab_locators['sp.tab_products'])
+            element = self.syncplan.wait_until_element(
+                (strategy, value % product.name))
+            self.assertIsNotNone(element)
 
     @tier2
     def test_positive_update_and_disassociate_product(self):
@@ -334,10 +319,8 @@ class SyncPlanTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_sync_plans()
             self.syncplan.update(plan_name, add_products=[product.name])
             self.syncplan.search(plan_name).click()
-            self.syncplan.wait_for_ajax()
             self.syncplan.click(tab_locators['sp.tab_products'])
             element = self.syncplan.wait_until_element(
                 (strategy, value % product.name))
@@ -346,7 +329,6 @@ class SyncPlanTestCase(UITestCase):
             # should automatically move from 'List/Remove` tab to 'Add' tab
             self.syncplan.update(plan_name, rm_products=[product.name])
             self.syncplan.search(plan_name).click()
-            self.syncplan.wait_for_ajax()
             self.syncplan.click(tab_locators['sp.tab_products'])
             self.syncplan.click(tab_locators['sp.add_prd'])
             element = self.syncplan.wait_until_element(
