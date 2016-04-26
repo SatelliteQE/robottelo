@@ -6,6 +6,7 @@ import json
 
 from robottelo import ssh
 from robottelo.cli import hammer
+from robottelo.config import settings
 
 
 def generate_command_tree(command):
@@ -21,6 +22,8 @@ def generate_command_tree(command):
                 '{0} {1}'.format(command, subcommand['name'])
             ))
     return contents
+
+settings.configure()
 
 # Generate the json file in the working directory
 with open('hammer_commands.json', 'w') as f:
