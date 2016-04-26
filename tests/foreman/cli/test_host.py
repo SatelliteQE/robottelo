@@ -403,7 +403,8 @@ class HostUpdateTestCase(CLITestCase):
             'id': self.host['id'],
         })
         self.host = Host.info({'id': self.host['id']})
-        self.assertEqual(self.host['architecture'], new_arch['name'])
+        self.assertEqual(
+            self.host['operating-system']['architecture'], new_arch['name'])
 
     @tier2
     def test_positive_update_arch_by_name(self):
@@ -427,7 +428,8 @@ class HostUpdateTestCase(CLITestCase):
             'name': self.host['name'],
         })
         self.host = Host.info({'name': self.host['name']})
-        self.assertEqual(self.host['architecture'], new_arch['name'])
+        self.assertEqual(
+            self.host['operating-system']['architecture'], new_arch['name'])
 
     @tier2
     def test_positive_update_os_by_id(self):
@@ -451,7 +453,8 @@ class HostUpdateTestCase(CLITestCase):
             'operatingsystem-id': new_os['id'],
         })
         self.host = Host.info({'id': self.host['id']})
-        self.assertEqual(self.host['operating-system'], new_os['title'])
+        self.assertEqual(
+            self.host['operating-system']['operating-system'], new_os['title'])
 
     @tier2
     def test_positive_update_os_by_name(self):
@@ -464,7 +467,8 @@ class HostUpdateTestCase(CLITestCase):
         """
         new_os = make_os({
             'architectures': self.host_args.architecture.name,
-            'partition-tables': self.host['partition-table'],
+            'partition-tables': self.host[
+                'operating-system']['partition-table'],
         })
         Medium.add_operating_system({
             'name': self.host_args.medium.name,
@@ -475,7 +479,8 @@ class HostUpdateTestCase(CLITestCase):
             'operatingsystem': new_os['title'],
         })
         self.host = Host.info({'name': self.host['name']})
-        self.assertEqual(self.host['operating-system'], new_os['title'])
+        self.assertEqual(
+            self.host['operating-system']['operating-system'], new_os['title'])
 
     @tier2
     def test_positive_update_medium_by_id(self):
@@ -500,7 +505,8 @@ class HostUpdateTestCase(CLITestCase):
             'medium-id': new_medium['id'],
         })
         self.host = Host.info({'id': self.host['id']})
-        self.assertEqual(self.host['medium'], new_medium['name'])
+        self.assertEqual(
+            self.host['operating-system']['medium'], new_medium['name'])
 
     @tier2
     def test_positive_update_medium_by_name(self):
@@ -525,7 +531,8 @@ class HostUpdateTestCase(CLITestCase):
             'name': self.host['name'],
         })
         self.host = Host.info({'name': self.host['name']})
-        self.assertEqual(self.host['medium'], new_medium['name'])
+        self.assertEqual(
+            self.host['operating-system']['medium'], new_medium['name'])
 
     @tier1
     def test_negative_update_name(self):
@@ -588,7 +595,8 @@ class HostUpdateTestCase(CLITestCase):
                 'id': self.host['id'],
             })
         self.host = Host.info({'id': self.host['id']})
-        self.assertNotEqual(self.host['architecture'], new_arch['name'])
+        self.assertNotEqual(
+            self.host['operating-system']['architecture'], new_arch['name'])
 
     @tier2
     def test_negative_update_os(self):
@@ -605,7 +613,8 @@ class HostUpdateTestCase(CLITestCase):
         })
         new_os = make_os({
             'architectures': new_arch['name'],
-            'partition-tables': self.host['partition-table'],
+            'partition-tables': self.host[
+                'operating-system']['partition-table'],
         })
         with self.assertRaises(CLIReturnCodeError):
             Host.update({
@@ -614,7 +623,8 @@ class HostUpdateTestCase(CLITestCase):
                 'operatingsystem': new_os['title'],
             })
         self.host = Host.info({'id': self.host['id']})
-        self.assertNotEqual(self.host['operating-system'], new_os['title'])
+        self.assertNotEqual(
+            self.host['operating-system']['operating-system'], new_os['title'])
 
 
 class HostParameterTestCase(CLITestCase):
