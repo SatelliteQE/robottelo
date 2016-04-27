@@ -2,7 +2,7 @@
 """Implements User groups UI."""
 from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
-from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -39,7 +39,7 @@ class UserGroup(Base):
                 locators['usergroups.ext_usergroup_name'],
                 ext_usergrp
             )
-            self.select(
+            self.assign_value(
                 locators['usergroups.ext_authsource_id'], ext_authsourceid)
         self.click(common_locators['submit'])
 
@@ -51,39 +51,34 @@ class UserGroup(Base):
             locators['usergroups.delete'],
         )
 
-    def update(self, old_name, new_name=None,
-               users=None, new_users=None, roles=None, new_roles=None,
-               entity_select=None, refresh_extusrgp=False):
+    def update(self, old_name, new_name=None, users=None, new_users=None,
+               roles=None, new_roles=None, entity_select=None):
         """Update usergroup name and its users."""
         if roles is None:
             roles = []
         if new_roles is None:
             new_roles = []
-        element = self.search(old_name)
-
-        if element:
-            element.click()
-            self.wait_for_ajax()
-            if new_name:
-                if self.wait_until_element(locators['usergroups.name']):
-                    self.field_update('usergroups.name', new_name)
-            self.configure_entity(
-                users, FILTER['usergroup_user'], new_entity_list=new_users)
-            if roles or new_roles:
-                self.click(tab_locators['usergroups.tab_roles'])
-                if "admin" in roles or "admin" in new_roles:
-                    self.click(locators['usergroups.admin'])
-                else:
-                    self.configure_entity(
-                        entity_list=roles,
-                        new_entity_list=new_roles,
-                        filter_key=FILTER['usergroup_role'],
-                        entity_select=entity_select,
-                    )
-            if refresh_extusrgp:
-                self.click(tab_locators['usergroups.tab_external'])
-                self.click(locators['ldapserver.refresh'])
+        self.click(self.search(old_name))
+        if new_name and self.wait_until_element(locators['usergroups.name']):
+            self.field_update('usergroups.name', new_name)
+        self.configure_entity(
+            users, FILTER['usergroup_user'], new_entity_list=new_users)
+        if roles or new_roles:
+            self.click(tab_locators['usergroups.tab_roles'])
+            if "admin" in roles or "admin" in new_roles:
+                self.click(locators['usergroups.admin'])
             else:
-                self.click(common_locators['submit'])
-        else:
-            raise UIError('Could not find usergroup "{0}"'.format(old_name))
+                self.configure_entity(
+                    entity_list=roles,
+                    new_entity_list=new_roles,
+                    filter_key=FILTER['usergroup_role'],
+                    entity_select=entity_select,
+                )
+        self.click(common_locators['submit'])
+
+    def refresh_ext_group(self, name, ext_group_name):
+        """Refresh external usergroup entity"""
+        self.click(self.search(name))
+        self.click(tab_locators['usergroups.tab_external'])
+        strategy, value = locators['usergroups.ext_refresh']
+        self.click((strategy, value % ext_group_name))

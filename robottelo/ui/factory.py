@@ -334,9 +334,7 @@ def make_usergroup(session, org=None, loc=None, force_context=True, **kwargs):
         example, creating entities with the same name but in different
         organizations.
     :param kwargs: Arbitrary keyword arguments to update create_args.
-
     """
-
     create_args = {
         u'name': None,
         u'users': None,
