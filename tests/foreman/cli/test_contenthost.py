@@ -329,15 +329,22 @@ class ContentHostTestCase(CLITestCase):
                     ContentHost.info({'id': content_host['id']})
 
     @tier1
-    def test_negative_create_with_same_name(self):
-        """Check if Content Host creation does not allow duplicated
-        names
+    def test_positive_create_with_same_name(self):
+        """Registering the same content host generates a new UUID.
 
         @Feature: Content Hosts
 
-        @Assert: Content Hosts with the same name are not allowed
+        @Assert: The UUID generated is different when registering the same
+        content host.
         """
         name = gen_string('alpha', 15).lower()
+        content_host = make_content_host({
+            u'content-view-id': self.DEFAULT_CV['id'],
+            u'lifecycle-environment-id': self.LIBRARY['id'],
+            u'name': name,
+            u'organization-id': self.NEW_ORG['id'],
+        })
+        self.assertEqual(content_host['name'], name)
         result = make_content_host({
             u'content-view-id': self.DEFAULT_CV['id'],
             u'lifecycle-environment-id': self.LIBRARY['id'],
@@ -345,13 +352,9 @@ class ContentHostTestCase(CLITestCase):
             u'organization-id': self.NEW_ORG['id'],
         })
         self.assertEqual(result['name'], name)
-        with self.assertRaises(CLIFactoryError):
-            make_content_host({
-                u'content-view-id': self.DEFAULT_CV['id'],
-                u'lifecycle-environment-id': self.LIBRARY['id'],
-                u'name': name,
-                u'organization-id': self.NEW_ORG['id'],
-            })
+        self.assertEqual(result['lifecycle-environment'], self.LIBRARY['name'])
+        self.assertEqual(result['content-view'], self.DEFAULT_CV['name'])
+        self.assertNotEqual(result['id'], content_host['id'])
 
     @tier3
     def test_positive_register_with_no_ak(self):
