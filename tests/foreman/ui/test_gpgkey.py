@@ -704,7 +704,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
                     self.gpgkey.assert_product_repo(name, product=product_)
                 )
 
-    @skip_if_bug_open('bugzilla', 1085035)
+    @skip_if_bug_open('bugzilla', 1210180)
     @run_only_on('sat')
     @tier2
     def test_positive_add_product_using_repo_discovery(self):
@@ -1283,7 +1283,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             self.assertIsNone(
                 self.gpgkey.assert_key_from_product(name, prd_element))
 
-    @skip_if_bug_open('bugzilla', 1085035)
+    @skip_if_bug_open('bugzilla', 1210180)
     @run_only_on('sat')
     @tier2
     def test_positive_delete_key_for_product_using_repo_discovery(self):
