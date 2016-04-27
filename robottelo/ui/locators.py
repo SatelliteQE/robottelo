@@ -1998,7 +1998,7 @@ locators = LocatorDict({
     "contentviews.select_module": (
         By.XPATH,
         ("//tr/td[contains(., '%s')]/following-sibling::td"
-         "/button[@ng-click='selectVersion(item.module_name)']")),
+         "/button[@ng-click='selectVersion(item.name)']")),
     "contentviews.select_module_ver": (
         By.XPATH,
         ("//tr/td[contains(., '%s')]/following-sibling::td"

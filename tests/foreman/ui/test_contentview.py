@@ -164,16 +164,15 @@ class ContentViewTestCase(UITestCase):
             # Add repository to selected CV
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             # Publish and promote CV to next environment
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators['alert.success']))
+                                 (common_locators['alert.success_sub_form']))
             self.content_views.promote(cv_name, 'Version 1', env_name)
             self.assertIsNotNone(self.content_views.wait_until_element
-                                 (common_locators['alert.success']))
+                                 (common_locators['alert.success_sub_form']))
 
-    @skip_if_bug_open('bugzilla', 1297308)
     @run_only_on('sat')
     @tier2
     def test_positive_add_puppet_module(self):
@@ -301,7 +300,7 @@ class ContentViewTestCase(UITestCase):
                 ['mammals']
             )
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
@@ -331,7 +330,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_errata_to_filter(
                 cv_name, filter_name, ['RHEA-2012:0001', 'RHEA-2012:0004'])
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier1
@@ -377,7 +376,7 @@ class ContentViewTestCase(UITestCase):
                 with self.subTest(new_name):
                     self.content_views.update(name, new_name)
                     self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.error']))
+                        common_locators['alert.error_sub_form']))
                     self.assertIsNone(self.content_views.search(new_name))
 
     @run_only_on('sat')
@@ -404,7 +403,7 @@ class ContentViewTestCase(UITestCase):
                 with self.subTest(new_desc):
                     self.content_views.update(name, new_description=new_desc)
                     self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.success']))
+                        common_locators['alert.success_sub_form']))
 
     @stubbed()
     @run_only_on('sat')
@@ -514,7 +513,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_cv(
                 composite_name, [cv_name1, cv_name2])
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
@@ -545,7 +544,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @stubbed()
     @run_only_on('sat')
@@ -591,7 +590,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @skip_if_bug_open('bugzilla', 1297308)
     @run_only_on('sat')
@@ -671,7 +670,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             with self.assertRaises(UIError) as context:
                 self.content_views.add_remove_repos(cv_name, [repo_name])
                 self.assertEqual(
@@ -730,13 +729,13 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             self.content_views.promote(cv_name, 'Version 1', env_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @stubbed()
     @run_only_on('sat')
@@ -782,13 +781,13 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             self.content_views.promote(cv_name, 'Version 1', env_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @stubbed()
     @run_only_on('sat')
@@ -856,10 +855,10 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [rh_repo['name']])
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @stubbed()
     @run_only_on('sat')
@@ -905,10 +904,10 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.search(cv_name))
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @stubbed()
     @run_only_on('sat')
@@ -1004,13 +1003,13 @@ class ContentViewTestCase(UITestCase):
             self.content_views.add_remove_repos(cv_name, [repo_name])
             self.assertIsNotNone(
                 self.content_views.wait_until_element(
-                    common_locators['alert.success'])
+                    common_locators['alert.success_sub_form'])
             )
             # Publish the CV
             self.content_views.publish(cv_name)
             self.assertIsNotNone(
                 self.content_views.wait_until_element(
-                    common_locators['alert.success'])
+                    common_locators['alert.success_sub_form'])
             )
             # Copy the CV
             self.content_views.copy_view(cv_name, copy_cv_name)

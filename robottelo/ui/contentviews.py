@@ -270,14 +270,7 @@ class ContentViews(Base):
         Filter_term can be used to filter the module by 'author'
         or by 'version'.
         """
-        element = self.search(cv_name)
-        if not element:
-            raise UIError(
-                'Could not find the selected CV "{0}"'.format(cv_name)
-            )
-
-        element.click()
-        self.wait_for_ajax()
+        self.click(self.search(cv_name))
         self.click(tab_locators['contentviews.tab_puppet_modules'])
         self.click(locators['contentviews.add_module'])
         self.text_field_update(common_locators['cv_filter'], module_name)
@@ -477,16 +470,10 @@ class ContentViews(Base):
 
     def fetch_puppet_module(self, cv_name, module_name):
         """Get added puppet module name from selected content-view"""
-        element = self.search(cv_name)
-
-        if element is None:
-            raise UINoSuchElementError(
-                'Could not find the %s content view.' % cv_name)
-        element.click()
-        self.wait_for_ajax()
+        self.click(self.search(cv_name))
         self.click(tab_locators['contentviews.tab_puppet_modules'])
         self.text_field_update(
-            common_locators['cv_filter'], module_name)
+            locators['contentviews.search_filters'], module_name)
         strategy, value = locators['contentviews.get_module_name']
         element = self.wait_until_element(
             (strategy, value % module_name))
