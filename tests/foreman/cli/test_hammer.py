@@ -6,6 +6,7 @@ from robottelo.cli import hammer
 from robottelo.decorators import bz_bug_is_open, tier1
 from robottelo.helpers import read_data_file
 from robottelo.test import CLITestCase
+from six import StringIO
 
 HAMMER_COMMANDS = json.loads(read_data_file('hammer_commands.json'))
 
@@ -24,7 +25,39 @@ def _fetch_command_info(command):
                     break
         if found != parts:
             return None
-        return info
+    return info
+
+
+def _format_commands_diff(commands_diff):
+    """Format the commands differences into a human readable format."""
+    output = StringIO()
+    for key, value in sorted(commands_diff.items()):
+        if key == 'hammer':
+            continue
+        output.write('{}{}\n'.format(
+            key,
+            ' (new command)' if value['added_command'] else ''
+        ))
+        if value.get('added_subcommands'):
+            output.write('  Added subcommands:\n')
+            for subcommand in value.get('added_subcommands'):
+                output.write('    * {}\n'.format(subcommand))
+        if value.get('added_options'):
+            output.write('  Added options:\n')
+            for option in value.get('added_options'):
+                output.write('    * {}\n'.format(option))
+        if value.get('removed_subcommands'):
+            output.write('  Removed subcommands:')
+            for subcommand in value.get('removed_subcommands'):
+                output.write('    * {}'.format(subcommand))
+        if value.get('removed_options'):
+            output.write('  Removed options:\n')
+            for option in value.get('removed_options'):
+                output.write('    * {}\n'.format(option))
+        output.write('\n')
+    output_value = output.getvalue()
+    output.close()
+    return output_value
 
 
 class HammerCommandsTestCase(CLITestCase):
@@ -104,11 +137,10 @@ class HammerCommandsTestCase(CLITestCase):
         @Feature: Hammer
 
         @Assert: All expected options are present
-
         """
         self.maxDiff = None
         self._traverse_command_tree('hammer')
         if self.differences:
             self.fail(
-                json.dumps(self.differences, indent=True, sort_keys=True)
+                '\n' + _format_commands_diff(self.differences)
             )
