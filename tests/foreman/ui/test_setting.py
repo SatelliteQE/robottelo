@@ -2,7 +2,7 @@
 """Test class for Setting Parameter values"""
 
 from fauxfactory import gen_email, gen_string, gen_url
-from random import randint
+from random import choice, randint
 from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -59,9 +59,18 @@ def valid_maxtrend_timeout_values():
 def valid_urls():
     """Returns a list of valid urls"""
     return [
-        gen_url(subdomain=gen_string('alpha')),
-        gen_url(subdomain=gen_string('alphanumeric')),
-        gen_url(subdomain=gen_string('numeric')),
+        gen_url(
+            scheme=choice(('http', 'https')),
+            subdomain=gen_string('alpha'),
+        ),
+        gen_url(
+            scheme=choice(('http', 'https')),
+            subdomain=gen_string('alphanumeric'),
+        ),
+        gen_url(
+            scheme=choice(('http', 'https')),
+            subdomain=gen_string('numeric'),
+        ),
     ]
 
 
@@ -215,7 +224,6 @@ class SettingTestCase(UITestCase):
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @skip_if_bug_open('bugzilla', 1125156)
     @tier1
     def test_negative_update_entries_per_page_param(self):
         """Updates parameter "entries_per_page" under General tab with
@@ -224,8 +232,6 @@ class SettingTestCase(UITestCase):
         @Feature: Settings - Negative Update Parameters
 
         @Assert: Parameter is not updated
-
-        @BZ: 1125156
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'entries_per_page'
@@ -246,6 +252,7 @@ class SettingTestCase(UITestCase):
                         session.nav.wait_until_element(
                             common_locators['notif.error'])
                     )
+                    session.nav.click(common_locators['notif.close'])
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
@@ -363,7 +370,6 @@ class SettingTestCase(UITestCase):
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @skip_if_bug_open('bugzilla', 1125156)
     @tier1
     def test_negative_update_max_trend_param(self):
         """Updates parameter "max_trend" under General tab with invalid
@@ -372,8 +378,6 @@ class SettingTestCase(UITestCase):
         @Feature: Settings - Negative Update Parameters
 
         @Assert: Parameter is not updated
-
-        @BZ: 1125156
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'max_trend'
@@ -394,6 +398,7 @@ class SettingTestCase(UITestCase):
                         session.nav.wait_until_element(
                             common_locators['notif.error'])
                     )
+                    session.nav.click(common_locators['notif.close'])
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
@@ -425,7 +430,6 @@ class SettingTestCase(UITestCase):
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @skip_if_bug_open('bugzilla', 1125156)
     @tier1
     def test_negative_update_idle_timeout_param(self):
         """Updates parameter "idle_timeout" under General tab with
@@ -434,10 +438,8 @@ class SettingTestCase(UITestCase):
         @Feature: Settings - Negative Update Parameters
 
         @Assert: Parameter is not updated
-
-        @BZ: 1125156
         """
-        self.tab_locator = tab_locators['settings.tab_general']
+        self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'idle_timeout'
         self.value_type = 'input'
         with Session(self.browser) as session:
@@ -456,6 +458,7 @@ class SettingTestCase(UITestCase):
                         session.nav.wait_until_element(
                             common_locators['notif.error'])
                     )
+                    session.nav.click(common_locators['notif.close'])
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
@@ -514,7 +517,6 @@ class SettingTestCase(UITestCase):
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @skip_if_bug_open('bugzilla', 1125156)
     @tier1
     def test_negative_update_foreman_url_param(self):
         """Updates parameter "foreman_url" under General tab
@@ -522,8 +524,6 @@ class SettingTestCase(UITestCase):
         @Feature: Settings - Negative update Parameters
 
         @Assert: Parameter is not updated
-
-        @BZ: 1125156
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'foreman_url'
@@ -544,6 +544,7 @@ class SettingTestCase(UITestCase):
                         session.nav.wait_until_element(
                             common_locators['notif.error'])
                     )
+                    session.nav.click(common_locators['notif.close'])
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
@@ -741,7 +742,6 @@ class SettingTestCase(UITestCase):
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @skip_if_bug_open('bugzilla', 1125156)
     @tier1
     def test_negative_update_trusted_puppetmaster_hosts_param(self):
         """Updates parameter "trusted_puppetmaster_hosts" under Auth tab
@@ -749,8 +749,6 @@ class SettingTestCase(UITestCase):
         @Feature: Settings - Negative update Parameters
 
         @Assert: Parameter is not updated
-
-        @BZ: 1125156
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'trusted_puppetmaster_hosts'
@@ -771,6 +769,7 @@ class SettingTestCase(UITestCase):
                         session.nav.wait_until_element(
                             common_locators['notif.error'])
                     )
+                    session.nav.click(common_locators['notif.close'])
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
@@ -889,7 +888,6 @@ class SettingTestCase(UITestCase):
                     self.assertEqual(param_value, self.saved_element)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1125156)
     @tier1
     def test_negative_update_token_duration_param(self):
         """Updates parameter "token_duration" under Provisioning tab
@@ -898,8 +896,6 @@ class SettingTestCase(UITestCase):
         @Feature: Settings - Negative Update Parameters
 
         @Assert: Parameter is not updated
-
-        @BZ: 1125156
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'token_duration'
@@ -920,6 +916,7 @@ class SettingTestCase(UITestCase):
                         session.nav.wait_until_element(
                             common_locators['notif.error'])
                     )
+                    session.nav.click(common_locators['notif.close'])
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
