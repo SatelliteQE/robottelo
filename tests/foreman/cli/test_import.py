@@ -1262,6 +1262,7 @@ class TestImport(CLITestCase):
                     ContentView.info({'id': record['sat6']})
                 clean_transdata()
 
+    @skip_if_bug_open('bugzilla', 1325880)
     def test_positive_translate_macros(self):
         """Check whether all supported Sat5 macros are being properly
         converted to the Puppet facts.
@@ -1605,6 +1606,7 @@ class TestImport(CLITestCase):
                     self.assertTrue(template[u'type'] == u'snippet')
                 clean_transdata()
 
+    @skip_if_bug_open('bugzilla', 1325880)
     def test_positive_import_config_files_default(self):
         """Import all Config Files from the default data set
         (predefined source)
@@ -1643,6 +1645,7 @@ class TestImport(CLITestCase):
                     )
                 clean_transdata()
 
+    @skip_if_bug_open('bugzilla', 1325880)
     def test_negative_reimport_config_files(self):
         """Repetitive Import of all Config Files from the default
         data set (predefined source)
@@ -1678,6 +1681,18 @@ class TestImport(CLITestCase):
                     Repository.info({'id': rec['sat6']})
                     for rec in imp_configs
                 ]
+                # sequential import
+                import_cf = Import.config_file_with_tr_data({
+                    'csv-file': files['config-files-latest'],
+                    'verbose': True,
+                })
+                configs = Import.csv_to_dataset([files['config-files-latest']])
+                imp_configs = get_sat6_id(
+                    configs,
+                    import_cf[1][1],
+                    'channel_id',
+                    'channel_id'
+                )
                 cf_after = [
                     Repository.info({'id': rec['sat6']})
                     for rec in imp_configs
