@@ -383,7 +383,6 @@ class RepositoryTestCase(CLITestCase):
                     self._make_repository({u'url': url})
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1152237)
     @tier2
     def test_positive_synchronize_yum_repo(self):
         """Check if repository can be created and synced
@@ -404,10 +403,10 @@ class RepositoryTestCase(CLITestCase):
                 Repository.synchronize({'id': new_repo['id']})
                 # Verify it has finished
                 new_repo = Repository.info({'id': new_repo['id']})
-                self.assertEqual(new_repo['sync']['status'], 'Finished')
+                self.assertEqual(new_repo['sync']['status'], 'Success')
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1152237)
+    @skip_if_bug_open('bugzilla', 1328092)
     @tier2
     def test_positive_synchronize_auth_yum_repo(self):
         """Check if secured repository can be created and synced
@@ -433,9 +432,10 @@ class RepositoryTestCase(CLITestCase):
                 Repository.synchronize({'id': new_repo['id']})
                 # Verify it has finished
                 new_repo = Repository.info({'id': new_repo['id']})
-                self.assertEqual(new_repo['sync']['status'], 'Finished')
+                self.assertEqual(new_repo['sync']['status'], 'Success')
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1328092)
     @tier2
     def test_negative_synchronize_auth_yum_repo(self):
         """Check if secured repo fails to synchronize with invalid credentials
@@ -466,7 +466,7 @@ class RepositoryTestCase(CLITestCase):
                 )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1152237)
+    @skip_if_bug_open('bugzilla', 1328092)
     @tier2
     def test_positive_synchronize_auth_puppet_repo(self):
         """Check if secured puppet repository can be created and synced
@@ -490,10 +490,9 @@ class RepositoryTestCase(CLITestCase):
                 Repository.synchronize({'id': new_repo['id']})
                 # Verify it has finished
                 new_repo = Repository.info({'id': new_repo['id']})
-                self.assertEqual(new_repo['sync']['status'], 'Finished')
+                self.assertEqual(new_repo['sync']['status'], 'Success')
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1152237)
     @tier2
     def test_positive_synchronize_docker_repo(self):
         """Check if Docker repository can be created and synced
@@ -513,7 +512,7 @@ class RepositoryTestCase(CLITestCase):
         Repository.synchronize({'id': new_repo['id']})
         # Verify it has finished
         new_repo = Repository.info({'id': new_repo['id']})
-        self.assertEqual(new_repo['sync']['status'], 'Finished')
+        self.assertEqual(new_repo['sync']['status'], 'Success')
 
     @run_only_on('sat')
     @tier1
