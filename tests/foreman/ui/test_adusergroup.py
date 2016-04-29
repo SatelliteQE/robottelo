@@ -14,7 +14,7 @@ from robottelo.decorators import (
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_role, make_usergroup, make_loc, make_org, set_context)
-from robottelo.ui.locators import locators, menu_locators
+from robottelo.ui.locators import common_locators, locators, menu_locators
 from robottelo.ui.session import Session
 from selenium.webdriver.common.action_chains import ActionChains
 
@@ -32,7 +32,6 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         cls.group_base_dn = settings.ldap.grpbasedn
         cls.ldap_hostname = settings.ldap.hostname
         cls.usergroup_name = gen_string('alpha')
-        cls.usergroup_name2 = gen_string('alpha')
 
         authsource_attrs = entities.AuthSourceLDAP(
             onthefly_register=True,
@@ -54,16 +53,24 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
     def tearDown(self):
         with Session(self.browser) as session:
-            session.nav.go_to_user_groups()
-            if self.usergroup.search(self.usergroup_name):
-                self.usergroup.delete(self.usergroup_name, True)
-            if self.usergroup.search(self.usergroup_name2):
-                self.usergroup.delete(self.usergroup_name2, True)
             set_context(session, org=ANY_CONTEXT['org'])
-            session.nav.go_to_users()
             if self.user.search(self.ldap_user_name):
                 self.user.delete(self.ldap_user_name)
+            if self.usergroup.search(self.usergroup_name):
+                self.usergroup.delete(self.usergroup_name, True)
         super(ActiveDirectoryUserGroupTestCase, self).tearDown()
+
+    def check_external_user(self):
+        """Check whether external user is active and reachable. That operation
+        also add that user into application system for internal configuration
+        procedures
+        """
+        strategy, value = locators['login.loggedin']
+        with Session(
+                self.browser, self.ldap_user_name, self.ldap_user_passwd):
+            self.assertIsNotNone(self.login.wait_until_element(
+                (strategy, value % self.ldap_user_name)
+            ))
 
     @tier1
     def test_positive_add_admin_role(self):
@@ -77,12 +84,12 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
         1. Create an UserGroup.
         2. Assign admin role to UserGroup.
-        3. create and associate an External AD UserGroup.
+        3. Create and associate an External AD UserGroup.
 
-        @Assert: Whether a User belonging to User Group is able to
-        access all the pages.
+        @Assert: Whether a User belonging to User Group is able to access some
+        of the pages.
         """
-        strategy, value = locators['login.loggedin']
+        self.check_external_user()
         with Session(self.browser) as session:
             make_usergroup(
                 session,
@@ -92,14 +99,20 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.user.update(
+                username=self.ldap_user_name,
+                authorized_by='LDAP-' + self.ldap_server_name,
+                password=self.ldap_user_passwd,
+            )
         with Session(
             self.browser,
             self.ldap_user_name,
             self.ldap_user_passwd,
         ):
-            self.assertIsNotNone(self.login.wait_until_element(
-                (strategy, value % self.ldap_user_name)
-            ))
+            session.nav.go_to_users()
+            session.nav.go_to_roles()
+            session.nav.go_to_content_views()
 
     @tier2
     def test_positive_add_foreman_role(self):
@@ -113,11 +126,12 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
         1. Create an UserGroup.
         2. Assign some foreman roles to UserGroup.
-        3. create and associate an External AD UserGroup.
+        3. Create and associate an External AD UserGroup.
 
-        @Assert: Whether a User belonging to User Group is able to
-        access foreman entities as per roles.
+        @Assert: Whether a User belonging to User Group is able to access
+        foreman entities as per roles.
         """
+        self.check_external_user()
         strategy, value = locators['login.loggedin']
         foreman_role = gen_string('alpha')
         location_name = gen_string('alpha')
@@ -137,6 +151,12 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_authsourceid="LDAP-" + self.ldap_server_name,
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.user.update(
+                username=self.ldap_user_name,
+                authorized_by='LDAP-' + self.ldap_server_name,
+                password=self.ldap_user_passwd,
+            )
         with Session(
             self.browser,
             self.ldap_user_name,
@@ -160,12 +180,12 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
         1. Create an UserGroup.
         2. Assign some foreman roles to UserGroup.
-        3. create and associate an External AD UserGroup.
+        3. Create and associate an External AD UserGroup.
 
         @Assert: Whether a User belonging to User Group is able to access
         katello entities as per roles.
         """
-        strategy, value = locators['login.loggedin']
+        self.check_external_user()
         katello_role = gen_string('alpha')
         org_name = gen_string('alpha')
         with Session(self.browser) as session:
@@ -184,14 +204,17 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.user.update(
+                username=self.ldap_user_name,
+                authorized_by='LDAP-' + self.ldap_server_name,
+                password=self.ldap_user_passwd,
+            )
         with Session(
-            self.browser,
-            self.ldap_user_name,
-            self.ldap_user_passwd,
+                self.browser,
+                self.ldap_user_name,
+                self.ldap_user_passwd
         ) as session:
-            self.assertIsNotNone(self.login.wait_until_element(
-                (strategy, value % self.ldap_user_name)
-            ))
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
 
@@ -205,7 +228,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
         1. Create an UserGroup.
         2. Assign some roles to UserGroup.
-        3. create an External AD UserGroup as per the UserGroup name in AD
+        3. Create an External AD UserGroup as per the UserGroup name in AD
 
         @Assert: Whether creation of External AD User Group is possible.
         """
@@ -221,21 +244,21 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
     @tier1
     def test_negative_create_external_with_same_name(self):
-        """Create another External AD User Group with same name
+        """Attempt to create two User Groups with same External AD User Group
+        name
 
         @Feature: LDAP Authentication - Active Directory - create
 
         @Steps:
 
         1. Create an UserGroup.
-        2. Assign some roles to UserGroup.
-        3. create an External AD UserGroup as per the UserGroup name in AD.
-        4. Repeat steps 1) and 2) and provide the same UserGroup name for
-           step 3).
+        2. Assign External AD UserGroup as per the UserGroup name in AD.
+        3. Repeat steps 1) and 2), but provide the same external UserGroup name
 
-        @Assert: Creation of External AD User Group should not be possible with
-        same name.
+        @Assert: Creation of User Group should not be possible with same
+        External AD User Group name.
         """
+        new_usergroup_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_usergroup(
                 session,
@@ -247,12 +270,12 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
             make_usergroup(
                 session,
-                name=self.usergroup_name2,
+                name=new_usergroup_name,
                 roles=['admin'],
                 ext_usergrp='foobargroup',
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
-            self.assertIsNone(self.usergroup.search(self.usergroup_name2))
+            self.assertIsNone(self.usergroup.search(new_usergroup_name))
 
     @tier1
     def test_negative_create_external_with_invalid_name(self):
@@ -264,7 +287,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
         1. Create an UserGroup.
         2. Assign some roles to UserGroup.
-        3. create an External AD UserGroup with any random name.
+        3. Create an External AD UserGroup with any random name.
 
         @Assert: Creation of External AD User Group should not be possible with
         random name.
@@ -277,6 +300,9 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_usergrp=gen_string('alpha'),
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
+            self.assertIsNotNone(self.usergroup.wait_until_element(
+                common_locators['haserror']
+            ))
             self.assertIsNone(self.usergroup.search(self.usergroup_name))
 
     @stubbed()
@@ -323,7 +349,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         @assert: User has access to all NEW functional areas that are assigned
         to aforementioned UserGroup.
         """
-        strategy, value = locators['login.loggedin']
+        self.check_external_user()
         foreman_role = gen_string('alpha')
         katello_role = gen_string('alpha')
         org_name = gen_string('alpha')
@@ -344,14 +370,17 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.user.update(
+                username=self.ldap_user_name,
+                authorized_by='LDAP-' + self.ldap_server_name,
+                password=self.ldap_user_passwd,
+            )
         with Session(
             self.browser,
             self.ldap_user_name,
             self.ldap_user_passwd,
         ) as session:
-            self.assertIsNotNone(self.login.wait_until_element(
-                (strategy, value % self.ldap_user_name)
-            ))
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
         with Session(self.browser) as session:
@@ -362,24 +391,20 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 permission_list=PERMISSIONS['Organization'],
                 resource_type='Organization',
             )
-            session.nav.go_to_user_groups()
             self.usergroup.update(
                 self.usergroup_name,
                 new_roles=[katello_role],
                 entity_select=True,
             )
-            self.usergroup.update(
-                self.usergroup_name,
-                refresh_extusrgp=True,
-            )
+            self.usergroup.refresh_ext_group(
+                self.usergroup_name, 'foobargroup')
+            self.assertIsNotNone(self.usergroup.wait_until_element(
+                common_locators['notif.success']))
         with Session(
             self.browser,
             self.ldap_user_name,
             self.ldap_user_passwd,
         ) as session:
-            self.assertIsNotNone(self.login.wait_until_element(
-                (strategy, value % self.ldap_user_name)
-            ))
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
 
@@ -402,9 +427,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
 
         @assert: User no longer has access to all deleted functional areas
         that were assigned to aforementioned UserGroup.
-
         """
-        strategy, value = locators['login.loggedin']
+        self.check_external_user()
         foreman_role = gen_string('alpha')
         with Session(self.browser) as session:
             make_role(session, name=foreman_role)
@@ -422,28 +446,24 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.user.update(
+                username=self.ldap_user_name,
+                authorized_by='LDAP-' + self.ldap_server_name,
+                password=self.ldap_user_passwd,
+            )
         with Session(
-            self.browser,
-            self.ldap_user_name,
-            self.ldap_user_passwd,
-        ):
-            self.assertIsNotNone(self.login.wait_until_element(
-                (strategy, value % self.ldap_user_name)
-            ))
-        with Session(self.browser) as session:
-            session.nav.go_to_user_groups()
+            self.browser, self.ldap_user_name, self.ldap_user_passwd
+        ) as session:
+            session.nav.go_to_loc()
+        with Session(self.browser):
             self.usergroup.update(
-                self.usergroup_name,
-                roles=[foreman_role],
-                entity_select=False)
+                self.usergroup_name, roles=[foreman_role], entity_select=False)
         with Session(
             self.browser,
             self.ldap_user_name,
             self.ldap_user_passwd,
         ) as session:
-            self.assertIsNotNone(self.login.wait_until_element(
-                (strategy, value % self.ldap_user_name)
-            ))
             ActionChains(
                 self.browser
             ).move_to_element(session.nav.wait_until_element(
@@ -477,7 +497,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         UserGroup but those additional feature areas / roles assigned
         specifically to user
         """
-        strategy, value = locators['login.loggedin']
+        self.check_external_user()
         foreman_role = gen_string('alpha')
         katello_role = gen_string('alpha')
         org_name = gen_string('alpha')
@@ -498,14 +518,17 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
             self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            set_context(session, org=ANY_CONTEXT['org'])
+            self.user.update(
+                username=self.ldap_user_name,
+                authorized_by='LDAP-' + self.ldap_server_name,
+                password=self.ldap_user_passwd,
+            )
         with Session(
             self.browser,
             self.ldap_user_name,
             self.ldap_user_passwd,
         ) as session:
-            self.assertIsNotNone(self.login.wait_until_element(
-                (strategy, value % self.ldap_user_name)
-            ))
             make_loc(session, name=loc_name)
             self.assertIsNotNone(self.location.search(loc_name))
         with Session(self.browser) as session:
@@ -516,10 +539,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 permission_list=PERMISSIONS['Organization'],
                 resource_type='Organization',
             )
-            session.nav.go_to_users()
             set_context(session, org=ANY_CONTEXT['org'])
             self.user.update(
-                'login',
                 self.ldap_user_name,
                 new_roles=[katello_role],
                 select=True,
@@ -529,9 +550,6 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.ldap_user_name,
             self.ldap_user_passwd,
         ) as session:
-            self.assertIsNotNone(self.login.wait_until_element(
-                (strategy, value % self.ldap_user_name)
-            ))
             make_org(session, org_name=org_name)
             self.assertIsNotNone(self.org.search(org_name))
 

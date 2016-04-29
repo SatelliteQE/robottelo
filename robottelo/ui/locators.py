@@ -1335,10 +1335,12 @@ locators = LocatorDict({
          "'external_usergroups_attributes_new')]")),
     "usergroups.ext_authsource_id": (
         By.XPATH,
-        ("//div[contains(@id, 'usergroup_external_usergroups_attributes_"
-         "new_external_usergroups_auth_source_id')]/a"
+        ("//div[contains(@id, 'auth_source_id')]/a"
          "/span[contains(@class, 'arrow')]")),
-
+    "usergroups.ext_refresh": (
+        By.XPATH,
+        ("//td[contains(.,'%s')]/../td/"
+         "a[contains(@data-id, 'refresh')]")),
     # Roles
     "roles.new": (By.XPATH, "//a[contains(@href, '/roles/new')]"),
     "roles.name": (By.ID, "role_name"),
@@ -2381,10 +2383,6 @@ locators = LocatorDict({
         By.XPATH,
         ("//span[contains(.,'%s') or "
          "contains(@data-original-title, '%s')]/../../a")),
-    "ldapserver.refresh": (
-        By.XPATH,
-        ("//td[contains(.,'foobargroup')]/../td/"
-         "a[contains(@data-id, 'refresh')]")),
 
     # Red Hat Access Insights locators
     "insights.registered_systems": (

@@ -109,20 +109,12 @@ class User(Base):
                first_name=None, last_name=None, locale=None, roles=None,
                new_roles=None, locations=None, new_locations=None,
                organizations=None, new_organizations=None, default_org=None,
-               default_loc=None, select=False, submit=True):
+               default_loc=None, select=False, authorized_by=None,
+               submit=True):
         """Update username, email, password, firstname, lastname and locale
         from UI
         """
-        element = self.search(username)
-
-        if element is None:
-            raise UIError(
-                'Unable to find the username "{0}" for update.'
-                .format(username)
-            )
-
-        element.click()
-        self.wait_for_ajax()
+        self.click(self.search(username))
         if new_username:
             self.field_update('users.username', new_username)
         if email:
@@ -133,9 +125,12 @@ class User(Base):
             self.field_update('users.lastname', last_name)
         if locale:
             self.select(locators['users.language_dropdown'], locale)
+        if authorized_by:
+            self.select(locators['users.authorized_by'], authorized_by)
         if password:
-            self.field_update('users.password', password)
-            self.field_update('users.password_confirmation', password)
+            if self.wait_until_element(locators['users.password']):
+                self.field_update('users.password', password)
+                self.field_update('users.password_confirmation', password)
         self._configure_user(
             roles=roles,
             new_roles=new_roles,
