@@ -21,8 +21,8 @@ class BookmarkTestCase(UITestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Display all the bookmarks on the same page and create entities for
-        testing.
+        """Display all the bookmarks on the same page, create user and entities
+        for testing.
         """
         super(BookmarkTestCase, cls).setUpClass()
         cls.per_page = entities.Setting().search(
@@ -35,6 +35,14 @@ class BookmarkTestCase(UITestCase):
             name=gen_string('alphanumeric')).create()
 
         cls.entities = []
+
+        cls.username = gen_string('alphanumeric')
+        cls.password = gen_string('alphanumeric')
+        entities.User(
+            admin=True,
+            login=cls.username,
+            password=cls.password,
+        ).create()
 
         for entity in BOOKMARK_ENTITIES:
             # Skip the entities, which can't be tested ATM (require framework
@@ -89,7 +97,8 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.entities:
             with self.subTest(entity):
-                with Session(self.browser) as session:
+                with Session(
+                        self.browser, self.username, self.password) as session:
                     name = gen_string(choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
@@ -122,7 +131,8 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.entities:
             with self.subTest(entity):
-                with Session(self.browser) as session:
+                with Session(
+                        self.browser, self.username, self.password) as session:
                     name = gen_string(choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
@@ -196,7 +206,8 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.entities:
             with self.subTest(entity):
-                with Session(self.browser) as session:
+                with Session(
+                        self.browser, self.username, self.password) as session:
                     name = ''
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
@@ -233,7 +244,8 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.entities:
             with self.subTest(entity):
-                with Session(self.browser) as session:
+                with Session(
+                        self.browser, self.username, self.password) as session:
                     name = gen_string(choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
@@ -269,7 +281,8 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.entities:
             with self.subTest(entity):
-                with Session(self.browser) as session:
+                with Session(
+                        self.browser, self.username, self.password) as session:
                     name = gen_string(choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
@@ -309,7 +322,8 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.entities:
             with self.subTest(entity):
-                with Session(self.browser) as session:
+                with Session(
+                        self.browser, self.username, self.password) as session:
                     name = gen_string(choice(STRING_TYPES))
                     query = gen_string(choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
@@ -346,7 +360,8 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.entities:
             with self.subTest(entity):
-                with Session(self.browser) as session:
+                with Session(
+                        self.browser, self.username, self.password) as session:
                     bm1_name = gen_string(choice(STRING_TYPES))
                     bm2_name = gen_string(choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
@@ -391,7 +406,8 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.entities:
             with self.subTest(entity):
-                with Session(self.browser) as session:
+                with Session(
+                        self.browser, self.username, self.password) as session:
                     name = gen_string(choice(STRING_TYPES))
                     query = gen_string(choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
@@ -432,7 +448,8 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.entities:
             with self.subTest(entity):
-                with Session(self.browser) as session:
+                with Session(
+                        self.browser, self.username, self.password) as session:
                     name = gen_string(choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
@@ -473,7 +490,8 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.entities:
             with self.subTest(entity):
-                with Session(self.browser) as session:
+                with Session(
+                        self.browser, self.username, self.password) as session:
                     name = gen_string(choice(STRING_TYPES))
                     query = gen_string(choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
@@ -558,7 +576,8 @@ class BookmarkTestCase(UITestCase):
         """
         for entity in self.entities:
             with self.subTest(entity):
-                with Session(self.browser) as session:
+                with Session(
+                        self.browser, self.username, self.password) as session:
                     name = gen_string(choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())

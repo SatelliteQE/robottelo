@@ -35,6 +35,7 @@ class BookmarkTestCase(APITestCase):
                         bm = entities.Bookmark(
                             controller=entity['controller'],
                             name=name,
+                            public=False,
                         ).create()
                         self.assertEqual(bm.controller, entity['controller'])
                         self.assertEqual(bm.name, name)
@@ -111,6 +112,7 @@ class BookmarkTestCase(APITestCase):
                             entities.Bookmark(
                                 controller=entity['controller'],
                                 name=name,
+                                public=False,
                             ).create()
                         result = entities.Bookmark().search(
                             query={'search': u'name="{0}"'.format(name)})
@@ -231,7 +233,9 @@ class BookmarkTestCase(APITestCase):
         for entity in BOOKMARK_ENTITIES:
             with self.subTest(entity['controller']):
                 bm = entities.Bookmark(
-                    controller=entity['controller']).create()
+                    controller=entity['controller'],
+                    public=False,
+                ).create()
                 for new_name in valid_data_list():
                     with self.subTest(new_name):
                         bm.name = new_name
@@ -292,6 +296,7 @@ class BookmarkTestCase(APITestCase):
             with self.subTest(entity['controller']):
                 bm = entities.Bookmark(
                     controller=entity['controller'],
+                    public=False,
                 ).create()
                 for new_name in invalid_values_list():
                     with self.subTest(new_name):
