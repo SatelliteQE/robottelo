@@ -8,7 +8,14 @@ from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.constants import PRDS, REPOS, REPOSET, SYNC_INTERVAL
 from robottelo.datafactory import generate_strings_list, invalid_values_list
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier4
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+    tier1,
+    tier2,
+    tier4,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_syncplan
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -224,6 +231,7 @@ class SyncPlanTestCase(UITestCase):
             self.assertIsNotNone(self.syncplan.wait_until_element(
                 common_locators['common_invalid']))
 
+    @skip_if_bug_open('bugzilla', 1330088)
     @tier1
     def test_positive_update_name(self):
         """Update Sync plan's name
@@ -247,6 +255,7 @@ class SyncPlanTestCase(UITestCase):
                     self.assertIsNotNone(self.syncplan.search(new_plan_name))
                     plan_name = new_plan_name  # for next iteration
 
+    @skip_if_bug_open('bugzilla', 1330088)
     @tier1
     def test_positive_update_interval(self):
         """Update Sync plan's interval
