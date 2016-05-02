@@ -1,5 +1,5 @@
 """Test class for Remote Execution Management UI"""
-from robottelo.decorators import stubbed, tier1, tier2
+from robottelo.decorators import stubbed, tier1, tier2, tier3
 from robottelo.test import UITestCase
 
 
@@ -252,6 +252,76 @@ class RemoteExecutionTestCase(UITestCase):
 
         1. Verify the job was not immediately ran
         2. Verify the job was succesfully ran after the designated time
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_run_job_against_provisioned_rhel6_host(self):
+        """Run a job against a single provisioned RHEL 6 host
+
+        @Feature: Remote Execution
+
+        @Setup:
+
+        1. Provision a RHEL 6 host.
+        2. Create a working job template.
+
+        @Steps:
+
+        1. Navigate to the provisioned host and click Run Job
+        2. Select the created job and appropriate template
+        3. Click submit
+
+        @Assert: Verify the job was succesfully ran on the provisioned host
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_run_job_against_provisioned_rhel7_host(self):
+        """Run a job against a single provisioned RHEL 7 host
+
+        @Feature: Remote Execution
+
+        @Setup:
+
+        1. Provision a RHEL 7 host.
+        2. Create a working job template.
+
+        @Steps:
+
+        1. Navigate to the provisioned host and click Run Job
+        2. Select the created job and appropriate template
+        3. Click submit
+
+        @Assert: Verify the job was succesfully ran on the provisioned host
+
+        @Status: Manual
+        """
+
+    @stubbed()
+    @tier3
+    def test_positive_run_job_against_multiple_provisioned_hosts(self):
+        """Run a job against multiple provisioned hosts
+
+        @Feature: Remote Execution
+
+        @Setup:
+
+        1. Provision at least two hosts (RHEL6/7 preferred).
+        2. Create a working job template.
+
+        @Steps:
+
+        1. Navigate to the hosts page and select all provisioned hosts
+        2. Click Select Action -> Run Job
+        2. Select the created job and appropriate template
+        3. Click submit
+
+        @Assert: Verify the job was succesfully ran on the provisioned hosts
 
         @Status: Manual
         """
