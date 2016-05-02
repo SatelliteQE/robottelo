@@ -1,5 +1,5 @@
-"""Test classes for Bookmark tests"""
 # -*- encoding: utf-8 -*-
+"""Test classes for Bookmark tests"""
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
