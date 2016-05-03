@@ -93,3 +93,23 @@ class InterSatelliteSyncTestCase(UITestCase):
 
         @status: Manual
         """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_restrict_other_redhat_repo_import(self):
+        """Restrict the import/sync of non exported repos.
+
+        @feature: ISS - Import
+
+        @steps:
+
+        1. Export Red Hat YUM repo to path which will be accessible over HTTP.
+        2. Define the CDN URL the same as the exported HTTP URL.
+        3. Attempt to Import/Enable non exported repos from Redhat Repositories
+        page.
+
+        @assert: The import of non exported repos is restricted.
+
+        @status: Manual
+        """

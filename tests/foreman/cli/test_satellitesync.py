@@ -830,3 +830,289 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         @status: Manual
         """
+
+# Red Hat Repositories Export and Import
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_export_redhat_yum_repo(self):
+        """Export Red Hat YUM repo in directory.
+
+        @feature: ISS - Export
+
+        @steps:
+
+        1. Export whole Red Hat YUM repo to some path.
+
+        @assert: Whole YUM repo contents has been exported to directory
+        specified in settings.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_export_import_redhat_yum_repo(self):
+        """Import the exported YUM repo contents.
+
+        @feature: ISS - Import
+
+        @steps:
+
+        1. Export Red Hat YUM repo to path which will be accessible over HTTP.
+        2. Import the repository by defining the CDN URL the same as the
+        exported HTTP URL.
+
+        @assert: All the exported YUM repo contents are imported successfully.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_export_redhat_incremental_yum_repo(self):
+        """Export Red Hat YUM repo in directory incrementally.
+
+        @feature: ISS - Export
+
+        @steps:
+
+        1. Export whole Red Hat YUM repo.
+        2. Add some packages to the earlier exported yum repo.
+        3. Incrementally export the yum repo from last exported date.
+
+        @assert: Red Hat YUM repo contents have been exported incrementally in
+        separate directory.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_export_import_redhat_incremental_yum_repo(self):
+        """Import the exported YUM repo contents incrementally.
+
+        @feature: ISS - Import
+
+        @steps:
+
+        1. First, Export and Import whole Red Hat YUM repo.
+        2. Add some packages to the earlier exported yum repo.
+        3. Incrementally export the Red Hat YUM repo from last exported date.
+        4. Import the exported YUM repo contents incrementally.
+
+        @assert: YUM repo contents have been imported incrementally.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_export_redhat_yum_repo_iso(self):
+        """Export Red Hat YUM repo as ISO in directory.
+
+        @feature: ISS - Export
+
+        @steps:
+
+        1. Export whole Red Hat YUM repo as ISO.
+
+        @assert: Whole repo contents has been exported as ISO in separate
+        directory.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_export_import_redhat_yum_repo_iso(self):
+        """Export Red Hat YUM repo as ISO in directory and Import.
+
+        @feature: ISS - Import
+
+        @steps:
+
+        1. Export whole Red Hat YUM repo as ISO.
+        2. Mount exported ISO and explore the ISO contents on HTTP.
+        3. Import the repository by defining the CDN URL the same as the
+        exported HTTP URL.
+
+        @assert: All The exported repo contents in ISO has been imported
+        successfully.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_export_redhat_yum_incremental_repo_iso(self):
+        """Export Red Hat YUM repo as ISO in directory and import incrementally.
+
+        @feature: ISS - Export
+
+        @steps:
+
+        1. First, Export and Import whole Red Hat YUM repo.
+        2. Add some packages to the earlier exported yum repo.
+        3. Incrementally export the yum repo as ISO from last exported date.
+
+        @assert: Repo contents have been exported as ISO incrementally in
+        separate directory.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_export_import_redhat_yum_incremental_repo_iso(self):
+        """Export Red Hat YUM repo as ISO in directory and import incrementally.
+
+        @feature: ISS - Import
+
+        @steps:
+
+        1. First, Export and Import whole Red Hat YUM repo.
+        2. Add some packages to the earlier exported yum repo.
+        3. Incrementally export the yum repo as ISO from last exported date.
+        4. Mount incrementally exported contents ISO.
+        5. Import the repo contents incrementally.
+
+        @assert: Repo contents have been exported as ISO and imported
+        incrementally.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_export_redhat_cv(self):
+        """Export CV version having Red Hat contents in directory.
+
+        @feature: ISS - Export
+
+        @steps:
+
+        1. Export whole CV version having Red Hat contents to a directory
+        specified in settings.
+
+        @assert: Whole CV version contents has been exported to directory
+        specified in settings.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_export_import_redhat_cv(self):
+        """Export CV version having Red Hat contents in directory and Import
+        them.
+
+        @feature: ISS - Import
+
+        @steps:
+
+        1. Export whole CV version having Red Hat contents to a path accessible
+        over HTTP.
+        2. Import the repository by defining the CDN URL from the exported HTTP
+        URL.
+
+        @assert: The repo from an exported CV contents has been imported
+        successfully.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_export_import_redhat_mix_cv(self):
+        """Export CV version having Red Hat and custom repo in directory
+        and Import them.
+
+        @feature: ISS - Import
+
+        @steps:
+
+        1. Export whole CV version having mixed repos to a path accessible over
+        HTTP.
+        2. Import the Red Hat repository by defining the CDN URL from the
+        exported HTTP URL.
+        3. Import custom repo by creating new repo and setting yum repo url to
+        exported HTTP url.
+
+        @assert: Both custom and Red Hat repos are imported successfully.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_export_redhat_cv_iso(self):
+        """Export CV version having Red Hat contents as ISO.
+
+        @feature: ISS - Export
+
+        @steps:
+
+        1. Export whole CV version having Red Hat contents as ISO.
+
+        @assert: Whole CV version contents has been exported as ISO.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_export_import_redhat_cv_iso(self):
+        """Export CV version having Red Hat contents as ISO and Import them.
+
+        @feature: ISS - Import
+
+        @steps:
+
+        1. Export whole CV version having Red Hat contents as ISO.
+        2. Mount ISO to local filesystem and explore iso contents over HTTP.
+        3. Import the Red Hat repository by defining the CDN URL from the
+        exported HTTP URL.
+
+        @assert: The repo is imported successfully from exported CV ISO
+        contents.
+
+        @status: Manual
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_install_package_from_imported_repos(self):
+        """Install packages in client from imported repo of Downstream satellite.
+
+        @feature: ISS - Export Import
+
+        @steps:
+
+        1. Export whole Red Hat YUM repo to a path accessible over HTTP.
+        3. Import the Red Hat repository by defining the CDN URL from the
+        exported HTTP URL.
+        4. In downstream satellite create CV, AK with this imported repo.
+        5. Register/Subscribe a client with a downstream satellite.
+        6. Attempt to install a package on a client from imported repo of
+        downstream.
+
+        @assert: The package is installed on client from imported repo of
+        downstream satellite.
+
+        @status: Manual
+        """
