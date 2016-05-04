@@ -59,10 +59,11 @@ from robottelo.constants import (
     SYNC_INTERVAL,
     TEMPLATE_TYPES,
 )
-from robottelo.decorators import cacheable
+from robottelo.decorators import bz_bug_is_open, cacheable
 from robottelo.helpers import update_dictionary
 from robottelo.ssh import upload_file
 from tempfile import mkstemp
+from time import sleep
 
 logger = logging.getLogger(__name__)
 
@@ -554,6 +555,42 @@ def make_product(options=None):
     }
 
     return create_object(Product, args, options)
+
+
+def make_product_wait(options=None, wait_for=5):
+    """Wrapper function for make_product to make it wait before erroring out.
+
+    This is a temporary workaround for BZ#1332650: Sometimes cli product
+    create errors for no reason when there are multiple product creation
+    requests at the sametime although the product entities are created.  This
+    workaround will attempt to wait for 5 seconds and query the
+    product again to make sure it is actually created.  If it is not found,
+    it will fail and stop.
+
+    Note: This wrapper method is created instead of patching make_product
+    because this issue does not happen for all entities and this workaround
+    should be removed once the root cause is identified/fixed.
+    """
+    # Organization ID is a required field.
+    if not options or not options.get('organization-id'):
+        raise CLIFactoryError('Please provide a valid ORG ID.')
+    options['name'] = options.get('name', gen_string('alpha'))
+    try:
+        product = make_product(options)
+    except CLIFactoryError as err:
+        if not bz_bug_is_open(1332650):
+            raise err
+        sleep(wait_for)
+        try:
+            product = Product.info({
+                'name': options.get('name'),
+                'organization-id': options.get('organization-id'),
+            })
+        except CLIReturnCodeError:
+            raise err
+        if not product:
+            raise err
+    return product
 
 
 @cacheable

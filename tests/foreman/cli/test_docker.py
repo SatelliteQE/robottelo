@@ -11,7 +11,7 @@ from robottelo.cli.factory import (
     make_content_view,
     make_lifecycle_environment,
     make_org,
-    make_product,
+    make_product_wait,  # workaround for BZ 1332650
     make_registry,
     make_repository,
 )
@@ -79,7 +79,7 @@ class DockerManifestTestCase(CLITestCase):
 
         """
         organization = make_org()
-        product = make_product({
+        product = make_product_wait({
             u'organization-id': organization['id'],
         })
         repository = make_repository({
@@ -134,7 +134,7 @@ class DockerRepositoryTestCase(CLITestCase):
         for name in valid_data_list():
             with self.subTest(name):
                 repo = _make_docker_repo(
-                    make_product({'organization-id': self.org_id})['id'],
+                    make_product_wait({'organization-id': self.org_id})['id'],
                     name,
                 )
                 self.assertEqual(repo['name'], name)
@@ -153,7 +153,7 @@ class DockerRepositoryTestCase(CLITestCase):
         @Feature: Docker
 
         """
-        product = make_product({'organization-id': self.org_id})
+        product = make_product_wait({'organization-id': self.org_id})
         repo_names = set()
         for _ in range(randint(2, 5)):
             repo = _make_docker_repo(product['id'])
@@ -180,7 +180,7 @@ class DockerRepositoryTestCase(CLITestCase):
 
         """
         for _ in range(randint(2, 5)):
-            product = make_product({'organization-id': self.org_id})
+            product = make_product_wait({'organization-id': self.org_id})
             repo_names = set()
             for _ in range(randint(2, 3)):
                 repo = _make_docker_repo(product['id'])
@@ -206,7 +206,7 @@ class DockerRepositoryTestCase(CLITestCase):
 
         """
         repo = _make_docker_repo(
-            make_product({'organization-id': self.org_id})['id'])
+            make_product_wait({'organization-id': self.org_id})['id'])
         self.assertEqual(int(repo['content-counts']['docker-manifests']), 0)
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
@@ -225,7 +225,7 @@ class DockerRepositoryTestCase(CLITestCase):
 
         """
         repo = _make_docker_repo(
-            make_product({'organization-id': self.org_id})['id'])
+            make_product_wait({'organization-id': self.org_id})['id'])
         for new_name in valid_data_list():
             with self.subTest(new_name):
                 Repository.update({
@@ -249,7 +249,7 @@ class DockerRepositoryTestCase(CLITestCase):
         """
         new_upstream_name = 'fedora/ssh'
         repo = _make_docker_repo(
-            make_product({'organization-id': self.org_id})['id'])
+            make_product_wait({'organization-id': self.org_id})['id'])
         Repository.update({
             'docker-upstream-name': new_upstream_name,
             'id': repo['id'],
@@ -271,7 +271,7 @@ class DockerRepositoryTestCase(CLITestCase):
         """
         new_url = gen_url()
         repo = _make_docker_repo(
-            make_product({'organization-id': self.org_id})['id'])
+            make_product_wait({'organization-id': self.org_id})['id'])
         Repository.update({
             'id': repo['id'],
             'url': new_url,
@@ -291,7 +291,7 @@ class DockerRepositoryTestCase(CLITestCase):
 
         """
         repo = _make_docker_repo(
-            make_product({'organization-id': self.org_id})['id'])
+            make_product_wait({'organization-id': self.org_id})['id'])
         Repository.delete({'id': repo['id']})
         with self.assertRaises(CLIReturnCodeError):
             Repository.info({'id': repo['id']})
@@ -309,7 +309,7 @@ class DockerRepositoryTestCase(CLITestCase):
 
         """
         products = [
-            make_product({'organization-id': self.org_id})
+            make_product_wait({'organization-id': self.org_id})
             for _
             in range(randint(2, 5))
         ]
@@ -347,7 +347,7 @@ class DockerContentViewTestCase(CLITestCase):
 
         """
         self.repo = _make_docker_repo(
-            make_product({'organization-id': self.org_id})['id'])
+            make_product_wait({'organization-id': self.org_id})['id'])
         self.content_view = make_content_view({
             'composite': False,
             'organization-id': self.org_id,
@@ -380,7 +380,7 @@ class DockerContentViewTestCase(CLITestCase):
 
         """
         repo = _make_docker_repo(
-            make_product({'organization-id': self.org_id})['id'])
+            make_product_wait({'organization-id': self.org_id})['id'])
         content_view = make_content_view({
             'composite': False,
             'organization-id': self.org_id,
@@ -406,7 +406,7 @@ class DockerContentViewTestCase(CLITestCase):
         @Feature: Docker
 
         """
-        product = make_product({'organization-id': self.org_id})
+        product = make_product_wait({'organization-id': self.org_id})
         repos = [
             _make_docker_repo(product['id'])
             for _
@@ -439,7 +439,7 @@ class DockerContentViewTestCase(CLITestCase):
 
         """
         repo = _make_docker_repo(
-            make_product({'organization-id': self.org_id})['id'])
+            make_product_wait({'organization-id': self.org_id})['id'])
         Repository.synchronize({'id': repo['id']})
         repo = Repository.info({'id': repo['id']})
         self.assertGreaterEqual(
@@ -504,7 +504,7 @@ class DockerContentViewTestCase(CLITestCase):
 
         """
         cv_versions = []
-        product = make_product({'organization-id': self.org_id})
+        product = make_product_wait({'organization-id': self.org_id})
         for _ in range(randint(2, 5)):
             content_view = make_content_view({
                 'composite': False,
@@ -857,7 +857,7 @@ class DockerActivationKeyTestCase(CLITestCase):
         cls.lce = make_lifecycle_environment({
             'organization-id': cls.org['id'],
         })
-        cls.product = make_product({
+        cls.product = make_product_wait({
             'organization-id': cls.org['id'],
         })
         cls.repo = _make_docker_repo(cls.product['id'])
@@ -1348,7 +1348,7 @@ class DockerContainersTestCase(CLITestCase):
         """
         lce = make_lifecycle_environment({'organization-id': self.org['id']})
         repo = _make_docker_repo(
-            make_product({'organization-id': self.org['id']})['id'],
+            make_product_wait({'organization-id': self.org['id']})['id'],
             upstream_name='centos',
         )
         Repository.synchronize({'id': repo['id']})

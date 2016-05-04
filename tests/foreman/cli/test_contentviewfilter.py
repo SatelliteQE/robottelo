@@ -7,7 +7,7 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.factory import (
     make_content_view,
     make_org,
-    make_product,
+    make_product_wait,  # workaround for BZ 1332650
     make_repository,
 )
 from robottelo.cli.repository import Repository
@@ -25,7 +25,7 @@ class ContentViewFilterTestCase(CLITestCase):
         """Init single organization, product and repository for all tests"""
         super(ContentViewFilterTestCase, cls).setUpClass()
         cls.org = make_org()
-        cls.product = make_product({u'organization-id': cls.org['id']})
+        cls.product = make_product_wait({u'organization-id': cls.org['id']})
         cls.repo = make_repository({u'product-id': cls.product['id']})
         Repository.synchronize({u'id': cls.repo['id']})
         cls.content_view = make_content_view({
