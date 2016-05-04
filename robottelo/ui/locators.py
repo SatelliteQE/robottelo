@@ -2499,7 +2499,7 @@ locators = LocatorDict({
          "/span[contains(@class, 'arrow')]")),
     "container.content_view": (
         By.XPATH,
-        ("//div[contains(@id, 'kt_environment_id')]/a"
+        ("//div[contains(@id, 'content_view_id')]/a"
          "/span[contains(@class, 'arrow')]")),
     "container.repository": (
         By.XPATH,
