@@ -20,7 +20,7 @@ setup(
         'inflector',
         'nailgun',
         'numpy',
-        'paramiko==1.16.0',
+        'paramiko',
         'pygal',
         'pytest',
         'python-bugzilla',

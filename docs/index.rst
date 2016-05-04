@@ -17,14 +17,24 @@ Quickstart
 The following is only a brief setup guide for `Robottelo`_. The section on
 `Running the Tests`_ provides a more comprehensive guide to using Robottelo.
 
-Install Python header files. The package providing these files varies per
-distribution. For example:
+Robottelo requires SSH access to the Satellite 6 system under test, and this
+SSH access is implemented by Paramiko. Install the headers for the following to
+ensure that Paramiko's dependencies build correctly:
 
-* Fedora 20 provides header files in the
-  `python-devel <https://apps.fedoraproject.org/packages/python-devel>`_
-  package.
-* Ubuntu 14.04 provides header files in the
-  `python-dev <http://packages.ubuntu.com/trusty/python-dev>`_ package.
+* OpenSSL
+* Python development headers
+* libffi
+
+On Fedora, you can install these with the following command::
+
+    dnf install -y libffi-devel openssl-devel python-devel
+
+On Red Hat Enterprise Linux, you can install these with the following command::
+
+    yum install -y libffi-devel openssl-devel python-devel
+
+For more information, see `Paramiko: Installing
+<http://www.paramiko.org/installing.html>`_.
 
 Get the source code and install dependencies::
 
@@ -36,7 +46,8 @@ are a few other things you may wish to do before continuing:
 
 1. You may want to install development tools (such as gcc) for your OS. If
    running Fedora or Red Hat Enterprise Linux, execute ``yum groupinstall
-   "Development Tools"``.
+   "Development Tools"``. Make sure to use ``dnf`` instead of ``yum`` if
+   ``dnf`` is available on your system.
 2. You may wish to install the optional dependencies listed in
    ``requirements-optional.txt``. (Use pip, as shown above.) They are required
    for tasks like working with certificates, running the internal robottelo test
