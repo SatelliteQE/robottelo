@@ -622,16 +622,16 @@ tab_locators = LocatorDict({
     # Host Collections
     "hostcollection.details": (
         By.XPATH, "//a[contains(@href, 'info')]/span"),
-    "hostcollection.content_hosts": (
-        By.XPATH, "//a[contains(@href, 'content-hosts')]/span"),
-    "hostcollection.tab_ch_add": (
+    "hostcollection.hosts": (
+        By.XPATH, "//a[contains(@href, 'hosts')]/span"),
+    "hostcollection.tab_host_add": (
         By.XPATH,
-        "//a[contains(@href, 'add-content-hosts') and "
-        "contains(@ui-sref, 'host-collections.details.content-hosts.add')]"),
-    "hostcollection.tab_ch_remove": (
+        "//a[contains(@href, 'add-hosts') and "
+        "contains(@ui-sref, 'host-collections.details.hosts.add')]"),
+    "hostcollection.tab_host_remove": (
         By.XPATH,
-        "//a[contains(@href, 'content-hosts') and "
-        "contains(@ui-sref, 'host-collections.details.content-hosts.list')]"),
+        "//a[contains(@href, 'hosts') and "
+        "contains(@ui-sref, 'host-collections.details.hosts.list')]"),
     "hostcollection.collection_actions": (
         By.XPATH, "//a[contains(@href, 'actions')]/span"),
 })
@@ -2615,13 +2615,13 @@ locators = LocatorDict({
     "hostcollection.copy_name": (By.ID, "copy_name"),
     "hostcollection.copy_create": (
         By.XPATH, "//button[@ng-click='copy(copyName)']"),
-    "hostcollection.select_ch": (
+    "hostcollection.select_host": (
         By.XPATH,
-        ("//div[contains(@bst-table, 'HostsTable')]"
+        ("//div[contains(@bst-table, 'detailsTable')]"
          "//td[contains(normalize-space(.), '%s')]"
          "/preceding-sibling::td[@class='row-select']"
          "/input[@type='checkbox']")),
-    "hostcollection.add_content_host": (
+    "hostcollection.add_host": (
         By.XPATH,
         "//button[contains(@ng-click, 'addSelected')]"),
 })

@@ -116,7 +116,7 @@ class HostCollection(Base):
             locators['hostcollection.copy_create'],
         )
 
-    def add_content_host(self, name, ch_name):
+    def add_host(self, name, host_name):
         """Add content host to existing Host Collection entity."""
         # find host collection
         host_collection = self.search(name)
@@ -125,14 +125,13 @@ class HostCollection(Base):
                 u'Could not find host collection {0}'.format(name))
         host_collection.click()
         self.wait_for_ajax()
-        self.click(tab_locators['hostcollection.content_hosts'])
-        self.click(tab_locators['hostcollection.tab_ch_add'])
-        strategy, value = locators['hostcollection.select_ch']
-        self.click((strategy, value % ch_name))
-        self.click(locators['hostcollection.add_content_host'])
-        self.click(tab_locators['hostcollection.tab_ch_remove'])
+        self.click(tab_locators['hostcollection.hosts'])
+        self.click(tab_locators['hostcollection.tab_host_add'])
+        strategy, value = locators['hostcollection.select_host']
+        self.click((strategy, value % host_name))
+        self.click(locators['hostcollection.add_host'])
+        self.click(tab_locators['hostcollection.tab_host_remove'])
         element = self.wait_until_element(
-            (strategy, value % ch_name), timeout=8)
+            (strategy, value % host_name), timeout=8)
         if element is None:
-            raise UIError(
-                "Adding content host {0} is failed".format(ch_name))
+            raise UIError("Adding host {0} is failed".format(host_name))

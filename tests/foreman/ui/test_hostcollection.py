@@ -300,12 +300,12 @@ class HostCollectionTestCase(UITestCase):
                     )
 
     @tier3
-    def test_positive_add_content_host(self):
-        """Check if content host can be added to Host Collection
+    def test_positive_add_host(self):
+        """Check if host can be added to Host Collection
 
-        @Feature: Host Collection - Content Host
+        @Feature: Host Collection - Host
 
-        @Assert: Content host is added to Host Collection successfully
+        @Assert: Host is added to Host Collection successfully
         """
         name = gen_string('alpha')
         cv = entities.ContentView(organization=self.organization).create()
@@ -322,29 +322,29 @@ class HostCollectionTestCase(UITestCase):
         with Session(self.browser) as session:
             make_host_collection(
                 session, org=self.organization.name, name=name)
-            self.hostcollection.add_content_host(name, new_system['name'])
+            self.hostcollection.add_host(name, new_system['name'])
 
     @tier3
-    def test_negative_content_hosts_limit(self):
-        """Check that Content Host limit actually limits usage
+    def test_negative_hosts_limit(self):
+        """Check that Host limit actually limits usage
 
-        @Feature: Host Collection - Content Host Limit
+        @Feature: Host Collection - Host Limit
 
         @Steps:
-        1. Create Host Collection entity that can contain only one Content Host
-        (using Content Host Limit field)
-        2. Create Content Host and add it to Host Collection. Check that it
-        added successfully
-        3. Create one more Content Host and try to add it to Host Collection
+        1. Create Host Collection entity that can contain only one Host (using
+        Host Limit field)
+        2. Create Host and add it to Host Collection. Check that it was added
+        successfully
+        3. Create one more Host and try to add it to Host Collection
         4. Check that expected error is shown
 
-        @Assert: Second content host is not added to Host Collection and
-        appropriate error is shown
+        @Assert: Second host is not added to Host Collection and appropriate
+        error is shown
         """
         name = gen_string('alpha')
-        cv = entities.ContentView(organization=self.organization).create()
-        lce = entities.LifecycleEnvironment(
-            organization=self.organization).create()
+        org = entities.Organization().create()
+        cv = entities.ContentView(organization=org).create()
+        lce = entities.LifecycleEnvironment(organization=org).create()
         cv.publish()
         promote(cv.read().version[0], lce.id)
         new_systems = [
@@ -352,15 +352,15 @@ class HostCollectionTestCase(UITestCase):
                 u'content-view-id': cv.id,
                 u'lifecycle-environment-id': lce.id,
                 u'name': gen_string('alpha'),
-                u'organization-id': self.organization.id,
+                u'organization-id': org.id,
             })['name']
             for _ in range(2)
         ]
         with Session(self.browser) as session:
             make_host_collection(
-                session, org=self.organization.name, name=name, limit='1')
-            self.hostcollection.add_content_host(name, new_systems[0])
+                session, org=org.name, name=name, limit='1')
+            self.hostcollection.add_host(name, new_systems[0])
             with self.assertRaises(UIError):
-                self.hostcollection.add_content_host(name, new_systems[1])
+                self.hostcollection.add_host(name, new_systems[1])
             self.assertIsNotNone(self.hostcollection.wait_until_element(
                 common_locators['alert.error_sub_form']))
