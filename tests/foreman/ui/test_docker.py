@@ -15,7 +15,6 @@ from robottelo.constants import (
 from robottelo.datafactory import valid_data_list
 from robottelo.decorators import (
     run_only_on,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -1193,7 +1192,6 @@ class DockerContainerTestCase(UITestCase):
         remove_katello_ca()
         super(DockerContainerTestCase, cls).tearDownClass()
 
-    @skip_if_bug_open('bugzilla', 1282431)
     @run_only_on('sat')
     @tier2
     def test_positive_create_with_compresource(self):
@@ -1214,8 +1212,6 @@ class DockerContainerTestCase(UITestCase):
                         parameter_list=self.parameter_list,
                     )
 
-    @skip_if_bug_open('bugzilla', 1282431)
-    @skip_if_bug_open('bugzilla', 1273958)
     @run_only_on('sat')
     @tier2
     def test_positive_power_on_off(self):
@@ -1258,8 +1254,6 @@ class DockerContainerTestCase(UITestCase):
         @Status: Manual
         """
 
-    @skip_if_bug_open('bugzilla', 1282431)
-    @skip_if_bug_open('bugzilla', 1273958)
     @run_only_on('sat')
     @tier2
     def test_positive_delete(self):
