@@ -11,7 +11,7 @@ class Navigator(Base):
                    tertiary_menu_locator=None):
         self.perform_action_chain_move(top_menu_locator)
         if not tertiary_menu_locator:
-            self.click(sub_menu_locator)
+            self.click(sub_menu_locator, scroll=False)
         else:
             self.perform_action_chain_move(sub_menu_locator)
             tertiary_element = self.wait_until_element(
