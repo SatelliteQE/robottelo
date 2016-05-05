@@ -6,9 +6,9 @@ import time
 import uuid
 import zipfile
 
-from Crypto.Hash import SHA256
-from Crypto.PublicKey import RSA
-from Crypto.Signature import PKCS1_v1_5
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes, serialization
+from cryptography.hazmat.primitives.asymmetric import padding
 from robottelo.config import settings
 
 
@@ -22,7 +22,11 @@ class ManifestCloner(object):
         """Download and cache the manifest information."""
         self.template = requests.get(settings.fake_manifest.url).content
         self.signing_key = requests.get(settings.fake_manifest.key_url).content
-        self.signature = PKCS1_v1_5.new(RSA.importKey(self.signing_key))
+        self.private_key = serialization.load_pem_private_key(
+            self.signing_key,
+            password=None,
+            backend=default_backend()
+        )
 
     def clone(self):
         """Clones a RedHat-manifest file.
@@ -74,9 +78,12 @@ class ManifestCloner(object):
                 consumer_export.read()
             )
             consumer_export.seek(0)
+            signer = self.private_key.signer(
+                padding.PKCS1v15(), hashes.SHA256())
+            signer.update(consumer_export.read())
             manifest_zip.writestr(
                 'signature',
-                self.signature.sign(SHA256.new(consumer_export.read()))
+                signer.finalize()
             )
         # Make sure that the file-like object is at the beginning and
         # ready to be read.
