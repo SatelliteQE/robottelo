@@ -41,6 +41,8 @@ class LocatorDict(collections.Mapping):
 
 menu_locators = LocatorDict({
     # Menus
+    # Navbar
+    "navbar.spinner": (By.XPATH, ("//div[@id='turbolinks-progress']")),
 
     # Monitor Menu
     "menu.monitor": (
