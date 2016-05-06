@@ -250,7 +250,7 @@ class HostCollectionTestCase(APITestCase):
 
     @skip_if_bug_open('bugzilla', 1325989)
     @tier1
-    def test_positive_update_chost(self):
+    def test_positive_update_host(self):
         """Update host collection's host.
 
         @Feature: Host Collection
