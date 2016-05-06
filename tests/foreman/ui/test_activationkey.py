@@ -763,7 +763,7 @@ class ActivationKeyTestCase(UITestCase):
                     self.assertNotEqual(result.return_code, 0)
                     self.assertGreater(len(result.stderr), 0)
                     self.assertIn(
-                        'Max Content Hosts ({0}) reached for activation key'
+                        'Max Hosts ({0}) reached for activation key'
                         .format(host_limit),
                         result.stderr
                     )

@@ -76,47 +76,39 @@ class ActivationKey(Base):
     def update(self, name, new_name=None, description=None,
                limit=None, content_view=None, env=None):
         """Updates an existing activation key."""
-        element = self.search(name)
-
-        if element:
-            element.click()
-            self.wait_for_ajax()
-            if new_name:
-                self.edit_entity(locators['ak.edit_name'],
-                                 locators['ak.edit_name_text'],
-                                 new_name, locators['ak.save_name'])
-            if description:
-                self.edit_entity(locators['ak.edit_description'],
-                                 locators['ak.edit_description_text'],
-                                 description, locators['ak.save_description'])
-            if limit:
-                self.click(locators['ak.edit_limit'])
-                self.set_limit(limit)
-                if self.wait_until_element(
-                        locators['ak.save_limit']).is_enabled():
-                    self.click(locators['ak.save_limit'])
-                else:
-                    raise ValueError(
-                        'Please update content host limit with valid integer '
-                        'value'
-                    )
-            if content_view:
-                if env:
-                    strategy, value = locators['ak.env']
-                    self.click((strategy, value % env))
-                # We need to select the CV, if we update the env and in this,
-                # case edit button disappears, but when we update only CV, then
-                # edit button appears; Following 'If' is just solving this
-                # purpose and hence no else required here
-                if self.wait_until_element(locators['ak.edit_content_view']):
-                    self.click(locators['ak.edit_content_view'])
-                self.select(
-                    locators['ak.edit_content_view_select'], content_view)
-                self.click(locators['ak.save_cv'])
-        else:
-            raise UIError(
-                'Could not update the activation key "{0}"'.format(name)
-            )
+        self.click(self.search(name))
+        if new_name:
+            self.edit_entity(locators['ak.edit_name'],
+                             locators['ak.edit_name_text'],
+                             new_name, locators['ak.save_name'])
+        if description:
+            self.edit_entity(locators['ak.edit_description'],
+                             locators['ak.edit_description_text'],
+                             description, locators['ak.save_description'])
+        if limit:
+            self.click(locators['ak.edit_limit'])
+            self.set_limit(limit)
+            if self.wait_until_element(
+                    locators['ak.save_limit']).is_enabled():
+                self.click(locators['ak.save_limit'])
+            else:
+                raise ValueError(
+                    'Please update content host limit with valid integer '
+                    'value'
+                )
+        if content_view:
+            if env:
+                strategy, value = locators['ak.env']
+                self.click((strategy, value % env))
+            # We need to select the CV, if we update the env and in this,
+            # case edit button disappears, but when we update only CV, then
+            # edit button appears; Following 'If' is just solving this
+            # purpose and hence no else required here
+            if self.wait_until_element(locators['ak.edit_content_view']):
+                self.click(locators['ak.edit_content_view'])
+            self.select(
+                locators['ak.edit_content_view_select'], content_view)
+            self.click(locators['ak.save_cv'])
 
     def delete(self, name, really=True):
         """Deletes an existing activation key."""
