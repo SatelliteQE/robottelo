@@ -184,7 +184,7 @@ class ActivationKeyTestCase(CLITestCase):
         @Assert: Activation key is created
         """
         new_ak = self._make_activation_key({
-            u'max-content-hosts': '10',
+            u'max-hosts': '10',
         })
         self.assertEqual(new_ak['host-limit'], u'10')
 
@@ -215,7 +215,7 @@ class ActivationKeyTestCase(CLITestCase):
             with self.subTest(limit):
                 with self.assertRaises(CLIFactoryError):
                     self._make_activation_key({
-                        u'max-content-hosts': limit,
+                        u'max-hosts': limit,
                     })
 
     @tier1
@@ -429,7 +429,7 @@ class ActivationKeyTestCase(CLITestCase):
         new_ak = self._make_activation_key()
         self.assertEqual(new_ak['host-limit'], u'Unlimited')
         ActivationKey.update({
-            u'max-content-hosts': '2147483647',
+            u'max-hosts': '2147483647',
             u'name': new_ak['name'],
             u'organization-id': self.org['id'],
         })
@@ -445,11 +445,11 @@ class ActivationKeyTestCase(CLITestCase):
         @Assert: Activation key is updated
         """
         new_ak = self._make_activation_key({
-            u'max-content-hosts': '10',
+            u'max-hosts': '10',
         })
         self.assertEqual(new_ak['host-limit'], u'10')
         ActivationKey.update({
-            u'unlimited-content-hosts': '1',
+            u'unlimited-hosts': True,
             u'name': new_ak['name'],
             u'organization-id': self.org['id'],
         })
@@ -486,7 +486,7 @@ class ActivationKeyTestCase(CLITestCase):
         new_ak = self._make_activation_key()
         with self.assertRaises(CLIReturnCodeError):
             ActivationKey.update({
-                u'max-content-hosts': int('9' * 20),
+                u'max-hosts': int('9' * 20),
                 u'id': new_ak['id'],
                 u'organization-id': self.org['id'],
             })
@@ -520,7 +520,7 @@ class ActivationKeyTestCase(CLITestCase):
             u'lifecycle-environment-id': env['id'],
             u'content-view': new_cv['name'],
             u'organization-id': self.org['id'],
-            u'max-content-hosts': '1',
+            u'max-hosts': '1',
         })
         with VirtualMachine(distro='rhel65') as vm1:
             with VirtualMachine(distro='rhel65') as vm2:
