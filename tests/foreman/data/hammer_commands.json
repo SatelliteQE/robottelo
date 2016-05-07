@@ -354,7 +354,7 @@
             },
             {
               "help": "maximum number of registered content hosts",
-              "name": "max-content-hosts",
+              "name": "max-hosts",
               "shortname": null,
               "value": "MAX_CONTENT_HOSTS"
             },
@@ -384,7 +384,7 @@
             },
             {
               "help": "Set content hosts max to unlimited",
-              "name": "unlimited-content-hosts",
+              "name": "unlimited-hosts",
               "shortname": null,
               "value": null
             },
@@ -903,7 +903,7 @@
             },
             {
               "help": "maximum number of registered content hosts",
-              "name": "max-content-hosts",
+              "name": "max-hosts",
               "shortname": null,
               "value": "MAX_CONTENT_HOSTS"
             },
@@ -951,7 +951,7 @@
             },
             {
               "help": "can the activation key have unlimited content hosts One of true/false, yes/no, 1/0.",
-              "name": "unlimited-content-hosts",
+              "name": "unlimited-hosts",
               "shortname": null,
               "value": "UNLIMITED_CONTENT_HOSTS"
             },

@@ -125,13 +125,13 @@ def make_activation_key(options=None):
         --description DESCRIPTION     description
         --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME Name to search by
         --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID
-        --max-content-hosts MAX_CONTENT_HOSTS maximum number of registered
+        --max-hosts MAX_CONTENT_HOSTS maximum number of registered
                                               content hosts
         --name NAME                   name
         --organization ORGANIZATION_NAME Organization name to search by
         --organization-id ORGANIZATION_ID
         --organization-label ORGANIZATION_LABEL Organization label to search by
-        --unlimited-content-hosts UNLIMITED_CONTENT_HOSTS can the activation
+        --unlimited-hosts UNLIMITED_CONTENT_HOSTS can the activation
                                                           key have unlimited
                                                           content hosts
     """
@@ -149,12 +149,12 @@ def make_activation_key(options=None):
         u'description': None,
         u'lifecycle-environment': None,
         u'lifecycle-environment-id': None,
-        u'max-content-hosts': None,
+        u'max-hosts': None,
         u'name': gen_alphanumeric(),
         u'organization': None,
         u'organization-id': None,
         u'organization-label': None,
-        u'unlimited-content-hosts': None,
+        u'unlimited-hosts': None,
     }
 
     return create_object(ActivationKey, args, options)
