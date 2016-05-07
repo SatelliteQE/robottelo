@@ -74,7 +74,7 @@ class ComputeResourceTestCase(APITestCase):
 
         @Assert: Compute resources are created with expected display_type value
         """
-        for display_type in ('SPICE', 'VNC'):
+        for display_type in ('spice', 'vnc'):
             with self.subTest(display_type):
                 compresource = entities.LibvirtComputeResource(
                     display_type=display_type,
@@ -200,7 +200,7 @@ class ComputeResourceTestCase(APITestCase):
             organization=[self.org],
             url=self.current_libvirt_url,
         ).create()
-        for display_type in ('SPICE', 'VNC'):
+        for display_type in ('spice', 'vnc'):
             with self.subTest(display_type):
                 compresource.display_type = display_type
                 compresource = compresource.update(['display_type'])
