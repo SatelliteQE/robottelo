@@ -258,6 +258,7 @@ class ContentViewFilterTestCase(CLITestCase):
             'inclusion': 'false',
             'name': cvf_name,
             'repositories': self.repo['name'],
+            'organization-id': self.org['id'],
             'type': 'rpm',
         })
         cvf = ContentView.filter_info({
