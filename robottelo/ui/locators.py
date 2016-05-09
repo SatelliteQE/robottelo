@@ -1674,11 +1674,10 @@ locators = LocatorDict({
          "//button[@ng-click='save()']")),
     "ak.edit_limit": (
         By.XPATH,
-        ("//div[@bst-edit-custom='activationKey.max_content_hosts']"
-         "//div/span/i")),
+        "//div[@bst-edit-custom='activationKey.max_hosts']//div/span/i"),
     "ak.save_limit": (
         By.XPATH,
-        ("//div[@bst-edit-custom='activationKey.max_content_hosts']"
+        ("//div[@bst-edit-custom='activationKey.max_hosts']"
          "//button[@ng-click='save()']")),
     "ak.edit_content_view": (
         By.XPATH,
