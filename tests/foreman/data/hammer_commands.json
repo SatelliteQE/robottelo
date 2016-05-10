@@ -2427,6 +2427,12 @@
               "value": "DESCRIPTION"
             },
             {
+              "help": "for Libvirt only Possible value(s): 'VNC', 'SPICE'",
+              "name": "display-type",
+              "shortname": null,
+              "value": "DISPLAY_TYPE"
+            },
+            {
               "help": "REPLACE locations with given ids Comma separated list of values.",
               "name": "location-ids",
               "shortname": null,
@@ -3019,6 +3025,12 @@
               "name": "description",
               "shortname": null,
               "value": "DESCRIPTION"
+            },
+            {
+              "help": "for Libvirt only Possible value(s): 'VNC', 'SPICE'",
+              "name": "display-type",
+              "shortname": null,
+              "value": "DISPLAY_TYPE"
             },
             {
               "help": "",
@@ -3852,6 +3864,18 @@
               "name": "organization-label",
               "shortname": null,
               "value": "ORGANIZATION_LABEL"
+            },
+            {
+              "help": "Product name to search by",
+              "name": "product",
+              "shortname": null,
+              "value": "PRODUCT_NAME"
+            },
+            {
+              "help": "product numeric identifier",
+              "name": "product-id",
+              "shortname": null,
+              "value": "PRODUCT_ID"
             },
             {
               "help": "Comma separated list of values.",
@@ -7760,10 +7784,34 @@
                   "value": "DESCRIPTION"
                 },
                 {
+                  "help": "REPLACE locations with given ids Comma separated list of values.",
+                  "name": "location-ids",
+                  "shortname": null,
+                  "value": "LOCATION_IDS"
+                },
+                {
+                  "help": "Comma separated list of values.",
+                  "name": "locations",
+                  "shortname": null,
+                  "value": "LOCATION_NAMES"
+                },
+                {
                   "help": "",
                   "name": "name",
                   "shortname": null,
                   "value": "NAME"
+                },
+                {
+                  "help": "REPLACE organizations with given ids. Comma separated list of values.",
+                  "name": "organization-ids",
+                  "shortname": null,
+                  "value": "ORGANIZATION_IDS"
+                },
+                {
+                  "help": "Comma separated list of values.",
+                  "name": "organizations",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAMES"
                 },
                 {
                   "help": "",
@@ -7896,6 +7944,18 @@
                   "value": "ID"
                 },
                 {
+                  "help": "REPLACE locations with given ids Comma separated list of values.",
+                  "name": "location-ids",
+                  "shortname": null,
+                  "value": "LOCATION_IDS"
+                },
+                {
+                  "help": "Comma separated list of values.",
+                  "name": "locations",
+                  "shortname": null,
+                  "value": "LOCATION_NAMES"
+                },
+                {
                   "help": "Name to search by",
                   "name": "name",
                   "shortname": null,
@@ -7906,6 +7966,18 @@
                   "name": "new-name",
                   "shortname": null,
                   "value": "NEW_NAME"
+                },
+                {
+                  "help": "REPLACE organizations with given ids. Comma separated list of values.",
+                  "name": "organization-ids",
+                  "shortname": null,
+                  "value": "ORGANIZATION_IDS"
+                },
+                {
+                  "help": "Comma separated list of values.",
+                  "name": "organizations",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAMES"
                 },
                 {
                   "help": "",
@@ -23046,12 +23118,6 @@
               "value": "NAME"
             },
             {
-              "help": "",
-              "name": "new-name",
-              "shortname": null,
-              "value": "NEW_NAME"
-            },
-            {
               "help": "Override this parameter. One of true/false, yes/no, 1/0.",
               "name": "override",
               "shortname": null,
@@ -24793,6 +24859,37 @@
           "description": "Update the default PXE menu on all configured TFTP servers",
           "name": "build-pxe-default",
           "options": [
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Clone a provision template",
+          "name": "clone",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": "",
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": "",
+              "value": "NAME"
+            },
+            {
+              "help": "template name",
+              "name": "new-name",
+              "shortname": "",
+              "value": "NEW_NAME"
+            },
             {
               "help": "print help",
               "name": "help",
