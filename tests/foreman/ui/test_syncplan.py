@@ -10,7 +10,6 @@ from robottelo.constants import PRDS, REPOS, REPOSET, SYNC_INTERVAL
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import (
     run_only_on,
-    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
@@ -231,7 +230,6 @@ class SyncPlanTestCase(UITestCase):
             self.assertIsNotNone(self.syncplan.wait_until_element(
                 common_locators['common_invalid']))
 
-    @skip_if_bug_open('bugzilla', 1330088)
     @tier1
     def test_positive_update_name(self):
         """Update Sync plan's name
@@ -247,15 +245,13 @@ class SyncPlanTestCase(UITestCase):
             organization=self.organization,
         ).create()
         with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
             for new_plan_name in generate_strings_list():
                 with self.subTest(new_plan_name):
-                    session.nav.go_to_select_org(self.organization.name)
-                    session.nav.go_to_sync_plans()
                     self.syncplan.update(plan_name, new_name=new_plan_name)
                     self.assertIsNotNone(self.syncplan.search(new_plan_name))
                     plan_name = new_plan_name  # for next iteration
 
-    @skip_if_bug_open('bugzilla', 1330088)
     @tier1
     def test_positive_update_interval(self):
         """Update Sync plan's interval
@@ -272,9 +268,9 @@ class SyncPlanTestCase(UITestCase):
             enabled=True,
         ).create()
         with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
             for new_interval in valid_sync_intervals():
                 with self.subTest(new_interval):
-                    session.nav.go_to_select_org(self.organization.name)
                     self.syncplan.update(name, new_sync_interval=new_interval)
                     self.syncplan.search(name).click()
                     # Assert updated sync interval
