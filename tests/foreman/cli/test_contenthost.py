@@ -14,7 +14,6 @@ from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.datafactory import (
-    generate_strings_list,
     invalid_values_list,
     valid_hosts_list,
 )
@@ -296,7 +295,7 @@ class ContentHostTestCase(CLITestCase):
 
         @BZ: 1328202
         """
-        for name in generate_strings_list():
+        for name in valid_hosts_list():
             with self.subTest(name):
                 content_host = make_content_host({
                     u'content-view-id': self.DEFAULT_CV['id'],
