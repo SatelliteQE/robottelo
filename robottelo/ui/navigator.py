@@ -1,5 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Implements Navigator UI."""
+from robottelo.decorators import bz_bug_is_open
 from robottelo.ui.base import Base, UIError
 from robottelo.ui.locators import menu_locators
 
@@ -20,7 +21,14 @@ class Navigator(Base):
                 "arguments[0].click();",
                 tertiary_element,
             )
-        self.browser.refresh()
+        # 1328627 - as the number of subs increases, dashboard page gets slower
+        wait_timeout = 12
+        if bz_bug_is_open(1328627):
+            wait_timeout = 40
+        self.wait_until_element_is_not_visible(
+            menu_locators['navbar.spinner'],
+            timeout=wait_timeout
+        )
         self.wait_for_ajax()
 
     def go_to_dashboard(self):
