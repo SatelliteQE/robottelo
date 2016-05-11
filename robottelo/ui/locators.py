@@ -644,7 +644,7 @@ common_locators = LocatorDict({
 
     # Notifications
     "notif.error": (
-        By.XPATH, "//div[contains(@class, 'jnotify-notification-error')]"),
+        By.XPATH, "//div[contains(@class, 'jnotify-notification-danger')]"),
     "notif.warning": (
         By.XPATH, "//div[contains(@class, 'jnotify-notification-warning')]"),
     "notif.success": (
