@@ -61,6 +61,8 @@ class Settings(Base):
             strategy, value = locators['settings.edit_param']
             element = self.wait_until_element((strategy, value % param_name))
             if element:
+                if element.text.lower().startswith('click to edit'):
+                    return ''
                 return element.text
             else:
                 raise UINoSuchElementError(
