@@ -62,6 +62,10 @@ class ContentHost(Base):
         """Work around host unification not being completed in order to delete
         a content host which is now a host subscription.
         """
+        # Replace content host id with host id if passed
+        if 'host-id' in options:
+            name = ContentHost.info({'id': options['host-id']})['name'].lower()
+            options['host-id'] = Host.info({'name': name})['id']
         return Host.subscription_unregister(options)
 
     @classmethod
