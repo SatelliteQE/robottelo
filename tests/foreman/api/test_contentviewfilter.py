@@ -44,20 +44,15 @@ class ContentViewFilterTestCase(APITestCase):
 
         @Feature: ContentViewFilter
 
-        @Assert: An HTTP 400 or 422 response is received if a GET request is
-        issued with no arguments specified.
-
-        This test targets bugzilla bug #1102120.
+        @Assert: An HTTP 200 response is received if a GET request is issued
+        with no arguments specified.
         """
         response = client.get(
             entities.AbstractContentViewFilter().path(),
             auth=settings.server.get_credentials(),
             verify=False,
         )
-        self.assertIn(
-            response.status_code,
-            (http_client.BAD_REQUEST, http_client.UNPROCESSABLE_ENTITY)
-        )
+        self.assertEqual(response.status_code, http_client.OK)
 
     @tier2
     @run_only_on('sat')
@@ -66,10 +61,8 @@ class ContentViewFilterTestCase(APITestCase):
 
         @Feature: ContentViewFilter
 
-        @Assert: An HTTP 400 or 422 response is received if a GET request is
-        issued with bad arguments specified.
-
-        This test targets bugzilla bug #1102120.
+        @Assert: An HTTP 200 response is received if a GET request is issued
+        with bad arguments specified.
         """
         response = client.get(
             entities.AbstractContentViewFilter().path(),
@@ -77,10 +70,7 @@ class ContentViewFilterTestCase(APITestCase):
             verify=False,
             data={'foo': 'bar'},
         )
-        self.assertIn(
-            response.status_code,
-            (http_client.BAD_REQUEST, http_client.UNPROCESSABLE_ENTITY)
-        )
+        self.assertEqual(response.status_code, http_client.OK)
 
     @tier2
     @run_only_on('sat')
