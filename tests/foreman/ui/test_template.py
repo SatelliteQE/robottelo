@@ -31,18 +31,18 @@ class TemplateTestCase(UITestCase):
 
         @Feature: Template - Positive Create
 
-        @Assert: New provisioning template of type 'provision' should be
-        created successfully
+        @Assert: New template of type 'Provisioning template' should be created
+        successfully
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(length=8):
+            for name in generate_strings_list():
                 with self.subTest(name):
                     make_templates(
                         session,
                         name=name,
                         template_path=OS_TEMPLATE_DATA_FILE,
                         custom_really=True,
-                        template_type='provision',
+                        template_type='Provisioning template',
                     )
                     self.assertIsNotNone(self.template.search(name))
 
@@ -63,7 +63,7 @@ class TemplateTestCase(UITestCase):
                         name=name,
                         template_path=OS_TEMPLATE_DATA_FILE,
                         custom_really=True,
-                        template_type='provision',
+                        template_type='Provisioning template',
                     )
                     self.assertIsNotNone(self.template.wait_until_element(
                         common_locators['name_haserror']))
@@ -84,7 +84,7 @@ class TemplateTestCase(UITestCase):
                 name=name,
                 template_path=OS_TEMPLATE_DATA_FILE,
                 custom_really=True,
-                template_type='provision',
+                template_type='Provisioning template',
             )
             self.assertIsNotNone(self.template.search(name))
             make_templates(
@@ -92,7 +92,7 @@ class TemplateTestCase(UITestCase):
                 name=name,
                 template_path=OS_TEMPLATE_DATA_FILE,
                 custom_really=True,
-                template_type='provision',
+                template_type='Provisioning template',
             )
             self.assertIsNotNone(self.template.wait_until_element(
                 common_locators['name_haserror']))
@@ -138,7 +138,7 @@ class TemplateTestCase(UITestCase):
                     name=name,
                     template_path='',
                     custom_really=True,
-                    template_type='PXELinux',
+                    template_type='PXELinux template',
                 )
                 self.assertEqual(
                     context.exception.message,
@@ -161,7 +161,7 @@ class TemplateTestCase(UITestCase):
                 template_path=OS_TEMPLATE_DATA_FILE,
                 custom_really=True,
                 audit_comment=gen_string('alpha', 256),
-                template_type='PXELinux',
+                template_type='PXELinux template',
             )
             self.assertIsNotNone(self.template.wait_until_element(
                 common_locators['haserror']))
@@ -177,7 +177,7 @@ class TemplateTestCase(UITestCase):
         successfully
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(length=8):
+            for name in generate_strings_list():
                 with self.subTest(name):
                     make_templates(
                         session,
@@ -198,13 +198,13 @@ class TemplateTestCase(UITestCase):
         @Assert: Template is deleted successfully
         """
         with Session(self.browser) as session:
-            for template_name in generate_strings_list(length=8):
+            session.nav.go_to_select_org(self.organization.name)
+            for template_name in generate_strings_list():
                 with self.subTest(template_name):
                     entities.ConfigTemplate(
                         name=template_name,
                         organization=[self.organization],
                     ).create()
-                    session.nav.go_to_select_org(self.organization.name)
                     self.template.delete(template_name)
 
     @run_only_on('sat')
@@ -224,10 +224,11 @@ class TemplateTestCase(UITestCase):
                 name=name,
                 template_path=OS_TEMPLATE_DATA_FILE,
                 custom_really=True,
-                template_type='provision',
+                template_type='Provisioning template',
             )
             self.assertIsNotNone(self.template.search(name))
-            self.template.update(name, False, new_name, None, 'PXELinux')
+            self.template.update(
+                name, False, new_name, None, 'PXELinux template')
             self.assertIsNotNone(self.template.search(new_name))
 
     @run_only_on('sat')
@@ -252,7 +253,7 @@ class TemplateTestCase(UITestCase):
                 name=name,
                 template_path=OS_TEMPLATE_DATA_FILE,
                 custom_really=True,
-                template_type='provision',
+                template_type='Provisioning template',
             )
             self.assertIsNotNone(self.template.search(name))
             self.template.update(name, False, new_name, new_os_list=os_list)
@@ -282,7 +283,7 @@ class TemplateTestCase(UITestCase):
                 name=name,
                 template_path=OS_TEMPLATE_DATA_FILE,
                 custom_really=True,
-                template_type='provision',
+                template_type='Provisioning template',
             )
             self.assertIsNotNone(self.template.search(name))
             self.template.clone(
