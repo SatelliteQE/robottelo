@@ -876,7 +876,6 @@ class ContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1222118)
     def test_negative_add_same_puppet_repo_twice(self):
         """attempt to associate duplicate puppet module(s) within a
         content view
@@ -885,10 +884,8 @@ class ContentViewTestCase(CLITestCase):
 
         @assert: User cannot add puppet modules multiple times to the content
         view
-
-        @bz: 1222118
-
         """
+        # see BZ #1222118
         repository = make_repository({
             u'content-type': u'puppet',
             u'product-id': self.product['id'],
@@ -911,12 +908,14 @@ class ContentViewTestCase(CLITestCase):
         for puppet_module in puppet_result:
             # Associate puppet module to CV
             ContentView.puppet_module_add({
+                u'author': puppet_module['author'],
                 u'content-view-id': content_view['id'],
-                u'name': puppet_module['name']
+                u'name': puppet_module['name'],
             })
             # Re-associate same puppet module to CV
             with self.assertRaises(CLIReturnCodeError):
                 ContentView.puppet_module_add({
+                    u'author': puppet_module['author'],
                     u'content-view-id': content_view['id'],
                     u'name': puppet_module['name'],
                 })
@@ -1697,7 +1696,6 @@ class ContentViewTestCase(CLITestCase):
 
     @tier3
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1222118)
     def test_positive_subscribe_chost_by_id_using_puppet_content(self):
         """Attempt to subscribe content host to content view that has
         puppet module assigned to it
@@ -1706,10 +1704,8 @@ class ContentViewTestCase(CLITestCase):
 
         @assert: Content Host can be subscribed to content view with puppet
         module
-
-        @bz: 1222118
-
         """
+        # see BZ #1222118
         new_org = make_org()
         new_product = make_product({u'organization-id': new_org['id']})
 
@@ -1731,7 +1727,7 @@ class ContentViewTestCase(CLITestCase):
             # Associate puppet module to CV
             ContentView.puppet_module_add({
                 u'content-view-id': content_view['id'],
-                u'name': puppet_module['name'],
+                u'uuid': puppet_module['uuid'],
             })
 
         env = make_lifecycle_environment({u'organization-id': new_org['id']})
