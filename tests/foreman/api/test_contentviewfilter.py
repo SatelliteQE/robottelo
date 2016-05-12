@@ -5,15 +5,13 @@ http://www.katello.org/docs/api/apidoc/content_view_filters.html
 
 """
 from fauxfactory import gen_integer, gen_string
-from nailgun import client, entities
+from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
-from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.test import APITestCase
-from six.moves import http_client
 
 
 class ContentViewFilterTestCase(APITestCase):
@@ -36,51 +34,6 @@ class ContentViewFilterTestCase(APITestCase):
         ).create()
         self.content_view.repository = [self.repo]
         self.content_view.update(['repository'])
-
-    @tier2
-    @run_only_on('sat')
-    def test_negative_get_with_no_args(self):
-        """Issue an HTTP GET to the base content view filters path.
-
-        @Feature: ContentViewFilter
-
-        @Assert: An HTTP 400 or 422 response is received if a GET request is
-        issued with no arguments specified.
-
-        This test targets bugzilla bug #1102120.
-        """
-        response = client.get(
-            entities.AbstractContentViewFilter().path(),
-            auth=settings.server.get_credentials(),
-            verify=False,
-        )
-        self.assertIn(
-            response.status_code,
-            (http_client.BAD_REQUEST, http_client.UNPROCESSABLE_ENTITY)
-        )
-
-    @tier2
-    @run_only_on('sat')
-    def test_negative_get_with_bad_args(self):
-        """Issue an HTTP GET to the base content view filters path.
-
-        @Feature: ContentViewFilter
-
-        @Assert: An HTTP 400 or 422 response is received if a GET request is
-        issued with bad arguments specified.
-
-        This test targets bugzilla bug #1102120.
-        """
-        response = client.get(
-            entities.AbstractContentViewFilter().path(),
-            auth=settings.server.get_credentials(),
-            verify=False,
-            data={'foo': 'bar'},
-        )
-        self.assertIn(
-            response.status_code,
-            (http_client.BAD_REQUEST, http_client.UNPROCESSABLE_ENTITY)
-        )
 
     @tier2
     @run_only_on('sat')
