@@ -1,10 +1,10 @@
 """Unit tests for the ``architectures`` paths."""
-from fauxfactory import gen_utf8
+from fauxfactory import gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import skip_if_bug_open, tier1, tier2
+from robottelo.decorators import tier1, tier2
 from robottelo.test import APITestCase
 
 
@@ -12,7 +12,6 @@ class ArchitectureTestCase(APITestCase):
     """Tests for architectures."""
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1151220)
     def test_positive_post_hash(self):
         """Do not wrap API calls in an extra hash.
 
@@ -21,11 +20,11 @@ class ArchitectureTestCase(APITestCase):
 
         @Feature: Architecture
         """
-        name = gen_utf8()
-        os_id = entities.OperatingSystem().create_json()['id']
+        name = gen_string('utf8')
+        os = entities.OperatingSystem().create()
         response = client.post(
             entities.Architecture().path(),
-            {u'name': name, u'operatingsystem_ids': [os_id]},
+            {u'name': name, u'operatingsystem_ids': [os.id]},
             auth=settings.server.get_credentials(),
             verify=False,
         )
@@ -37,7 +36,7 @@ class ArchitectureTestCase(APITestCase):
         self.assertIn('name', attrs)
         self.assertEqual(name, attrs['name'])
         self.assertIn('operatingsystems', attrs)
-        self.assertEqual([os_id], attrs['operatingsystems'])
+        self.assertEqual(os.id, attrs['operatingsystems'][0]['id'])
 
     @tier2
     def test_positive_add_os(self):
