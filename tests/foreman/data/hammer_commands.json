@@ -1728,6 +1728,49 @@
             }
           ],
           "subcommands": []
+        },
+        {
+          "description": "Download subnet generic image",
+          "name": "subnet",
+          "options": [
+            {
+              "help": "File or device to write image to",
+              "name": "file",
+              "shortname": null,
+              "value": "PATH"
+            },
+            {
+              "help": "Force writing to existing destination (device etc.)",
+              "name": "force",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Subnet name",
+              "name": "subnet",
+              "shortname": null,
+              "value": "SUBNET_NAME"
+            },
+            {
+              "help": "",
+              "name": "subnet-id",
+              "shortname": null,
+              "value": "SUBNET_ID"
+            },
+            {
+              "help": "Use sudo to write to device",
+              "name": "sudo",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
         }
       ]
     },
