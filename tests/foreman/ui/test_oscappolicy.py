@@ -53,7 +53,7 @@ class OpenScapPolicy(UITestCase):
                         content=content_name,
                         name=policy_name,
                         period=OSCAP_PERIOD['weekly'],
-                        profile=OSCAP_PROFILE['rhccp'],
+                        profile=OSCAP_PROFILE['c2s_rhel6'],
                         period_value=OSCAP_WEEKDAY['friday'],
                     )
                     self.assertIsNotNone(
@@ -90,7 +90,7 @@ class OpenScapPolicy(UITestCase):
                         content=content_name,
                         name=policy_name,
                         period=OSCAP_PERIOD['weekly'],
-                        profile=OSCAP_PROFILE['rhccp'],
+                        profile=OSCAP_PROFILE['c2s_rhel6'],
                         period_value=OSCAP_WEEKDAY['friday'],
                     )
                     self.assertIsNotNone(
@@ -130,7 +130,7 @@ class OpenScapPolicy(UITestCase):
                         content=content_name,
                         name=policy_name,
                         period=OSCAP_PERIOD['weekly'],
-                        profile=OSCAP_PROFILE['rhccp'],
+                        profile=OSCAP_PROFILE['c2s_rhel6'],
                         period_value=OSCAP_WEEKDAY['friday'],
                     )
                     self.assertIsNone(self.oscappolicy.search(policy_name))
@@ -165,18 +165,18 @@ class OpenScapPolicy(UITestCase):
                 content=content_name,
                 name=policy_name,
                 period=OSCAP_PERIOD['weekly'],
-                profile=OSCAP_PROFILE['rhccp'],
+                profile=OSCAP_PROFILE['c2s_rhel6'],
                 period_value=OSCAP_WEEKDAY['friday'],
             )
             self.assertIsNotNone(
                 self.oscappolicy.search(policy_name))
-            for new_policy_name in invalid_values_list(interface='ui'):
+            for new_policy_name in valid_data_list():
                 with self.subTest(new_policy_name):
                     self.oscappolicy.update(
                         name=policy_name,
                         new_name=new_policy_name,
                         content=content_name,
-                        profile=OSCAP_PROFILE['usgcb'],
+                        profile=OSCAP_PROFILE['esp'],
                         period=OSCAP_PERIOD['weekly'],
                         period_value=OSCAP_WEEKDAY['sunday'],
                     )

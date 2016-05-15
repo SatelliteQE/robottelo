@@ -2454,14 +2454,29 @@ locators = LocatorDict({
     "oscap.dropdown_policy": (
         By.XPATH,
         ("//a[contains(@href,'policies') and contains(.,'%s')]"
-         "/../../td/div/a/i")),
+         "/../../td/div/a/span")),
     "oscap.name_policy": (By.ID, "policy_name"),
     "oscap.desc_policy": (By.ID, "policy_description"),
-    "oscap.content_policy": (By.ID, "policy_scap_content_id"),
-    "oscap.profile_policy": (By.ID, "policy_scap_content_profile_id"),
-    "oscap.period_policy": (By.ID, "policy_period"),
-    "oscap.weekday_policy": (By.ID, "policy_weekday"),
-    "oscap.dayofmonth_policy": (By.ID, "policy_day_of_month"),
+    "oscap.content_policy": (
+        By.XPATH,
+        ("//div[contains(@id, 'policy_scap_content_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "oscap.profile_policy": (
+        By.XPATH,
+        ("//div[contains(@id, 'policy_scap_content_profile_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "oscap.period_policy": (
+        By.XPATH,
+        ("//div[contains(@id, 'policy_period')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "oscap.weekday_policy": (
+        By.XPATH,
+        ("//div[contains(@id, 'policy_weekday')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "oscap.dayofmonth_policy": (
+        By.XPATH,
+        ("//div[contains(@id, 'policy_day_of_month')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "oscap.custom_policy": (By.ID, "policy_cron_line"),
 
     # oscap reports

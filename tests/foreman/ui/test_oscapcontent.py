@@ -1,15 +1,12 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
-from robottelo.constants import (
-    ANY_CONTEXT,
-    OSCAP_DEFAULT_CONTENT,
-)
+from robottelo.constants import OSCAP_DEFAULT_CONTENT
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_oscapcontent, set_context
+from robottelo.ui.factory import make_oscapcontent
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
@@ -39,7 +36,6 @@ class OpenScapContentTestCase(UITestCase):
         with Session(self.browser) as session:
             for content_name in valid_data_list():
                 with self.subTest(content_name):
-                    set_context(session, org=ANY_CONTEXT['org'])
                     make_oscapcontent(
                         session,
                         name=content_name,
@@ -67,7 +63,6 @@ class OpenScapContentTestCase(UITestCase):
         with Session(self.browser) as session:
             for content_name in invalid_values_list(interface='ui'):
                 with self.subTest(content_name):
-                    set_context(session, org=ANY_CONTEXT['org'])
                     make_oscapcontent(
                         session,
                         name=content_name,
@@ -77,6 +72,7 @@ class OpenScapContentTestCase(UITestCase):
                         common_locators['haserror']))
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1336374)
     def test_positive_default(self):
         """Check whether OpenScap content exists by default.
 
@@ -89,9 +85,7 @@ class OpenScapContentTestCase(UITestCase):
 
         @Assert: Whether oscap content exists by default.
         """
-        with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
-            session.nav.go_to_oscap_content()
+        with Session(self.browser):
             self.assertIsNotNone(self.oscapcontent.search(
                 OSCAP_DEFAULT_CONTENT['rhel7_content']))
             self.assertIsNotNone(self.oscapcontent.search(
@@ -114,7 +108,6 @@ class OpenScapContentTestCase(UITestCase):
         org = entities.Organization(name=gen_string('alpha')).create()
         content_name = gen_string('alpha')
         with Session(self.browser) as session:
-            set_context(session, org=ANY_CONTEXT['org'])
             make_oscapcontent(
                 session,
                 name=content_name,
@@ -142,7 +135,6 @@ class OpenScapContentTestCase(UITestCase):
         with Session(self.browser) as session:
             for content_name in valid_data_list():
                 with self.subTest(content_name):
-                    set_context(session, org=ANY_CONTEXT['org'])
                     make_oscapcontent(
                         session,
                         name=content_name,

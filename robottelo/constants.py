@@ -789,6 +789,7 @@ OSCAP_DEFAULT_CONTENT = {
 
 OSCAP_PROFILE = {
     'c2s_rhel6': 'C2S for Red Hat Enterprise Linux 6',
+    'esp': 'Example Server Profile',
     'rhccp': ('Red Hat Corporate Profile for '
               'Certified Cloud Providers (RH CCP)'),
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
