@@ -12,7 +12,6 @@ from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_location, make_org, make_role, make_user
 from robottelo.cli.user import User
-from robottelo.config import settings
 from robottelo.datafactory import (
     invalid_emails_list,
     invalid_names_list,
@@ -725,10 +724,9 @@ class UserTestCase(CLITestCase):
 
         @Assert: User is not deleted
         """
-        login = settings.server.admin_username
         with self.assertRaises(CLIReturnCodeError):
-            User.delete({'login': login})
-        self.assertTrue(User.info({'login': login}))
+            User.delete({'login': self.foreman_user})
+        self.assertTrue(User.info({'login': self.foreman_user}))
 
     @tier1
     def test_positive_list_username(self):

@@ -1,6 +1,5 @@
 """Test Class for hammer ping"""
 from robottelo import ssh
-from robottelo.config import settings
 from robottelo.decorators import tier1
 from robottelo.test import CLITestCase
 from six.moves import zip
@@ -22,8 +21,8 @@ class PingTestCase(CLITestCase):
         @assert: hammer ping returns a right return code
         """
         result = ssh.command('hammer -u {0} -p {1} ping'.format(
-            settings.server.admin_username,
-            settings.server.admin_password
+            self.foreman_user,
+            self.foreman_password
         ))
         self.assertEqual(len(result.stderr), 0)
 

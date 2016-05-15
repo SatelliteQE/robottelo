@@ -29,7 +29,8 @@ class LoginTestCase(UITestCase):
 
         @Assert: Successfully logged in as an admin user
         """
-        self.login.login(self.katello_user, self.katello_passwd)
+        self.login.login(self.foreman_user,
+                         self.foreman_password)
         self.assertTrue(self.login.is_logged())
 
     @tier1
