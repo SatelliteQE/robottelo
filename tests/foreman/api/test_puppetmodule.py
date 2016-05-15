@@ -1,10 +1,9 @@
 """Unit tests for the ``katello/api/v2/puppet_modules`` paths."""
 from nailgun import entities
 from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
-from robottelo.decorators import bz_bug_is_open, skip_if_bug_open, tier1
+from robottelo.decorators import tier1
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
-from unittest import skipIf
 
 
 class RepositorySearchTestCase(APITestCase):
@@ -27,7 +26,6 @@ class RepositorySearchTestCase(APITestCase):
         ).create()
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1260206)
     def test_positive_search_no_results(self):
         """Search for puppet modules in an empty repository.
 
@@ -38,8 +36,6 @@ class RepositorySearchTestCase(APITestCase):
         query = {'repository_id': self.repository.id}
         self.assertEqual(len(entities.PuppetModule().search(query=query)), 0)
 
-    @skip_if_bug_open('bugzilla', 1260206)
-    @skip_if_bug_open('bugzilla', 1329292)
     @tier1
     def test_positive_search_single_result(self):
         """Search for puppet modules in a non-empty repository.
@@ -54,7 +50,6 @@ class RepositorySearchTestCase(APITestCase):
         self.assertEqual(len(entities.PuppetModule().search(query=query)), 1)
 
 
-@skipIf(bz_bug_is_open(1329292), 'Skipping due to open Bugzilla bug #1329292')
 class ContentViewVersionSearchTestCase(APITestCase):
     """Tests that search for puppet modules and filter by content view ver."""
 
@@ -107,7 +102,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
         )
         entities.ContentViewPuppetModule(
             content_view=self.content_view,
-            puppet_module=puppet_module,
+            id=puppet_module.id,
         ).create()
         self.content_view.publish()
 
