@@ -2,7 +2,7 @@
 """Implements Template UI."""
 from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
-from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -22,25 +22,20 @@ class Template(Base):
                os_list=None):
         """Creates a provisioning template from UI."""
         self.click(locators['provision.template_new'])
-        if self.wait_until_element(
-                locators['provision.template_name']) is None:
-            raise UINoSuchElementError(
-                u'Could not create new provisioning template "{0}"'
-                .format(name)
-            )
-        self.find_element(locators['provision.template_name']).send_keys(name)
+        self.wait_until_element(
+            locators['provision.template_name']).send_keys(name)
         if not template_path:
             raise UIError(
                 u'Could not create blank template "{0}"'.format(name)
             )
         self.click(tab_locators['tab_primary'])
-        self.find_element(
+        self.wait_until_element(
             locators['provision.template_template']
         ).send_keys(template_path)
         self.handle_alert(custom_really)
         self.scroll_page()
         if audit_comment:
-            self.find_element(
+            self.wait_until_element(
                 locators['provision.audit_comment']
             ).send_keys(audit_comment)
         if template_type:
@@ -64,16 +59,11 @@ class Template(Base):
                template_path=None, template_type=None,
                os_list=None, new_os_list=None, clone=False):
         """Updates a given template."""
-        element = self.search(name)
-        if element is None:
-            raise UIError(
-                u'Could not update the template "{0}"'.format(name)
-            )
-        self.click(element)
+        self.click(self.search(name))
         if new_name:
             self.field_update('provision.template_name', new_name)
         if template_path:
-            self.find_element(
+            self.wait_until_element(
                 locators['provision.template_template']
             ).send_keys(template_path)
             self.handle_alert(custom_really)
