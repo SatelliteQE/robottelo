@@ -2,13 +2,33 @@
 """Test class for Setting Parameter values"""
 
 from fauxfactory import gen_email, gen_string, gen_url
+from functools import wraps
 from random import choice, randint
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
+from robottelo.decorators import (
+    bz_bug_is_open,
+    run_only_on,
+    skip_if_bug_open,
+    tier1,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import edit_param
 from robottelo.ui.locators import common_locators, tab_locators
 from robottelo.ui.session import Session
+
+
+def pick_one_if_bz_open(func):
+    """Returns random value from provided data set in case specific defect is
+    open or full data set otherwise
+    """
+    @wraps(func)
+    def func_wrapper(*args, **kwargs):
+        """Check whether defect is open and make corresponding decision"""
+        data_set = func(*args, **kwargs)
+        if bz_bug_is_open(1335799):
+            data_set = [choice(data_set)]
+        return data_set
+    return func_wrapper
 
 
 def valid_boolean_values():
@@ -32,6 +52,7 @@ def valid_settings_values():
     ]
 
 
+@pick_one_if_bz_open
 def invalid_foreman_urls():
     """Returns a list of invalid foreman urls"""
     return[
@@ -43,6 +64,7 @@ def invalid_foreman_urls():
     ]
 
 
+@pick_one_if_bz_open
 def invalid_settings_values():
     """Returns a list of invalid settings values"""
     return [' ', '-1', 'text', '0']
@@ -85,6 +107,7 @@ def valid_login_delegation_values():
     ]
 
 
+@pick_one_if_bz_open
 def invalid_oauth_active_values():
     """Returns a list of invalid oauth_active values"""
     return [
@@ -109,6 +132,7 @@ def valid_token_duration():
     return ['90', '0']
 
 
+@pick_one_if_bz_open
 def invalid_token_duration():
     """Returns a list of invalid token durations"""
     return [' ', '-1', 'text']
@@ -756,7 +780,7 @@ class SettingTestCase(UITestCase):
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
-            for param_value in valid_boolean_values():
+            for param_value in invalid_settings_values():
                 with self.subTest(param_value):
                     edit_param(
                         session,
