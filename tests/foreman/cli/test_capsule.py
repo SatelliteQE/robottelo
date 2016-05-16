@@ -4,6 +4,7 @@ import random
 import re
 
 from fauxfactory import gen_alphanumeric, gen_string
+from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError, make_proxy
 from robottelo.cli.proxy import Proxy, default_url_on_new_port
@@ -45,6 +46,8 @@ class CapsuleTestCase(CLITestCase):
             with self.subTest(name):
                 proxy = make_proxy({u'name': name})
                 self.assertEquals(proxy['name'], name)
+                # Add capsule id to cleanup list
+                self.addCleanup(capsule_cleanup, proxy['id'])
 
     @run_only_on('sat')
     @tier1
@@ -83,6 +86,8 @@ class CapsuleTestCase(CLITestCase):
                     })
                     proxy = Proxy.info({u'id': proxy['id']})
                     self.assertEqual(proxy['name'], new_name)
+        # Add capsule id to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
 
     @run_only_on('sat')
     @tier2
@@ -102,6 +107,8 @@ class CapsuleTestCase(CLITestCase):
                 Proxy.refresh_features({u'id': proxy['id']})
         else:
             raise ValueError('Unable to parse port number from proxy URL')
+        # Add capsule id to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
 
     @run_only_on('sat')
     @tier2
@@ -121,6 +128,8 @@ class CapsuleTestCase(CLITestCase):
                 Proxy.refresh_features({u'name': proxy['name']})
         else:
             raise ValueError('Unable to parse port number from proxy URL')
+        # Add capsule id to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
 
 
 class CapsuleIntegrationTestCase(CLITestCase):

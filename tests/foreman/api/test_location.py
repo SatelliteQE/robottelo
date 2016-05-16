@@ -8,6 +8,7 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import entities
 from random import randint
 from requests.exceptions import HTTPError
+from robottelo.cleanup import capsule_cleanup, location_cleanup
 from robottelo.cli.factory import make_proxy
 from robottelo.decorators import tier1, tier2
 from robottelo.datafactory import invalid_values_list
@@ -223,8 +224,15 @@ class LocationTestCase(APITestCase):
 
         @Feature: Location
         """
-        proxy = entities.SmartProxy(id=make_proxy()['id']).search()[0]
+        proxy_id = make_proxy()['id']
+        # Add capsule to cleanup list
+        self.addCleanup(capsule_cleanup, proxy_id)
+
+        proxy = entities.SmartProxy(id=proxy_id).search()[0]
         location = entities.Location(smart_proxy=[proxy]).create()
+        # Add location to cleanup list
+        self.addCleanup(location_cleanup, location.id)
+
         self.assertEqual(location.smart_proxy[0].id, proxy.id)
         self.assertEqual(location.smart_proxy[0].read().name, proxy.name)
 
@@ -502,9 +510,18 @@ class LocationTestCase(APITestCase):
 
         @Feature: Location - Update
         """
-        proxy = entities.SmartProxy(id=make_proxy()['id']).search()[0]
+        proxy_id_1 = make_proxy()['id']
+        proxy_id_2 = make_proxy()['id']
+        # Add capsules to cleanup list
+        self.addCleanup(capsule_cleanup, proxy_id_1)
+        self.addCleanup(capsule_cleanup, proxy_id_2)
+
+        proxy = entities.SmartProxy(id=proxy_id_1).search()[0]
         location = entities.Location(smart_proxy=[proxy]).create()
-        new_proxy = entities.SmartProxy(id=make_proxy()['id']).search()[0]
+        # Add location to cleanup list
+        self.addCleanup(location_cleanup, location.id)
+
+        new_proxy = entities.SmartProxy(id=proxy_id_2).search()[0]
         location.smart_proxy = [new_proxy]
         location = location.update(['smart_proxy'])
         self.assertEqual(location.smart_proxy[0].id, new_proxy.id)
@@ -556,8 +573,15 @@ class LocationTestCase(APITestCase):
 
         @Feature: Location - Update
         """
-        proxy = entities.SmartProxy(id=make_proxy()['id']).search()[0]
+        proxy_id = make_proxy()['id']
+        # Add capsule to cleanup list
+        self.addCleanup(capsule_cleanup, proxy_id)
+
+        proxy = entities.SmartProxy(id=proxy_id).search()[0]
         location = entities.Location(smart_proxy=[proxy]).create()
+        # Add location to cleanup list
+        self.addCleanup(location_cleanup, location.id)
+
         location.smart_proxy = []
         location = location.update(['smart_proxy'])
         self.assertEqual(len(location.smart_proxy), 0)
