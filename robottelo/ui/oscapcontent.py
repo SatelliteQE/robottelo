@@ -2,7 +2,7 @@
 """Implements Open Scap  Content for UI."""
 from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UIError
-from robottelo.ui.locators import locators, tab_locators, common_locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -21,11 +21,6 @@ class OpenScapContent(Base):
     def create(self, name, content_path=None):
         """Creates new oscap Content from UI"""
         self.click(locators['oscap.upload_content'])
-        if not self.wait_until_element(locators['oscap.content_title']):
-            raise UIError(
-                u'Could not create new Oscap Content {0}'
-                .format(name)
-            )
         self.text_field_update(locators['oscap.content_title'], name)
         self.wait_until_element(
             locators['oscap.content_path']

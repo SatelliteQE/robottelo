@@ -38,7 +38,7 @@ class OpenScapPolicy(Base):
         if period == 'Weekly':
             self.select(locators['oscap.weekday_policy'], period_value)
         elif period == 'Monthly':
-            self.text_field_update(
+            self.select(
                 locators['oscap.dayofmonth_policy'], period_value)
         else:
             self.text_field_update(
@@ -61,9 +61,9 @@ class OpenScapPolicy(Base):
         element = self.search(name)
         if not element:
             raise UIError('Could not find oscap policy {0}'.format(name))
-        strategy, value = locators['oscap.content_dropdown']
+        strategy, value = locators['oscap.dropdown_policy']
         self.click((strategy, value % name))
-        strategy, value = locators['oscap.content_edit']
+        strategy, value = locators['oscap.edit_policy']
         self.click((strategy, value % name), waiter_timeout=60)
         if new_name or new_desc:
             if new_name:
