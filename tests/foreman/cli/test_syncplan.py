@@ -20,7 +20,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.datafactory import valid_data_list, invalid_values_list
-from robottelo.decorators import stubbed, tier1, tier4
+from robottelo.decorators import skip_if_bug_open, stubbed, tier1, tier4
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from time import sleep
@@ -246,6 +246,7 @@ class SyncPlanTestCase(CLITestCase):
                 result = SyncPlan.info({u'id': new_sync_plan['id']})
                 self.assertEqual(result['interval'], test_data['new-interval'])
 
+    @skip_if_bug_open('bugzilla', 1336790)
     @tier1
     def test_positive_update_sync_date(self):
         """Check if syncplan sync date can be updated
