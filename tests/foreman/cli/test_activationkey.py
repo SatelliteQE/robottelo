@@ -566,15 +566,12 @@ class ActivationKeyTestCase(CLITestCase):
                     activation_key['host-collection'], host_col_name)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1293585)
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_add_redhat_product(self):
         """Test that RH product can be associated to Activation Keys
 
         @Feature: Activation key - Product
-
-        @BZ: 1293585
 
         @Assert: RH products are successfully associated to Activation key
         """
@@ -611,7 +608,6 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertEqual(content[0]['name'], repo['name'])
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1293585)
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_add_redhat_and_custom_products(self):
@@ -624,8 +620,6 @@ class ActivationKeyTestCase(CLITestCase):
         1. Create Activation key
         2. Associate RH product(s) to Activation Key
         3. Associate custom product(s) to Activation Key
-
-        @BZ: 1293585
 
         @Assert: RH/Custom product is successfully associated to Activation key
         """
@@ -648,8 +642,8 @@ class ActivationKeyTestCase(CLITestCase):
             u'organization-id': self.org['id'],
         })
         self.assertEqual(len(content), 2)
-        self.assertEqual(content[0]['name'], REPOSET['rhst7'])
-        self.assertEqual(content[1]['name'], repo['name'])
+        self.assertEqual(
+            {REPOSET['rhst7'], repo['name']}, {pc['name'] for pc in content})
 
     @stubbed()
     def test_positive_delete_manifest(self):
@@ -826,6 +820,7 @@ class ActivationKeyTestCase(CLITestCase):
         })
         self.assertEqual(new_activation_key['name'], name)
 
+    @skip_if_bug_open('bugzilla', 1336716)
     @tier2
     def test_positive_remove_host_collection_by_id(self):
         """Test that hosts associated to Activation Keys can be removed
@@ -863,6 +858,7 @@ class ActivationKeyTestCase(CLITestCase):
         activation_key = ActivationKey.info({u'id': activation_key['id']})
         self.assertEqual(len(activation_key['host-collections']), 0)
 
+    @skip_if_bug_open('bugzilla', 1336716)
     @tier2
     def test_positive_remove_host_collection_by_name(self):
         """Test that hosts associated to Activation Keys can be removed
