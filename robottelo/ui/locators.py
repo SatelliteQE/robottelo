@@ -1551,7 +1551,7 @@ locators = LocatorDict({
                    "/../../span[contains(@class, 'info-value')]")),
     "repo.repo_discover": (
         By.XPATH, "//button[@ui-sref='products.discovery.scan']"),
-    "repo.discover_url": (By.XPATH, "//input[@type='url']"),
+    "repo.discover_url": (By.XPATH, "//input[@ng-model='discovery.url']"),
     "repo.discover_button": (By.XPATH, "//button[@type='submit']"),
     "repo.discovered_url_checkbox": (
         By.XPATH, ("//table[@bst-table='discoveryTable']"
