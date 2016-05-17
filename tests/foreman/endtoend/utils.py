@@ -1,4 +1,5 @@
 """Module that aggregates common bits of the end to end tests."""
+from robottelo.decorators import setting_is_set
 from robottelo.vm import VirtualMachine
 
 AK_CONTENT_LABEL = u'rhel-6-server-rhev-agent-rpms'
@@ -21,6 +22,8 @@ class ClientProvisioningMixin(object):
             is available.
         :param package_name: Name of the package to be installed on the client.
         """
+        if not setting_is_set('clients'):
+            return
         with VirtualMachine(distro='rhel66') as vm:
             # Pull rpm from Foreman server and install on client
             vm.install_katello_ca()
