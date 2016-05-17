@@ -3,6 +3,7 @@
 
 from fauxfactory import gen_string
 from random import randint
+from robottelo.cleanup import capsule_cleanup, location_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     CLIFactoryError,
@@ -588,7 +589,7 @@ class LocationTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_capsule_by_name(self):
-        """Add a capsule to organization by its name
+        """Add a capsule to location by its name
 
         @Feature: Organization
 
@@ -596,6 +597,10 @@ class LocationTestCase(CLITestCase):
         """
         loc = make_location()
         proxy = make_proxy()
+        # Add capsule and location to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
+        self.addCleanup(location_cleanup, loc['id'])
+
         Location.add_smart_proxy({
             'name': loc['name'],
             'smart-proxy': proxy['name'],
@@ -606,7 +611,7 @@ class LocationTestCase(CLITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_capsule_by_id(self):
-        """Add a capsule to organization by its ID
+        """Add a capsule to location by its ID
 
         @feature: Organization
 
@@ -614,6 +619,10 @@ class LocationTestCase(CLITestCase):
         """
         loc = make_location()
         proxy = make_proxy()
+        # Add capsule and location to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
+        self.addCleanup(location_cleanup, loc['id'])
+
         Location.add_smart_proxy({
             'name': loc['name'],
             'smart-proxy-id': proxy['id'],
@@ -632,6 +641,10 @@ class LocationTestCase(CLITestCase):
         """
         loc = make_location()
         proxy = make_proxy()
+        # Add capsule and location to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
+        self.addCleanup(location_cleanup, loc['id'])
+
         Location.add_smart_proxy({
             'id': loc['id'],
             'smart-proxy-id': proxy['id'],
@@ -654,6 +667,10 @@ class LocationTestCase(CLITestCase):
         """
         loc = make_location()
         proxy = make_proxy()
+        # Add capsule and location to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
+        self.addCleanup(location_cleanup, loc['id'])
+
         Location.add_smart_proxy({
             'name': loc['name'],
             'smart-proxy': proxy['name'],

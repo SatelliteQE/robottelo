@@ -5,6 +5,7 @@ import random
 
 from fauxfactory import gen_string
 from itertools import cycle
+from robottelo.cleanup import capsule_cleanup, org_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     make_compute_resource,
@@ -973,6 +974,10 @@ class OrganizationTestCase(CLITestCase):
         """
         org = make_org()
         proxy = make_proxy()
+        # Add capsule and org to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
+        self.addCleanup(org_cleanup, org['id'])
+
         Org.add_smart_proxy({
             'name': org['name'],
             'smart-proxy': proxy['name'],
@@ -991,6 +996,10 @@ class OrganizationTestCase(CLITestCase):
         """
         org = make_org()
         proxy = make_proxy()
+        # Add capsule and org to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
+        self.addCleanup(org_cleanup, org['id'])
+
         Org.add_smart_proxy({
             'name': org['name'],
             'smart-proxy-id': proxy['id'],
@@ -1009,6 +1018,10 @@ class OrganizationTestCase(CLITestCase):
         """
         org = make_org()
         proxy = make_proxy()
+        # Add capsule and org to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
+        self.addCleanup(org_cleanup, org['id'])
+
         Org.add_smart_proxy({
             'id': org['id'],
             'smart-proxy-id': proxy['id'],
@@ -1031,6 +1044,10 @@ class OrganizationTestCase(CLITestCase):
         """
         org = make_org()
         proxy = make_proxy()
+        # Add capsule and org to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
+        self.addCleanup(org_cleanup, org['id'])
+
         Org.add_smart_proxy({
             'name': org['name'],
             'smart-proxy': proxy['name'],
