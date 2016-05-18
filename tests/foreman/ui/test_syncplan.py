@@ -10,6 +10,7 @@ from robottelo.constants import PRDS, REPOS, REPOSET, SYNC_INTERVAL
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import (
     run_only_on,
+    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
@@ -135,6 +136,7 @@ class SyncPlanTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.syncplan.search(name))
 
+    @skip_if_bug_open('bugzilla', 1335133)
     @tier2
     def test_positive_create_with_start_time(self):
         """Create Sync plan with specified start time
@@ -145,7 +147,6 @@ class SyncPlanTestCase(UITestCase):
         """
         plan_name = gen_string('alpha')
         startdate = datetime.now() + timedelta(minutes=10)
-        starttime = startdate.strftime("%Y-%m-%d %H:%M")
         with Session(self.browser) as session:
             make_syncplan(
                 session,
@@ -161,8 +162,12 @@ class SyncPlanTestCase(UITestCase):
                 locators['sp.fetch_startdate']).text
             # Removed the seconds info as it would be too quick
             # to validate via UI.
-            self.assertEqual(str(starttime_text).rpartition(':')[0], starttime)
+            self.assertEqual(
+                str(starttime_text).rpartition(':')[0],
+                startdate.strftime("%m/%d/%Y %I:%M")
+            )
 
+    @skip_if_bug_open('bugzilla', 1335133)
     @tier2
     def test_positive_create_with_start_date(self):
         """Create Sync plan with specified start date
@@ -173,21 +178,22 @@ class SyncPlanTestCase(UITestCase):
         """
         plan_name = gen_string('alpha')
         startdate = datetime.now() + timedelta(days=10)
-        startdate_str = startdate.strftime("%Y-%m-%d")
         with Session(self.browser) as session:
             make_syncplan(
                 session,
                 org=self.organization.name,
                 name=plan_name,
                 description='sync plan create with start date',
-                startdate=startdate_str,
+                startdate=startdate.strftime("%Y-%m-%d"),
             )
             self.assertIsNotNone(self.syncplan.search(plan_name))
             self.syncplan.search(plan_name).click()
             startdate_text = self.syncplan.wait_until_element(
                 locators['sp.fetch_startdate']).text
             self.assertEqual(
-                str(startdate_text).partition(' ')[0], startdate_str)
+                str(startdate_text).partition(' ')[0],
+                startdate.strftime("%m/%d/%Y")
+            )
 
     @tier1
     def test_negative_create_with_invalid_name(self):
