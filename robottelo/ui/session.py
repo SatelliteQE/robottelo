@@ -16,10 +16,16 @@ class Session(object):
         self.user = user
 
         if self.user is None:
-            self.user = settings.server.admin_username
+            self.user = getattr(
+                self.browser, 'foreman_user', settings.server.admin_username
+            )
 
         if self.password is None:
-            self.password = settings.server.admin_password
+            self.password = getattr(
+                self.browser,
+                'foreman_password',
+                settings.server.admin_password
+            )
 
     def __enter__(self):
         self.login()

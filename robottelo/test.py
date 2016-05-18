@@ -17,6 +17,8 @@ except ImportError:
     sauceclient = None
 
 from datetime import datetime
+from fauxfactory import gen_string
+from nailgun import entities
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.org import Org as OrgCli
@@ -101,6 +103,8 @@ class TestCase(unittest2.TestCase):
         cls.logger = logging.getLogger('robottelo')
         # NOTE: longMessage defaults to True in Python 3.1 and above
         cls.longMessage = True
+        cls.foreman_user = settings.server.admin_username
+        cls.foreman_password = settings.server.admin_password
 
 
 class APITestCase(TestCase):
@@ -111,13 +115,6 @@ class APITestCase(TestCase):
 class CLITestCase(TestCase):
     """Test case for CLI tests."""
     _multiprocess_can_split_ = True
-
-    @classmethod
-    def setUpClass(cls):  # noqa
-        """Make sure that we only read configuration values once."""
-        super(CLITestCase, cls).setUpClass()
-        cls.katello_user = settings.server.admin_username
-        cls.katello_passwd = settings.server.admin_password
 
     def setUp(self):  # noqa
         """Log test class and method name before each test."""
@@ -132,12 +129,29 @@ class UITestCase(TestCase):
     def setUpClass(cls):  # noqa
         """Make sure that we only read configuration values once."""
         super(UITestCase, cls).setUpClass()
-        cls.katello_user = settings.server.admin_username
-        cls.katello_passwd = settings.server.admin_password
+
+        try:
+            cls.session_user = entities.User(
+                firstname='Foreman User',
+                login=gen_string('alpha'),
+                password=cls.foreman_password,
+                admin=True
+            ).create()
+            cls.foreman_user = cls.session_user.login
+        except Exception as e:
+            cls.session_user = None
+            cls.logger.warn("Unable to create session_user %s", str(e))
+
         cls.driver_name = settings.webdriver
         cls.driver_binary = settings.webdriver_binary
         cls.locale = settings.locale
         cls.server_name = settings.server.hostname
+
+    @classmethod
+    def tearDownClass(cls):
+        super(UITestCase, cls).tearDownClass()
+        if cls.session_user is not None:
+            cls.session_user.delete(synchronous=False)
 
     def setUp(self):  # noqa
         """We do want a new browser instance for every test."""
@@ -151,6 +165,9 @@ class UITestCase(TestCase):
             self.addCleanup(self.browser.quit)
         self.browser.maximize_window()
         self.browser.get(settings.server.get_url())
+
+        self.browser.foreman_user = self.foreman_user
+        self.browser.foreman_password = self.foreman_password
 
         self.addCleanup(self._saucelabs_test_result)
         self.addCleanup(self.take_screenshot)

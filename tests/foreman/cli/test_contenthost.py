@@ -372,8 +372,8 @@ class ContentHostTestCase(CLITestCase):
                     self.NEW_ORG['label'],
                     self.NEW_LIFECYCLE['label'],
                     self.PROMOTED_CV['label'],
-                    self.katello_user,
-                    self.katello_passwd
+                    self.foreman_user,
+                    self.foreman_password
                 )
             )
             self.assertEqual(result.return_code, 0)
