@@ -1,3 +1,5 @@
+import unittest2
+
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
@@ -72,7 +74,8 @@ class OpenScapContentTestCase(UITestCase):
                         common_locators['haserror']))
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1336374)
+    @unittest2.skip('oscap contents are not installed by default.'
+                    'Installer needs to be fixed')
     def test_positive_default(self):
         """Check whether OpenScap content exists by default.
 
@@ -85,6 +88,7 @@ class OpenScapContentTestCase(UITestCase):
 
         @Assert: Whether oscap content exists by default.
         """
+        # see BZ 1336374
         with Session(self.browser):
             self.assertIsNotNone(self.oscapcontent.search(
                 OSCAP_DEFAULT_CONTENT['rhel7_content']))
