@@ -4,22 +4,25 @@ from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants import DEFAULT_CV, ENVIRONMENT
+from robottelo.constants import (
+    DEFAULT_CV,
+    DEFAULT_PTABLE,
+    ENVIRONMENT,
+    RHEL_6_MAJOR_VERSION,
+    RHEL_7_MAJOR_VERSION,
+)
 from robottelo.decorators import (
     run_only_on,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier3,
 )
 from robottelo.test import UITestCase
-from robottelo.ui.base import Base
 from robottelo.ui.factory import make_host
-from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-class HostTestCase(UITestCase, Base):
+class HostTestCase(UITestCase):
     """Implements Host tests in UI"""
 
     hostname = gen_string('numeric')
@@ -52,29 +55,28 @@ class HostTestCase(UITestCase, Base):
         """
         super(HostTestCase, cls).setUpClass()
         # Create a new Organization and Location
-        cls.org = entities.Organization(name=gen_string('alpha')).create()
-        cls.org_name = cls.org.name
+        cls.org_ = entities.Organization(name=gen_string('alpha')).create()
+        cls.org_name = cls.org_.name
         cls.loc = entities.Location(
             name=gen_string('alpha'),
-            organization=[cls.org]
+            organization=[cls.org_]
         ).create()
         cls.loc_name = cls.loc.name
 
         # Create a new Life-Cycle environment
         cls.lc_env = entities.LifecycleEnvironment(
             name=gen_string('alpha'),
-            organization=cls.org
+            organization=cls.org_
         ).create()
 
         # Create a Product, Repository for custom RHEL6 contents
         cls.product = entities.Product(
             name=gen_string('alpha'),
-            organization=cls.org
+            organization=cls.org_
         ).create()
         cls.repo = entities.Repository(
             name=gen_string('alpha'),
             product=cls.product,
-            url=settings.rhel6_repo
         ).create()
 
         # Increased timeout value for repo sync
@@ -85,7 +87,7 @@ class HostTestCase(UITestCase, Base):
         # Create, Publish and promote CV
         cls.content_view = entities.ContentView(
             name=gen_string('alpha'),
-            organization=cls.org
+            organization=cls.org_
         ).create()
         cls.content_view.repository = [cls.repo]
         cls.content_view = cls.content_view.update(['repository'])
@@ -94,9 +96,8 @@ class HostTestCase(UITestCase, Base):
         promote(cls.content_view.version[0], cls.lc_env.id)
         entity_mixins.TASK_TIMEOUT = cls.old_task_timeout
         # Search for puppet environment and associate location
-        cls.environment = entities.Environment().search(
-            query={'organization_id': [cls.org.id]}
-        )[0]
+        cls.environment = entities.Environment(
+            organization=[cls.org_.id]).search()[0]
         cls.environment.location = [cls.loc]
         cls.environment = cls.environment.update(['location'])
 
@@ -110,7 +111,7 @@ class HostTestCase(UITestCase, Base):
         )[0]
         cls.proxy.location = [cls.loc]
         cls.proxy = cls.proxy.update(['location'])
-        cls.proxy.organization = [cls.org]
+        cls.proxy.organization = [cls.org_]
         cls.proxy = cls.proxy.update(['organization'])
 
         # Search for domain and associate org, location
@@ -122,7 +123,7 @@ class HostTestCase(UITestCase, Base):
         )[0]
         cls.domain_name = cls.domain.name
         cls.domain.location = [cls.loc]
-        cls.domain.organization = [cls.org]
+        cls.domain.organization = [cls.org_]
         cls.domain.dns = cls.proxy
         cls.domain = cls.domain.update(['dns', 'location', 'organization'])
 
@@ -137,7 +138,7 @@ class HostTestCase(UITestCase, Base):
             cls.subnet = cls.subnet[0]
             cls.subnet.domain = [cls.domain]
             cls.subnet.location = [cls.loc]
-            cls.subnet.organization = [cls.org]
+            cls.subnet.organization = [cls.org_]
             cls.subnet.dns = cls.proxy
             cls.subnet.dhcp = cls.proxy
             cls.subnet.tftp = cls.proxy
@@ -159,7 +160,7 @@ class HostTestCase(UITestCase, Base):
                 mask=settings.vlan_networking.netmask,
                 domain=[cls.domain],
                 location=[cls.loc],
-                organization=[cls.org],
+                organization=[cls.org_],
                 dns=cls.proxy,
                 dhcp=cls.proxy,
                 tftp=cls.proxy,
@@ -172,17 +173,17 @@ class HostTestCase(UITestCase, Base):
         resource_url = u'qemu+ssh://root@{0}/system'.format(
             settings.compute_resources.libvirt_hostname
         )
-        cls.computeresource = entities.LibvirtComputeResource(
-            url=resource_url
-        ).search()
-        if len(cls.computeresource) >= 1:
-            cls.computeresource = cls.computeresource[0]
-            cls.computeresource.location = [cls.loc]
-            cls.computeresource.organization = [cls.org]
-            cls.computeresource = cls.computeresource.update(
-                ['location',
-                 'organization']
-            )
+        comp_res = [
+            res for res in entities.LibvirtComputeResource().search()
+            if res.provider == 'Libvirt' and res.url == resource_url
+        ]
+        if len(comp_res) >= 1:
+            cls.computeresource = entities.LibvirtComputeResource(
+                id=comp_res[0].id).read()
+            cls.computeresource.location.append(cls.loc)
+            cls.computeresource.organization.append(cls.org_)
+            cls.computeresource = cls.computeresource.update([
+                'location', 'organization'])
         else:
             # Create Libvirt compute-resource
             cls.computeresource = entities.LibvirtComputeResource(
@@ -192,20 +193,21 @@ class HostTestCase(UITestCase, Base):
                 set_console_password=False,
                 display_type=u'VNC',
                 location=[cls.loc.id],
-                organization=[cls.org.id],
+                organization=[cls.org_.id],
             ).create()
 
         # Get the Partition table ID
         cls.ptable = entities.PartitionTable().search(
             query={
-                u'search': u'name="Kickstart default"'
+                u'search': u'name="{0}"'.format(DEFAULT_PTABLE)
             }
         )[0]
 
         # Get the OS ID
-        cls.os = entities.OperatingSystem().search(
-            query={u'search': u'name="RedHat" AND major="6" AND minor="7"'}
-        )[0]
+        cls.os = entities.OperatingSystem().search(query={
+            u'search': u'name="RedHat" AND (major="{0}" OR major="{1}")'
+                       .format(RHEL_6_MAJOR_VERSION, RHEL_7_MAJOR_VERSION)
+        })[0]
 
         # Get the Provisioning template_ID and update with OS, Org, Location
         cls.provisioning_template = entities.ConfigTemplate().search(
@@ -214,7 +216,7 @@ class HostTestCase(UITestCase, Base):
             }
         )[0]
         cls.provisioning_template.operatingsystem = [cls.os]
-        cls.provisioning_template.organization = [cls.org]
+        cls.provisioning_template.organization = [cls.org_]
         cls.provisioning_template.location = [cls.loc]
         cls.provisioning_template = cls.provisioning_template.update([
             'location',
@@ -229,7 +231,7 @@ class HostTestCase(UITestCase, Base):
             }
         )[0]
         cls.pxe_template.operatingsystem = [cls.os]
-        cls.pxe_template.organization = [cls.org]
+        cls.pxe_template.organization = [cls.org_]
         cls.pxe_template.location = [cls.loc]
         cls.pxe_template = cls.pxe_template.update(
             ['location', 'operatingsystem', 'organization']
@@ -241,11 +243,10 @@ class HostTestCase(UITestCase, Base):
         )[0]
 
         # Get the media and update its location
-        cls.media = entities.Media().search(
-            query={'organization_id': [cls.org.id]}
-        )[0]
-        cls.media.location = [cls.loc]
-        cls.media = cls.media.update(['location'])
+        cls.media = entities.Media(organization=[cls.org_]).search()[0].read()
+        cls.media.location.append(cls.loc)
+        cls.media.organization.append(cls.org_)
+        cls.media = cls.media.update(['location', 'organization'])
         # Update the OS to associate arch, ptable, templates
         cls.os.architecture = [cls.arch]
         cls.os.ptable = [cls.ptable]
@@ -274,7 +275,7 @@ class HostTestCase(UITestCase, Base):
             content_source=cls.proxy,
             medium=cls.media,
             operatingsystem=cls.os.id,
-            organization=[cls.org.id],
+            organization=[cls.org_.id],
             ptable=cls.ptable.id,
         ).create()
 
@@ -286,9 +287,6 @@ class HostTestCase(UITestCase, Base):
             host_name = u'{0}.{1}'.format(self.hostname, self.domain_name)
             if self.hosts.search(host_name):
                 self.hosts.delete(host_name, True)
-                self.assertIsNotNone(
-                    self.hosts.wait_until_element(
-                        common_locators['notif.success']))
         super(HostTestCase, self).tearDown()
 
     @run_only_on('sat')
@@ -302,6 +300,10 @@ class HostTestCase(UITestCase, Base):
         """
         resource = u'{0} (Libvirt)'.format(self.computeresource.name)
         root_pwd = gen_string('alpha', 15)
+        environment = entities.Environment(
+            location=[self.loc],
+            organization=[self.org_],
+        ).create(True)
         with Session(self.browser) as session:
             make_host(
                 session,
@@ -312,7 +314,10 @@ class HostTestCase(UITestCase, Base):
                     ['Host', 'Location', self.loc_name],
                     ['Host', 'Host group', self.host_group.name],
                     ['Host', 'Deploy on', resource],
+                    ['Host', 'Puppet Environment', environment.name],
                     ['Virtual Machine', 'Memory', '1 GB'],
+                    ['Operating System', 'Media', self.media.name],
+                    ['Operating System', 'Partition table', DEFAULT_PTABLE],
                     ['Operating System', 'Root password', root_pwd],
                 ],
                 interface_parameters=[
@@ -320,14 +325,12 @@ class HostTestCase(UITestCase, Base):
                     ['Network', settings.vlan_networking.bridge],
                 ],
             )
-            self.scroll_page()
             search = self.hosts.search(
                 u'{0}.{1}'.format(self.hostname, self.domain_name)
             )
             self.assertIsNotNone(search)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1321055)
     @tier3
     def test_positive_create(self):
         """Create a new Host
@@ -375,7 +378,6 @@ class HostTestCase(UITestCase, Base):
             self.assertIsNotNone(search)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1321055)
     @tier3
     def test_positive_update_name(self):
         """Create a new Host and update its name to valid one
@@ -426,9 +428,9 @@ class HostTestCase(UITestCase, Base):
             new_host_name = (
                 u'{0}.{1}'.format(new_name, host.domain.name)).lower()
             self.assertIsNotNone(self.hosts.search(new_host_name))
+            self.hostname = new_name
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1321055)
     @tier3
     def test_positive_delete(self):
         """Delete a Host

@@ -34,6 +34,21 @@ class Hosts(Base):
             if parameter_name == 'Reset Puppet Environment':
                 self.click(param_locator)
                 continue
+            # send_keys() can't send left parenthesis (see
+            # SeleniumHQ/selenium#674), which is used in compute resource name
+            # (e.g. 'test (Libvirt)')
+            elif parameter_name == 'Deploy on' and ' (' in parameter_value:
+                self.click(param_locator)
+                # typing compute resource name without parenthesis part
+                self.text_field_update(
+                    common_locators['select_list_search_box'],
+                    parameter_value.split(' (')[0]
+                )
+                strategy, value = common_locators['entity_select_list']
+                # selecting compute resource by its full name (with parenthesis
+                # part)
+                self.click((strategy, value % parameter_value))
+                continue
             self.assign_value(param_locator, parameter_value)
 
     def _configure_interface_parameters(self, parameters_list):
@@ -101,6 +116,8 @@ class Hosts(Base):
             self._configure_interface_parameters(interface_parameters)
         if host_parameters:
             self._add_host_parameters(host_parameters)
+        self.wait_until_element_is_not_visible(
+            common_locators['modal_background'])
         self.click(common_locators['submit'])
 
     def update(self, name, domain_name, new_name=None, parameters_list=None,
@@ -123,6 +140,8 @@ class Hosts(Base):
             self._configure_interface_parameters(interface_parameters)
         if host_parameters:
             self._add_host_parameters(host_parameters)
+        self.wait_until_element_is_not_visible(
+            common_locators['modal_background'])
         self.click(common_locators['submit'])
 
     def navigate_to_entity(self):
