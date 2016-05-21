@@ -1321,6 +1321,7 @@ class DockerRegistryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @skip_if_bug_open('bugzilla', 1333805)
     def test_positive_create_with_name(self):
         """Create an external docker registry
 
@@ -1344,6 +1345,7 @@ class DockerRegistryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @skip_if_bug_open('bugzilla', 1333805)
     def test_positive_update_name(self):
         """Create an external docker registry and update its name
 
@@ -1372,6 +1374,7 @@ class DockerRegistryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @skip_if_bug_open('bugzilla', 1333805)
     def test_positive_update_url(self):
         """Create an external docker registry and update its URL
 
@@ -1399,6 +1402,7 @@ class DockerRegistryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @skip_if_bug_open('bugzilla', 1333805)
     def test_positive_update_description(self):
         """Create an external docker registry and update its description
 
@@ -1427,6 +1431,7 @@ class DockerRegistryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @skip_if_bug_open('bugzilla', 1333805)
     def test_positive_update_username(self):
         """Create an external docker registry and update its username
 
@@ -1455,6 +1460,7 @@ class DockerRegistryTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier1
+    @skip_if_bug_open('bugzilla', 1333805)
     def test_positive_delete(self):
         """Create an external docker registry and then delete it
 
