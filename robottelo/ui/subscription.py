@@ -37,7 +37,7 @@ class Subscriptions(Base):
             handler.write(manifest.content.read())
         browse_element.send_keys(manifest.filename)
         self.click(locators['subs.upload'])
-        self.wait_until_element(locators['subs.manifest_exists'], 180)
+        self.wait_until_element(locators['subs.manifest_exists'], 300)
         os.remove(manifest.filename)
 
     def delete(self):
