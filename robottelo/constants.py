@@ -255,6 +255,7 @@ DEFAULT_ORG = "Default Organization"
 #: Name (not label!) of the default location.
 DEFAULT_LOC = "Default Location"
 DEFAULT_CV = "Default Organization View"
+DEFAULT_PTABLE = "Kickstart default"
 DEFAULT_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux Server Entry Level, Self-support')
 

@@ -766,6 +766,10 @@ common_locators = LocatorDict({
     "invalid_limit": (
         By.XPATH,
         "//input[contains(@id, 'max') and contains(@class, 'ng-invalid')]"),
+    "modal_background": (
+        By.XPATH,
+        "//*[@class='modal-backdrop fade in']",
+    )
 })
 
 locators = LocatorDict({
@@ -1115,14 +1119,14 @@ locators = LocatorDict({
     "host.interface_virtual_nic": (
         By.XPATH,
         "//div[@id='interfaceModal']//input[contains(@id, '_virtual')]"),
-    "host.network_type": (
+    "host.interface_network_type": (
         By.XPATH,
         ("//div[@id='interfaceModal']"
          "//select[contains(@id, '_compute_attributes_type')]")),
-    "host.network": (
+    "host.interface_network": (
         By.XPATH,
         ("//div[@id='interfaceModal']"
-         "//select[contains(@id, '_compute_attributes_bridge')]")),
+         "//*[contains(@id, '_compute_attributes_bridge')]")),
     "host.nic_type": (
         By.XPATH,
         ("//div[@id='interfaceModal']"
