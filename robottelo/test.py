@@ -151,7 +151,10 @@ class UITestCase(TestCase):
     def tearDownClass(cls):
         super(UITestCase, cls).tearDownClass()
         if cls.session_user is not None:
-            cls.session_user.delete(synchronous=False)
+            try:
+                cls.session_user.delete(synchronous=False)
+            except Exception as e:
+                cls.logger.warn("Unable to delete session_user %s", str(e))
 
     def setUp(self):  # noqa
         """We do want a new browser instance for every test."""
