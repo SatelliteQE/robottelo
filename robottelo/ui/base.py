@@ -448,8 +448,7 @@ class Base(object):
 
     def auto_complete_search(self, go_to_page, entity_locator, partial_name,
                              name, search_key):
-        """
-        Auto complete search by giving partial name of any entity.
+        """Auto complete search by giving partial name of any entity.
 
         :param go_to_page: Navigates to the entities page.
         :param entity_locator: The locator of the entity.
@@ -460,21 +459,15 @@ class Base(object):
 
         """
         go_to_page()
-        strategy1, value1 = entity_locator
-        searchbox = self.wait_until_element(common_locators['search'])
-        if searchbox is None:
-            raise UINoSuchElementError('Search box not found.')
-        searchbox.clear()
-        searchbox.send_keys(search_key + " = " + partial_name)
-        self.wait_for_ajax()
+        self.text_field_update(
+            common_locators['search'],
+            search_key + " = " + partial_name
+        )
         strategy, value = common_locators['auto_search']
         self.click((strategy, value % name))
-        # Intentionally clicking second time because sometimes first time
-        # click just selects/highlights the item but not clicking it
-        self.click((strategy, value % name))
         self.click(common_locators['search_button'])
-        entity_elem = self.wait_until_element((strategy1, value1 % name))
-        return entity_elem
+        strategy1, value1 = entity_locator
+        return self.wait_until_element((strategy1, value1 % name))
 
     def check_all_values(self, go_to_page, entity_name, entity_locator,
                          tab_locator, context=None):
