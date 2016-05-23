@@ -8,7 +8,7 @@ from robottelo.cli.task import Task
 from robottelo.cli.factory import (
     make_gpg_key,
     make_org,
-    make_product,
+    make_product_wait,
     make_repository,
     CLIFactoryError
 )
@@ -61,9 +61,9 @@ class RepositoryTestCase(CLITestCase):
         if RepositoryTestCase.org is None:
             RepositoryTestCase.org = make_org(cached=True)
         if RepositoryTestCase.product is None:
-            RepositoryTestCase.product = make_product(
+            RepositoryTestCase.product = make_product_wait(
                 {u'organization-id': RepositoryTestCase.org['id']},
-                cached=True)
+                )
 
     def _make_repository(self, options=None):
         """Makes a new repository and asserts its success"""
