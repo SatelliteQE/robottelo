@@ -41,6 +41,18 @@ _redmine = {
 }
 
 
+def setting_is_set(option):
+    """Return either ``True`` or ``False`` if a Robottelo section setting is
+    set or not respectively.
+    """
+    if not settings.configured:
+        settings.configure()
+    # Example: `settings.clients`
+    if getattr(settings, option).validate():
+        return False
+    return True
+
+
 def skip_if_not_set(*options):
     """Skips test if expected configuration is not set.
 
@@ -104,12 +116,10 @@ def skip_if_not_set(*options):
     def decorator(func):
         @wraps(func)
         def wrapper(*args, **kwargs):
-            if not settings.configured:
-                settings.configure()
             missing = []
             for option in options:
                 # Example: `settings.clients`
-                if getattr(settings, option).validate():
+                if not setting_is_set(option):
                     # List of all sections that are not fully configured
                     missing.append(option)
             if not missing:
