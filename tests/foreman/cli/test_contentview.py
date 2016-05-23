@@ -29,6 +29,7 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     stubbed,
@@ -641,8 +642,9 @@ class ContentViewTestCase(CLITestCase):
 
     # Content Views: Adding products/repos
 
-    @tier2
+    @run_in_one_thread
     @run_only_on('sat')
+    @tier2
     def test_positive_add_rh_repo_by_id(self):
         """Associate Red Hat content to a content view
 
@@ -671,8 +673,9 @@ class ContentViewTestCase(CLITestCase):
             'Repo was not associated to CV',
         )
 
-    @tier2
+    @run_in_one_thread
     @run_only_on('sat')
+    @tier2
     def test_positive_add_rh_repo_by_id_and_create_filter(self):
         """Associate Red Hat content to a content view and create filter
 
@@ -924,8 +927,9 @@ class ContentViewTestCase(CLITestCase):
     # katello content view promote --label=MyView --env=Dev --org=ACME
     # katello content view promote --view=MyView --env=Staging --org=ACME
 
-    @tier2
+    @run_in_one_thread
     @run_only_on('sat')
+    @tier2
     def test_positive_promote_rh_content(self):
         """attempt to promote a content view containing RH content
 
@@ -1138,8 +1142,9 @@ class ContentViewTestCase(CLITestCase):
     # Content Views: publish
     # katello content definition publish --label=MyView
 
-    @tier2
+    @run_in_one_thread
     @run_only_on('sat')
+    @tier2
     def test_positive_publish_rh_content(self):
         """attempt to publish a content view containing RH content
 
@@ -1503,8 +1508,9 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '1')
 
-    @tier3
+    @run_in_one_thread
     @run_only_on('sat')
+    @tier3
     def test_positive_subscribe_chost_by_id_using_rh_content(self):
         """Attempt to subscribe content host to content view that has
         Red Hat repository assigned to it
@@ -1550,8 +1556,9 @@ class ContentViewTestCase(CLITestCase):
         content_view = ContentView.info({u'id': content_view['id']})
         self.assertEqual(content_view['content-host-count'], '1')
 
-    @tier3
+    @run_in_one_thread
     @run_only_on('sat')
+    @tier3
     def test_positive_subscribe_chost_by_id_using_rh_content_and_filters(self):
         """Attempt to subscribe content host to filtered content view
         that has Red Hat repository assigned to it

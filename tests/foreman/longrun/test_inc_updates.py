@@ -15,6 +15,7 @@ from robottelo.api.utils import (
 from robottelo.cli.contentview import ContentView as ContentViewCLI
 from robottelo.constants import PRD_SETS
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
@@ -24,6 +25,7 @@ from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
 
 
+@run_in_one_thread
 class IncrementalUpdateTestCase(TestCase):
     """Tests for the Incremental Update feature"""
 

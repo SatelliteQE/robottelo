@@ -17,6 +17,7 @@ from robottelo.constants import (
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     bz_bug_is_open,
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
@@ -933,6 +934,7 @@ class ContentViewDeleteTestCase(APITestCase):
                     entities.ContentView(id=cv.id).read()
 
 
+@run_in_one_thread
 class ContentViewRedHatContent(APITestCase):
     """Tests for publishing and promoting content views."""
 

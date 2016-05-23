@@ -6,6 +6,7 @@ from robottelo.api.utils import upload_manifest
 from robottelo.constants import FAKE_1_YUM_REPO
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_not_set,
     stubbed,
@@ -61,6 +62,7 @@ class SyncTestCase(UITestCase):
                     # sync.sync_custom_repos returns boolean value
                     self.assertTrue(sync)
 
+    @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_sync_rh_repos(self):

@@ -40,6 +40,7 @@ from robottelo.datafactory import (
     valid_hosts_list,
 )
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_not_set,
     tier1,
@@ -843,6 +844,7 @@ class HostParameterTestCase(CLITestCase):
                 self.assertNotIn(name, self.host['parameters'].keys())
 
 
+@run_in_one_thread
 class KatelloAgentTestCase(CLITestCase):
     """Host tests, which require VM with installed katello-agent."""
 

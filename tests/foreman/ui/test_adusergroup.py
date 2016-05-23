@@ -5,6 +5,7 @@ from robottelo.config import settings
 from robottelo.constants import (
     LDAP_SERVER_TYPE, LDAP_ATTR, PERMISSIONS, ANY_CONTEXT)
 from robottelo.decorators import (
+    run_in_one_thread,
     stubbed,
     skip_if_bug_open,
     skip_if_not_set,
@@ -19,6 +20,7 @@ from robottelo.ui.session import Session
 from selenium.webdriver.common.action_chains import ActionChains
 
 
+@run_in_one_thread
 class ActiveDirectoryUserGroupTestCase(UITestCase):
     """Implements Active Directory feature tests in UI."""
 

@@ -23,6 +23,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.constants import FAKE_0_YUM_REPO, PRDS, REPOS, REPOSET
 from robottelo.datafactory import valid_data_list, invalid_values_list
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
@@ -565,6 +566,7 @@ class ActivationKeyTestCase(CLITestCase):
                 self.assertEqual(
                     activation_key['host-collection'], host_col_name)
 
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier3
@@ -607,6 +609,7 @@ class ActivationKeyTestCase(CLITestCase):
         })
         self.assertEqual(content[0]['name'], repo['name'])
 
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier3
@@ -662,6 +665,7 @@ class ActivationKeyTestCase(CLITestCase):
         @Status: Manual
         """
 
+    @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_delete_subscription(self):
@@ -908,6 +912,7 @@ class ActivationKeyTestCase(CLITestCase):
                 })
                 self.assertEqual(len(activation_key['host-collections']), 0)
 
+    @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_add_subscription_by_id(self):
@@ -993,6 +998,7 @@ class ActivationKeyTestCase(CLITestCase):
             })
         self.assertEqual(exception.exception.return_code, 65)
 
+    @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_copy_subscription(self):
