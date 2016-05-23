@@ -709,7 +709,8 @@ common_locators = LocatorDict({
     "cv_filter": (
         By.XPATH, "//input[@ng-model='filterTerm']"),
     "search": (By.ID, "search"),
-    "auto_search": (By.XPATH, "//ul[@id='ui-id-1']/li/a[contains(., '%s')]"),
+    "auto_search": (
+        By.XPATH, "//ul[contains(@id, 'ui-id')]/li/a[contains(., '%s')]"),
     "search_button": (By.XPATH, "//button[contains(@type,'submit')]"),
     "search_dropdown": (
         By.XPATH,
