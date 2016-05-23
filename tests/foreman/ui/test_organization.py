@@ -13,6 +13,7 @@ from robottelo.datafactory import (
     invalid_values_list,
 )
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
@@ -229,6 +230,7 @@ class OrganizationTestCase(UITestCase):
                     entities.Organization(name=org_name).create()
                     self.org.delete(org_name)
 
+    @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_verify_bugzilla_1225588(self):
@@ -258,6 +260,7 @@ class OrganizationTestCase(UITestCase):
                     break
             self.assertIsNone(status)
 
+    @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_verify_bugzilla_1259248(self):

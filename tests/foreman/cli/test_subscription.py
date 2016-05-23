@@ -6,11 +6,17 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.constants import PRDS, REPOS, REPOSET
-from robottelo.decorators import skip_if_bug_open, tier1, tier2
+from robottelo.decorators import (
+    run_in_one_thread,
+    skip_if_bug_open,
+    tier1,
+    tier2,
+)
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
 
+@run_in_one_thread
 class SubscriptionTestCase(CLITestCase):
     """Manifest CLI tests"""
 

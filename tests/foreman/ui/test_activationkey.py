@@ -20,6 +20,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_not_set,
     stubbed,
@@ -560,6 +561,7 @@ class ActivationKeyTestCase(UITestCase):
             selected_cv = self.activationkey.get_attribute(name, cv_locator)
             self.assertEqual(cv2_name, selected_cv)
 
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier2
@@ -799,8 +801,9 @@ class ActivationKeyTestCase(UITestCase):
                     key_name)
                 self.assertEqual(vm.hostname, name)
 
-    @skip_if_not_set('fake_manifest')
+    @run_in_one_thread
     @run_only_on('sat')
+    @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_add_rh_product(self):
         """Test that RH product can be associated to Activation Keys
@@ -872,8 +875,9 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
-    @skip_if_not_set('fake_manifest')
+    @run_in_one_thread
     @run_only_on('sat')
+    @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_add_rh_and_custom_products(self):
         """Test that RH/Custom product can be associated to Activation
@@ -943,6 +947,7 @@ class ActivationKeyTestCase(UITestCase):
             self.assertIsNotNone(self.activationkey.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
+    @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_delete_manifest(self):

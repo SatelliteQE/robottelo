@@ -27,6 +27,9 @@ tier3 = pytest.mark.tier3
 # Long running tests
 tier4 = pytest.mark.tier4
 
+# Tests to be executed in 1 thread
+run_in_one_thread = pytest.mark.run_in_one_thread
+
 # A dict mapping bug IDs to python-bugzilla bug objects.
 _bugzilla = {}
 
