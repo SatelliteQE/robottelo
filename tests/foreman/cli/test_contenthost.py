@@ -261,6 +261,7 @@ class ContentHostTestCase(CLITestCase):
 
     @tier1
     @skip_if_bug_open('bugzilla', 1318686)
+    @skip_if_bug_open('bugzilla', 1338780)
     def test_positive_update_name(self):
         """Check if content host name can be updated
 
@@ -268,7 +269,7 @@ class ContentHostTestCase(CLITestCase):
 
         @Assert: Content host is created and name is updated
 
-        @BZ: 1318686
+        @BZ: 1318686, 1338780
         """
         new_system = make_content_host({
             u'content-view-id': self.DEFAULT_CV['id'],
