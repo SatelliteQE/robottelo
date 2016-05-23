@@ -13,7 +13,7 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import skip_if_bug_open, stubbed, tier1, tier2, tier3
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_user
+from robottelo.ui.factory import make_user, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
@@ -251,6 +251,7 @@ class UserTestCase(UITestCase):
         for org_name in [org_name1, org_name2]:
             entities.Organization(name=org_name).create()
         with Session(self.browser) as session:
+            set_context(session, org=DEFAULT_ORG)
             make_user(
                 session,
                 username=name,
