@@ -1,8 +1,9 @@
 """Test classes for Bookmark tests"""
 # -*- encoding: utf-8 -*-
+import random
+
 from fauxfactory import gen_string
 from nailgun import entities
-from random import choice
 from robottelo.constants import BOOKMARK_ENTITIES, STRING_TYPES
 from robottelo.decorators import (
     bz_bug_is_open,
@@ -73,6 +74,11 @@ class BookmarkTestCase(UITestCase):
         cls.per_page.value = cls.saved_per_page
         cls.per_page.update({'value'})
 
+    @classmethod
+    def getOneEntity(cls):
+        """Return 1 entity to test"""
+        return [cls.entities[random.randint(0, len(cls.entities)-1)]]
+
     # CREATE TESTS
     @tier1
     def test_positive_create_bookmark_populate_auto(self):
@@ -95,17 +101,19 @@ class BookmarkTestCase(UITestCase):
         @Assert: No errors, Bookmark is displayed, controller matches the
         entity the bookmark was created for
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
                         self.browser, self.username, self.password) as session:
-                    name = gen_string(choice(STRING_TYPES))
+                    name = gen_string(random.choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
                         name=name,
                         public=True,
-                        searchbox_query=gen_string(choice(STRING_TYPES)),
+                        searchbox_query=gen_string(
+                            random.choice(STRING_TYPES)
+                        ),
                     )
                     self.assertIsNotNone(
                         self.bookmark.search(entity['controller'], name))
@@ -129,17 +137,17 @@ class BookmarkTestCase(UITestCase):
         @Assert: No errors, Bookmark is displayed, controller matches the
         entity the bookmark was created for
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
                         self.browser, self.username, self.password) as session:
-                    name = gen_string(choice(STRING_TYPES))
+                    name = gen_string(random.choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
                         name=name,
                         public=True,
-                        query=gen_string(choice(STRING_TYPES)),
+                        query=gen_string(random.choice(STRING_TYPES)),
                     )
                     self.assertIsNotNone(
                         self.bookmark.search(entity['controller'], name))
@@ -181,7 +189,7 @@ class BookmarkTestCase(UITestCase):
 
         @Status: Manual
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 pass
 
@@ -204,7 +212,7 @@ class BookmarkTestCase(UITestCase):
         @Assert: Error notification - name cannot be empty, Bookmark is not
         created (not listed)
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
                         self.browser, self.username, self.password) as session:
@@ -214,7 +222,7 @@ class BookmarkTestCase(UITestCase):
                     ui_lib.create_a_bookmark(
                         name=name,
                         public=True,
-                        query=gen_string(choice(STRING_TYPES)),
+                        query=gen_string(random.choice(STRING_TYPES)),
                     )
                     # Not sure what kind of validation will be added when
                     # BZ1326633 is fixed. Need to double check that when BZ is
@@ -242,11 +250,11 @@ class BookmarkTestCase(UITestCase):
         @Assert: Error notification - search query cannot be empty, Bookmark is
         not created (not listed)
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
                         self.browser, self.username, self.password) as session:
-                    name = gen_string(choice(STRING_TYPES))
+                    name = gen_string(random.choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
@@ -279,18 +287,18 @@ class BookmarkTestCase(UITestCase):
         @Assert: Error notification - name already taken, Bookmark is not
         created (not listed)
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
                         self.browser, self.username, self.password) as session:
-                    name = gen_string(choice(STRING_TYPES))
+                    name = gen_string(random.choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     for _ in range(2):
                         ui_lib.create_a_bookmark(
                             name=name,
                             public=True,
-                            query=gen_string(choice(STRING_TYPES)),
+                            query=gen_string(random.choice(STRING_TYPES)),
                         )
                     self.bookmark.navigate_to_entity()
                     strategy, value = locators['bookmark.select_name']
@@ -320,12 +328,12 @@ class BookmarkTestCase(UITestCase):
 
         @Assert: The new bookmark name is listed
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
                         self.browser, self.username, self.password) as session:
-                    name = gen_string(choice(STRING_TYPES))
-                    query = gen_string(choice(STRING_TYPES))
+                    name = gen_string(random.choice(STRING_TYPES))
+                    query = gen_string(random.choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
@@ -333,7 +341,7 @@ class BookmarkTestCase(UITestCase):
                         public=True,
                         query=query,
                     )
-                    new_name = gen_string(choice(STRING_TYPES))
+                    new_name = gen_string(random.choice(STRING_TYPES))
                     self.bookmark.update(
                         entity['controller'], name, new_name, query)
                     self.assertIsNotNone(
@@ -358,25 +366,25 @@ class BookmarkTestCase(UITestCase):
 
         @Assert: Error - name already taken, bookmark not updated
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
                         self.browser, self.username, self.password) as session:
-                    bm1_name = gen_string(choice(STRING_TYPES))
-                    bm2_name = gen_string(choice(STRING_TYPES))
+                    bm1_name = gen_string(random.choice(STRING_TYPES))
+                    bm2_name = gen_string(random.choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     for name in (bm1_name, bm2_name):
                         ui_lib.create_a_bookmark(
                             name=name,
                             public=True,
-                            query=gen_string(choice(STRING_TYPES)),
+                            query=gen_string(random.choice(STRING_TYPES)),
                         )
                     self.bookmark.update(
                         entity['controller'],
                         bm2_name,
                         bm1_name,
-                        gen_string(choice(STRING_TYPES)),
+                        gen_string(random.choice(STRING_TYPES)),
                     )
                     self.assertTrue(self.bookmark.wait_until_element(
                         common_locators['name_haserror']))
@@ -404,12 +412,12 @@ class BookmarkTestCase(UITestCase):
 
         @Assert: Error - name cannot be empty, bookmark not updated
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
                         self.browser, self.username, self.password) as session:
-                    name = gen_string(choice(STRING_TYPES))
-                    query = gen_string(choice(STRING_TYPES))
+                    name = gen_string(random.choice(STRING_TYPES))
+                    query = gen_string(random.choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
@@ -446,19 +454,19 @@ class BookmarkTestCase(UITestCase):
 
         @Assert: The updated query is populated and submitted
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
                         self.browser, self.username, self.password) as session:
-                    name = gen_string(choice(STRING_TYPES))
+                    name = gen_string(random.choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
                         name=name,
                         public=True,
-                        query=gen_string(choice(STRING_TYPES)),
+                        query=gen_string(random.choice(STRING_TYPES)),
                     )
-                    new_query = gen_string(choice(STRING_TYPES))
+                    new_query = gen_string(random.choice(STRING_TYPES))
                     self.bookmark.update(
                         entity['controller'], name, new_query=new_query)
                     self.assertTrue(
@@ -488,12 +496,12 @@ class BookmarkTestCase(UITestCase):
 
         @Assert: Error - search query cannot be empty, bookmark not updated
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
                         self.browser, self.username, self.password) as session:
-                    name = gen_string(choice(STRING_TYPES))
-                    query = gen_string(choice(STRING_TYPES))
+                    name = gen_string(random.choice(STRING_TYPES))
+                    query = gen_string(random.choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
@@ -551,7 +559,7 @@ class BookmarkTestCase(UITestCase):
 
         @Status: Manual
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 pass
 
@@ -578,13 +586,13 @@ class BookmarkTestCase(UITestCase):
             with self.subTest(entity):
                 with Session(
                         self.browser, self.username, self.password) as session:
-                    name = gen_string(choice(STRING_TYPES))
+                    name = gen_string(random.choice(STRING_TYPES))
                     session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
                         name=name,
                         public=True,
-                        query=gen_string(choice(STRING_TYPES)),
+                        query=gen_string(random.choice(STRING_TYPES)),
                     )
                     self.assertIsNotNone(
                         self.bookmark.search(entity['controller'], name))
@@ -612,6 +620,6 @@ class BookmarkTestCase(UITestCase):
 
         @Status: Manual
         """
-        for entity in self.entities:
+        for entity in self.getOneEntity():
             with self.subTest(entity):
                 pass
