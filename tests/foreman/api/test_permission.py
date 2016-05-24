@@ -42,6 +42,14 @@ class PermissionTestCase(APITestCase):
             cls.permissions[None].remove('destroy_arf_reports')
             cls.permissions[None].remove('view_arf_reports')
             cls.permissions[None].remove('create_arf_reports')
+        result = ssh.command(
+            'rpm -qa | grep rubygem-foreman_remote_execution'
+        )
+        if result.return_code != 0:
+            cls.permissions.pop('JobInvocation')
+            cls.permissions.pop('JobTemplate')
+            cls.permissions.pop('RemoteExecutionFeature')
+            cls.permissions.pop('TemplateInvocation')
 
         #: e.g. ['Architecture', 'Audit', 'AuthSourceLdap', …]
         cls.permission_resource_types = list(cls.permissions.keys())
