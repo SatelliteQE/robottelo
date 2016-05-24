@@ -666,6 +666,7 @@ class ActivationKeyTestCase(CLITestCase):
         """
 
     @run_in_one_thread
+    @skip_if_bug_open('bugzilla', 1339211)
     @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_delete_subscription(self):
