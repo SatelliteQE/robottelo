@@ -334,8 +334,6 @@ PERMISSIONS = {
         'destroy_registries',
         'download_bootdisk',
         'edit_recurring_logics',
-        'execute_template_invocation',
-        'filter_autocompletion_for_template_invocation',
         'logs',
         'my_organizations',
         'rh_telemetry_api',
