@@ -9,6 +9,7 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.constants import PRDS, REPOS, REPOSET, SYNC_INTERVAL
 from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     stubbed,
@@ -574,6 +575,7 @@ class SyncPlanTestCase(UITestCase):
                 )
 
     # This Bugzilla bug is private. It is impossible to fetch info about it.
+    @run_in_one_thread
     @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
     def test_positive_synchronize_rh_product_current_sync_date(self):
@@ -636,6 +638,7 @@ class SyncPlanTestCase(UITestCase):
                 ['errata', 'package_groups', 'packages'],
             )
 
+    @run_in_one_thread
     @tier4
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH

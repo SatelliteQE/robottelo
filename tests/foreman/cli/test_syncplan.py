@@ -20,7 +20,13 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.datafactory import valid_data_list, invalid_values_list
-from robottelo.decorators import skip_if_bug_open, stubbed, tier1, tier4
+from robottelo.decorators import (
+    run_in_one_thread,
+    skip_if_bug_open,
+    stubbed,
+    tier1,
+    tier4,
+)
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 from time import sleep
@@ -474,6 +480,7 @@ class SyncPlanTestCase(CLITestCase):
                 repo, ['errata', 'package-groups', 'packages'])
 
     # This Bugzilla bug is private. It is impossible to fetch info about it.
+    @run_in_one_thread
     @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
     def test_positive_synchronize_rh_product_current_sync_date(self):
@@ -532,6 +539,7 @@ class SyncPlanTestCase(CLITestCase):
         # Verify product was synced successfully
         self.validate_repo_content(repo, ['errata', 'packages'])
 
+    @run_in_one_thread
     @tier4
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH

@@ -16,6 +16,7 @@ from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from requests.exceptions import HTTPError
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     stubbed,
@@ -692,6 +693,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
             self.validate_repo_content(
                 repo, ['erratum', 'package', 'package_group'])
 
+    @run_in_one_thread
     @stubbed('Unstub when BZ1279539 is fixed')
     @tier4
     def test_positive_synchronize_rh_product_current_sync_date(self):
@@ -744,6 +746,7 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         self.validate_repo_content(
             repo, ['erratum', 'package', 'package_group'])
 
+    @run_in_one_thread
     @tier4
     def test_positive_synchronize_rh_product_future_sync_date(self):
         """Create a sync plan with sync date in a future and sync one RH
