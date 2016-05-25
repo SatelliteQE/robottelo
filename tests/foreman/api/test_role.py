@@ -5,30 +5,11 @@ http://theforeman.org/api/apidoc/v2/roles.html
 
 """
 
-from fauxfactory import (
-    gen_alpha,
-    gen_alphanumeric,
-    gen_cjk,
-    gen_latin1,
-    gen_numeric_string,
-    gen_utf8,
-)
 from nailgun import entities
 from requests.exceptions import HTTPError
+from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import bz_bug_is_open, tier1
 from robottelo.test import APITestCase
-
-
-def data_generator():
-    """Returns a tuple of data for role names"""
-    return (
-        gen_alpha,
-        gen_alphanumeric,
-        gen_cjk,
-        gen_latin1,
-        gen_numeric_string,
-        gen_utf8,
-    )
 
 
 class RoleTestCase(APITestCase):
@@ -43,14 +24,11 @@ class RoleTestCase(APITestCase):
         @Assert: An entity can be created without receiving any errors, the
         entity can be fetched, and the fetched entity has the specified name.
         """
-        for name_generator in data_generator():
-            with self.subTest(name_generator):
-                if bz_bug_is_open(1112657) and (
-                        name_generator is gen_cjk or
-                        name_generator is gen_latin1 or
-                        name_generator is gen_utf8):
+        for name in generate_strings_list(exclude_types=['html']):
+            with self.subTest(name):
+                if bz_bug_is_open(1112657) and name in [
+                        'cjk', 'latin1', 'utf8']:
                     self.skipTest('Bugzilla bug 1112657 is open.')
-                name = name_generator()
                 self.assertEqual(entities.Role(name=name).create().name, name)
 
     @tier1
@@ -61,14 +39,11 @@ class RoleTestCase(APITestCase):
 
         @Assert: The role cannot be fetched after it is deleted.
         """
-        for name_generator in data_generator():
-            with self.subTest(name_generator):
-                if bz_bug_is_open(1112657) and (
-                        name_generator is gen_cjk or
-                        name_generator is gen_latin1 or
-                        name_generator is gen_utf8):
+        for name in generate_strings_list(exclude_types=['html']):
+            with self.subTest(name):
+                if bz_bug_is_open(1112657) and name in [
+                        'cjk', 'latin1', 'utf8']:
                     self.skipTest('Bugzilla bug 1112657 is open.')
-                name = name_generator()
                 role = entities.Role(name=name).create()
                 self.assertEqual(role.name, name)
                 role.delete()
@@ -83,14 +58,11 @@ class RoleTestCase(APITestCase):
 
         @Assert: The role is updated with the given name.
         """
-        for name_generator in data_generator():
-            with self.subTest(name_generator):
-                if bz_bug_is_open(1112657) and (
-                        name_generator is gen_cjk or
-                        name_generator is gen_latin1 or
-                        name_generator is gen_utf8):
+        for name in generate_strings_list(exclude_types=['html']):
+            with self.subTest(name):
+                if bz_bug_is_open(1112657) and name in [
+                        'cjk', 'latin1', 'utf8']:
                     self.skipTest('Bugzilla bug 1112657 is open.')
                 role = entities.Role().create()
-                name = name_generator()
                 role.name = name
                 self.assertEqual(role.update(['name']).name, name)

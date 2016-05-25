@@ -12,7 +12,7 @@ from robottelo.constants import (
     FOREMAN_PROVIDERS,
     REPO_TYPE,
 )
-from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import datacheck, valid_data_list
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
@@ -35,27 +35,31 @@ from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.products import Products
 from robottelo.ui.session import Session
 
-VALID_DOCKER_UPSTREAM_NAMES = (
-    # boundaries
-    gen_string('alphanumeric', 3).lower(),
-    gen_string('alphanumeric', 30).lower(),
-    u'{0}/{1}'.format(
-        gen_string('alphanumeric', 4).lower(),
+
+@datacheck
+def valid_docker_upstream_names():
+    """Generates a list of valid docker upstream names"""
+    return [
+        # boundaries
         gen_string('alphanumeric', 3).lower(),
-    ),
-    u'{0}/{1}'.format(
         gen_string('alphanumeric', 30).lower(),
-        gen_string('alphanumeric', 30).lower(),
-    ),
-    # allowed non alphanumeric character
-    u'{0}-{1}_{2}/{2}-{1}_{0}.{3}'.format(
-        gen_string('alphanumeric', randint(3, 6)).lower(),
-        gen_string('alphanumeric', randint(3, 6)).lower(),
-        gen_string('alphanumeric', randint(3, 6)).lower(),
-        gen_string('alphanumeric', randint(3, 6)).lower(),
-    ),
-    u'-_-_/-_.',
-)
+        u'{0}/{1}'.format(
+            gen_string('alphanumeric', 4).lower(),
+            gen_string('alphanumeric', 3).lower(),
+        ),
+        u'{0}/{1}'.format(
+            gen_string('alphanumeric', 30).lower(),
+            gen_string('alphanumeric', 30).lower(),
+        ),
+        # allowed non alphanumeric character
+        u'{0}-{1}_{2}/{2}-{1}_{0}.{3}'.format(
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+            gen_string('alphanumeric', randint(3, 6)).lower(),
+        ),
+        u'-_-_/-_.',
+    ]
 
 
 def _create_repository(session, org, name, product, upstream_name=None):
@@ -256,7 +260,7 @@ class DockerRepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(repo_name))
             self.assertTrue(self.repository.validate_field(
                 repo_name, 'upstream', 'busybox'))
-            for new_upstream_name in VALID_DOCKER_UPSTREAM_NAMES:
+            for new_upstream_name in valid_docker_upstream_names():
                 with self.subTest(new_upstream_name):
                     self.products.search(product.name).click()
                     self.repository.update(

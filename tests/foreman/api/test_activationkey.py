@@ -3,20 +3,26 @@ from fauxfactory import gen_integer, gen_string
 from nailgun import client, entities
 from requests.exceptions import HTTPError
 from robottelo.config import settings
-from robottelo.datafactory import invalid_names_list, valid_data_list
+from robottelo.datafactory import (
+    datacheck,
+    invalid_names_list,
+    valid_data_list,
+)
 from robottelo.decorators import rm_bug_is_open, skip_if_bug_open, tier1, tier2
 from robottelo.test import APITestCase
 from six.moves import http_client
 
 
+@datacheck
 def _good_max_hosts():
-    """Return a generator yielding valid ``max_hosts`` values."""
-    return (gen_integer(*limits) for limits in ((1, 20), (10000, 20000)))
+    """Return a list of valid ``max_hosts`` values."""
+    return [gen_integer(*limits) for limits in ((1, 20), (10000, 20000))]
 
 
+@datacheck
 def _bad_max_hosts():
-    """Return a generator yielding invalid ``max_hosts`` values."""
-    return (gen_integer(-100, -1), 0, gen_string('alpha'))
+    """Return a list of invalid ``max_hosts`` values."""
+    return [gen_integer(-100, -1), 0, gen_string('alpha')]
 
 
 class ActivationKeyTestCase(APITestCase):

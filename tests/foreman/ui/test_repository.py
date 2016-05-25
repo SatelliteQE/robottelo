@@ -16,7 +16,11 @@ from robottelo.constants import (
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
 )
-from robottelo.datafactory import generate_strings_list, invalid_values_list
+from robottelo.datafactory import (
+    datacheck,
+    generate_strings_list,
+    invalid_values_list,
+)
 from robottelo.decorators import run_only_on, stubbed, tier1, tier2
 from robottelo.helpers import read_data_file
 from robottelo.test import UITestCase
@@ -25,6 +29,7 @@ from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
+@datacheck
 def valid_repo_names_docker_sync():
     """Returns a list of valid repo names for docker sync test"""
     return [

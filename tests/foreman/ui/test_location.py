@@ -4,7 +4,11 @@
 from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
 from robottelo.config import settings
-from robottelo.datafactory import generate_strings_list, invalid_values_list
+from robottelo.datafactory import (
+    datacheck,
+    generate_strings_list,
+    invalid_values_list,
+)
 from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.constants import (
     ANY_CONTEXT,
@@ -19,6 +23,7 @@ from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
+@datacheck
 def valid_org_loc_data():
     """Returns a list of valid org/location data"""
     return [
@@ -37,6 +42,7 @@ def valid_org_loc_data():
     ]
 
 
+@datacheck
 def valid_env_names():
     """Returns a list of valid environment names"""
     return [

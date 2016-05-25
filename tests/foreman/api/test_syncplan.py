@@ -13,7 +13,11 @@ from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.constants import PRDS, REPOS, REPOSET
-from robottelo.datafactory import invalid_values_list, valid_data_list
+from robottelo.datafactory import (
+    datacheck,
+    invalid_values_list,
+    valid_data_list,
+)
 from requests.exceptions import HTTPError
 from robottelo.decorators import (
     run_in_one_thread,
@@ -28,9 +32,10 @@ from robottelo.test import APITestCase
 from time import sleep
 
 
+@datacheck
 def valid_sync_dates():
-    """Returns a tuple of valid sync dates."""
-    return(
+    """Returns a list of valid sync dates."""
+    return [
         # Today
         datetime.now(),
         # 5 minutes from now
@@ -41,12 +46,13 @@ def valid_sync_dates():
         datetime.now() - timedelta(days=1),
         # 5 minutes ago
         datetime.now() - timedelta(seconds=300),
-    )
+    ]
 
 
+@datacheck
 def valid_sync_interval():
-    """Returns a tuple of valid sync intervals."""
-    return (u'hourly', u'daily', u'weekly')
+    """Returns a list of valid sync intervals."""
+    return [u'hourly', u'daily', u'weekly']
 
 
 class SyncPlanTestCase(APITestCase):

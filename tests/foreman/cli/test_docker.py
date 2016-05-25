@@ -1,6 +1,6 @@
 # pylint: attribute-defined-outside-init
 """Unit tests for the Docker feature."""
-from fauxfactory import gen_alpha, gen_choice, gen_string, gen_url
+from fauxfactory import gen_alpha, gen_string, gen_url
 from random import choice, randint
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.docker import Docker
@@ -26,7 +26,7 @@ from robottelo.constants import (
     DOCKER_1_EXTERNAL_REGISTRY,
     DOCKER_REGISTRY_HUB,
 )
-from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import generate_strings_list, valid_data_list
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
@@ -38,8 +38,6 @@ from robottelo.decorators import (
 )
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 from robottelo.test import CLITestCase
-
-STRING_TYPES = ['alpha', 'alphanumeric', 'cjk', 'utf8', 'latin1']
 
 DOCKER_PROVIDER = 'Docker'
 REPO_CONTENT_TYPE = 'docker'
@@ -60,7 +58,7 @@ def _make_docker_repo(product_id, name=None, upstream_name=None):
     return make_repository({
         'content-type': REPO_CONTENT_TYPE,
         'docker-upstream-name': upstream_name or REPO_UPSTREAM_NAME,
-        'name': name or gen_string(gen_choice(STRING_TYPES), 15),
+        'name': name or generate_strings_list(15, ['numeric', 'html']),
         'product-id': product_id,
         'url': DOCKER_REGISTRY_HUB,
     })

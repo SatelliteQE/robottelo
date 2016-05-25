@@ -3,7 +3,11 @@
 
 from fauxfactory import gen_ipaddr, gen_netmask, gen_string
 from nailgun import entities
-from robottelo.datafactory import generate_strings_list, invalid_values_list
+from robottelo.datafactory import (
+    datacheck,
+    generate_strings_list,
+    invalid_values_list,
+)
 from robottelo.decorators import bz_bug_is_open, run_only_on, tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -12,6 +16,7 @@ from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
+@datacheck
 def valid_long_names():
     """Returns a list of valid long subnet names"""
     return [

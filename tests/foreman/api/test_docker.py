@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Unit tests for the Docker feature."""
-from fauxfactory import gen_choice, gen_string, gen_url
+from fauxfactory import gen_string, gen_url
 from nailgun import entities
 from random import randint, shuffle
 from requests.exceptions import HTTPError
@@ -11,7 +11,11 @@ from robottelo.constants import (
     DOCKER_0_EXTERNAL_REGISTRY,
     DOCKER_1_EXTERNAL_REGISTRY,
 )
-from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import (
+    datacheck,
+    generate_strings_list,
+    valid_data_list,
+)
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
@@ -24,15 +28,15 @@ from robottelo.helpers import install_katello_ca, remove_katello_ca
 from robottelo.test import APITestCase
 
 DOCKER_PROVIDER = 'Docker'
-STRING_TYPES = ['alpha', 'alphanumeric', 'cjk', 'utf8', 'latin1']
 
 
+@datacheck
 def _invalid_names():
-    """Return a generator yielding various kinds of invalid strings for
-    Docker repositories.
+    """Return a list of various kinds of invalid strings for Docker
+    repositories.
 
     """
-    return (
+    return [
         # boundaries
         gen_string('alphanumeric', 2),
         gen_string('alphanumeric', 31),
@@ -65,15 +69,15 @@ def _invalid_names():
             gen_string('alphanumeric', randint(3, 6)),
             gen_string('alphanumeric', randint(3, 6)),
         ),
-    )
+    ]
 
 
+@datacheck
 def _valid_names():
-    """Return a generator yielding various kinds of valid strings for
-    Docker repositories.
+    """Return a list of various kinds of valid strings for Docker repositories.
 
     """
-    return (
+    return [
         # boundaries
         gen_string('alphanumeric', 3).lower(),
         gen_string('alphanumeric', 30).lower(),
@@ -93,7 +97,7 @@ def _valid_names():
             gen_string('alphanumeric', randint(3, 6)).lower(),
         ),
         u'-_-_/-_.',
-    )
+    ]
 
 
 def _create_repository(product, name=None, upstream_name=None):
@@ -108,7 +112,7 @@ def _create_repository(product, name=None, upstream_name=None):
 
     """
     if name is None:
-        name = gen_string(gen_choice(STRING_TYPES), 15)
+        name = generate_strings_list(15, ['numeric', 'html'])
     if upstream_name is None:
         upstream_name = u'busybox'
     return entities.Repository(

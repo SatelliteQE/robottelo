@@ -8,20 +8,20 @@ from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.api.utils import one_to_many_names
-from robottelo.datafactory import invalid_names_list
+from robottelo.datafactory import datacheck, invalid_names_list
 from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.test import APITestCase
 
 
+@datacheck
 def valid_data_list():
-    """Return a generator yielding various kinds of valid strings for
-    Environment entity
+    """Return a list of various kinds of valid strings for Environment entity
     """
-    return(
+    return [
         gen_string('alpha'),
         gen_string('numeric'),
         gen_string('alphanumeric'),
-    )
+    ]
 
 
 class EnvironmentTestCase(APITestCase):

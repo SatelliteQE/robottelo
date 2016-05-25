@@ -5,7 +5,11 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import (
     INSTALL_MEDIUM_URL, PARTITION_SCRIPT_DATA_FILE)
-from robottelo.datafactory import invalid_values_list, valid_data_list
+from robottelo.datafactory import (
+    datacheck,
+    invalid_values_list,
+    valid_data_list,
+)
 from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
@@ -15,6 +19,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
+@datacheck
 def valid_os_parameters():
     """Returns a list of valid os parameters"""
     return [
