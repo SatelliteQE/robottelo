@@ -34,6 +34,7 @@ class IncrementalUpdateTestCase(TestCase):
     def setUpClass(cls):
         """Creates all the pre-requisites for the Incremental updates test"""
         super(IncrementalUpdateTestCase, cls).setUpClass()
+        cls.old_task_timeout = entity_mixins.TASK_TIMEOUT
         # Step 1 - Create a new Organization
         cls.org = Organization(name=gen_alpha()).create()
 
@@ -49,8 +50,13 @@ class IncrementalUpdateTestCase(TestCase):
         ).create()
 
         # Step 3: Upload manifest
-        with manifests.clone() as manifest:
-            upload_manifest(cls.org.id, manifest.content)
+        try:
+            # Update timeout to 10 minutes to finish manifest upload
+            entity_mixins.TASK_TIMEOUT = 600
+            with manifests.clone() as manifest:
+                upload_manifest(cls.org.id, manifest.content)
+        finally:
+            entity_mixins.TASK_TIMEOUT = cls.old_task_timeout
 
         # Step 4: Enable repositories - 6Server and rhel6 sat6tools
         rhel_66_repo_id = enable_rhrepo_and_fetchid(
@@ -78,7 +84,6 @@ class IncrementalUpdateTestCase(TestCase):
 
         # Step 6: Sync the enabled repositories
         try:
-            cls.old_task_timeout = entity_mixins.TASK_TIMEOUT
             # Update timeout to 2 hours to finish sync
             entity_mixins.TASK_TIMEOUT = 7200
             for repo in [cls.rhel_66_repo, cls.rhel6_sat6tools_repo]:

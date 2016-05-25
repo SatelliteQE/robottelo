@@ -1,6 +1,6 @@
 """Tests for the Oscap report upload feature"""
 from fauxfactory import gen_string
-from nailgun import entities
+from nailgun import entities, entity_mixins
 from robottelo import manifests, ssh
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
@@ -45,6 +45,7 @@ class OpenScapTestCase(UITestCase):
 
         """
         super(OpenScapTestCase, cls).setUpClass()
+        cls.old_task_timeout = entity_mixins.TASK_TIMEOUT
         repo_values = [
             {'repo': REPOS['rhst6']['name'], 'reposet': REPOSET['rhst6']},
             {'repo': REPOS['rhst7']['name'], 'reposet': REPOSET['rhst7']},
@@ -60,8 +61,13 @@ class OpenScapTestCase(UITestCase):
         cls.env_name = env.name
 
         # step 2: Clone and Upload manifest
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
+        try:
+            # Update timeout to 10 minutes to finish manifest upload
+            entity_mixins.TASK_TIMEOUT = 600
+            with manifests.clone() as manifest:
+                upload_manifest(org.id, manifest.content)
+        finally:
+            entity_mixins.TASK_TIMEOUT = cls.old_task_timeout
 
         # step 3: Sync RedHat Sattools RHEL6 ad RHEL7 repository
         repos = [
