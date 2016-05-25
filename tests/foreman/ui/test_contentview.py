@@ -128,6 +128,7 @@ class ContentViewTestCase(UITestCase):
                             name, self.organization.name))
                     self.assertIsNone(self.content_views.search(name))
 
+    @run_in_one_thread
     @run_only_on('sat')
     @tier2
     def test_positive_end_to_end(self):
@@ -174,6 +175,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element
                                  (common_locators['alert.success_sub_form']))
 
+    @run_in_one_thread
     @run_only_on('sat')
     @tier2
     def test_positive_add_puppet_module(self):
@@ -236,6 +238,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNone(self.content_views.search_filter(
                 cv_name, filter_name))
 
+    @run_in_one_thread
     @run_only_on('sat')
     @tier2
     def test_positive_add_package_filter(self):
@@ -270,6 +273,7 @@ class ContentViewTestCase(UITestCase):
                 [None, None, None, '4.6'],
             )
 
+    @run_in_one_thread
     @run_only_on('sat')
     @tier2
     def test_positive_add_package_group_filter(self):
@@ -303,6 +307,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
+    @run_in_one_thread
     @run_only_on('sat')
     @tier2
     def test_positive_add_errata_filter(self):
@@ -448,7 +453,7 @@ class ContentViewTestCase(UITestCase):
                     )
                     self.content_views.delete(name)
 
-    @skip_if_bug_open('bugzilla', 1297308)
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_not_set('fake_manifest')
     @tier3
@@ -572,6 +577,7 @@ class ContentViewTestCase(UITestCase):
 
         """
 
+    @run_in_one_thread
     @run_only_on('sat')
     @tier2
     def test_positive_add_custom_content(self):
@@ -652,7 +658,7 @@ class ContentViewTestCase(UITestCase):
                     'selected view is composite'
                 )
 
-    @skip_if_bug_open('bugzilla', 1232270)
+    @run_in_one_thread
     @run_only_on('sat')
     @tier2
     def test_negative_add_dupe_repos(self):
@@ -758,6 +764,7 @@ class ContentViewTestCase(UITestCase):
 
         """
 
+    @run_in_one_thread
     @run_only_on('sat')
     @tier2
     def test_positive_promote_with_custom_content(self):
@@ -882,6 +889,7 @@ class ContentViewTestCase(UITestCase):
 
         """
 
+    @run_in_one_thread
     @run_only_on('sat')
     @tier2
     def test_positive_publish_with_custom_content(self):
@@ -985,6 +993,7 @@ class ContentViewTestCase(UITestCase):
 
         """
 
+    @run_in_one_thread
     @run_only_on('sat')
     @tier2
     def test_positive_clone_within_same_env(self):
