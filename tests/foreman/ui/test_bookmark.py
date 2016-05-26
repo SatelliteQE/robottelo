@@ -60,7 +60,9 @@ class BookmarkTestCase(UITestCase):
                     entity['setup'](organization=cls.org_).create()
                 # entities with no organizations
                 elif entity['name'] in (
+                        'Compute_Profile',
                         'ConfigGroups',
+                        'HardwareModel',
                         'PuppetClasses',
                         'UserGroup'):
                     entity['setup']().create()
