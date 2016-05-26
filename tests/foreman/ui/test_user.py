@@ -4,6 +4,7 @@
 import random
 from fauxfactory import gen_string
 from nailgun import entities
+from robottelo import ssh
 from robottelo.constants import DEFAULT_ORG, LANGUAGES, ROLES
 from robottelo.datafactory import (
     datacheck,
@@ -39,6 +40,17 @@ def valid_strings(len1=10):
 
 class UserTestCase(UITestCase):
     """Implements Users tests in UI"""
+
+    @classmethod
+    def setUpClass(cls):
+        super(UserTestCase, cls).setUpClass()
+        # Check whether necessary plug-ins are installed for server instance
+        result = ssh.command(
+            'rpm -qa | grep rubygem-foreman_remote_execution'
+        )
+        if result.return_code != 0:
+            ROLES.remove('Remote Execution Manager')
+            ROLES.remove('Remote Execution User')
 
     @tier1
     def test_positive_create_with_username(self):
@@ -210,8 +222,7 @@ class UserTestCase(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_user(session, username=name, roles=ROLES, edit=True)
-            self.user.search(name).click()
-            self.user.wait_for_ajax()
+            self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_roles'])
             for role in ROLES:
                 self.assertIsNotNone(self.user.wait_until_element(
