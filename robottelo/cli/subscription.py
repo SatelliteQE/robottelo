@@ -21,6 +21,7 @@ Subcommands::
 """
 
 from robottelo.cli.base import Base
+from robottelo.decorators import bz_bug_is_open
 
 
 class Subscription(Base):
@@ -34,9 +35,11 @@ class Subscription(Base):
     def upload(cls, options=None):
         """Upload a subscription manifest."""
         cls.command_sub = 'upload'
+        timeout = 900 if bz_bug_is_open(1339696) else 300
         return cls.execute(
             cls._construct_command(options),
             ignore_stderr=True,
+            timeout=timeout,
         )
 
     @classmethod
