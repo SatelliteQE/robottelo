@@ -72,9 +72,9 @@ class TemplateTestCase(CLITestCase):
 
         """
         new_template = make_template({
-                'locked': 'true',
-                'name': gen_string('alpha'),
-            })
+            'locked': 'true',
+            'name': gen_string('alpha'),
+        })
         self.assertEqual(new_template['locked'], 'yes')
 
     @run_only_on('sat')

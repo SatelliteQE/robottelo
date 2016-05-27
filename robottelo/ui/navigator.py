@@ -79,12 +79,6 @@ class Navigator(Base):
             menu_locators['menu.red_hat_subscriptions'],
         )
 
-    def go_to_subscription_manager_applications(self):
-        self.menu_click(
-            menu_locators['menu.content'],
-            menu_locators['menu.subscription_manager_applications'],
-        )
-
     def go_to_activation_keys(self):
         self.menu_click(
             menu_locators['menu.content'],
@@ -117,22 +111,28 @@ class Navigator(Base):
             menu_locators['menu.content'], menu_locators['menu.sync_plans'],
         )
 
-    def go_to_sync_schedules(self):
-        self.menu_click(
-            menu_locators['menu.content'],
-            menu_locators['menu.sync_schedules'],
-        )
-
     def go_to_content_views(self):
         self.menu_click(
             menu_locators['menu.content'],
             menu_locators['menu.content_views'],
         )
 
-    def go_to_content_search(self):
+    def go_to_errata(self):
         self.menu_click(
             menu_locators['menu.content'],
-            menu_locators['menu.content_search'],
+            menu_locators['menu.errata'],
+        )
+
+    def go_to_packages(self):
+        self.menu_click(
+            menu_locators['menu.content'],
+            menu_locators['menu.packages'],
+        )
+
+    def go_to_puppet_modules(self):
+        self.menu_click(
+            menu_locators['menu.content'],
+            menu_locators['menu.puppet_modules'],
         )
 
     def go_to_all_containers(self):
