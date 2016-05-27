@@ -2,7 +2,11 @@
 """Test class for Domain UI"""
 from fauxfactory import gen_string
 from robottelo.constants import DOMAIN
-from robottelo.datafactory import generate_strings_list, invalid_values_list
+from robottelo.datafactory import (
+    datacheck,
+    generate_strings_list,
+    invalid_values_list,
+)
 from robottelo.decorators import (
     bz_bug_is_open,
     run_only_on,
@@ -17,6 +21,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
+@datacheck
 def valid_long_domain_names():
     """Returns a list of valid long domain names
 
@@ -32,6 +37,7 @@ def valid_long_domain_names():
     ]
 
 
+@datacheck
 def valid_domain_update_data():
     """Returns a list of valid test data for domain update tests"""
     return [

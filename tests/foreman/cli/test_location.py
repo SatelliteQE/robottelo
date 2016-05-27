@@ -19,11 +19,12 @@ from robottelo.cli.factory import (
     make_user,
 )
 from robottelo.cli.location import Location
-from robottelo.datafactory import invalid_values_list
+from robottelo.datafactory import datacheck, invalid_values_list
 from robottelo.decorators import skip_if_bug_open, run_only_on, tier1, tier2
 from robottelo.test import CLITestCase
 
 
+@datacheck
 def valid_loc_data_list():
     """List of valid data for input testing.
 

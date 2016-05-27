@@ -2,7 +2,11 @@
 """Test class for Partition Table UI"""
 from fauxfactory import gen_string
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
-from robottelo.datafactory import generate_strings_list, invalid_values_list
+from robottelo.datafactory import (
+    datacheck,
+    generate_strings_list,
+    invalid_values_list,
+)
 from robottelo.decorators import (
     bz_bug_is_open,
     run_only_on,
@@ -18,6 +22,7 @@ from robottelo.ui.session import Session
 PARTITION_SCRIPT_DATA_FILE = get_data_file(PARTITION_SCRIPT_DATA_FILE)
 
 
+@datacheck
 def valid_partition_table_names():
     """Returns a list of valid partition table names"""
     return [
@@ -30,6 +35,7 @@ def valid_partition_table_names():
     ]
 
 
+@datacheck
 def valid_partition_table_update_names():
     """Returns a list of valid partition table names for update tests"""
     return [

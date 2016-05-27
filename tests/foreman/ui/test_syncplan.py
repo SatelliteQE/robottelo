@@ -7,7 +7,11 @@ from random import randint
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.constants import PRDS, REPOS, REPOSET, SYNC_INTERVAL
-from robottelo.datafactory import generate_strings_list, invalid_values_list
+from robottelo.datafactory import (
+    datacheck,
+    generate_strings_list,
+    invalid_values_list,
+)
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
@@ -24,6 +28,7 @@ from robottelo.ui.session import Session
 from time import sleep
 
 
+@datacheck
 def valid_sync_intervals():
     """Returns a list of valid sync intervals"""
     return [

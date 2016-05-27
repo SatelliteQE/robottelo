@@ -28,6 +28,7 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
+from robottelo.datafactory import generate_strings_list, invalid_values_list
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
@@ -39,33 +40,6 @@ from robottelo.decorators import (
 )
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
-
-
-def positive_create_data():
-    """Random data for positive creation"""
-
-    return (
-        {'name': gen_string("latin1")},
-        {'name': gen_string("utf8")},
-        {'name': gen_string("alpha")},
-        {'name': gen_string("alphanumeric")},
-        {'name': gen_string("numeric", 20)},
-        {'name': gen_string("html")},
-    )
-
-
-def negative_create_data():
-    """Random data for negative creation"""
-
-    return (
-        {'name': ' '},
-        {'name': gen_string('alpha', 300)},
-        {'name': gen_string('numeric', 300)},
-        {'name': gen_string('alphanumeric', 300)},
-        {'name': gen_string('utf8', 300)},
-        {'name': gen_string('latin1', 300)},
-        {'name': gen_string('html', 300)},
-    )
 
 
 class ContentViewTestCase(CLITestCase):
@@ -150,11 +124,13 @@ class ContentViewTestCase(CLITestCase):
         @assert: content views are created
 
         """
-        for test_data in positive_create_data():
-            with self.subTest(test_data):
-                test_data['organization-id'] = make_org(cached=True)['id']
-                content_view = make_content_view(test_data)
-                self.assertEqual(content_view['name'], test_data['name'])
+        for name in generate_strings_list(exclude_types=['cjk']):
+            with self.subTest(name):
+                content_view = make_content_view({
+                    'name': name,
+                    'organization-id': make_org(cached=True)['id'],
+                })
+                self.assertEqual(content_view['name'], name)
 
     # pylint: disable=unexpected-keyword-arg
     @tier1
@@ -168,11 +144,14 @@ class ContentViewTestCase(CLITestCase):
         system handles it gracefully
 
         """
-        for test_data in negative_create_data():
-            with self.subTest(test_data):
-                test_data['organization-id'] = make_org(cached=True)['id']
+        org_id = make_org(cached=True)['id']
+        for name in invalid_values_list():
+            with self.subTest(name):
                 with self.assertRaises(CLIFactoryError):
-                    make_content_view(test_data)
+                    make_content_view({
+                        'name': name,
+                        'organization-id': org_id,
+                    })
 
     @tier1
     @run_only_on('sat')
@@ -1887,25 +1866,27 @@ class ContentViewTestCase(CLITestCase):
 
         @assert: User with no content view create/view permissions cannot
         create or view the content view
-
-        @status: Manual
-
         """
         password = gen_alphanumeric()
         no_rights_user = make_user({'password': password})
         no_rights_user['password'] = password
         org_id = make_org(cached=True)['id']
-        for test_data in positive_create_data():
-            with self.subTest(test_data):
-                test_data['organization-id'] = org_id
+        for name in generate_strings_list(exclude_types=['cjk']):
+            with self.subTest(name):
                 # test that user can't create
                 with self.assertRaises(CLIReturnCodeError):
                     ContentView.with_user(
                         no_rights_user['login'],
                         no_rights_user['password'],
-                    ).create(test_data)
+                    ).create({
+                        'name': name,
+                        'organization-id': org_id,
+                    })
                 # test that user can't read
-                con_view = make_content_view(test_data)
+                con_view = make_content_view({
+                    'name': name,
+                    'organization-id': org_id,
+                })
                 with self.assertRaises(CLIReturnCodeError):
                     ContentView.with_user(
                         no_rights_user['login'],

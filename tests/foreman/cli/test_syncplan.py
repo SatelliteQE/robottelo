@@ -19,7 +19,11 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.constants import PRDS, REPOS, REPOSET
-from robottelo.datafactory import valid_data_list, invalid_values_list
+from robottelo.datafactory import (
+    datacheck,
+    valid_data_list,
+    invalid_values_list,
+)
 from robottelo.decorators import (
     run_in_one_thread,
     skip_if_bug_open,
@@ -32,9 +36,10 @@ from robottelo.test import CLITestCase
 from time import sleep
 
 
+@datacheck
 def valid_name_interval_create_tests():
-    """Returns a tuple of valid data for interval create tests."""
-    return(
+    """Returns a list of valid data for interval create tests."""
+    return [
         {u'name': gen_string('alpha', 15), u'interval': u'hourly'},
         {u'name': gen_string('alphanumeric', 15), u'interval': u'hourly'},
         {u'name': gen_string('numeric', 15), u'interval': u'hourly'},
@@ -53,12 +58,13 @@ def valid_name_interval_create_tests():
         {u'name': gen_string('latin1', 15), u'interval': u'weekly'},
         {u'name': gen_string('utf8', 15), u'interval': u'weekly'},
         {u'name': gen_string('html', 15), u'interval': u'weekly'},
-    )
+    ]
 
 
+@datacheck
 def valid_name_interval_update_tests():
-    """Returns a tuple of valid data for interval update tests."""
-    return(
+    """Returns a list of valid data for interval update tests."""
+    return[
         {u'name': gen_string('alpha', 15),
          u'interval': u'daily', u'new-interval': u'hourly'},
         {u'name': gen_string('alphanumeric', 15),
@@ -95,7 +101,7 @@ def valid_name_interval_update_tests():
          u'interval': u'hourly', u'new-interval': u'weekly'},
         {u'name': gen_string('html', 15),
          u'interval': u'hourly', u'new-interval': u'weekly'},
-    )
+    ]
 
 
 class SyncPlanTestCase(CLITestCase):

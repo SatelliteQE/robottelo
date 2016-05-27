@@ -2,10 +2,12 @@
 """Test class for Login UI"""
 
 from fauxfactory import gen_string
+from robottelo.datafactory import datacheck
 from robottelo.decorators import tier1
 from robottelo.test import UITestCase
 
 
+@datacheck
 def invalid_credentials():
     """Returns a list of invalid credentials"""
     return [

@@ -9,42 +9,45 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_domain, make_subnet, CLIFactoryError
 from robottelo.cli.subnet import Subnet
 from robottelo.constants import SUBNET_IPAM_TYPES
-from robottelo.datafactory import valid_data_list
+from robottelo.datafactory import datacheck, valid_data_list
 from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
+@datacheck
 def valid_addr_pools():
-    """Returns a tuple of valid address pools"""
-    return(
+    """Returns a list of valid address pools"""
+    return [
         [gen_integer(min_value=1, max_value=255),
          gen_integer(min_value=1, max_value=255)],
         [gen_integer(min_value=1, max_value=255)] * 2,
         [1, 255],
-    )
+    ]
 
 
+@datacheck
 def invalid_addr_pools():
-    """Returns a tuple of invalid address pools"""
-    return(
+    """Returns a list of invalid address pools"""
+    return [
         {u'from': gen_integer(min_value=1, max_value=255)},
         {u'to': gen_integer(min_value=1, max_value=255)},
         {u'from': gen_integer(min_value=128, max_value=255),
          u'to': gen_integer(min_value=1, max_value=127)},
         {u'from': 256, u'to': 257},
-    )
+    ]
 
 
+@datacheck
 def invalid_missing_attributes():
-    """Returns a tuple of invalid missing attributes"""
-    return(
+    """Returns a list of invalid missing attributes"""
+    return [
         {u'name': ''},
         {u'network': '256.0.0.0'},
         {u'network': ''},
         {u'mask': '256.0.0.0'},
         {u'mask': ''},
         {u'mask': '255.0.255.0'}
-    )
+    ]
 
 
 class SubnetTestCase(CLITestCase):

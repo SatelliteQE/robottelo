@@ -8,6 +8,7 @@ from robottelo.api.utils import upload_manifest
 from robottelo.config import settings
 from robottelo.constants import INSTALL_MEDIUM_URL, LIBVIRT_RESOURCE_URL
 from robottelo.datafactory import (
+    datacheck,
     generate_strings_list,
     invalid_names_list,
     invalid_values_list,
@@ -27,6 +28,7 @@ from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
+@datacheck
 def valid_labels():
     """Returns a list of valid labels"""
     return [
@@ -36,6 +38,7 @@ def valid_labels():
     ]
 
 
+@datacheck
 def valid_users():
     """Returns a list of valid users"""
     return[
@@ -48,6 +51,7 @@ def valid_users():
     ]
 
 
+@datacheck
 def valid_env_names():
     """Returns a list of valid environment names"""
     return [

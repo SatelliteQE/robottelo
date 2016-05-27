@@ -2,7 +2,11 @@
 """Test class for Architecture UI"""
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.datafactory import generate_strings_list, invalid_values_list
+from robottelo.datafactory import (
+    datacheck,
+    generate_strings_list,
+    invalid_values_list,
+)
 from robottelo.decorators import run_only_on, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_arch
@@ -10,15 +14,16 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
+@datacheck
 def valid_arch_os_names():
-    """Returns a tuple of arch/os names for creation tests"""
-    return(
+    """Returns a list of arch/os names for creation tests"""
+    return [
         {u'name': gen_string('alpha'), u'os_name': gen_string('alpha')},
         {u'name': gen_string('html'), u'os_name': gen_string('html')},
         {u'name': gen_string('utf8'), u'os_name': gen_string('utf8')},
         {u'name': gen_string('alphanumeric'),
          u'os_name': gen_string('alphanumeric')}
-    )
+    ]
 
 
 class ArchitectureTestCase(UITestCase):

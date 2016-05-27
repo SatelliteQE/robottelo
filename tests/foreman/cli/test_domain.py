@@ -5,11 +5,12 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.domain import Domain
 from robottelo.cli.factory import CLIFactoryError
 from robottelo.cli.factory import make_domain, make_location, make_org
-from robottelo.datafactory import invalid_id_list, valid_data_list
+from robottelo.datafactory import datacheck, invalid_id_list, valid_data_list
 from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
+@datacheck
 def valid_create_params():
     """Returns a list of valid domain create parameters"""
     return [
@@ -24,6 +25,7 @@ def valid_create_params():
     ]
 
 
+@datacheck
 def invalid_create_params():
     """Returns a list of invalid domain create parameters"""
     return [
@@ -32,6 +34,7 @@ def invalid_create_params():
     ]
 
 
+@datacheck
 def valid_update_params():
     """Returns a list of valid domain update parameters"""
     return [
@@ -46,6 +49,7 @@ def valid_update_params():
     ]
 
 
+@datacheck
 def invalid_update_params():
     """Returns a list of invalid domain update parameters"""
     return [
@@ -55,6 +59,7 @@ def invalid_update_params():
     ]
 
 
+@datacheck
 def valid_set_params():
     """Returns a list of valid domain set parameters"""
     return [
@@ -69,6 +74,7 @@ def valid_set_params():
     ]
 
 
+@datacheck
 def invalid_set_params():
     """Returns a list of invalid domain set parameters"""
     return [
@@ -81,6 +87,7 @@ def invalid_set_params():
     ]
 
 
+@datacheck
 def valid_delete_params():
     """Returns a list of valid domain delete parameters"""
     return [
