@@ -1,3 +1,4 @@
+# coding=utf-8
 """Smoke tests for the ``UI`` end-to-end scenario."""
 
 from fauxfactory import gen_string, gen_ipaddr

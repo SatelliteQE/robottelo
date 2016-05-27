@@ -1,3 +1,4 @@
+# coding=utf-8
 """Smoke tests for the ``API`` end-to-end scenario."""
 import random
 
