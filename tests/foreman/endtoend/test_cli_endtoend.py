@@ -1,3 +1,4 @@
+# coding=utf-8
 """Smoke tests for the ``CLI`` end-to-end scenario."""
 import random
 
