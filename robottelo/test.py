@@ -49,7 +49,6 @@ from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.container import Container
 from robottelo.ui.contentviews import ContentViews
-from robottelo.ui.contentsearch import ContentSearch
 from robottelo.ui.discoveredhosts import DiscoveredHosts
 from robottelo.ui.discoveryrules import DiscoveryRules
 from robottelo.ui.domain import Domain
@@ -70,6 +69,7 @@ from robottelo.ui.org import Org
 from robottelo.ui.oscapcontent import OpenScapContent
 from robottelo.ui.oscappolicy import OpenScapPolicy
 from robottelo.ui.oscapreports import OpenScapReports
+from robottelo.ui.packages import Package
 from robottelo.ui.partitiontable import PartitionTable
 from robottelo.ui.products import Products
 from robottelo.ui.puppetclasses import PuppetClasses
@@ -184,7 +184,6 @@ class UITestCase(TestCase):
         self.compute_resource = ComputeResource(self.browser)
         self.configgroups = ConfigGroups(self.browser)
         self.content_views = ContentViews(self.browser)
-        self.content_search = ContentSearch(self.browser)
         self.domain = Domain(self.browser)
         self.discoveredhosts = DiscoveredHosts(self.browser)
         self.discoveryrules = DiscoveryRules(self.browser)
@@ -206,6 +205,7 @@ class UITestCase(TestCase):
         self.oscapcontent = OpenScapContent(self.browser)
         self.oscappolicy = OpenScapPolicy(self.browser)
         self.oscapreports = OpenScapReports(self.browser)
+        self.package = Package(self.browser)
         self.partitiontable = PartitionTable(self.browser)
         self.puppetclasses = PuppetClasses(self.browser)
         self.products = Products(self.browser)

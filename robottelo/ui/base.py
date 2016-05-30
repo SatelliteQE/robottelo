@@ -446,6 +446,13 @@ class Base(object):
         if limit != 'Unlimited':
             self.text_field_update(common_locators['usage_limit'], limit)
 
+    def select_repo(self, repo_name):
+        """Select specific repository for packages or errata search
+        functionality
+        """
+        self.navigate_to_entity()
+        self.select(common_locators['select_repo'], repo_name)
+
     def auto_complete_search(self, go_to_page, entity_locator, partial_name,
                              name, search_key):
         """Auto complete search by giving partial name of any entity.

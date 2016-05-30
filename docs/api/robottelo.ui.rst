@@ -128,6 +128,11 @@
 
 .. automodule:: robottelo.ui.org
 
+:mod:`robottelo.ui.packages`
+----------------------------
+
+.. automodule:: robottelo.ui.packages
+
 :mod:`robottelo.ui.partitiontable`
 ----------------------------------
 

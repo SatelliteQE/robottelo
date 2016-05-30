@@ -43,11 +43,6 @@
 
 .. automodule:: tests.foreman.ui.test_config_group
 
-:mod:`tests.foreman.ui.test_contentsearch`
-------------------------------------------
-
-.. automodule:: tests.foreman.ui.test_contentsearch
-
 :mod:`tests.foreman.ui.test_contentview`
 ----------------------------------------
 
@@ -187,6 +182,11 @@
 -----------------------------------------
 
 .. automodule:: tests.foreman.ui.test_organization
+
+:mod:`tests.foreman.ui.test_packages`
+-------------------------------------
+
+.. automodule:: tests.foreman.ui.test_packages
 
 :mod:`tests.foreman.ui.test_partitiontable`
 -------------------------------------------
