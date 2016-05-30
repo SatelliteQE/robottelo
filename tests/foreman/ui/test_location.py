@@ -27,18 +27,18 @@ from robottelo.ui.session import Session
 def valid_org_loc_data():
     """Returns a list of valid org/location data"""
     return [
-        {'org_name': gen_string('alpha', 10),
-         'loc_name': gen_string('alpha', 10)},
-        {'org_name': gen_string('numeric', 10),
-         'loc_name': gen_string('numeric', 10)},
-        {'org_name': gen_string('alphanumeric', 10),
-         'loc_name': gen_string('alphanumeric', 10)},
-        {'org_name': gen_string('utf8', 10),
-         'loc_name': gen_string('utf8', 10)},
-        {'org_name': gen_string('latin1', 20),
-         'loc_name': gen_string('latin1', 10)},
-        {'org_name': gen_string('html', 20),
-         'loc_name': gen_string('html', 10)}
+        {'org_name': gen_string('alpha', 242),
+         'loc_name': gen_string('alpha', 242)},
+        {'org_name': gen_string('numeric', 242),
+         'loc_name': gen_string('numeric', 242)},
+        {'org_name': gen_string('alphanumeric', 242),
+         'loc_name': gen_string('alphanumeric', 242)},
+        {'org_name': gen_string('utf8', 80),
+         'loc_name': gen_string('utf8', 80)},
+        {'org_name': gen_string('latin1', 242),
+         'loc_name': gen_string('latin1', 242)},
+        {'org_name': gen_string('html', 217),
+         'loc_name': gen_string('html', 217)}
     ]
 
 
