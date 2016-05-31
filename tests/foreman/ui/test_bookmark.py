@@ -43,6 +43,7 @@ class BookmarkTestCase(UITestCase):
             admin=True,
             login=cls.username,
             password=cls.password,
+            default_organization=cls.org_
         ).create()
 
         for entity in BOOKMARK_ENTITIES:
@@ -106,9 +107,8 @@ class BookmarkTestCase(UITestCase):
         for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
-                        self.browser, self.username, self.password) as session:
+                        self.browser, self.username, self.password):
                     name = gen_string(random.choice(STRING_TYPES))
-                    session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
                         name=name,
@@ -142,9 +142,8 @@ class BookmarkTestCase(UITestCase):
         for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
-                        self.browser, self.username, self.password) as session:
+                        self.browser, self.username, self.password):
                     name = gen_string(random.choice(STRING_TYPES))
-                    session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
                         name=name,
@@ -219,7 +218,6 @@ class BookmarkTestCase(UITestCase):
                 with Session(
                         self.browser, self.username, self.password) as session:
                     name = ''
-                    session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
                         name=name,
@@ -255,9 +253,8 @@ class BookmarkTestCase(UITestCase):
         for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
-                        self.browser, self.username, self.password) as session:
+                        self.browser, self.username, self.password):
                     name = gen_string(random.choice(STRING_TYPES))
-                    session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
                         name=name,
@@ -292,9 +289,8 @@ class BookmarkTestCase(UITestCase):
         for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
-                        self.browser, self.username, self.password) as session:
+                        self.browser, self.username, self.password):
                     name = gen_string(random.choice(STRING_TYPES))
-                    session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     for _ in range(2):
                         ui_lib.create_a_bookmark(
@@ -333,10 +329,9 @@ class BookmarkTestCase(UITestCase):
         for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
-                        self.browser, self.username, self.password) as session:
+                        self.browser, self.username, self.password):
                     name = gen_string(random.choice(STRING_TYPES))
                     query = gen_string(random.choice(STRING_TYPES))
-                    session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
                         name=name,
@@ -371,10 +366,9 @@ class BookmarkTestCase(UITestCase):
         for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
-                        self.browser, self.username, self.password) as session:
+                        self.browser, self.username, self.password):
                     bm1_name = gen_string(random.choice(STRING_TYPES))
                     bm2_name = gen_string(random.choice(STRING_TYPES))
-                    session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     for name in (bm1_name, bm2_name):
                         ui_lib.create_a_bookmark(
@@ -417,10 +411,9 @@ class BookmarkTestCase(UITestCase):
         for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
-                        self.browser, self.username, self.password) as session:
+                        self.browser, self.username, self.password):
                     name = gen_string(random.choice(STRING_TYPES))
                     query = gen_string(random.choice(STRING_TYPES))
-                    session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
                         name=name,
@@ -459,9 +452,8 @@ class BookmarkTestCase(UITestCase):
         for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
-                        self.browser, self.username, self.password) as session:
+                        self.browser, self.username, self.password):
                     name = gen_string(random.choice(STRING_TYPES))
-                    session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
                         name=name,
@@ -501,10 +493,9 @@ class BookmarkTestCase(UITestCase):
         for entity in self.getOneEntity():
             with self.subTest(entity):
                 with Session(
-                        self.browser, self.username, self.password) as session:
+                        self.browser, self.username, self.password):
                     name = gen_string(random.choice(STRING_TYPES))
                     query = gen_string(random.choice(STRING_TYPES))
-                    session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
                         name=name,
@@ -587,9 +578,8 @@ class BookmarkTestCase(UITestCase):
         for entity in self.entities:
             with self.subTest(entity):
                 with Session(
-                        self.browser, self.username, self.password) as session:
+                        self.browser, self.username, self.password):
                     name = gen_string(random.choice(STRING_TYPES))
-                    session.nav.go_to_select_org(self.org_.name)
                     ui_lib = getattr(self, entity['name'].lower())
                     ui_lib.create_a_bookmark(
                         name=name,
