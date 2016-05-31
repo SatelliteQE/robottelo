@@ -445,6 +445,8 @@ API_PATHS = {
         u'/api/job_templates/:id',
         u'/api/job_templates/:id',
         u'/api/job_templates/:id/clone',
+        u'/api/job_templates/:id/export',
+        u'/api/job_templates/import',
     ),
     u'lifecycle_environments': (
         u'/katello/api/environments',
