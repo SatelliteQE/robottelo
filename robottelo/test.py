@@ -135,7 +135,8 @@ class UITestCase(TestCase):
                 firstname='Foreman User',
                 login=gen_string('alpha'),
                 password=cls.foreman_password,
-                admin=True
+                admin=True,
+                default_organization=1
             ).create()
             cls.foreman_user = cls.session_user.login
         except Exception as e:
