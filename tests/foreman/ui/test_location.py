@@ -500,7 +500,7 @@ class LocationTestCase(UITestCase):
                         name=template,
                         template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
                         custom_really=True,
-                        template_type='provision',
+                        template_type='Provisioning template',
                     )
                     self.assertIsNotNone(self.template.search(template))
                     self.location.search(loc_name).click()
@@ -796,7 +796,7 @@ class LocationTestCase(UITestCase):
                         session,
                         name=template_name,
                         template_path=get_data_file(OS_TEMPLATE_DATA_FILE),
-                        template_type='provision',
+                        template_type='Provisioning template',
                         custom_really=True,
                     )
                     self.assertIsNotNone(self.template.search(template_name))

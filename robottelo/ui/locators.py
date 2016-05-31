@@ -363,8 +363,10 @@ menu_locators = LocatorDict({
     "org.select_org": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@href='/organizations/clear']/../../li/a[contains(.,'%s')]|"
+         "//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//a[@href='/organizations/clear']/../../li/a"
-         "/span[contains(.,'%s') or contains(@data-original-title, '%s')]")),
+         "/span[contains(@data-original-title, '%s')]")),
 
     # Locations
     "loc.manage_loc": (
@@ -379,8 +381,10 @@ menu_locators = LocatorDict({
     "loc.select_loc": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@href='/locations/clear']/../../li/a[contains(.,'%s')]|"
+         "//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//a[@href='/locations/clear']/../../li/a"
-         "/span[contains(.,'%s') or contains(@data-original-title, '%s')]"))
+         "/span[contains(@data-original-title, '%s')]"))
 })
 
 tab_locators = LocatorDict({
