@@ -1933,8 +1933,6 @@ locators = LocatorDict({
     "contentviews.remove_ver": (
         By.XPATH, ("//td/a[contains(., '%s')]/following::td/"
                    "button[contains(@ui-sref, 'version-deletion')]")),
-    "contentviews.remove_cv": (
-        By.XPATH, "//button[@ng-click='removeContentViews()']"),
     "contentviews.remove_cv_version": (
         By.XPATH, "//a[contains(@ui-sref, 'version-deletion')]/button"),
     "contentviews.completely_remove_checkbox": (
