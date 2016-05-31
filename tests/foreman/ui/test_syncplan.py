@@ -3,7 +3,7 @@
 from datetime import datetime, timedelta
 from fauxfactory import gen_string
 from nailgun import entities
-from random import randint
+from random import choice, randint
 from robottelo import manifests
 from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.constants import PRDS, REPOS, REPOSET, SYNC_INTERVAL
@@ -96,7 +96,7 @@ class SyncPlanTestCase(UITestCase):
                         org=self.organization.name,
                         name=name,
                         description=gen_string('utf8'),
-                        sync_interval=valid_sync_intervals()[randint(0, 2)],
+                        sync_interval=choice(valid_sync_intervals()),
                     )
                     self.assertIsNotNone(self.syncplan.search(name))
 
@@ -117,7 +117,7 @@ class SyncPlanTestCase(UITestCase):
                         org=self.organization.name,
                         name=name,
                         description=desc,
-                        sync_interval=valid_sync_intervals()[randint(0, 2)],
+                        sync_interval=choice(valid_sync_intervals()),
                     )
                     self.assertIsNotNone(self.syncplan.search(name))
 
