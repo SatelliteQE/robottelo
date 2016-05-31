@@ -363,7 +363,8 @@ menu_locators = LocatorDict({
     "org.select_org": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-         "//a[@href='/organizations/clear']/../../li/a[contains(.,'%s')]")),
+         "//a[@href='/organizations/clear']/../../li/a"
+         "/span[contains(.,'%s') or contains(@data-original-title, '%s')]")),
 
     # Locations
     "loc.manage_loc": (
@@ -378,7 +379,8 @@ menu_locators = LocatorDict({
     "loc.select_loc": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-         "//a[@href='/locations/clear']/../../li/a[contains(.,'%s')]"))
+         "//a[@href='/locations/clear']/../../li/a"
+         "/span[contains(.,'%s') or contains(@data-original-title, '%s')]"))
 })
 
 tab_locators = LocatorDict({
@@ -668,7 +670,7 @@ common_locators = LocatorDict({
         ("//div[@class='ms-selection']/ul[@class='ms-list']"
          "/li[@class='ms-elem-selection ms-selected']")),
     "select_filtered_entity": (
-        By.XPATH, "//a/span[contains(@data-original-title, '%s')]"),
+        By.XPATH, "//table//a/span[contains(@data-original-title, '%s')]"),
     "checked_entity": (
         By.XPATH, "//input[@checked='checked']/parent::label"),
     "entity_select": (

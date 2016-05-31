@@ -403,11 +403,14 @@ class Navigator(Base):
         self.menu_click(
             menu_locators['menu.any_context'],
             menu_locators['org.nav_current_org'],
-            (strategy, value % org),
+            (strategy, value % (org, org)),
         )
         self.perform_action_chain_move(menu_locators['menu.current_text'])
+        org_dropdown = org
+        if len(org) > 30:
+            org_dropdown = org[:27] + '...'
         if self.wait_until_element(
-                menu_locators['menu.fetch_org']).text != org:
+                menu_locators['menu.fetch_org']).text != org_dropdown:
             raise UIError(
                 u'Could not select the organization: {0}'.format(org)
             )
@@ -430,11 +433,14 @@ class Navigator(Base):
         self.menu_click(
             menu_locators['menu.any_context'],
             menu_locators['loc.nav_current_loc'],
-            (strategy, value % loc),
+            (strategy, value % (loc, loc)),
         )
         self.perform_action_chain_move(menu_locators['menu.current_text'])
+        loc_dropdown = loc
+        if len(loc) > 30:
+            loc_dropdown = loc[:27] + '...'
         if self.wait_until_element(
-                menu_locators['menu.fetch_loc']).text != loc:
+                menu_locators['menu.fetch_loc']).text != loc_dropdown:
             raise UIError(
                 u'Could not select the location: {0}'.format(loc)
             )
