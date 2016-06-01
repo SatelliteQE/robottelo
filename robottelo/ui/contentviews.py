@@ -212,8 +212,8 @@ class ContentViews(Base):
         while check_progress and time.time() <= timer:
             check_progress = self.wait_until_element(
                 (strategy, value % version),
-                timeout=6,
-                poll_frequency=2,
+                timeout=1,
+                poll_frequency=0.5,
             )
 
     def publish(self, cv_name, comment=None):

@@ -28,6 +28,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import generate_strings_list, valid_data_list
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
@@ -58,7 +59,7 @@ def _make_docker_repo(product_id, name=None, upstream_name=None):
     return make_repository({
         'content-type': REPO_CONTENT_TYPE,
         'docker-upstream-name': upstream_name or REPO_UPSTREAM_NAME,
-        'name': name or generate_strings_list(15, ['numeric', 'html']),
+        'name': name or choice(generate_strings_list(15, ['numeric', 'html'])),
         'product-id': product_id,
         'url': DOCKER_REGISTRY_HUB,
     })
@@ -1476,6 +1477,7 @@ class DockerContainersTestCase(CLITestCase):
                     Docker.container.info({'id': container['id']})
 
 
+@run_in_one_thread
 class DockerRegistryTestCase(CLITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.

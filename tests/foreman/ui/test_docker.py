@@ -14,6 +14,7 @@ from robottelo.constants import (
 )
 from robottelo.datafactory import datacheck, valid_data_list
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
@@ -569,7 +570,7 @@ class DockerContentViewTestCase(UITestCase):
                         content_view.name, [repo_name], repo_type='docker')
                     self.content_views.publish(content_view.name)
                     self.assertIsNotNone(self.content_views.wait_until_element(
-                        common_locators['alert.success']))
+                        common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
@@ -608,7 +609,7 @@ class DockerContentViewTestCase(UITestCase):
                 composite_name, [content_view.name])
             self.content_views.publish(composite_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
@@ -640,7 +641,7 @@ class DockerContentViewTestCase(UITestCase):
             for _ in range(randint(2, 5)):
                 self.content_views.publish(content_view.name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
@@ -679,7 +680,7 @@ class DockerContentViewTestCase(UITestCase):
             for _ in range(randint(2, 5)):
                 self.content_views.publish(composite_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
@@ -711,11 +712,11 @@ class DockerContentViewTestCase(UITestCase):
                 content_view.name, [repo_name], repo_type='docker')
             self.content_views.publish(content_view.name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             self.content_views.promote(
                 content_view.name, 'Version 1', lce.name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
@@ -745,14 +746,14 @@ class DockerContentViewTestCase(UITestCase):
                 content_view.name, [repo_name], repo_type='docker')
             self.content_views.publish(content_view.name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             for _ in range(randint(2, 5)):
                 lce = entities.LifecycleEnvironment(
                     organization=self.organization).create()
                 self.content_views.promote(
                     content_view.name, 'Version 1', lce.name)
                 self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success']))
+                    common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
@@ -792,10 +793,10 @@ class DockerContentViewTestCase(UITestCase):
                 composite_name, [content_view.name])
             self.content_views.publish(composite_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             self.content_views.promote(composite_name, 'Version 1', lce.name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @tier2
@@ -832,14 +833,14 @@ class DockerContentViewTestCase(UITestCase):
                 composite_name, [content_view.name])
             self.content_views.publish(composite_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             for _ in range(randint(2, 5)):
                 lce = entities.LifecycleEnvironment(
                     organization=self.organization).create()
                 self.content_views.promote(
                     composite_name, 'Version 1', lce.name)
                 self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success']))
+                    common_locators['alert.success_sub_form']))
 
 
 class DockerActivationKeyTestCase(UITestCase):
@@ -931,7 +932,7 @@ class DockerActivationKeyTestCase(UITestCase):
             self.content_views.promote(
                 composite_name, 'Version 1', self.lce.name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']))
+                common_locators['alert.success_sub_form']))
             make_activationkey(
                 session,
                 org=self.organization.name,
@@ -1289,8 +1290,6 @@ class DockerContainerTestCase(UITestCase):
                     self.assertIsNone(
                         self.container.search(compute_resource.name, name))
 
-    # BZ 1266842 is a private bug, so we cannot fetch information about it
-    @stubbed('Unstub when BZ1266842 is fixed')
     @run_only_on('sat')
     @tier2
     def test_positive_delete_using_api_call(self):
@@ -1318,6 +1317,7 @@ class DockerContainerTestCase(UITestCase):
                         compute_resource.name, container.name))
 
 
+@run_in_one_thread
 class DockerRegistryTestCase(UITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
