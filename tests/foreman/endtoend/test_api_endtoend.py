@@ -23,6 +23,7 @@ from robottelo.constants import (
 )
 from robottelo.decorators import (
     bz_bug_is_open,
+    setting_is_set,
 )
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import TestCase
@@ -845,6 +846,11 @@ class AvailableURLsTestCase(TestCase):
 class EndToEndTestCase(TestCase, ClientProvisioningMixin):
     """End-to-end tests using the ``API`` path."""
 
+    @classmethod
+    def setUpClass(cls):  # noqa
+        super(EndToEndTestCase, cls).setUpClass()
+        cls.fake_manifest_is_set = setting_is_set('fake_manifest')
+
     def test_positive_find_default_org(self):
         """Check if 'Default Organization' is present
 
@@ -953,8 +959,9 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         org = entities.Organization(server_config).create()
 
         # step 2.2: Clone and upload manifest
-        with manifests.clone() as manifest:
-            upload_manifest(org.id, manifest.content)
+        if self.fake_manifest_is_set:
+            with manifests.clone() as manifest:
+                upload_manifest(org.id, manifest.content)
 
         # step 2.3: Create a new lifecycle environment
         le1 = entities.LifecycleEnvironment(
@@ -964,6 +971,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
         # step 2.4: Create a custom product
         prod = entities.Product(server_config, organization=org).create()
+        repositories = []
+
 
         # step 2.5: Create custom YUM repository
         repo1 = entities.Repository(
@@ -972,6 +981,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
             content_type=u'yum',
             url=GOOGLE_CHROME_REPO
         ).create()
+        repositories.append(repo1)
 
         # step 2.6: Create custom PUPPET repository
         repo2 = entities.Repository(
@@ -980,19 +990,22 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
             content_type=u'puppet',
             url=FAKE_0_PUPPET_REPO
         ).create()
+        repositories.append(repo2)
 
         # step 2.7: Enable a Red Hat repository
-        repo3 = entities.Repository(id=enable_rhrepo_and_fetchid(
-            basearch='x86_64',
-            org_id=org.id,
-            product=PRDS['rhel'],
-            repo=REPOS['rhva6']['name'],
-            reposet=REPOSET['rhva6'],
-            releasever='6Server',
-        ))
+        if self.fake_manifest_is_set:
+            repo3 = entities.Repository(id=enable_rhrepo_and_fetchid(
+                basearch='x86_64',
+                org_id=org.id,
+                product=PRDS['rhel'],
+                repo=REPOS['rhva6']['name'],
+                reposet=REPOSET['rhva6'],
+                releasever='6Server',
+            ))
+            repositories.append(repo3)
 
         # step 2.8: Synchronize the three repositories
-        for repo in [repo1, repo2, repo3]:
+        for repo in repositories:
             repo.sync()
 
         # step 2.9: Create content view
@@ -1003,7 +1016,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
 
         # step 2.10: Associate the YUM and Red Hat repositories to new content
         # view
-        content_view.repository = [repo1, repo3]
+        repositories.remove(repo2)
+        content_view.repository = repositories
         content_view = content_view.update(['repository'])
 
 
@@ -1053,10 +1067,11 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
                 })
                 break
         # step 2.15.1: Enable product content
-        activation_key.content_override(data={'content_override': {
-            u'content_label': AK_CONTENT_LABEL,
-            u'value': u'1',
-        }})
+        if self.fake_manifest_is_set:
+            activation_key.content_override(data={'content_override': {
+                u'content_label': AK_CONTENT_LABEL,
+                u'value': u'1',
+            }})
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists

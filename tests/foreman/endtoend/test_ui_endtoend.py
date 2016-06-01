@@ -22,7 +22,11 @@ from robottelo.constants import (
     SAT6_TOOLS_TREE,
     FAKE_6_PUPPET_REPO,
 )
-from robottelo.decorators import bz_bug_is_open, skip_if_not_set
+from robottelo.decorators import (
+    bz_bug_is_open,
+    setting_is_set,
+    skip_if_not_set,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import (
     make_activationkey,
@@ -46,6 +50,11 @@ from .utils import ClientProvisioningMixin
 
 class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
     """End-to-end tests using the ``WebUI``."""
+
+    @classmethod
+    def setUpClass(cls):  # noqa
+        super(EndToEndTestCase, cls).setUpClass()
+        cls.fake_manifest_is_set = setting_is_set('fake_manifest')
 
     def test_positive_find_default_org(self):
         """@Test: Check if :data:`robottelo.constants.DEFAULT_ORG` is present
@@ -124,7 +133,8 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
         password = gen_string('alpha')
         product_name = gen_string('alpha')
         puppet_repository_name = gen_string('alpha')
-        repos = self.sync.create_repos_tree(RHVA_REPO_TREE)
+        if self.fake_manifest_is_set:
+            repos = self.sync.create_repos_tree(RHVA_REPO_TREE)
         subnet_name = gen_string('alpha')
         username = gen_string('alpha')
         yum_repository_name = gen_string('alpha')
@@ -147,13 +157,14 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             self.assertIsNotNone(self.org.search(org_name))
 
             # step 2.2: Clone and upload manifest
-            session.nav.go_to_select_org(org_name)
-            session.nav.go_to_red_hat_subscriptions()
-            with manifests.clone() as manifest:
-                self.subscriptions.upload(manifest)
-            self.assertTrue(session.nav.wait_until_element(
-                common_locators['alert.success']
-            ))
+            if self.fake_manifest_is_set:
+                session.nav.go_to_select_org(org_name)
+                session.nav.go_to_red_hat_subscriptions()
+                with manifests.clone() as manifest:
+                    self.subscriptions.upload(manifest)
+                self.assertTrue(session.nav.wait_until_element(
+                    common_locators['alert.success']
+                ))
 
             # step 2.3: Create a new lifecycle environment
             make_lifecycle_environment(session, org=org_name, name=lce_name)
@@ -184,8 +195,9 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 self.repository.search(puppet_repository_name))
 
             # step 2.7: Enable a Red Hat repository
-            session.nav.go_to_red_hat_repositories()
-            self.sync.enable_rh_repos(repos)
+            if self.fake_manifest_is_set:
+                session.nav.go_to_red_hat_repositories()
+                self.sync.enable_rh_repos(repos)
 
             # step 2.8: Synchronize the three repositories
             self.navigator.go_to_sync_status()
@@ -193,7 +205,8 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 product_name,
                 [yum_repository_name, puppet_repository_name]
             ))
-            self.assertTrue(self.sync.sync_rh_repos(repos))
+            if self.fake_manifest_is_set:
+                self.assertTrue(self.sync.sync_rh_repos(repos))
 
             # step 2.9: Create content view
             make_contentview(session, org=org_name, name=cv_name)
@@ -206,14 +219,11 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
 
             # step 2.10: Associate the YUM and Red Hat repositories to new
             # content view
-            self.content_views.add_remove_repos(
-                cv_name,
-                [
-                    yum_repository_name,
-                    REPOS['rhva65']['name'],
-                    REPOS['rhva6']['name'],
-                ]
-            )
+            repositories = [yum_repository_name]
+            if self.fake_manifest_is_set:
+                repositories.append(REPOS['rhva65']['name'])
+                repositories.append(REPOS['rhva6']['name'])
+            self.content_views.add_remove_repos(cv_name, repositories)
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success']
             ))
@@ -252,8 +262,9 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 activation_key_name, [DEFAULT_SUBSCRIPTION_NAME])
 
             # step 2.15.1: Enable product content
-            self.activationkey.enable_repos(
-                activation_key_name, [REPOSET['rhva6']])
+            if self.fake_manifest_is_set:
+                self.activationkey.enable_repos(
+                    activation_key_name, [REPOSET['rhva6']])
 
             # step 2.16: Create a new libvirt compute resource
             make_resource(

@@ -33,7 +33,7 @@ from robottelo.constants import (
     REPOSET,
 )
 from robottelo.config import settings
-from robottelo.decorators import bz_bug_is_open
+from robottelo.decorators import bz_bug_is_open, setting_is_set
 from robottelo.test import CLITestCase
 
 from .utils import AK_CONTENT_LABEL, ClientProvisioningMixin
@@ -42,6 +42,11 @@ from .utils import AK_CONTENT_LABEL, ClientProvisioningMixin
 
 class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
     """End-to-end tests using the ``CLI`` path."""
+
+    @classmethod
+    def setUpClass(cls):  # noqa
+        super(EndToEndTestCase, cls).setUpClass()
+        cls.fake_manifest_is_set = setting_is_set('fake_manifest')
 
     def test_positive_find_default_org(self):
         """Check if 'Default Organization' is present
@@ -114,12 +119,13 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
         org = self._create(user, Org, {u'name': gen_alphanumeric()})
 
         # step 2.2: Clone and upload manifest
-        with manifests.clone() as manifest:
-            ssh.upload_file(manifest.content, manifest.filename)
-        Subscription.upload({
-            u'file': manifest.filename,
-            u'organization-id': org['id'],
-        })
+        if self.fake_manifest_is_set:
+            with manifests.clone() as manifest:
+                ssh.upload_file(manifest.content, manifest.filename)
+            Subscription.upload({
+                u'file': manifest.filename,
+                u'organization-id': org['id'],
+            })
 
         # step 2.3: Create a new lifecycle environment
         lifecycle_environment = self._create(
@@ -141,6 +147,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
                 u'organization-id': org['id'],
             }
         )
+        repositories = []
 
         # step 2.5: Create custom YUM repository
         yum_repo = self._create(
@@ -154,6 +161,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
                 u'url': GOOGLE_CHROME_REPO,
             }
         )
+        repositories.append(yum_repo)
 
         # step 2.6: Create custom PUPPET repository
         puppet_repo = self._create(
@@ -167,23 +175,26 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
                 u'url': FAKE_0_PUPPET_REPO,
             }
         )
+        repositories.append(puppet_repo)
 
         # step 2.7: Enable a Red Hat repository
-        RepositorySet.enable({
-            u'basearch': 'x86_64',
-            u'name': REPOSET['rhva6'],
-            u'organization-id': org['id'],
-            u'product': PRDS['rhel'],
-            u'releasever': '6Server',
-        })
-        rhel_repo = Repository.info({
-            u'name': REPOS['rhva6']['name'],
-            u'organization-id': org['id'],
-            u'product': PRDS['rhel'],
-        })
+        if self.fake_manifest_is_set:
+            RepositorySet.enable({
+                u'basearch': 'x86_64',
+                u'name': REPOSET['rhva6'],
+                u'organization-id': org['id'],
+                u'product': PRDS['rhel'],
+                u'releasever': '6Server',
+            })
+            rhel_repo = Repository.info({
+                u'name': REPOS['rhva6']['name'],
+                u'organization-id': org['id'],
+                u'product': PRDS['rhel'],
+            })
+            repositories.append(rhel_repo)
 
         # step 2.8: Synchronize the three repositories
-        for repo in [yum_repo, puppet_repo, rhel_repo]:
+        for repo in repositories:
             Repository.with_user(
                 user['login'],
                 user['password']
@@ -201,7 +212,8 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
 
         # step 2.10: Associate the YUM and Red Hat repositories to new content
         # view
-        for repo in (yum_repo, rhel_repo):
+        repositories.remove(puppet_repo)
+        for repo in repositories:
             ContentView.add_repository({
                 u'id': content_view['id'],
                 u'organization-id': org['id'],
@@ -300,15 +312,16 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
                 })
 
         # step 2.15.1: Enable product content
-        ActivationKey.with_user(
-            user['login'],
-            user['password']
-        ).content_override({
-            u'content-label': AK_CONTENT_LABEL,
-            u'id': activation_key['id'],
-            u'organization-id': org['id'],
-            u'value': '1',
-        })
+        if self.fake_manifest_is_set:
+            ActivationKey.with_user(
+                user['login'],
+                user['password']
+            ).content_override({
+                u'content-label': AK_CONTENT_LABEL,
+                u'id': activation_key['id'],
+                u'organization-id': org['id'],
+                u'value': '1',
+            })
 
         # BONUS: Create a content host and associate it with promoted
         # content view and last lifecycle where it exists
