@@ -118,13 +118,8 @@ class HostCollection(Base):
 
     def add_host(self, name, host_name):
         """Add content host to existing Host Collection entity."""
-        # find host collection
-        host_collection = self.search(name)
-        if host_collection is None:
-            raise UIError(
-                u'Could not find host collection {0}'.format(name))
-        host_collection.click()
-        self.wait_for_ajax()
+        host_name = host_name.lower()
+        self.click(self.search(name))
         self.click(tab_locators['hostcollection.hosts'])
         self.click(tab_locators['hostcollection.tab_host_add'])
         strategy, value = locators['hostcollection.select_host']
