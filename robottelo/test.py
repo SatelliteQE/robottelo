@@ -17,8 +17,9 @@ except ImportError:
     sauceclient = None
 
 from datetime import datetime
+from collections import deque, defaultdict
 from fauxfactory import gen_string
-from nailgun import entities
+from nailgun import entities, signals
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.org import Org as OrgCli
@@ -95,6 +96,9 @@ LOGGER = logging.getLogger(__name__)
 class TestCase(unittest2.TestCase):
     """Robottelo test case"""
 
+    cleanup_queue = defaultdict(deque)
+    deleted_entities = defaultdict(set)
+
     @classmethod
     def setUpClass(cls):  # noqa
         super(TestCase, cls).setUpClass()
@@ -105,6 +109,39 @@ class TestCase(unittest2.TestCase):
         cls.longMessage = True
         cls.foreman_user = settings.server.admin_username
         cls.foreman_password = settings.server.admin_password
+
+    @classmethod
+    def delete_entity(cls, entity, **kwargs):
+        entity_type = entity.__class__.__name__
+        if entity.id in cls.deleted_entities[entity_type]:
+            return
+        try:
+            entity.delete(**kwargs)
+        except Exception as e:
+            cls.logger.warn("Error deleting entity %s", str(e))
+        else:
+            cls.deleted_entities[entity_type].add(entity.id)
+
+    @classmethod
+    def tearDownClass(cls):
+        if not settings.cleanup:
+            return
+        # First delete all hosts
+        [cls.delete_entity(host) for host in cls.cleanup_queue.get('Host', [])]
+        # Then we can delete all organizations with no assigned hosts
+        [cls.delete_entity(org, synchronous=False)
+         for org in cls.cleanup_queue.get('Organization', [])]
+
+    @classmethod
+    def register_entity_for_cleanup(cls, sender, entity, **kwargs):
+        cls.cleanup_queue[entity.__class__.__name__].appendleft(entity)
+
+
+# handle only signals emitted by Host and Organization entities
+signals.post_create.connect(TestCase.register_entity_for_cleanup,
+                            sender=entities.Host)
+signals.post_create.connect(TestCase.register_entity_for_cleanup,
+                            sender=entities.Organization)
 
 
 class APITestCase(TestCase):
