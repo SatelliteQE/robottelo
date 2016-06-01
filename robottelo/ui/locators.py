@@ -1481,9 +1481,7 @@ locators = LocatorDict({
         By.XPATH, "//a[@ui-sref='products.new.sync-plan']"),
     "prd.close": (
         By.XPATH, "//button[@ui-sref='products.index']"),
-    "prd.remove": (
-        By.XPATH,
-        "//button[contains(@ng-hide,'product.readonly')]"),
+    "prd.remove": (By.XPATH, "//button[contains(., 'Remove Product')]"),
     "prd.select_checkbox": (
         By.XPATH, ("//a[@class='ng-binding' and contains(.,'%s')]"
                    "/../../td/input[contains(@ng-model,'product')]")),
