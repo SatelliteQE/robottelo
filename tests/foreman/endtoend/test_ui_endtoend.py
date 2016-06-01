@@ -225,14 +225,14 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             # step 2.12: Publish content view
             self.content_views.publish(cv_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']
+                common_locators['alert.success_sub_form']
             ))
 
             # step 2.13: Promote content view to the lifecycle environment
             self.content_views.promote(
                 cv_name, version='Version 1', env=lce_name)
             self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success']
+                common_locators['alert.success_sub_form']
             ))
 
             # step 2.14: Create a new activation key
@@ -380,14 +380,14 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             self.content_views.publish(cv_name)
             if not bz_bug_is_open(1191422):
                 self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success']
+                    common_locators['alert.success_sub_form']
                 ))
             # Promote content-view to life-cycle environment.
             self.content_views.promote(
                 cv_name, version='Version 1', env=env_name)
             if not bz_bug_is_open(1191422):
                 self.assertIsNotNone(self.content_views.wait_until_element(
-                    common_locators['alert.success']
+                    common_locators['alert.success_sub_form']
                 ))
             # Create Activation-Key
             make_activationkey(

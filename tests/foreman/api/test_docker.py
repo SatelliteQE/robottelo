@@ -2,7 +2,7 @@
 """Unit tests for the Docker feature."""
 from fauxfactory import gen_string, gen_url
 from nailgun import entities
-from random import randint, shuffle
+from random import choice, randint, shuffle
 from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
 from robottelo.config import settings
@@ -17,6 +17,7 @@ from robottelo.datafactory import (
     valid_data_list,
 )
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
@@ -112,7 +113,7 @@ def _create_repository(product, name=None, upstream_name=None):
 
     """
     if name is None:
-        name = generate_strings_list(15, ['numeric', 'html'])
+        name = choice(generate_strings_list(15, ['numeric', 'html']))
     if upstream_name is None:
         upstream_name = u'busybox'
     return entities.Repository(
@@ -1295,6 +1296,7 @@ class DockerContainerTestCase(APITestCase):
                     container.read()
 
 
+@run_in_one_thread
 class DockerRegistryTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.

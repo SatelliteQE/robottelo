@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 from robottelo.constants import FILTER
 from robottelo.ui.base import Base, UINoSuchElementError, UIError
-from robottelo.ui.locators import locators, tab_locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
 
@@ -71,7 +71,22 @@ class Container(Base):
                 {'main_tab_name': 'Environment', 'name': 'TTY', 'value': True},
             ]
         """
-        self.assign_value(locators['container.resource_name'], resource_name)
+        # send_keys() can't send left parenthesis (see SeleniumHQ/selenium#674)
+        # which is used in compute resource name (e.g. 'test (Docker)')
+        if ' (' in resource_name:
+            self.click(locators['container.resource_name'])
+            # typing compute resource name without parenthesis part
+            self.text_field_update(
+                common_locators['select_list_search_box'],
+                resource_name.split(' (')[0]
+            )
+            strategy, value = common_locators['entity_select_list']
+            # selecting compute resource by its full name (with parenthesis
+            # part)
+            self.click((strategy, value % resource_name))
+        else:
+            self.assign_value(
+                locators['container.resource_name'], resource_name)
         for parameter in parameter_list:
             if parameter['main_tab_name'] == 'Preliminary':
                 if parameter['sub_tab_name'] == 'Organization':
