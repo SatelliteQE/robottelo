@@ -972,7 +972,6 @@ class DockerComputeResourceTestCase(UITestCase):
         super(DockerComputeResourceTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
 
-    @skip_if_bug_open('bugzilla', 1336727)
     @run_only_on('sat')
     @tier1
     def test_positive_create_internal(self):
@@ -999,7 +998,6 @@ class DockerComputeResourceTestCase(UITestCase):
                     self.assertIsNotNone(
                         self.compute_resource.search(comp_name))
 
-    @skip_if_bug_open('bugzilla', 1336727)
     @run_only_on('sat')
     @tier1
     def test_positive_update_internal(self):
@@ -1045,7 +1043,6 @@ class DockerComputeResourceTestCase(UITestCase):
 
         """
 
-    @skip_if_bug_open('bugzilla', 1336727)
     @run_only_on('sat')
     @tier1
     def test_positive_create_external(self):
@@ -1072,7 +1069,6 @@ class DockerComputeResourceTestCase(UITestCase):
                     self.assertIsNotNone(
                         self.compute_resource.search(comp_name))
 
-    @skip_if_bug_open('bugzilla', 1336727)
     @run_only_on('sat')
     @tier1
     def test_positive_update_external(self):
@@ -1119,7 +1115,6 @@ class DockerComputeResourceTestCase(UITestCase):
         @Status: Manual
         """
 
-    @skip_if_bug_open('bugzilla', 1336727)
     @run_only_on('sat')
     @tier1
     def test_positive_delete(self):
