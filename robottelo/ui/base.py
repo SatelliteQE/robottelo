@@ -85,6 +85,7 @@ class Base(object):
     def search(self, element_name):
         """Uses the search box to locate an element from a list of elements."""
         # Navigate to the page
+        self.logger.debug(u'Searching for: %s', element_name)
         self.navigate_to_entity()
 
         # Provide search criterions or use default ones
@@ -176,6 +177,7 @@ class Base(object):
             self.browser.execute_script('window.scroll(0, 0)')
             strategy, value = common_locators['filter']
             txt_field = self.wait_until_element((strategy, value % filter_key))
+            self.logger.debug(u'Toggling entity %s select state', entity)
             if txt_field:
                 txt_field.clear()
                 txt_field.send_keys(entity)
@@ -212,6 +214,7 @@ class Base(object):
 
     def delete_entity(self, name, really, del_locator, drop_locator=None):
         """Delete an added entity, handles both with and without dropdown."""
+        self.logger.debug(u'Deleting entity %s', name)
         searched = self.search(name)
         if not searched:
             raise UIError(u'Could not search the entity "{0}"'.format(name))
@@ -396,6 +399,7 @@ class Base(object):
         """
         txt_field = self.find_element(locators[loc_string])
         txt_field.clear()
+        self.logger.debug(u'Updating field:%s with:%s', loc_string, newtext)
         txt_field.send_keys(newtext)
         self.wait_for_ajax()
 
@@ -405,6 +409,7 @@ class Base(object):
         """
         txt_field = self.wait_until_element(locator)
         txt_field.clear()
+        self.logger.debug(u'Updating text field:%s with:%s', locator, newtext)
         txt_field.send_keys(newtext)
         self.wait_for_ajax()
 
@@ -422,6 +427,7 @@ class Base(object):
             pvalue = self.find_element(common_locators['parameter_value'])
             pvalue.send_keys(param_value)
         self.click(common_locators['submit'])
+        self.logger.debug(u'Param: %s set to: %s', param_name, param_value)
 
     def remove_parameter(self, param_name):
         """Function to remove parameters for different entities like OS and
@@ -431,6 +437,7 @@ class Base(object):
         strategy, value = common_locators['parameter_remove']
         self.click((strategy, value % param_name))
         self.click(common_locators['submit'])
+        self.logger.debug(u'Removed param: %s', param_name)
 
     def edit_entity(self, edit_loc, edit_text_loc, entity_value, save_loc):
         """Function to edit the selected entity's  text and save it."""
@@ -624,6 +631,7 @@ class Base(object):
                 ajax_timeout=timeout,
                 scroll=scroll,
             )
+        self.logger.debug(u'Selected value %s on %s', list_value, locator)
 
     def perform_action_chain_move(self, locator):
         """Moving the mouse to the middle of an element specified by locator
@@ -676,3 +684,4 @@ class Base(object):
                 u'Provided locator {0} is not supported by framework'
                 .format(locator)
             )
+        self.logger.debug(u'Assigned value %s to %s', value, locator)
