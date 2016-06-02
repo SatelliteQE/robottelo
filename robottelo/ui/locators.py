@@ -1731,7 +1731,7 @@ locators = LocatorDict({
         "//a[@class='ng-scope' and contains(@href, 'content-hosts')]"),
     "ak.content_host_name": (
         By.XPATH,
-        "//tr[@ng-repeat='contentHost in contentHosts']/td/a"),
+        "//tr[@ng-controller='ContentHostStatusController']/td/a"),
     "ak.prd_content.edit_repo": (
         By.XPATH,
         ("//u[contains(.,'%s')]/../..//i[contains(@class,'fa-edit')]")),
