@@ -11,14 +11,14 @@ from robottelo.datafactory import (
 )
 from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.constants import (
-    ANY_CONTEXT,
+    DEFAULT_ORG,
     INSTALL_MEDIUM_URL,
     LIBVIRT_RESOURCE_URL,
     OS_TEMPLATE_DATA_FILE,
 )
 from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_loc, make_templates, set_context
+from robottelo.ui.factory import make_loc, make_templates
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
@@ -55,6 +55,14 @@ def valid_env_names():
 class LocationTestCase(UITestCase):
     """Implements Location tests in UI"""
     location = None
+
+    @classmethod
+    def setUpClass(cls):
+        """Set up an organization for tests."""
+        super(LocationTestCase, cls).setUpClass()
+        cls.org_ = entities.Organization().search(query={
+            'search': 'name="{0}"'.format(DEFAULT_ORG)
+        })[0]
 
     # Auto Search
 
@@ -117,8 +125,8 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_same_name(self):
-        """Create location with valid values, then create a new one
-        with same values.
+        """Create location with valid values, then create a new one with same
+        values.
 
         @feature: Locations
 
@@ -403,9 +411,9 @@ class LocationTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
-    def test_add_compresource(self):
-        """Add compute resource using the location name and
-        compute resource name
+    def test_positive_add_compresource(self):
+        """Add compute resource using the location name and compute resource
+        name
 
         @feature: Locations
 
@@ -481,8 +489,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_add_template(self):
-        """Add config template by using location name and config
-        template name.
+        """Add config template by using location name and config template name.
 
         @feature: Locations
 
@@ -524,10 +531,17 @@ class LocationTestCase(UITestCase):
             for env_name in valid_env_names():
                 with self.subTest(env_name):
                     loc_name = gen_string('alpha')
-                    env = entities.Environment(name=env_name).create()
+                    env = entities.Environment(
+                        name=env_name,
+                        organization=[self.org_],
+                    ).create()
                     self.assertEqual(env.name, env_name)
-                    set_context(session, org=ANY_CONTEXT['org'])
-                    make_loc(session, name=loc_name, envs=[env_name])
+                    make_loc(
+                        session,
+                        envs=[env_name],
+                        name=loc_name,
+                        organizations=[self.org_.name],
+                    )
                     self.location.search(loc_name).click()
                     session.nav.click(tab_locators['context.tab_env'])
                     element = session.nav.wait_until_element(
@@ -565,8 +579,12 @@ class LocationTestCase(UITestCase):
                         mask='255.255.255.0',
                     ).create()
                     self.assertEqual(subnet.name, subnet_name)
-                    set_context(session, org=ANY_CONTEXT['org'])
-                    make_loc(session, name=loc_name, subnets=[subnet_name])
+                    make_loc(
+                        session,
+                        name=loc_name,
+                        organizations=[self.org_.name],
+                        subnets=[subnet_name],
+                    )
                     self.location.search(loc_name).click()
                     session.nav.click(tab_locators['context.tab_subnets'])
                     element = session.nav.wait_until_element(
@@ -586,8 +604,8 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_domain(self):
-        """Add a domain to an location and remove it by location name
-        and domain name
+        """Add a domain to an location and remove it by location name and
+        domain name
 
         @feature: Locations
 
@@ -599,10 +617,17 @@ class LocationTestCase(UITestCase):
             for domain_name in generate_strings_list():
                 with self.subTest(domain_name):
                     loc_name = gen_string('alpha')
-                    domain = entities.Domain(name=domain_name).create()
+                    domain = entities.Domain(
+                        name=domain_name,
+                        organization=[self.org_],
+                    ).create()
                     self.assertEqual(domain.name, domain_name)
-                    set_context(session, org=ANY_CONTEXT['org'])
-                    make_loc(session, name=loc_name, domains=[domain_name])
+                    make_loc(
+                        session,
+                        domains=[domain_name],
+                        name=loc_name,
+                        organizations=[self.org_.name],
+                    )
                     self.location.search(loc_name).click()
                     session.nav.click(tab_locators['context.tab_domains'])
                     element = session.nav.wait_until_element(
@@ -622,8 +647,8 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_user(self):
-        """Create admin users then add user and remove it by using the
-        location name
+        """Create admin users then add user and remove it by using the location
+        name
 
         @feature: Locations
 
@@ -645,8 +670,12 @@ class LocationTestCase(UITestCase):
                         password=gen_string('alpha'),
                     ).create()
                     self.assertEqual(user.login, user_name)
-                    set_context(session, org=ANY_CONTEXT['org'])
-                    make_loc(session, name=loc_name, users=[user_name])
+                    make_loc(
+                        session,
+                        name=loc_name,
+                        organizations=[self.org_.name],
+                        users=[user_name],
+                    )
                     self.location.search(loc_name).click()
                     session.nav.click(tab_locators['context.tab_users'])
                     element = session.nav.wait_until_element(
@@ -678,10 +707,16 @@ class LocationTestCase(UITestCase):
             for host_grp_name in generate_strings_list():
                 with self.subTest(host_grp_name):
                     loc_name = gen_string('alpha')
-                    host_grp = entities.HostGroup(name=host_grp_name).create()
+                    host_grp = entities.HostGroup(
+                        name=host_grp_name,
+                        organization=[self.org_],
+                    ).create()
                     self.assertEqual(host_grp.name, host_grp_name)
-                    set_context(session, org=ANY_CONTEXT['org'])
-                    make_loc(session, name=loc_name)
+                    make_loc(
+                        session,
+                        name=loc_name,
+                        organizations=[self.org_.name],
+                    )
                     self.location.search(loc_name).click()
                     session.nav.click(tab_locators['context.tab_hostgrps'])
                     element = session.nav.wait_until_element(
@@ -701,8 +736,8 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_compresource(self):
-        """Remove compute resource by using the location name and
-        compute resource name
+        """Remove compute resource by using the location name and compute
+        resource name
 
         @feature: Locations
 
@@ -716,11 +751,17 @@ class LocationTestCase(UITestCase):
                     loc_name = gen_string('alpha')
                     url = LIBVIRT_RESOURCE_URL % settings.server.hostname
                     resource = entities.LibvirtComputeResource(
-                        name=resource_name, url=url
+                        name=resource_name,
+                        organization=[self.org_],
+                        url=url,
                     ).create()
                     self.assertEqual(resource.name, resource_name)
-                    set_context(session, org=ANY_CONTEXT['org'])
-                    make_loc(session, name=loc_name, resources=[resource_name])
+                    make_loc(
+                        session,
+                        name=loc_name,
+                        organizations=[self.org_.name],
+                        resources=[resource_name],
+                    )
                     self.location.search(loc_name).click()
                     session.nav.click(tab_locators['context.tab_resources'])
                     element = self.location.wait_until_element(
@@ -754,12 +795,17 @@ class LocationTestCase(UITestCase):
                     loc_name = gen_string('alpha')
                     medium = entities.Media(
                         name=medium_name,
-                        path_=INSTALL_MEDIUM_URL % gen_string('alpha', 6),
+                        organization=[self.org_],
                         os_family='Redhat',
+                        path_=INSTALL_MEDIUM_URL % gen_string('alpha', 6),
                     ).create()
                     self.assertEqual(medium.name, medium_name)
-                    set_context(session, org=ANY_CONTEXT['org'])
-                    make_loc(session, name=loc_name, medias=[medium_name])
+                    make_loc(
+                        session,
+                        medias=[medium_name],
+                        organizations=[self.org_.name],
+                        name=loc_name,
+                    )
                     self.location.search(loc_name).click()
                     session.nav.click(tab_locators['context.tab_media'])
                     element = session.nav.wait_until_element(
@@ -779,8 +825,7 @@ class LocationTestCase(UITestCase):
     @run_only_on('sat')
     @tier2
     def test_positive_remove_template(self):
-        """
-        Remove config template
+        """Remove config template
 
         @feature: Locations
 
@@ -791,7 +836,6 @@ class LocationTestCase(UITestCase):
             for template_name in generate_strings_list(length=8):
                 with self.subTest(template_name):
                     loc_name = gen_string('alpha')
-                    set_context(session, org=ANY_CONTEXT['org'])
                     make_templates(
                         session,
                         name=template_name,
@@ -800,7 +844,11 @@ class LocationTestCase(UITestCase):
                         custom_really=True,
                     )
                     self.assertIsNotNone(self.template.search(template_name))
-                    make_loc(session, name=loc_name)
+                    make_loc(
+                        session,
+                        name=loc_name,
+                        organizations=[self.org_.name],
+                    )
                     self.location.search(loc_name).click()
                     session.nav.click(tab_locators['context.tab_template'])
                     element = session.nav.wait_until_element(

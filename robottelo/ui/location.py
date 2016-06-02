@@ -93,20 +93,16 @@ class Location(Base):
         if parent:
             self.select(locators['location.parent'], parent)
         self.click(common_locators['submit'])
-        edit_locator = self.wait_until_element(
-            locators['location.proceed_to_edit'])
-        if edit_locator:
-            edit_locator.click()
-            self._configure_location(
-                users=users, proxies=proxies,
-                subnets=subnets, resources=resources,
-                medias=medias, templates=templates,
-                domains=domains, envs=envs,
-                hostgroups=hostgroups,
-                organizations=organizations,
-                select=select,
-            )
-            self.click(common_locators['submit'])
+        self._configure_location(
+            users=users, proxies=proxies,
+            subnets=subnets, resources=resources,
+            medias=medias, templates=templates,
+            domains=domains, envs=envs,
+            hostgroups=hostgroups,
+            organizations=organizations,
+            select=select,
+        )
+        self.click(common_locators['submit'])
 
     def update(self, loc_name, new_name=None, users=None,
                proxies=None, subnets=None, resources=None, medias=None,
