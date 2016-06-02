@@ -22,6 +22,7 @@ from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
+    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -1002,6 +1003,7 @@ class ActivationKeyTestCase(UITestCase):
             )
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1342057)
     @skip_if_not_set('clients')
     @tier3
     def test_positive_add_multiple_aks_to_system(self):
