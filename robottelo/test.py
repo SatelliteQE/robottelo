@@ -25,10 +25,8 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.org import Org as OrgCli
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
-from robottelo.performance.constants import(
-    DEFAULT_ORG,
-    NUM_THREADS,
-)
+from robottelo.constants import DEFAULT_ORG, DEFAULT_ORG_ID
+from robottelo.performance.constants import NUM_THREADS
 from robottelo.performance.graph import(
     generate_bar_chart_stat,
     generate_line_chart_raw_candlepin,
@@ -118,7 +116,7 @@ class TestCase(unittest2.TestCase):
         try:
             entity.delete(**kwargs)
         except Exception as e:
-            cls.logger.warn("Error deleting entity %s", str(e))
+            cls.logger.warn('Error deleting entity %s', str(e))
         else:
             cls.deleted_entities[entity_type].add(entity.id)
 
@@ -156,7 +154,7 @@ class CLITestCase(TestCase):
     def setUp(self):  # noqa
         """Log test class and method name before each test."""
         self.logger.debug(
-            "Running test %s/%s", type(self).__name__, self._testMethodName)
+            'Running test %s/%s', type(self).__name__, self._testMethodName)
 
 
 class UITestCase(TestCase):
@@ -166,33 +164,70 @@ class UITestCase(TestCase):
     def setUpClass(cls):  # noqa
         """Make sure that we only read configuration values once."""
         super(UITestCase, cls).setUpClass()
-
-        try:
-            cls.session_user = entities.User(
-                firstname='Foreman User',
-                login=gen_string('alpha'),
-                password=cls.foreman_password,
-                admin=True,
-                default_organization=1
-            ).create()
+        cls.set_session_org()
+        cls.set_session_user()
+        if cls.session_user is not None:
             cls.foreman_user = cls.session_user.login
-        except Exception as e:
-            cls.session_user = None
-            cls.logger.warn("Unable to create session_user %s", str(e))
-
         cls.driver_name = settings.webdriver
         cls.driver_binary = settings.webdriver_binary
         cls.locale = settings.locale
         cls.server_name = settings.server.hostname
+        cls.logger.info(
+            u'Session set with:\n'
+            u'\tUser: {cls.session_user.id}:{cls.session_user.login}\n'
+            u'\tOrganization: {cls.session_org.id}:{cls.session_org.name}\n'
+            u'\tWeb Driver: {cls.driver_name}\n'
+            u'\tBinary: {cls.driver_binary}\n'
+            u'\tLocale: {cls.locale}\n'
+            u'\tServer Name: {cls.server_name}'
+            .format(cls=cls)
+        )
+
+    @classmethod
+    def set_session_org(cls):
+        """TestCases can overwrite this method to create a different
+        organization object for the session.
+        """
+        cls.session_org = entities.Organization(
+            id=DEFAULT_ORG_ID, name=DEFAULT_ORG
+        )
+
+    @classmethod
+    def set_session_user(cls):
+        """Creates a new user for each session this method can be overwritten
+        in TestCases in order to get different default user
+        """
+        try:
+            username = gen_string('alpha')
+            cls.session_user = entities.User(
+                firstname='Robottelo User {0}'.format(username),
+                login=username,
+                password=cls.foreman_password,
+                admin=True,
+                default_organization=cls.session_org
+            ).create()
+        except Exception as e:
+            cls.session_user = None
+            cls.logger.warn('Unable to create session_user: %s', str(e))
 
     @classmethod
     def tearDownClass(cls):
         super(UITestCase, cls).tearDownClass()
+        cls.delete_session_user()
+
+    @classmethod
+    def delete_session_user(cls):
+        """Delete created session user can be overwritten in TestCase to
+        bypass user deletion
+        """
         if cls.session_user is not None:
             try:
                 cls.session_user.delete(synchronous=False)
             except Exception as e:
-                cls.logger.warn("Unable to delete session_user %s", str(e))
+                cls.logger.warn('Unable to delete session_user: %s', str(e))
+            else:
+                cls.logger.info(
+                    'Session user is being deleted: %s', cls.session_user)
 
     def setUp(self):  # noqa
         """We do want a new browser instance for every test."""
