@@ -10,6 +10,7 @@ from robottelo.constants import PUPPET_MODULE_NTP_PUPPETLABS
 from robottelo.datafactory import invalid_values_list, valid_hostgroups_list
 from robottelo.decorators import (
     skip_if_bug_open,
+    stubbed,
     tier1,
     tier2,
     tier3,
@@ -364,6 +365,7 @@ class HostGroupTestCase(APITestCase):
         ).create()
         self.assertEqual(hostgroup.domain.read().name, domain.name)
 
+    @stubbed('Remove stub once proper infrastructure will be created')
     @tier2
     def test_positive_create_with_realm(self):
         """Create a hostgroup with realm specified
@@ -742,6 +744,7 @@ class HostGroupTestCase(APITestCase):
         hostgroup = hostgroup.update(['domain'])
         self.assertEqual(hostgroup.domain.read().name, new_domain.name)
 
+    @stubbed('Remove stub once proper infrastructure will be created')
     @tier2
     def test_positive_update_realm(self):
         """Update a hostgroup with a new realm
