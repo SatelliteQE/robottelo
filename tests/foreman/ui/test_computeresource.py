@@ -5,7 +5,7 @@ from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
 from robottelo.datafactory import invalid_names_list, valid_data_list
-from robottelo.decorators import skip_if_bug_open, run_only_on, tier1
+from robottelo.decorators import run_only_on, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_resource
 from robottelo.ui.locators import common_locators
@@ -228,11 +228,10 @@ class ComputeResourceTestCase(UITestCase):
                     self.assertIsNotNone(self.compute_resource.search(name))
                     self.compute_resource.delete(name)
 
-    @skip_if_bug_open('bugzilla', 1336727)
     @run_only_on('sat')
     @tier1
-    def test_positive_access_docker_via_profile(self):
-        """Try to access docker compute resource via compute profile
+    def test_positive_access_libvirt_via_profile(self):
+        """Try to access libvirt compute resource via compute profile
         (1-Small) screen
 
         @Feature: Compute Resource
@@ -244,11 +243,10 @@ class ComputeResourceTestCase(UITestCase):
             make_resource(
                 session,
                 name=name,
-                provider_type=FOREMAN_PROVIDERS['docker'],
+                provider_type=FOREMAN_PROVIDERS['libvirt'],
                 parameter_list=[[
-                    'URL', settings.docker.external_url, 'field'
+                    'URL', self.current_libvirt_url, 'field'
                 ]],
             )
-            self.assertIsNotNone(
-                self.compute_profile.select_resource('1-Small', name, 'Docker')
-            )
+            self.assertIsNotNone(self.compute_profile.select_resource(
+                '1-Small', name, 'Libvirt'))
