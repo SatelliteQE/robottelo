@@ -260,12 +260,12 @@ DEFAULT_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux Server Entry Level, Self-support')
 
 LANGUAGES = [
-    "zh_TW",
-    "Galego",
-    "Deutsch",
-    "it",
-    "ko",
-    "sv_SE",
+    u'zh_TW',
+    u'Galego',
+    u'Deutsch',
+    u'it',
+    u'日本語',
+    u'sv_SE',
 ]
 
 FILTER_CONTENT_TYPE = {
