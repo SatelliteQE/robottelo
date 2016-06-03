@@ -114,30 +114,35 @@ class TestCase(unittest2.TestCase):
         if entity.id in cls.deleted_entities[entity_type]:
             return
         try:
+            if isinstance(entity, entities.Organization):
+                query = {'search': 'organization_id={0}'.format(entity.id)}
+                org_hosts = entities.Host().search(query=query)
+                if org_hosts:  # Do not delete organizations with hosts
+                    cls.logger.debug(
+                        'Org %s can\'t be deleted as it has %s hosts',
+                        entity.id,
+                        len(org_hosts)
+                    )
+                    return
             entity.delete(**kwargs)
+            cls.deleted_entities[entity_type].add(entity.id)
         except Exception as e:
             cls.logger.warn('Error deleting entity %s', str(e))
-        else:
-            cls.deleted_entities[entity_type].add(entity.id)
 
     @classmethod
     def tearDownClass(cls):
         if not settings.cleanup:
             return
-        # First delete all hosts
-        [cls.delete_entity(host) for host in cls.cleanup_queue.get('Host', [])]
-        # Then we can delete all organizations with no assigned hosts
         [cls.delete_entity(org, synchronous=False)
-         for org in cls.cleanup_queue.get('Organization', [])]
+         for org in cls.cleanup_queue.get(entities.Organization.__name__, [])]
+        cls.logger.debug(
+            'Cleanup deleted %s entities', len(cls.deleted_entities))
 
     @classmethod
     def register_entity_for_cleanup(cls, sender, entity, **kwargs):
         cls.cleanup_queue[entity.__class__.__name__].appendleft(entity)
 
 
-# handle only signals emitted by Host and Organization entities
-signals.post_create.connect(TestCase.register_entity_for_cleanup,
-                            sender=entities.Host)
 signals.post_create.connect(TestCase.register_entity_for_cleanup,
                             sender=entities.Organization)
 
