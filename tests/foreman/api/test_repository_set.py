@@ -9,10 +9,11 @@ from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import PRDS, REPOSET
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_in_one_thread, run_only_on, tier1
 from robottelo.test import APITestCase
 
 
+@run_in_one_thread
 class RepositorySetTestCase(APITestCase):
     """Tests for ``katello/api/v2/products/<product_id>/repository_sets``."""
 
