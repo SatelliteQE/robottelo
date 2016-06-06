@@ -115,6 +115,10 @@ class Base(object):
         searchbox.clear()
         searchbox.send_keys(u'{0} = {1}'.format(
             search_key, escape_search(element_name)))
+        # ensure mouse points at search button and no tooltips are covering it
+        # before clicking
+        self.perform_action_chain_move(search_button_locator)
+
         self.click(search_button_locator)
         # Make sure that found element is returned no matter it described by
         # its own locator or common one (locator can transform depending on
