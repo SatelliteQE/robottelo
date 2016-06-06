@@ -5,11 +5,12 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.subscription import Subscription
 from robottelo import manifests
 from robottelo.constants import PRDS, REPOSET
-from robottelo.decorators import tier1
+from robottelo.decorators import run_in_one_thread, tier1
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
 
+@run_in_one_thread
 class RepositorySetTestCase(CLITestCase):
     """Repository Set CLI tests."""
 
