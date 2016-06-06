@@ -250,6 +250,7 @@ SAT6_TOOLS_TREE = [
     ('rhel', 'rhst6', 'rhst6', 'repo_ver', '6.1'),
 ]
 
+DEFAULT_ORG_ID = 1
 #: Name (not label!) of the default organization.
 DEFAULT_ORG = "Default Organization"
 #: Name (not label!) of the default location.
