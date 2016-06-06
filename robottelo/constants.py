@@ -346,7 +346,6 @@ PERMISSIONS = {
         'view_cases',
         'view_config_reports',
         'view_containers',
-        'view_content_reports',
         'view_log_viewer',
         'view_plugins',
         'view_recurring_logics',
