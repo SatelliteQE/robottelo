@@ -42,6 +42,7 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
+    skip_if_bug_open,
     skip_if_not_set,
     tier1,
     tier2,
@@ -217,6 +218,7 @@ class HostUpdateTestCase(CLITestCase):
             u'root-pass': self.host_args.root_pass,
         })
 
+    @skip_if_bug_open('bugzilla', '1343392')
     @tier1
     def test_positive_update_name_by_id(self):
         """A host can be updated with a new random name. Use id to
@@ -239,6 +241,7 @@ class HostUpdateTestCase(CLITestCase):
                     self.host['name']
                 )
 
+    @skip_if_bug_open('bugzilla', '1343392')
     @tier1
     def test_positive_update_name_by_name(self):
         """A host can be updated with a new random name. Use name to

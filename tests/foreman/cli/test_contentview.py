@@ -726,8 +726,9 @@ class ContentViewTestCase(CLITestCase):
             'Repo was not associated to CV',
         )
 
-    @tier1
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1343006)
+    @tier1
     def test_positive_add_custom_repo_by_name(self):
         """Associate custom content to a content view with name
 
