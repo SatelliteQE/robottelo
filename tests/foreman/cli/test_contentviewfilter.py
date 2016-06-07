@@ -93,7 +93,7 @@ class ContentViewFilterTestCase(CLITestCase):
                 self.assertEqual(cvf['type'], filter_content_type)
 
     @tier1
-    def test_positivec_create_with_inclusion_by_cv_id(self):
+    def test_positive_create_with_inclusion_by_cv_id(self):
         """Create new content view filter and assign it to existing content
         view by id. Use different inclusions as a parameter
 
@@ -240,7 +240,7 @@ class ContentViewFilterTestCase(CLITestCase):
         self.assertEqual(cvf['repositories'][0]['name'], self.repo['name'])
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1228890)
+    @skip_if_bug_open('bugzilla', 1343006)
     def test_positive_create_with_repo_by_name(self):
         """Create new content view filter and assign it to existing content
         view that has repository assigned to it. Use that repository name for
@@ -250,7 +250,6 @@ class ContentViewFilterTestCase(CLITestCase):
 
         @Assert: Content view filter created successfully and has proper
         repository affected
-
         """
         cvf_name = gen_string('utf8')
         ContentView.filter_create({

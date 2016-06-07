@@ -666,6 +666,7 @@ class RepositoryTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Repository.info({u'id': new_repo['id']})
 
+    @skip_if_bug_open('bugzilla', 1343006)
     @tier1
     def test_positive_upload_content(self):
         """Create repository and upload content
