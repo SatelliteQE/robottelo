@@ -12,9 +12,8 @@ class SubscriptionTestCase(UITestCase):
     """Implements subscriptions/manifests tests in UI"""
 
     @classmethod
-    def setUpClass(cls):  # noqa
-        super(SubscriptionTestCase, cls).setUpClass()
-        cls.organization = entities.Organization().create()
+    def set_session_org(cls):
+        cls.session_org = entities.Organization().create()
 
     @skip_if_not_set('fake_manifest')
     @tier1
@@ -26,7 +25,6 @@ class SubscriptionTestCase(UITestCase):
         @Assert: Manifest is uploaded and deleted successfully
         """
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_red_hat_subscriptions()
             # Step 1: Attempt to upload a manifest
             with manifests.clone() as manifest:
