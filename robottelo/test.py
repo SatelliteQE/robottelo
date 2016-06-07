@@ -109,32 +109,65 @@ class TestCase(unittest2.TestCase):
         cls.foreman_password = settings.server.admin_password
 
     @classmethod
-    def delete_entity(cls, entity, **kwargs):
-        entity_type = entity.__class__.__name__
-        if entity.id in cls.deleted_entities[entity_type]:
-            return
-        try:
-            if isinstance(entity, entities.Organization):
-                query = {'search': 'organization_id={0}'.format(entity.id)}
-                org_hosts = entities.Host().search(query=query)
-                if org_hosts:  # Do not delete organizations with hosts
-                    cls.logger.debug(
-                        'Org %s can\'t be deleted as it has %s hosts',
-                        entity.id,
-                        len(org_hosts)
-                    )
-                    return
-            entity.delete(**kwargs)
-            cls.deleted_entities[entity_type].add(entity.id)
-        except Exception as e:
-            cls.logger.warn('Error deleting entity %s', str(e))
+    def delete_entities(cls, entity_list, **kwargs):
+        cls.logger.debug('Cleanup got %s entities to delete', len(entity_list))
+        for entity in entity_list:
+            entity_type = entity.__class__.__name__
+            if entity.id in cls.deleted_entities[entity_type]:
+                # skip already deleted entities
+                continue
+            try:
+                if isinstance(entity, entities.Organization):
+                    query = {'search': 'organization_id={0}'.format(entity.id)}
+                    org_hosts = entities.Host().search(query=query)
+                    if org_hosts:  # Do not delete organizations with hosts
+                        cls.logger.debug(
+                            'Org %s can\'t be deleted as it has %s hosts',
+                            entity.id,
+                            len(org_hosts)
+                        )
+                        return
+                entity.delete(**kwargs)
+                cls.deleted_entities[entity_type].add(entity.id)
+            except Exception as e:
+                cls.logger.warn('Error deleting entity %s', str(e))
+
+    @classmethod
+    def update_entities(cls, entity_list, **kwargs):
+        cls.logger.debug('Cleanup got %s entities to update', len(entity_list))
+        for entity in entity_list:
+            try:
+                for key, value in kwargs.items():
+                    setattr(entity, key, value)
+                entity.update(fields=kwargs.keys())
+            except Exception as e:
+                cls.logger.warn('Error updating entity %s', str(e))
 
     @classmethod
     def tearDownClass(cls):
         if not settings.cleanup:
             return
-        [cls.delete_entity(org, synchronous=False)
-         for org in cls.cleanup_queue.get(entities.Organization.__name__, [])]
+        default_org = entities.Organization(id=1)
+        # reassign created hosts to default org
+        cls.update_entities(
+            cls.cleanup_queue.get(entities.Host.__name__, []),
+            hostgroup=None,
+            managed=False,
+            organization=default_org
+        )
+        # reassign created host groups to default org
+        cls.update_entities(
+            cls.cleanup_queue.get(entities.HostGroup.__name__, []),
+            lifecycle_environment=None,
+            content_view=None,
+            organization=[default_org]
+        )
+        # delete organizations
+        cls.delete_entities(
+            cls.cleanup_queue.get(entities.Organization.__name__, []),
+            synchronous=False
+        )
+
         cls.logger.debug(
             'Cleanup deleted %s entities', len(cls.deleted_entities))
 
@@ -145,6 +178,10 @@ class TestCase(unittest2.TestCase):
 
 signals.post_create.connect(TestCase.register_entity_for_cleanup,
                             sender=entities.Organization)
+signals.post_create.connect(TestCase.register_entity_for_cleanup,
+                            sender=entities.Host)
+signals.post_create.connect(TestCase.register_entity_for_cleanup,
+                            sender=entities.HostGroup)
 
 
 class APITestCase(TestCase):
