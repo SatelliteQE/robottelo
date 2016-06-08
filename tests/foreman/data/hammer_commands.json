@@ -255,7 +255,7 @@
               "value": "ORGANIZATION_LABEL"
             },
             {
-              "help": "Override to 0/1, or &#39;default&#39; Possible value(s): '0', '1', 'default'",
+              "help": "Override to 0/1, or 'default' Possible value(s): '0', '1', 'default'",
               "name": "value",
               "shortname": null,
               "value": "VALUE"
@@ -356,7 +356,7 @@
               "help": "maximum number of registered content hosts",
               "name": "max-hosts",
               "shortname": null,
-              "value": "MAX_CONTENT_HOSTS"
+              "value": "MAX_HOSTS"
             },
             {
               "help": "name",
@@ -383,7 +383,7 @@
               "value": "ORGANIZATION_LABEL"
             },
             {
-              "help": "Set content hosts max to unlimited",
+              "help": "Set hosts max to unlimited",
               "name": "unlimited-hosts",
               "shortname": null,
               "value": null
@@ -445,7 +445,7 @@
           "name": "host-collections",
           "options": [
             {
-              "help": "Interpret specified object to return only Host Collections that can be associated with specified object. The value &#39;host&#39; is supported.",
+              "help": "Interpret specified object to return only Host Collections that can be associated with specified object. The value 'host' is supported.",
               "name": "available-for",
               "shortname": null,
               "value": "AVAILABLE_FOR"
@@ -585,7 +585,7 @@
               "value": "NAME"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -787,7 +787,7 @@
           "name": "subscriptions",
           "options": [
             {
-              "help": "Object to show subscriptions available for, either &#39;host&#39; or &#39;activation_key&#39;",
+              "help": "Object to show subscriptions available for, either 'host' or 'activation_key'",
               "name": "available-for",
               "shortname": null,
               "value": "AVAILABLE_FOR"
@@ -905,7 +905,7 @@
               "help": "maximum number of registered content hosts",
               "name": "max-hosts",
               "shortname": null,
-              "value": "MAX_CONTENT_HOSTS"
+              "value": "MAX_HOSTS"
             },
             {
               "help": "Activation key name to search by",
@@ -950,10 +950,10 @@
               "value": "SERVICE_LEVEL"
             },
             {
-              "help": "can the activation key have unlimited content hosts One of true/false, yes/no, 1/0.",
+              "help": "set hosts max to unlimited",
               "name": "unlimited-hosts",
               "shortname": null,
-              "value": "UNLIMITED_CONTENT_HOSTS"
+              "value": null
             },
             {
               "help": "print help",
@@ -2104,7 +2104,7 @@
                   "value": null
                 },
                 {
-                  "help": "Environment name",
+                  "help": "Name to search by",
                   "name": "environment",
                   "shortname": null,
                   "value": "ENVIRONMENT_NAME"
@@ -2247,7 +2247,7 @@
               "value": "ENVIRONMENT_ID"
             },
             {
-              "help": "Optional comma-delimited string containing either &#39;new&#39;, &#39;updated&#39;, or &#39;obsolete&#39; that is used to limit the imported Puppet classes",
+              "help": "Optional comma-delimited string containing either 'new', 'updated', or 'obsolete' that is used to limit the imported Puppet classes",
               "name": "except",
               "shortname": null,
               "value": "EXCEPT"
@@ -2506,13 +2506,13 @@
               "value": "ORGANIZATION_NAMES"
             },
             {
-              "help": "Password for RHEV, EC2, VMware, RHEL OpenStack Platform. Secret key for EC2",
+              "help": "Password for RHEV, EC2, VMware, RHEL RHEL OpenStack Platform Platform. Secret key for EC2",
               "name": "password",
               "shortname": null,
               "value": "PASSWORD"
             },
             {
-              "help": "Providers include Libvirt, Ovirt, EC2, Vmware, Openstack, Rackspace, GCE",
+              "help": "Providers include Libvirt, Ovirt, EC2, Vmware, GCE",
               "name": "provider",
               "shortname": null,
               "value": "PROVIDER"
@@ -3124,7 +3124,7 @@
               "value": "PASSWORD"
             },
             {
-              "help": "Providers include Libvirt, Ovirt, EC2, Vmware, Openstack, Rackspace, GCE",
+              "help": "Providers include Libvirt, Ovirt, EC2, Vmware, GCE",
               "name": "provider",
               "shortname": null,
               "value": "PROVIDER"
@@ -3303,7 +3303,7 @@
               "value": "NAME"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -3465,221 +3465,6 @@
       ]
     },
     {
-      "description": "View Content Reports",
-      "name": "content-report",
-      "options": [
-        {
-          "help": "print help",
-          "name": "help",
-          "shortname": "h",
-          "value": null
-        }
-      ],
-      "subcommands": [
-        {
-          "description": "Show the latest subscription status for a list of content hosts that have reported their subscription status during a specified time period. Running this report with minimal parameters will return all status records for all reported content hosts.",
-          "name": "content-host-status",
-          "options": [
-            {
-              "help": "Do not wait for the task",
-              "name": "async",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Name to search by",
-              "name": "content-host",
-              "shortname": null,
-              "value": "CONTENT_HOST_NAME"
-            },
-            {
-              "help": "UUID of the content host",
-              "name": "content-host-id",
-              "shortname": null,
-              "value": "CONTENT_HOST_ID"
-            },
-            {
-              "help": "Include only content-hosts with the management enabled attribute true or false One of true/false, yes/no, 1/0.",
-              "name": "management-enabled",
-              "shortname": null,
-              "value": "MANAGEMENT_ENABLED"
-            },
-            {
-              "help": "Date to filter on. If not given, defaults to NOW. Results will be limited to status records that were last reported before or on the given date. Must be a date in the form of \u201cYYYY-MM-DD\u201d or \u201cYYYY-MM-DD HH:MM:SS\u201d.",
-              "name": "on-date",
-              "shortname": null,
-              "value": "ON_DATE"
-            },
-            {
-              "help": "Organization name to search by",
-              "name": "organization",
-              "shortname": null,
-              "value": "ORGANIZATION_NAME"
-            },
-            {
-              "help": "organization ID",
-              "name": "organization-id",
-              "shortname": null,
-              "value": "ORGANIZATION_ID"
-            },
-            {
-              "help": "Organization label to search by",
-              "name": "organization-label",
-              "shortname": null,
-              "value": "ORGANIZATION_LABEL"
-            },
-            {
-              "help": "Filter results on content host status. Possible value(s): 'valid', 'invalid', 'partial'",
-              "name": "status",
-              "shortname": null,
-              "value": "STATUS"
-            },
-            {
-              "help": "print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
-        },
-        {
-          "description": "Show a listing of all subscription status snapshots from content hosts which have reported their subscription status in the specified time period.",
-          "name": "content-host-trend",
-          "options": [
-            {
-              "help": "Do not wait for the task",
-              "name": "async",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "Name to search by",
-              "name": "content-host",
-              "shortname": null,
-              "value": "CONTENT_HOST_NAME"
-            },
-            {
-              "help": "UUID of the content host",
-              "name": "content-host-id",
-              "shortname": null,
-              "value": "CONTENT_HOST_ID"
-            },
-            {
-              "help": "End date. Used in conjunction with start_date. Must be a date in the form of \u201cYYYY-MM-DD\u201d or \u201cYYYY-MM-DD HH:MM:SS\u201d.",
-              "name": "end-date",
-              "shortname": null,
-              "value": "END_DATE"
-            },
-            {
-              "help": "Show a trend between HOURS and now. Used independently of start_date/end_date.",
-              "name": "hours",
-              "shortname": null,
-              "value": "HOURS"
-            },
-            {
-              "help": "Organization name to search by",
-              "name": "organization",
-              "shortname": null,
-              "value": "ORGANIZATION_NAME"
-            },
-            {
-              "help": "organization ID",
-              "name": "organization-id",
-              "shortname": null,
-              "value": "ORGANIZATION_ID"
-            },
-            {
-              "help": "Organization label to search by",
-              "name": "organization-label",
-              "shortname": null,
-              "value": "ORGANIZATION_LABEL"
-            },
-            {
-              "help": "Start date. Used in conjunction with end_date. Must be a date in the form of \u201cYYYY-MM-DD\u201d or \u201cYYYY-MM-DD HH:MM:SS\u201d.",
-              "name": "start-date",
-              "shortname": null,
-              "value": "START_DATE"
-            },
-            {
-              "help": "print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
-        },
-        {
-          "description": "Show the per-day counts of content-hosts, grouped by subscription status, optionally limited to a date range.",
-          "name": "status-trend",
-          "options": [
-            {
-              "help": "Do not wait for the task",
-              "name": "async",
-              "shortname": null,
-              "value": null
-            },
-            {
-              "help": "End date. Used in conjunction with start_date. Must be a date in the form of \u201cYYYY-MM-DD\u201d or \u201cYYYY-MM-DD HH:MM:SS\u201d.",
-              "name": "end-date",
-              "shortname": null,
-              "value": "END_DATE"
-            },
-            {
-              "help": "Include only content-hosts with the management enabled attribute true or false One of true/false, yes/no, 1/0.",
-              "name": "management-enabled",
-              "shortname": null,
-              "value": "MANAGEMENT_ENABLED"
-            },
-            {
-              "help": "Organization name to search by",
-              "name": "organization",
-              "shortname": null,
-              "value": "ORGANIZATION_NAME"
-            },
-            {
-              "help": "organization ID",
-              "name": "organization-id",
-              "shortname": null,
-              "value": "ORGANIZATION_ID"
-            },
-            {
-              "help": "Organization label to search by",
-              "name": "organization-label",
-              "shortname": null,
-              "value": "ORGANIZATION_LABEL"
-            },
-            {
-              "help": "Start date. Used in conjunction with end_date. Must be a date in the form of \u201cYYYY-MM-DD\u201d or \u201cYYYY-MM-DD HH:MM:SS\u201d.",
-              "name": "start-date",
-              "shortname": null,
-              "value": "START_DATE"
-            },
-            {
-              "help": "Include only content-hosts attached to the named subscription",
-              "name": "subscription-name",
-              "shortname": null,
-              "value": "SUBSCRIPTION_NAME"
-            },
-            {
-              "help": "Include only content-hosts attached to the subscription with the given SKU",
-              "name": "subscription-sku",
-              "shortname": null,
-              "value": "SUBSCRIPTION_SKU"
-            },
-            {
-              "help": "print help",
-              "name": "help",
-              "shortname": "h",
-              "value": null
-            }
-          ],
-          "subcommands": []
-        }
-      ]
-    },
-    {
       "description": "Manipulate content views.",
       "name": "content-view",
       "options": [
@@ -3759,7 +3544,7 @@
           "subcommands": []
         },
         {
-          "description": "Update a content view",
+          "description": "Add a content view version to a composite view",
           "name": "add-version",
           "options": [
             {
@@ -4311,7 +4096,7 @@
                   "value": "NAME"
                 },
                 {
-                  "help": "Sort field and order, eg. &#39;name DESC&#39;",
+                  "help": "Sort field and order, eg. 'name DESC'",
                   "name": "order",
                   "shortname": null,
                   "value": "ORDER"
@@ -4481,7 +4266,7 @@
                       "value": "CONTENT_VIEW_ID"
                     },
                     {
-                      "help": "erratum: search using the &#39;Issued On&#39; or &#39;Updated On&#39; column of the errata. Values are &#39;issued&#39;/&#39;updated&#39;",
+                      "help": "erratum: search using the 'Issued On' or 'Updated On' column of the errata. Values are 'issued'/'updated'",
                       "name": "date-type",
                       "shortname": null,
                       "value": "DATE_TYPE"
@@ -5056,7 +4841,7 @@
               "value": "NONDEFAULT"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -5287,7 +5072,7 @@
                   "value": "NAME"
                 },
                 {
-                  "help": "Sort field and order, eg. &#39;name DESC&#39;",
+                  "help": "Sort field and order, eg. 'name DESC'",
                   "name": "order",
                   "shortname": null,
                   "value": "ORDER"
@@ -5444,7 +5229,7 @@
               "help": "Comma separated list of values.",
               "name": "environments",
               "shortname": null,
-              "value": "LIFECYCLE_ENVIRONMENT_NAMES"
+              "value": "ENVIRONMENT_NAMES"
             },
             {
               "help": "content view numeric identifier",
@@ -5638,7 +5423,7 @@
           "subcommands": []
         },
         {
-          "description": "Remove a version of a content view",
+          "description": "Remove a content view version from a composite view",
           "name": "remove-version",
           "options": [
             {
@@ -6170,7 +5955,7 @@
                   "value": "FULL_RESULTS"
                 },
                 {
-                  "help": "Sort field and order, eg. &#39;name DESC&#39;",
+                  "help": "Sort field and order, eg. 'name DESC'",
                   "name": "order",
                   "shortname": null,
                   "value": "ORDER"
@@ -6330,6 +6115,131 @@
               "subcommands": []
             }
           ]
+        }
+      ]
+    },
+    {
+      "description": "import to or export from a running foreman server",
+      "name": "csv",
+      "options": [
+        {
+          "help": "print help",
+          "name": "help",
+          "shortname": "h",
+          "value": null
+        }
+      ],
+      "subcommands": [
+        {
+          "description": "export into directory",
+          "name": "export",
+          "options": [
+            {
+              "help": "directory to export to",
+              "name": "dir",
+              "shortname": null,
+              "value": "DIRECTORY"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "csv file for settings",
+              "name": "settings",
+              "shortname": null,
+              "value": "FILE"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "import by directory",
+          "name": "import",
+          "options": [
+            {
+              "help": "directory to import from",
+              "name": "dir",
+              "shortname": null,
+              "value": "DIRECTORY"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "csv file for settings",
+              "name": "settings",
+              "shortname": null,
+              "value": "FILE"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "import or export settings",
+          "name": "settings",
+          "options": [
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --csv-export, otherwise required)",
+              "name": "file",
+              "shortname": null,
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
+          "subcommands": []
         }
       ]
     },
@@ -6691,7 +6601,7 @@
               "value": "IP"
             },
             {
-              "help": "not required if it&#39;s a virtual machine",
+              "help": "not required if it's a virtual machine",
               "name": "mac",
               "shortname": null,
               "value": "MAC"
@@ -7728,7 +7638,7 @@
                   "value": "IDS"
                 },
                 {
-                  "help": "Sort field and order, eg. &#39;name DESC&#39;",
+                  "help": "Sort field and order, eg. 'name DESC'",
                   "name": "order",
                   "shortname": null,
                   "value": "ORDER"
@@ -8171,7 +8081,7 @@
                   "value": "IDS"
                 },
                 {
-                  "help": "Sort field and order, eg. &#39;name DESC&#39;",
+                  "help": "Sort field and order, eg. 'name DESC'",
                   "name": "order",
                   "shortname": null,
                   "value": "ORDER"
@@ -9004,7 +8914,7 @@
               "value": "FULL_RESULTS"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -9423,6 +9333,241 @@
       ]
     },
     {
+      "description": "Manage foreign input sets",
+      "name": "foreign-input-set",
+      "options": [
+        {
+          "help": "print help",
+          "name": "help",
+          "shortname": "h",
+          "value": null
+        }
+      ],
+      "subcommands": [
+        {
+          "description": "Create a foreign input set",
+          "name": "create",
+          "options": [
+            {
+              "help": "Input set description",
+              "name": "description",
+              "shortname": null,
+              "value": "DESCRIPTION"
+            },
+            {
+              "help": "A comma separated list of input names to be included from the foreign template.",
+              "name": "exclude",
+              "shortname": null,
+              "value": "EXCLUDE"
+            },
+            {
+              "help": "A comma separated list of input names to be included from the foreign template.",
+              "name": "include",
+              "shortname": null,
+              "value": "INCLUDE"
+            },
+            {
+              "help": "Include all inputs from the foreign template One of true/false, yes/no, 1/0.",
+              "name": "include-all",
+              "shortname": null,
+              "value": "INCLUDE_ALL"
+            },
+            {
+              "help": "Target template ID",
+              "name": "target-template-id",
+              "shortname": null,
+              "value": "TARGET_TEMPLATE_ID"
+            },
+            {
+              "help": "",
+              "name": "template-id",
+              "shortname": null,
+              "value": "TEMPLATE_ID"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Delete a foreign input set",
+          "name": "delete",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "",
+              "name": "template-id",
+              "shortname": null,
+              "value": "TEMPLATE_ID"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Show foreign input set details",
+          "name": "info",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "",
+              "name": "template-id",
+              "shortname": null,
+              "value": "TEMPLATE_ID"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "List foreign input sets",
+          "name": "list",
+          "options": [
+            {
+              "help": "sort results",
+              "name": "order",
+              "shortname": null,
+              "value": "ORDER"
+            },
+            {
+              "help": "paginate results",
+              "name": "page",
+              "shortname": null,
+              "value": "PAGE"
+            },
+            {
+              "help": "number of entries per request",
+              "name": "per-page",
+              "shortname": null,
+              "value": "PER_PAGE"
+            },
+            {
+              "help": "filter results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "",
+              "name": "template-id",
+              "shortname": null,
+              "value": "TEMPLATE_ID"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Update a foreign input set",
+          "name": "update",
+          "options": [
+            {
+              "help": "Input set description",
+              "name": "description",
+              "shortname": null,
+              "value": "DESCRIPTION"
+            },
+            {
+              "help": "A comma separated list of input names to be included from the foreign template.",
+              "name": "exclude",
+              "shortname": null,
+              "value": "EXCLUDE"
+            },
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "A comma separated list of input names to be included from the foreign template.",
+              "name": "include",
+              "shortname": null,
+              "value": "INCLUDE"
+            },
+            {
+              "help": "Include all inputs from the foreign template One of true/false, yes/no, 1/0.",
+              "name": "include-all",
+              "shortname": null,
+              "value": "INCLUDE_ALL"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "",
+              "name": "new-name",
+              "shortname": null,
+              "value": "NEW_NAME"
+            },
+            {
+              "help": "Target template ID",
+              "name": "target-template-id",
+              "shortname": null,
+              "value": "TARGET_TEMPLATE_ID"
+            },
+            {
+              "help": "",
+              "name": "template-id",
+              "shortname": null,
+              "value": "TEMPLATE_ID"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        }
+      ]
+    },
+    {
       "description": "Manipulate global parameters.",
       "name": "global-parameter",
       "options": [
@@ -9681,7 +9826,7 @@
               "value": "NAME"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -9823,6 +9968,12 @@
               "value": "ASK_ROOT_PW"
             },
             {
+              "help": "Sets whether the Host will autoheal subscriptions upon checkin One of true/false, yes/no, 1/0.",
+              "name": "autoheal",
+              "shortname": null,
+              "value": "AUTOHEAL"
+            },
+            {
               "help": "One of true/false, yes/no, 1/0. Default: \"true\"",
               "name": "build",
               "shortname": null,
@@ -9863,6 +10014,18 @@
               "name": "compute-resource-id",
               "shortname": null,
               "value": "COMPUTE_RESOURCE_ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "content-view",
+              "shortname": null,
+              "value": "CONTENT_VIEW_NAME"
+            },
+            {
+              "help": "content view numeric identifier",
+              "name": "content-view-id",
+              "shortname": null,
+              "value": "CONTENT_VIEW_ID"
             },
             {
               "help": "Domain name",
@@ -9913,6 +10076,12 @@
               "value": "HOSTGROUP_TITLE"
             },
             {
+              "help": "List of hypervisor guest uuids Comma separated list of values.",
+              "name": "hypervisor-guest-uuids",
+              "shortname": null,
+              "value": "HYPERVISOR_GUEST_UUIDS"
+            },
+            {
               "help": "Name to search by",
               "name": "image",
               "shortname": null,
@@ -9937,6 +10106,24 @@
               "value": "IP"
             },
             {
+              "help": "Repository Id associated with the kickstart repo used for provisioning",
+              "name": "kickstart-repository-id",
+              "shortname": null,
+              "value": "KICKSTART_REPOSITORY_ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "lifecycle-environment",
+              "shortname": null,
+              "value": "LIFECYCLE_ENVIRONMENT_NAME"
+            },
+            {
+              "help": "ID of the environment",
+              "name": "lifecycle-environment-id",
+              "shortname": null,
+              "value": "LIFECYCLE_ENVIRONMENT_ID"
+            },
+            {
               "help": "Location name",
               "name": "location",
               "shortname": null,
@@ -9949,7 +10136,7 @@
               "value": "LOCATION_ID"
             },
             {
-              "help": "required for managed host that is bare metal, not required if it&#39;s a virtual machine",
+              "help": "required for managed host that is bare metal, not required if it's a virtual machine",
               "name": "mac",
               "shortname": null,
               "value": "MAC"
@@ -10033,7 +10220,7 @@
               "value": "OWNER_ID"
             },
             {
-              "help": "Host&#39;s owner type Possible value(s): 'User', 'Usergroup'",
+              "help": "Host's owner type Possible value(s): 'User', 'Usergroup'",
               "name": "owner-type",
               "shortname": null,
               "value": "OWNER_TYPE"
@@ -10117,6 +10304,12 @@
               "value": "REALM_ID"
             },
             {
+              "help": "Release version for this Host to use (7Server, 7.1, etc)",
+              "name": "release-version",
+              "shortname": null,
+              "value": "RELEASE_VERSION"
+            },
+            {
               "help": "required if host is managed and value is not inherited from host group or default password in settings",
               "name": "root-pass",
               "shortname": null,
@@ -10127,6 +10320,12 @@
               "name": "root-password",
               "shortname": null,
               "value": "ROOT_PW"
+            },
+            {
+              "help": "Service level to be used for autoheal.",
+              "name": "service-level",
+              "shortname": null,
+              "value": "SERVICE_LEVEL"
             },
             {
               "help": "Subnet name",
@@ -10350,7 +10549,7 @@
                   "value": "HOST_ID"
                 },
                 {
-                  "help": "Sort field and order, eg. &#39;name DESC&#39;",
+                  "help": "Sort field and order, eg. 'name DESC'",
                   "name": "order",
                   "shortname": null,
                   "value": "ORDER"
@@ -10475,7 +10674,7 @@
               "name": "create",
               "options": [
                 {
-                  "help": "Identifiers of attached interfaces, e.g. `[&#39;eth1&#39;, &#39;eth2&#39;]`. For bond interfaces those are the slaves. Only for bond and bridges interfaces. Comma separated list of values.",
+                  "help": "Identifiers of attached interfaces, e.g. `['eth1', 'eth2']`. For bond interfaces those are the slaves. Only for bond and bridges interfaces. Comma separated list of values.",
                   "name": "attached-devices",
                   "shortname": null,
                   "value": "ATTACHED_DEVICES"
@@ -10553,7 +10752,7 @@
                   "value": "MODE"
                 },
                 {
-                  "help": "Interface&#39;s DNS name",
+                  "help": "Interface's DNS name",
                   "name": "name",
                   "shortname": null,
                   "value": "NAME"
@@ -10755,7 +10954,7 @@
               "name": "update",
               "options": [
                 {
-                  "help": "Identifiers of attached interfaces, e.g. `[&#39;eth1&#39;, &#39;eth2&#39;]`. For bond interfaces those are the slaves. Only for bond and bridges interfaces. Comma separated list of values.",
+                  "help": "Identifiers of attached interfaces, e.g. `['eth1', 'eth2']`. For bond interfaces those are the slaves. Only for bond and bridges interfaces. Comma separated list of values.",
                   "name": "attached-devices",
                   "shortname": null,
                   "value": "ATTACHED_DEVICES"
@@ -10839,7 +11038,7 @@
                   "value": "MODE"
                 },
                 {
-                  "help": "Interface&#39;s DNS name",
+                  "help": "Interface's DNS name",
                   "name": "name",
                   "shortname": null,
                   "value": "NAME"
@@ -11668,7 +11867,7 @@
                   "value": "CONTENT_VIEW_ID"
                 },
                 {
-                  "help": "UUIDs of the virtual guests from the host&#39;s hypervisor Comma separated list of values.",
+                  "help": "UUIDs of the virtual guests from the host's hypervisor Comma separated list of values.",
                   "name": "hypervisor-guest-uuids",
                   "shortname": null,
                   "value": "HYPERVISOR_GUEST_UUIDS"
@@ -11786,6 +11985,12 @@
               "value": "ASK_ROOT_PW"
             },
             {
+              "help": "Sets whether the Host will autoheal subscriptions upon checkin One of true/false, yes/no, 1/0.",
+              "name": "autoheal",
+              "shortname": null,
+              "value": "AUTOHEAL"
+            },
+            {
               "help": "One of true/false, yes/no, 1/0.",
               "name": "build",
               "shortname": null,
@@ -11826,6 +12031,18 @@
               "name": "compute-resource-id",
               "shortname": null,
               "value": "COMPUTE_RESOURCE_ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "content-view",
+              "shortname": null,
+              "value": "CONTENT_VIEW_NAME"
+            },
+            {
+              "help": "content view numeric identifier",
+              "name": "content-view-id",
+              "shortname": null,
+              "value": "CONTENT_VIEW_ID"
             },
             {
               "help": "Domain name",
@@ -11876,6 +12093,12 @@
               "value": "HOSTGROUP_TITLE"
             },
             {
+              "help": "List of hypervisor guest uuids Comma separated list of values.",
+              "name": "hypervisor-guest-uuids",
+              "shortname": null,
+              "value": "HYPERVISOR_GUEST_UUIDS"
+            },
+            {
               "help": "",
               "name": "id",
               "shortname": null,
@@ -11906,6 +12129,24 @@
               "value": "IP"
             },
             {
+              "help": "Repository Id associated with the kickstart repo used for provisioning",
+              "name": "kickstart-repository-id",
+              "shortname": null,
+              "value": "KICKSTART_REPOSITORY_ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "lifecycle-environment",
+              "shortname": null,
+              "value": "LIFECYCLE_ENVIRONMENT_NAME"
+            },
+            {
+              "help": "ID of the environment",
+              "name": "lifecycle-environment-id",
+              "shortname": null,
+              "value": "LIFECYCLE_ENVIRONMENT_ID"
+            },
+            {
               "help": "Location name",
               "name": "location",
               "shortname": null,
@@ -11918,7 +12159,7 @@
               "value": "LOCATION_ID"
             },
             {
-              "help": "required for managed host that is bare metal, not required if it&#39;s a virtual machine",
+              "help": "required for managed host that is bare metal, not required if it's a virtual machine",
               "name": "mac",
               "shortname": null,
               "value": "MAC"
@@ -12008,7 +12249,7 @@
               "value": "OWNER_ID"
             },
             {
-              "help": "Host&#39;s owner type Possible value(s): 'User', 'Usergroup'",
+              "help": "Host's owner type Possible value(s): 'User', 'Usergroup'",
               "name": "owner-type",
               "shortname": null,
               "value": "OWNER_TYPE"
@@ -12092,6 +12333,12 @@
               "value": "REALM_ID"
             },
             {
+              "help": "Release version for this Host to use (7Server, 7.1, etc)",
+              "name": "release-version",
+              "shortname": null,
+              "value": "RELEASE_VERSION"
+            },
+            {
               "help": "required if host is managed and value is not inherited from host group or default password in settings",
               "name": "root-pass",
               "shortname": null,
@@ -12102,6 +12349,12 @@
               "name": "root-password",
               "shortname": null,
               "value": "ROOT_PW"
+            },
+            {
+              "help": "Service level to be used for autoheal.",
+              "name": "service-level",
+              "shortname": null,
+              "value": "SERVICE_LEVEL"
             },
             {
               "help": "Subnet name",
@@ -12398,7 +12651,7 @@
               "value": "ACTIVATION_KEY_ID"
             },
             {
-              "help": "Interpret specified object to return only Host Collections that can be associated with specified object. The value &#39;host&#39; is supported.",
+              "help": "Interpret specified object to return only Host Collections that can be associated with specified object. The value 'host' is supported.",
               "name": "available-for",
               "shortname": null,
               "value": "AVAILABLE_FOR"
@@ -12434,7 +12687,7 @@
               "value": "NAME"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -14480,6 +14733,614 @@
       ]
     },
     {
+      "description": "Manage job invocations",
+      "name": "job-invocation",
+      "options": [
+        {
+          "help": "print help",
+          "name": "help",
+          "shortname": "h",
+          "value": null
+        }
+      ],
+      "subcommands": [
+        {
+          "description": "Create a job invocation",
+          "name": "create",
+          "options": [
+            {
+              "help": "Do not wait for the task",
+              "name": "async",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Name to search by",
+              "name": "bookmark",
+              "shortname": null,
+              "value": "BOOKMARK_NAME"
+            },
+            {
+              "help": "",
+              "name": "bookmark-id",
+              "shortname": null,
+              "value": "BOOKMARK_ID"
+            },
+            {
+              "help": "Run at most N tasks at a time",
+              "name": "concurrency-level",
+              "shortname": null,
+              "value": "CONCURRENCY_LEVEL"
+            },
+            {
+              "help": "Create a recurring execution Cron line format 'a b c d e', where: a. is minute (range: 0-59) b. is hour (range: 0-23) c. is day of month (range: 1-31) d. is month (range: 1-12) e. is day of week (range: 0-6)",
+              "name": "cron-line",
+              "shortname": null,
+              "value": "CRONLINE"
+            },
+            {
+              "help": "Override the description format from the template for this invocation only",
+              "name": "description-format",
+              "shortname": null,
+              "value": "DESCRIPTION_FORMAT"
+            },
+            {
+              "help": "Dynamic search queries are evaluated at run time",
+              "name": "dynamic",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "What user should be used to run the script (using sudo-like mechanisms). Defaults to a template parameter or global setting.",
+              "name": "effective-user",
+              "shortname": null,
+              "value": "EFFECTIVE_USER"
+            },
+            {
+              "help": "Perform no more executions after this time, used with --cron-line Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format",
+              "name": "end-time",
+              "shortname": null,
+              "value": "DATETIME"
+            },
+            {
+              "help": "FILES               Read input values from files Comma-separated list of key=file, where file is a path to a text file to be read",
+              "name": "input-files",
+              "shortname": null,
+              "value": "INPUT"
+            },
+            {
+              "help": "Specify inputs from command line Comma-separated list of key=value.",
+              "name": "inputs",
+              "shortname": null,
+              "value": "INPUTS"
+            },
+            {
+              "help": "Name to search by",
+              "name": "job-template",
+              "shortname": null,
+              "value": "JOB_TEMPLATE_NAME"
+            },
+            {
+              "help": "",
+              "name": "job-template-id",
+              "shortname": null,
+              "value": "JOB_TEMPLATE_ID"
+            },
+            {
+              "help": "Repeat a maximum of N times",
+              "name": "max-iteration",
+              "shortname": null,
+              "value": "MAX_ITERATION"
+            },
+            {
+              "help": "",
+              "name": "search-query",
+              "shortname": null,
+              "value": "SEARCH_QUERY"
+            },
+            {
+              "help": "Schedule the execution for a later time Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format",
+              "name": "start-at",
+              "shortname": null,
+              "value": "DATETIME"
+            },
+            {
+              "help": "Execution should be cancelled if it cannot be started before --start-at Date and time in YYYY-MM-DD HH:MM:SS or ISO 8601 format",
+              "name": "start-before",
+              "shortname": null,
+              "value": "DATETIME"
+            },
+            {
+              "help": "Distribute tasks over N seconds",
+              "name": "time-span",
+              "shortname": null,
+              "value": "TIME_SPAN"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Show job invocation",
+          "name": "info",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "List job invocations",
+          "name": "list",
+          "options": [
+            {
+              "help": "sort results",
+              "name": "order",
+              "shortname": null,
+              "value": "ORDER"
+            },
+            {
+              "help": "paginate results",
+              "name": "page",
+              "shortname": null,
+              "value": "PAGE"
+            },
+            {
+              "help": "number of entries per request",
+              "name": "per-page",
+              "shortname": null,
+              "value": "PER_PAGE"
+            },
+            {
+              "help": "filter results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "View the output for a host",
+          "name": "output",
+          "options": [
+            {
+              "help": "Do not wait for job to complete, shows current output only",
+              "name": "async",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Host name",
+              "name": "host",
+              "shortname": null,
+              "value": "HOST_NAME"
+            },
+            {
+              "help": "",
+              "name": "host-id",
+              "shortname": null,
+              "value": "HOST_ID"
+            },
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        }
+      ]
+    },
+    {
+      "description": "Manage job templates",
+      "name": "job-template",
+      "options": [
+        {
+          "help": "print help",
+          "name": "help",
+          "shortname": "h",
+          "value": null
+        }
+      ],
+      "subcommands": [
+        {
+          "description": "Create a job template",
+          "name": "create",
+          "options": [
+            {
+              "help": "",
+              "name": "audit-comment",
+              "shortname": null,
+              "value": "AUDIT_COMMENT"
+            },
+            {
+              "help": "Whether the current user login should be used as the effective user One of true/false, yes/no, 1/0.",
+              "name": "current-user",
+              "shortname": null,
+              "value": "CURRENT_USER"
+            },
+            {
+              "help": "This template is used to generate the description. Input values can be used using the syntax . You may also include the job category and template name using  and .",
+              "name": "description-format",
+              "shortname": null,
+              "value": "DESCRIPTION_FORMAT"
+            },
+            {
+              "help": "Path to a file that contains the template",
+              "name": "file",
+              "shortname": null,
+              "value": "TEMPLATE"
+            },
+            {
+              "help": "Job category",
+              "name": "job-category",
+              "shortname": null,
+              "value": "JOB_CATEGORY"
+            },
+            {
+              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "name": "location-ids",
+              "shortname": null,
+              "value": "LOCATION_IDS"
+            },
+            {
+              "help": "Comma separated list of values.",
+              "name": "locations",
+              "shortname": null,
+              "value": "LOCATION_NAMES"
+            },
+            {
+              "help": "Whether or not the template is locked for editing One of true/false, yes/no, 1/0.",
+              "name": "locked",
+              "shortname": null,
+              "value": "LOCKED"
+            },
+            {
+              "help": "Template name",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "name": "organization-ids",
+              "shortname": null,
+              "value": "ORGANIZATION_IDS"
+            },
+            {
+              "help": "Comma separated list of values.",
+              "name": "organizations",
+              "shortname": null,
+              "value": "ORGANIZATION_NAMES"
+            },
+            {
+              "help": "Whether it should be allowed to override the effective user from the invocation form. One of true/false, yes/no, 1/0.",
+              "name": "overridable",
+              "shortname": null,
+              "value": "OVERRIDABLE"
+            },
+            {
+              "help": "Provider type Possible value(s): 'SSH'",
+              "name": "provider-type",
+              "shortname": null,
+              "value": "PROVIDER_TYPE"
+            },
+            {
+              "help": "One of true/false, yes/no, 1/0.",
+              "name": "snippet",
+              "shortname": null,
+              "value": "SNIPPET"
+            },
+            {
+              "help": "What user should be used to run the script (using sudo-like mechanisms)",
+              "name": "value",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Delete a job template",
+          "name": "delete",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "View job template content",
+          "name": "dump",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Show job template details",
+          "name": "info",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "List job templates",
+          "name": "list",
+          "options": [
+            {
+              "help": "Location name",
+              "name": "location",
+              "shortname": null,
+              "value": "LOCATION_NAME"
+            },
+            {
+              "help": "",
+              "name": "location-id",
+              "shortname": null,
+              "value": "LOCATION_ID"
+            },
+            {
+              "help": "sort results",
+              "name": "order",
+              "shortname": null,
+              "value": "ORDER"
+            },
+            {
+              "help": "Organization name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "organization ID",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "paginate results",
+              "name": "page",
+              "shortname": null,
+              "value": "PAGE"
+            },
+            {
+              "help": "number of entries per request",
+              "name": "per-page",
+              "shortname": null,
+              "value": "PER_PAGE"
+            },
+            {
+              "help": "filter results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Update a job template",
+          "name": "update",
+          "options": [
+            {
+              "help": "",
+              "name": "audit-comment",
+              "shortname": null,
+              "value": "AUDIT_COMMENT"
+            },
+            {
+              "help": "Whether the current user login should be used as the effective user One of true/false, yes/no, 1/0.",
+              "name": "current-user",
+              "shortname": null,
+              "value": "CURRENT_USER"
+            },
+            {
+              "help": "This template is used to generate the description. Input values can be used using the syntax . You may also include the job category and template name using  and .",
+              "name": "description-format",
+              "shortname": null,
+              "value": "DESCRIPTION_FORMAT"
+            },
+            {
+              "help": "Path to a file that contains the template",
+              "name": "file",
+              "shortname": null,
+              "value": "TEMPLATE"
+            },
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Job category",
+              "name": "job-category",
+              "shortname": null,
+              "value": "JOB_CATEGORY"
+            },
+            {
+              "help": "REPLACE locations with given ids Comma separated list of values.",
+              "name": "location-ids",
+              "shortname": null,
+              "value": "LOCATION_IDS"
+            },
+            {
+              "help": "Comma separated list of values.",
+              "name": "locations",
+              "shortname": null,
+              "value": "LOCATION_NAMES"
+            },
+            {
+              "help": "Whether or not the template is locked for editing One of true/false, yes/no, 1/0.",
+              "name": "locked",
+              "shortname": null,
+              "value": "LOCKED"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "Template name",
+              "name": "new-name",
+              "shortname": null,
+              "value": "NEW_NAME"
+            },
+            {
+              "help": "REPLACE organizations with given ids. Comma separated list of values.",
+              "name": "organization-ids",
+              "shortname": null,
+              "value": "ORGANIZATION_IDS"
+            },
+            {
+              "help": "Comma separated list of values.",
+              "name": "organizations",
+              "shortname": null,
+              "value": "ORGANIZATION_NAMES"
+            },
+            {
+              "help": "Whether it should be allowed to override the effective user from the invocation form. One of true/false, yes/no, 1/0.",
+              "name": "overridable",
+              "shortname": null,
+              "value": "OVERRIDABLE"
+            },
+            {
+              "help": "Provider type Possible value(s): 'SSH'",
+              "name": "provider-type",
+              "shortname": null,
+              "value": "PROVIDER_TYPE"
+            },
+            {
+              "help": "One of true/false, yes/no, 1/0.",
+              "name": "snippet",
+              "shortname": null,
+              "value": "SNIPPET"
+            },
+            {
+              "help": "What user should be used to run the script (using sudo-like mechanisms)",
+              "name": "value",
+              "shortname": null,
+              "value": "VALUE"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        }
+      ]
+    },
+    {
       "description": "Manipulate lifecycle_environments on the server",
       "name": "lifecycle-environment",
       "options": [
@@ -16172,7 +17033,7 @@
               "value": "OS_FAMILY"
             },
             {
-              "help": "The path to the medium, can be a URL or a valid NFS server (exclusive of the architecture). for example mirror.centos.org/centos/$version/os/$arch where $arch will be substituted for the host&#39;s actual OS architecture and $version, $major and $minor will be substituted for the version of the operating system. Solaris and Debian media may also use $release.",
+              "help": "The path to the medium, can be a URL or a valid NFS server (exclusive of the architecture). for example mirror.centos.org/centos/$version/os/$arch where $arch will be substituted for the host's actual OS architecture and $version, $major and $minor will be substituted for the version of the operating system. Solaris and Debian media may also use $release.",
               "name": "path",
               "shortname": null,
               "value": "PATH"
@@ -16411,7 +17272,7 @@
               "value": "OS_FAMILY"
             },
             {
-              "help": "The path to the medium, can be a URL or a valid NFS server (exclusive of the architecture). for example mirror.centos.org/centos/$version/os/$arch where $arch will be substituted for the host&#39;s actual OS architecture and $version, $major and $minor will be substituted for the version of the operating system. Solaris and Debian media may also use $release.",
+              "help": "The path to the medium, can be a URL or a valid NFS server (exclusive of the architecture). for example mirror.centos.org/centos/$version/os/$arch where $arch will be substituted for the host's actual OS architecture and $version, $major and $minor will be substituted for the version of the operating system. Solaris and Debian media may also use $release.",
               "name": "path",
               "shortname": null,
               "value": "PATH"
@@ -17256,7 +18117,7 @@
               "value": "FULL_RESULTS"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -18077,7 +18938,7 @@
               "value": "NAME"
             },
             {
-              "help": "OS&#39; parameters (array or indexed hash) Comma separated list of values.",
+              "help": "OS' parameters (array or indexed hash) Comma separated list of values.",
               "name": "os-parameters-attributes",
               "shortname": null,
               "value": "OS_PARAMETERS_ATTRIBUTES"
@@ -18580,7 +19441,7 @@
               "value": "NAME"
             },
             {
-              "help": "OS&#39; parameters (array or indexed hash) Comma separated list of values.",
+              "help": "OS' parameters (array or indexed hash) Comma separated list of values.",
               "name": "os-parameters-attributes",
               "shortname": null,
               "value": "OS_PARAMETERS_ATTRIBUTES"
@@ -18758,7 +19619,7 @@
               "value": "IDS"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -18954,7 +19815,7 @@
               "value": "IDS"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -19150,7 +20011,7 @@
               "value": "IDS"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -19893,7 +20754,7 @@
           "name": "list",
           "options": [
             {
-              "help": "Interpret specified object to return only Products that can be associated with specified object.  Only &#39;sync_plan&#39; is supported.",
+              "help": "Interpret specified object to return only Products that can be associated with specified object.  Only 'sync_plan' is supported.",
               "name": "available-for",
               "shortname": null,
               "value": "AVAILABLE_FOR"
@@ -19935,7 +20796,7 @@
               "value": "NAME"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -20609,7 +21470,7 @@
                   "value": null
                 },
                 {
-                  "help": "Environment name",
+                  "help": "Name to search by",
                   "name": "environment",
                   "shortname": null,
                   "value": "ENVIRONMENT_NAME"
@@ -20752,7 +21613,7 @@
               "value": "ENVIRONMENT_ID"
             },
             {
-              "help": "Optional comma-delimited string containing either &#39;new&#39;, &#39;updated&#39;, or &#39;obsolete&#39; that is used to limit the imported Puppet classes",
+              "help": "Optional comma-delimited string containing either 'new', 'updated', or 'obsolete' that is used to limit the imported Puppet classes",
               "name": "except",
               "shortname": null,
               "value": "EXCEPT"
@@ -21348,7 +22209,7 @@
               "value": "IDS"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -21502,6 +22363,101 @@
       ]
     },
     {
+      "description": "Manage remote execution features",
+      "name": "remote-execution-feature",
+      "options": [
+        {
+          "help": "print help",
+          "name": "help",
+          "shortname": "h",
+          "value": null
+        }
+      ],
+      "subcommands": [
+        {
+          "description": "Show remote execution feature",
+          "name": "info",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "List remote execution features",
+          "name": "list",
+          "options": [
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Update a job template",
+          "name": "update",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "job-template",
+              "shortname": null,
+              "value": "JOB_TEMPLATE_NAME"
+            },
+            {
+              "help": "",
+              "name": "job-template-id",
+              "shortname": null,
+              "value": "JOB_TEMPLATE_ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "",
+              "name": "new-name",
+              "shortname": null,
+              "value": "NEW_NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        }
+      ]
+    },
+    {
       "description": "Browse and read reports.",
       "name": "report",
       "options": [
@@ -21619,13 +22575,13 @@
           "name": "create",
           "options": [
             {
-              "help": "checksum of the repository, currently &#39;sha1&#39; &amp; &#39;sha256&#39; are supported.&#39;",
+              "help": "checksum of the repository, currently 'sha1' & 'sha256' are supported.'",
               "name": "checksum-type",
               "shortname": null,
               "value": "CHECKSUM_TYPE"
             },
             {
-              "help": "type of repo (either &#39;yum&#39;, &#39;puppet&#39;, &#39;docker&#39;, or &#39;ostree&#39;)",
+              "help": "type of repo (either 'yum', 'puppet', 'docker', or 'ostree') Possible value(s): 'docker', 'file', 'puppet', 'yum'",
               "name": "content-type",
               "shortname": null,
               "value": "CONTENT_TYPE"
@@ -21637,7 +22593,7 @@
               "value": "DOCKER_UPSTREAM_NAME"
             },
             {
-              "help": "download policy for yum repos (either &#39;immediate&#39;, &#39;on_demand&#39;, or &#39;background&#39;) Possible value(s): 'immediate', 'on_demand', 'background'",
+              "help": "download policy for yum repos (either 'immediate', 'on_demand', or 'background') Possible value(s): 'immediate', 'on_demand', 'background'",
               "name": "download-policy",
               "shortname": null,
               "value": "DOWNLOAD_POLICY"
@@ -21858,7 +22814,7 @@
           "subcommands": []
         },
         {
-          "description": "Show a custom repository",
+          "description": "Show a repository",
           "name": "info",
           "options": [
             {
@@ -21917,7 +22873,7 @@
           "name": "list",
           "options": [
             {
-              "help": "interpret specified object to return only Repositories that can be associated with specified object.  Only &#39;content_view&#39; is supported.",
+              "help": "interpret specified object to return only Repositories that can be associated with specified object.  Only 'content_view' is supported.",
               "name": "available-for",
               "shortname": null,
               "value": "AVAILABLE_FOR"
@@ -21929,7 +22885,7 @@
               "value": "BY"
             },
             {
-              "help": "limit to only repositories of this time",
+              "help": "limit to only repositories of this type Possible value(s): 'docker', 'file', 'puppet', 'yum'",
               "name": "content-type",
               "shortname": null,
               "value": "CONTENT_TYPE"
@@ -21995,7 +22951,7 @@
               "value": "NAME"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -22186,11 +23142,11 @@
           "subcommands": []
         },
         {
-          "description": "Update a custom repository",
+          "description": "Update a repository",
           "name": "update",
           "options": [
             {
-              "help": "checksum of the repository, currently &#39;sha1&#39; &amp; &#39;sha256&#39; are supported.&#39;",
+              "help": "checksum of the repository, currently 'sha1' & 'sha256' are supported.'",
               "name": "checksum-type",
               "shortname": null,
               "value": "CHECKSUM_TYPE"
@@ -22202,7 +23158,7 @@
               "value": "DOCKER_UPSTREAM_NAME"
             },
             {
-              "help": "download policy for yum repos (either &#39;immediate&#39;, &#39;on_demand&#39;, or &#39;background&#39;) Possible value(s): 'immediate', 'on_demand', 'background'",
+              "help": "download policy for yum repos (either 'immediate', 'on_demand', or 'background') Possible value(s): 'immediate', 'on_demand', 'background'",
               "name": "download-policy",
               "shortname": null,
               "value": "DOWNLOAD_POLICY"
@@ -24236,7 +25192,7 @@
               "value": "ACTIVATION_KEY_ID"
             },
             {
-              "help": "Object to show subscriptions available for, either &#39;host&#39; or &#39;activation_key&#39;",
+              "help": "Object to show subscriptions available for, either 'host' or 'activation_key'",
               "name": "available-for",
               "shortname": null,
               "value": "AVAILABLE_FOR"
@@ -24284,7 +25240,7 @@
               "value": "NO_OVERLAP"
             },
             {
-              "help": "Sort field and order, eg. &#39;name DESC&#39;",
+              "help": "Sort field and order, eg. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -24759,7 +25715,7 @@
               "value": "BY"
             },
             {
-              "help": "Sort field and order, e.g. &#39;name DESC&#39;",
+              "help": "Sort field and order, e.g. 'name DESC'",
               "name": "order",
               "shortname": null,
               "value": "ORDER"
@@ -24918,19 +25874,19 @@
             {
               "help": "",
               "name": "id",
-              "shortname": "",
+              "shortname": null,
               "value": "ID"
             },
             {
               "help": "Name to search by",
               "name": "name",
-              "shortname": "",
+              "shortname": null,
               "value": "NAME"
             },
             {
               "help": "template name",
               "name": "new-name",
-              "shortname": "",
+              "shortname": null,
               "value": "NEW_NAME"
             },
             {
@@ -25313,6 +26269,204 @@
       ]
     },
     {
+      "description": "Manage template inputs",
+      "name": "template-input",
+      "options": [
+        {
+          "help": "print help",
+          "name": "help",
+          "shortname": "h",
+          "value": null
+        }
+      ],
+      "subcommands": [
+        {
+          "description": "Create a template input",
+          "name": "create",
+          "options": [
+            {
+              "help": "Input is advanced One of true/false, yes/no, 1/0.",
+              "name": "advanced",
+              "shortname": null,
+              "value": "ADVANCED"
+            },
+            {
+              "help": "Input description",
+              "name": "description",
+              "shortname": null,
+              "value": "DESCRIPTION"
+            },
+            {
+              "help": "Fact name, used when input type is fact",
+              "name": "fact-name",
+              "shortname": null,
+              "value": "FACT_NAME"
+            },
+            {
+              "help": "Input type Possible value(s): 'user', 'fact', 'variable', 'puppet_parameter'",
+              "name": "input-type",
+              "shortname": null,
+              "value": "INPUT_TYPE"
+            },
+            {
+              "help": "Input name",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "Selectable values for user inputs Comma separated list of values.",
+              "name": "options",
+              "shortname": null,
+              "value": "OPTIONS"
+            },
+            {
+              "help": "Puppet class name, used when input type is puppet_parameter",
+              "name": "puppet-parameter-class",
+              "shortname": null,
+              "value": "PUPPET_PARAMETER_CLASS"
+            },
+            {
+              "help": "Puppet parameter name, used when input type is puppet_parameter",
+              "name": "puppet-parameter-name",
+              "shortname": null,
+              "value": "PUPPET_PARAMETER_NAME"
+            },
+            {
+              "help": "Input is required One of true/false, yes/no, 1/0.",
+              "name": "required",
+              "shortname": null,
+              "value": "REQUIRED"
+            },
+            {
+              "help": "",
+              "name": "template-id",
+              "shortname": null,
+              "value": "TEMPLATE_ID"
+            },
+            {
+              "help": "Variable name, used when input type is variable",
+              "name": "variable-name",
+              "shortname": null,
+              "value": "VARIABLE_NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Delete a template input",
+          "name": "delete",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "",
+              "name": "template-id",
+              "shortname": null,
+              "value": "TEMPLATE_ID"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "Show template input details",
+          "name": "info",
+          "options": [
+            {
+              "help": "",
+              "name": "id",
+              "shortname": null,
+              "value": "ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "name",
+              "shortname": null,
+              "value": "NAME"
+            },
+            {
+              "help": "",
+              "name": "template-id",
+              "shortname": null,
+              "value": "TEMPLATE_ID"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "List template inputs",
+          "name": "list",
+          "options": [
+            {
+              "help": "sort results",
+              "name": "order",
+              "shortname": null,
+              "value": "ORDER"
+            },
+            {
+              "help": "paginate results",
+              "name": "page",
+              "shortname": null,
+              "value": "PAGE"
+            },
+            {
+              "help": "number of entries per request",
+              "name": "per-page",
+              "shortname": null,
+              "value": "PER_PAGE"
+            },
+            {
+              "help": "filter results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
+              "help": "",
+              "name": "template-id",
+              "shortname": null,
+              "value": "TEMPLATE_ID"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        }
+      ]
+    },
+    {
       "description": "Manipulate users.",
       "name": "user",
       "options": [
@@ -25402,7 +26556,7 @@
               "value": "LASTNAME"
             },
             {
-              "help": "User&#39;s preferred locale Possible value(s): 'ca', 'de', 'en', 'en_GB', 'es', 'fr', 'gl', 'it', 'ja', 'ko', 'pt_BR', 'ru', 'sv_SE', 'zh_CN', 'zh_TW'",
+              "help": "User's preferred locale Possible value(s): 'ca', 'de', 'en', 'en_GB', 'es', 'fr', 'gl', 'it', 'ja', 'ko', 'pt_BR', 'ru', 'sv_SE', 'zh_CN', 'zh_TW'",
               "name": "locale",
               "shortname": null,
               "value": "LOCALE"
@@ -25450,7 +26604,7 @@
               "value": "PASSWORD"
             },
             {
-              "help": "User&#39;s timezone Possible value(s): 'UTC', 'International Date Line West', 'Midway Island', 'American Samoa', 'Hawaii', 'Alaska', 'Pacific Time (US & Canada)', 'Tijuana', 'Mountain Time (US & Canada)', 'Arizona', 'Chihuahua', 'Mazatlan', 'Central Time (US & Canada)', 'Saskatchewan', 'Guadalajara', 'Mexico City', 'Monterrey', 'Central America', 'Eastern Time (US & Canada)', 'Indiana (East)', 'Bogota', 'Lima', 'Quito', 'Atlantic Time (Canada)', 'Caracas', 'La Paz', 'Santiago', 'Newfoundland', 'Brasilia', 'Buenos Aires', 'Montevideo', 'Georgetown', 'Greenland', 'Mid-Atlantic', 'Azores', 'Cape Verde Is.', 'Dublin', 'Edinburgh', 'Lisbon', 'London', 'Casablanca', 'Monrovia', 'Belgrade', 'Bratislava', 'Budapest', 'Ljubljana', 'Prague', 'Sarajevo', 'Skopje', 'Warsaw', 'Zagreb', 'Brussels', 'Copenhagen', 'Madrid', 'Paris', 'Amsterdam', 'Berlin', 'Bern', 'Rome', 'Stockholm', 'Vienna', 'West Central Africa', 'Bucharest', 'Cairo', 'Helsinki', 'Kyiv', 'Riga', 'Sofia', 'Tallinn', 'Vilnius', 'Athens', 'Istanbul', 'Minsk', 'Jerusalem', 'Harare', 'Pretoria', 'Moscow', 'St. Petersburg', 'Volgograd', 'Kuwait', 'Riyadh', 'Nairobi', 'Baghdad', 'Tehran', 'Abu Dhabi', 'Muscat', 'Baku', 'Tbilisi', 'Yerevan', 'Kabul', 'Ekaterinburg', 'Islamabad', 'Karachi', 'Tashkent', 'Chennai', 'Kolkata', 'Mumbai', 'New Delhi', 'Kathmandu', 'Astana', 'Dhaka', 'Sri Jayawardenepura', 'Almaty', 'Novosibirsk', 'Rangoon', 'Bangkok', 'Hanoi', 'Jakarta', 'Krasnoyarsk', 'Beijing', 'Chongqing', 'Hong Kong', 'Urumqi', 'Kuala Lumpur', 'Singapore', 'Taipei', 'Perth', 'Irkutsk', 'Ulaanbaatar', 'Seoul', 'Osaka', 'Sapporo', 'Tokyo', 'Yakutsk', 'Darwin', 'Adelaide', 'Canberra', 'Melbourne', 'Sydney', 'Brisbane', 'Hobart', 'Vladivostok', 'Guam', 'Port Moresby', 'Magadan', 'Solomon Is.', 'New Caledonia', 'Fiji', 'Kamchatka', 'Marshall Is.', 'Auckland', 'Wellington', 'Nuku'alofa', 'Tokelau Is.', 'Chatham Is.', 'Samoa'",
+              "help": "User's timezone Possible value(s): 'UTC', 'International Date Line West', 'Midway Island', 'American Samoa', 'Hawaii', 'Alaska', 'Pacific Time (US & Canada)', 'Tijuana', 'Mountain Time (US & Canada)', 'Arizona', 'Chihuahua', 'Mazatlan', 'Central Time (US & Canada)', 'Saskatchewan', 'Guadalajara', 'Mexico City', 'Monterrey', 'Central America', 'Eastern Time (US & Canada)', 'Indiana (East)', 'Bogota', 'Lima', 'Quito', 'Atlantic Time (Canada)', 'Caracas', 'La Paz', 'Santiago', 'Newfoundland', 'Brasilia', 'Buenos Aires', 'Montevideo', 'Georgetown', 'Greenland', 'Mid-Atlantic', 'Azores', 'Cape Verde Is.', 'Dublin', 'Edinburgh', 'Lisbon', 'London', 'Casablanca', 'Monrovia', 'Belgrade', 'Bratislava', 'Budapest', 'Ljubljana', 'Prague', 'Sarajevo', 'Skopje', 'Warsaw', 'Zagreb', 'Brussels', 'Copenhagen', 'Madrid', 'Paris', 'Amsterdam', 'Berlin', 'Bern', 'Rome', 'Stockholm', 'Vienna', 'West Central Africa', 'Bucharest', 'Cairo', 'Helsinki', 'Kyiv', 'Riga', 'Sofia', 'Tallinn', 'Vilnius', 'Athens', 'Istanbul', 'Minsk', 'Jerusalem', 'Harare', 'Pretoria', 'Moscow', 'St. Petersburg', 'Volgograd', 'Kuwait', 'Riyadh', 'Nairobi', 'Baghdad', 'Tehran', 'Abu Dhabi', 'Muscat', 'Baku', 'Tbilisi', 'Yerevan', 'Kabul', 'Ekaterinburg', 'Islamabad', 'Karachi', 'Tashkent', 'Chennai', 'Kolkata', 'Mumbai', 'New Delhi', 'Kathmandu', 'Astana', 'Dhaka', 'Sri Jayawardenepura', 'Almaty', 'Novosibirsk', 'Rangoon', 'Bangkok', 'Hanoi', 'Jakarta', 'Krasnoyarsk', 'Beijing', 'Chongqing', 'Hong Kong', 'Urumqi', 'Kuala Lumpur', 'Singapore', 'Taipei', 'Perth', 'Irkutsk', 'Ulaanbaatar', 'Seoul', 'Osaka', 'Sapporo', 'Tokyo', 'Yakutsk', 'Darwin', 'Adelaide', 'Canberra', 'Melbourne', 'Sydney', 'Brisbane', 'Hobart', 'Vladivostok', 'Guam', 'Port Moresby', 'Magadan', 'Solomon Is.', 'New Caledonia', 'Fiji', 'Kamchatka', 'Marshall Is.', 'Auckland', 'Wellington', 'Nuku'alofa', 'Tokelau Is.', 'Chatham Is.', 'Samoa'",
               "name": "timezone",
               "shortname": null,
               "value": "TIMEZONE"
@@ -25695,7 +26849,7 @@
               "value": "LASTNAME"
             },
             {
-              "help": "User&#39;s preferred locale Possible value(s): 'ca', 'de', 'en', 'en_GB', 'es', 'fr', 'gl', 'it', 'ja', 'ko', 'pt_BR', 'ru', 'sv_SE', 'zh_CN', 'zh_TW'",
+              "help": "User's preferred locale Possible value(s): 'ca', 'de', 'en', 'en_GB', 'es', 'fr', 'gl', 'it', 'ja', 'ko', 'pt_BR', 'ru', 'sv_SE', 'zh_CN', 'zh_TW'",
               "name": "locale",
               "shortname": null,
               "value": "LOCALE"
@@ -25749,7 +26903,7 @@
               "value": "PASSWORD"
             },
             {
-              "help": "User&#39;s timezone Possible value(s): 'UTC', 'International Date Line West', 'Midway Island', 'American Samoa', 'Hawaii', 'Alaska', 'Pacific Time (US & Canada)', 'Tijuana', 'Mountain Time (US & Canada)', 'Arizona', 'Chihuahua', 'Mazatlan', 'Central Time (US & Canada)', 'Saskatchewan', 'Guadalajara', 'Mexico City', 'Monterrey', 'Central America', 'Eastern Time (US & Canada)', 'Indiana (East)', 'Bogota', 'Lima', 'Quito', 'Atlantic Time (Canada)', 'Caracas', 'La Paz', 'Santiago', 'Newfoundland', 'Brasilia', 'Buenos Aires', 'Montevideo', 'Georgetown', 'Greenland', 'Mid-Atlantic', 'Azores', 'Cape Verde Is.', 'Dublin', 'Edinburgh', 'Lisbon', 'London', 'Casablanca', 'Monrovia', 'Belgrade', 'Bratislava', 'Budapest', 'Ljubljana', 'Prague', 'Sarajevo', 'Skopje', 'Warsaw', 'Zagreb', 'Brussels', 'Copenhagen', 'Madrid', 'Paris', 'Amsterdam', 'Berlin', 'Bern', 'Rome', 'Stockholm', 'Vienna', 'West Central Africa', 'Bucharest', 'Cairo', 'Helsinki', 'Kyiv', 'Riga', 'Sofia', 'Tallinn', 'Vilnius', 'Athens', 'Istanbul', 'Minsk', 'Jerusalem', 'Harare', 'Pretoria', 'Moscow', 'St. Petersburg', 'Volgograd', 'Kuwait', 'Riyadh', 'Nairobi', 'Baghdad', 'Tehran', 'Abu Dhabi', 'Muscat', 'Baku', 'Tbilisi', 'Yerevan', 'Kabul', 'Ekaterinburg', 'Islamabad', 'Karachi', 'Tashkent', 'Chennai', 'Kolkata', 'Mumbai', 'New Delhi', 'Kathmandu', 'Astana', 'Dhaka', 'Sri Jayawardenepura', 'Almaty', 'Novosibirsk', 'Rangoon', 'Bangkok', 'Hanoi', 'Jakarta', 'Krasnoyarsk', 'Beijing', 'Chongqing', 'Hong Kong', 'Urumqi', 'Kuala Lumpur', 'Singapore', 'Taipei', 'Perth', 'Irkutsk', 'Ulaanbaatar', 'Seoul', 'Osaka', 'Sapporo', 'Tokyo', 'Yakutsk', 'Darwin', 'Adelaide', 'Canberra', 'Melbourne', 'Sydney', 'Brisbane', 'Hobart', 'Vladivostok', 'Guam', 'Port Moresby', 'Magadan', 'Solomon Is.', 'New Caledonia', 'Fiji', 'Kamchatka', 'Marshall Is.', 'Auckland', 'Wellington', 'Nuku'alofa', 'Tokelau Is.', 'Chatham Is.', 'Samoa'",
+              "help": "User's timezone Possible value(s): 'UTC', 'International Date Line West', 'Midway Island', 'American Samoa', 'Hawaii', 'Alaska', 'Pacific Time (US & Canada)', 'Tijuana', 'Mountain Time (US & Canada)', 'Arizona', 'Chihuahua', 'Mazatlan', 'Central Time (US & Canada)', 'Saskatchewan', 'Guadalajara', 'Mexico City', 'Monterrey', 'Central America', 'Eastern Time (US & Canada)', 'Indiana (East)', 'Bogota', 'Lima', 'Quito', 'Atlantic Time (Canada)', 'Caracas', 'La Paz', 'Santiago', 'Newfoundland', 'Brasilia', 'Buenos Aires', 'Montevideo', 'Georgetown', 'Greenland', 'Mid-Atlantic', 'Azores', 'Cape Verde Is.', 'Dublin', 'Edinburgh', 'Lisbon', 'London', 'Casablanca', 'Monrovia', 'Belgrade', 'Bratislava', 'Budapest', 'Ljubljana', 'Prague', 'Sarajevo', 'Skopje', 'Warsaw', 'Zagreb', 'Brussels', 'Copenhagen', 'Madrid', 'Paris', 'Amsterdam', 'Berlin', 'Bern', 'Rome', 'Stockholm', 'Vienna', 'West Central Africa', 'Bucharest', 'Cairo', 'Helsinki', 'Kyiv', 'Riga', 'Sofia', 'Tallinn', 'Vilnius', 'Athens', 'Istanbul', 'Minsk', 'Jerusalem', 'Harare', 'Pretoria', 'Moscow', 'St. Petersburg', 'Volgograd', 'Kuwait', 'Riyadh', 'Nairobi', 'Baghdad', 'Tehran', 'Abu Dhabi', 'Muscat', 'Baku', 'Tbilisi', 'Yerevan', 'Kabul', 'Ekaterinburg', 'Islamabad', 'Karachi', 'Tashkent', 'Chennai', 'Kolkata', 'Mumbai', 'New Delhi', 'Kathmandu', 'Astana', 'Dhaka', 'Sri Jayawardenepura', 'Almaty', 'Novosibirsk', 'Rangoon', 'Bangkok', 'Hanoi', 'Jakarta', 'Krasnoyarsk', 'Beijing', 'Chongqing', 'Hong Kong', 'Urumqi', 'Kuala Lumpur', 'Singapore', 'Taipei', 'Perth', 'Irkutsk', 'Ulaanbaatar', 'Seoul', 'Osaka', 'Sapporo', 'Tokyo', 'Yakutsk', 'Darwin', 'Adelaide', 'Canberra', 'Melbourne', 'Sydney', 'Brisbane', 'Hobart', 'Vladivostok', 'Guam', 'Port Moresby', 'Magadan', 'Solomon Is.', 'New Caledonia', 'Fiji', 'Kamchatka', 'Marshall Is.', 'Auckland', 'Wellington', 'Nuku'alofa', 'Tokelau Is.', 'Chatham Is.', 'Samoa'",
               "name": "timezone",
               "shortname": null,
               "value": "TIMEZONE"
