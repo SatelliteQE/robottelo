@@ -26,7 +26,7 @@ class ComputeResourceTestCase(APITestCase):
         cls.org = entities.Organization().create()
         cls.loc = entities.Location(organization=[cls.org]).create()
         cls.current_libvirt_url = (
-            LIBVIRT_RESOURCE_URL % settings.server.hostname
+            LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
         )
 
     @tier1

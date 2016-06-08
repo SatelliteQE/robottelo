@@ -424,7 +424,8 @@ class LocationTestCase(UITestCase):
             for resource_name in generate_strings_list():
                 with self.subTest(resource_name):
                     loc_name = gen_string('alpha')
-                    url = LIBVIRT_RESOURCE_URL % settings.server.hostname
+                    url = (LIBVIRT_RESOURCE_URL %
+                           settings.compute_resources.libvirt_hostname)
                     resource = entities.LibvirtComputeResource(
                         name=resource_name, url=url).create()
                     self.assertEqual(resource.name, resource_name)
@@ -749,7 +750,8 @@ class LocationTestCase(UITestCase):
             for resource_name in generate_strings_list():
                 with self.subTest(resource_name):
                     loc_name = gen_string('alpha')
-                    url = LIBVIRT_RESOURCE_URL % settings.server.hostname
+                    url = (LIBVIRT_RESOURCE_URL %
+                           settings.compute_resources.libvirt_hostname)
                     resource = entities.LibvirtComputeResource(
                         name=resource_name,
                         organization=[self.org_],

@@ -523,7 +523,9 @@ class OrganizationTestCase(CLITestCase):
         org = make_org()
         compute_res = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': "qemu+tcp://%s:16509/system" % settings.server.hostname
+            'url': u'qemu+ssh://root@{0}/system'.format(
+                settings.compute_resources.libvirt_hostname
+            )
         })
         Org.add_compute_resource({
             'compute-resource': compute_res['name'],
@@ -575,7 +577,9 @@ class OrganizationTestCase(CLITestCase):
         org = make_org()
         compute_res = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': "qemu+tcp://%s:16509/system" % settings.server.hostname
+            'url': u'qemu+ssh://root@{0}/system'.format(
+                settings.compute_resources.libvirt_hostname
+            )
         })
         Org.add_compute_resource({
             'compute-resource-id': compute_res['id'],
@@ -600,7 +604,9 @@ class OrganizationTestCase(CLITestCase):
         org = make_org()
         compute_res = make_compute_resource({
             'provider': FOREMAN_PROVIDERS['libvirt'],
-            'url': "qemu+tcp://%s:16509/system" % settings.server.hostname
+            'url': u'qemu+ssh://root@{0}/system'.format(
+                settings.compute_resources.libvirt_hostname
+            )
         })
         Org.add_compute_resource({
             'compute-resource': compute_res['name'],
