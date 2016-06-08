@@ -19,7 +19,7 @@ class ComputeResourceTestCase(UITestCase):
     def setUpClass(cls):
         super(ComputeResourceTestCase, cls).setUpClass()
         cls.current_libvirt_url = (
-            LIBVIRT_RESOURCE_URL % settings.server.hostname
+            LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
         )
 
     @run_only_on('sat')

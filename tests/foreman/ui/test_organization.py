@@ -616,7 +616,8 @@ class OrganizationTestCase(UITestCase):
             for resource_name in generate_strings_list():
                 with self.subTest(resource_name):
                     org_name = gen_string('alpha')
-                    url = LIBVIRT_RESOURCE_URL % settings.server.hostname
+                    url = (LIBVIRT_RESOURCE_URL %
+                           settings.compute_resources.libvirt_hostname)
                     # Create compute resource using nailgun
                     resource = entities.LibvirtComputeResource(
                         name=resource_name,
@@ -775,7 +776,8 @@ class OrganizationTestCase(UITestCase):
             for resource_name in generate_strings_list():
                 with self.subTest(resource_name):
                     org_name = gen_string('alpha')
-                    url = LIBVIRT_RESOURCE_URL % settings.server.hostname
+                    url = (LIBVIRT_RESOURCE_URL %
+                           settings.compute_resources.libvirt_hostname)
                     # Create compute resource using nailgun
                     resource = entities.LibvirtComputeResource(
                         name=resource_name,

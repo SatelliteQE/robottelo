@@ -370,8 +370,9 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
             {
                 u'name': gen_alphanumeric(),
                 u'provider': u'Libvirt',
-                u'url': u'qemu+tcp://{0}:16509/system'.format(
-                    settings.server.hostname),
+                u'url': u'qemu+ssh://root@{0}/system'.format(
+                    settings.compute_resources.libvirt_hostname
+                ),
             }
         )
 

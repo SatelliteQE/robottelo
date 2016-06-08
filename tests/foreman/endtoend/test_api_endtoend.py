@@ -1096,8 +1096,9 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         # step 2.16: Create a new libvirt compute resource
         entities.LibvirtComputeResource(
             server_config,
-            url=u'qemu+tcp://{0}:16509/system'.format(
-                settings.server.hostname),
+            url=u'qemu+ssh://root@{0}/system'.format(
+                settings.compute_resources.libvirt_hostname
+            ),
         ).create()
 
         # step 2.17: Create a new subnet

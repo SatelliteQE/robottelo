@@ -93,7 +93,7 @@ class ComputeResourceTestCase(CLITestCase):
     def setUpClass(cls):
         super(ComputeResourceTestCase, cls).setUpClass()
         cls.current_libvirt_url = (
-            LIBVIRT_RESOURCE_URL % settings.server.hostname
+            LIBVIRT_RESOURCE_URL % settings.compute_resources.libvirt_hostname
         )
 
     # pylint: disable=no-self-use

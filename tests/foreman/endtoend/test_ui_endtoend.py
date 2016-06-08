@@ -274,7 +274,8 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 provider_type=FOREMAN_PROVIDERS['libvirt'],
                 parameter_list=[[
                     'URL',
-                    LIBVIRT_RESOURCE_URL % settings.server.hostname,
+                    (LIBVIRT_RESOURCE_URL %
+                     settings.compute_resources.libvirt_hostname),
                     'field'
                 ]],
             )
