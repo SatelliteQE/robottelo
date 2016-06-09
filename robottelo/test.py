@@ -103,6 +103,8 @@ class TestCase(unittest2.TestCase):
         if not settings.configured:
             settings.configure()
         cls.logger = logging.getLogger('robottelo')
+        cls.logger.debug('Started setUpClass: {0}/{1}'.format(
+            cls.__module__, cls.__name__))
         # NOTE: longMessage defaults to True in Python 3.1 and above
         cls.longMessage = True
         cls.foreman_user = settings.server.admin_username
@@ -145,6 +147,8 @@ class TestCase(unittest2.TestCase):
 
     @classmethod
     def tearDownClass(cls):
+        cls.logger.debug('Started tearDownClass: {0}/{1}'.format(
+            cls.__module__, cls.__name__))
         if not settings.cleanup:
             return
         default_org = entities.Organization(id=1)
@@ -175,6 +179,22 @@ class TestCase(unittest2.TestCase):
     def register_entity_for_cleanup(cls, sender, entity, **kwargs):
         cls.cleanup_queue[entity.__class__.__name__].appendleft(entity)
 
+    def setUp(self):
+        """setup for tests"""
+        self.log_method_name(prefix='Started Test: ')
+
+    def tearDown(self):
+        """teardown for tests"""
+        self.log_method_name(prefix='Finished Test: ')
+
+    def log_method_name(self, prefix=None):
+        """Log test method name"""
+        self.logger.debug('{0}{1}/{2}'.format(
+            prefix,
+            type(self).__name__,
+            self._testMethodName,
+        ))
+
 
 signals.post_create.connect(TestCase.register_entity_for_cleanup,
                             sender=entities.Organization)
@@ -192,11 +212,6 @@ class APITestCase(TestCase):
 class CLITestCase(TestCase):
     """Test case for CLI tests."""
     _multiprocess_can_split_ = True
-
-    def setUp(self):  # noqa
-        """Log test class and method name before each test."""
-        self.logger.debug(
-            'Running test %s/%s', type(self).__name__, self._testMethodName)
 
 
 class UITestCase(TestCase):
@@ -273,6 +288,7 @@ class UITestCase(TestCase):
 
     def setUp(self):  # noqa
         """We do want a new browser instance for every test."""
+        super(UITestCase, self).setUp()
         if settings.browser == 'docker':
             self._docker_browser = DockerBrowser()
             self._docker_browser.start()
