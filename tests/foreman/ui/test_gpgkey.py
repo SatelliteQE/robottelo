@@ -13,7 +13,7 @@ from robottelo.constants import (
     VALID_GPG_KEY_FILE,
     ZOO_CUSTOM_GPG_KEY,
 )
-from robottelo.datafactory import generate_strings_list
+from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
@@ -31,12 +31,10 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
-GEN_STRING_LIST_ARGS = {"exclude_types": ['numeric'], "bug_id": 1184480}
-
 
 def get_random_gpgkey_name():
     """Creates a random gpgkey name"""
-    return random.choice(generate_strings_list(**GEN_STRING_LIST_ARGS))
+    return random.choice(valid_data_list())
 
 
 class GPGKey(UITestCase):
@@ -62,7 +60,7 @@ class GPGKey(UITestCase):
         @assert: gpg key is created
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(**GEN_STRING_LIST_ARGS):
+            for name in valid_data_list():
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -84,7 +82,7 @@ class GPGKey(UITestCase):
         @assert: gpg key is created
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(**GEN_STRING_LIST_ARGS):
+            for name in valid_data_list():
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -171,8 +169,7 @@ class GPGKey(UITestCase):
         @assert: gpg key is not created
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(length=300,
-                                              **GEN_STRING_LIST_ARGS):
+            for name in invalid_names_list():
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -198,8 +195,7 @@ class GPGKey(UITestCase):
         @assert: gpg key is not created
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(length=300,
-                                              **GEN_STRING_LIST_ARGS):
+            for name in invalid_names_list():
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -226,7 +222,7 @@ class GPGKey(UITestCase):
         @assert: gpg key is deleted
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(**GEN_STRING_LIST_ARGS):
+            for name in valid_data_list():
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -249,7 +245,7 @@ class GPGKey(UITestCase):
         @assert: gpg key is deleted
         """
         with Session(self.browser) as session:
-            for name in generate_strings_list(**GEN_STRING_LIST_ARGS):
+            for name in valid_data_list():
                 with self.subTest(name):
                     make_gpgkey(
                         session,
@@ -272,8 +268,8 @@ class GPGKey(UITestCase):
 
         @assert: gpg key is updated
         """
-        name = gen_string('alpha', 6)
-        new_name = gen_string('alpha', 6)
+        name = gen_string('alpha')
+        new_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_gpgkey(
                 session,
@@ -298,7 +294,7 @@ class GPGKey(UITestCase):
 
         @assert: gpg key is updated
         """
-        name = gen_string('alpha', 6)
+        name = gen_string('alpha')
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
         with Session(self.browser) as session:
             make_gpgkey(
@@ -324,8 +320,8 @@ class GPGKey(UITestCase):
 
         @assert: gpg key is updated
         """
-        name = gen_string('alpha', 6)
-        new_name = gen_string('alpha', 6)
+        name = gen_string('alpha')
+        new_name = gen_string('alpha')
         with Session(self.browser) as session:
             make_gpgkey(
                 session,
@@ -349,7 +345,7 @@ class GPGKey(UITestCase):
 
         @assert: gpg key is updated
         """
-        name = gen_string('alpha', 6)
+        name = gen_string('alpha')
         new_key_path = get_data_file(VALID_GPG_KEY_BETA_FILE)
         with Session(self.browser) as session:
             make_gpgkey(
@@ -386,8 +382,7 @@ class GPGKey(UITestCase):
                 upload_key=True,
             )
             self.assertIsNotNone(self.gpgkey.search(name))
-            for new_name in generate_strings_list(
-                    length=300, **GEN_STRING_LIST_ARGS):
+            for new_name in invalid_names_list():
                 with self.subTest(new_name):
                     self.gpgkey.update(name, new_name)
                     self.assertIsNotNone(self.gpgkey.wait_until_element(
@@ -653,7 +648,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product and repository
             for product_ in (True, False):
                 self.assertIsNotNone(
@@ -697,7 +691,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product and repository
             for product_ in (True, False):
                 self.assertIsNotNone(
@@ -716,7 +709,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         @assert: gpg key is associated with product as well as with
         the repositories
 
-        @BZ: 1085035
+        @BZ: 1210180
         """
         name = get_random_gpgkey_name()
         with Session(self.browser) as session:
@@ -771,7 +764,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that GPGKey is not associated with product
             self.assertIsNone(
                 self.gpgkey.assert_product_repo(name, product=True)
@@ -819,7 +811,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that GPGKey is not associated with product
             self.assertIsNone(
                 self.gpgkey.assert_product_repo(name, product=True)
@@ -868,7 +859,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product
             self.assertIsNotNone(
                 self.gpgkey.assert_product_repo(name, product=True)
@@ -891,7 +881,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         @feature: GPG Keys
 
         @assert: gpg key is associated with product as well as with
-        reposiotry before/after update
+        repository before/after update
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -915,7 +905,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         new_name = gen_string('alpha')
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that before update GPGKey is associated with product, repo
             for product_ in (True, False):
                 self.assertIsNotNone(
@@ -938,7 +927,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         @feature: GPG Keys
 
         @assert: gpg key is associated with product as well as with
-        reposiories before/after update
+        repositories before/after update
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -968,7 +957,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         new_name = gen_string('alpha')
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that before update GPGKey is associated with product, repo
             for product_ in (True, False):
                 self.assertIsNotNone(
@@ -994,15 +982,15 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         @assert: gpg key is associated with product as well as with
         repository before/after update
 
-        @BZ: 1085035
+        @BZ: 1210180
         """
         name = get_random_gpgkey_name()
-        new_name = gen_string("alpha", 8)
+        new_name = gen_string('alpha')
         entities.GPGKey(
             content=self.key_content,
             name=name,
             organization=self.organization,
-        ).create_json()
+        ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_products()
@@ -1058,7 +1046,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         new_name = gen_string('alpha')
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that GPGKey is not associated with product
             self.assertIsNone(
                 self.gpgkey.assert_product_repo(name, product=True)
@@ -1118,7 +1105,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         new_name = gen_string('alpha')
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that GPGKey is not associated with product
             self.assertIsNone(
                 self.gpgkey.assert_product_repo(name, product=True)
@@ -1179,7 +1165,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product
             self.assertIsNotNone(
                 self.gpgkey.assert_product_repo(name, product=True)
@@ -1221,7 +1206,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product, repository
             for product_ in (True, False):
                 self.assertIsNotNone(
@@ -1271,7 +1255,6 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_gpg_keys()
             # Assert that GPGKey is associated with product, repository
             for product_ in (True, False):
                 self.assertIsNotNone(
@@ -1296,7 +1279,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         the repositories during creation but removed from product
         after deletion
 
-        @BZ: 1085035
+        @BZ: 1210180
         """
         name = get_random_gpgkey_name()
         product_name = gen_string('alpha')
@@ -1304,7 +1287,7 @@ class GPGKeyProductAssociateTestCase(UITestCase):
             content=self.key_content,
             name=name,
             organization=self.organization,
-        ).create_json()
+        ).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_products()

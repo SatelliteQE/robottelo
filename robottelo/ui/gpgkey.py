@@ -2,7 +2,7 @@
 """Implements GPG keys UI."""
 
 from robottelo.ui.base import Base, UIError
-from robottelo.ui.locators import locators, common_locators, tab_locators
+from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 from selenium.webdriver.support.select import Select
 
@@ -22,29 +22,23 @@ class GPGKey(Base):
     def create(self, name, upload_key=False, key_path=None, key_content=None):
         """Creates a gpg key from UI."""
         self.click(locators['gpgkey.new'])
-
-        if self.wait_until_element(common_locators['name']):
-            self.find_element(
-                common_locators['name']).send_keys(name)
-            if upload_key:
-                self.click(locators['gpgkey.upload'])
-                self.find_element(
-                    locators['gpgkey.file_path']).send_keys(key_path)
-            elif key_content:
-                self.click(locators['gpgkey.content'])
-                self.find_element(
-                    locators['gpgkey.content']).send_keys(key_content)
-            else:
-                raise UIError(
-                    u'Could not create new gpgkey "{0}" without contents'
-                    .format(name)
-                )
-            self.click(common_locators['create'])
-            self.wait_until_element_is_not_visible(locators['gpgkey.new_form'])
+        self.wait_until_element(
+            common_locators['name']).send_keys(name)
+        if upload_key:
+            self.click(locators['gpgkey.upload'])
+            self.wait_until_element(
+                locators['gpgkey.file_path']).send_keys(key_path)
+        elif key_content:
+            self.click(locators['gpgkey.content'])
+            self.wait_until_element(
+                locators['gpgkey.content']).send_keys(key_content)
         else:
             raise UIError(
-                'Could not create new gpg key "{0}"'.format(name)
+                u'Could not create new gpgkey "{0}" without contents'
+                .format(name)
             )
+        self.click(common_locators['create'])
+        self.wait_until_element_is_not_visible(locators['gpgkey.new_form'])
 
     def delete(self, name, really=True):
         """Deletes an existing gpg key."""
