@@ -39,3 +39,6 @@
 /.project
 /.pydevproject
 /.settings/
+
+# For Pycharm
+/.idea
