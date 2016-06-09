@@ -1873,7 +1873,7 @@ locators = LocatorDict({
         "//form[@bst-edit-textarea='environment.description']//button"),
 
     # GPG Key
-    "gpgkey.new": (By.XPATH, "//button[@ui-sref='gpgKeys.new']"),
+    "gpgkey.new": (By.XPATH, "//button[@ui-sref='gpg-keys.new']"),
     "gpgkey.upload": (By.XPATH, "//input[@type='radio'and @value='upload']"),
     "gpgkey.content": (
         By.XPATH, "//textarea[@placeholder='Paste contents...']"),
