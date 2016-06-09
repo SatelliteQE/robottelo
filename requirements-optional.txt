@@ -18,3 +18,6 @@ docker-py
 
 # For reporting test results on SauceLabs
 sauceclient
+
+# For interactive shell
+click
