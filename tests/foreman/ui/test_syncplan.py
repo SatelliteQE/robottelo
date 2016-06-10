@@ -15,7 +15,6 @@ from robottelo.datafactory import (
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
-    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
@@ -142,7 +141,6 @@ class SyncPlanTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.syncplan.search(name))
 
-    @skip_if_bug_open('bugzilla', 1335133)
     @tier2
     def test_positive_create_with_start_time(self):
         """Create Sync plan with specified start time
@@ -170,10 +168,9 @@ class SyncPlanTestCase(UITestCase):
             # to validate via UI.
             self.assertEqual(
                 str(starttime_text).rpartition(':')[0],
-                startdate.strftime("%m/%d/%Y %I:%M")
+                startdate.strftime("%Y/%m/%d %H:%M")
             )
 
-    @skip_if_bug_open('bugzilla', 1335133)
     @tier2
     def test_positive_create_with_start_date(self):
         """Create Sync plan with specified start date
@@ -198,7 +195,7 @@ class SyncPlanTestCase(UITestCase):
                 locators['sp.fetch_startdate']).text
             self.assertEqual(
                 str(startdate_text).partition(' ')[0],
-                startdate.strftime("%m/%d/%Y")
+                startdate.strftime("%Y/%m/%d")
             )
 
     @tier1

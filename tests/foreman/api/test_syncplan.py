@@ -170,7 +170,6 @@ class SyncPlanCreateTestCase(APITestCase):
                 self.assertEqual(sync_plan.interval, interval)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1335133)
     @tier1
     def test_positive_create_with_sync_date(self):
         """Create a sync plan and update its sync date.
@@ -186,7 +185,7 @@ class SyncPlanCreateTestCase(APITestCase):
                     sync_date=syncdate,
                 ).create()
                 self.assertEqual(
-                    syncdate.strftime('%m/%d/%Y %I:%M:%p'),
+                    syncdate.strftime('%Y/%m/%d %H:%M:%S UTC'),
                     sync_plan.sync_date
                 )
 
@@ -334,7 +333,6 @@ class SyncPlanUpdateTestCase(APITestCase):
                 )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1335133)
     @tier1
     def test_positive_update_sync_date(self):
         """Updated sync plan's sync date.
@@ -351,7 +349,7 @@ class SyncPlanUpdateTestCase(APITestCase):
             with self.subTest(syncdate):
                 sync_plan.sync_date = syncdate
                 self.assertEqual(
-                    syncdate.strftime('%m/%d/%Y %I:%M:%p'),
+                    syncdate.strftime('%Y/%m/%d %H:%M:%S UTC'),
                     sync_plan.update(['sync_date']).sync_date
                 )
 
