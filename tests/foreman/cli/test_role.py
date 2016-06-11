@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test for Roles CLI"""
+"""Test for Roles CLI
+
+@Requirement: Role
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_role
@@ -17,7 +32,7 @@ class RoleTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Create new roles with provided name
 
-        @Feature: Roles
+        @id: 6883177c-6926-428c-92ab-9effbe1372ae
 
         @Assert: Role is created and has correct name
 
@@ -33,11 +48,11 @@ class RoleTestCase(CLITestCase):
     def test_positive_create_with_permission(self):
         """Create new role with a set of permission
 
-        @feature: Roles
+        @id: 7cb2b2e2-ad4d-41e9-b6b2-c0366eb09b9a
 
         @assert: Role is created and has correct set of permissions
 
-        @status: manual
+        @caseautomation: notautomated
         """
 
     @skip_if_bug_open('bugzilla', 1138553)
@@ -45,7 +60,7 @@ class RoleTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Create a new role and then delete role by its ID
 
-        @Feature: Roles
+        @id: 351780b4-697c-4f87-b989-dd9a9a2ad012
 
         @Assert: Role is created and then deleted by its ID
         """
@@ -62,7 +77,7 @@ class RoleTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Create new role and update its name
 
-        @Feature: Roles
+        @id: 3ce1b337-fd52-4460-b8a8-df49c94ffed1
 
         @Assert: Role is created and its name is updated
         """

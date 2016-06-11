@@ -3,6 +3,20 @@
 Each ``APITestCase`` subclass tests a single URL. A full list of URLs to be
 tested can be found here:
 http://theforeman.org/api/1.11/apidoc/v2/usergroups.html
+
+@Requirement: Usergroup
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -24,7 +38,7 @@ class UserGroupTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create new user group using different valid names
 
-        @Feature: Usergroup
+        @id: 3a2255d9-f48d-4f22-a4b9-132361bd9224
 
         @Assert: User group is created successfully.
         """
@@ -37,7 +51,7 @@ class UserGroupTestCase(APITestCase):
     def test_positive_create_with_user(self):
         """Create new user group using valid user attached to that group.
 
-        @Feature: Usergroup
+        @id: ab127e09-31d2-4c5b-ae6c-726e4b11a21e
 
         @Assert: User group is created successfully.
         """
@@ -52,7 +66,7 @@ class UserGroupTestCase(APITestCase):
     def test_positive_create_with_users(self):
         """Create new user group using multiple users attached to that group.
 
-        @Feature: Usergroup
+        @id: b8dbbacd-b5cb-49b1-985d-96df21440652
 
         @Assert: User group is created successfully and contains all expected
         users.
@@ -68,7 +82,7 @@ class UserGroupTestCase(APITestCase):
     def test_positive_create_with_role(self):
         """Create new user group using valid role attached to that group.
 
-        @Feature: Usergroup
+        @id: c4fac71a-9dda-4e5f-a5df-be362d3cbd52
 
         @Assert: User group is created successfully.
         """
@@ -83,7 +97,7 @@ class UserGroupTestCase(APITestCase):
     def test_positive_create_with_roles(self):
         """Create new user group using multiple roles attached to that group.
 
-        @Feature: Usergroup
+        @id: 5838fcfd-e256-49cf-aef8-b2bf215b3586
 
         @Assert: User group is created successfully and contains all expected
         roles
@@ -100,7 +114,7 @@ class UserGroupTestCase(APITestCase):
         """Create new user group using another user group attached to the
         initial group.
 
-        @Feature: Usergroup
+        @id: 2a3f7b1a-7411-4c12-abaf-9a3ca1dfae31
 
         @Assert: User group is created successfully.
         """
@@ -118,10 +132,12 @@ class UserGroupTestCase(APITestCase):
         """Create new user group using multiple user groups attached to that
         initial group.
 
-        @Feature: Usergroup
+        @id: 9ba71288-af8b-4957-8413-442a47057634
 
         @Assert: User group is created successfully and contains all expected
         user groups
+
+        @CaseLevel: Integration
         """
         sub_user_groups = [
             entities.UserGroup().create() for _ in range(randint(3, 5))]
@@ -136,7 +152,7 @@ class UserGroupTestCase(APITestCase):
     def test_negative_create_with_name(self):
         """Attempt to create user group with invalid name.
 
-        @Feature: Usergroup
+        @id: 1a3384dc-5d52-442c-87c8-e38048a61dfa
 
         @Assert: User group is not created.
         """
@@ -149,7 +165,7 @@ class UserGroupTestCase(APITestCase):
     def test_negative_create_with_same_name(self):
         """Attempt to create user group with a name of already existent entity.
 
-        @Feature: Usergroup
+        @id: aba0925a-d5ec-4e90-86c6-404b9b6f0179
 
         @Assert: User group is not created.
         """
@@ -161,7 +177,7 @@ class UserGroupTestCase(APITestCase):
     def test_positive_update(self):
         """Update existing user group with different valid names.
 
-        @Feature: Usergroup
+        @id: b4f0a19b-9059-4e8b-b245-5a30ec06f9f3
 
         @Assert: User group is updated successfully.
         """
@@ -176,7 +192,7 @@ class UserGroupTestCase(APITestCase):
     def test_positive_update_with_new_user(self):
         """Add new user to user group
 
-        @Feature: Usergroup
+        @id: e11b57c3-5f86-4963-9cc6-e10e2f02468b
 
         @Assert: User is added to user group successfully.
         """
@@ -190,9 +206,11 @@ class UserGroupTestCase(APITestCase):
     def test_positive_update_with_existing_user(self):
         """Update user that assigned to user group with another one
 
-        @Feature: Usergroup
+        @id: 71b78f64-867d-4bf5-9b1e-02698a17fb38
 
         @Assert: User group is updated successfully.
+
+        @CaseLevel: Integration
         """
         users = [entities.User().create() for _ in range(2)]
         user_group = entities.UserGroup(user=[users[0]]).create()
@@ -204,7 +222,7 @@ class UserGroupTestCase(APITestCase):
     def test_positive_update_with_new_role(self):
         """Add new role to user group
 
-        @Feature: Usergroup
+        @id: 8e0872c1-ae88-4971-a6fc-cd60127d6663
 
         @Assert: Role is added to user group successfully.
         """
@@ -218,7 +236,7 @@ class UserGroupTestCase(APITestCase):
     def test_positive_update_with_new_usergroup(self):
         """Add new user group to existing one
 
-        @Feature: Usergroup
+        @id: 3cb29d07-5789-4f94-9fd9-a7e494b3c110
 
         @Assert: User group is added to existing group successfully.
         """
@@ -233,7 +251,7 @@ class UserGroupTestCase(APITestCase):
     def test_negative_update(self):
         """Attempt to update existing user group using different invalid names.
 
-        @Feature: Usergroup
+        @id: 03772bd0-0d52-498d-8259-5c8a87e08344
 
         @Assert: User group is not updated.
         """
@@ -249,7 +267,7 @@ class UserGroupTestCase(APITestCase):
     def test_negative_update_with_same_name(self):
         """Attempt to update user group with a name of already existent entity.
 
-        @Feature: Usergroup
+        @id: 14888998-9282-4d81-9e99-234d19706783
 
         @Assert: User group is not updated.
         """
@@ -265,7 +283,7 @@ class UserGroupTestCase(APITestCase):
     def test_positive_delete(self):
         """Create user group with valid name and then delete it
 
-        @feature: Usergroup
+        @id: c5cfcc4a-9177-47bb-8f19-7a8930eb7ca3
 
         @assert: User group is deleted successfully
         """

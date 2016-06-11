@@ -1,4 +1,19 @@
-"""Test class for Custom Sync UI"""
+"""Test class for Custom Sync UI
+
+@Requirement: Sync
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from nailgun import entities
 from robottelo import manifests
@@ -39,7 +54,7 @@ class SyncTestCase(UITestCase):
     def test_positive_sync_custom_repo(self):
         """Create Content Custom Sync with minimal input parameters
 
-        @Feature: Content Custom Sync - Positive Create
+        @id: 00fb0b04-0293-42c2-92fa-930c75acee89
 
         @Assert: Sync procedure is successful
         """
@@ -68,9 +83,11 @@ class SyncTestCase(UITestCase):
     def test_positive_sync_rh_repos(self):
         """Create Content RedHat Sync with two repos.
 
-        @Feature: Content RedHat Sync - Positive Create
+        @id: e30f6509-0b65-4bcc-a522-b4f3089d3911
 
         @Assert: Sync procedure for RedHat Repos is successful
+
+        @CaseLevel: Integration
         """
         repos = self.sync.create_repos_tree(RHCT)
         with manifests.clone() as manifest:
@@ -89,7 +106,7 @@ class SyncTestCase(UITestCase):
     def test_positive_sync_disconnected_to_connected_rh_repos(self):
         """Migrating from disconnected to connected satellite.
 
-        @Feature: Sync - Disconnected to Connected
+        @id: 03b3d904-1697-441b-bb12-8b353a556218
 
         @Steps:
         1. Update the link to an internal http link where the content has been
@@ -108,7 +125,9 @@ class SyncTestCase(UITestCase):
         3. After reverting the link the repos should not be seen in
            'Others Tab' and should be seen only in 'RPM's Tab'.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -117,11 +136,13 @@ class SyncTestCase(UITestCase):
     def test_positive_sync_custom_ostree_repo(self):
         """Create custom ostree repository and sync it.
 
-        @Feature: Custom ostree repository sync
+        @id: e4119b9b-0356-4661-a3ec-e5807224f7d2
 
         @Assert: ostree repo should be synced successfully
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -130,7 +151,7 @@ class SyncTestCase(UITestCase):
     def test_positive_sync_rh_ostree_repo(self):
         """Sync CDN based ostree repository .
 
-        @Feature: RH ostree repository sync
+        @id: 4d28fff0-5fda-4eee-aa0c-c5af02c31de5
 
         @Steps:
         1. Import a valid manifest
@@ -138,5 +159,7 @@ class SyncTestCase(UITestCase):
 
         @Assert: ostree repo should be synced successfully from CDN
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """

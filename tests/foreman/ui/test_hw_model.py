@@ -1,4 +1,19 @@
-"""Test class for Config Groups UI"""
+"""Test class for Config Groups UI
+
+@Requirement: Hw model
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.datafactory import (
@@ -34,7 +49,7 @@ class HardwareModelTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create new Hardware-Model
 
-        @feature: Hardware-Model - Positive Create
+        @id: e2ebac95-4d0b-404d-98c6-dcba40158c28
 
         @assert: Hardware-Model is created
         """
@@ -49,7 +64,7 @@ class HardwareModelTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create new Hardware-Model with invalid names
 
-        @feature: Hardware-Model - Negative Create
+        @id: ccaeec78-28e9-432d-bb2e-6fb92280d996
 
         @assert: Hardware-Model is not created
         """
@@ -66,7 +81,7 @@ class HardwareModelTestCase(UITestCase):
     def test_positive_update(self):
         """Updates the Hardware-Model
 
-        @feature: Hardware-Model - Positive Update
+        @id: 56ec6d62-1520-4de2-9231-b62e57578223
 
         @assert: Hardware-Model is updated.
         """
@@ -92,7 +107,7 @@ class HardwareModelTestCase(UITestCase):
     def test_positive_delete(self):
         """Deletes the Hardware-Model
 
-        @feature: Hardware-Model - Positive delete
+        @id: 160319bb-c67c-4086-8d48-fce88c110a2e
 
         @assert: Hardware-Model is deleted
         """

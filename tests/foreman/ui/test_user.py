@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Users UI"""
+"""Test class for Users UI
+
+@Requirement: User
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 import random
 from fauxfactory import gen_string
@@ -56,7 +71,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_username(self):
         """Create User for all variations of Username
 
-        @Feature: User - Positive Create
+        @id: 2acc8c7d-cb14-4eda-98f9-fb379950f2f5
 
         @Assert: User is created successfully
         """
@@ -70,7 +85,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_first_name(self):
         """Create User for all variations of First Name
 
-        @Feature: User - Positive Create
+        @id: dd398cd6-821e-4b0e-a111-22d5a6eeafd8
 
         @Assert: User is created successfully
         """
@@ -85,7 +100,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_surname(self):
         """Create User for all variations of Surname
 
-        @Feature: User - Positive Create
+        @id: 0a2dc093-0cd1-41eb-99cd-79935c74563f
 
         @Assert: User is created successfully
         """
@@ -100,7 +115,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_email(self):
         """Create User for all variations of Email Address
 
-        @Feature: User - Positive Create
+        @id: 1c6c0f50-401c-4b7d-9795-97a1be3806f8
 
         @Assert: User is created successfully
         """
@@ -115,7 +130,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_language(self):
         """Create User for all variations of Language
 
-        @Feature: User - Positive Create
+        @id: 1c5581a8-79ae-40a6-8052-f47be2d4c5eb
 
         @Assert: User is created successfully
         """
@@ -130,7 +145,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_password(self):
         """Create User for all variations of Password
 
-        @Feature: User - Positive Create
+        @id: 83d6efe0-7526-465c-9c97-5673c7736fc4
 
         @Assert: User is created successfully
         """
@@ -158,7 +173,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_admin(self):
         """Create an Admin user
 
-        @Feature: User - Positive Create
+        @id: 9bf56045-1026-435c-bf4c-623e160582d5
 
         @Assert: Admin User is created successfully
         """
@@ -171,7 +186,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_one_role(self):
         """Create User with one role
 
-        @Feature: User - Positive Create
+        @id: 6d6c795e-8b46-4f0f-84e1-f7e22add6173
 
         @Assert: User is created successfully
         """
@@ -190,9 +205,11 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_multiple_roles(self):
         """Create User with multiple roles
 
-        @Feature: User - Positive Create
+        @id: d3cc4434-25ca-4465-8878-42495390c17b
 
         @Assert: User is created successfully
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -214,9 +231,11 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_all_roles(self):
         """Create User and assign all available roles to it
 
-        @Feature: User - Positive Create
+        @id: 814593ca-1566-45ea-9eff-e880183b1ee3
 
         @Assert: User is created successfully
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -232,7 +251,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_one_org(self):
         """Create User associated to one Org
 
-        @Feature: User - Positive Create
+        @id: 830bc5fc-e773-466c-9b38-4f33a2c1d05e
 
         @Assert: User is created successfully
         """
@@ -253,9 +272,11 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_multiple_orgs(self):
         """Create User associated to multiple Orgs
 
-        @Feature: User - Positive Create
+        @id: d74c0284-3995-4a4a-8746-00858282bf5d
 
         @Assert: User is created successfully
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -284,19 +305,21 @@ class UserTestCase(UITestCase):
         """Create User in supported ldap modes - (Active Driectory, IPA,
         Posix)
 
-        @Feature: User - Positive Create
+        @id: 0668b2ca-831e-4568-94fb-80e45dd7d001
 
         @Assert: User is created without specifying the password
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @tier1
     def test_positive_create_with_default_org(self):
         """Create User and has default organization associated with it
 
-        @Feature: User - Positive Create.
+        @id: 3d51dead-9053-427d-8292-c42e87ed6289
 
         @Assert: User is created with default Org selected.
         """
@@ -320,7 +343,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_with_default_location(self):
         """Create User and associate a default Location.
 
-        @Feature: User - Positive Create
+        @id: 952a0be5-d393-49a2-8fd9-f6dfcc31f762
 
         @Assert: User is created with default Location selected.
         """
@@ -344,7 +367,7 @@ class UserTestCase(UITestCase):
     def test_negative_create(self):
         """Enter all User creation details and Cancel
 
-        @Feature: User - Negative Create
+        @id: 2774be2f-303e-498f-8072-80462f33c52e
 
         @Assert: User is not created
         """
@@ -364,7 +387,7 @@ class UserTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create User with invalid User Name
 
-        @Feature: User - Negative Create
+        @id: 31bbe350-0275-4aaf-99ec-3f77bfd4ba00
 
         @Assert: User is not created. Appropriate error shown.
         """
@@ -381,7 +404,7 @@ class UserTestCase(UITestCase):
     def test_negative_create_with_invalid_firstname(self):
         """Create User with invalid FirstName
 
-        @Feature: User - Negative Create
+        @id: 21525bf2-4de9-43f0-8c92-b2fad1fdc944
 
         @Assert: User is not created. Appropriate error shown.
         """
@@ -404,7 +427,7 @@ class UserTestCase(UITestCase):
     def test_negative_create_with_invalid_surname(self):
         """Create User with invalid Surname
 
-        @Feature: User - Negative Create
+        @id: 47d9e8be-3b29-4a56-85d7-898145b5b034
 
         @Assert: User is not created. Appropriate error shown.
         """
@@ -427,7 +450,7 @@ class UserTestCase(UITestCase):
     def test_negative_create_with_invalid_emails(self):
         """Create User with invalid Email Address
 
-        @Feature: User - Negative Create
+        @id: 36511b82-e070-41ea-81fa-6e29faa9da1c
 
         @Assert: User is not created. Appropriate error shown.
         """
@@ -445,7 +468,7 @@ class UserTestCase(UITestCase):
     def test_negative_create_with_blank_auth(self):
         """Create User with blank value for 'Authorized by' field
 
-        @Feature: User - Negative Create
+        @id: 68f670ed-ac6e-4052-889c-6671d659e510
 
         @Assert: User is not created. Appropriate error shown.
         """
@@ -458,7 +481,7 @@ class UserTestCase(UITestCase):
     def test_negative_create_with_wrong_pass_confirmation(self):
         """Create User with non-matching values in Password and verify
 
-        @Feature: User - Negative Create
+        @id: f818e5fc-b378-4bc7-afa8-18b23ee05053
 
         @Assert: User is not created. Appropriate error shown.
         """
@@ -476,7 +499,7 @@ class UserTestCase(UITestCase):
     def test_positive_update_username(self):
         """Update Username in User
 
-        @Feature: User - Positive Update
+        @id: 4ecb2816-9bef-4089-86a0-02d7d065cdb1
 
         @Assert: User is updated successfully
         """
@@ -507,7 +530,7 @@ class UserTestCase(UITestCase):
     def test_positive_update_firstname(self):
         """Update first name in User
 
-        @Feature: User - Positive Update
+        @id: 03ef8a7f-2bf1-4314-b0cd-a7a6acfc17ea
 
         @Assert: User is updated successful
         """
@@ -523,7 +546,7 @@ class UserTestCase(UITestCase):
     def test_positive_update_surname(self):
         """Update surname in User
 
-        @Feature: User - Positive Update
+        @id: 0326d221-28b0-4a6b-934e-b67ee6c9f696
 
         @Assert: User is updated successful
         """
@@ -539,7 +562,7 @@ class UserTestCase(UITestCase):
     def test_positive_update_email(self):
         """Update Email Address in User
 
-        @Feature: User - Positive Update
+        @id: e48314b7-2a49-48ec-896d-af7bf427b1c4
 
         @Assert: User is updated successfully
         """
@@ -555,7 +578,7 @@ class UserTestCase(UITestCase):
     def test_positive_update_language(self):
         """Update Language in User
 
-        @Feature: User - Positive Update
+        @id: 64b6a90e-0d4c-4a55-a4bd-7347010e39f2
 
         @Assert: User is updated successfully
         """
@@ -570,7 +593,7 @@ class UserTestCase(UITestCase):
     def test_positive_update_password(self):
         """Update password for a user
 
-        @Feature: User - Update
+        @id: db57c3bc-4fae-4ee7-bf6d-8e0bcc7fd55c
 
         @Assert: User password is updated successfully
 
@@ -589,7 +612,7 @@ class UserTestCase(UITestCase):
     def test_positive_update_to_non_admin(self):
         """Convert an user from an admin user to non-admin user
 
-        @Feature: User - Positive Update
+        @id: b41cbcf8-d819-4daa-b217-a4812541dca3
 
         @Assert: User is updated and has proper admin role value
         """
@@ -604,7 +627,7 @@ class UserTestCase(UITestCase):
     def test_positive_update_to_admin(self):
         """Convert a user to an admin user
 
-        @Feature: User - Positive Update
+        @id: d3cdda62-1384-4b49-97a3-0c66764583bb
 
         @Assert: User is updated and has proper admin role value
         """
@@ -618,7 +641,7 @@ class UserTestCase(UITestCase):
     def test_positive_update_role(self):
         """Update role for a user
 
-        @Feature: User - Update
+        @id: 2a13529c-3863-403b-a319-9569ca1287cb
 
         @Assert: User role is updated
         """
@@ -641,9 +664,11 @@ class UserTestCase(UITestCase):
     def test_positive_update_with_multiple_roles(self):
         """Update User with multiple roles
 
-        @Feature: User - Positive Update
+        @id: 127fb368-09fd-4f10-8319-566a1bcb5cd2
 
         @Assert: User is updated successfully
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -664,9 +689,11 @@ class UserTestCase(UITestCase):
     def test_positive_update_with_all_roles(self):
         """Update User with all roles
 
-        @Feature: User - Positive Update
+        @id: cd7a9cfb-a700-45f2-a11d-bba6be3c810d
 
         @Assert: User is updated successfully
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -683,7 +710,7 @@ class UserTestCase(UITestCase):
     def test_positive_update_org(self):
         """Assign a User to an Org
 
-        @Feature: User - Positive Update
+        @id: d891e54b-76bf-4537-8eb9-c3f8832e4c2c
 
         @Assert: User is updated successfully
         """
@@ -704,9 +731,11 @@ class UserTestCase(UITestCase):
     def test_positive_update_orgs(self):
         """Assign a User to multiple Orgs
 
-        @Feature: User - Positive Update
+        @id: a207188d-1ad1-4ff1-9906-bae1d91104fd
 
         @Assert: User is updated
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         name = gen_string('alpha')
@@ -727,7 +756,7 @@ class UserTestCase(UITestCase):
     def test_negative_update_username(self):
         """Update invalid Username in an User
 
-        @Feature: User - Negative Update
+        @id: 7019461e-13c6-4761-b3e9-4df81abcd0f9
 
         @Assert: User is not updated. Appropriate error shown.
         """
@@ -746,7 +775,7 @@ class UserTestCase(UITestCase):
     def test_negative_update_firstname(self):
         """Update invalid Firstname in an User
 
-        @Feature: User - Negative Update
+        @id: 1e3945d1-5b47-45ca-aff9-3ddd44688e6b
 
         @Assert: User is not updated. Appropriate error shown.
         """
@@ -765,7 +794,7 @@ class UserTestCase(UITestCase):
     def test_negative_update_surname(self):
         """Update invalid Surname in an User
 
-        @Feature: User - Negative Update
+        @id: 14033c1f-4c7e-4ee5-8ffc-76c4dd672cc1
 
         @Assert: User is not updated. Appropriate error shown.
         """
@@ -784,7 +813,7 @@ class UserTestCase(UITestCase):
     def test_negative_update_email(self):
         """Update invalid Email Address in an User
 
-        @Feature: User - Negative Update
+        @id: 6aec3816-16ca-487a-b0f1-a5c1fbc3e0a3
 
         @Assert: User is not updated. Appropriate error shown.
         """
@@ -804,7 +833,7 @@ class UserTestCase(UITestCase):
     def test_negative_update_password(self):
         """Update different values in Password and verify fields
 
-        @Feature: User - Negative Update
+        @id: ab4a5dbf-70c2-4adc-b948-bc350329e166
 
         @Steps:
         1. Create User
@@ -813,14 +842,14 @@ class UserTestCase(UITestCase):
 
         @Assert: User is not updated.  Appropriate error shown.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @tier1
     def test_negative_update(self):
         """[UI ONLY] Attempt to update User info and Cancel
 
-        @Feature: User - Negative Update
+        @id: 56c8ea13-4add-4a51-8428-9d9f9ddde33e
 
         @Assert: User is not updated.
         """
@@ -845,7 +874,7 @@ class UserTestCase(UITestCase):
     def test_positive_delete_user(self):
         """Delete an existing User
 
-        @Feature: User - Delete
+        @id: 49534eda-f8ea-404e-9714-a8d0d2210979
 
         @Assert: User is deleted successfully
         """
@@ -859,7 +888,7 @@ class UserTestCase(UITestCase):
     def test_positive_delete_admin(self):
         """Delete an admin user
 
-        @Feature: User - Positive Delete
+        @id: afda171a-b464-461f-93ce-96d770935200
 
         @Assert: User is deleted
         """
@@ -873,7 +902,7 @@ class UserTestCase(UITestCase):
     def test_negative_delete_user(self):
         """[UI ONLY] Attempt to delete an User and cancel
 
-        @Feature: User - Negative Delete
+        @id: 43aed0c0-a3c3-4044-addc-910dc29e4f37
 
         @Assert: User is not deleted
         """
@@ -888,7 +917,7 @@ class UserTestCase(UITestCase):
     def test_negative_delete_last_admin(self):
         """Attempt to delete the last remaining admin user
 
-        @Feature: User - Negative Delete
+        @id: f94929f2-0159-4b19-9cb6-b94e88c124f8
 
         @Steps:
         1. Create multiple Users and admin users
@@ -897,7 +926,9 @@ class UserTestCase(UITestCase):
 
         @Assert: User is not deleted
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -905,7 +936,7 @@ class UserTestCase(UITestCase):
     def test_positive_end_to_end(self):
         """Create User and perform different operations
 
-        @Feature: User - End to End
+        @id: 57f7054e-2865-4ab8-bc2b-e300a8dacee5
 
         @Steps:
         1. Create User
@@ -918,7 +949,9 @@ class UserTestCase(UITestCase):
 
         @Assert: All actions passed
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -927,7 +960,7 @@ class UserTestCase(UITestCase):
         """Create User with no Org assigned and attempt different
         operations
 
-        @Feature: User - End to End
+        @id: 36b6d667-59cc-4442-aa40-c029bdb2b534
 
         @Steps:
         1. Create User.  Do not assign any Org
@@ -939,7 +972,9 @@ class UserTestCase(UITestCase):
 
         @Assert: All actions failed since the User is not assigned to any Org
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -947,7 +982,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_bookmark_default(self):
         """Create a bookmark with default values
 
-        @Feature: Search bookmark - Positive Create
+        @id: 260fbfbd-7a9f-44c5-a3c2-0dac79211ce5
 
         @Steps:
         1. Search for a criteria
@@ -955,7 +990,9 @@ class UserTestCase(UITestCase):
 
         @Assert: Search bookmark is created
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -963,7 +1000,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_bookmark_alter_default(self):
         """Create a bookmark by altering the default values
 
-        @Feature: Search bookmark - Positive Create
+        @id: b2b9887f-850c-4e04-ae84-1ff2441f5d28
 
         @Steps:
         1. Search for a criteria
@@ -971,7 +1008,9 @@ class UserTestCase(UITestCase):
 
         @Assert: Search bookmark is created
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -979,7 +1018,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_bookmark_public(self):
         """Create a bookmark in public mode
 
-        @Feature: Search bookmark - Positive Create
+        @id: c9efede7-1938-4177-b435-2a8926aed4bb
 
         @Steps:
         1. Search for a criteria
@@ -988,7 +1027,9 @@ class UserTestCase(UITestCase):
         @Assert: Search bookmark is created in public mode and is accessible
         by other users
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -996,7 +1037,7 @@ class UserTestCase(UITestCase):
     def test_positive_create_bookmark_private(self):
         """Create a bookmark in private mode
 
-        @Feature: Search bookmark - Positive Create
+        @id: 7d6b99c9-4d68-4c96-bdbc-f73a5d2324f6
 
         @Steps:
         1. Search for a criteria
@@ -1005,7 +1046,9 @@ class UserTestCase(UITestCase):
         @Assert: Search bookmark is created in private mode and is not
         accessible by other users
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -1013,7 +1056,7 @@ class UserTestCase(UITestCase):
     def test_negative_create_bookmark_with_blank_name(self):
         """Create a bookmark with a blank bookmark name
 
-        @Feature: Search bookmark - Negative Create
+        @id: 3611bd25-ae3c-4015-8098-2ffc9010bbb3
 
         @Steps:
         1. Search for a criteria
@@ -1021,7 +1064,9 @@ class UserTestCase(UITestCase):
 
         @Assert: Search bookmark not created. Appropriate error shown.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -1029,7 +1074,7 @@ class UserTestCase(UITestCase):
     def test_negative_create_bookmark_with_blank_query(self):
         """Create a bookmark with a blank bookmark query
 
-        @Feature: Search bookmark - Negative Create
+        @id: 35cefd95-c376-4f25-9dab-e1f1dd74c765
 
         @Steps:
         1. Search for a criteria
@@ -1037,7 +1082,9 @@ class UserTestCase(UITestCase):
 
         @Assert: Search bookmark not created. Appropriate error shown.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -1045,7 +1092,7 @@ class UserTestCase(UITestCase):
     def test_positive_set_timezone(self):
         """Set a new timezone for the user
 
-        @Feature: User timezone
+        @id: 3219c245-2914-4412-8df1-72e041a58a9f
 
         @Steps:
 
@@ -1056,7 +1103,7 @@ class UserTestCase(UITestCase):
 
         @Assert: User should be able to change timezone
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -1065,7 +1112,7 @@ class UserTestCase(UITestCase):
         """Check if the Dashboard shows the time according to the new
         timezone set
 
-        @Feature: User timezone
+        @id: c2d80855-631c-46f6-8950-c296df8c0cbe
 
         @Steps:
 
@@ -1075,7 +1122,7 @@ class UserTestCase(UITestCase):
 
         @Assert: Dashboard UI displays new time based on the new timezone
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -1084,7 +1131,7 @@ class UserTestCase(UITestCase):
         """Check if the logfiles reflect the new timezone set by
         the user
 
-        @Feature: User timezone
+        @id: b687182b-9d4f-4ff4-9f19-1b6ae3c126ad
 
         @Steps:
 
@@ -1095,7 +1142,9 @@ class UserTestCase(UITestCase):
 
         @Assert: Logfiles display time according to changed timezone
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -1104,7 +1153,7 @@ class UserTestCase(UITestCase):
         """Check if the mails are received according to new
         timezone set by the user
 
-        @Feature: User timezone
+        @id: ab34dd9d-4fc1-43f1-b40a-b0ebf0802887
 
         @Steps:
 
@@ -1115,5 +1164,7 @@ class UserTestCase(UITestCase):
 
         @Assert: Emails are sent according to new timezone set
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """

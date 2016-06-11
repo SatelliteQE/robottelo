@@ -1,4 +1,19 @@
-"""Tests for the Incremental Update feature"""
+"""Tests for the Incremental Update feature
+
+@Requirement: Inc updates
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: LONGRUN
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from datetime import date, timedelta
 from fauxfactory import gen_alpha
@@ -237,7 +252,7 @@ class IncrementalUpdateTestCase(TestCase):
         """Check if api incremental update can be done without
         actually applying it
 
-        @Feature: Incremental Update
+        @id: 481c5ff2-801f-4eff-b1e0-95ea5bb37f95
 
         @Setup:  The prerequisites are already covered in the setUpClass() but
         for easy debug, get the content view id, Repository id and Lifecycle
@@ -250,6 +265,8 @@ class IncrementalUpdateTestCase(TestCase):
 
         @Assert: Incremental update completed with no errors and Content view
         has a newer version
+
+        @CaseLevel: System
         """
         # Get the content view versions and use the recent one.  API always
         # returns the versions in ascending order so it is safe to assume the
@@ -285,11 +302,13 @@ class IncrementalUpdateTestCase(TestCase):
         """Check if cli incremental update can be done without
         actually applying it
 
-        @Feature: Incremental Update
+        @id: f25b0919-74cb-4e2c-829e-482558990b3c
 
         @Assert: Incremental update completed with no errors and Content view
         has a newer version
 
+
+        @CaseLevel: System
         """
         # Get the content view versions and use the recent one.  API always
         # returns the versions in ascending order so it is safe to assume the

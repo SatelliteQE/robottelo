@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Smart Class Parameter CLI."""
+"""Test class for Smart Class Parameter CLI.
+
+@Requirement: Scparam
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo import ssh
 from robottelo.cli.smartclass import SmartClassParameter
@@ -23,7 +38,7 @@ class SmartClassParameterTestCase(CLITestCase):
     def test_positive_list(self):
         """Check if SmartClass Paramter ``list`` generates an error
 
-        @Feature: SmartClass Paramter
+        @id: a88c2e01-ce5c-4179-9ac1-1acf61a41443
 
         @Assert: SmartClass Paramter ``list`` does not generate an error
 

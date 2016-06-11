@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for SSO (UI)"""
+"""Test class for SSO (UI)
+
+@Requirement: Sso
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo.decorators import stubbed, tier3
 from robottelo.test import UITestCase
@@ -35,7 +50,7 @@ class SingleSignOnTestCase(UITestCase):
     def test_positive_sso_kerberos_basic_no_roles(self):
         """SSO - kerberos (IdM or AD) login (basic) that has no roles
 
-        @feature: SSO or External Authentication
+        @id: c271d9fd-7528-4b19-b5c6-e9c0148c2047
 
         @setup: Assure SSO with kerberos (IdM or AD) is set up.
 
@@ -47,7 +62,9 @@ class SingleSignOnTestCase(UITestCase):
         @assert: Log in to sat6 UI successfully but cannot access anything
         useful in UI
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -56,7 +73,7 @@ class SingleSignOnTestCase(UITestCase):
         """SSO - kerberos (IdM or AD) login (basic) that has roles
         assigned.
 
-        @feature: SSO or External Authentication
+        @id: df55a0e7-1387-4ea5-9b2f-27836dd4815e
 
         @setup: Assure SSO with kerberos (IdM or AD) is set up.
 
@@ -68,8 +85,10 @@ class SingleSignOnTestCase(UITestCase):
         @assert: Log in to sat6 UI successfully and can access functional
         areas in UI
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -78,7 +97,7 @@ class SingleSignOnTestCase(UITestCase):
         """Kerberos (IdM or AD) user activity when kerb (IdM or AD)
         account has been deleted or deactivated.
 
-        @feature: SSO or External Authentication
+        @id: ee838e76-2522-470e-ae70-f22d845e683e
 
         @steps:
         1. Login to the foreman UI
@@ -87,5 +106,7 @@ class SingleSignOnTestCase(UITestCase):
         @assert: This is handled gracefully (user is logged out perhaps?)
         and no data corruption
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """

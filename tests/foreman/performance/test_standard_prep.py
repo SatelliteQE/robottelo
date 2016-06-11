@@ -1,4 +1,19 @@
-"""Test class for Environment Preparation after a fresh installation"""
+"""Test class for Environment Preparation after a fresh installation
+
+@Requirement: Standard prep
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: PERFORMANCE
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.org import Org
@@ -200,6 +215,8 @@ class StandardPrepTestCase(TestCase):
 
     def test_standard_prep(self):
         """add Manifest to Satellite Server
+
+        @id: c77a1afe-1e9b-4d31-bebf-2650049d524d
 
         @Steps:
 

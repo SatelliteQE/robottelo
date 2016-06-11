@@ -1,4 +1,19 @@
-"""Unit tests for the ``foreman_tasks/api/v2/tasks`` paths."""
+"""Unit tests for the ``foreman_tasks/api/v2/tasks`` paths.
+
+@Requirement: Foremantask
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.decorators import run_only_on, tier1
@@ -13,9 +28,9 @@ class ForemanTaskTestCase(APITestCase):
     def test_negative_fetch_non_existent_task(self):
         """Fetch a non-existent task.
 
-        @Assert: An HTTP 4XX or 5XX message is returned.
+        @id: a2a81ca2-63c4-47f5-9314-5852f5e2617f
 
-        @Feature: ForemanTask
+        @Assert: An HTTP 4XX or 5XX message is returned.
         """
         with self.assertRaises(HTTPError):
             entities.ForemanTask(id='abc123').read()
@@ -25,9 +40,9 @@ class ForemanTaskTestCase(APITestCase):
     def test_positive_get_summary(self):
         """Get a summary of foreman tasks.
 
-        @Assert: A list of dicts is returned.
+        @id: bdcab413-a25d-4fe1-9db4-b50b5c31ebce
 
-        @Feature: ForemanTask
+        @Assert: A list of dicts is returned.
         """
         summary = entities.ForemanTask().summary()
         self.assertIsInstance(summary, list)

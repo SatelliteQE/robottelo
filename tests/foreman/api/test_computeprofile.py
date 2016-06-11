@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Unit tests for the Compute Profile feature."""
+"""Unit tests for the Compute Profile feature.
+
+@Requirement: Computeprofile
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.datafactory import invalid_values_list, valid_data_list
@@ -15,7 +30,7 @@ class ComputeProfileTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create new Compute Profile using different names
 
-        @Feature: Compute Profile - Positive Create
+        @id: 97d04911-9368-4674-92c7-1e3ff114bc18
 
         @Assert: Compute Profile is created
         """
@@ -29,7 +44,7 @@ class ComputeProfileTestCase(APITestCase):
     def test_negative_create(self):
         """Attempt to create Compute Profile using invalid names only
 
-        @Feature: Compute Profile - Negative Create
+        @id: 2d34a1fd-70a5-4e59-b2e2-86fbfe8e31ab
 
         @Assert: Compute Profile is not created
         """
@@ -43,7 +58,7 @@ class ComputeProfileTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update selected Compute Profile entity using proper names
 
-        @Feature: Compute Profile - Positive Update
+        @id: c79193d7-2e0f-4ed9-b947-05feeddabfda
 
         @Assert: Compute Profile is updated.
         """
@@ -59,7 +74,7 @@ class ComputeProfileTestCase(APITestCase):
     def test_negative_update_name(self):
         """Attempt to update Compute Profile entity using invalid names only
 
-        @Feature: Compute Profile - Negative Update
+        @id: 042b40d5-a78b-4e65-b5cb-5b270b800b37
 
         @Assert: Compute Profile is not updated.
         """
@@ -77,7 +92,7 @@ class ComputeProfileTestCase(APITestCase):
     def test_positive_delete(self):
         """Delete Compute Profile entity
 
-        @Feature: Compute Profile - Positive Delete
+        @id: 0a620e23-7ba6-4178-af7a-fd1e332f478f
 
         @Assert: Compute Profile is deleted successfully.
         """

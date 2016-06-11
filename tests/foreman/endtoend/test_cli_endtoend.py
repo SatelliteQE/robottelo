@@ -1,5 +1,20 @@
 # coding=utf-8
-"""Smoke tests for the ``CLI`` end-to-end scenario."""
+"""Smoke tests for the ``CLI`` end-to-end scenario.
+
+@Requirement: Cli endtoend
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: ENDTOEND
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 import random
 
 from fauxfactory import gen_alphanumeric, gen_ipaddr
@@ -51,7 +66,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
     def test_positive_find_default_org(self):
         """Check if 'Default Organization' is present
 
-        @Feature: Smoke Test
+        @id: 95ffeb7a-134e-4273-bccc-fe8a3a336b2a
 
         @Assert: 'Default Organization' is found
         """
@@ -61,7 +76,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
     def test_positive_find_default_loc(self):
         """Check if 'Default Location' is present
 
-        @Feature: Smoke Test
+        @id: 11cf0d06-78ff-47e8-9d50-407a2ea31988
 
         @Assert: 'Default Location' is found
         """
@@ -71,7 +86,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
     def test_positive_find_admin_user(self):
         """Check if Admin User is present
 
-        @Feature: Smoke Test
+        @id: f6755189-05a6-4d2f-a3b8-98be0cfacaee
 
         @Assert: Admin User is found and has Admin role
         """
@@ -105,7 +120,7 @@ class EndToEndTestCase(CLITestCase, ClientProvisioningMixin):
             19. Create a new hostgroup and associate previous entities to it
             20. Provision a client
 
-        @Feature: End to End Test
+        @id: 8c8b3ffa-0d54-436b-8eeb-1a3542e100a8
 
         @Assert: All tests should succeed and Content should be successfully
         fetched by client.

@@ -4,6 +4,20 @@
 An API reference can be found here:
 http://theforeman.org/api/apidoc/v2/hosts.html
 
+
+@Requirement: Host
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
 """
 from fauxfactory import gen_integer, gen_ipaddr, gen_mac, gen_string
 from nailgun import client, entities
@@ -27,7 +41,7 @@ class HostTestCase(APITestCase):
     def test_positive_get_search(self):
         """GET ``api/v2/hosts`` and specify the ``search`` parameter.
 
-        @Feature: Hosts
+        @id: d63f87e5-66e6-4886-8b44-4129259493a6
 
         @Assert: HTTP 200 is returned, along with ``search`` term.
         """
@@ -46,7 +60,7 @@ class HostTestCase(APITestCase):
     def test_positive_get_per_page(self):
         """GET ``api/v2/hosts`` and specify the ``per_page`` parameter.
 
-        @Feature: Hosts
+        @id: 9086f41c-b3b9-4af2-b6c4-46b80b4d1cfd
 
         @Assert: HTTP 200 is returned, along with per ``per_page`` value.
         """
@@ -65,7 +79,7 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_owner_type(self):
         """Create a host and specify an ``owner_type``.
 
-        @Feature: Hosts
+        @id: 9f486875-1f30-4dcb-b7ce-b2cf515c413b
 
         @Assert: The host can be read back, and the ``owner_type`` attribute is
         correct.
@@ -82,7 +96,7 @@ class HostTestCase(APITestCase):
     def test_positive_update_owner_type(self):
         """Update a host's ``owner_type``.
 
-        @Feature: Hosts
+        @id: b72cd8ef-3a0b-4d2d-94f9-9b64908d699a
 
         @Assert: The host's ``owner_type`` attribute is updated as requested.
         """
@@ -100,7 +114,7 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create a host with different names and minimal input parameters
 
-        @feature: Hosts
+        @id: a7c0e8ec-3816-4092-88b1-0324cb271752
 
         @assert: A host is created with expected name
         """
@@ -117,7 +131,7 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_ip(self):
         """Create a host with IP address specified
 
-        @feature: Hosts
+        @id: 3f266906-c509-42ce-9b20-def448bf8d86
 
         @assert: A host is created with expected IP address
         """
@@ -130,9 +144,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_hostgroup(self):
         """Create a host with hostgroup specified
 
-        @feature: Hosts
+        @id: 8f9601f9-afd8-4a88-8f28-a5cbc996e805
 
         @assert: A host is created with expected hostgroup assigned
+
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -152,7 +168,7 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_puppet_proxy(self):
         """Create a host with puppet proxy specified
 
-        @feature: Hosts
+        @id: 9269d87b-abb9-48e0-b0d1-9b8e258e1ae3
 
         @assert: A host is created with expected puppet proxy assigned
         """
@@ -165,7 +181,7 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_puppet_ca_proxy(self):
         """Create a host with puppet CA proxy specified
 
-        @feature: Hosts
+        @id: 1b73dd35-c2e8-44bd-b8f8-9e51428a6239
 
         @assert: A host is created with expected puppet CA proxy assigned
         """
@@ -178,9 +194,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_subnet(self):
         """Create a host with subnet specified
 
-        @feature: Hosts
+        @id: 9aa97aff-8439-4027-89ee-01c643fbf7d1
 
         @assert: A host is created with expected subnet assigned
+
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -200,9 +218,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_compresource(self):
         """Create a host with compute resource specified
 
-        @feature: Hosts
+        @id: 53069f2e-67a7-4d57-9846-acf6d8ce03cb
 
         @assert: A host is created with expected compute resource assigned
+
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -222,9 +242,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_model(self):
         """Create a host with model specified
 
-        @feature: Hosts
+        @id: 7a912a19-71e4-4843-87fd-bab98c156f4a
 
         @assert: A host is created with expected model assigned
+
+        @CaseLevel: Integration
         """
         model = entities.Model().create()
         host = entities.Host(model=model).create()
@@ -235,9 +257,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_user(self):
         """Create a host with user specified
 
-        @feature: Hosts
+        @id: 72e20f8f-17dc-4e38-8ac1-d08df8758f56
 
         @assert: A host is created with expected user assigned
+
+        @CaseLevel: Integration
         """
         user = entities.User().create()
         host = entities.Host(
@@ -251,9 +275,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_usergroup(self):
         """Create a host with user group specified
 
-        @feature: Hosts
+        @id: 706e860c-8c05-4ddc-be20-0ecd9f0da813
 
         @assert: A host is created with expected user group assigned
+
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -281,7 +307,7 @@ class HostTestCase(APITestCase):
         """Create a host with 'build' parameter specified.
         Build parameter determines whether to enable the host for provisioning
 
-        @feature: Hosts
+        @id: de30cf62-5036-4247-a5f0-37dd2b4aae23
 
         @assert: A host is created with expected 'build' parameter value
         """
@@ -295,7 +321,7 @@ class HostTestCase(APITestCase):
         Enabled parameter determines whether to include the host within
         Satellite 6 reporting
 
-        @feature: Hosts
+        @id: bd8d33f9-37de-4b8d-863e-9f73cd8dcec1
 
         @assert: A host is created with expected 'enabled' parameter value
         """
@@ -309,7 +335,7 @@ class HostTestCase(APITestCase):
         Managed flag shows whether the host is managed or unmanaged and
         determines whether some extra parameters are required
 
-        @feature: Hosts
+        @id: 00dcfaed-6f54-4b6a-a022-9c97fb992324
 
         @assert: A host is created with expected managed parameter value
         """
@@ -321,7 +347,7 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_comment(self):
         """Create a host with a comment
 
-        @feature: Hosts
+        @id: 9b78663f-139c-4d0b-9115-180624b0d41b
 
         @assert: A host is created with expected comment
         """
@@ -335,9 +361,11 @@ class HostTestCase(APITestCase):
     def test_positive_create_with_compute_profile(self):
         """Create a host with a compute profile specified
 
-        @feature: Hosts
+        @id: 94be25e8-035d-42c5-b1f3-3aa20030410d
 
         @assert: A host is created with expected compute profile assigned
+
+        @CaseLevel: Integration
         """
         profile = entities.ComputeProfile().create()
         host = entities.Host(compute_profile=profile).create()
@@ -348,7 +376,7 @@ class HostTestCase(APITestCase):
     def test_positive_delete(self):
         """Delete a host
 
-        @feature: Hosts
+        @id: ec725359-a75e-498c-9da8-f5abd2343dd3
 
         @assert: Host is deleted
         """
@@ -362,7 +390,7 @@ class HostTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update a host with a new name
 
-        @feature: Hosts
+        @id: a82b606c-d683-44ba-9086-684396ef1c10
 
         @assert: A host is updated with expected name
         """
@@ -381,7 +409,7 @@ class HostTestCase(APITestCase):
     def test_positive_update_mac(self):
         """Update a host with a new MAC address
 
-        @feature: Hosts
+        @id: 72e3b020-7347-4500-8669-c6ddf6dfd0b6
 
         @assert: A host is updated with a new MAC address
         """
@@ -396,9 +424,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_domain(self):
         """Update a host with a new domain
 
-        @feature: Hosts
+        @id: 8ca9f67c-4c11-40f9-b434-4f200bad000f
 
         @assert: A host is updated with a new domain
+
+        @CaseLevel: Integration
         """
         host = entities.Host().create()
         new_domain = entities.Domain(
@@ -414,9 +444,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_env(self):
         """Update a host with a new environment
 
-        @feature: Hosts
+        @id: 87a08dbf-fd4c-4b6c-bf73-98ab70756fc6
 
         @assert: A host is updated with a new environment
+
+        @CaseLevel: Integration
         """
         host = entities.Host().create()
         new_env = entities.Environment(
@@ -432,9 +464,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_arch(self):
         """Update a host with a new architecture
 
-        @feature: Hosts
+        @id: 5f190b14-e6db-46e1-8cd1-e94e048e6a77
 
         @assert: A host is updated with a new architecture
+
+        @CaseLevel: Integration
         """
         host = entities.Host().create()
         new_arch = entities.Architecture(
@@ -449,9 +483,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_os(self):
         """Update a host with a new operating system
 
-        @feature: Hosts
+        @id: 46edced1-8909-4066-b196-b8e22512341f
 
         @assert: A host is updated with a new operating system
+
+        @CaseLevel: Integration
         """
         host = entities.Host().create()
         new_os = entities.OperatingSystem(
@@ -470,9 +506,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_medium(self):
         """Update a host with a new medium
 
-        @feature: Hosts
+        @id: d81cb65c-48b3-4ce3-971e-51b9dd123697
 
         @assert: A host is updated with a new medium
+
+        @CaseLevel: Integration
         """
         host = entities.Host().create()
         new_medium = entities.Media(
@@ -492,7 +530,7 @@ class HostTestCase(APITestCase):
     def test_positive_update_ip(self):
         """Update a host with a new IP address
 
-        @feature: Hosts
+        @id: 4c009db9-d720-429e-8150-bebf246d3a43
 
         @assert: A host is updated with a new IP address
         """
@@ -507,9 +545,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_hostgroup(self):
         """Update a host with a new hostgroup
 
-        @feature: Hosts
+        @id: dbe15f9a-242e-40f1-be90-d4f135596790
 
         @assert: A host is updated with a new hostgroup
+
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -535,7 +575,7 @@ class HostTestCase(APITestCase):
     def test_positive_update_puppet_proxy(self):
         """Update a host with a new puppet proxy
 
-        @feature: Hosts
+        @id: 98c11e9b-54b0-4f1f-819c-4ff1863457ff
 
         @assert: A host is updated with a new puppet proxy
         """
@@ -550,7 +590,7 @@ class HostTestCase(APITestCase):
     def test_positive_update_puppet_ca_proxy(self):
         """Update a host with a new puppet CA proxy
 
-        @feature: Hosts
+        @id: 82eacf60-cf89-4035-ad9a-3f78ceb41d39
 
         @assert: A host is updated with a new puppet CA proxy
         """
@@ -565,9 +605,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_subnet(self):
         """Update a host with a new subnet
 
-        @feature: Hosts
+        @id: c938e6b2-dbc0-4cd2-894a-8f2cc0e31063
 
         @assert: A host is updated with a new subnet
+
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -593,9 +635,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_compresource(self):
         """Update a host with a new compute resource
 
-        @feature: Hosts
+        @id: 422f5db1-4eb6-43c2-a908-af9f8b5358f0
 
         @assert: A host is updated with a new compute resource
+
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -622,9 +666,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_model(self):
         """Update a host with a new model
 
-        @feature: Hosts
+        @id: da584445-ec24-4bed-82d0-d964bafa49bf
 
         @assert: A host is updated with a new model
+
+        @CaseLevel: Integration
         """
         host = entities.Host(model=entities.Model().create()).create()
         new_model = entities.Model().create()
@@ -637,9 +683,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_user(self):
         """Update a host with a new user
 
-        @feature: Hosts
+        @id: afb3a9d1-61ba-43c4-a00f-a1887441b8d0
 
         @assert: A host is updated with a new user
+
+        @CaseLevel: Integration
         """
         host = entities.Host(
             owner=entities.User().create(),
@@ -655,9 +703,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_usergroup(self):
         """Update a host with a new user group
 
-        @feature: Hosts
+        @id: a8d702ee-592a-4b5d-9fec-2fa07d3fda1b
 
         @assert: A host is updated with a new user group
+
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         loc = entities.Location(organization=[org]).create()
@@ -691,7 +741,7 @@ class HostTestCase(APITestCase):
         """Update a host with a new 'build' parameter value.
         Build parameter determines whether to enable the host for provisioning
 
-        @feature: Hosts
+        @id: f176ebc9-0406-4a7e-8e20-5325808d33db
 
         @assert: A host is updated with a new 'build' parameter value
         """
@@ -709,7 +759,7 @@ class HostTestCase(APITestCase):
         Enabled parameter determines whether to include the host within
         Satellite 6 reporting
 
-        @feature: Hosts
+        @id: 8a84e842-3537-46d5-8275-1c593c2171b3
 
         @assert: A host is updated with a new 'enabled' parameter value
         """
@@ -727,7 +777,7 @@ class HostTestCase(APITestCase):
         Managed flag shows whether the host is managed or unmanaged and
         determines whether some extra parameters are required
 
-        @feature: Hosts
+        @id: 623064aa-db84-4470-ac13-63f32d9f81b6
 
         @assert: A host is updated with a new 'managed' parameter value
         """
@@ -743,7 +793,7 @@ class HostTestCase(APITestCase):
     def test_positive_update_comment(self):
         """Update a host with a new comment
 
-        @feature: Hosts
+        @id: ceca20ce-5ecc-4f7f-b920-28b7bd74d351
 
         @assert: A host is updated with a new comment
         """
@@ -759,9 +809,11 @@ class HostTestCase(APITestCase):
     def test_positive_update_compute_profile(self):
         """Update a host with a new compute profile
 
-        @feature: Hosts
+        @id: a634c8a5-11ef-4d92-9df1-1f7e065f162e
 
         @assert: A host is updated with a new compute profile
+
+        @CaseLevel: Integration
         """
         host = entities.Host(
             compute_profile=entities.ComputeProfile().create(),
@@ -776,7 +828,7 @@ class HostTestCase(APITestCase):
     def test_negative_update_name(self):
         """Attempt to update a host with invalid or empty name
 
-        @feature: Hosts
+        @id: 1c46b44c-a2ea-43a6-b4d9-244101b081e8
 
         @assert: A host is not updated
         """
@@ -797,7 +849,7 @@ class HostTestCase(APITestCase):
     def test_negative_update_mac(self):
         """Attempt to update a host with invalid or empty MAC address
 
-        @feature: Hosts
+        @id: 1954ea4e-e0c2-475f-af67-557e91ebc1e2
 
         @assert: A host is not updated
         """
@@ -815,9 +867,11 @@ class HostTestCase(APITestCase):
         """Attempt to update a host with an architecture, which does not belong
         to host's operating system
 
-        @feature: Hosts
+        @id: 07b9c0e7-f02b-4aff-99ae-5c203255aba1
 
         @assert: A host is not updated
+
+        @CaseLevel: Integration
         """
         host = entities.Host().create()
         new_arch = entities.Architecture().create()
@@ -833,9 +887,11 @@ class HostTestCase(APITestCase):
         """Attempt to update a host with an operating system, which is not
         associated with host's medium
 
-        @feature: Hosts
+        @id: 40e79f73-6356-4d61-9806-7ade2f4f8829
 
         @assert: A host is not updated
+
+        @CaseLevel: Integration
         """
         host = entities.Host().create()
         new_os = entities.OperatingSystem(

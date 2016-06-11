@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Host Collection UI"""
+"""Test class for Host Collection UI
+
+@Requirement: Hostcollection
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from nailgun import entities
@@ -34,7 +49,7 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create Host Collection for all name variations
 
-        @Feature: Host Collection - Positive Create
+        @id: 267bd784-1ef7-4270-a264-6f8659e239fd
 
         @Assert: Host Collection is created
         """
@@ -49,7 +64,7 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_create_with_description(self):
         """Create Host Collection with valid description
 
-        @Feature: Host Collection - Positive Create
+        @id: 830ff39e-0d4c-4368-bc47-12b060a09410
 
         @Assert: Host Collection is created
         """
@@ -67,7 +82,7 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_create_with_limit(self):
         """Create Host Collection with finite content hosts limit
 
-        @Feature: Host Collection - Positive Create
+        @id: 9983b61d-f820-4b60-ae5e-a45925f2dcf0
 
         @Assert: Host Collection is created
         """
@@ -81,7 +96,7 @@ class HostCollectionTestCase(UITestCase):
     def test_negative_create_with_name(self):
         """Create Host Collections with invalid name
 
-        @Feature: Host Collection - Positive Negative
+        @id: 04e36c46-7577-4308-b9bb-4ec74549d9d3
 
         @Assert: Host Collection is not created and appropriate error message
         thrown
@@ -102,7 +117,7 @@ class HostCollectionTestCase(UITestCase):
         """Create Host Collections with invalid Content Host Limit value. Both
         with too long numbers and using letters.
 
-        @Feature: Host Collections - Negative Create
+        @id: c15b3540-809e-4339-ad5f-1ab488244299
 
         @Assert: Host Collection is not created. Appropriate error shown.
         """
@@ -124,7 +139,7 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update existing Host Collection name
 
-        @Feature: Host Collection - Positive Update
+        @id: 9df33661-7a9c-40d9-8f2c-52e5ed21c156
 
         @Assert: Host Collection is updated
         """
@@ -143,7 +158,7 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_update_description(self):
         """Update existing Host Collection entity description
 
-        @Feature: Host Collection - Positive Update
+        @id: 5ef92657-489f-46a2-9b3a-e40322ca86d8
 
         @Assert: Host Collection is updated
         """
@@ -170,7 +185,7 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_update_limit(self):
         """Update Content Host limit from Unlimited to a finite number
 
-        @Feature: Host Collection - Positive Update
+        @id: 6f5015c4-06c9-4873-806e-5f9d39c9d8a8
 
         @Assert: Host Collection is updated
         """
@@ -189,7 +204,7 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_update_limit_to_unlimited(self):
         """Update Content Host limit from definite number to Unlimited
 
-        @Feature: Host Collection - Positive Update
+        @id: 823acd9e-1259-47b6-8236-7547ef3fff98
 
         @Assert: Host Collection is updated
         """
@@ -208,7 +223,7 @@ class HostCollectionTestCase(UITestCase):
     def test_negative_update_name(self):
         """Update existing Host Collection entity name with invalid value
 
-        @Feature: Host Collection - Negative Update
+        @id: 7af999e8-5189-45c0-a92d-8c05b03f556a
 
         @Assert: Host Collection is not updated.  Appropriate error shown.
         """
@@ -229,7 +244,7 @@ class HostCollectionTestCase(UITestCase):
     def test_negative_update_limit(self):
         """Update Host Collection with invalid Content Host Limit
 
-        @Feature: Host Collection - Negative Update
+        @id: 3f3749f9-cf52-4897-993f-804def785510
 
         @Assert: Host Collection is not updated.  Appropriate error shown.
         """
@@ -247,7 +262,7 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_delete(self):
         """Create Host Collection and delete it for all variations of name
 
-        @Feature: Host Collection - Positive Delete
+        @id: 978a985c-29f4-4b1f-8c68-8cd412af21e6
 
         @Assert: Host Collection is deleted
         """
@@ -263,7 +278,7 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_copy(self):
         """Create Host Collection and copy it
 
-        @Feature: Host Collection - Positive Copy
+        @id: af8d968c-8241-40dc-b92c-81965f470191
 
         @Assert: Host Collection copy exists
         """
@@ -282,7 +297,7 @@ class HostCollectionTestCase(UITestCase):
     def test_negative_copy(self):
         """Create Host Collection and copy it. Use invalid values for copy name
 
-        @Feature: Host Collection - Negative Copy
+        @id: 99d47520-c09a-4fbc-8e53-a4e889af0187
 
         @Assert: Host Collection copy does not exist
         """
@@ -303,9 +318,11 @@ class HostCollectionTestCase(UITestCase):
     def test_positive_add_host(self):
         """Check if host can be added to Host Collection
 
-        @Feature: Host Collection - Host
+        @id: 80824c9f-15a1-4f76-b7ac-7d9ca9f6ed9e
 
         @Assert: Host is added to Host Collection successfully
+
+        @CaseLevel: System
         """
         name = gen_string('alpha')
         cv = entities.ContentView(organization=self.organization).create()
@@ -328,7 +345,7 @@ class HostCollectionTestCase(UITestCase):
     def test_negative_hosts_limit(self):
         """Check that Host limit actually limits usage
 
-        @Feature: Host Collection - Host Limit
+        @id: 57b70977-2110-47d9-be3b-461ad15c70c7
 
         @Steps:
         1. Create Host Collection entity that can contain only one Host (using
@@ -340,6 +357,8 @@ class HostCollectionTestCase(UITestCase):
 
         @Assert: Second host is not added to Host Collection and appropriate
         error is shown
+
+        @CaseLevel: System
         """
         name = gen_string('alpha')
         org = entities.Organization().create()

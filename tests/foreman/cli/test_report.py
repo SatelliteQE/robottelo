@@ -1,6 +1,21 @@
 # -*- encoding: utf-8 -*-
 # pylint: disable=no-self-use
-"""Test class for Reports CLI."""
+"""Test class for Reports CLI.
+
+@Requirement: Report
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 import random
 
@@ -30,7 +45,7 @@ class ReportTestCase(CLITestCase):
     def test_positive_list(self):
         """Test list for Puppet report
 
-        @Feature: Puppet Report
+        @id: 8325e18f-58a4-49b8-a5f3-eebbe1d568b5
 
         @Assert: Puppert Report List is displayed
         """
@@ -41,7 +56,7 @@ class ReportTestCase(CLITestCase):
     def test_positive_info(self):
         """Test Info for Puppet report
 
-        @Feature: Puppet Report
+        @id: 32646d4b-7101-421a-85e0-777d3c6b71ec
 
         @Assert: Puppet Report Info is displayed
         """
@@ -57,7 +72,7 @@ class ReportTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Check if Puppet Report can be deleted by its ID
 
-        @Feature: Puppet Report
+        @id: bf918ec9-e2d4-45d0-b913-ab939b5d5e6a
 
         @Assert: Puppet Report is deleted
         """

@@ -1,4 +1,19 @@
-"""Unit tests for host collections."""
+"""Unit tests for host collections.
+
+@Requirement: Hostcollection
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from nailgun import entities
 from random import choice
 from requests.exceptions import HTTPError
@@ -25,7 +40,7 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create host collections with different names.
 
-        @Feature: Host Collection
+        @id: 8f2b9223-f5be-4cb1-8316-01ea747cae14
 
         @Assert: The host collection was successfully created and has
         appropriate name.
@@ -42,7 +57,7 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_create_with_description(self):
         """Create host collections with different descriptions.
 
-        @Feature: Host Collection
+        @id: 9d13392f-8d9d-4ff1-8909-4233e4691055
 
         @Assert: The host collection was successfully created and has
         appropriate description.
@@ -59,7 +74,7 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_create_with_limit(self):
         """Create host collections with different limits.
 
-        @Feature: Host Collection
+        @id: 86d9387b-7036-4794-96fd-5a3472dd9160
 
         @Assert: The host collection was successfully created and has
         appropriate limit.
@@ -77,7 +92,7 @@ class HostCollectionTestCase(APITestCase):
         """Create host collection with different values of 'unlimited hosts'
         parameter.
 
-        @Feature: Host Collection
+        @id: d385574e-5794-4442-b6cd-e5ded001d877
 
         @Assert: The host collection was successfully created and has
         appropriate 'unlimited hosts' parameter value.
@@ -97,7 +112,7 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_create_with_host(self):
         """Create a host collection that contains a host.
 
-        @Feature: Host Collection
+        @id: 9dc0ad72-58c2-4079-b1ca-2c4373472f0f
 
         @Assert: The host collection can be read back, and it includes one
         host.
@@ -113,7 +128,7 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_create_with_hosts(self):
         """Create a host collection that contains hosts.
 
-        @Feature: Host Collection
+        @id: bb8d2b42-9a8b-4c4f-ba0c-c56ae5a7eb1d
 
         @Assert: The host collection can be read back, and it references two
         hosts.
@@ -129,9 +144,11 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_add_host(self):
         """Add a host to host collection.
 
-        @Feature: Host Collection
+        @id: da8bc901-7ac8-4029-bb62-af21aa4d3a88
 
         @Assert: Host was added to the host collection.
+
+        @CaseLevel: Integration
         """
         host_collection = entities.HostCollection(
             organization=self.org,
@@ -145,9 +162,11 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_add_hosts(self):
         """Add hosts to host collection.
 
-        @Feature: Host Collection
+        @id: f76b4db1-ccd5-47ab-be15-8c7d91d03b22
 
         @Assert: Hosts were added to the host collection.
+
+        @CaseLevel: Integration
         """
         host_collection = entities.HostCollection(
             organization=self.org,
@@ -161,7 +180,7 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_read_host_ids(self):
         """Read a host collection and look at the ``host_ids`` field.
 
-        @Feature: Host Collection
+        @id: 444a1528-64c8-41b6-ba2b-6c49799d5980
 
         @Assert: The ``host_ids`` field matches the host IDs passed in when
         creating the host collection.
@@ -179,7 +198,7 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_update_name(self):
         """Check if host collection name can be updated
 
-        @Feature: Host Collection
+        @id: b2dedb99-6dd7-41be-8aaa-74065c820ac6
 
         @Assert: Host collection name was successfully updated
         """
@@ -194,7 +213,7 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_update_description(self):
         """Check if host collection description can be updated
 
-        @Feature: Host Collection
+        @id: f8e9bd1c-1525-4b5f-a07c-eb6b6e7aa628
 
         @Assert: Host collection description was updated
         """
@@ -210,7 +229,7 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_update_limit(self):
         """Check if host collection limit can be updated
 
-        @Feature: Host Collection
+        @id: 4eda7796-cd81-453b-9b72-4ef84b2c1d8c
 
         @Assert: Host collection limit was updated
         """
@@ -229,7 +248,7 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_update_unlimited_hosts(self):
         """Check if host collection 'unlimited hosts' parameter can be updated
 
-        @Feature: Host Collection
+        @id: 09a3973d-9832-4255-87bf-f9eaeab4aee8
 
         @Assert: Host collection 'unlimited hosts' parameter was updated
         """
@@ -253,7 +272,7 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_update_host(self):
         """Update host collection's host.
 
-        @Feature: Host Collection
+        @id: 23082854-abcf-4085-be9c-a5d155446acb
 
         @Assert: The host collection was updated with a new host.
         """
@@ -270,7 +289,7 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_update_hosts(self):
         """Update host collection's hosts.
 
-        @Feature: Host Collection
+        @id: 0433b37d-ae16-456f-a51d-c7b800334861
 
         @Assert: The host collection was updated with new hosts.
         """
@@ -294,7 +313,7 @@ class HostCollectionTestCase(APITestCase):
     def test_positive_delete(self):
         """Check if host collection can be deleted
 
-        @Feature: Host Collection
+        @id: 13a16cd2-16ce-4966-8c03-5d821edf963b
 
         @Assert: Host collection was successfully deleted
         """
@@ -308,7 +327,7 @@ class HostCollectionTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Try to create host collections with different invalid names
 
-        @Feature: Host Collection
+        @id: 38f67d04-a19d-4eab-a577-21b8d62c7389
 
         @Assert: The host collection was not created
         """

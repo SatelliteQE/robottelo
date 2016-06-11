@@ -1,4 +1,19 @@
-"""Test class for Content Views"""
+"""Test class for Content Views
+
+@Requirement: Contentview
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 import random
 
 from fauxfactory import gen_alphanumeric, gen_string
@@ -119,7 +134,7 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """create content views with different names
 
-        @feature: Content Views
+        @id: a154308c-3982-4cf1-a236-3051e740970e
 
         @assert: content views are created
 
@@ -138,7 +153,7 @@ class ContentViewTestCase(CLITestCase):
     def test_negative_create_with_invalid_name(self):
         """create content views with invalid names
 
-        @feature: Content Views
+        @id: 83046271-76f9-4cda-b579-a2fe63493295
 
         @assert: content views are not created; proper error thrown and
         system handles it gracefully
@@ -159,7 +174,7 @@ class ContentViewTestCase(CLITestCase):
         # Use an invalid org name
         """Create content view with invalid org name
 
-        @feature: Content Views
+        @id: f8b76e98-ccc8-41ac-af04-541650e8f5ba
 
         @assert: content views are not created; proper error thrown and
         system handles it gracefully
@@ -173,7 +188,7 @@ class ContentViewTestCase(CLITestCase):
         """Create an empty content view and make sure no files are created at
         /var/lib/pulp/published.
 
-        @Feature: Content View
+        @id: 0e31573d-bf02-44ae-b3f4-d8aae450ba5e
 
         @Assert: Content view is published and no file is present at
         /var/lib/pulp/published.
@@ -196,7 +211,7 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Update content view name
 
-        @feature: Content Views
+        @id: 35fccf2c-abc4-4ca8-a565-a7a6adaaf429
 
         @assert: Content view is updated with new name
 
@@ -223,11 +238,11 @@ class ContentViewTestCase(CLITestCase):
         # severity.
         """Edit content views for a rh content
 
-        @feature: Content Views
+        @id: 4beab1e4-fc58-460e-af24-cdd2c3d283e6
 
         @assert: Edited content view save is successful and info is updated
 
-        @status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -237,7 +252,7 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """delete content views
 
-        @feature: Content Views
+        @id: e96d6d47-8be4-4705-979f-e5c320eca293
 
         @assert: content view can be deleted
 
@@ -255,7 +270,7 @@ class ContentViewTestCase(CLITestCase):
         """Delete content view containing custom repo and verify it was
         actually deleted from hard drive.
 
-        @Feature: Content View
+        @id: 9f381f77-ce43-4b68-8d00-459f40c9efb6
 
         @Assert: Content view was deleted and pulp folder doesn't contain
         content view files anymore
@@ -308,10 +323,12 @@ class ContentViewTestCase(CLITestCase):
         'remove-from-environment' command and delete content view version from
         that content view. Use content view version name as a parameter.
 
-        @feature: Content Views
+        @id: 6e903131-1aeb-478c-ad92-5dedcc22c3f9
 
         @assert: Content view version deleted successfully
 
+
+        @CaseLevel: Integration
         """
         content_view = make_content_view({u'organization-id': self.org['id']})
         ContentView.publish({u'id': content_view['id']})
@@ -340,7 +357,7 @@ class ContentViewTestCase(CLITestCase):
         that content view. Use content view version id as a parameter. Also,
         add repository to initial content view for better coverage.
 
-        @feature: Content Views
+        @id: 09457d48-2a92-401d-8dd0-45679a547e70
 
         @assert: Content view version deleted successfully
 
@@ -384,10 +401,12 @@ class ContentViewTestCase(CLITestCase):
         view version while content view is still associated with lifecycle
         environment
 
-        @feature: Content Views
+        @id: 7334118b-e6c5-4db3-9167-3f006c43f863
 
         @assert: Content view version is not deleted
 
+
+        @CaseLevel: Integration
         """
         content_view = make_content_view({u'organization-id': self.org['id']})
         ContentView.publish({u'id': content_view['id']})
@@ -406,7 +425,7 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_remove_lce_by_id(self):
         """Remove content view from lifecycle environment
 
-        @Feature: Content Views
+        @id: 1bf8a647-d82e-4145-b13b-f92bf6642532
 
         @Assert: Content view removed from environment successfully
 
@@ -429,10 +448,12 @@ class ContentViewTestCase(CLITestCase):
         """Remove content view environment and re-assign activation key to
         another environment and content view
 
-        @Feature: Content Views
+        @id: 3e3ac439-fa85-42ce-8277-2258bc0c7cb4
 
         @Assert: Activation key re-assigned successfully
 
+
+        @CaseLevel: Integration
         """
         new_org = make_org({u'name': gen_alphanumeric()})
         env = [
@@ -486,10 +507,12 @@ class ContentViewTestCase(CLITestCase):
         """Remove content view environment and re-assign content host to
         another environment and content view
 
-        @Feature: Content Views
+        @id: 40900199-dcfc-4906-bf54-16c13882c05b
 
         @Assert: Content host re-assigned successfully
 
+
+        @CaseLevel: Integration
         """
         new_org = make_org({u'name': gen_alphanumeric()})
         env = [
@@ -546,7 +569,7 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_remove_version_by_id(self):
         """Delete content view version using 'remove' command
 
-        @Feature: Content Views
+        @id: e8664353-6601-4566-8478-440be20a089d
 
         @Assert: Content view version deleted successfully
 
@@ -578,12 +601,14 @@ class ContentViewTestCase(CLITestCase):
         # repo, however, are a valid variation.
         """create a composite content view
 
-        @feature: Content Views
+        @id: bded6acd-8da3-45ea-9e39-19bdc6c06341
 
         @setup: sync multiple content source/types (RH, custom, etc.)
 
         @assert: Composite content views are created
 
+
+        @CaseLevel: Integration
         """
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -627,12 +652,14 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_add_rh_repo_by_id(self):
         """Associate Red Hat content to a content view
 
-        @feature: Content Views
+        @id: b31a85c3-aa56-461b-9e3a-f7754c742573
 
         @setup: Sync RH content
 
         @assert: RH Content can be seen in the content view
 
+
+        @CaseLevel: Integration
         """
         self.create_rhel_content()
         # Create CV
@@ -658,7 +685,7 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_add_rh_repo_by_id_and_create_filter(self):
         """Associate Red Hat content to a content view and create filter
 
-        @feature: Content Views
+        @id: 7723247a-9367-4367-b251-bd079b79b8a2
 
         @setup: Sync RH content
 
@@ -666,6 +693,8 @@ class ContentViewTestCase(CLITestCase):
 
         @assert: Filtered RH content only is available/can be seen in a view
 
+
+        @CaseLevel: Integration
         """
         self.create_rhel_content()
         # Create CV
@@ -702,12 +731,14 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_add_custom_repo_by_id(self):
         """Associate custom content to a Content view
 
-        @feature: Content Views
+        @id: b813b222-b984-47e0-8d9b-2daa43f9a221
 
         @setup: Sync custom content
 
         @assert: Custom content can be seen in a view
 
+
+        @CaseLevel: Integration
         """
         new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
@@ -732,7 +763,7 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_add_custom_repo_by_name(self):
         """Associate custom content to a content view with name
 
-        @feature: Content Views
+        @id: 62431e11-bec6-4444-abb0-e3758ba25fd8
 
         @assert: whether repos are added to cv.
 
@@ -763,11 +794,13 @@ class ContentViewTestCase(CLITestCase):
         """attempt to associate puppet repos within a custom content
         view
 
-        @feature: Content Views
+        @id: 7625c07b-edeb-48ef-85a2-4d1c09874a4b
 
         @assert: User cannot create a content view that contains direct puppet
         repos.
 
+
+        @CaseLevel: Integration
         """
         new_repo = make_repository({
             u'content-type': u'puppet',
@@ -788,10 +821,12 @@ class ContentViewTestCase(CLITestCase):
         """attempt to associate components in a non-composite content
         view
 
-        @feature: Content Views
+        @id: 2a6f150d-e012-47c1-9423-d73f5d620dc9
 
         @assert: User cannot add components to the view
 
+
+        @CaseLevel: Integration
         """
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -823,10 +858,12 @@ class ContentViewTestCase(CLITestCase):
         """attempt to associate the same repo multiple times within a
         content view
 
-        @feature: Content Views
+        @id: 5fb09b30-5f5b-4473-a62b-8f41045ac2b6
 
         @assert: User cannot add repos multiple times to the view
 
+
+        @CaseLevel: Integration
         """
         new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
@@ -863,10 +900,12 @@ class ContentViewTestCase(CLITestCase):
         """attempt to associate duplicate puppet module(s) within a
         content view
 
-        @feature: Content Views
+        @id: 674cbae2-8493-466d-a2e4-dc11fb5c6b6f
 
         @assert: User cannot add puppet modules multiple times to the content
         view
+
+        @CaseLevel: Integration
         """
         # see BZ #1222118
         repository = make_repository({
@@ -913,12 +952,14 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_promote_rh_content(self):
         """attempt to promote a content view containing RH content
 
-        @feature: Content Views
+        @id: 53b3661b-b40f-466e-a742-bc4b8c1f6cd8
 
         @setup: Multiple environments for an org; RH content synced
 
         @assert: Content view can be promoted
 
+
+        @CaseLevel: Integration
         """
         self.create_rhel_content()
         # Create CV
@@ -954,13 +995,13 @@ class ContentViewTestCase(CLITestCase):
         """attempt to promote a content view containing RH content and
         custom content using filters
 
-        @feature: Content Views
+        @id: f96e97ef-f73c-4506-855c-2392e06f3a6a
 
         @setup: Multiple environments for an org; RH content synced
 
         @assert: Content view can be promoted
 
-        @status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -969,12 +1010,14 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_promote_custom_content(self):
         """attempt to promote a content view containing custom content
 
-        @feature: Content Views
+        @id: 64c2f1c2-7443-4836-a108-060b913ad2b1
 
         @setup: Multiple environments for an org; custom content synced
 
         @assert: Content view can be promoted
 
+
+        @CaseLevel: Integration
         """
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -1010,7 +1053,7 @@ class ContentViewTestCase(CLITestCase):
         # ...etc.
         """attempt to promote a content view containing custom content
 
-        @feature: Content Views
+        @id: 9d31113d-39ec-4524-854c-7f03b0f028fe
 
         @setup: Multiple environments for an org; custom content synced
 
@@ -1018,6 +1061,8 @@ class ContentViewTestCase(CLITestCase):
 
         @assert: Content view can be promoted
 
+
+        @CaseLevel: Integration
         """
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -1065,10 +1110,12 @@ class ContentViewTestCase(CLITestCase):
     def test_negative_promote_default_cv(self):
         """attempt to promote a default content view
 
-        @feature: Content Views
+        @id: ef25a4d9-8852-4d2c-8355-e9b07eb0560b
 
         @assert: Default content views cannot be promoted
 
+
+        @CaseLevel: Integration
         """
         result = ContentView.list(
             {u'organization-id': self.org['id']},
@@ -1091,10 +1138,12 @@ class ContentViewTestCase(CLITestCase):
         """attempt to promote a content view using an invalid
         environment
 
-        @feature: Content Views
+        @id: b143552e-610e-4188-b754-e7462ced8cf3
 
         @assert: Content views cannot be promoted; handled gracefully
 
+
+        @CaseLevel: Integration
         """
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -1128,12 +1177,14 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_publish_rh_content(self):
         """attempt to publish a content view containing RH content
 
-        @feature: Content Views
+        @id: d4323759-d869-4d62-ab2e-f1ea3dbb38ba
 
         @setup: Multiple environments for an org; RH content synced
 
         @assert: Content view can be published
 
+
+        @CaseLevel: Integration
         """
         self.create_rhel_content()
         # Create CV
@@ -1164,13 +1215,13 @@ class ContentViewTestCase(CLITestCase):
         """attempt to publish  a content view containing a RH and custom
         repos and has filters
 
-        @feature: Content Views
+        @id: 0b116172-06a3-4327-81a8-17a098a1a564
 
         @setup: Multiple environments for an org; RH content synced
 
         @assert: Content view can be published
 
-        @status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -1179,12 +1230,14 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_publish_custom_content(self):
         """attempt to publish a content view containing custom content
 
-        @feature: Content Views
+        @id: 84158023-3980-45c6-87d8-faacea3c942f
 
         @setup: Multiple environments for an org; custom content synced
 
         @assert: Content view can be published
 
+
+        @CaseLevel: Integration
         """
         new_repo = make_repository({u'product-id': self.product['id']})
         # Sync REPO
@@ -1220,12 +1273,14 @@ class ContentViewTestCase(CLITestCase):
         """attempt to publish a composite content view containing custom
         content
 
-        @feature: Content Views
+        @id: fde99446-241f-422d-987b-fa1987b654ee
 
         @setup: Multiple environments for an org; custom content synced
 
         @assert: Content view can be published
 
+
+        @CaseLevel: Integration
         """
         repository = make_repository({u'product-id': self.product['id']})
         # Sync REPO
@@ -1286,7 +1341,7 @@ class ContentViewTestCase(CLITestCase):
         """when publishing new version to environment, version
         gets updated
 
-        @feature: Content Views
+        @id: cef62d34-c006-4bd0-950e-29e732388c00
 
         @setup: Multiple environments for an org; multiple versions
         of a content view created/published
@@ -1297,6 +1352,8 @@ class ContentViewTestCase(CLITestCase):
 
         @assert: Content view version is updated in target environment.
 
+
+        @CaseLevel: Integration
         """
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -1371,7 +1428,7 @@ class ContentViewTestCase(CLITestCase):
         # Library (ie when I publish version 2, version 1 disappears)
         """when publishing new version to environment, version
         gets updated
-        @feature: Content Views
+        @id: e5704b86-9919-471b-8362-1831d1983e70
 
         @setup: Multiple environments for an org; multiple versions
         of a content view created/published
@@ -1382,6 +1439,8 @@ class ContentViewTestCase(CLITestCase):
 
         @assert: Content view version is updated in source environment.
 
+
+        @CaseLevel: Integration
         """
         # Create REPO
         new_repo = make_repository({u'product-id': self.product['id']})
@@ -1462,10 +1521,12 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_subscribe_chost_by_id(self):
         """Attempt to subscribe content host to content view
 
-        @feature: Content Views
+        @id: db0bfd9d-3150-427e-9683-a68af33813e7
 
         @assert: Content host can be subscribed to content view
 
+
+        @CaseLevel: System
         """
         new_org = make_org()
         env = make_lifecycle_environment({u'organization-id': new_org['id']})
@@ -1495,11 +1556,13 @@ class ContentViewTestCase(CLITestCase):
         """Attempt to subscribe content host to content view that has
         Red Hat repository assigned to it
 
-        @feature: Content Views
+        @id: aeaaa363-5146-45ee-8c81-e54c7876fb81
 
         @assert: Content Host can be subscribed to content view with Red Hat
         repository
 
+
+        @CaseLevel: System
         """
         self.create_rhel_content()
         env = make_lifecycle_environment({
@@ -1543,11 +1606,13 @@ class ContentViewTestCase(CLITestCase):
         """Attempt to subscribe content host to filtered content view
         that has Red Hat repository assigned to it
 
-        @feature: Content Views
+        @id: 8d1e0daf-6130-4b50-827d-061e6c32749d
 
         @assert: Content Host can be subscribed to filtered content view with
         Red Hat repository
 
+
+        @CaseLevel: System
         """
         self.create_rhel_content()
         env = make_lifecycle_environment({
@@ -1607,11 +1672,13 @@ class ContentViewTestCase(CLITestCase):
         """Attempt to subscribe content host to content view that has
         custom repository assigned to it
 
-        @feature: Content Views
+        @id: 9758756a-2536-4777-a6a9-ed618453ebe7
 
         @assert: Content Host can be subscribed to content view with custom
         repository
 
+
+        @CaseLevel: System
         """
         new_org = make_org()
         new_product = make_product({u'organization-id': new_org['id']})
@@ -1650,10 +1717,12 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_subscribe_chost_by_id_using_ccv(self):
         """Attempt to subscribe content host to composite content view
 
-        @feature: Content Views
+        @id: 4be340c0-9e58-4b96-ab37-d7e3b12c724f
 
         @assert: Content host can be subscribed to composite content view
 
+
+        @CaseLevel: System
         """
         new_org = make_org()
         env = make_lifecycle_environment({u'organization-id': new_org['id']})
@@ -1687,10 +1756,12 @@ class ContentViewTestCase(CLITestCase):
         """Attempt to subscribe content host to content view that has
         puppet module assigned to it
 
-        @feature: Content Views
+        @id: 7f45a162-e944-4e2c-a892-b26d1d21c844
 
         @assert: Content Host can be subscribed to content view with puppet
         module
+
+        @CaseLevel: System
         """
         # see BZ #1222118
         new_org = make_org()
@@ -1745,10 +1816,12 @@ class ContentViewTestCase(CLITestCase):
         """Attempt to create, publish and promote new content view based on
         existing view within the same environment as the original content view
 
-        @feature: Content Views
+        @id: 4d7fa623-3516-4abe-a98c-98acbfb7e9c9
 
         @assert: Cloned content view can be published and promoted to the same
         environment as the original content view
+
+        @CaseLevel: Integration
         """
         org = make_org()
         cloned_cv_name = gen_string('alpha')
@@ -1784,10 +1857,12 @@ class ContentViewTestCase(CLITestCase):
         """Attempt to create, publish and promote new content view based on
         existing view but promoted to a different environment
 
-        @Feature: Content Views
+        @id: 308ffaa3-cd01-4a16-b84d-c60c32959235
 
         @Assert: Cloned content view can be published and promoted to a
         different environment as the original content view
+
+        @CaseLevel: Integration
         """
         org = make_org()
         cloned_cv_name = gen_string('alpha')
@@ -1824,7 +1899,7 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_restart_dynflow_promote(self):
         """attempt to restart a failed content view promotion
 
-        @feature: Content Views
+        @id: 2be23f85-3f62-4319-87ea-41f28cf401dc
 
         @steps:
         1. (Somehow) cause a CV promotion to fail.  Not exactly sure how yet.
@@ -1832,7 +1907,7 @@ class ContentViewTestCase(CLITestCase):
 
         @assert: Promotion is restarted.
 
-        @status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -1841,7 +1916,7 @@ class ContentViewTestCase(CLITestCase):
     def test_positive_restart_dynflow_publish(self):
         """attempt to restart a failed content view publish
 
-        @feature: Content Views
+        @id: 24468014-46b2-403e-8ed6-2daeda5a0163
 
         @steps:
         1. (Somehow) cause a CV publish  to fail.  Not exactly sure how yet.
@@ -1849,7 +1924,7 @@ class ContentViewTestCase(CLITestCase):
 
         @assert: Publish is restarted.
 
-        @status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -1861,7 +1936,7 @@ class ContentViewTestCase(CLITestCase):
     def test_negative_user_with_no_create_view_cv_permissions(self):
         """Unauthorized users are not able to create/view content views
 
-        @feature: Content Views
+        @id: 17617893-27c2-4cb2-a2ed-47378ef90e7a
 
         @setup: Create a user without the Content View create/view permissions
 
@@ -1899,14 +1974,14 @@ class ContentViewTestCase(CLITestCase):
     def test_negative_user_with_read_only_cv_permission(self):
         """Read-only user is able to view content view
 
-        @feature: Content Views
+        @id: 588f57b5-9855-4c14-80d0-64b617c6b6dc
 
         @setup: create a user with the Content View read-only role
 
         @assert: User with read-only role for content view can view the content
         view but not Create / Modify / Promote / Publish
 
-        @status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -1916,13 +1991,13 @@ class ContentViewTestCase(CLITestCase):
         """A user with all content view permissions is able to create,
         read, modify, promote, publish content views
 
-        @feature: Content Views
+        @id: ac40e9bb-9f1a-48d1-a0fe-9ac2be0f33f4
 
         @setup: create a user with all content view permissions
 
         @assert: User is able to perform create, read, modify, promote, publish
         content view
 
-        @status: Manual
+        @caseautomation: notautomated
 
         """

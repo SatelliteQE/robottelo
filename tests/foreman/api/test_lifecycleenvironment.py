@@ -3,6 +3,20 @@
 Documentation for these paths is available here:
 http://www.katello.org/docs/api/apidoc/lifecycle_environments.html
 
+
+@Requirement: Lifecycleenvironment
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -27,7 +41,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create lifecycle environment with valid name only
 
-        @Feature: Lifecycle Environment
+        @id: ec1d985a-6a39-4de6-b635-c803ecedd832
 
         @Assert: Lifecycle environment is created and has proper name
         """
@@ -44,7 +58,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     def test_positive_create_with_description(self):
         """Create lifecycle environment with valid description
 
-        @Feature: Lifecycle Environment
+        @id: 0bc05510-afc7-4087-ab75-1065ab5ba1d3
 
         @Assert: Lifecycle environment is created and has proper description
         """
@@ -61,7 +75,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
         """Create lifecycle environment with valid name, prior to
         Library
 
-        @Feature: Lifecycle Environment
+        @id: 66d34781-8210-4282-8b5e-4be811d5c756
 
         @Assert: Lifecycle environment is created with Library as prior
         """
@@ -75,7 +89,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create lifecycle environment providing an invalid name
 
-        @Feature: Lifecycle Environment
+        @id: 7e8ea2e6-5927-4e86-8ea8-04c3feb524a6
 
         @Assert: Lifecycle environment is not created
         """
@@ -90,7 +104,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
         """Create lifecycle environment providing the initial name, then
         update its name to another valid name.
 
-        @Feature: Lifecycle Environment
+        @id: b6715e02-f15e-4ab8-8b13-18a3619fee9e
 
         @Assert: Lifecycle environment is created and updated properly
         """
@@ -107,9 +121,11 @@ class LifecycleEnvironmentTestCase(APITestCase):
         """Create lifecycle environment providing the initial
         description, then update its description to another one.
 
-        @Feature: Lifecycle Environment
+        @id: e946b1fc-f79f-4e57-9d4a-3181a276222b
 
         @Assert: Lifecycle environment is created and updated properly
+
+        @CaseLevel: Integration
         """
         lc_env = entities.LifecycleEnvironment(
             organization=self.org,
@@ -125,7 +141,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     def test_negative_update_name(self):
         """Update lifecycle environment providing an invalid name
 
-        @Feature: Lifecycle Environment
+        @id: 55723382-9d98-43c8-85fb-df4702ca7478
 
         @Assert: Lifecycle environment is not updated and corresponding error
         is raised
@@ -147,7 +163,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     def test_positive_delete(self):
         """Create lifecycle environment and then delete it.
 
-        @Feature: Lifecycle Environment
+        @id: cd5a97ca-c1e8-41c7-8d6b-f908916b24e1
 
         @Assert: Lifecycle environment is deleted successfully
         """
@@ -161,7 +177,7 @@ class LifecycleEnvironmentTestCase(APITestCase):
     def test_positive_search_in_org(self):
         """Search for a lifecycle environment and specify an org ID.
 
-        @Feature: Lifecycle Environment
+        @id: 110e4777-c374-4365-b676-b1db4552fe51
 
         @Steps:
 
@@ -171,6 +187,8 @@ class LifecycleEnvironmentTestCase(APITestCase):
 
         @Assert: Only "Library" and the lifecycle environment just created are
         in the search results.
+
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         lc_env = entities.LifecycleEnvironment(organization=org).create()

@@ -3,6 +3,20 @@
 
 A full API reference for products can be found here:
 http://theforeman.org/api/apidoc/v2/products.html
+
+@Requirement: Product
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -28,9 +42,9 @@ class ProductTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create a product providing different valid names
 
-        @Assert: A product is created with expected name.
+        @id: 3d873b73-6919-4fda-84df-0e26bdf0c1dc
 
-        @Feature: Product
+        @Assert: A product is created with expected name.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -43,9 +57,9 @@ class ProductTestCase(APITestCase):
     def test_positive_create_with_label(self):
         """Create a product providing label which is different from its name
 
-        @Assert: A product is created with expected label.
+        @id: 95cf8e05-fd09-422e-bf6f-8b1dde762976
 
-        @Feature: Product
+        @Assert: A product is created with expected label.
         """
         label = gen_string('alphanumeric')
         product = entities.Product(label=label, organization=self.org).create()
@@ -57,9 +71,9 @@ class ProductTestCase(APITestCase):
     def test_positive_create_with_description(self):
         """Create a product providing different descriptions
 
-        @Assert: A product is created with expected description.
+        @id: f3e2df77-6711-440b-800a-9cebbbec36c5
 
-        @Feature: Product
+        @Assert: A product is created with expected description.
         """
         for desc in valid_data_list():
             with self.subTest(desc):
@@ -72,9 +86,11 @@ class ProductTestCase(APITestCase):
     def test_positive_create_with_gpg(self):
         """Create a product and provide a GPG key.
 
+        @id: 57331c1f-15dd-4c9f-b8fc-3010847b2975
+
         @Assert: A product is created with the specified GPG key.
 
-        @Feature: Product
+        @CaseLevel: Integration
         """
         # Create an organization, GPG key and product.
         #
@@ -93,9 +109,9 @@ class ProductTestCase(APITestCase):
     def test_negative_create_with_name(self):
         """Create a product providing invalid names only
 
-        @Assert: A product is not created
+        @id: 76531f53-09ff-4ee9-89b9-09a697526fb1
 
-        @Feature: Product
+        @Assert: A product is not created
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -107,9 +123,9 @@ class ProductTestCase(APITestCase):
     def test_negative_create_with_same_name(self):
         """Create a product providing a name of already existent entity
 
-        @Assert: A product is not created
+        @id: 039269c5-607a-4b70-91dd-b8fed8e50cc6
 
-        @Feature: Product
+        @Assert: A product is not created
         """
         name = gen_string('alphanumeric')
         entities.Product(name=name, organization=self.org).create()
@@ -121,9 +137,9 @@ class ProductTestCase(APITestCase):
     def test_negative_create_with_label(self):
         """Create a product providing invalid label
 
-        @Assert: A product is not created
+        @id: 30b1a737-07f1-4786-b68a-734e57c33a62
 
-        @Feature: Product
+        @Assert: A product is not created
         """
         with self.assertRaises(HTTPError):
             entities.Product(label=gen_string('utf8')).create()
@@ -133,9 +149,9 @@ class ProductTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update product name to another valid name.
 
-        @Assert: Product name can be updated.
+        @id: 1a9f6e0d-43fb-42e2-9dbd-e880f03b0297
 
-        @Feature: Product
+        @Assert: Product name can be updated.
         """
         product = entities.Product(organization=self.org).create()
         for new_name in valid_data_list():
@@ -149,9 +165,9 @@ class ProductTestCase(APITestCase):
     def test_positive_update_description(self):
         """Update product description to another valid one.
 
-        @Assert: Product description can be updated.
+        @id: c960c326-2e9f-4ee7-bdec-35a705305067
 
-        @Feature: Product
+        @Assert: Product description can be updated.
         """
         product = entities.Product(organization=self.org).create()
         for new_desc in valid_data_list():
@@ -165,7 +181,7 @@ class ProductTestCase(APITestCase):
     def test_positive_update_name_to_original(self):
         """Rename Product back to original name
 
-        @Feature: Product
+        @id: 3075f17f-4475-4b64-9fbd-1e41ced9142d
 
         @Assert: Product Renamed to original
         """
@@ -190,9 +206,11 @@ class ProductTestCase(APITestCase):
     def test_positive_update_gpg(self):
         """Create a product and update its GPGKey
 
+        @id: 3b08f155-a0d6-4987-b281-dc02e8d5a03e
+
         @Assert: The updated product points to a new GPG key.
 
-        @Feature: Product
+        @CaseLevel: Integration
         """
         # Create a product and make it point to a GPG key.
         gpg_key_1 = entities.GPGKey(
@@ -217,9 +235,11 @@ class ProductTestCase(APITestCase):
     def test_positive_update_organization(self):
         """Create a product and update its organization
 
+        @id: b298957a-2cdb-4f17-a934-098612f3b659
+
         @Assert: The updated product points to a new organization
 
-        @Feature: Product
+        @CaseLevel: Integration
         """
         product = entities.Product(organization=self.org).create()
         # Update the product and make it point to a new organization.
@@ -233,9 +253,9 @@ class ProductTestCase(APITestCase):
     def test_negative_update_name(self):
         """Attempt to update product name to invalid one
 
-        @Assert: Product is not updated
+        @id: 3eb61fa8-3524-4872-8f1b-4e88004f66f5
 
-        @Feature: Product
+        @Assert: Product is not updated
         """
         product = entities.Product(organization=self.org).create()
         for new_name in invalid_values_list():
@@ -251,9 +271,9 @@ class ProductTestCase(APITestCase):
     def test_negative_update_label(self):
         """Attempt to update product label to another one.
 
-        @Assert: Product is not updated and error is raised
+        @id: 065cd673-8d10-46c7-800c-b731b06a5359
 
-        @Feature: Product
+        @Assert: Product is not updated and error is raised
         """
         product = entities.Product(organization=self.org).create()
         product.label = gen_string('alpha')
@@ -265,9 +285,9 @@ class ProductTestCase(APITestCase):
     def test_positive_delete(self):
         """Create product and then delete it.
 
-        @Assert: Product is successfully deleted.
+        @id: 30df95f5-0a4e-41ee-a99f-b418c5c5f2f3
 
-        @Feature: Product
+        @Assert: Product is successfully deleted.
         """
         for name in valid_data_list():
             with self.subTest(name):

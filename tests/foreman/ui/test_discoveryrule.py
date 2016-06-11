@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Foreman Discovery Rules"""
+"""Test class for Foreman Discovery Rules
+
+@Requirement: Discoveryrule
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_integer, gen_ipaddr, gen_string
 from nailgun import entities
 from robottelo.datafactory import (
@@ -56,7 +71,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create Discovery Rule using different names
 
-        @Feature: Foreman Discovery
+        @id: afdf7000-4bd0-41ec-9773-96ff68e27b8d
 
         @Assert: Rule should be successfully created
         """
@@ -72,7 +87,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_positive_create_with_search(self):
         """Create Discovery Rule using different search queries
 
-        @Feature: Foreman Discovery
+        @id: 973ff6e5-572e-401c-bc8c-d614a583e883
 
         @Assert: Rule should be successfully created and has expected search
         field value
@@ -99,7 +114,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_positive_create_with_hostname(self):
         """Create Discovery Rule using valid hostname value
 
-        @Feature: Foreman Discovery
+        @id: e6742ca5-1d41-4ba3-8f2c-2169db92485b
 
         @Assert: Rule should be successfully created and has expected hostname
         field value
@@ -125,7 +140,7 @@ class DiscoveryRuleTestCase(UITestCase):
         """Create Discovery Rule providing any number from range 1..100 for
         hosts limit field
 
-        @Feature: Foreman Discovery
+        @id: 64b90586-c1a9-4be4-8c44-4fa19ca998f8
 
         @Assert: Rule should be successfully created and has expected hosts
         limit field value
@@ -151,7 +166,7 @@ class DiscoveryRuleTestCase(UITestCase):
         """Create Discovery Rule providing any number from range 1..100 for
         priority field
 
-        @Feature: Foreman Discovery
+        @id: de847288-257a-4f0e-9cb6-9a0dd0877d23
 
         @Assert: Rule should be successfully created and has expected priority
         field value
@@ -176,7 +191,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_positive_create_disabled(self):
         """Create Discovery Rule in disabled state
 
-        @Feature: Foreman Discovery
+        @id: 0b98d467-aabf-4efe-890f-50d6edcd99ff
 
         @Assert: Disabled rule should be successfully created
         """
@@ -200,7 +215,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create Discovery Rule with invalid names
 
-        @Feature: Foreman Discovery
+        @id: 79d950dc-4ca1-407e-84ca-9092d1cba978
 
         @Assert: Error should be raised and rule should not be created
         """
@@ -220,7 +235,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_negative_create_with_invalid_hostname(self):
         """Create Discovery Rule with invalid hostname
 
-        @Feature: Foreman Discovery
+        @id: a322c8ce-4f05-401a-88cb-a3d30b4ac446
 
         @Assert: Error should be raised and rule should not be created
         """
@@ -242,7 +257,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_negative_create_with_limit(self):
         """Create Discovery Rule with invalid host limit
 
-        @Feature: Foreman Discovery
+        @id: 743d29f4-a901-400c-ad98-a3b8942f02b5
 
         @Assert: Error should be raised and rule should not be created
         """
@@ -268,7 +283,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_negative_create_with_too_long_limit(self):
         """Create Discovery Rule with too long host limit value
 
-        @Feature: Foreman Discovery
+        @id: 450b49d9-1058-4186-9b23-15cc615e5bd6
 
         @Assert: Validation error should be raised and rule should not be
         created
@@ -291,7 +306,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create Discovery Rule with name that already exists
 
-        @Feature: Foreman Discovery
+        @id: 5a914e76-de01-406d-9860-0e4e1521b074
 
         @Assert: Error should be raised and rule should not be created
         """
@@ -311,7 +326,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_negative_create_with_invalid_priority(self):
         """Create Discovery Rule with invalid priority
 
-        @Feature: Foreman Discovery
+        @id: f8829cce-86c0-452c-b866-d5645174e9e1
 
         @Assert: Error should be raised and rule should not be created
         """
@@ -333,7 +348,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete existing Discovery Rule
 
-        @Feature: Foreman Discovery
+        @id: fc5b714c-e5bc-4b0f-bc94-88e080318704
 
         @Assert: Rule should be successfully deleted
         """
@@ -350,7 +365,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update discovery rule name
 
-        @Feature: Discovery Rule - Update
+        @id: 16a79449-7200-492e-9ddb-65fc034e510d
 
         @Assert: Rule name is updated
         """
@@ -370,7 +385,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_positive_update_query(self):
         """Update discovery rule search query
 
-        @Feature: Discovery Rule - Update
+        @id: bcf85a4c-0b27-47a5-8d5d-7ede0f6eea41
 
         @Assert: Rule search field is updated
         """
@@ -394,7 +409,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_positive_update_hostgroup(self):
         """Update discovery rule host group
 
-        @Feature: Discovery Rule - Update
+        @id: e10274e9-bf1b-42cd-a809-f19e707e7f4c
 
         @Assert: Rule host group is updated
         """
@@ -421,7 +436,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_positive_update_hostname(self):
         """Update discovery rule hostname value
 
-        @Feature: Discovery Rule - Update
+        @id: 753ff15b-da73-4fb3-87cd-14d504d8e882
 
         @Assert: Rule host name is updated
         """
@@ -442,7 +457,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_positive_update_limit(self):
         """Update discovery rule limit value
 
-        @Feature: Discovery Rule - Update
+        @id: 69d59c34-407b-47d0-a2b8-46decb95ef47
 
         @Assert: Rule host limit field is updated
         """
@@ -463,7 +478,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_positive_update_priority(self):
         """Update discovery rule priority value
 
-        @Feature: Discovery Rule - Update
+        @id: be4de7a9-df8e-44ae-9910-7397341f6d07
 
         @Assert: Rule priority is updated
         """
@@ -484,7 +499,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_positive_update_disable_enable(self):
         """Update discovery rule enabled state. (Disabled->Enabled)
 
-        @Feature: Discovery Rule - Update
+        @id: 60d619e4-a039-4f9e-a16c-b05f0598e8fa
 
         @Assert: Rule enabled checkbox is updated
         """
@@ -509,7 +524,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_negative_update_name(self):
         """Update discovery rule name using invalid names only
 
-        @Feature: Discovery Rule - Update
+        @id: 65f32628-796a-4d7e-bf2c-c84c6b06f309
 
         @Assert: Rule name is not updated
         """
@@ -532,7 +547,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_negative_update_hostname(self):
         """Update discovery rule host name using number as a value
 
-        @Feature: Discovery Rule - Update
+        @id: 18713425-22fe-4eaa-a515-8e08aa07e116
 
         @Assert: Rule host name is not updated
         """
@@ -561,7 +576,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_negative_update_limit(self):
         """Update discovery rule host limit using invalid values
 
-        @Feature: Discovery Rule - Update
+        @id: 7e8b7218-3c8a-4b03-b0df-484e0d793ceb
 
         @Assert: Rule host limit is not updated
         """
@@ -593,7 +608,7 @@ class DiscoveryRuleTestCase(UITestCase):
     def test_negative_update_priority(self):
         """Update discovery rule priority using invalid values
 
-        @Feature: Discovery Rule - Update
+        @id: d44ad49c-5d95-442f-a1b3-cd82dd8ffabf
 
         @Assert: Rule priority is not updated
         """

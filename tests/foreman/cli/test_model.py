@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test for Model CLI"""
+"""Test for Model CLI
+
+@Requirement: Model
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
@@ -20,7 +35,7 @@ class ModelTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Successfully creates a Model.
 
-        @Feature: Model
+        @id: c8192831-5dde-4c3c-8427-00902ddbc0ac
 
         @Assert: Model is created.
         """
@@ -34,7 +49,7 @@ class ModelTestCase(CLITestCase):
     def test_positive_create_with_vendor_class(self):
         """Check if Model can be created with specific vendor class
 
-        @Feature: Model - Positive Create
+        @id: c36d3490-cd12-4f5f-a453-2ae5d0404496
 
         @Assert: Model is created with specific vendor class
         """
@@ -46,7 +61,7 @@ class ModelTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Don't create an Model with invalid data.
 
-        @Feature: Model
+        @id: b2eade66-b612-47e7-bfcc-6e363023f498
 
         @Assert: Model is not created.
         """
@@ -59,7 +74,7 @@ class ModelTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Successfully update an Model.
 
-        @Feature: Model
+        @id: 66eb6cf2-9ec5-4947-97e0-b612780c5cc3
 
         @Assert: Model is updated.
         """
@@ -78,7 +93,7 @@ class ModelTestCase(CLITestCase):
     def test_negative_update_name(self):
         """Create Model then fail to update its name
 
-        @feature: Model
+        @id: 98020a4a-1789-4df3-929c-6c132b57f5a1
 
         @assert: Model name is not updated
         """
@@ -99,7 +114,7 @@ class ModelTestCase(CLITestCase):
         """Create Model with valid values then delete it
         by ID
 
-        @feature: Model
+        @id: 39f02cec-ac4c-4801-9a4a-11160247213f
 
         @assert: Model is deleted
         """
@@ -115,7 +130,7 @@ class ModelTestCase(CLITestCase):
     def test_negative_delete_by_id(self):
         """Create Model then delete it by wrong ID
 
-        @feature: Model
+        @id: f8b0d428-1b3d-4fc9-9ca1-1eb30c8ac20a
 
         @assert: Model is not deleted
         """

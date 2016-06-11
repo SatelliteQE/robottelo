@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Repository UI"""
+"""Test class for Repository UI
+
+@Requirement: Repository
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 import time
 
@@ -85,7 +100,7 @@ class RepositoryTestCase(UITestCase):
         """Create repository with different names and minimal input
         parameters
 
-        @Feature: Content Repos - Positive Create
+        @id: 3713c811-ea80-43ce-a753-344d1dcb7486
 
         @Assert: Repository is created successfully
         """
@@ -107,9 +122,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_create_in_different_orgs(self):
         """Create repository in two different orgs with same name
 
-        @Feature: Content Repos - Positive Create
+        @id: 019c2242-8802-4bae-82c5-accf8f793dbc
 
         @Assert: Repository is created successfully for both organizations
+
+        @CaseLevel: Integration
         """
         org_2 = entities.Organization(name=gen_string('alpha')).create()
         product_1 = entities.Product(organization=self.organization).create()
@@ -140,7 +157,7 @@ class RepositoryTestCase(UITestCase):
     def test_positive_create_repo_with_checksum(self):
         """Create repository with checksum type as sha256.
 
-        @Feature: Content Repos - Positive Create
+        @id: 06f37bb3-b0cf-4f1f-ae12-df13a6a7eaab
 
         @Assert: Repository is created with expected checksum type.
         """
@@ -166,7 +183,7 @@ class RepositoryTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create repository with invalid names
 
-        @Feature: Content Repos - Negative Create
+        @id: 385d0222-6466-4bc0-9686-b215f41e4274
 
         @Assert: Repository is not created
         """
@@ -191,7 +208,7 @@ class RepositoryTestCase(UITestCase):
     def test_negative_create_with_same_names(self):
         """Try to create two repositories with same name
 
-        @Feature: Content Repos - Negative Create with same name
+        @id: f9515a61-0c5e-4767-9fc9-b17d440418d8
 
         @Assert: Repository is not created
         """
@@ -220,7 +237,7 @@ class RepositoryTestCase(UITestCase):
     def test_positive_update_url(self):
         """Update content repository with new URL
 
-        @Feature: Content Repo - Positive Update
+        @id: cb864338-9d18-4e18-a2ee-37f22e7036b8
 
         @Assert: Repository is updated with expected url value
         """
@@ -249,7 +266,7 @@ class RepositoryTestCase(UITestCase):
     def test_positive_update_gpg(self):
         """Update content repository with new gpg-key
 
-        @Feature: Content Repo - Positive Update
+        @id: 51da6572-02d0-43d7-96cc-895b5bebfadb
 
         @Assert: Repository is updated with new gpg key
         """
@@ -289,7 +306,7 @@ class RepositoryTestCase(UITestCase):
     def test_positive_update_checksum_type(self):
         """Update content repository with new checksum type
 
-        @Feature: Content Repo - Positive Update of checksum type.
+        @id: eed4e77d-baa2-42c2-9774-f1bed52efe39
 
         @Assert: Repository is updated with expected checksum type.
         """
@@ -320,7 +337,7 @@ class RepositoryTestCase(UITestCase):
     def test_positive_delete(self):
         """Create content repository and then remove it
 
-        @Feature: Content Repos - Positive Delete
+        @id: 9edc93b1-d4e5-453e-b4ee-0731df491397
 
         @Assert: Repository is deleted successfully
         """
@@ -344,7 +361,7 @@ class RepositoryTestCase(UITestCase):
     def test_negative_delete_puppet_repo_associated_with_cv(self):
         """Delete a puppet repo associated with a content view - BZ#1271000
 
-        @Feature: Content Product - Delete repo
+        @id: 72639e14-4089-4f40-bad7-e18021ad376f
 
         @Steps:
 
@@ -361,7 +378,9 @@ class RepositoryTestCase(UITestCase):
         @Assert: Proper error message saying that the puppet module version is
         not found
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -369,9 +388,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_discover_repo_via_existing_product(self):
         """Create repository via repo-discovery under existing product
 
-        @Feature: Content Repos - Discover repo via http URL
+        @id: 9181950c-a756-456f-a46a-059e7a2add3c
 
         @Assert: Repository is discovered and created
+
+        @CaseLevel: Integration
         """
         discovered_urls = 'fakerepo01/'
         product = entities.Product(organization=self.organization).create()
@@ -389,9 +410,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_discover_repo_via_new_product(self):
         """Create repository via repo discovery under new product
 
-        @Feature: Content Repos - Discover repo via http URL
+        @id: dc5281f8-1a8a-4a17-b746-728f344a1504
 
         @Assert: Repository is discovered and created
+
+        @CaseLevel: Integration
         """
         product_name = gen_string('alpha')
         discovered_urls = 'fakerepo01/'
@@ -412,9 +435,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_sync_custom_repo_yum(self):
         """Create Custom yum repos and sync it via the repos page.
 
-        @Feature: Custom yum Repos - Sync via repos page
+        @id: afa218f4-e97a-4240-a82a-e69538d837a1
 
         @Assert: Sync procedure for specific yum repository is successful
+
+        @CaseLevel: Integration
         """
         product = entities.Product(organization=self.organization).create()
         with Session(self.browser) as session:
@@ -439,9 +464,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_sync_custom_repo_puppet(self):
         """Create Custom puppet repos and sync it via the repos page.
 
-        @Feature: Custom puppet Repos - Sync via repos page
+        @id: 135176cc-7664-41ee-8c41-b77e193f2f22
 
         @Assert: Sync procedure for specific puppet repository is successful
+
+        @CaseLevel: Integration
         """
         # Creates new product
         product = entities.Product(organization=self.organization).create()
@@ -468,9 +495,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_sync_custom_repo_docker(self):
         """Create Custom docker repos and sync it via the repos page.
 
-        @Feature: Custom docker Repos - Sync via repos page
+        @id: 942e0b4f-3524-4f00-812d-bdad306f81de
 
         @Assert: Sync procedure for specific docker repository is successful
+
+        @CaseLevel: Integration
         """
         # Creates new product
         product = entities.Product(organization=self.organization).create()
@@ -495,11 +524,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_create_custom_ostree_repo(self):
         """Create Custom ostree repository.
 
-        @Feature: Custom ostree repository
+        @id: 852cccdc-7289-4d2f-b23a-7caad2dfa195
 
         @Assert: Create custom ostree repository should be successful
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -508,11 +537,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_delete_custom_ostree_repo(self):
         """Delete custom ostree repository.
 
-        @Feature: Custom ostree repository
+        @id: 87dcb236-4eb4-4897-9c2a-be1d0f4bc3e7
 
         @Assert: Delete custom ostree repository should be successful
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -521,11 +550,11 @@ class RepositoryTestCase(UITestCase):
     def test_positive_update_custom_ostree_repo(self):
         """Update custom ostree repository.
 
-        @Feature: Custom ostree repository
+        @id: 098ee88f-6cdb-45e0-850a-e1b71662f7ab
 
         @Steps: Update repo name and URL
 
         @Assert: URL and name should be updated successfully
 
-        @Status: Manual
+        @caseautomation: notautomated
         """

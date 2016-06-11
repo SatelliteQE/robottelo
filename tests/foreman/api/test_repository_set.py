@@ -4,6 +4,20 @@
 A full API reference for products can be found here:
 http://www.katello.org/docs/api/apidoc/repository_sets.html
 
+
+@Requirement: Repository set
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
 """
 from nailgun import entities
 from robottelo import manifests
@@ -22,7 +36,7 @@ class RepositorySetTestCase(APITestCase):
     def test_positive_reposet_enable(self):
         """Enable repo from reposet
 
-        @Feature: Repository-set
+        @id: dedcecf7-613a-4e85-a3af-92fb57e2b0a1
 
         @Assert: Repository was enabled
         """
@@ -52,7 +66,7 @@ class RepositorySetTestCase(APITestCase):
     def test_positive_reposet_disable(self):
         """Disable repo from reposet
 
-        @Feature: Repository-set
+        @id: 60a102df-099e-4325-8924-2a31e5f738ba
 
         @Assert: Repository was disabled
         """

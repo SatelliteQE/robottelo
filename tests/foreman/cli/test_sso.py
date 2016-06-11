@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for SSO (CLI)"""
+"""Test class for SSO (CLI)
+
+@Requirement: Sso
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase
@@ -22,37 +37,37 @@ class SingleSignOnTestCase(CLITestCase):
     def test_positive_login_kerberos_user(self):
         """kerberos user can login to CLI
 
-        @feature: SSO
+        @id: 59a1b463-67b3-4f18-b851-afaa3c65ccb6
 
         @setup: kerberos configured against foreman.
 
         @assert: Log in to hammer cli successfully
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
     def test_positive_login_ipa_user(self):
         """IPA user can login to CLI
 
-        @feature: SSO
+        @id: cbd0df84-6a4d-4c82-bf30-cecd51f40c03
 
         @setup: IPA configured against foreman.
 
         @assert: Log in to hammer cli successfully
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
     def test_positive_login_openldap_user(self):
         """OpenLDAP user can login to CLI
 
-        @feature: SSO
+        @id: de31d5eb-4e0d-495e-bf31-bc49f9d50d68
 
         @setup: OpenLDAP configured against foreman.
 
         @assert: Log in to hammer cli successfully
 
-        @status: Manual
+        @caseautomation: notautomated
         """

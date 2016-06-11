@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Setting Parameter values"""
+"""Test class for Setting Parameter values
+
+@Requirement: Setting
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_email, gen_string, gen_url
 from functools import wraps
@@ -180,7 +195,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_authorize_login_delegation_param(self):
         """Updates parameter "authorize_login_delegation" under Auth tab
 
-        @Feature: Settings - Update Parameters
+        @id: 0b752f6a-5987-483a-9cef-2d02fa42fe73
 
         @Assert: Parameter is updated successfully
         """
@@ -208,7 +223,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_administrator_param(self):
         """Updates parameter "administrator" under General tab
 
-        @Feature: Settings - Update Parameters
+        @id: ecab6d51-ad29-4904-bc04-e62673ab1028
 
         @Assert: Parameter is updated successfully
 
@@ -237,7 +252,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_authorize_login_delegation_api_param(self):
         """Updates parameter "authorize_login_delegation_api" under Auth tab
 
-        @Feature: Settings - Update Parameters
+        @id: 1dc39d96-a0e3-4d2e-aeb8-14aedab2ebe3
 
         @Assert: Parameter is updated successfully
         """
@@ -265,7 +280,7 @@ class SettingTestCase(UITestCase):
         """Updates parameter "entries_per_page" under General tab with
         invalid values
 
-        @Feature: Settings - Negative Update Parameters
+        @id: b6bb39e2-797e-43e4-9629-d319c62992a4
 
         @Assert: Parameter is not updated
         """
@@ -297,7 +312,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_entries_per_page_param(self):
         """Updates parameter "entries_per_page" under General tab
 
-        @Feature: Settings - Positive Update Parameters
+        @id: e41933c8-d835-4126-a356-a186c8e9013f
 
         @Assert: Parameter is updated successfully
         """
@@ -324,7 +339,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_email_reply_address_param(self):
         """Updates parameter "email_reply_address" under General tab
 
-        @Feature: Settings - Update Parameters
+        @id: 274eaa6d-a6ba-4dbe-a843-c3717fbd70ae
 
         @Assert: Parameter is updated successfully
 
@@ -354,7 +369,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_fix_db_cache_param(self):
         """Updates parameter "fix_db_cache" under General tab
 
-        @Feature: Settings - Update Parameters
+        @id: b7f8df0e-9ac8-4075-8955-c895267e424c
 
         @Assert: Parameter is updated successfully
 
@@ -383,7 +398,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_use_gravatar_param(self):
         """Updates parameter "use_gravatar" under General tab
 
-        @Feature: Settings - Update Parameters
+        @id: 6ea676c1-acb9-495f-9ee7-0a2c14f34ea1
 
         @Assert: Parameter is updated successfully
         """
@@ -411,7 +426,7 @@ class SettingTestCase(UITestCase):
         """Updates parameter "max_trend" under General tab with invalid
         values
 
-        @Feature: Settings - Negative Update Parameters
+        @id: bcc2848d-734a-4b13-80fa-9fd34545cbe7
 
         @Assert: Parameter is not updated
         """
@@ -443,7 +458,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_max_trend_param(self):
         """Updates parameter "max_trend" under General tab
 
-        @Feature: Settings - Positive Update Parameters
+        @id: 6e08bb3b-de48-45b4-b982-7180dbb65ed2
 
         @Assert: Parameter is updated successfully
         """
@@ -471,7 +486,7 @@ class SettingTestCase(UITestCase):
         """Updates parameter "idle_timeout" under General tab with
         invalid values
 
-        @Feature: Settings - Negative Update Parameters
+        @id: 0c46ec21-7402-4241-8b22-5f8afa1f5316
 
         @Assert: Parameter is not updated
         """
@@ -503,7 +518,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_idle_timeout_param(self):
         """Updates parameter "idle_timeout" under Auth tab
 
-        @Feature: Settings - Positive Update Parameters
+        @id: fd5b2fe0-7124-444b-9f00-fca2b38c52f4
 
         @Assert: Parameter is updated successfully
         """
@@ -530,7 +545,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_foreman_url_param(self):
         """Updates parameter "foreman_url" under General tab
 
-        @Feature: Settings - Update Parameters
+        @id: e09e95e9-510a-48b6-a59f-5adc0a383ddc
 
         @Assert: Parameter is updated successfully
         """
@@ -557,7 +572,7 @@ class SettingTestCase(UITestCase):
     def test_negative_update_foreman_url_param(self):
         """Updates parameter "foreman_url" under General tab
 
-        @Feature: Settings - Negative update Parameters
+        @id: ee450e0a-d02e-40c4-a67e-5508a29dc9c8
 
         @Assert: Parameter is not updated
         """
@@ -590,7 +605,7 @@ class SettingTestCase(UITestCase):
         """Updates parameter "dynflow_enable_console" under ForemanTasks
         tab
 
-        @Feature: Settings - Update Parameters
+        @id: 11a710f1-d5fc-48c7-9f31-a92dbbaebc40
 
         @Assert: Parameter is updated successfully
         """
@@ -618,7 +633,7 @@ class SettingTestCase(UITestCase):
         """Updates parameter
         "authorize_login_delegation_auth_source_user_autocreate" under Auth tab
 
-        @Feature: Settings - Update Parameters
+        @id: 82137c0c-1cf5-445d-87fe-1ff80a12df3c
 
         @Assert: Parameter is updated successfully
         """
@@ -647,7 +662,7 @@ class SettingTestCase(UITestCase):
         """Updates parameter "login_delegation_logout_url" under Auth
         tab
 
-        @Feature: Settings - Update Parameters
+        @id: 67b32c5f-7e8e-4ba7-ab29-9af2ac3660a9
 
         @Assert: Parameter is updated successfully
         """
@@ -675,7 +690,7 @@ class SettingTestCase(UITestCase):
         """Read-only param "oauth_active" under Auth tab shouldn't be
         updated
 
-        @Feature: Settings - Update Parameters
+        @id: e69d791a-e5c4-4f42-b5dd-c9d3bca49673
 
         @Assert: Parameter is not editable
         """
@@ -698,7 +713,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_require_ssl_smart_proxies_param(self):
         """Updates parameter "require_ssl_smart_proxies" under Auth tab
 
-        @Feature: Settings - Update Parameters
+        @id: 79d5bb5f-6bec-4c1c-b68e-6727aeb04614
 
         @Assert: Parameter is updated successfully
         """
@@ -726,7 +741,7 @@ class SettingTestCase(UITestCase):
         """Updates parameter "restrict_registered_smart_proxies" under
         Auth tab
 
-        @Feature: Settings - Update Parameters
+        @id: 7dbcf471-3cee-4718-a316-18da6c4c1ef0
 
         @Assert: Parameter is updated successfully
         """
@@ -755,7 +770,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_trusted_puppetmaster_hosts_param(self):
         """Updates parameter "trusted_puppetmaster_hosts" under Auth tab
 
-        @Feature: Settings - Update Parameters
+        @id: 18596dbc-7e2a-426c-bd1a-338a31ba6e97
 
         @Assert: Parameter is updated successfully
         """
@@ -782,7 +797,7 @@ class SettingTestCase(UITestCase):
     def test_negative_update_trusted_puppetmaster_hosts_param(self):
         """Updates parameter "trusted_puppetmaster_hosts" under Auth tab
 
-        @Feature: Settings - Negative update Parameters
+        @id: 23af2612-1291-41a1-8002-87263e39bdbe
 
         @Assert: Parameter is not updated
         """
@@ -815,7 +830,7 @@ class SettingTestCase(UITestCase):
         """Updates parameter "ignore_puppet_facts_for_provisioning" under
         Provisioning tab
 
-        @Feature: Settings - Update Parameters
+        @id: 71cb4779-7982-43b6-ab65-7198ec193941
 
         @Assert: Parameter is updated successfully
         """
@@ -843,7 +858,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_manage_puppetca_param(self):
         """Updates parameter "manage_puppetca" under Provisioning tab
 
-        @Feature: Settings - Update Parameters
+        @id: 2f652441-6beb-40c0-9fb3-f0b835d06ca7
 
         @Assert: Parameter is updated successfully
         """
@@ -872,7 +887,7 @@ class SettingTestCase(UITestCase):
         """Updates parameter "query_local_nameservers" under
         Provisioning tab
 
-        @Feature: Settings - Update Parameters
+        @id: 643960f4-121c-44f3-a5e8-00b9cf66ff99
 
         @Assert: Parameter is updated successfully
         """
@@ -900,7 +915,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_safemode_render_param(self):
         """Updates parameter "safemode_render" under Provisioning tab
 
-        @Feature: Settings - Update Parameters
+        @id: 4762a89a-2ebe-4834-b44f-f74888e609bb
 
         @Assert: Parameter is updated successfully
         """
@@ -929,7 +944,7 @@ class SettingTestCase(UITestCase):
         """Updates parameter "token_duration" under Provisioning tab
         with invalid values
 
-        @Feature: Settings - Negative Update Parameters
+        @id: a1d18ba3-a14f-47ab-82fb-1249abc7b076
 
         @Assert: Parameter is not updated
         """
@@ -962,7 +977,7 @@ class SettingTestCase(UITestCase):
     def test_positive_update_token_duration_param(self):
         """Updates param "token_duration" under Provisioning tab
 
-        @Feature: Settings - Positive Update Parameters
+        @id: a200b578-4463-444b-bed1-82e540a77529
 
         @Assert: Parameter is updated successfully
         """

@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Trend UI"""
+"""Test class for Trend UI
+
+@Requirement: Trend
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.constants import TREND_TYPES
@@ -24,7 +39,7 @@ class TrendTest(UITestCase):
     def test_positive_create(self):
         """Create new trend
 
-        @Feature: Trend - Positive Create
+        @id: d0c040cf-8132-43cd-9569-26148b80a44b
 
         @Assert: Trend is created successfully
         """
@@ -37,7 +52,7 @@ class TrendTest(UITestCase):
     def test_positive_update(self):
         """Update trend entity value
 
-        @Feature: Trend - Positive Update
+        @id: 329af7a7-e7c1-4c09-9849-d9ec12ddcee9
 
         @Assert: Trend entity is updated successfully
         """
@@ -61,7 +76,7 @@ class TrendTest(UITestCase):
     def test_positive_delete(self):
         """Delete existing trend
 
-        @Feature: Trend - Positive Delete
+        @id: 0b5376f0-c8ae-434a-a5da-10b16ac3b932
 
         @Assert: Trend is deleted
         """

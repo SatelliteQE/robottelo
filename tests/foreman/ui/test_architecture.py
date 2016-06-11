@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Architecture UI"""
+"""Test class for Architecture UI
+
+@Requirement: Architecture
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.datafactory import (
@@ -34,7 +49,7 @@ class ArchitectureTestCase(UITestCase):
     def test_positive_create_with_os(self):
         """Create a new Architecture with OS
 
-        @Feature: Architecture - Positive Create
+        @id: 6c386230-2285-4f41-a3a5-6a17ae844f80
 
         @Assert: Architecture is created
         """
@@ -53,7 +68,7 @@ class ArchitectureTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create a new Architecture with different data
 
-        @Feature: Architecture - Positive Create
+        @id: 0ac5f63b-b296-425b-8bb2-e0fe32d394c5
 
         @Assert: Architecture is created
         """
@@ -69,7 +84,7 @@ class ArchitectureTestCase(UITestCase):
         """Try to create architecture and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
-        @Feature: Architecture - Negative Create
+        @id: f4b8ed72-f20b-4f5d-bf0a-3475a6124f3a
 
         @Assert: Architecture is not created
         """
@@ -85,7 +100,7 @@ class ArchitectureTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create a new Architecture with same name
 
-        @Feature: Architecture - Negative Create
+        @id: 4000674e-7b39-4958-8992-1363b25b2cd6
 
         @Assert: Architecture is not created
         """
@@ -103,7 +118,7 @@ class ArchitectureTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete an existing Architecture
 
-        @Feature: Architecture - Delete
+        @id: f58af0ba-45c8-456c-abe3-8aaf48055c23
 
         @Assert: Architecture is deleted
         """
@@ -121,7 +136,7 @@ class ArchitectureTestCase(UITestCase):
     def test_positive_update_name_and_os(self):
         """Update Architecture with new name and OS
 
-        @Feature: Architecture - Update
+        @id: cbb2e8fc-1dde-42c4-aab0-479bd16fb5ec
 
         @Assert: Architecture is updated
         """

@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Product CLI"""
+"""Test class for Product CLI
+
+@Requirement: Product
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 import time
 
 from fauxfactory import gen_alphanumeric, gen_string
@@ -42,7 +57,7 @@ class ProductTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Check if product can be created with random names
 
-        @Feature: Product
+        @id: 252a2073-5094-4996-b157-bf7ff81f40af
 
         @Assert: Product is created and has random name
         """
@@ -60,7 +75,7 @@ class ProductTestCase(CLITestCase):
     def test_positive_create_with_label(self):
         """Check if product can be created with random labels
 
-        @Feature: Product
+        @id: 07ff96b2-cc55-4d07-86a2-f20b77cc9b14
 
         @Assert: Product is created and has random label
         """
@@ -80,7 +95,7 @@ class ProductTestCase(CLITestCase):
     def test_positive_create_with_description(self):
         """Check if product can be created with random description
 
-        @Feature: Product
+        @id: 4b64dc60-ac08-4276-b31a-d3851ae064ba
 
         @Assert: Product is created and has random description
         """
@@ -99,7 +114,7 @@ class ProductTestCase(CLITestCase):
     def test_positive_create_with_gpg_key(self):
         """Check if product can be created with gpg key
 
-        @Feature: Product
+        @id: 64f02b3b-f8c1-42c5-abb2-bf963ac24670
 
         @Assert: Product is created and has gpg key
         """
@@ -118,7 +133,7 @@ class ProductTestCase(CLITestCase):
     def test_positive_create_with_sync_plan(self):
         """Check if product can be created with sync plan
 
-        @Feature: Product
+        @id: c54ff608-9f59-4fd6-a45c-bd70ce656023
 
         @Assert: Product is created and has random sync plan
         """
@@ -139,7 +154,7 @@ class ProductTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Check that only valid names can be used
 
-        @Feature: Product
+        @id: 2da26ab2-8d79-47ea-b4d2-defcd98a0649
 
         @Assert: Product is not created
         """
@@ -155,7 +170,7 @@ class ProductTestCase(CLITestCase):
     def test_negative_create_with_label(self):
         """Check that only valid labels can be used
 
-        @Feature: Product
+        @id: 7cf970aa-48dc-425b-ae37-1e15dfab0626
 
         @Assert: Product is not created
         """
@@ -174,7 +189,7 @@ class ProductTestCase(CLITestCase):
     def test_positive_update_description(self):
         """Update the description of a product
 
-        @Feature: Product
+        @id: 4b3b4c5b-3eaa-4b9c-93c6-6ee9d62061eb
 
         @Assert: Product description is updated
         """
@@ -196,7 +211,7 @@ class ProductTestCase(CLITestCase):
     def test_positive_update_gpg_key(self):
         """Update product's gpg keys
 
-        @Feature: Product
+        @id: e7febd14-ac8b-424e-9ddf-bf0f63ebe430
 
         @Assert: Product gpg key is updated
         """
@@ -224,7 +239,7 @@ class ProductTestCase(CLITestCase):
     def test_positive_update_sync_plan(self):
         """Update product's sync plan
 
-        @Feature: Product
+        @id: 78cbde49-b6c8-41ab-8991-fcb4b648e79b
 
         @Assert: Product sync plan is updated
         """
@@ -252,7 +267,7 @@ class ProductTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Rename Product back to original name
 
-        @Feature: Product
+        @id: 4dec056b-8084-4372-bf7a-ce1db0c47cc9
 
         @Assert: Product Renamed to original
         """
@@ -291,7 +306,7 @@ class ProductTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Check if product can be deleted
 
-        @Feature: Product
+        @id: 21bb8373-96d1-402c-973c-cf70d4b8244e
 
         @Assert: Product is deleted
         """
@@ -314,9 +329,11 @@ class ProductTestCase(CLITestCase):
     def test_positive_add_sync_plan_by_id(self):
         """Check if a sync plan can be added to a product
 
-        @Feature: Product
+        @id: 1517bc4b-5474-41c1-bc96-6e2130a2c2f4
 
         @Assert: Product has sync plan
+
+        @CaseLevel: Integration
         """
         new_product = make_product({u'organization-id': self.org['id']})
         sync_plan = make_sync_plan({'organization-id': self.org['id']})
@@ -334,9 +351,11 @@ class ProductTestCase(CLITestCase):
     def test_positive_remove_sync_plan_by_id(self):
         """Check if a sync plan can be removed from a product
 
-        @Feature: Product
+        @id: 0df2005c-158a-48cb-8a16-9a63923699fc
 
         @Assert: Product has sync plan
+
+        @CaseLevel: Integration
         """
         product = make_product({u'organization-id': self.org['id']})
         sync_plan = make_sync_plan({'organization-id': self.org['id']})
@@ -360,9 +379,11 @@ class ProductTestCase(CLITestCase):
     def test_positive_sync_by_id(self):
         """Check if product can be synchronized by its ID.
 
-        @Feature: Product
+        @id: b0e436df-dd97-4fd2-a69f-3a2fb7a12c3c
 
         @Assert: Product is synchronized
+
+        @CaseLevel: Integration
         """
         org = make_org()
         product = make_product({'organization-id': org['id']})
@@ -381,9 +402,11 @@ class ProductTestCase(CLITestCase):
     def test_positive_sync_by_name(self):
         """Check if product can be synchronized by its name.
 
-        @Feature: Product
+        @id: 92058501-7786-4440-b612-6f7f79aa454e
 
         @Assert: Product is synchronized
+
+        @CaseLevel: Integration
         """
         org = make_org()
         product = make_product({'organization-id': org['id']})
@@ -402,9 +425,11 @@ class ProductTestCase(CLITestCase):
     def test_positive_sync_by_label(self):
         """Check if product can be synchronized by its label.
 
-        @Feature: Product
+        @id: 2e4e75dd-45f4-4013-ac74-7d4b38b0faec
 
         @Assert: Product is synchronized
+
+        @CaseLevel: Integration
         """
         org = make_org()
         product = make_product({'organization-id': org['id']})

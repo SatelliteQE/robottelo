@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Hosts UI"""
+"""Test class for Hosts UI
+
+@Requirement: Host
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
 from robottelo.api.utils import promote
@@ -294,9 +309,11 @@ class HostTestCase(UITestCase):
     def test_positive_create_libvirt(self):
         """Create a new Host on libvirt compute resource
 
-        @Feature: Host - Positive create
+        @id: 2678f95f-0c0e-4b46-a3c1-3f9a954d3bde
 
         @Assert: Host is created
+
+        @CaseLevel: System
         """
         resource = u'{0} (Libvirt)'.format(self.computeresource.name)
         root_pwd = gen_string('alpha', 15)
@@ -335,9 +352,11 @@ class HostTestCase(UITestCase):
     def test_positive_create(self):
         """Create a new Host
 
-        @Feature: Host - Positive create
+        @id: 4821444d-3c86-4f93-849b-60460e025ba0
 
         @Assert: Host is created
+
+        @CaseLevel: System
         """
         host = entities.Host()
         host.create_missing()
@@ -382,9 +401,11 @@ class HostTestCase(UITestCase):
     def test_positive_update_name(self):
         """Create a new Host and update its name to valid one
 
-        @Feature: Host - Positive update
+        @id: f1c19599-f613-431d-bf09-62addec1e60b
 
         @Assert: Host is updated successfully
+
+        @CaseLevel: System
         """
         host = entities.Host()
         host.create_missing()
@@ -435,9 +456,11 @@ class HostTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete a Host
 
-        @Feature: Host - Positive Delete
+        @id: 13735af1-f1c7-466e-a969-80618a1d854d
 
         @Assert: Host is delete
+
+        @CaseLevel: System
         """
         host = entities.Host()
         host.create_missing()
@@ -480,11 +503,13 @@ class HostTestCase(UITestCase):
     def test_positive_create_with_user(self):
         """Create Host with new user specified
 
-        @Feature: Host - Positive Create
+        @id: b97d6fe5-b0a1-4ddc-8d7f-cbf7b17c823d
 
         @Assert: Host is created
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -492,11 +517,13 @@ class HostTestCase(UITestCase):
     def test_positive_update_with_user(self):
         """Update Host with new user specified
 
-        @Feature: Host - Positive Update
+        @id: 4c030cf5-b89c-4dec-bb3e-0cb3215a2315
 
         @Assert: Host is updated
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -504,12 +531,14 @@ class HostTestCase(UITestCase):
     def test_positive_provision_atomic_host(self):
         """Provision an atomic host on libvirt and register it with satellite
 
-        @Feature: Atomic Host
+        @id: 5ddf2f7f-f7aa-4321-8717-372c7b6e99b6
 
         @Assert: Atomic host should be provisioned and listed under
         content-hosts/Hosts
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -518,12 +547,14 @@ class HostTestCase(UITestCase):
         """Register a pre-installed atomic host with satellite using admin
         credentials
 
-        @Feature: Atomic Host
+        @id: 09729944-b60b-4742-8f1b-e8859e2e36d3
 
         @Assert: Atomic host should be registered successfully and listed under
         content-hosts/Hosts
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -532,12 +563,14 @@ class HostTestCase(UITestCase):
         """Register a pre-installed atomic host with satellite using activation
         key
 
-        @Feature: Atomic Host
+        @id: 31e5ffcf-2e3c-474a-a6a3-6d8e2f392abe
 
         @Assert: Atomic host should be registered successfully and listed under
         content-hosts/Hosts
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -545,12 +578,14 @@ class HostTestCase(UITestCase):
     def test_positive_delete_atomic_host(self):
         """Delete a provisioned atomic host
 
-        @Feature: Atomic Host
+        @id: c0bcf753-8ddf-4e95-b214-42d1e077a6cf
 
         @Assert: Atomic host should be deleted successfully and shouldn't be
         listed under hosts/content-hosts
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -558,11 +593,13 @@ class HostTestCase(UITestCase):
     def test_positive_bulk_delete_atomic_host(self):
         """Delete a multiple atomic hosts
 
-        @Feature: Atomic Host
+        @id: 7740e7c2-db54-4f6a-b5d4-6005fccb4c61
 
         @Assert: All selected atomic hosts should be deleted successfully
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -570,11 +607,13 @@ class HostTestCase(UITestCase):
     def test_positive_update_atomic_host_cv(self):
         """Update atomic-host with a new environment and content-view
 
-        @Feature: Atomic Host
+        @id: 2ddd3bb7-ef58-42c0-908c-ae4d4bd0bff9
 
         @Assert: Atomic host should be updated with new content-view
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -583,10 +622,12 @@ class HostTestCase(UITestCase):
         """Execute ostree/atomic commands on provisioned atomic host with job
         templates
 
-        @Feature: Atomic Host
+        @id: 56a46a1e-9e24-4ad7-9cea-3d78c7310b14
 
         @Assert: Ostree/atomic commands should be executed successfully via job
         templates
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """

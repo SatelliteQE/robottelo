@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Host/System Unification"""
+"""Test class for Host/System Unification
+
+@Requirement: Hostunification
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo.decorators import run_only_on, stubbed, tier3
 from robottelo.test import UITestCase
@@ -21,7 +36,7 @@ class HostcontenthostUnificationTestCase(UITestCase):
     def test_positive_register_host_via_rhsm(self):
         """Register a pre-installed host via rhsm using credentials
 
-        @feature: Host/Content-Host Unification
+        @id: 4e685241-b671-4cfd-bfaa-f44a5cf78654
 
         @steps:
         1.  Register a host via rhsm using credentials
@@ -31,7 +46,9 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: Hosts registered via rhsm appears under 'All hosts' as well
         as under content-hosts.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -40,7 +57,7 @@ class HostcontenthostUnificationTestCase(UITestCase):
     def test_positive_register_host_via_ak(self):
         """Register a pre-installed host via rhsm using activation-key
 
-        @feature: Host/Content-Host Unification
+        @id: b42a1a13-49ef-418e-bb66-12ed71cf3038
 
         @steps:
         1.  Register a host via rhsm using activation-key
@@ -50,7 +67,9 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: Hosts registered via activation key appears under 'All hosts'
         as well as under content-hosts
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -59,7 +78,7 @@ class HostcontenthostUnificationTestCase(UITestCase):
     def test_positive_validate_org(self):
         """Assign org to host at registration time if not already
 
-        @feature: Host/Content-Host Unification
+        @id: ef9e161a-738c-4b98-b4de-e53ff4853246
 
         @steps:
         1.  Register a host via rhsm by specifying org
@@ -68,18 +87,21 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: Registered host should be associated with organization
         specified at registration
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_provision_foreman_host(self):
-        """
+        """Test if a foreman host can be provisioned
 
-        @feature: Host/Content-host Unification
+        @id: 985b4432-4d99-43a7-a304-1b93760257dd
 
         @steps:
+
         1.  Provision a host via foreman
         2.  View host under content hosts
         3.  View host under 'All Hosts'
@@ -87,7 +109,9 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: Hosts provisioned via foreman should appear under 'All hosts'
         as well as under content-hosts.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -96,7 +120,7 @@ class HostcontenthostUnificationTestCase(UITestCase):
     def test_positive_rename_foreman_host(self):
         """Hosts renamed in foreman appears in katello under content-hosts
 
-        @feature: Host/Content-host Unification
+        @id: 24182edc-8bff-46a1-b158-bcc7a3615166
 
         @steps:
         1.  Rename a host from 'All Hosts' page
@@ -105,7 +129,9 @@ class HostcontenthostUnificationTestCase(UITestCase):
 
         @assert: Host appears in both places despite being renamed
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -114,7 +140,7 @@ class HostcontenthostUnificationTestCase(UITestCase):
     def test_positive_rename_content_host(self):
         """Hosts renamed in katello via content-hosts appear in foreman
 
-        @feature: Host/Content-host Unification
+        @id: 34a2c507-b992-46fa-81d9-e4b31ffd9706
 
         @steps:
         1.  Rename a host from 'Content-hosts' page
@@ -123,7 +149,9 @@ class HostcontenthostUnificationTestCase(UITestCase):
 
         @assert: Host appears in both places despite being renamed
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -132,7 +160,7 @@ class HostcontenthostUnificationTestCase(UITestCase):
     def test_positive_delete_from_allhosts(self):
         """Delete a host from 'All hosts'
 
-        @feature: Host/Content-host Unification
+        @id: 896c1a7e-9292-45f2-a2b7-3d2560ae4a2d
 
         @steps:
         1.  Delete a host from 'All hosts' page
@@ -142,7 +170,9 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: Host should be removed from 'All hosts' as well as
         content-hosts
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -151,7 +181,7 @@ class HostcontenthostUnificationTestCase(UITestCase):
     def test_positive_unregister_content_host(self):
         """Unregister a host from content-hosts page
 
-        @feature: Host/Content-host Unification
+        @id: a7d8a081-b0f2-4944-a8dc-5527cb6ab914
 
         @steps:
         1.  Un-register a host from content-host page
@@ -161,7 +191,9 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: Hosts un-registered from content-host should appear in both
         sides of UI
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -170,7 +202,7 @@ class HostcontenthostUnificationTestCase(UITestCase):
     def test_positive_re_register_host(self):
         """Re-register a host which was un-registered earlier from content-host
 
-        @feature: Host/Content-host Unification
+        @id: 898695dc-36ff-45b8-85be-6734e6a232d6
 
         @steps:
         1.  Re-register a host which was unregistered before
@@ -180,7 +212,9 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: A single entry of host should appear at both places on
         re-registering
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -189,7 +223,7 @@ class HostcontenthostUnificationTestCase(UITestCase):
     def test_positive_add_subs_to_unregistered_host(self):
         """Perform a subscription action on a host which is not registered
 
-        @feature: Host/Content-host Unification
+        @id: 83ebd98e-309d-4209-bf01-0547334af5af
 
         @steps:
         1.  Provision a host via foreman which is not registered via rhsm
@@ -198,7 +232,9 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: User get a warning:
         This Host is not currently registered with subscription-manager.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -207,7 +243,7 @@ class HostcontenthostUnificationTestCase(UITestCase):
     def test_positive_add_contents_to_unregistered_host(self):
         """Perform a content action like on a host which is not registered
 
-        @feature: Host/Content-host Unification
+        @id: 67396c26-67fa-4cee-9937-65c2b9befabc
 
         @steps:
         1.  Provision a host via foreman which is not registered via rhsm
@@ -216,5 +252,7 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: User get a warning:
         This Host is not currently registered with subscription-manager.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """

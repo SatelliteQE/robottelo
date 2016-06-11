@@ -1,4 +1,19 @@
-"""Test class for ISO downloads UI"""
+"""Test class for ISO downloads UI
+
+@Requirement: Isodownload
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from robottelo.decorators import run_only_on, stubbed, tier1
 from robottelo.test import UITestCase
 
@@ -12,7 +27,7 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_download(self):
         """Downloading ISO from export
 
-        @Feature: ISO Downloads
+        @id: 47f20df7-f6f3-422b-b57b-3a5ef9cf62ad
 
         @Steps:
 
@@ -22,7 +37,7 @@ class ISODownloadTestCase(UITestCase):
         @Assert: iso file is properly downloaded on your satellite 6
         system
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -32,7 +47,7 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_upload(self):
         """Uploadng the iso successfully to the sat6 system
 
-        @Feature: ISO Downloads
+        @id: daf87a68-7c61-46f1-b4cc-021476080b6b
 
         @Steps:
 
@@ -41,7 +56,7 @@ class ISODownloadTestCase(UITestCase):
 
         @Assert: uploading iso to satellite6 is successful
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -51,7 +66,7 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_mount(self):
         """Mounting iso to directory accessible to satellite6 works
 
-        @Feature: ISO Downloads
+        @id: 44d3c8fa-c01f-438c-b83e-8f6894befbbf
 
         @Steps:
 
@@ -61,7 +76,7 @@ class ISODownloadTestCase(UITestCase):
 
         @Assert: iso is mounted to sat6 local directory
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -71,7 +86,7 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_validate_cdn_url(self):
         """Validate that cdn url to file path works
 
-        @Feature: ISO Downloads
+        @id: 00157f61-1557-48a7-b7c9-6dac726eff94
 
         @Steps:
 
@@ -80,7 +95,7 @@ class ISODownloadTestCase(UITestCase):
 
         @Assert: cdn url path is validated
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -90,7 +105,7 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_check_message(self):
         """Check if proper message is displayed after successful upload
 
-        @Feature: ISO Downloads
+        @id: 5ed31a26-b902-4352-900f-bb38eac95511
 
         @Steps:
 
@@ -100,7 +115,7 @@ class ISODownloadTestCase(UITestCase):
 
         @Assert: Asserting the message after successful upload
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -110,7 +125,7 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_enable_repo(self):
         """Enable the repositories
 
-        @Feature: ISO Downloads
+        @id: e33e2796-0554-419f-b5a1-3e2c8e23e950
 
         @Steps:
 
@@ -122,7 +137,7 @@ class ISODownloadTestCase(UITestCase):
 
         @Assert: Redhat repositories are enabled
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -132,7 +147,7 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_validate_checkboxes(self):
         """Check if enabling the checkbox works
 
-        @Feature: ISO Downloads
+        @id: 10b19405-f82e-4f95-869d-28d91cac1e6f
 
         @Steps:
 
@@ -145,7 +160,7 @@ class ISODownloadTestCase(UITestCase):
 
         @Assert: Checkbox functionality works
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -155,7 +170,7 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_sync_repos(self):
         """Sync repos to local iso's
 
-        @Feature: ISO Downloads
+        @id: 96266438-4a52-4222-b573-96bd7cde1700
 
         @Steps:
 
@@ -167,7 +182,7 @@ class ISODownloadTestCase(UITestCase):
 
         @Assert: Repos are synced after upload
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -177,7 +192,7 @@ class ISODownloadTestCase(UITestCase):
     def test_positive_disable_repo(self):
         """Disabling the repo works
 
-        @Feature: ISO Downloads
+        @id: 075700a7-fda0-41db-b9b7-3d6b29f63784
 
         @Steps:
 
@@ -190,6 +205,6 @@ class ISODownloadTestCase(UITestCase):
 
         @Assert: Assert disabling the repo
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """

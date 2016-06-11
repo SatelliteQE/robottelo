@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Domain UI"""
+"""Test class for Domain UI
+
+@Requirement: Domain
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from robottelo.constants import DOMAIN
 from robottelo.datafactory import (
@@ -58,7 +73,7 @@ class DomainTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create a new domain
 
-        @Feature: Domain - Positive Create domain
+        @id: 142f90e3-a2a3-4f99-8f9b-11189f230bc5
 
         @Assert: Domain is created
         """
@@ -76,7 +91,7 @@ class DomainTestCase(UITestCase):
     def test_positive_create_with_long_name(self):
         """Create a new domain
 
-        @Feature: Domain - Positive Create domain with 255 chars
+        @id: 0b856ad7-97a6-4632-8b84-1d8ee45bedc8
 
         @Assert: Domain is created
         """
@@ -94,7 +109,7 @@ class DomainTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete a domain
 
-        @Feature: Domain - Delete
+        @id: 07c1cc34-4569-4f04-9c4a-2842821a6977
 
         @Assert: Domain is deleted
         """
@@ -108,7 +123,7 @@ class DomainTestCase(UITestCase):
     def test_positive_update(self):
         """Update a domain with name and description
 
-        @Feature: Domain - Update
+        @id: 25ff4a1d-3ca1-4153-be45-4fe1e63f3f16
 
         @Assert: Domain is updated
         """
@@ -133,7 +148,7 @@ class DomainTestCase(UITestCase):
         """Try to create domain and use whitespace, blank, tab symbol or
         too long string of different types as its name value
 
-        @Feature: Domain - Negative Create
+        @id: 5a8ba1a8-2da8-48e1-8b2a-96d91161bf94
 
         @Assert: Domain is not created
         """
@@ -150,9 +165,11 @@ class DomainTestCase(UITestCase):
     def test_positive_set_parameter(self):
         """Set parameter name and value for domain
 
-        @Feature: Domain - Misc
+        @id: a05615de-c9e5-4784-995c-b2fe2a1dfd3e
 
         @Assert: Domain is updated
+
+        @CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):
@@ -174,9 +191,11 @@ class DomainTestCase(UITestCase):
     def test_positive_set_parameter_long(self):
         """Set a parameter in a domain with 255 chars in name and value.
 
-        @Feature: Domain - Misc.
+        @id: b346ae66-1720-46af-b0da-460c52ce9476
 
         @Assert: Domain parameter is created.
+
+        @CaseLevel: Integration
         """
         name = gen_string('alpha', 4)
         domain_name = description = DOMAIN % name
@@ -197,9 +216,11 @@ class DomainTestCase(UITestCase):
     def test_positive_set_parameter_blank(self):
         """Set a parameter in a domain with blank value.
 
-        @Feature: Domain - Misc.
+        @id: b5a67709-57ad-4043-8e72-190ec31b8217
 
         @Assert: Domain parameter is created with blank value.
+
+        @CaseLevel: Integration
         """
         name = gen_string('alpha', 4)
         domain_name = description = DOMAIN % name
@@ -220,9 +241,11 @@ class DomainTestCase(UITestCase):
     def test_negative_set_parameter(self):
         """Set a parameter in a domain with 256 chars in name and value.
 
-        @Feature: Domain - Misc.
+        @id: 1c647d66-6a3f-4d88-8e6b-60f2fc7fd603
 
         @Assert: Domain parameter is not updated.
+
+        @CaseLevel: Integration
         """
         name = gen_string('alpha', 4)
         domain_name = description = DOMAIN % name
@@ -246,11 +269,13 @@ class DomainTestCase(UITestCase):
     def test_negative_set_parameter_same(self):
         """Again set the same parameter for domain with name and value.
 
-        @Feature: Domain - Misc.
+        @id: 6266f12e-cf94-4564-ba26-b467ced2737f
 
         @Assert: Domain parameter is not updated.
 
         @BZ: 1123360
+
+        @CaseLevel: Integration
         """
         name = gen_string('alpha', 4)
         domain_name = description = DOMAIN % name
@@ -275,9 +300,11 @@ class DomainTestCase(UITestCase):
     def test_positive_remove_parameter(self):
         """Remove a selected domain parameter
 
-        @Feature: Domain - Misc
+        @id: 8f7f8501-cf39-418f-a412-1a4b53698bc3
 
         @Assert: Domain parameter is removed
+
+        @CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for name in generate_strings_list(length=4):

@@ -1,4 +1,19 @@
-"""Unit tests for the ``repositories`` paths."""
+"""Unit tests for the ``repositories`` paths.
+
+@Requirement: Repository
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
@@ -53,9 +68,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create a repository with valid name.
 
-        @Assert: A repository is created with the given name.
+        @id: 159f7296-55d2-4360-948f-c24e7d75b962
 
-        @Feature: Repository
+        @Assert: A repository is created with the given name.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -68,9 +83,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_with_label(self):
         """Create a repository providing label which is different from its name
 
-        @Assert: A repository is created with expected label.
+        @id: 3be1b3fa-0e17-416f-97f0-858709e6b1da
 
-        @Feature: Repository
+        @Assert: A repository is created with expected label.
         """
         for label in valid_labels_list():
             with self.subTest(label):
@@ -84,9 +99,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_yum(self):
         """Create yum repository.
 
-        @Assert: A repository is created and has yum type.
+        @id: 7bac7f45-0fb3-4443-bb3b-cee72248ca5d
 
-        @Feature: Repository
+        @Assert: A repository is created and has yum type.
         """
         repo = entities.Repository(
             product=self.product,
@@ -101,9 +116,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_puppet(self):
         """Create puppet repository.
 
-        @Assert: A repository is created and has puppet type.
+        @id: daa10ded-6de3-44b3-9707-9f0ac983d2ea
 
-        @Feature: Repository
+        @Assert: A repository is created and has puppet type.
         """
         repo = entities.Repository(
             product=self.product,
@@ -117,9 +132,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_with_auth_yum_repo(self):
         """Create yum repository with basic HTTP authentication
 
-        @Assert: yum repository is created
+        @id: 1b17fe37-cdbf-4a79-9b0d-6813ea502754
 
-        @Feature: HTTP Authentication Repository
+        @Assert: yum repository is created
         """
         url = FAKE_5_YUM_REPO
         for creds in valid_http_credentials(url_encoded=True):
@@ -138,9 +153,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_with_auth_puppet_repo(self):
         """Create Puppet repository with basic HTTP authentication
 
-        @Assert: Puppet repository is created
+        @id: af9e4f0f-d128-43d2-a680-0a62c7dab266
 
-        @Feature: HTTP Authentication Repository
+        @Assert: Puppet repository is created
         """
         url = FAKE_7_PUPPET_REPO
         for creds in valid_http_credentials(url_encoded=True):
@@ -159,9 +174,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_checksum(self):
         """Create a repository with valid checksum type.
 
-        @Assert: A repository is created and has expected checksum type.
+        @id: c3678878-758a-4501-a038-a59503fee453
 
-        @Feature: Repository
+        @Assert: A repository is created and has expected checksum type.
         """
         for checksum_type in 'sha1', 'sha256':
             with self.subTest(checksum_type):
@@ -174,10 +189,10 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_unprotected(self):
         """Create a repository with valid unprotected flag values.
 
+        @id: 38f78733-6a72-4bf5-912a-cfc51658f80c
+
         @Assert: A repository is created and has expected unprotected flag
         state.
-
-        @Feature: Repository
         """
         for unprotected in True, False:
             repo = entities.Repository(
@@ -189,9 +204,11 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_with_gpg(self):
         """Create a repository and provide a GPG key ID.
 
+        @id: 023cf84b-74f3-4e63-a9d7-10afee6c1990
+
         @Assert: A repository is created with the given GPG key ID.
 
-        @Feature: Repository
+        @CaseLevel: Integration
         """
         gpg_key = entities.GPGKey(
             content=read_data_file(VALID_GPG_KEY_FILE),
@@ -209,10 +226,12 @@ class RepositoryTestCase(APITestCase):
     def test_positive_create_same_name_different_orgs(self):
         """Create two repos with the same name in two different organizations.
 
+        @id: bd1bd7e3-e393-44c8-a6d0-42edade40f60
+
         @Assert: The two repositories are successfully created and have given
         name.
 
-        @Feature: Repository
+        @CaseLevel: Integration
         """
         repo1 = entities.Repository(product=self.product).create()
         repo2 = entities.Repository(name=repo1.name).create()
@@ -223,9 +242,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_create_name(self):
         """Attempt to create repository with invalid names only.
 
-        @Assert: A repository is not created and error is raised.
+        @id: 24947c92-3415-43df-add6-d6eb38afd8a3
 
-        @Feature: Repository
+        @Assert: A repository is not created and error is raised.
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -238,9 +257,9 @@ class RepositoryTestCase(APITestCase):
         """Attempt to create a repository providing a name of already existent
         entity
 
-        @Assert: Second repository is not created
+        @id: 0493dfc4-0043-4682-b339-ce61da7d48ae
 
-        @Feature: Repository
+        @Assert: Second repository is not created
         """
         name = gen_string('alphanumeric')
         entities.Repository(product=self.product, name=name).create()
@@ -252,9 +271,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_create_label(self):
         """Attempt to create repository with invalid label.
 
-        @Assert: A repository is not created and error is raised.
+        @id: f646ae84-2660-41bd-9883-331285fa1c9a
 
-        @Feature: Repository
+        @Assert: A repository is not created and error is raised.
         """
         with self.assertRaises(HTTPError):
             entities.Repository(label=gen_string('utf8')).create()
@@ -264,9 +283,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_create_url(self):
         """Attempt to create repository with invalid url.
 
-        @Assert: A repository is not created and error is raised.
+        @id: 0bb9fc3f-d442-4437-b5d8-83024bc7ceab
 
-        @Feature: Repository
+        @Assert: A repository is not created and error is raised.
         """
         for url in invalid_names_list():
             with self.subTest(url):
@@ -278,9 +297,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_create_with_auth_url_with_special_characters(self):
         """Verify that repository URL cannot contain unquoted special characters
 
-        @Assert: A repository is not created and error is raised.
+        @id: 2ffaa412-e5e5-4bec-afaa-9ea54315df49
 
-        @Feature: HTTP Authentication Repository
+        @Assert: A repository is not created and error is raised.
         """
         # get a list of valid credentials without quoting them
         for cred in [creds for creds in valid_http_credentials()
@@ -295,9 +314,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_create_with_auth_url_too_long(self):
         """Verify that repository URL length is limited
 
-        @Assert: A repository is not created and error is raised.
+        @id: 5aad4e9f-f7e1-497c-8e1f-55e07e38ee80
 
-        @Feature: HTTP Authentication Repository
+        @Assert: A repository is not created and error is raised.
         """
         for cred in invalid_http_credentials():
             with self.subTest(cred):
@@ -310,9 +329,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_create_checksum(self):
         """Attempt to create repository with invalid checksum type.
 
-        @Assert: A repository is not created and error is raised.
+        @id: c49a3c49-110d-4b74-ae14-5c9494a4541c
 
-        @Feature: Repository
+        @Assert: A repository is not created and error is raised.
         """
         with self.assertRaises(HTTPError):
             entities.Repository(checksum_type=gen_string('alpha')).create()
@@ -322,9 +341,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update repository name to another valid name.
 
-        @Assert: The repository name can be updated.
+        @id: 1b428129-7cf9-449b-9e3b-74360c5f9eca
 
-        @Feature: Repository
+        @Assert: The repository name can be updated.
         """
         repo = entities.Repository(product=self.product).create()
         for new_name in valid_data_list():
@@ -338,9 +357,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_update_checksum(self):
         """Update repository checksum type to another valid one.
 
-        @Assert: The repository checksum type can be updated.
+        @id: 205e6e59-33c6-4a58-9245-1cac3a4f550a
 
-        @Feature: Repository
+        @Assert: The repository checksum type can be updated.
         """
         repo = entities.Repository(
             product=self.product, checksum_type='sha1').create()
@@ -353,9 +372,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_update_url(self):
         """Update repository url to another valid one.
 
-        @Assert: The repository url can be updated.
+        @id: 8fbc11f0-a5c5-498e-a314-87958dcd7832
 
-        @Feature: Repository
+        @Assert: The repository url can be updated.
         """
         repo = entities.Repository(product=self.product).create()
         repo.url = FAKE_2_YUM_REPO
@@ -367,9 +386,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_update_unprotected(self):
         """Update repository unprotected flag to another valid one.
 
-        @Assert: The repository unprotected flag can be updated.
+        @id: c55d169a-8f11-4bf8-9913-b3d39fee75f0
 
-        @Feature: Repository
+        @Assert: The repository unprotected flag can be updated.
         """
         repo = entities.Repository(
             product=self.product, unprotected=False).create()
@@ -382,9 +401,11 @@ class RepositoryTestCase(APITestCase):
     def test_positive_update_gpg(self):
         """Create a repository and update its GPGKey
 
+        @id: 0e9319dc-c922-4ecf-9f83-d221cfdf54c2
+
         @Assert: The updated repository points to a new GPG key.
 
-        @Feature: Repository
+        @CaseLevel: Integration
         """
         # Create a repo and make it point to a GPG key.
         gpg_key_1 = entities.GPGKey(
@@ -410,9 +431,11 @@ class RepositoryTestCase(APITestCase):
     def test_positive_update_contents(self):
         """Create a repository and upload RPM contents.
 
+        @id: 8faa64f9-b620-4c0a-8c80-801e8e6436f1
+
         @Assert: The repository's contents include one RPM.
 
-        @Feature: Repository
+        @CaseLevel: Integration
         """
         # Create a repository and upload RPM content.
         repo = entities.Repository(product=self.product).create()
@@ -426,9 +449,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_update_name(self):
         """Attempt to update repository name to invalid one
 
-        @Assert: Repository is not updated
+        @id: 6f2f41a4-d871-4b91-87b1-a5a401c4aa69
 
-        @Feature: Repository
+        @Assert: Repository is not updated
         """
         repo = entities.Repository(product=self.product).create()
         for new_name in invalid_values_list():
@@ -443,9 +466,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_update_label(self):
         """Attempt to update repository label to another one.
 
-        @Assert: Repository is not updated and error is raised
+        @id: 828d85df-3c25-4a69-b6a2-401c6b82e4f3
 
-        @Feature: Repository
+        @Assert: Repository is not updated and error is raised
         """
         repo = entities.Repository(product=self.product).create()
         repo.label = gen_string('alpha')
@@ -458,9 +481,9 @@ class RepositoryTestCase(APITestCase):
         """Verify that repository URL credentials cannot be updated to contain
         the forbidden characters
 
-        @Assert: Repository url not updated
+        @id: 47530b1c-e964-402a-a633-c81583fb5b98
 
-        @Feature: HTTP Authentication Repository
+        @Assert: Repository url not updated
         """
         new_repo = entities.Repository(product=self.product).create()
         # get auth repos with credentials containing unquoted special chars
@@ -481,9 +504,9 @@ class RepositoryTestCase(APITestCase):
     def test_negative_update_auth_url_too_long(self):
         """Update the original url for a repository to value which is too long
 
-        @Assert: Repository url not updated
+        @id: cc00fbf4-d284-4404-88d9-ea0c0f03abe1
 
-        @Feature: HTTP Authentication Repository
+        @Assert: Repository url not updated
         """
         new_repo = entities.Repository(product=self.product).create()
         # get auth repos with credentials containing unquoted special chars
@@ -503,9 +526,11 @@ class RepositoryTestCase(APITestCase):
     def test_positive_synchronize(self):
         """Create a repo and sync it.
 
+        @id: 03beb469-570d-4109-b447-9c4c0b849266
+
         @Assert: The repo has at least one RPM.
 
-        @Feature: Repository
+        @CaseLevel: Integration
         """
         repo = entities.Repository(product=self.product).create()
         repo.sync()
@@ -517,9 +542,11 @@ class RepositoryTestCase(APITestCase):
     def test_positive_synchronize_auth_yum_repo(self):
         """Check if secured repository can be created and synced
 
+        @id: bc44881c-e13f-45a9-90c2-5b18c7b25454
+
         @Assert: Repository is created and synced
 
-        @Feature: HTTP Authentication Repository
+        @CaseLevel: Integration
         """
         url = FAKE_5_YUM_REPO
         for creds in [cred for cred in valid_http_credentials(url_encoded=True)
@@ -544,9 +571,11 @@ class RepositoryTestCase(APITestCase):
     def test_negative_synchronize_auth_yum_repo(self):
         """Check if secured repo fails to synchronize with invalid credentials
 
+        @id: 88361168-69b5-4239-819a-889e316e28dc
+
         @Assert: Repository is created but synchronization fails
 
-        @Feature: HTTP Authentication Repository
+        @CaseLevel: Integration
         """
         url = FAKE_5_YUM_REPO
         for creds in [cred for cred in valid_http_credentials(url_encoded=True)
@@ -570,9 +599,11 @@ class RepositoryTestCase(APITestCase):
     def test_positive_synchronize_auth_puppet_repo(self):
         """Check if secured puppet repository can be created and synced
 
+        @id: a1e25d36-baae-46cb-aa3b-5cb9fca4f059
+
         @Assert: Repository is created and synced
 
-        @Feature: HTTP Authentication Repository
+        @CaseLevel: Integration
         """
         url = FAKE_7_PUPPET_REPO
         for creds in [cred for cred in valid_http_credentials(url_encoded=True)
@@ -597,9 +628,9 @@ class RepositoryTestCase(APITestCase):
     def test_positive_delete(self):
         """Create a repository with different names and then delete it.
 
-        @Assert: The repository deleted successfully.
+        @id: 29c2571a-b7fb-4ec7-b433-a1840758bcb0
 
-        @Feature: Repository
+        @Assert: The repository deleted successfully.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -620,9 +651,11 @@ class RepositorySyncTestCase(APITestCase):
     def test_positive_sync_rh(self):
         """Sync RedHat Repository.
 
-        @Feature: Repositories
+        @id: d69c44cd-753c-4a75-9fd5-a8ed963b5e04
 
         @Assert: Synced repo should fetch the data successfully.
+
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         with manifests.clone() as manifest:
@@ -652,9 +685,9 @@ class DockerRepositoryTestCase(APITestCase):
     def test_positive_create(self):
         """Create a Docker-type repository
 
-        @Assert: A repository is created with a Docker repository.
+        @id: 2ce5b52d-8470-4c33-aeeb-9aee1af1cd74
 
-        @Feature: Repository
+        @Assert: A repository is created with a Docker repository.
         """
         product = entities.Product(organization=self.org).create()
         for name in valid_data_list():
@@ -676,10 +709,12 @@ class DockerRepositoryTestCase(APITestCase):
     def test_positive_synchronize(self):
         """Create and sync a Docker-type repository
 
+        @id: 27653663-e5a7-4700-a3c1-f6eab6468adf
+
         @Assert: A repository is created with a Docker repository and it is
         synchronized.
 
-        @Feature: Repository
+        @CaseLevel: Integration
         """
         product = entities.Product(organization=self.org).create()
         repo = entities.Repository(
@@ -698,9 +733,9 @@ class DockerRepositoryTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update a repository's name.
 
-        @Assert: The repository's name is updated.
+        @id: 6dff0c90-170f-40b9-9347-8ec97d89f2fd
 
-        @Feature: Repository
+        @Assert: The repository's name is updated.
         """
         repository = entities.Repository(
             content_type='docker'

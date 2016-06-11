@@ -1,4 +1,19 @@
-"""Test class for Compute Profile UI"""
+"""Test class for Compute Profile UI
+
+@Requirement: Computeprofile
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.datafactory import (
@@ -20,7 +35,7 @@ class ComputeProfileTestCase(UITestCase):
     def test_positive_create(self):
         """Create new Compute Profile using different names
 
-        @Feature: Compute Profile - Positive Create
+        @id: 138a3e6f-7eb5-4204-b48d-edc6ce363576
 
         @Assert: Compute Profile is created
         """
@@ -34,7 +49,7 @@ class ComputeProfileTestCase(UITestCase):
     def test_negative_create(self):
         """Attempt to create Compute Profile using invalid names only
 
-        @Feature: Compute Profile - Negative Create
+        @id: 6da73996-c235-45ee-a11e-5b4f0ae75d93
 
         @Assert: Compute Profile is not created
         """
@@ -49,7 +64,7 @@ class ComputeProfileTestCase(UITestCase):
     def test_positive_update(self):
         """Update selected Compute Profile entity using proper names
 
-        @Feature: Compute Profile - Positive Update
+        @id: b6dac9a4-8c5d-44d4-91e4-be2813e3ea50
 
         @Assert: Compute Profile is updated.
         """
@@ -67,7 +82,7 @@ class ComputeProfileTestCase(UITestCase):
     def test_negative_update(self):
         """Attempt to update Compute Profile entity using invalid names only
 
-        @Feature: Compute Profile - Negative Update
+        @id: cf7d46c2-6edc-43be-b5d4-ba92f10b921b
 
         @Assert: Compute Profile is not updated.
         """
@@ -85,7 +100,7 @@ class ComputeProfileTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete Compute Profile entity
 
-        @Feature: Compute Profile - Positive Delete
+        @id: 9029b8ec-44c3-4f41-9ea0-0c13c2add76c
 
         @Assert: Compute Profile is deleted successfully.
         """

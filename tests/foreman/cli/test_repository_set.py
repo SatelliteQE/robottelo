@@ -1,4 +1,19 @@
-"""Tests for cli repository set"""
+"""Tests for cli repository set
+
+@Requirement: Repository set
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from robottelo.cli.factory import make_org
 from robottelo.cli.product import Product
 from robottelo.cli.repository_set import RepositorySet
@@ -18,7 +33,7 @@ class RepositorySetTestCase(CLITestCase):
     def test_positive_list_available_repositories(self):
         """List available repositories for repository-set
 
-        @Feature: Repository-set
+        @id: 987d6b08-acb0-4264-a459-9cef0d2c6f3f
 
         @Assert: List of available repositories is displayed, with
         valid amount of enabled repositories
@@ -130,7 +145,7 @@ class RepositorySetTestCase(CLITestCase):
     def test_positive_enable_by_name(self):
         """Enable repo from reposet by names of reposet, org and product
 
-        @Feature: Repository-set
+        @id: a78537bd-b88d-4f00-8901-e7944e5de729
 
         @Assert: Repository was enabled
         """
@@ -166,7 +181,7 @@ class RepositorySetTestCase(CLITestCase):
         """Enable repo from reposet by org label, reposet and product
         names
 
-        @Feature: Repository-set
+        @id: 5230c1cd-fed7-40ac-8445-bac4f9c5ee68
 
         @Assert: Repository was enabled
         """
@@ -201,7 +216,7 @@ class RepositorySetTestCase(CLITestCase):
     def test_positive_enable_by_id(self):
         """Enable repo from reposet by IDs of reposet, org and product
 
-        @Feature: Repository-set
+        @id: f7c88534-1d45-45d9-9b87-c50c4e268e8d
 
         @Assert: Repository was enabled
         """
@@ -246,7 +261,7 @@ class RepositorySetTestCase(CLITestCase):
         """Disable repo from reposet by names of reposet, org and
         product
 
-        @Feature: Repository-set
+        @id: 1690a701-ae41-4724-bbc6-b0adba5a5319
 
         @Assert: Repository was disabled
         """
@@ -289,7 +304,7 @@ class RepositorySetTestCase(CLITestCase):
         """Disable repo from reposet by org label, reposet and product
         names
 
-        @Feature: Repository-set
+        @id: a87a5df6-f8ab-469e-94e5-ca79378f8dbe
 
         @Assert: Repository was disabled
         """
@@ -331,7 +346,7 @@ class RepositorySetTestCase(CLITestCase):
     def test_positive_disable_by_id(self):
         """Disable repo from reposet by IDs of reposet, org and product
 
-        @Feature: Repository-set
+        @id: 0d6102ba-3fb9-4eb8-972e-d537e252a8e6
 
         @Assert: Repository was disabled
         """

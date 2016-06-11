@@ -1,4 +1,19 @@
-"""Unit tests for the ``gpgkeys`` paths."""
+"""Unit tests for the ``gpgkeys`` paths.
+
+@Requirement: Gpgkey
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from nailgun import entities
 from requests import HTTPError
@@ -24,7 +39,7 @@ class GPGKeyTestCase(APITestCase):
     def test_positive_search_in_org(self):
         """Search for a GPG key and specify just ``organization_id``.
 
-        @Feature: GPGKey
+        @id: ff5e047c-404b-4379-8d28-3ad8cb39b6a9
 
         @Steps:
 
@@ -46,9 +61,9 @@ class GPGKeyTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create a GPG key with valid name.
 
-        @Assert: A GPG key is created with the given name.
+        @id: 741d969b-28ef-481f-bcf7-ed4cd920b030
 
-        @Feature: GPGKey
+        @Assert: A GPG key is created with the given name.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -61,9 +76,9 @@ class GPGKeyTestCase(APITestCase):
     def test_positive_create_with_content(self):
         """Create a GPG key with valid name and valid gpg key text.
 
-        @Assert: A GPG key is created with the expected content.
+        @id: cfa6690e-fed7-49cf-94f9-fd2deed941c0
 
-        @Feature: GPGKey
+        @Assert: A GPG key is created with the expected content.
         """
         gpg_key = entities.GPGKey(
             organization=self.org, content=self.key_content).create()
@@ -74,9 +89,9 @@ class GPGKeyTestCase(APITestCase):
     def test_negative_create_name(self):
         """Attempt to create GPG key with invalid names only.
 
-        @Assert: A GPG key is not created and error is raised.
+        @id: 904a3ed0-7d50-495e-a700-b4f1ae913599
 
-        @Feature: GPGKey
+        @Assert: A GPG key is not created and error is raised.
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -89,9 +104,9 @@ class GPGKeyTestCase(APITestCase):
         """Attempt to create a GPG key providing a name of already existent
         entity
 
-        @Assert: A GPG key is not created and error is raised.
+        @id: 78299f13-5977-4409-9bc7-844e54349926
 
-        @Feature: GPGKey
+        @Assert: A GPG key is not created and error is raised.
         """
         name = gen_string('alphanumeric')
         entities.GPGKey(organization=self.org, name=name).create()
@@ -103,9 +118,9 @@ class GPGKeyTestCase(APITestCase):
     def test_negative_create_with_content(self):
         """Attempt to create GPG key with empty content.
 
-        @Assert: A GPG key is not created and error is raised.
+        @id: fc79c840-6bcb-4d97-9145-c0008d5b028d
 
-        @Feature: GPGKey
+        @Assert: A GPG key is not created and error is raised.
         """
         with self.assertRaises(HTTPError):
             entities.GPGKey(content='').create()
@@ -115,9 +130,9 @@ class GPGKeyTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update GPG key name to another valid name.
 
-        @Assert: The GPG key name can be updated.
+        @id: 9868025d-5346-42c9-b850-916ce37a9541
 
-        @Feature: GPGKey
+        @Assert: The GPG key name can be updated.
         """
         gpg_key = entities.GPGKey(organization=self.org).create()
         for new_name in valid_data_list():
@@ -131,9 +146,9 @@ class GPGKeyTestCase(APITestCase):
     def test_positive_update_content(self):
         """Update GPG key content text to another valid one.
 
-        @Assert: The GPG key content text can be updated.
+        @id: 62fdaf55-c931-4be6-9857-68cc816046ad
 
-        @Feature: GPGKey
+        @Assert: The GPG key content text can be updated.
         """
         gpg_key = entities.GPGKey(
             organization=self.org,
@@ -148,9 +163,9 @@ class GPGKeyTestCase(APITestCase):
     def test_negative_update_name(self):
         """Attempt to update GPG key name to invalid one
 
-        @Assert: GPG key is not updated
+        @id: 1a43f610-8969-4f08-967f-fb6af0fca31b
 
-        @Feature: GPGKey
+        @Assert: GPG key is not updated
         """
         gpg_key = entities.GPGKey(organization=self.org).create()
         for new_name in invalid_values_list():
@@ -165,9 +180,9 @@ class GPGKeyTestCase(APITestCase):
         """Attempt to update GPG key name to the name of existing GPG key
         entity
 
-        @Assert: GPG key is not updated
+        @id: e294e3b2-1125-4ad9-969a-eb3f1966419e
 
-        @Feature: GPGKey
+        @Assert: GPG key is not updated
         """
         name = gen_string('alpha')
         entities.GPGKey(organization=self.org, name=name).create()
@@ -181,9 +196,9 @@ class GPGKeyTestCase(APITestCase):
     def test_negative_update_content(self):
         """Attempt to update GPG key content to invalid one
 
-        @Assert: GPG key is not updated
+        @id: fee30ef8-370a-4fdd-9e45-e7ab95dade8b
 
-        @Feature: GPGKey
+        @Assert: GPG key is not updated
         """
         gpg_key = entities.GPGKey(
             organization=self.org, content=self.key_content).create()
@@ -197,9 +212,9 @@ class GPGKeyTestCase(APITestCase):
     def test_positive_delete(self):
         """Create a GPG key with different names and then delete it.
 
-        @Assert: The GPG key deleted successfully.
+        @id: b06d211f-2827-40f7-b627-8b1fbaee2eb4
 
-        @Feature: GPGKey
+        @Assert: The GPG key deleted successfully.
         """
         gpg_key = entities.GPGKey(organization=self.org).create()
         gpg_key.delete()

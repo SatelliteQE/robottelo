@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Subnet UI"""
+"""Test class for Subnet UI
+
+@Requirement: Subnet
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_ipaddr, gen_netmask, gen_string
 from nailgun import entities
@@ -41,7 +56,7 @@ class SubnetTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create new subnet using different names
 
-        @Feature: Subnet - Positive Create
+        @id: 2318f13c-db38-4919-831f-667fc6e2e7bf
 
         @Assert: Subnet is created
         """
@@ -61,7 +76,7 @@ class SubnetTestCase(UITestCase):
     def test_positive_create_with_long_name(self):
         """Create new subnet with 255 characters in name
 
-        @Feature: Subnet - Positive Create
+        @id: b86772ad-a8ff-4c2b-93f4-4a715e4da59b
 
         @Assert: Subnet is created with 255 chars
         """
@@ -87,9 +102,11 @@ class SubnetTestCase(UITestCase):
     def test_positive_add_domain(self):
         """Create new subnet and associate domain with it
 
-        @Feature: Subnet - Positive Create
+        @id: adbc7189-b451-49df-aa10-2ae732832dfe
 
         @Assert: Subnet is created with domain associated
+
+        @CaseLevel: Integration
         """
         strategy1, value1 = common_locators['entity_deselect']
         strategy2, value2 = common_locators['entity_checkbox']
@@ -125,7 +142,7 @@ class SubnetTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create new subnet with invalid names
 
-        @Feature: Subnet - Negative Create
+        @id: d53056ad-a219-40d5-b20e-95ad343c9d38
 
         @Assert: Subnet is not created
         """
@@ -146,7 +163,7 @@ class SubnetTestCase(UITestCase):
     def test_negative_create_with_invalid_params(self):
         """Create new subnet with negative values
 
-        @Feature: Subnet - Negative Create.
+        @id: 5caa6aed-2bba-43d8-bb40-2d80b9d42b69
 
         @Assert: Subnet is not created
         """
@@ -176,7 +193,7 @@ class SubnetTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete an existing subnet
 
-        @Feature: Subnet - Positive Delete
+        @id: cb1265de-a0ed-40b7-ba25-fe92251b9001
 
         @Assert: Subnet is deleted
         """
@@ -197,7 +214,7 @@ class SubnetTestCase(UITestCase):
         """Delete subnet. Attempt to delete subnet, but cancel in the
         confirmation dialog box.
 
-        @Feature: Subnet - Negative Delete
+        @id: 9eed9020-8d13-4ba0-909a-db44ad0aecb6
 
         @Assert: Subnet is not deleted
         """
@@ -216,7 +233,7 @@ class SubnetTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update Subnet name
 
-        @Feature: Subnet - Positive Update
+        @id: ec9f11e3-27a7-45d8-91fe-f04c20b595bc
 
         @Assert: Subnet name is updated
         """
@@ -240,7 +257,7 @@ class SubnetTestCase(UITestCase):
     def test_positive_update_network(self):
         """Update Subnet network
 
-        @Feature: Subnet - Positive Update
+        @id: f79d3b1b-6101-4009-88ad-b259d4794e6c
 
         @Assert: Subnet network is updated
         """
@@ -262,7 +279,7 @@ class SubnetTestCase(UITestCase):
     def test_positive_update_mask(self):
         """Update Subnet mask
 
-        @Feature: Subnet - Positive Update
+        @id: 6cc5de06-5463-4919-abe4-92cef4506a54
 
         @Assert: Subnet mask is updated
         """

@@ -1,4 +1,19 @@
-"""Data-driven unit tests for multiple paths."""
+"""Data-driven unit tests for multiple paths.
+
+@Requirement: Multiple paths
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 import logging
 
 from nailgun import client, entities, entity_fields
@@ -142,7 +157,7 @@ class EntityTestCase(APITestCase):
     def test_positive_get_status_code(self):
         """GET an entity-dependent path.
 
-        @Feature: Test multiple API paths
+        @id: 89e4fafe-7780-4be4-acc1-90f7c02a8530
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
         """
@@ -175,7 +190,7 @@ class EntityTestCase(APITestCase):
     def test_negative_get_unauthorized(self):
         """GET an entity-dependent path without credentials.
 
-        @Feature: Test multiple API paths
+        @id: 49127c71-55a2-42d1-b418-59229e9bad00
 
         @Assert: HTTP 401 is returned
         """
@@ -198,7 +213,7 @@ class EntityTestCase(APITestCase):
     def test_positive_post_status_code(self):
         """Issue a POST request and check the returned status code.
 
-        @Feature: Test multiple API paths
+        @id: 40247cdd-ad72-4b7b-97c6-583addb1b25a
 
         @Assert: HTTP 201 is returned with an ``application/json`` content-type
         """
@@ -230,7 +245,7 @@ class EntityTestCase(APITestCase):
     def test_negative_post_unauthorized(self):
         """POST to an entity-dependent path without credentials.
 
-        @Feature: Test multiple API paths
+        @id: 2ec82336-5bcc-451a-90ed-9abcecc5a0a8
 
         @Assert: HTTP 401 is returned
         """
@@ -256,7 +271,7 @@ class EntityIdTestCase(APITestCase):
     def test_positive_get_status_code(self):
         """Create an entity and GET it.
 
-        @Feature: Test multiple API paths
+        @id: 4fb6cca6-c63f-4d4f-811e-53bf4e6b9752
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
         """
@@ -282,7 +297,7 @@ class EntityIdTestCase(APITestCase):
     def test_positive_put_status_code(self):
         """Issue a PUT request and check the returned status code.
 
-        @Feature: Test multiple API paths
+        @id: 1a2186b1-0709-4a73-8199-71114e10afce
 
         @Assert: HTTP 200 is returned with an ``application/json`` content-type
         """
@@ -321,7 +336,7 @@ class EntityIdTestCase(APITestCase):
         """Issue an HTTP DELETE request and check the returned status
         code.
 
-        @Feature: Test multiple API paths
+        @id: bacf4bf2-eb2b-4201-a21c-8d15f5b06e7a
 
         @Assert: HTTP 200, 202 or 204 is returned with an ``application/json``
         content-type.
@@ -376,7 +391,7 @@ class DoubleCheckTestCase(APITestCase):
     def test_positive_put_and_get_requests(self):
         """Update an entity, then read it back.
 
-        @Feature: Test multiple API paths
+        @id: f5d3039f-5468-4dd2-8ac9-6e948ef39866
 
         @Assert: The entity is updated with the given attributes.
         """
@@ -418,7 +433,7 @@ class DoubleCheckTestCase(APITestCase):
     def test_positive_post_and_get_requests(self):
         """Create an entity, then read it back.
 
-        @Feature: Test multiple API paths
+        @id: c658095b-2bf9-4c3e-8ddf-c1792e743a10
 
         @Assert: The entity is created with the given attributes.
         """
@@ -448,7 +463,7 @@ class DoubleCheckTestCase(APITestCase):
     def test_positive_delete_and_get_requests(self):
         """Issue an HTTP DELETE request and GET the deleted entity.
 
-        @Feature: Test multiple API paths
+        @id: 04a37ba7-c553-40e1-bc4c-ec2ebf567647
 
         @Assert: An HTTP 404 is returned when fetching the missing entity.
         """
@@ -488,7 +503,7 @@ class EntityReadTestCase(APITestCase):
         """Create an entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
-        @Feature: Test multiple API paths
+        @id: 78bddedd-bbcf-4e26-a9f7-746874f58529
 
         @Assert: The just-read entity is an instance of the correct class.
         """
@@ -511,7 +526,7 @@ class EntityReadTestCase(APITestCase):
     def test_positive_architecture_read(self):
         """Create an arch that points to an OS, and read the arch.
 
-        @Feature: Test multiple API paths
+        @id: e4c7babe-11d8-4f85-8382-5267a49046e9
 
         @Assert: The call to ``Architecture.read`` succeeds, and the response
         contains the correct operating system ID.
@@ -529,7 +544,7 @@ class EntityReadTestCase(APITestCase):
         """Create a SyncPlan and read it back using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
-        @Feature: Test multiple API paths.
+        @id: 2a5f53c7-262a-44a6-b7bf-d57fbaef3dc7
 
         @Assert: The just-read entity is an instance of the correct class.
         """
@@ -548,7 +563,7 @@ class EntityReadTestCase(APITestCase):
         """Create an OperatingSystemParameter and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
-        @Feature: Test multiple API paths
+        @id: 1de63937-5ca1-4101-b4ee-4b398c66b630
 
         @Assert: The just-read entity is an instance of the correct class.
         """
@@ -570,7 +585,7 @@ class EntityReadTestCase(APITestCase):
         """Create an Permission entity and get it using
         ``nailgun.entity_mixins.EntityReadMixin.read``.
 
-        @Feature: Test multiple API paths
+        @id: 5631a1eb-33ff-4abe-bf01-6c8d98c47a96
 
         @Assert: The just-read entity is an instance of the correct class and
         name and resource_type fields are populated
@@ -583,7 +598,7 @@ class EntityReadTestCase(APITestCase):
     def test_positive_media_read(self):
         """Create a media pointing at an OS and read the media.
 
-        @Feature: Test multiple API paths
+        @id: 67b656fe-9302-457a-b544-3addb11c85e0
 
         @Assert: The media points at the correct operating system.
         """

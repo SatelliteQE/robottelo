@@ -1,4 +1,19 @@
-"""Test for abrt report"""
+"""Test for abrt report
+
+@Requirement: Abrt
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase
 
@@ -10,7 +25,7 @@ class AbrtTestCase(CLITestCase):
     def test_positive_create_report(self):
         """a crashed program and abrt reports are send
 
-        @Feature: Abrt
+        @id: 6e6e7525-895a-4192-9e56-4a0df1ad41ff
 
         @Setup: abrt
 
@@ -22,7 +37,7 @@ class AbrtTestCase(CLITestCase):
         @Assert: A abrt report with ccpp.* extension  created under
         /var/tmp/abrt
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -30,7 +45,7 @@ class AbrtTestCase(CLITestCase):
     def test_positive_create_reports(self):
         """Counts are correct when abrt sends multiple reports
 
-        @Feature: Abrt
+        @id: 13aed05c-b72d-4a35-aa0e-5ac2029300e7
 
         @Setup: abrt
 
@@ -41,7 +56,7 @@ class AbrtTestCase(CLITestCase):
 
         @Assert: Count is updated in proper manner
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -49,7 +64,7 @@ class AbrtTestCase(CLITestCase):
     def test_positive_update_timer(self):
         """Edit the smart-proxy-abrt timer
 
-        @Feature: Abrt
+        @id: 8e62d8d4-9b1c-4eb7-9352-c001be09a4d9
 
         @Setup: abrt
 
@@ -59,7 +74,7 @@ class AbrtTestCase(CLITestCase):
 
         @Assert: the timer file is edited
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -67,7 +82,7 @@ class AbrtTestCase(CLITestCase):
     def test_positive_identify_hostname(self):
         """Identifying the hostnames
 
-        @Feature: Abrt
+        @id: d9ab279b-45cf-412e-bc0f-af31737cfa74
 
         @Setup: abrt
 
@@ -77,7 +92,7 @@ class AbrtTestCase(CLITestCase):
 
         @Assert: Assertion of hostnames is possible
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -85,7 +100,7 @@ class AbrtTestCase(CLITestCase):
     def test_positive_search_report(self):
         """Able to retrieve reports in CLI
 
-        @Feature: Abrt
+        @id: b0623309-1b76-466d-a026-496e117f2d04
 
         @Setup: abrt
 
@@ -95,6 +110,6 @@ class AbrtTestCase(CLITestCase):
 
         @Assert: Assertion of parameters
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """

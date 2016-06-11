@@ -4,6 +4,20 @@
 A full API reference for compute resources can be found here:
 http://www.katello.org/docs/api/apidoc/compute_resources.html
 
+
+@Requirement: Computeresource
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
 """
 from fauxfactory import gen_string
 from nailgun import entities
@@ -33,7 +47,7 @@ class ComputeResourceTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create compute resources with different names
 
-        @Feature: Compute Resource
+        @id: 1e545c56-2f53-44c1-a17e-38c83f8fe0c1
 
         @Assert: Compute resources are created with expected names
         """
@@ -51,7 +65,7 @@ class ComputeResourceTestCase(APITestCase):
     def test_positive_create_with_description(self):
         """Create compute resources with different descriptions
 
-        @Feature: Compute Resource
+        @id: 1fa5b35d-ee47-452b-bb5f-4a4ca321f992
 
         @Assert: Compute resources are created with expected descriptions
         """
@@ -70,7 +84,7 @@ class ComputeResourceTestCase(APITestCase):
         """Create a libvirt compute resources with different values of
         'display_type' parameter
 
-        @Feature: Compute Resource
+        @id: 76380f31-e217-4ff1-ac6b-20f41e59f133
 
         @Assert: Compute resources are created with expected display_type value
         """
@@ -89,7 +103,7 @@ class ComputeResourceTestCase(APITestCase):
         """Create compute resources with different providers. Testing only
         Libvirt and Docker as other providers require valid credentials
 
-        @Feature: Compute Resource
+        @id: f61c66c9-15f8-4b00-9e53-7ebfb09397cc
 
         @Assert: Compute resources are created with expected providers
         """
@@ -105,10 +119,12 @@ class ComputeResourceTestCase(APITestCase):
     def test_positive_create_with_locs(self):
         """Create a compute resource with multiple locations
 
-        @Feature: Compute Resource
+        @id: c6c6c6f7-50ca-4f38-8126-eb95359d7cbb
 
         @Assert: A compute resource is created with expected multiple locations
         assigned
+
+        @CaseLevel: Integration
         """
         locs = [
             entities.Location(organization=[self.org]).create()
@@ -128,10 +144,12 @@ class ComputeResourceTestCase(APITestCase):
     def test_positive_create_with_orgs(self):
         """Create a compute resource with multiple organizations
 
-        @Feature: Compute Resource
+        @id: 2f6e5019-6353-477e-a81f-2a551afc7556
 
         @Assert: A compute resource is created with expected multiple
         organizations assigned
+
+        @CaseLevel: Integration
         """
         orgs = [
             entities.Organization().create()
@@ -150,7 +168,7 @@ class ComputeResourceTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update a compute resource with different names
 
-        @Feature: Compute Resource
+        @id: 60f08418-b1a2-445e-9cd6-dbc92a33b57a
 
         @Assert: Compute resource is updated with expected names
         """
@@ -169,7 +187,7 @@ class ComputeResourceTestCase(APITestCase):
     def test_positive_update_description(self):
         """Update a compute resource with different descriptions
 
-        @Feature: Compute Resource
+        @id: aac5dc53-8709-441b-b360-28b8efd3f63f
 
         @Assert: Compute resource is updated with expected descriptions
         """
@@ -190,7 +208,7 @@ class ComputeResourceTestCase(APITestCase):
         """Update a libvirt compute resource with different values of
         'display_type' parameter
 
-        @Feature: Compute Resource
+        @id: 0cbf08ac-acc4-476a-b389-271cea2b6cda
 
         @Assert: Compute resource is updated with expected display_type value
         """
@@ -210,7 +228,7 @@ class ComputeResourceTestCase(APITestCase):
     def test_positive_update_url(self):
         """Update a compute resource's url field
 
-        @Feature: Compute Resource
+        @id: 259aa060-ed9e-4ed5-91e1-7fb0a3592879
 
         @Assert: Compute resource is updated with expected url
         """
@@ -229,9 +247,11 @@ class ComputeResourceTestCase(APITestCase):
     def test_positive_update_loc(self):
         """Update a compute resource's location
 
-        @Feature: Compute Resource
+        @id: 57e96c7c-da9e-4400-af80-c374cd6b3d4a
 
         @Assert: Compute resource is updated with expected location
+
+        @CaseLevel: Integration
         """
         compresource = entities.LibvirtComputeResource(
             location=[self.loc],
@@ -248,9 +268,11 @@ class ComputeResourceTestCase(APITestCase):
     def test_positive_update_locs(self):
         """Update a compute resource with new multiple locations
 
-        @Feature: Compute Resource
+        @id: cda9f501-2879-4cb0-a017-51ee795232f1
 
         @Assert: Compute resource is updated with expected locations
+
+        @CaseLevel: Integration
         """
         compresource = entities.LibvirtComputeResource(
             location=[self.loc],
@@ -272,9 +294,11 @@ class ComputeResourceTestCase(APITestCase):
     def test_positive_update_org(self):
         """Update a compute resource's organization
 
-        @Feature: Compute Resource
+        @id: 430b64a2-7f64-4344-a73b-1b47d8dfa6cb
 
         @Assert: Compute resource is updated with expected organization
+
+        @CaseLevel: Integration
         """
         compresource = entities.LibvirtComputeResource(
             organization=[self.org],
@@ -290,9 +314,11 @@ class ComputeResourceTestCase(APITestCase):
     def test_positive_update_orgs(self):
         """Update a compute resource with new multiple organizations
 
-        @Feature: Compute Resource
+        @id: 2c759ad5-d115-46d9-8365-712c0bb39a1d
 
         @Assert: Compute resource is updated with expected organizations
+
+        @CaseLevel: Integration
         """
         compresource = entities.LibvirtComputeResource(
             organization=[self.org],
@@ -313,7 +339,7 @@ class ComputeResourceTestCase(APITestCase):
     def test_positive_delete(self):
         """Delete a compute resource
 
-        @Feature: Compute Resource
+        @id: 0117a4f1-e2c2-44aa-8919-453166aeebbc
 
         @Assert: Compute resources is successfully deleted
         """
@@ -330,7 +356,7 @@ class ComputeResourceTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Attempt to create compute resources with invalid names
 
-        @Feature: Compute Resource
+        @id: f73bf838-3ffd-46d3-869c-81b334b47b13
 
         @Assert: Compute resources are not created
         """
@@ -348,7 +374,7 @@ class ComputeResourceTestCase(APITestCase):
     def test_negative_create_with_same_name(self):
         """Attempt to create a compute resource with already existing name
 
-        @Feature: Compute Resource
+        @id: 9376e25c-2aa8-4d99-83aa-2eec160c030e
 
         @Assert: Compute resources is not created
         """
@@ -371,7 +397,7 @@ class ComputeResourceTestCase(APITestCase):
     def test_negative_create_with_url(self):
         """Attempt to create compute resources with invalid url
 
-        @Feature: Compute Resource
+        @id: 37e9bf39-382e-4f02-af54-d3a17e285c2a
 
         @Assert: Compute resources are not created
         """
@@ -388,7 +414,7 @@ class ComputeResourceTestCase(APITestCase):
     def test_negative_update_invalid_name(self):
         """Attempt to update compute resource with invalid names
 
-        @Feature: Compute Resource
+        @id: a6554c1f-e52f-4614-9fc3-2127ced31470
 
         @Assert: Compute resource is not updated
         """
@@ -410,7 +436,7 @@ class ComputeResourceTestCase(APITestCase):
     def test_negative_update_same_name(self):
         """Attempt to update a compute resource with already existing name
 
-        @Feature: Compute Resource
+        @id: 4d7c5eb0-b8cb-414f-aa10-fe464a164ab4
 
         @Assert: Compute resources is not updated
         """
@@ -435,7 +461,7 @@ class ComputeResourceTestCase(APITestCase):
     def test_negative_update_url(self):
         """Attempt to update a compute resource with invalid url
 
-        @Feature: Compute Resource
+        @id: b5256090-2ceb-4976-b54e-60d60419fe50
 
         @Assert: Compute resources is not updated
         """

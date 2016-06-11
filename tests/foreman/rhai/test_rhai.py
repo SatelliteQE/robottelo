@@ -1,4 +1,19 @@
-"""Tests for Red Hat Access Insights"""
+"""Tests for Red Hat Access Insights
+
+@Requirement: Rhai
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: RHAI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 import time
 
@@ -61,7 +76,7 @@ class RHAITestCase(UITestCase):
     def test_positive_register_client_to_rhai(self):
         """Check client registration to redhat-access-insights service.
 
-        @Feature: RHEL client registration to rhai
+        @id: f3aefdb3-ac99-402d-afd9-e53e9ee1e8d7
 
         @Assert: Registered client should appear in the Systems sub-menu of Red
         Hat Access Insights
@@ -86,11 +101,10 @@ class RHAITestCase(UITestCase):
                        './insights_client_registration.log')
 
     def test_negative_org_not_selected(self):
-        """Verify that user attempting to access RHAI is directed to
-        select an Organization if there is no organization selected
+        """Verify that user attempting to access RHAI is directed to select an
+        Organization if there is no organization selected
 
-        @Feature: In order to use Access Insights, user must select an
-        organization
+        @id: 6ddfdb29-eeb5-41a4-8851-ad19130b112c
 
         @Assert: 'Organization Selection Required' message must be displayed if
         the user tries to view Access Insights overview without selecting an
@@ -109,10 +123,10 @@ class RHAITestCase(UITestCase):
 
     @skip_if_not_set('clients')
     def test_positive_unregister_client_from_rhai(self):
-        """Verify that 'Unregister' a system from RHAI works correctly
+        """Verify that 'Unregister' a system from RHAI works correctly then the
+        system should not be able to use the service.
 
-        @Feature: If a system is unregistered from the RHAI web interface,
-        then the system should not be able to use the service.
+        @id: 580f9704-8c6d-4f63-b027-68a6ac97af77
 
         @Assert: Once the system is unregistered from the RHAI web interface
         then the unregistered system should return `1` on running the

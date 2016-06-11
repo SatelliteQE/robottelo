@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for :class:`robottelo.cli.hostgroup.HostGroup` CLI."""
+"""Test class for :class:`robottelo.cli.hostgroup.HostGroup` CLI.
+
+@Requirement: Hostgroup
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.hostgroup import HostGroup
@@ -27,7 +42,7 @@ class HostGroupTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Successfully creates an HostGroup.
 
-        @Feature: HostGroup
+        @id: f5f2056f-d090-4e0d-8fb9-d29255a47908
 
         @Assert: HostGroup is created.
         """
@@ -40,7 +55,7 @@ class HostGroupTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Don't create an HostGroup with invalid data.
 
-        @Feature: HostGroup
+        @id: 853a6d43-129a-497b-94f0-08dc622862f8
 
         @Assert: HostGroup is not created.
         """
@@ -54,7 +69,7 @@ class HostGroupTestCase(CLITestCase):
     def test_positive_create_with_env(self):
         """Check if hostgroup with environment can be created
 
-        @Feature: Hostgroup - Positive create
+        @id: f1bfb333-90cf-4a9f-b183-cf77c1773247
 
         @Assert: Hostgroup is created and has new environment assigned
 
@@ -68,7 +83,7 @@ class HostGroupTestCase(CLITestCase):
     def test_positive_create_with_loc(self):
         """Check if hostgroup with location can be created
 
-        @Feature: Hostgroup - Positive create
+        @id: 84ae02a4-ea7e-43ce-87bd-7bbde3766b14
 
         @Assert: Hostgroup is created and has new location assigned
 
@@ -82,7 +97,7 @@ class HostGroupTestCase(CLITestCase):
     def test_positive_create_with_os(self):
         """Check if hostgroup with operating system can be created
 
-        @Feature: Hostgroup - Create
+        @id: d12c5939-1aac-44f5-8aa3-a04a824f4e83
 
         @Assert: Hostgroup is created and has operating system assigned
 
@@ -96,7 +111,7 @@ class HostGroupTestCase(CLITestCase):
     def test_positive_create_with_org(self):
         """Check if hostgroup with organization can be created
 
-        @Feature: Hostgroup - Positive create
+        @id: 780d4b93-f35a-4c5b-a645-4053aed4c37b
 
         @Assert: Hostgroup is created and has new organization assigned
 
@@ -110,7 +125,7 @@ class HostGroupTestCase(CLITestCase):
     def test_positive_create_with_puppet_ca_proxy(self):
         """Check if hostgroup with puppet CA proxy server can be created
 
-        @Feature: Hostgroup - Positive create
+        @id: f7ea1c94-8a0e-4500-98b3-0ecd63b3ce3c
 
         @Assert: Hostgroup is created and has puppet CA proxy server assigned
 
@@ -124,7 +139,7 @@ class HostGroupTestCase(CLITestCase):
     def test_positive_create_with_puppet_proxy(self):
         """Check if hostgroup with puppet proxy server can be created
 
-        @Feature: Hostgroup - Positive create
+        @id: 3a922d9f-7466-4565-b279-c1481f63a4ce
 
         @Assert: Hostgroup is created and has puppet proxy server assigned
 
@@ -140,7 +155,7 @@ class HostGroupTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Successfully update an HostGroup.
 
-        @Feature: HostGroup
+        @id: a36e3cbe-83d9-44ce-b8f7-5fab2a2cadf9
 
         @Assert: HostGroup is updated.
         """
@@ -159,7 +174,7 @@ class HostGroupTestCase(CLITestCase):
     def test_negative_update_name(self):
         """Create HostGroup then fail to update its name
 
-        @feature: HostGroup
+        @id: 42d208a4-f518-4ff2-9b7a-311adb460abd
 
         @assert: HostGroup name is not updated
         """
@@ -180,7 +195,7 @@ class HostGroupTestCase(CLITestCase):
         """Create HostGroup with valid values then delete it
         by ID
 
-        @feature: HostGroup
+        @id: fe7dedd4-d7c3-4c70-b70d-c2deff357b76
 
         @assert: HostGroup is deleted
         """
@@ -196,7 +211,7 @@ class HostGroupTestCase(CLITestCase):
     def test_negative_delete_by_id(self):
         """Create HostGroup then delete it by wrong ID
 
-        @feature: HostGroup
+        @id: 047c9f1a-4dd6-4fdc-b7ed-37cc725c68d3
 
         @assert: HostGroup is not deleted
         """

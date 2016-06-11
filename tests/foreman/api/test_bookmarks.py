@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test classes for Bookmark tests"""
+"""Test classes for Bookmark tests
+
+@Requirement: Bookmarks
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -17,7 +32,7 @@ class BookmarkTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create a bookmark
 
-        @Feature: Scoped Search Bookmark Create
+        @id: aeef0944-379a-4a27-902d-aa5969dbd441
 
         @Steps:
 
@@ -44,7 +59,7 @@ class BookmarkTestCase(APITestCase):
     def test_positive_create_with_query(self):
         """Create a bookmark
 
-        @Feature: Scoped Search Bookmark Create
+        @id: 9fb6d485-92b5-43ea-b776-012c13734100
 
         @Steps:
 
@@ -70,7 +85,7 @@ class BookmarkTestCase(APITestCase):
     def test_positive_create_public(self):
         """Create a public bookmark
 
-        @Feature: Scoped Search Bookmark Visibility
+        @id: 511b9bcf-0661-4e44-b1bc-475a1c207aa9
 
         @Steps:
 
@@ -95,7 +110,7 @@ class BookmarkTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create a bookmark with invalid name
 
-        @Feature: Scoped Search Bookmark Create
+        @id: 9a79c561-8225-43fc-8ec7-b6858e9665e2
 
         @Steps:
 
@@ -122,7 +137,7 @@ class BookmarkTestCase(APITestCase):
     def test_negative_create_empty_query(self):
         """Create a bookmark with empty query
 
-        @Feature: Scoped Search Bookmark Create
+        @id: 674d569f-6f86-43ba-b9cc-f43e05e8ab1c
 
         @Steps:
 
@@ -149,7 +164,7 @@ class BookmarkTestCase(APITestCase):
     def test_negative_create_same_name(self):
         """Create bookmarks with the same names
 
-        @Feature: Scoped Search Bookmark Create
+        @id: f78f6e97-da77-4a61-95c2-622c439d325d
 
         @Setup:
 
@@ -187,7 +202,7 @@ class BookmarkTestCase(APITestCase):
     def test_negative_create_null_public(self):
         """Create a bookmark omitting the public parameter
 
-        @Feature: Scoped Search Bookmark Create
+        @id: 0a4cb5ea-912b-445e-a874-b345e43d3eac
 
         @Steps:
 
@@ -218,7 +233,7 @@ class BookmarkTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update a bookmark
 
-        @Feature: Scoped Search Bookmark Update
+        @id: 1cde270a-26fb-4cff-bdff-89fef17a7624
 
         @Setup:
 
@@ -246,7 +261,7 @@ class BookmarkTestCase(APITestCase):
     def test_negative_update_same_name(self):
         """Update a bookmark with name already taken
 
-        @Feature: Scoped Search Bookmark Update
+        @id: 6becf121-2bea-4f7e-98f4-338bd88b8f4b
 
         @Setup:
 
@@ -279,7 +294,7 @@ class BookmarkTestCase(APITestCase):
     def test_negative_update_invalid_name(self):
         """Update a bookmark with an invalid name
 
-        @Feature: Scoped Search Bookmark Update
+        @id: 479795bb-aeed-45b3-a7e3-d3449c808087
 
         @Setup:
 
@@ -310,7 +325,7 @@ class BookmarkTestCase(APITestCase):
     def test_positive_update_query(self):
         """Update a bookmark query
 
-        @Feature: Scoped Search Bookmark Update
+        @id: 92a31de2-bebf-4396-94f5-adf59f8d66a5
 
         @Setup:
 
@@ -337,7 +352,7 @@ class BookmarkTestCase(APITestCase):
     def test_negative_update_empty_query(self):
         """Update a bookmark with an empty query
 
-        @Feature: Scoped Search Bookmark Update
+        @id: 948602d3-532a-47fe-b313-91e3fab809bf
 
         @Setup:
 
@@ -364,7 +379,7 @@ class BookmarkTestCase(APITestCase):
     def test_positive_update_public(self):
         """Update a bookmark public state to private and vice versa
 
-        @Feature: Scoped Search Bookmark Update
+        @id: 2717360d-37c4-4bb9-bce1-b1edabdf11b3
 
         @Setup:
 

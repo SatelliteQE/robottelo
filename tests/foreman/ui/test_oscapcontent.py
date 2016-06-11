@@ -1,3 +1,19 @@
+"""Tests for Oscapcontent
+
+@Requirement: Oscapcontent
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 import unittest2
 
 from fauxfactory import gen_string
@@ -26,7 +42,7 @@ class OpenScapContentTestCase(UITestCase):
     def test_positive_create(self):
         """Create OpenScap content.
 
-        @Feature: OpenScap - Positive Create.
+        @id: 6580cffa-da37-40d5-affa-cfb1ff27c545
 
         @Steps:
 
@@ -51,7 +67,7 @@ class OpenScapContentTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create OpenScap content with negative values
 
-        @Feature: OpenScap - Negative Create.
+        @id: 8ce0e8b4-396a-43cd-8cbe-fb60fcf853b0
 
         @Steps:
 
@@ -79,7 +95,7 @@ class OpenScapContentTestCase(UITestCase):
     def test_positive_default(self):
         """Check whether OpenScap content exists by default.
 
-        @Feature: OpenScap - Test Default Content.
+        @id: 0beca127-8294-4d85-bace-b9170215c0cd
 
         @Steps:
 
@@ -99,7 +115,7 @@ class OpenScapContentTestCase(UITestCase):
     def test_positive_update(self):
         """Update OpenScap content.
 
-        @Feature: OpenScap - Positive Update.
+        @id: 9870555d-0b60-41ab-a481-81d4d3f78fec
 
         @Steps:
 
@@ -108,6 +124,8 @@ class OpenScapContentTestCase(UITestCase):
         3. Update the openscap content, here the Org.
 
         @Assert: Whether creating  content for OpenScap is successful.
+
+        @CaseLevel: Integration
         """
         org = entities.Organization(name=gen_string('alpha')).create()
         content_name = gen_string('alpha')
@@ -126,7 +144,7 @@ class OpenScapContentTestCase(UITestCase):
     def test_positive_delete(self):
         """Create OpenScap content and then delete it.
 
-        @Feature: OpenScap - Delete.
+        @id: 8eade129-5666-4e90-ba3e-f0c51a3090ce
 
         @Steps:
 

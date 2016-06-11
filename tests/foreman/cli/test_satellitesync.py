@@ -1,5 +1,20 @@
 ﻿# -*- encoding: utf-8 -*-
-"""Test class for InterSatellite Sync"""
+"""Test class for InterSatellite Sync
+
+@Requirement: Satellitesync
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo import manifests, ssh
@@ -99,10 +114,12 @@ class RepositoryExportTestCase(CLITestCase):
     def test_positive_export_custom_product(self):
         """Export a repository from the custom product
 
-        @Feature: Repository - Export
+        @id: 9c855866-b9b1-4e32-b3eb-7342fdaa7116
 
         @Assert: Repository was successfully exported, rpm files are present on
         satellite machine
+
+        @CaseLevel: System
         """
         # Create custom product and repository
         product = make_product({'organization-id': self.org['id']})
@@ -142,10 +159,12 @@ class RepositoryExportTestCase(CLITestCase):
     def test_positive_export_rh_product(self):
         """Export a repository from the Red Hat product
 
-        @Feature: Repository - Export
+        @id: e17898db-ca92-4121-a723-0d4b3cf120eb
 
         @Assert: Repository was successfully exported, rpm files are present on
         satellite machine
+
+        @CaseLevel: System
         """
         # Enable RH repository
         with manifests.clone() as manifest:
@@ -212,7 +231,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_import_cv(self):
         """Export CV version contents in directory and Import them.
 
-        @feature: ISS - Export Import
+        @id: b08e9f24-f18e-43b7-9189-ad7b596ccb5b
 
         @steps:
 
@@ -227,7 +246,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         specified in settings.
         2. All The exported contents has been imported in org/satellite.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -236,7 +257,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_negative_import_cv(self):
         """Export whole CV version contents in directory and Import nothing.
 
-        @feature: ISS - Import
+        @id: bcb4f64f-a480-4be0-a4ef-3ee1f024d8d7
 
         @steps:
 
@@ -253,7 +274,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         2. The exported contents are not imported due to non availability.
         3. Error is thrown for non availability of CV contents to import.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -263,7 +286,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """Export whole CV version contents is aborted due to insufficient
         memory.
 
-        @feature: ISS - Export
+        @id: 4fa58c0c-95d2-45f5-a7fc-c5f3312a989c
 
         @steps:
 
@@ -275,7 +298,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. The export CV version contents has been aborted due to insufficient
         memory.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -284,7 +309,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_import_cv_iso(self):
         """Export CV version contents in directory as iso and Import it.
 
-        @feature: ISS - Export Import
+        @id: 5c39afd4-09d6-43c5-8d50-edc98105b7db
 
         @steps:
 
@@ -299,7 +324,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         settings.
         2. The exported ISO has been imported in org/satellite.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -308,7 +335,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_negative_import_cv_iso(self):
         """Export whole CV version as ISO in directory and Import nothing.
 
-        @feature: ISS - Import
+        @id: af9b3d6f-25c0-43a5-b8a7-d9a0df1986b4
 
         @steps:
 
@@ -323,7 +350,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         2. The exported iso is not imported due to non availability.
         3. Error is thrown for non availability of CV version ISO to import.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -333,7 +362,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """Export whole CV version to iso is aborted due to insufficient
         memory.
 
-        @feature: ISS - Export
+        @id: ef84ffbd-c7cf-4d9a-9944-3c3b06a18872
 
         @steps:
 
@@ -345,7 +374,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. The export CV version to iso has been aborted due to insufficient
         memory.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -355,7 +386,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """Export whole CV version to iso is aborted due to inadequate maximum
         iso size.
 
-        @feature: ISS - Export
+        @id: 93fe1cef-254b-484d-a628-bec56b356234
 
         @steps:
 
@@ -367,7 +398,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. The export CV version to iso has been aborted due to maximum size is
         not enough to contain the CV version contents.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -376,7 +409,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_cv_iso_max_size(self):
         """CV version exported to iso in maximum iso size.
 
-        @feature: ISS - Export
+        @id: 7ec91557-bafc-490d-b760-573a07389be5
 
         @steps:
 
@@ -387,7 +420,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         1. CV version has been exported to iso successfully.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -396,7 +431,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_import_cv_incremental(self):
         """Export and Import CV version contents incrementally.
 
-        @feature: ISS - Export Import
+        @id: 3c4dfafb-fabf-406e-bca8-7af1ab551135
 
         @steps:
 
@@ -414,7 +449,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         2. New directory of incremental export with new packages is created.
         3. On incremental import, only the new packages are imported.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -423,7 +460,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_negative_export_import_cv_incremental(self):
         """No new incremental packages exported or imported.
 
-        @feature: ISS - Export Import
+        @id: 90692d59-788c-4e18-add1-33db04204a4b
 
         @steps:
 
@@ -440,7 +477,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. An Empty packages directory created on incremental export.
         2. On incremental import, no new packages are imported.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -449,7 +488,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_exported_cv_iso_dir_structure(self):
         """Exported CV in iso format respects cdn directory structure.
 
-        @feature: ISS - Export
+        @id: cb901dde-1839-4e7d-a57b-8e41c212dc77
 
         @steps:
 
@@ -461,7 +500,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         1. Exported CV in iso should follow the cdn directory structure.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -470,7 +511,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_import_repo(self):
         """Export repo in directory and Import them.
 
-        @feature: ISS - Export Import
+        @id: 2c5f09ce-225b-4f9d-ad4b-a26fe094b0e7
 
         @steps:
 
@@ -483,7 +524,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. The repo has been exported to directory specified in settings.
         2. The exported repo has been imported in org/satellite.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -492,7 +535,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_negative_import_repo(self):
         """Export repo contents in directory and Import nothing.
 
-        @feature: ISS - Import
+        @id: 8e0bbed9-bc68-44d3-a79c-2861f323e2ff
 
         @steps:
 
@@ -507,7 +550,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         2. The exported repo are not imported due to non availability.
         3. Error is thrown for non availability of repo contents to import.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -516,7 +561,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_negative_export_repo(self):
         """Export repo is aborted due ti insufficient memory.
 
-        @feature: ISS - Export
+        @id: 4bdd1183-a3a5-41a8-8a38-34c1035b64da
 
         @steps:
 
@@ -527,7 +572,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         1. The export repo has been aborted due to insufficient memory.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -536,7 +583,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_negative_export_lazy_sync_repo(self):
         """Error is raised for lazy sync repo.
 
-        @feature: ISS - Export
+        @id: 296a7bde-d8af-4e4d-b673-a7c393f6f846
 
         @steps:
 
@@ -547,7 +594,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. An Error is raised for updating the repo download policy to
         'immediate' to be exported.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -556,7 +605,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_reimport_repo(self):
         """Packages missing from upstream are removed from downstream on reimport.
 
-        @feature: ISS - Export
+        @id: b3a71405-d8f0-4085-b728-8fc3513611c8
 
         @steps:
 
@@ -569,7 +618,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         1. Deleted packages from upstream are removed from downstream.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -578,7 +629,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_import_repo_iso(self):
         """Export repo in directory as iso and Import it.
 
-        @feature: ISS - Export Import
+        @id: 95658d9e-9f0b-466f-a412-1bebadc709c9
 
         @steps:
 
@@ -591,7 +642,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. repo has been exported to directory as ISO in specified in settings.
         2. The exported ISO has been imported in org/satellite.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -600,7 +653,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_negative_import_repo_iso(self):
         """Export repo as ISO in directory and Import nothing.
 
-        @feature: ISS - Import
+        @id: dab72a79-e508-4236-ad7e-f92bb9639b5e
 
         @steps:
 
@@ -614,7 +667,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         2. The exported iso is not imported due to non availability.
         3. Error is thrown for non availability of repo ISO to import.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -623,7 +678,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_negative_export_repo_iso(self):
         """Export repo to iso is aborted due to insufficient memory.
 
-        @feature: ISS - Export
+        @id: 028c4972-5746-463d-afd3-a1cea337ee11
 
         @steps:
 
@@ -634,7 +689,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         1. The export repo to iso has been aborted due to insufficient memory.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -643,7 +700,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_negative_export_repo_iso_max_size(self):
         """Export repo to iso is aborted due to inadequate maximum iso size.
 
-        @feature: ISS - Export
+        @id: ef2ba2ec-0ec6-4c33-9c22-e4102734eecf
 
         @steps:
 
@@ -654,7 +711,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. The export repo to iso has been aborted due to maximum size is not
         enough to contain the repo  contents.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -663,7 +722,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_repo_iso_max_size(self):
         """Repo exported to iso with maximum iso size.
 
-        @feature: ISS - Export
+        @id: 19626697-9c5e-49d1-8429-720881dfe73d
 
         @steps:
 
@@ -674,7 +733,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         1. Repo has been exported to iso successfully.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -683,7 +744,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_negative_export_repo_from_future_datetime(self):
         """Incremental export fails with future datetime.
 
-        @feature: ISS - Export
+        @id: 1e8bc352-198f-4d59-b437-1b184141fab4
 
         @steps:
 
@@ -693,7 +754,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         1. Error is raised for attempting to export from future datetime.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -702,7 +765,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_import_repo_incremental(self):
         """Export and Import repo incrementally.
 
-        @feature: ISS - Export Import
+        @id: b2537c09-4dd8-440d-be11-0728ee4be804
 
         @steps:
 
@@ -719,7 +782,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         2. New directory of incremental export with new packages is created.
         3. On incremental import, only the new packages are imported.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -728,7 +793,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_negative_export_import_repo_incremental(self):
         """No new incremental packages exported or imported.
 
-        @feature: ISS - Export Import
+        @id: b51a3718-87d0-4aa1-8bff-fa153bd72df0
 
         @steps:
 
@@ -743,7 +808,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. An Empty packages directory created on incremental export.
         2. On incremental import, no new packages are imported.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -752,7 +819,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_exported_repo_iso_dir_structure(self):
         """Exported repo in iso format respects cdn directory structure.
 
-        @feature: ISS - Export
+        @id: 6bfc28a8-6615-4927-976a-30e7a9bb6860
 
         @steps:
 
@@ -764,7 +831,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         1. Exported repo in iso should follow the cdn directory structure.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -773,7 +842,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_import_kickstart_tree(self):
         """kickstart tree is exported to specified location.
 
-        @feature: ISS - Export
+        @id: bb9e77ed-fbbb-4e43-b118-2ddcb7c6341f
 
         @steps:
 
@@ -787,7 +856,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         specified in settings.
         2. All The exported contents has been imported in org/satellite.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -796,7 +867,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_negative_import_kickstart_tree(self):
         """Export whole kickstart tree in directory and Import nothing.
 
-        @feature: ISS - Import
+        @id: 55ddf6a6-b99a-4986-bdd3-7a5384f06915
 
         @steps:
 
@@ -813,7 +884,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         2. The exported contents are not imported due to non availability.
         3. Error is thrown for non availability of kickstart tree to import.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -823,7 +896,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """Export whole kickstart tree contents is aborted due to insufficient
         memory.
 
-        @feature: ISS - Export
+        @id: 5f681f43-bac8-4196-9b3c-8b66b9c149f9
 
         @steps:
 
@@ -835,7 +908,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         1. The export kickstart tree has been aborted due to insufficient
         memory.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
 # Red Hat Repositories Export and Import
@@ -846,7 +921,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_redhat_yum_repo(self):
         """Export Red Hat YUM repo in directory.
 
-        @feature: ISS - Export
+        @id: 96bd5c72-6eb0-4b32-b75a-14c6ad556cc0
 
         @steps:
 
@@ -855,7 +930,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @assert: Whole YUM repo contents has been exported to directory
         specified in settings.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -864,7 +941,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_import_redhat_yum_repo(self):
         """Import the exported YUM repo contents.
 
-        @feature: ISS - Import
+        @id: afc447b4-ed74-4ed3-839f-3d0048e4eca3
 
         @steps:
 
@@ -874,7 +951,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         @assert: All the exported YUM repo contents are imported successfully.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -883,7 +962,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_redhat_incremental_yum_repo(self):
         """Export Red Hat YUM repo in directory incrementally.
 
-        @feature: ISS - Export
+        @id: be054636-629a-40a0-b414-da3964154bd1
 
         @steps:
 
@@ -894,7 +973,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @assert: Red Hat YUM repo contents have been exported incrementally in
         separate directory.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -903,7 +984,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_import_redhat_incremental_yum_repo(self):
         """Import the exported YUM repo contents incrementally.
 
-        @feature: ISS - Import
+        @id: 318560d7-71f5-4646-ab5c-12a2ec22d031
 
         @steps:
 
@@ -914,7 +995,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         @assert: YUM repo contents have been imported incrementally.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -923,7 +1006,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_redhat_yum_repo_iso(self):
         """Export Red Hat YUM repo as ISO in directory.
 
-        @feature: ISS - Export
+        @id: e96a7a8c-9e71-4379-86e6-78177dfbf555
 
         @steps:
 
@@ -932,7 +1015,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @assert: Whole repo contents has been exported as ISO in separate
         directory.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -941,7 +1026,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_import_redhat_yum_repo_iso(self):
         """Export Red Hat YUM repo as ISO in directory and Import.
 
-        @feature: ISS - Import
+        @id: d1af556e-c622-4ca0-a617-0216d5805d45
 
         @steps:
 
@@ -953,7 +1038,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @assert: All The exported repo contents in ISO has been imported
         successfully.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -962,7 +1049,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_redhat_yum_incremental_repo_iso(self):
         """Export Red Hat YUM repo as ISO in directory and import incrementally.
 
-        @feature: ISS - Export
+        @id: c54e9410-9945-4662-bea0-a4ab35e90606
 
         @steps:
 
@@ -973,7 +1060,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @assert: Repo contents have been exported as ISO incrementally in
         separate directory.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -982,7 +1071,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_import_redhat_yum_incremental_repo_iso(self):
         """Export Red Hat YUM repo as ISO in directory and import incrementally.
 
-        @feature: ISS - Import
+        @id: 5e3f4013-489e-4d4e-abd9-49077f89efcd
 
         @steps:
 
@@ -995,7 +1084,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @assert: Repo contents have been exported as ISO and imported
         incrementally.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1004,7 +1095,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_redhat_cv(self):
         """Export CV version having Red Hat contents in directory.
 
-        @feature: ISS - Export
+        @id: 3eacbd64-e81b-455e-969d-570582616c4a
 
         @steps:
 
@@ -1014,7 +1105,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @assert: Whole CV version contents has been exported to directory
         specified in settings.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1024,7 +1117,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """Export CV version having Red Hat contents in directory and Import
         them.
 
-        @feature: ISS - Import
+        @id: 0c9f1a9b-a166-4b9a-a9c4-099f3a45d552
 
         @steps:
 
@@ -1036,7 +1129,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @assert: The repo from an exported CV contents has been imported
         successfully.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1046,7 +1141,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         """Export CV version having Red Hat and custom repo in directory
         and Import them.
 
-        @feature: ISS - Import
+        @id: a38cf67d-563c-46f0-a263-4825b26faf2b
 
         @steps:
 
@@ -1059,7 +1154,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         @assert: Both custom and Red Hat repos are imported successfully.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1068,7 +1165,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_redhat_cv_iso(self):
         """Export CV version having Red Hat contents as ISO.
 
-        @feature: ISS - Export
+        @id: 7a35b76b-046f-402b-ba0d-4336e1757b8b
 
         @steps:
 
@@ -1076,7 +1173,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
 
         @assert: Whole CV version contents has been exported as ISO.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1085,7 +1184,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_export_import_redhat_cv_iso(self):
         """Export CV version having Red Hat contents as ISO and Import them.
 
-        @feature: ISS - Import
+        @id: 44b3d4b7-2da2-4db0-afd7-6c696a444915
 
         @steps:
 
@@ -1097,7 +1196,9 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @assert: The repo is imported successfully from exported CV ISO
         contents.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1106,7 +1207,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
     def test_positive_install_package_from_imported_repos(self):
         """Install packages in client from imported repo of Downstream satellite.
 
-        @feature: ISS - Export Import
+        @id: a81ffb55-398d-4ad0-bcae-5ed48f504ded
 
         @steps:
 
@@ -1121,5 +1222,7 @@ class InterSatelliteSyncTestCase(CLITestCase):
         @assert: The package is installed on client from imported repo of
         downstream satellite.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """

@@ -1,4 +1,19 @@
-"""CLI tests for ``hammer host``."""
+"""CLI tests for ``hammer host``.
+
+@Requirement: Host
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_mac, gen_string
 from nailgun import entities
 from robottelo.cli.base import CLIReturnCodeError
@@ -70,7 +85,7 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """A host can be created with a random name
 
-        @feature: Hosts
+        @id: 2e8dd25d-47ed-4131-bba6-1ff024808d05
 
         @assert: A host is created and the name matches
         """
@@ -104,7 +119,7 @@ class HostCreateTestCase(CLITestCase):
     def test_positive_create_using_libvirt_without_mac(self):
         """Create a libvirt host and not specify a MAC address.
 
-        @Feature: Hosts
+        @id: b003faa9-2810-4176-94d2-ea84bed248eb
 
         @Assert: Host is created
         """
@@ -167,7 +182,7 @@ class HostDeleteTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Create a host and then delete it by id.
 
-        @Feature: Hosts
+        @id: e687a685-ab8b-4c5f-97f9-e14d3ab52f29
 
         @Assert: Host is deleted
         """
@@ -179,7 +194,7 @@ class HostDeleteTestCase(CLITestCase):
     def test_positive_delete_by_name(self):
         """Create a host and then delete it by name.
 
-        @Feature: Hosts
+        @id: 93f7504d-9a63-491f-8fdb-ed8017aefab9
 
         @Assert: Host is deleted
         """
@@ -224,7 +239,7 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new random name. Use id to
         access the host
 
-        @feature: Hosts
+        @id: 058dbcbf-d543-483d-b755-be0602588464
 
         @assert: A host is updated and the name matches
         """
@@ -247,7 +262,7 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new random name. Use name to
         access the host
 
-        @feature: Hosts
+        @id: f95a5952-17bd-49da-b2a7-c79f0614f1c7
 
         @assert: A host is updated and the name matches
         """
@@ -271,7 +286,7 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new random MAC address. Use id
         to access the host
 
-        @feature: Hosts
+        @id: 72ed9ae8-989a-46d1-8b7d-46f5db106e75
 
         @assert: A host is updated and the MAC address matches
         """
@@ -288,7 +303,7 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new random MAC address. Use name
         to access the host
 
-        @feature: Hosts
+        @id: a422788d-5473-4846-a86b-90d8f236285a
 
         @assert: A host is updated and the MAC address matches
         """
@@ -305,9 +320,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new domain. Use entities ids for
         association
 
-        @feature: Hosts
+        @id: 3aac0896-d16a-46ee-afe9-2d3ecea6ca9b
 
         @assert: A host is updated and the domain matches
+
+        @CaseLevel: Integration
         """
         new_domain = make_domain({
             'location-id': self.host_args.location.id,
@@ -325,9 +342,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new domain. Use entities names
         for association
 
-        @feature: Hosts
+        @id: 9b4fb1b9-a226-4b8a-bfaf-1121de7df5bc
 
         @assert: A host is updated and the domain matches
+
+        @CaseLevel: Integration
         """
         new_domain = make_domain({
             'location': self.host_args.location.name,
@@ -350,9 +369,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new environment. Use entities
         ids for association
 
-        @feature: Hosts
+        @id: 4e1d1e31-fa84-43e4-9e66-7fb953767ee5
 
         @assert: A host is updated and the environment matches
+
+        @CaseLevel: Integration
         """
         new_env = make_environment({
             'location-id': self.host_args.location.id,
@@ -370,9 +391,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new environment. Use entities
         names for association
 
-        @feature: Hosts
+        @id: f0ec469a-7550-4f05-b39c-e68b9267247d
 
         @assert: A host is updated and the environment matches
+
+        @CaseLevel: Integration
         """
         new_env = make_environment({
             'location': self.host_args.location.name,
@@ -390,9 +413,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new architecture. Use entities
         ids for association
 
-        @feature: Hosts
+        @id: a4546fd6-997a-44e4-853a-eac235ea87b0
 
         @assert: A host is updated and the architecture matches
+
+        @CaseLevel: Integration
         """
         new_arch = make_architecture({
             'location-id': self.host_args.location.id,
@@ -415,9 +440,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new architecture. Use entities
         names for association
 
-        @feature: Hosts
+        @id: 92da3782-47db-4701-aaab-3ea974043d20
 
         @assert: A host is updated and the architecture matches
+
+        @CaseLevel: Integration
         """
         new_arch = make_architecture({
             'location': self.host_args.location.name,
@@ -440,9 +467,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new operating system. Use
         entities ids for association
 
-        @feature: Hosts
+        @id: 9ea88634-9c14-4519-be6e-fb163897efb7
 
         @assert: A host is updated and the operating system matches
+
+        @CaseLevel: Integration
         """
         new_os = make_os({
             'architecture-ids': self.host_args.architecture.id,
@@ -465,9 +494,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new operating system. Use
         entities names for association
 
-        @feature: Hosts
+        @id: bd48887f-3db3-47b0-8231-de58884efe57
 
         @assert: A host is updated and the operating system matches
+
+        @CaseLevel: Integration
         """
         new_os = make_os({
             'architectures': self.host_args.architecture.name,
@@ -491,9 +522,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new medium. Use entities ids for
         association
 
-        @feature: Hosts
+        @id: 899f1eef-07a9-4227-848a-92e377a8d55c
 
         @assert: A host is updated and the medium matches
+
+        @CaseLevel: Integration
         """
         new_medium = make_medium({
             'location-id': self.host_args.location.id,
@@ -517,9 +550,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can be updated with a new medium. Use entities names
         for association
 
-        @feature: Hosts
+        @id: f47edb02-d649-4ca8-94b2-0637ebdac2e8
 
         @assert: A host is updated and the medium matches
+
+        @CaseLevel: Integration
         """
         new_medium = make_medium({
             'location': self.host_args.location.name,
@@ -542,7 +577,7 @@ class HostUpdateTestCase(CLITestCase):
     def test_negative_update_name(self):
         """A host can not be updated with invalid or empty name
 
-        @feature: Hosts
+        @id: e8068d2a-6a51-4627-908b-60a516c67032
 
         @assert: A host is not updated
         """
@@ -566,7 +601,7 @@ class HostUpdateTestCase(CLITestCase):
     def test_negative_update_mac(self):
         """A host can not be updated with invalid or empty MAC address
 
-        @feature: Hosts
+        @id: 2f03032d-789d-419f-9ff2-a6f3561444da
 
         @assert: A host is not updated
         """
@@ -585,9 +620,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can not be updated with a architecture, which does not
         belong to host's operating system
 
-        @feature: Hosts
+        @id: a86524da-8caf-472b-9a3d-17a4385c3a18
 
         @assert: A host is not updated
+
+        @CaseLevel: Integration
         """
         new_arch = make_architecture({
             'location': self.host_args.location.name,
@@ -607,9 +644,11 @@ class HostUpdateTestCase(CLITestCase):
         """A host can not be updated with a operating system, which is
         not associated with host's medium
 
-        @feature: Hosts
+        @id: ff13d2af-e54a-4daf-a24d-7ec930b4fbbe
 
         @assert: A host is not updated
+
+        @CaseLevel: Integration
         """
         new_arch = make_architecture({
             'location': self.host_args.location.name,
@@ -665,7 +704,7 @@ class HostParameterTestCase(CLITestCase):
     def test_positive_add_parameter_with_name(self):
         """Add host parameter with different valid names.
 
-        @Feature: Hosts
+        @id: 67b1c496-8f33-4a34-aebb-7339bc33ce77
 
         @Assert: Host parameter was successfully added with correct name.
 
@@ -685,7 +724,7 @@ class HostParameterTestCase(CLITestCase):
     def test_positive_add_parameter_with_value(self):
         """Add host parameter with different valid values.
 
-        @Feature: Hosts
+        @id: 1932b61d-8be4-4f58-9760-dc588cbca1d7
 
         @Assert: Host parameter was successfully added with value.
 
@@ -706,7 +745,7 @@ class HostParameterTestCase(CLITestCase):
     def test_positive_add_parameter_by_host_name(self):
         """Add host parameter by specifying host name.
 
-        @Feature: Hosts
+        @id: 32b09b07-39de-4706-ac5e-75a54255df17
 
         @Assert: Host parameter was successfully added with correct name and
         value.
@@ -727,7 +766,7 @@ class HostParameterTestCase(CLITestCase):
     def test_positive_update_parameter_by_host_id(self):
         """Update existing host parameter by specifying host ID.
 
-        @Feature: Hosts
+        @id: 56c43ab4-7fb0-44f5-9d54-107d3c1011bf
 
         @Assert: Host parameter was successfully updated with new value.
 
@@ -754,7 +793,7 @@ class HostParameterTestCase(CLITestCase):
     def test_positive_update_parameter_by_host_name(self):
         """Update existing host parameter by specifying host name.
 
-        @Feature: Hosts
+        @id: 24bcc8a4-7787-4fa8-9bf8-dfc5e697684f
 
         @Assert: Host parameter was successfully updated with new value.
 
@@ -781,7 +820,7 @@ class HostParameterTestCase(CLITestCase):
     def test_positive_delete_parameter_by_host_id(self):
         """Delete existing host parameter by specifying host ID.
 
-        @Feature: Hosts
+        @id: a52da845-0403-4b66-9e83-6065f7d4551d
 
         @Assert: Host parameter was successfully deleted.
 
@@ -805,7 +844,7 @@ class HostParameterTestCase(CLITestCase):
     def test_posistive_delete_parameter_by_host_name(self):
         """Delete existing host parameter by specifying host name.
 
-        @Feature: Hosts
+        @id: d28cbbba-d296-49c7-91f5-8fb63a80d82c
 
         @Assert: Host parameter was successfully deleted.
 
@@ -829,7 +868,7 @@ class HostParameterTestCase(CLITestCase):
     def test_negative_add_parameter(self):
         """Try to add host parameter with different invalid names.
 
-        @Feature: Hosts
+        @id: 473f8c3f-b66e-4526-88af-e139cc3dabcb
 
         @Assert: Host parameter was not added.
 
@@ -922,10 +961,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_get_errata_info(self):
         """Get errata info
 
-        @Feature: Host - Errata
+        @id: afb5ab34-1703-49dc-8ddc-5e032c1b86d7
 
         @Assert: Errata info was displayed
 
+
+        @CaseLevel: System
         """
         self.client.download_install_rpm(
             FAKE_0_YUM_REPO,
@@ -943,10 +984,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_apply_errata(self):
         """Apply errata to a host
 
-        @Feature: Host - Errata
+        @id: 8d0e5c93-f9fd-4ec0-9a61-aa93082a30c5
 
         @Assert: Errata is scheduled for installation
 
+
+        @CaseLevel: System
         """
         self.client.download_install_rpm(
             FAKE_0_YUM_REPO,
@@ -962,10 +1005,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_install_package(self):
         """Install a package to a host remotely
 
-        @Feature: Host - Package
+        @id: b1009bba-0c7e-4b00-8ac4-256e5cfe4a78
 
         @Assert: Package was successfully installed
 
+
+        @CaseLevel: System
         """
         Host.package_install({
             u'host-id': self.host['id'],
@@ -981,10 +1026,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_remove_package(self):
         """Remove a package from a host remotely
 
-        @Feature: Host - Package
+        @id: 573dec11-8f14-411f-9e41-84426b0f23b5
 
         @Assert: Package was successfully removed
 
+
+        @CaseLevel: System
         """
         self.client.download_install_rpm(
             FAKE_0_YUM_REPO,
@@ -1004,10 +1051,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_upgrade_package(self):
         """Upgrade a host package remotely
 
-        @Feature: Host - Package
+        @id: ad751c63-7175-40ae-8bc4-800462cd9c29
 
         @Assert: Package was successfully upgraded
 
+
+        @CaseLevel: System
         """
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         Host.package_upgrade({
@@ -1022,11 +1071,13 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_upgrade_packages_all(self):
         """Upgrade all the host packages remotely
 
-        @Feature: Host - Package
+        @id: 003101c7-bb95-4e51-a598-57977b2858a9
 
         @Assert: Packages (at least 1 with newer version available) were
         successfully upgraded
 
+
+        @CaseLevel: System
         """
         self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
         Host.package_upgrade_all({'host-id': self.host['id']})
@@ -1038,10 +1089,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_install_package_group(self):
         """Install a package group to a host remotely
 
-        @Feature: Host - Package group
+        @id: 8c28c188-2903-44d1-ab1e-b74f6d6affcf
 
         @Assert: Package group was successfully installed
 
+
+        @CaseLevel: System
         """
         Host.package_group_install({
             u'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
@@ -1056,10 +1109,12 @@ class KatelloAgentTestCase(CLITestCase):
     def test_positive_remove_package_group(self):
         """Remove a package group from a host remotely
 
-        @Feature: Host - Package group
+        @id: c80dbeff-93b4-4cd4-8fae-6a4d1bfc94f0
 
         @Assert: Package group was successfully removed
 
+
+        @CaseLevel: System
         """
         hammer_args = {
             u'groups': FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
@@ -1076,9 +1131,11 @@ class KatelloAgentTestCase(CLITestCase):
         """Attempt to retrieve content after host has been unregistered from
         Satellite
 
-        @feature: Host
+        @id: de0d0d91-b1e1-4f0e-8a41-c27df4d6b6fd
 
         @assert: Host can no longer retrieve content from satellite
+
+        @CaseLevel: System
         """
         result = self.client.run('subscription-manager unregister')
         self.assertEqual(result.return_code, 0)

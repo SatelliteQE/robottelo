@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Repository CLI"""
+"""Test class for Repository CLI
+
+@Requirement: Repository
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo import ssh
@@ -80,7 +95,7 @@ class RepositoryTestCase(CLITestCase):
         """Check if repository docker-upstream-name is shown
         in repository info
 
-        @Feature: Repository
+        @id: f197a14c-2cf3-4564-9b18-5fd37d469ea4
 
         @Assert: repository info command returns upstream-repository-name
         value
@@ -99,7 +114,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Check if repository can be created with random names
 
-        @Feature: Repository
+        @id: 604dea2c-d512-4a27-bfc1-24c9655b6ea9
 
         @Assert: Repository is created and has random name
         """
@@ -113,7 +128,7 @@ class RepositoryTestCase(CLITestCase):
         """Check if repository can be created with random names and
         labels
 
-        @Feature: Repository
+        @id: 79d2a6d0-5032-46cd-880c-46cf392521fa
 
         @Assert: Repository is created and has random name and labels
         """
@@ -133,7 +148,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_create_with_yum_repo(self):
         """Create YUM repository
 
-        @Feature: Repository
+        @id: 4c08824f-ba95-486c-94c2-9abf0a3441ea
 
         @Assert: YUM repository is created
         """
@@ -151,7 +166,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_create_with_puppet_repo(self):
         """Create Puppet repository
 
-        @Feature: Repository
+        @id: 75c309ba-fbc9-419d-8427-7a61b063ec13
 
         @Assert: Puppet repository is created
         """
@@ -170,7 +185,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_create_with_auth_yum_repo(self):
         """Create YUM repository with basic HTTP authentication
 
-        @Feature: Repository
+        @id: da8309fd-3076-427b-a96f-8d883d6e944f
 
         @Assert: YUM repository is created
         """
@@ -189,7 +204,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_create_with_auth_puppet_repo(self):
         """Create Puppet repository with basic HTTP authentication
 
-        @Feature: Repository
+        @id: b13f8ae2-60ab-47e6-a096-d3f368e5cab3
 
         @Assert: Puppet repository is created
         """
@@ -209,7 +224,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_create_with_gpg_key_by_id(self):
         """Check if repository can be created with gpg key ID
 
-        @Feature: Repository
+        @id: 6d22f0ea-2d27-4827-9b7a-3e1550a47285
 
         @Assert: Repository is created and has gpg key
         """
@@ -230,7 +245,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_create_with_gpg_key_by_name(self):
         """Check if repository can be created with gpg key name
 
-        @Feature: Repository
+        @id: 95cde404-3449-410d-9a08-d7f8619a2ad5
 
         @Assert: Repository is created and has gpg key
 
@@ -252,7 +267,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_create_publish_via_http(self):
         """Create repository published via http
 
-        @Feature: Repository
+        @id: faf6058c-9dd3-444c-ace2-c41791669e9e
 
         @Assert: Repository is created and is published via http
         """
@@ -266,7 +281,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_create_publish_via_https(self):
         """Create repository not published via http
 
-        @Feature: Repository
+        @id: 4395a5df-207c-4b34-a42d-7b3273bd68ec
 
         @Assert: Repository is created and is not published via http
         """
@@ -280,7 +295,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_create_yum_repo_with_checksum_type(self):
         """Create a YUM repository with a checksum type
 
-        @Feature: Repository
+        @id: 934f4a09-2a64-485d-ae6c-8ef73aa8fb2b
 
         @Assert: A YUM repository is created and contains the correct checksum
         type
@@ -300,7 +315,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_create_docker_repo_with_upstream_name(self):
         """Create a Docker repository with upstream name.
 
-        @Feature: Repository
+        @id: 776f92eb-8b40-4efd-8315-4fbbabcb2d4e
 
         @Assert: Docker repository is created and contains correct values.
         """
@@ -321,7 +336,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_create_docker_repo_with_name(self):
         """Create a Docker repository with a random name.
 
-        @Feature: Repository
+        @id: b6a01434-8672-4196-b61a-dcb86c49f43b
 
         @Assert: Docker repository is created and contains correct values.
         """
@@ -343,7 +358,7 @@ class RepositoryTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Repository name cannot be 300-characters long
 
-        @Feature: Repository
+        @id: af0652d3-012d-4846-82ac-047918f74722
 
         @Assert: Repository cannot be created
         """
@@ -356,7 +371,7 @@ class RepositoryTestCase(CLITestCase):
     def test_negative_create_with_auth_url_with_special_characters(self):
         """Verify that repository URL cannot contain unquoted special characters
 
-        @Feature: Repository
+        @id: 2bd5ee17-0fe5-43cb-9cdc-dc2178c5374c
 
         @Assert: Repository cannot be created
         """
@@ -372,7 +387,7 @@ class RepositoryTestCase(CLITestCase):
     def test_negative_create_with_auth_url_too_long(self):
         """Verify that repository URL length is limited
 
-        @Feature: Repository
+        @id: de356c66-4237-4421-89e3-f4f8bbe6f526
 
         @Assert: Repository cannot be created
         """
@@ -387,9 +402,11 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_synchronize_yum_repo(self):
         """Check if repository can be created and synced
 
-        @Feature: Repository
+        @id: e3a62529-edbd-4062-9246-bef5f33bdcf0
 
         @Assert: Repository is created and synced
+
+        @CaseLevel: Integration
         """
         for url in FAKE_1_YUM_REPO, FAKE_3_YUM_REPO, FAKE_4_YUM_REPO:
             with self.subTest(url):
@@ -411,9 +428,11 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_synchronize_auth_yum_repo(self):
         """Check if secured repository can be created and synced
 
-        @Feature: HTTP Authentication Repository
+        @id: b0db676b-e0f0-428c-adf3-1d7c0c3599f0
 
         @Assert: Repository is created and synced
+
+        @CaseLevel: Integration
         """
         url = FAKE_5_YUM_REPO
         for creds in [cred for cred in valid_http_credentials(url_encoded=True)
@@ -440,9 +459,11 @@ class RepositoryTestCase(CLITestCase):
     def test_negative_synchronize_auth_yum_repo(self):
         """Check if secured repo fails to synchronize with invalid credentials
 
-        @Feature: HTTP Authentication Repository
+        @id: 809905ae-fb76-465d-9468-1f99c4274aeb
 
         @Assert: Repository is created but synchronization fails
+
+        @CaseLevel: Integration
         """
         url = FAKE_5_YUM_REPO
         for creds in [cred for cred in valid_http_credentials(url_encoded=True)
@@ -471,9 +492,11 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_synchronize_auth_puppet_repo(self):
         """Check if secured puppet repository can be created and synced
 
-        @Feature: HTTP Authentication Puppet Repository
+        @id: 1d2604fc-8a18-4cbe-bf4c-5c7d9fbdb82c
 
         @Assert: Repository is created and synced
+
+        @CaseLevel: Integration
         """
         url = FAKE_7_PUPPET_REPO
         for creds in [cred for cred in valid_http_credentials(url_encoded=True)
@@ -497,9 +520,11 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_synchronize_docker_repo(self):
         """Check if Docker repository can be created and synced
 
-        @Feature: Repository
+        @id: cb9ae788-743c-4785-98b2-6ae0c161bc9a
 
         @Assert: Docker repository is created and synced
+
+        @CaseLevel: Integration
         """
         new_repo = self._make_repository({
             u'content-type': u'docker',
@@ -519,7 +544,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_update_url(self):
         """Update the original url for a repository
 
-        @Feature: Repository
+        @id: 1a2cf29b-5c30-4d4c-b6d1-2f227b0a0a57
 
         @Assert: Repository url is updated
         """
@@ -549,7 +574,7 @@ class RepositoryTestCase(CLITestCase):
         """Verify that repository URL credentials cannot be updated to contain
         the forbidden characters
 
-        @Feature: Repository
+        @id: 566553b2-d077-4fd8-8ed5-00ba75355386
 
         @Assert: Repository url not updated
         """
@@ -577,7 +602,7 @@ class RepositoryTestCase(CLITestCase):
     def test_negative_update_auth_url_too_long(self):
         """Update the original url for a repository to value which is too long
 
-        @Feature: Repository
+        @id: a703de60-8631-4e31-a9d9-e51804f27f03
 
         @Assert: Repository url not updated
         """
@@ -605,11 +630,11 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_update_gpg_key(self):
         """Update the original gpg key
 
-        @Feature: Repository
+        @id: 367ff375-4f52-4a8c-b974-8c1c54e3fdd3
 
         @Assert: Repository gpg key is updated
 
-        @Status: manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -617,11 +642,11 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_update_published_method(self):
         """Update the original publishing method
 
-        @Feature: Repository
+        @id: e7bd2667-4851-4a64-9c70-1b5eafbc3f71
 
         @Assert: Repository publishing method is updated
 
-        @Status: manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -629,7 +654,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_update_checksum_type(self):
         """Create a YUM repository and update the checksum type
 
-        @Feature: Repository
+        @id: 42f14257-d860-443d-b337-36fd355014bc
 
         @Assert: A YUM repository is updated and contains the correct checksum
         type
@@ -655,7 +680,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Check if repository can be created and deleted
 
-        @Feature: Repository
+        @id: bcf096db-0033-4138-90a3-cb7355d5dfaf
 
         @Assert: Repository is created and then deleted
         """
@@ -671,7 +696,7 @@ class RepositoryTestCase(CLITestCase):
     def test_positive_upload_content(self):
         """Create repository and upload content
 
-        @Feature: Repository
+        @id: eb0ec599-2bf1-483a-8215-66652f948d67
 
         @Assert: upload content is successful
         """

@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Template CLI"""
+"""Test class for Template CLI
+
+@Requirement: Template
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
@@ -22,7 +37,7 @@ class TemplateTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Check if Template can be created
 
-        @Feature: Template - Create
+        @id: 77deaae8-447b-47cc-8af3-8b17476c905f
 
         @Assert: Template is created
         """
@@ -35,7 +50,7 @@ class TemplateTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Check if Template can be updated
 
-        @Feature: Template - Update
+        @id: 99bdab7b-1279-4349-a655-4294395ecbe1
 
         @Assert: Template is updated
         """
@@ -53,7 +68,7 @@ class TemplateTestCase(CLITestCase):
     def test_positive_create_with_loc(self):
         """Check if Template with Location can be created
 
-        @Feature: Template - Create
+        @id: 263aba0e-4f54-4227-af97-f4bc8f5c0788
 
         @Assert: Template is created and new Location has been assigned
         """
@@ -66,7 +81,7 @@ class TemplateTestCase(CLITestCase):
     def test_positive_create_locked(self):
         """Check that locked Template can be created
 
-        @Feature: Template - Create
+        @id: ff10e369-85c6-45f3-9cda-7e1c17a6632d
 
         @Assert: The locked template is created successfully
 
@@ -82,7 +97,7 @@ class TemplateTestCase(CLITestCase):
     def test_positive_create_with_org(self):
         """Check if Template with Organization can be created
 
-        @Feature: Template - Create
+        @id: 5de5ca76-1a39-46ac-8dd4-5d41b4b49076
 
         @Assert: Template is created and new Organization has been assigned
         """
@@ -98,9 +113,11 @@ class TemplateTestCase(CLITestCase):
     def test_positive_add_os_by_id(self):
         """Check if operating system can be added to a template
 
-        @Feature: Template - Add Operating System
+        @id: d9f481b3-9757-4208-b451-baf4792d4d70
 
         @Assert: Operating system is added to the template
+
+        @CaseLevel: Integration
         """
         new_template = make_template()
         new_os = make_os()
@@ -118,9 +135,11 @@ class TemplateTestCase(CLITestCase):
     def test_positive_remove_os_by_id(self):
         """Check if operating system can be removed from a template
 
-        @Feature: Template - Remove Operating System
+        @id: b5362565-6dce-4770-81e1-4fe3ec6f6cee
 
         @Assert: Operating system is removed from template
+
+        @CaseLevel: Integration
         """
         template = make_template()
         new_os = make_os()
@@ -145,7 +164,7 @@ class TemplateTestCase(CLITestCase):
     def test_positive_create_with_content(self):
         """Check if Template can be created with specific content
 
-        @Feature: Template - Create
+        @id: 0fcfc46d-5e97-4451-936a-e8684acac275
 
         @Assert: Template is created with specific content
         """
@@ -164,7 +183,7 @@ class TemplateTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Check if Template can be deleted
 
-        @Feature: Template - Delete
+        @id: 8e5245ee-13dd-44d4-8111-d4382cacf005
 
         @Assert: Template is deleted
         """

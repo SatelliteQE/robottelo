@@ -1,5 +1,20 @@
 # pylint:disable=too-many-public-methods
-"""Unit tests for the ``fusor/api/v21/deployments`` paths."""
+"""Unit tests for the ``fusor/api/v21/deployments`` paths.
+
+@Requirement: Rhci
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: RHCI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -44,9 +59,9 @@ class RHCIDeploymentTestCase(APITestCase):
     def test_positive_create_deployment(self):
         """Create a simple deployment.
 
-        @Assert: An RHCI deployment is created with a random name.
+        @id: b1162fea-9afd-4b8d-89cc-e141e02fcdbe
 
-        @Feature: RHCI Deployment
+        @Assert: An RHCI deployment is created with a random name.
 
         """
         for name in (gen_string(str_type='alpha'),
@@ -72,9 +87,9 @@ class RHCIDeploymentTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update a deployment's name.
 
-        @Assert: An RHCI deployment is updated with a random name.
+        @id: 1761b17f-b2cb-44fc-9dd8-f2e9fbccbb38
 
-        @Feature: RHCI Deployment
+        @Assert: An RHCI deployment is updated with a random name.
 
         """
         for data in valid_name_update_tests():
@@ -99,9 +114,9 @@ class RHCIDeploymentTestCase(APITestCase):
     def test_positive_delete_deployment(self):
         """Create and delete a simple deployment.
 
-        @Assert: An RHCI deployment is deleted.
+        @id: 89bb4342-a99d-4653-a7cd-fc3f08acaf72
 
-        @Feature: RHCI Deployment
+        @Assert: An RHCI deployment is deleted.
 
         """
         data = gen_string(str_type='alpha')

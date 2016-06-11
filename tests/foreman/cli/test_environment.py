@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test for Environment  CLI"""
+"""Test for Environment  CLI
+
+@Requirement: Environment
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
@@ -24,9 +39,11 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_list_with_name(self):
         """Test Environment List
 
-        @Feature: Environment
+        @id: 8a81f853-929c-4eaa-8ae0-4c92ebf1f250
 
         @Assert: Environment list is displayed
+
+        @CaseLevel: Integration
         """
         for name in valid_environments_list():
             with self.subTest(name):
@@ -41,7 +58,7 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Successfully creates an Environment.
 
-        @Feature: Environment
+        @id: 3b22f035-ee3a-489e-89c5-e54571584af1
 
         @Assert: Environment is created.
         """
@@ -54,7 +71,7 @@ class EnvironmentTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Don't create an Environment with invalid data.
 
-        @Feature: Environment
+        @id: 8a4141b0-3bb9-47e5-baca-f9f027086d4c
 
         @Assert: Environment is not created.
         """
@@ -68,7 +85,7 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_create_with_loc(self):
         """Check if Environment with Location can be created
 
-        @Feature: Environment - Create
+        @id: d2187971-86b2-40c9-a93c-66f37691ae2b
 
         @Assert: Environment is created and has new Location assigned
 
@@ -85,7 +102,7 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_create_with_org(self):
         """Check if Environment with Organization can be created
 
-        @Feature: Environment - Create
+        @id: 9fd9d2d5-db46-40a7-b341-41cdbde4356a
 
         @Assert: Environment is created and has new Organization assigned
 
@@ -103,7 +120,7 @@ class EnvironmentTestCase(CLITestCase):
         """Create Environment with valid values then delete it
         by ID
 
-        @feature: Environment
+        @id: e25af73a-d4ef-4287-83bf-625337d91392
 
         @assert: Environment is deleted
         """
@@ -119,7 +136,7 @@ class EnvironmentTestCase(CLITestCase):
     def test_negative_delete_by_id(self):
         """Create Environment then delete it by wrong ID
 
-        @feature: Environment
+        @id: fe77920c-62fd-4e0e-b960-a940a1370d10
 
         @assert: Environment is not deleted
         """
@@ -133,7 +150,7 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_delete_by_name(self):
         """Delete the environment by its name.
 
-        @Feature: Environment
+        @id: 48765173-6086-4b91-9da7-594135f68751
 
         @Assert: Environment is deleted.
         """
@@ -147,7 +164,7 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Update the environment
 
-        @Feature: Environment - Update
+        @id: 7b34ce64-24be-4b3b-8f7e-1de07daafdd9
 
         @Assert: Environment Update is displayed
         """
@@ -166,7 +183,7 @@ class EnvironmentTestCase(CLITestCase):
     def test_negative_update_name(self):
         """Update the Environment with invalid values
 
-        @Feature: Environment
+        @id: adc5ad73-0547-40f9-b4d4-649780cfb87a
 
         @Assert: Environment is not updated
         """
@@ -186,7 +203,7 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_update_loc(self):
         """Update environment location with new value
 
-        @Feature: Environment - Update
+        @id: d58d6dc5-a820-4c61-bd69-0c631c2d3f2e
 
         @Assert: Environment Update finished and new location is assigned
 
@@ -208,7 +225,7 @@ class EnvironmentTestCase(CLITestCase):
     def test_positive_update_org(self):
         """Update environment organization with new value
 
-        @Feature: Environment - Update
+        @id: 2c40caf9-95a0-4b87-bd97-0a4448746052
 
         @Assert: Environment Update finished and new organization is assigned
 
@@ -235,7 +252,7 @@ class EnvironmentTestCase(CLITestCase):
         """Check if environment sc-param subcommand works passing
         an environment id
 
-        @Feature: Environment
+        @id: 32de4f0e-7b52-411c-a111-9ed472c3fc34
 
         @Assert: The command runs without raising an error
 
@@ -249,7 +266,7 @@ class EnvironmentTestCase(CLITestCase):
         """Check if environment sc-param subcommand works passing
         an environment name
 
-        @Feature: Environment
+        @id: e2fdd262-9b09-4252-8a5a-4e578e3b8547
 
         @Assert: The command runs without raising an error
 

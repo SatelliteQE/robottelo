@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Life cycle environments UI"""
+"""Test class for Life cycle environments UI
+
+@Requirement: Lifecycleenvironment
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from nailgun import entities
@@ -23,7 +38,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     def test_positive_create(self):
         """Create content environment with minimal input parameters
 
-        @Feature: Content Environment - Positive Create
+        @id: 2c3a9c4c-3508-4d75-8f60-8bc6f7c0717f
 
         @Assert: Environment is created
         """
@@ -44,9 +59,11 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     def test_positive_create_chain(self):
         """Create Content Environment in a chain
 
-        @Feature: Content Environment - Positive Create
+        @id: ed3d2c88-ef0a-4a1a-9f11-5bdb2119fc18
 
         @Assert: Environment is created
+
+        @CaseLevel: Integration
         """
         env1_name = gen_string('alpha')
         env2_name = gen_string('alpha')
@@ -73,7 +90,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     def test_positive_delete(self):
         """Create Content Environment and delete it
 
-        @Feature: Content Environment - Positive Delete
+        @id: fe2d9b10-fc46-47e3-827c-6f87d725ed8f
 
         @Assert: Environment is deleted
         """
@@ -94,7 +111,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
     def test_positive_update(self):
         """Create Content Environment and update it
 
-        @Feature: Content Environment - Positive Update
+        @id: 5cf64c5b-2105-4384-8630-965d9b8e3024
 
         @Assert: Environment is updated
         """

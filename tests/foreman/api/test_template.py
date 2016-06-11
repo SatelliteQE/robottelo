@@ -3,6 +3,20 @@
 A full API reference is available here:
 http://theforeman.org/api/apidoc/v2/config_templates.html
 
+
+@Requirement: Template
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
 """
 from nailgun import client, entities
 from requests.exceptions import HTTPError
@@ -20,9 +34,11 @@ class ConfigTemplateTestCase(APITestCase):
     def test_positive_build_pxe_default(self):
         """Call the "build_pxe_default" path.
 
+        @id: ca19d9da-1049-4b39-823b-933fc1a0cebd
+
         @Assert: The response is a JSON payload.
 
-        @Feature: ConfigTemplate
+        @CaseLevel: Integration
         """
         response = client.get(
             entities.ConfigTemplate().path('build_pxe_default'),
@@ -36,9 +52,11 @@ class ConfigTemplateTestCase(APITestCase):
     def test_positive_add_orgs(self):
         """Associate a config template with organizations.
 
+        @id: b60907c3-47b9-4bc7-99d6-08615ebe9d68
+
         @Assert: Config template is associated with organization
 
-        @Feature: ConfigTemplate
+        @CaseLevel: Integration
         """
         orgs = [entities.Organization().create() for _ in range(2)]
 
@@ -70,9 +88,9 @@ class ConfigTemplateTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create a configuration template providing the initial name.
 
-        @Assert: Configuration Template is created and contains provided name.
+        @id: 20ccd5c8-98c3-4f22-af50-9760940e5d39
 
-        @Feature: Configuration Template
+        @Assert: Configuration Template is created and contains provided name.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -83,9 +101,9 @@ class ConfigTemplateTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create configuration template providing an invalid name.
 
-        @Assert: Configuration Template is not created
+        @id: 2ec7023f-db4d-49ed-b783-6a4fce79064a
 
-        @Feature: Configuration Template
+        @Assert: Configuration Template is not created
         """
         for name in invalid_names_list():
             with self.subTest(name):
@@ -97,10 +115,10 @@ class ConfigTemplateTestCase(APITestCase):
         """Create configuration template providing the initial name,
         then update its name to another valid name.
 
+        @id: 58ccc4ee-5faa-4fb2-bfd0-e19412e230dd
+
         @Assert: Configuration Template is created, and its name can be
         updated.
-
-        @Feature: Configuration Template
         """
         c_temp = entities.ConfigTemplate().create()
 
@@ -115,10 +133,10 @@ class ConfigTemplateTestCase(APITestCase):
         """Create configuration template then update its name to an
         invalid name.
 
+        @id: f6167dc5-26ba-46d7-b61f-14c290d6a8fa
+
         @Assert: Configuration Template is created, and its name is not
         updated.
-
-        @Feature: Configuration Template
         """
         c_temp = entities.ConfigTemplate().create()
         for new_name in invalid_names_list():
@@ -133,9 +151,9 @@ class ConfigTemplateTestCase(APITestCase):
     def test_positive_delete(self):
         """Create configuration template and then delete it.
 
-        @Assert: Configuration Template is successfully deleted.
+        @id: 1471f17c-4412-4717-a6c4-b57a8d2f8cfd
 
-        @Feature: Configuration Template
+        @Assert: Configuration Template is successfully deleted.
         """
         for name in valid_data_list():
             with self.subTest(name):

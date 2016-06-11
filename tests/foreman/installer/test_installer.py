@@ -1,4 +1,19 @@
-"""Smoke tests to check installation health"""
+"""Smoke tests to check installation health
+
+@Requirement: Installer
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: INSTALLER
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 import re
 
 from robottelo import ssh
@@ -19,7 +34,7 @@ class SELinuxTestCase(TestCase):
     def test_positive_foreman_module(self):
         """Check if SELinux foreman module has the right version
 
-        @Feature: Server health
+        @id: a0736b3a-3d42-4a09-a11a-28c1d58214a5
 
         @Assert: Foreman RPM and SELinux module versions match
 
@@ -49,7 +64,7 @@ class SELinuxTestCase(TestCase):
     def test_positive_check_installer_services(self):
         """Check if services start correctly
 
-        @Feature: Installer
+        @id: 85fd4388-6d94-42f5-bed2-24be38e9f104
 
         @Assert: All services {'elasticsearch', 'foreman-proxy',
         'foreman-tasks', 'httpd', 'mongod', 'postgresql', 'pulp_celerybeat',
@@ -111,7 +126,7 @@ class SELinuxTestCase(TestCase):
     def test_positive_check_installer_logfile(self):
         """Look for ERROR or FATAL references in logfiles
 
-        @Feature: Installer
+        @id: 80537809-8be4-42db-9cc8-5155378ee4d4
 
         @Steps:
 
