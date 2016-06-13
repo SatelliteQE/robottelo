@@ -38,7 +38,7 @@ class Subscriptions(Base):
             handler.write(manifest.content.read())
         browse_element.send_keys(manifest.filename)
         self.click(locators['subs.upload'])
-        timeout = 900 if bz_bug_is_open(1339696) else 300
+        timeout = 900 if bz_bug_is_open(1340229) else 300
         self.wait_until_element(locators['subs.manifest_exists'], timeout)
         os.remove(manifest.filename)
 
