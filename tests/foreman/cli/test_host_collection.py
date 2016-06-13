@@ -117,8 +117,6 @@ class HostCollectionTestCase(CLITestCase):
                     {'max-hosts': limit})
                 self.assertEqual(new_host_col['limit'], str(limit))
 
-    @skip_if_bug_open('bugzilla', 1214675)
-    @skip_if_bug_open('bugzilla', 1328925)
     @tier1
     def test_positive_create_with_unlimited_hosts(self):
         """Create Host Collection with different values of
@@ -128,25 +126,23 @@ class HostCollectionTestCase(CLITestCase):
 
         @Assert: Host Collection is created and unlimited-hosts
         parameter is set
-
-        @BZ: 1214675, 1328925
         """
-        for unlimited in (u'True', u'Yes', 1, u'False', u'No', 0):
+        for unlimited in ('True', 'Yes', 1, 'False', 'No', 0):
             with self.subTest(unlimited):
                 host_collection = make_host_collection({
-                    u'organization-id': self.org['id'],
-                    u'unlimited-hosts': unlimited,
+                    'max-hosts':
+                        1 if unlimited in ('False', 'No', 0) else None,
+                    'organization-id': self.org['id'],
+                    'unlimited-hosts': unlimited,
                 })
                 result = HostCollection.info({
-                    u'id': host_collection['id'],
-                    u'organization-id': self.org['id'],
+                    'id': host_collection['id'],
+                    'organization-id': self.org['id'],
                 })
-                if unlimited in (u'True', u'Yes', 1):
-                    self.assertEqual(
-                        result['unlimited-hosts'], u'true')
+                if unlimited in ('True', 'Yes', 1):
+                    self.assertEqual(result['limit'], 'None')
                 else:
-                    self.assertEqual(
-                        result['unlimited-hosts'], u'false')
+                    self.assertEqual(result['limit'], '1')
 
     @tier1
     def test_negative_create_with_name(self):
