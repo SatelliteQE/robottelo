@@ -1132,7 +1132,7 @@ class DockerContainerTestCase(APITestCase):
         cls.cr_external = entities.DockerComputeResource(
             name=gen_string('alpha'),
             organization=[cls.org],
-            url=settings.docker.external_url,
+            url='http://{0}:2375'.format(settings.server.hostname),
         ).create()
         install_katello_ca()
 
