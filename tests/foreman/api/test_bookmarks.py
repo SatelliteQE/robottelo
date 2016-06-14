@@ -195,7 +195,7 @@ class BookmarkTestCase(APITestCase):
         'public' parameter
         2. List the bookmarks
 
-        @Assert: Error notification – public is required, Bookmark is not
+        @Assert: Error notification - public is required, Bookmark is not
         created (not listed)
 
         @BZ: 1302725
