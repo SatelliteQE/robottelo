@@ -317,7 +317,7 @@ class MultinetworkTestCase(UITestCase):
         6. Select 'Managed'
         7. Select 'Virtual Nic'
         8. attached_to: identifier of primary interface(eth0)
-        9. Go to Infrastructure → Subnet
+        9. Go to Infrastructure -> Subnet
         10. Set IPAM mode to 'Internal DB'
         11. BootMode 'DHCP'
         12. Fill all other details correctly in new host form and submit it
