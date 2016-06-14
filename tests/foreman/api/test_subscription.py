@@ -8,10 +8,11 @@ from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from robottelo.api.utils import upload_manifest
 from robottelo import manifests
-from robottelo.decorators import skip_if_not_set, tier1
+from robottelo.decorators import run_in_one_thread, skip_if_not_set, tier1
 from robottelo.test import APITestCase
 
 
+@run_in_one_thread
 class SubscriptionsTestCase(APITestCase):
     """Tests for the ``subscriptions`` path."""
 

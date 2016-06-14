@@ -27,6 +27,7 @@ from robottelo.datafactory import (
     valid_labels_list,
 )
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
@@ -405,7 +406,6 @@ class RepositoryTestCase(APITestCase):
         self.assertEqual(repo.gpg_key.id, gpg_key_2.id)
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1329292)
     @tier2
     def test_positive_update_contents(self):
         """Create a repository and upload RPM contents.
@@ -607,6 +607,7 @@ class RepositoryTestCase(APITestCase):
                     repo.read()
 
 
+@run_in_one_thread
 class RepositorySyncTestCase(APITestCase):
     """Tests for ``/katello/api/repositories/:id/sync``."""
 

@@ -28,7 +28,6 @@ from robottelo.decorators import (
 )
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
-from unittest import skipIf
 
 
 # Some tests repeatedly publish content views or promote content view versions.
@@ -308,7 +307,6 @@ class ContentViewCreateTestCase(APITestCase):
                     entities.ContentView(name=name).create()
 
 
-@skipIf(bz_bug_is_open(1329292), 'Skipping due to open Bugzilla bug #1329292')
 class ContentViewPublishPromoteTestCase(APITestCase):
     """Tests for publishing and promoting content views."""
 
