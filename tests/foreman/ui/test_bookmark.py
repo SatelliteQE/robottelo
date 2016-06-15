@@ -68,6 +68,7 @@ class BookmarkTestCase(UITestCase):
         """Restore previous 'entries_per_page' value"""
         cls.per_page.value = cls.saved_per_page
         cls.per_page.update({'value'})
+        super(BookmarkTestCase, cls).tearDownClass()
 
     @classmethod
     def getOneEntity(cls):

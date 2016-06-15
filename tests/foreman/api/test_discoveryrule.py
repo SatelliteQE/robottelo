@@ -25,6 +25,7 @@ class DiscoveryRuleTestCase(APITestCase):
         it as ``self.discovery_rule``, set its ``hostgroup`` and ``search_``
         fields, and give its ``hostname`` field a default value.
         """
+        super(DiscoveryRuleTestCase, self).setUp()
         searches = [
             'CPU_Count = 1',
             'disk_count < 5',

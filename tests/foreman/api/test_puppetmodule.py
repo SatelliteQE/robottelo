@@ -20,6 +20,7 @@ class RepositorySearchTestCase(APITestCase):
 
         The repository belongs to ``cls.product``.
         """
+        super(RepositorySearchTestCase, self).setUp()
         self.repository = entities.Repository(
             content_type='puppet',
             product=self.product,
@@ -70,6 +71,7 @@ class ContentViewVersionSearchTestCase(APITestCase):
 
         The content view belongs to organization ``cls.product.organization``.
         """
+        super(ContentViewVersionSearchTestCase, self).setUp()
         self.content_view = entities.ContentView(
             organization=self.product.organization,
         ).create()

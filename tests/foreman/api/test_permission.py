@@ -186,6 +186,7 @@ class UserRoleTestCase(APITestCase):
 
     def setUp(self):  # noqa
         """Create a set of credentials and a user."""
+        super(UserRoleTestCase, self).setUp()
         self.cfg = get_nailgun_config()
         self.cfg.auth = (gen_alphanumeric(), gen_alphanumeric())  # user, pass
         self.user = entities.User(

@@ -206,6 +206,7 @@ class IncrementalUpdateTestCase(TestCase):
         for virt_machine in cls.vm:
             virt_machine.destroy()
         entity_mixins.TASK_TIMEOUT = cls.old_task_timeout
+        super(IncrementalUpdateTestCase, cls).tearDownClass()
 
     @staticmethod
     def setup_vm(client, act_key, org_name):
