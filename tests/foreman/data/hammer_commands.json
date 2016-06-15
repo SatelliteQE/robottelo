@@ -121,6 +121,12 @@
               "value": "HOST_COLLECTION_ID"
             },
             {
+              "help": "Organization ID to search by",
+              "name": "host-collection-organization-id",
+              "shortname": null,
+              "value": "HOST_COLLECTION_ORGANIZATION_ID"
+            },
+            {
               "help": "ID of the activation key",
               "name": "id",
               "shortname": null,
@@ -693,6 +699,12 @@
               "name": "host-collection-id",
               "shortname": null,
               "value": "HOST_COLLECTION_ID"
+            },
+            {
+              "help": "Organization ID to search by",
+              "name": "host-collection-organization-id",
+              "shortname": null,
+              "value": "HOST_COLLECTION_ORGANIZATION_ID"
             },
             {
               "help": "ID of the activation key",
@@ -3386,6 +3398,12 @@
               "name": "host-collection-ids",
               "shortname": null,
               "value": "HOST_COLLECTION_IDS"
+            },
+            {
+              "help": "Comma separated list of values.",
+              "name": "host-collection-organization-ids",
+              "shortname": null,
+              "value": "HOST_COLLECTION_ORGANIZATION_IDS"
             },
             {
               "help": "Comma separated list of values.",
@@ -12426,6 +12444,24 @@
               "value": "NAME"
             },
             {
+              "help": "Organization name to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "Organization ID to search by",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "Organization label to search by",
+              "name": "organization-label",
+              "shortname": null,
+              "value": "ORGANIZATION_LABEL"
+            },
+            {
               "help": "print help",
               "name": "help",
               "shortname": "h",
@@ -12449,6 +12485,30 @@
               "name": "name",
               "shortname": null,
               "value": "NAME"
+            },
+            {
+              "help": "New host collection name",
+              "name": "new-name",
+              "shortname": null,
+              "value": "NEW_NAME"
+            },
+            {
+              "help": "Organization name to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "Organization ID to search by",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "Organization label to search by",
+              "name": "organization-label",
+              "shortname": null,
+              "value": "ORGANIZATION_LABEL"
             },
             {
               "help": "print help",
@@ -12543,6 +12603,24 @@
               "value": "NAME"
             },
             {
+              "help": "Organization name to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "Organization ID to search by",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "Organization label to search by",
+              "name": "organization-label",
+              "shortname": null,
+              "value": "ORGANIZATION_LABEL"
+            },
+            {
               "help": "print help",
               "name": "help",
               "shortname": "h",
@@ -12586,6 +12664,24 @@
                   "value": "NAME"
                 },
                 {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID to search by",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
+                },
+                {
                   "help": "print help",
                   "name": "help",
                   "shortname": "h",
@@ -12624,6 +12720,24 @@
               "name": "name",
               "shortname": null,
               "value": "NAME"
+            },
+            {
+              "help": "Organization name to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "Organization ID to search by",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "Organization label to search by",
+              "name": "organization-label",
+              "shortname": null,
+              "value": "ORGANIZATION_LABEL"
             },
             {
               "help": "print help",
@@ -12766,6 +12880,24 @@
                   "value": "NAME"
                 },
                 {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID to search by",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
+                },
+                {
                   "help": "comma-separated list of packages to install Comma separated list of values.",
                   "name": "packages",
                   "shortname": null,
@@ -12797,6 +12929,24 @@
                   "value": "NAME"
                 },
                 {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID to search by",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
+                },
+                {
                   "help": "comma-separated list of packages to install Comma separated list of values.",
                   "name": "packages",
                   "shortname": null,
@@ -12826,6 +12976,24 @@
                   "name": "name",
                   "shortname": null,
                   "value": "NAME"
+                },
+                {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID to search by",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
                 },
                 {
                   "help": "comma-separated list of packages to install Comma separated list of values.",
@@ -12873,6 +13041,24 @@
                   "value": "NAME"
                 },
                 {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID to search by",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
+                },
+                {
                   "help": "PACKAGE-GROUPS comma-separated list of package-groups to install Comma separated list of values.",
                   "name": "package-groups",
                   "shortname": null,
@@ -12904,6 +13090,24 @@
                   "value": "NAME"
                 },
                 {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID to search by",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
+                },
+                {
                   "help": "PACKAGE-GROUPS comma-separated list of package-groups to install Comma separated list of values.",
                   "name": "package-groups",
                   "shortname": null,
@@ -12933,6 +13137,24 @@
                   "name": "name",
                   "shortname": null,
                   "value": "NAME"
+                },
+                {
+                  "help": "Organization name to search by",
+                  "name": "organization",
+                  "shortname": null,
+                  "value": "ORGANIZATION_NAME"
+                },
+                {
+                  "help": "Organization ID to search by",
+                  "name": "organization-id",
+                  "shortname": null,
+                  "value": "ORGANIZATION_ID"
+                },
+                {
+                  "help": "Organization label to search by",
+                  "name": "organization-label",
+                  "shortname": null,
+                  "value": "ORGANIZATION_LABEL"
                 },
                 {
                   "help": "PACKAGE-GROUPS comma-separated list of package-groups to install Comma separated list of values.",
@@ -12978,6 +13200,24 @@
               "name": "name",
               "shortname": null,
               "value": "NAME"
+            },
+            {
+              "help": "Organization name to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "Organization ID to search by",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "Organization label to search by",
+              "name": "organization-label",
+              "shortname": null,
+              "value": "ORGANIZATION_LABEL"
             },
             {
               "help": "print help",
@@ -13033,6 +13273,30 @@
               "name": "new-name",
               "shortname": null,
               "value": "NEW_NAME"
+            },
+            {
+              "help": "",
+              "name": "new-organization-id",
+              "shortname": null,
+              "value": "NEW_ORGANIZATION_ID"
+            },
+            {
+              "help": "Organization name to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "Organization ID to search by",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "Organization label to search by",
+              "name": "organization-label",
+              "shortname": null,
+              "value": "ORGANIZATION_LABEL"
             },
             {
               "help": "Whether or not the host collection may have unlimited hosts One of true/false, yes/no, 1/0.",
