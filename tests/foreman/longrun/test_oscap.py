@@ -19,13 +19,20 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.decorators import run_only_on, skip_if_not_set, stubbed, tier4
+from robottelo.decorators import (
+    run_in_one_thread,
+    run_only_on,
+    skip_if_not_set,
+    stubbed,
+    tier4,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import set_context, make_hostgroup, make_oscappolicy
 from robottelo.ui.session import Session
 from robottelo.vm import VirtualMachine
 
 
+@run_in_one_thread
 class OpenScapTestCase(UITestCase):
     """Implements Product tests in UI"""
 

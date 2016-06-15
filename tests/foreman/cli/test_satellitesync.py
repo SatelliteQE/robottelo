@@ -18,7 +18,13 @@ from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.settings import Settings
 from robottelo.cli.subscription import Subscription
-from robottelo.decorators import run_only_on, skip_if_not_set, stubbed, tier3
+from robottelo.decorators import (
+    run_in_one_thread,
+    run_only_on,
+    skip_if_not_set,
+    stubbed,
+    tier3,
+)
 from robottelo.test import CLITestCase
 
 
@@ -130,6 +136,7 @@ class RepositoryExportTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
+    @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_export_rh_product(self):

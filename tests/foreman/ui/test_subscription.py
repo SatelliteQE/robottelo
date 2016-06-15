@@ -2,12 +2,13 @@
 from nailgun import entities
 from robottelo import manifests
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
-from robottelo.decorators import skip_if_not_set, tier1
+from robottelo.decorators import run_in_one_thread, skip_if_not_set, tier1
 from robottelo.test import UITestCase
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
+@run_in_one_thread
 class SubscriptionTestCase(UITestCase):
     """Implements subscriptions/manifests tests in UI"""
 
