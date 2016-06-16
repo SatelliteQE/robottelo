@@ -302,6 +302,40 @@ class ActivationKeyTestCase(APITestCase):
         act_key = act_key.update(['host_collection'])
         self.assertEqual(len(act_key.host_collection), 2)
 
+    @tier2
+    def test_positive_remove_host_collection(self):
+        """Disassociate host collection from the activation key
+
+        @Assert:
+
+        1. By default, an activation key is associated with no host
+           collections.
+        2. Associating host collection with activation key add it to the list.
+        3. Disassociating host collection from the activation key actually
+           removes it from the list
+
+        @Feature: ActivationKey
+        """
+        org = entities.Organization().create()
+
+        # An activation key has no host collections by default.
+        act_key = entities.ActivationKey(organization=org).create()
+        self.assertEqual(len(act_key.host_collection), 0)
+
+        host_collection = entities.HostCollection(organization=org).create()
+
+        # Associate host collection with activation key.
+        act_key.add_host_collection(data={
+            'host_collection_ids': [host_collection.id],
+        })
+        self.assertEqual(len(act_key.read().host_collection), 1)
+
+        # Disassociate host collection from the activation key.
+        act_key.remove_host_collection(data={
+            'host_collection_ids': [host_collection.id],
+        })
+        self.assertEqual(len(act_key.read().host_collection), 0)
+
     @tier1
     def test_positive_update_auto_attach(self):
         """Create an activation key, then update the auto_attach
