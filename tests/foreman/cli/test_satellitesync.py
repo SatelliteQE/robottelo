@@ -28,6 +28,7 @@ from robottelo.decorators import (
 from robottelo.test import CLITestCase
 
 
+@run_in_one_thread
 class RepositoryExportTestCase(CLITestCase):
     """Tests for exporting a repository via CLI"""
 
@@ -136,7 +137,6 @@ class RepositoryExportTestCase(CLITestCase):
         self.assertEqual(result.return_code, 0)
         self.assertGreaterEqual(len(result.stdout), 1)
 
-    @run_in_one_thread
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_export_rh_product(self):
