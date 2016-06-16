@@ -27,7 +27,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
 from robottelo.constants import DEFAULT_ORG, DEFAULT_ORG_ID
 from robottelo.performance.constants import NUM_THREADS
-from robottelo.performance.graph import(
+from robottelo.performance.graph import (
     generate_bar_chart_stat,
     generate_line_chart_raw_candlepin,
     generate_line_chart_stat_bucketized_candlepin,

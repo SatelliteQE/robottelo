@@ -273,11 +273,9 @@ class Host(Base):
         """Register a host with subscription and information.
 
         Usage:
-
             hammer host subscription register [OPTIONS]
 
         Options:
-
             --content-view CONTENT_VIEW_NAME                    Content view
                                                                 name to search
                                                                 by
@@ -295,8 +293,8 @@ class Host(Base):
                                                                 environment
                                                                 name to search
                                                                 by
-            --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID ID of the
-                                                                environment
+            --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID  ID of the
+                                                                 environment
             --name NAME                                         Name of the
                                                                 host
             --organization ORGANIZATION_NAME                    Organization
@@ -333,13 +331,11 @@ class Host(Base):
         """Unregister the host as a subscription consumer.
 
         Usage:
-
             hammer host subscription unregister [OPTIONS]
 
         Options:
-
             --host HOST_NAME              Name to search by
-            --host-id HOST_ID
+            --host-id HOST_ID             Host ID
         """
         cls.command_sub = 'subscription unregister'
         return cls.execute(cls._construct_command(options))
