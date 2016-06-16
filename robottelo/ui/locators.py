@@ -2109,6 +2109,34 @@ locators = LocatorDict({
 
     # Packages
     "package.rpm_name": (By.XPATH, "//a[contains(., '%s')]"),
+    "package.description": (By.XPATH, "//span[text()='Description']/../.."
+                                      "/span[contains(@class, 'info-value')]"),
+    "package.summary": (By.XPATH, "//span[text()='Summary']/../.."
+                                  "/span[contains(@class, 'info-value')]"),
+    "package.group": (By.XPATH, "//span[text()='Group']/../.."
+                                "/span[contains(@class, 'info-value')]"),
+    "package.license": (By.XPATH, "//span[text()='License']/../.."
+                                  "/span[contains(@class, 'info-value')]"),
+    "package.url": (By.XPATH, "//span[text()='Url']/../.."
+                              "/span[contains(@class, 'info-value')]"),
+    "package.size": (By.XPATH, "//span[text()='Size']/../.."
+                               "/span[contains(@class, 'info-value')]"),
+    "package.filename": (By.XPATH, "//span[text()='Filename']/../.."
+                                   "/span[contains(@class, 'info-value')]"),
+    "package.checksum": (By.XPATH, "//span[text()='Checksum']/../.."
+                                   "/span[contains(@class, 'info-value')]"),
+    "package.checksum_type": (
+        By.XPATH, "//span[text()='Checksum Type']/../.."
+                  "/span[contains(@class, 'info-value')]"),
+    "package.source_rpm": (
+        By.XPATH, "//span[text()='Source RPM']/../.."
+                  "/span[contains(@class, 'info-value')]"),
+    "package.build_host": (
+        By.XPATH, "//span[text()='Build Host']/../.."
+                  "/span[contains(@class, 'info-value')]"),
+    "package.build_time": (
+        By.XPATH, "//span[text()='Build Time']/../.."
+                  "/span[contains(@class, 'info-value')]"),
 
     # System Groups
     "system-groups.new": (
