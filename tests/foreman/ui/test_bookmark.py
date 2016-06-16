@@ -89,7 +89,7 @@ class BookmarkTestCase(UITestCase):
         3. Choose "bookmark this search" from the search drop-down menu
         4. Input a random name for a bookmark name
         5. Verify the query field is automatically populated and the public
-        option is checked
+           option is checked
         6. Click the create button
         7. Verify that bookmark's name appears in the search dropdown
         8. List the bookmarks (Navigate to Administer -> Bookmarks)
@@ -162,12 +162,12 @@ class BookmarkTestCase(UITestCase):
         3. Choose "bookmark this search" from the search drop-down menu
         4. Input a random name for a bookmark name
         5. Verify the query field is automatically populated and the public
-        option is checked
+           option is checked
         6. Click the create button
         7. Choose "bookmark this search" from the search drop-down menu
         8. Input a random name for a bookmark name
         9. Verify the query field is automatically populated and the public
-        option is unchecked
+           option is unchecked
         10. Click the create button
         11. Verify that bookmark's name appears in the search dropdown
         12. List the bookmarks (Navigate to Administer -> Bookmarks)

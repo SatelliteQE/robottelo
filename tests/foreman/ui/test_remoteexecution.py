@@ -318,10 +318,10 @@ class RemoteExecutionTestCase(UITestCase):
 
         1. Navigate to the hosts page and select all provisioned hosts
         2. Click Select Action -> Run Job
-        2. Select the created job and appropriate template
-        3. Click submit
+        3. Select the created job and appropriate template
+        4. Click submit
 
-        @Assert: Verify the job was succesfully ran on the provisioned hosts
+        @Assert: Verify the job was successfully ran on the provisioned hosts
 
         @Status: Manual
         """
