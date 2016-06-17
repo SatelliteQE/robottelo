@@ -11,38 +11,59 @@ from robottelo.cli.factory import (
     make_partition_table,
     make_template,
 )
-from robottelo.datafactory import valid_data_list, invalid_values_list
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1, tier2
+from robottelo.datafactory import (
+    datacheck,
+    invalid_values_list,
+    valid_data_list,
+)
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import CLITestCase
 
-NEGATIVE_DELETE_DATA = (
-    {'id': gen_string("alpha")},
-    {'id': None},
-    {'id': ""},
-    {},
-    {'id': -1},
-)
+
+@datacheck
+def negative_delete_data():
+    """Returns a list of invalid data for operating system deletion"""
+    return [
+        {'id': gen_string("alpha")},
+        {'id': None},
+        {'id': ""},
+        {},
+        {'id': -1},
+    ]
 
 
 class OperatingSystemTestCase(CLITestCase):
     """Test class for Operating System CLI."""
 
-    # Issues
-    @skip_if_bug_open('redmine', 4547)
     @run_only_on('sat')
     @tier1
-    def test_verify_redmine_4547(self):
+    def test_positive_search_by_name(self):
         """Search for newly created OS by name
 
         @feature: Operating System - Search
 
         @assert: Operating System is created and listed
-
-        @bz: redmine#4547
         """
         os_list_before = OperatingSys.list()
         os = make_os()
         os_list = OperatingSys.list({'search': 'name=%s' % os['name']})
+        os_info = OperatingSys.info({'id': os_list[0]['id']})
+        self.assertEqual(os['id'], os_info['id'])
+        os_list_after = OperatingSys.list()
+        self.assertGreater(len(os_list_after), len(os_list_before))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_search_by_title(self):
+        """Search for newly created OS by title
+
+        @feature: Operating System - Search
+
+        @assert: Operating System is created and listed
+        """
+        os_list_before = OperatingSys.list()
+        os = make_os()
+        os_list = OperatingSys.list({'search': 'title=\\"%s\\"' % os['title']})
         os_info = OperatingSys.info({'id': os_list[0]['id']})
         self.assertEqual(os['id'], os_info['id'])
         os_list_after = OperatingSys.list()
@@ -226,7 +247,7 @@ class OperatingSystemTestCase(CLITestCase):
 
         @assert: Operating System is not deleted
         """
-        for test_data in NEGATIVE_DELETE_DATA:
+        for test_data in negative_delete_data():
             with self.subTest(test_data):
                 os = make_os()
                 # The delete method requires the ID which we will not pass
