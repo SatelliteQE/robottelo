@@ -1,6 +1,7 @@
 """Unit tests for the ``architectures`` paths.
 
 @Requirement: Architecture
+@CaseAutomation: Automated
 @CaseLevel: Acceptance
 @CaseComponent: API
 @TestType: Functional
