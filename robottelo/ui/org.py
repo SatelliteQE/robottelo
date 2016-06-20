@@ -2,7 +2,7 @@
 """Implements Org UI"""
 
 from robottelo.constants import FILTER
-from robottelo.ui.base import Base, UINoSuchElementError
+from robottelo.ui.base import Base
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
@@ -18,12 +18,12 @@ class Org(Base):
         """Specify locator for org entity search procedure"""
         return locators['org.org_name']
 
-    def _configure_org(self, users=None, proxies=None, subnets=None,
+    def _configure_org(self, users=None, capsules=None, subnets=None,
                        resources=None, medias=None, templates=None,
-                       domains=None, envs=None, hostgroups=None,
-                       locations=None, new_users=None, new_proxies=None,
+                       ptables=None, domains=None, envs=None, hostgroups=None,
+                       locations=None, new_users=None, new_capsules=None,
                        new_subnets=None, new_resources=None, new_medias=None,
-                       new_templates=None, new_domains=None,
+                       new_templates=None, new_ptables=None, new_domains=None,
                        new_envs=None, new_hostgroups=None, new_locations=None,
                        select=None):
         """Configures different entities of selected organization."""
@@ -35,10 +35,10 @@ class Org(Base):
                                   tab_locator=loc['context.tab_users'],
                                   new_entity_list=new_users,
                                   entity_select=select)
-        if proxies or new_proxies:
-            self.configure_entity(proxies, FILTER['org_proxy'],
-                                  tab_locator=loc['context.tab_sm_prx'],
-                                  new_entity_list=new_proxies,
+        if capsules or new_capsules:
+            self.configure_entity(capsules, FILTER['org_capsules'],
+                                  tab_locator=loc['context.tab_capsules'],
+                                  new_entity_list=new_capsules,
                                   entity_select=select)
         if subnets or new_subnets:
             self.configure_entity(subnets, FILTER['org_subnet'],
@@ -59,6 +59,11 @@ class Org(Base):
             self.configure_entity(templates, FILTER['org_template'],
                                   tab_locator=loc['context.tab_template'],
                                   new_entity_list=new_templates,
+                                  entity_select=select)
+        if ptables or new_ptables:
+            self.configure_entity(ptables, FILTER['org_ptable'],
+                                  tab_locator=loc['context.tab_ptable'],
+                                  new_entity_list=new_ptables,
                                   entity_select=select)
         if domains or new_domains:
             self.configure_entity(domains, FILTER['org_domain'],
@@ -82,9 +87,9 @@ class Org(Base):
                                   entity_select=select)
 
     def create(self, org_name=None, label=None, desc=None, users=None,
-               proxies=None, subnets=None, resources=None, medias=None,
-               templates=None, domains=None, envs=None, hostgroups=None,
-               locations=None, select=True):
+               capsules=None, subnets=None, resources=None, medias=None,
+               templates=None, ptables=None, domains=None, envs=None,
+               hostgroups=None, locations=None, select=True):
         """Create Organization in UI."""
         self.click(locators['org.new'])
         if self.wait_until_element(locators['org.name']):
@@ -97,48 +102,45 @@ class Org(Base):
         edit_locator = self.wait_until_element(locators['org.proceed_to_edit'])
         if edit_locator:
             edit_locator.click()
-            self._configure_org(users=users, proxies=proxies,
-                                subnets=subnets, resources=resources,
-                                medias=medias, templates=templates,
-                                domains=domains, envs=envs,
-                                hostgroups=hostgroups, locations=locations,
-                                select=select)
+            self._configure_org(
+                users=users, capsules=capsules, subnets=subnets,
+                resources=resources, medias=medias, templates=templates,
+                ptables=ptables, domains=domains, envs=envs,
+                hostgroups=hostgroups, locations=locations, select=select,
+            )
             self.click(common_locators['submit'])
 
-    def update(self, org_name, new_name=None, users=None, proxies=None,
+    def update(self, org_name, new_name=None, users=None, capsules=None,
                subnets=None, resources=None, medias=None, templates=None,
-               domains=None, envs=None, hostgroups=None, locations=None,
-               new_locations=None, new_users=None, new_proxies=None,
-               new_subnets=None, new_resources=None, new_medias=None,
-               new_templates=None, new_domains=None, new_envs=None,
-               new_hostgroups=None, select=False, new_desc=None):
+               ptables=None, domains=None, envs=None, hostgroups=None,
+               locations=None, new_locations=None, new_users=None,
+               new_capsules=None, new_subnets=None, new_resources=None,
+               new_medias=None, new_templates=None, new_ptables=None,
+               new_domains=None, new_envs=None, new_hostgroups=None,
+               select=False, new_desc=None):
         """Update Organization in UI."""
-        org_object = self.search(org_name)
-        self.wait_for_ajax()
-        if org_object is None:
-            raise UINoSuchElementError(
-                'Unable to find the Organization {0}'.format(org_name))
-        org_object.click()
-        self.wait_for_ajax()
+        self.click(self.search(org_name))
         if new_name:
             if self.wait_until_element(locators['org.name']):
                 self.field_update('org.name', new_name)
         if new_desc:
             self.field_update('org.desc', new_desc)
         self._configure_org(
-            users=users, proxies=proxies,
+            users=users, capsules=capsules,
             subnets=subnets, resources=resources,
             medias=medias, templates=templates,
+            ptables=ptables,
             domains=domains, envs=envs,
             hostgroups=hostgroups,
             locations=locations,
             new_locations=new_locations,
             new_users=new_users,
-            new_proxies=new_proxies,
+            new_capsules=new_capsules,
             new_subnets=new_subnets,
             new_resources=new_resources,
             new_medias=new_medias,
             new_templates=new_templates,
+            new_ptables=new_ptables,
             new_domains=new_domains,
             new_envs=new_envs,
             new_hostgroups=new_hostgroups,

@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements Locations UI"""
 from robottelo.constants import FILTER
-from robottelo.ui.base import Base, UINoSuchElementError
+from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
@@ -17,15 +17,16 @@ class Location(Base):
         """Specify locator for Locations entity search procedure"""
         return locators['location.select_name']
 
-    def _configure_location(self, users=None, proxies=None, subnets=None,
+    def _configure_location(self, users=None, capsules=None, subnets=None,
                             resources=None, medias=None, templates=None,
-                            domains=None, envs=None, hostgroups=None,
-                            organizations=None, new_users=None,
-                            new_proxies=None, new_subnets=None,
-                            new_resources=None, new_medias=None,
-                            new_templates=None, new_domains=None,
-                            new_envs=None, new_hostgroups=None,
-                            new_organizations=None, select=None):
+                            ptables=None, domains=None, envs=None,
+                            hostgroups=None, organizations=None,
+                            new_users=None, new_capsules=None,
+                            new_subnets=None, new_resources=None,
+                            new_medias=None, new_templates=None,
+                            new_ptables=None, new_domains=None, new_envs=None,
+                            new_hostgroups=None, new_organizations=None,
+                            select=None):
         """Configures different entities of selected location."""
 
         loc = tab_locators
@@ -35,10 +36,10 @@ class Location(Base):
                                   tab_locator=loc['context.tab_users'],
                                   new_entity_list=new_users,
                                   entity_select=select)
-        if proxies or new_proxies:
-            self.configure_entity(proxies, FILTER['loc_proxy'],
-                                  tab_locator=loc['context.tab_sm_prx'],
-                                  new_entity_list=new_proxies,
+        if capsules or new_capsules:
+            self.configure_entity(capsules, FILTER['loc_capsules'],
+                                  tab_locator=loc['context.tab_capsules'],
+                                  new_entity_list=new_capsules,
                                   entity_select=select)
         if subnets or new_subnets:
             self.configure_entity(subnets, FILTER['loc_subnet'],
@@ -59,6 +60,11 @@ class Location(Base):
             self.configure_entity(templates, FILTER['loc_template'],
                                   tab_locator=loc['context.tab_template'],
                                   new_entity_list=new_templates,
+                                  entity_select=select)
+        if ptables or new_ptables:
+            self.configure_entity(ptables, FILTER['loc_ptable'],
+                                  tab_locator=loc['context.tab_ptable'],
+                                  new_entity_list=new_ptables,
                                   entity_select=select)
         if domains or new_domains:
             self.configure_entity(domains, FILTER['loc_domain'],
@@ -81,23 +87,21 @@ class Location(Base):
                                   new_entity_list=new_organizations,
                                   entity_select=select)
 
-    def create(self, name, parent=None, users=None, proxies=None,
+    def create(self, name, parent=None, users=None, capsules=None,
                subnets=None, resources=None, medias=None, templates=None,
-               domains=None, envs=None, hostgroups=None, organizations=None,
-               select=True):
+               ptables=None, domains=None, envs=None, hostgroups=None,
+               organizations=None, select=True):
         """Creates new Location from UI."""
         self.click(locators['location.new'])
-        if self.wait_until_element(locators['location.name']) is None:
-            raise UINoSuchElementError('Could not create new location.')
-        self.field_update('location.name', name)
+        self.text_field_update(locators['location.name'], name)
         if parent:
             self.select(locators['location.parent'], parent)
         self.click(common_locators['submit'])
         self._configure_location(
-            users=users, proxies=proxies,
+            users=users, capsules=capsules,
             subnets=subnets, resources=resources,
             medias=medias, templates=templates,
-            domains=domains, envs=envs,
+            ptables=ptables, domains=domains, envs=envs,
             hostgroups=hostgroups,
             organizations=organizations,
             select=select,
@@ -105,32 +109,33 @@ class Location(Base):
         self.click(common_locators['submit'])
 
     def update(self, loc_name, new_name=None, users=None,
-               proxies=None, subnets=None, resources=None, medias=None,
-               templates=None, domains=None, envs=None, hostgroups=None,
-               organizations=None, new_organizations=None,
-               new_users=None, new_proxies=None, new_subnets=None,
+               capsules=None, subnets=None, resources=None, medias=None,
+               templates=None, ptables=None, domains=None, envs=None,
+               hostgroups=None, organizations=None, new_organizations=None,
+               new_users=None, new_capsules=None, new_subnets=None,
                new_resources=None, new_medias=None, new_templates=None,
-               new_domains=None, new_envs=None, new_hostgroups=None,
-               select=False):
+               new_ptables=None, new_domains=None, new_envs=None,
+               new_hostgroups=None, select=False):
         """Update Location in UI."""
         org_object = self.search(loc_name)
         self.click(org_object)
         if new_name:
             if self.wait_until_element(locators['location.name']):
                 self.field_update('location.name', new_name)
-        self._configure_location(users=users, proxies=proxies,
+        self._configure_location(users=users, capsules=capsules,
                                  subnets=subnets, resources=resources,
                                  medias=medias, templates=templates,
-                                 domains=domains, envs=envs,
+                                 ptables=ptables, domains=domains, envs=envs,
                                  hostgroups=hostgroups,
                                  organizations=organizations,
                                  new_organizations=new_organizations,
                                  new_users=new_users,
-                                 new_proxies=new_proxies,
+                                 new_capsules=new_capsules,
                                  new_subnets=new_subnets,
                                  new_resources=new_resources,
                                  new_medias=new_medias,
                                  new_templates=new_templates,
+                                 new_ptables=new_ptables,
                                  new_domains=new_domains,
                                  new_envs=new_envs,
                                  new_hostgroups=new_hostgroups,

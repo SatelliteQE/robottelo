@@ -120,11 +120,12 @@ def make_org(session, **kwargs):
         u'label': None,
         u'desc': None,
         u'users': None,
-        u'proxies': None,
+        u'capsules': None,
         u'subnets': None,
         u'resources': None,
         u'medias': None,
         u'templates': None,
+        u'ptables': None,
         u'domains': None,
         u'envs': None,
         u'hostgroups': None,
@@ -143,11 +144,12 @@ def make_loc(session, **kwargs):
         u'name': None,
         u'parent': None,
         u'users': None,
-        u'proxies': None,
+        u'capsules': None,
         u'subnets': None,
         u'resources': None,
         u'medias': None,
         u'templates': None,
+        u'ptables': None,
         u'domains': None,
         u'envs': None,
         u'hostgroups': None,
@@ -498,11 +500,12 @@ def make_arch(session, org=None, loc=None, force_context=True, **kwargs):
 def make_partitiontable(session, org=None, loc=None, force_context=True,
                         **kwargs):
     """Creates new Partition table from webUI"""
-
     create_args = {
-        u'custom_really': True,
+        u'audit_comment': None,
+        u'default': False,
         u'name': None,
         u'os_family': None,
+        u'snippet': None,
         u'template_path': None,
     }
     page = session.nav.go_to_partition_tables
