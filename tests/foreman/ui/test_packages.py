@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Packages UI"""
+"""Test class for Packages UI
+
+@Requirement: Packages
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from nailgun import entities
@@ -37,10 +52,12 @@ class PackagesTestCase(UITestCase):
         """Create product with yum repository assigned to it. Search for
         packages inside of it
 
-        @Feature: Packages
+        @id: e182a89f-74e4-4b29-8152-1ea3bd014fd3
 
         @Assert: Content search functionality works as intended and expected
         packages are present inside of repository
+
+        @CaseLevel: Integration
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
@@ -54,10 +71,12 @@ class PackagesTestCase(UITestCase):
         Search for packages inside of these repositories. Make sure that unique
         packages present in corresponding repos.
 
-        @Feature: Packages
+        @id: 249ac04b-8e31-42e9-ac37-08608bf867a1
 
         @Assert: Content search functionality works as intended and expected
         packages are present inside of repositories
+
+        @CaseLevel: Integration
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
@@ -76,10 +95,12 @@ class PackagesTestCase(UITestCase):
         package inside of it and then open it. Check all the details about that
         package
 
-        @Feature: Packages
+        @id: 57625386-4a9e-4bea-b2d5-d97326043150
 
         @Assert: Package is present inside of repository and has all expected
         values in details section
+
+        @CaseLevel: Integration
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)

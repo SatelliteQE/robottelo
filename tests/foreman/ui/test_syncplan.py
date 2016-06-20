@@ -1,4 +1,19 @@
-"""Test class for Sync Plan UI"""
+"""Test class for Sync Plan UI
+
+@Requirement: Syncplan
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from datetime import datetime, timedelta
 from fauxfactory import gen_string
@@ -83,7 +98,7 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create Sync Plan with valid name values
 
-        @Feature: Content Sync Plan - Positive Create
+        @id: ceb125a4-449a-4a86-a94f-2a28884e3a41
 
         @Assert: Sync Plan is created
         """
@@ -103,7 +118,7 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_create_with_description(self):
         """Create Sync Plan with valid desc values
 
-        @Feature: Content Sync Plan - Positive Create
+        @id: 6ccd2229-dcc3-4090-9ec9-84fea837c50c
 
         @Assert: Sync Plan is created
         """
@@ -124,7 +139,7 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_create_with_sync_interval(self):
         """Create Sync Plan with valid sync intervals
 
-        @Feature: Content Sync Plan - Positive Create
+        @id: 8916285a-c8d2-415a-b694-c32727e93ac0
 
         @Assert: Sync Plan is created
         """
@@ -145,9 +160,11 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_create_with_start_time(self):
         """Create Sync plan with specified start time
 
-        @Feature: Content Sync Plan - Positive Create
+        @id: a4709229-325c-4027-b4dc-10a226c4d7bf
 
         @Assert: Sync Plan is created with the specified time.
+
+        @CaseLevel: Integration
         """
         plan_name = gen_string('alpha')
         startdate = datetime.now() + timedelta(minutes=10)
@@ -175,9 +192,11 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_create_with_start_date(self):
         """Create Sync plan with specified start date
 
-        @Feature: Content Sync Plan - Positive Create
+        @id: 020b3aff-7216-4ad6-b95e-8ffaf68cba20
 
         @Assert: Sync Plan is created with the specified date
+
+        @CaseLevel: Integration
         """
         plan_name = gen_string('alpha')
         startdate = datetime.now() + timedelta(days=10)
@@ -202,7 +221,7 @@ class SyncPlanTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create Sync Plan with invalid names
 
-        @Feature: Content Sync Plan - Negative Create
+        @id: 64724669-0289-4e8a-a44d-eb47e094ef18
 
         @Assert: Sync Plan is not created
         """
@@ -222,7 +241,7 @@ class SyncPlanTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create Sync Plan with an existing name
 
-        @Feature: Content Sync Plan - Positive Create
+        @id: 6d042f9b-82f2-4795-aa48-4603c1698aaa
 
         @Assert: Sync Plan cannot be created with existing name
         """
@@ -243,7 +262,7 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update Sync plan's name
 
-        @Feature: Content Sync Plan - Positive Update name
+        @id: 6b22468f-6abc-4a63-b283-28c7816a5e86
 
         @Assert: Sync Plan's name is updated
         """
@@ -265,7 +284,7 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_update_interval(self):
         """Update Sync plan's interval
 
-        @Feature: Content Sync Plan - Positive Update interval
+        @id: 35820efd-099e-45dd-8298-77d5f35c26db
 
         @Assert: Sync Plan's interval is updated
         """
@@ -292,9 +311,11 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_update_product(self):
         """Update Sync plan and associate products
 
-        @Feature: Content Sync Plan - Positive Update add products
+        @id: 19bdb36a-ed2a-4bbb-9d8d-9ad9f6a800a2
 
         @Assert: Sync Plan has the associated product
+
+        @CaseLevel: Integration
         """
         strategy, value = locators['sp.prd_select']
         product = entities.Product(organization=self.organization).create()
@@ -319,9 +340,11 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_update_and_disassociate_product(self):
         """Update Sync plan and disassociate products
 
-        @Feature: Content Sync Plan - Positive Update remove products
+        @id: 860bd88e-a425-4218-b02c-64402ee8af9d
 
         @Assert: Sync Plan does not have the associated product
+
+        @CaseLevel: Integration
         """
         plan_name = gen_string('utf8')
         strategy, value = locators['sp.prd_select']
@@ -353,7 +376,7 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete an existing Sync plan
 
-        @Feature: Content Sync Plan - Positive Delete
+        @id: 81beec05-e38c-48bc-8f01-10cb1e10a3f6
 
         @Assert: Sync Plan is deleted successfully
         """
@@ -374,11 +397,13 @@ class SyncPlanTestCase(UITestCase):
     def test_positive_create_ostree_sync_plan(self):
         """Create a sync plan for ostree contents.
 
-        @Feature: ostree sync plan
+        @id: bf01f23f-ba55-4c88-baad-85603fce57a4
 
         @Assert: sync plan should be created successfully
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     # This Bugzilla bug is private. It is impossible to fetch info about it.
@@ -388,11 +413,13 @@ class SyncPlanTestCase(UITestCase):
         """Verify product won't get synced immediately after adding association
         with a sync plan which has already been started
 
-        @Feature: Sync Plan
+        @id: b56fccb9-8f84-4676-a777-b3c6458c909e
 
         @Assert: Repository was not synchronized
 
         @BZ: 1279539
+
+        @CaseLevel: System
         """
         plan_name = gen_string('alpha')
         product = entities.Product(organization=self.organization).create()
@@ -424,11 +451,13 @@ class SyncPlanTestCase(UITestCase):
         custom product and verify the product gets synchronized on the next
         sync occurrence
 
+        @id: d65e91c4-a0b6-4588-a3ff-fe9cd3762556
+
         @Assert: Product is synchronized successfully.
 
-        @Feature: SyncPlan
-
         @BZ: 1279539
+
+        @CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
         plan_name = gen_string('alpha')
@@ -470,9 +499,11 @@ class SyncPlanTestCase(UITestCase):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
 
+        @id: fdd3b2a2-8d8e-4a18-b6a5-363e8dd5f998
+
         @Assert: Product is synchronized successfully.
 
-        @Feature: SyncPlan
+        @CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         plan_name = gen_string('alpha')
@@ -520,9 +551,11 @@ class SyncPlanTestCase(UITestCase):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
 
+        @id: 9564e726-59c6-4d24-bb3d-f0ab3c4b26a5
+
         @Assert: Products are synchronized successfully.
 
-        @Feature: SyncPlan
+        @CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         plan_name = gen_string('alpha')
@@ -585,11 +618,13 @@ class SyncPlanTestCase(UITestCase):
         RH product and verify the product gets synchronized on the next sync
         occurrence
 
+        @id: 73a456fb-ad17-4921-b57c-27fc8e432a83
+
         @Assert: Product is synchronized successfully.
 
-        @Feature: SyncPlan
-
         @BZ: 1279539
+
+        @CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
         plan_name = gen_string('alpha')
@@ -646,9 +681,11 @@ class SyncPlanTestCase(UITestCase):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
 
+        @id: 193d0159-d4a7-4f50-b037-7289f4576ade
+
         @Assert: Product is synchronized successfully.
 
-        @Feature: SyncPlan
+        @CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         plan_name = gen_string('alpha')

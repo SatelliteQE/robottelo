@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Global parameters CLI"""
+"""Test class for Global parameters CLI
+
+@Requirement: Globalparam
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.cli.globalparam import GlobalParameter
@@ -16,7 +31,7 @@ class GlobalParameterTestCase(CLITestCase):
     def test_positive_set(self):
         """Check if Global Param can be set
 
-        @Feature: Global Param - Set
+        @id: af0d3338-d7a1-41e5-959a-289ebc326c5b
 
         @Assert: Global Param is set
 
@@ -34,7 +49,7 @@ class GlobalParameterTestCase(CLITestCase):
     def test_positive_list_by_name(self):
         """Test Global Param List
 
-        @Feature: Global Param - List
+        @id: 8dd6c4e8-4ec9-4bee-8a04-f5788960973a
 
         @Assert: Global Param List is displayed
 
@@ -55,7 +70,7 @@ class GlobalParameterTestCase(CLITestCase):
     def test_positive_delete_by_name(self):
         """Check if Global Param can be deleted
 
-        @Feature: Global Param - Delete
+        @id: 2c44d9c9-2a21-4415-8e89-cfd3d963891b
 
         @Assert: Global Param is deleted
 

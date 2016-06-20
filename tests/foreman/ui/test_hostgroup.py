@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Host Group UI"""
+"""Test class for Host Group UI
+
+@Requirement: Hostgroup
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.datafactory import generate_strings_list, invalid_values_list
@@ -18,7 +33,7 @@ class HostgroupTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create new hostgroup
 
-        @Feature: Hostgroup - Positive Create
+        @id: 8bcf45e5-9e7f-4050-9de6-a90350b70006
 
         @Assert: Hostgroup is created
         """
@@ -33,7 +48,7 @@ class HostgroupTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create new hostgroup with invalid names
 
-        @Feature: Hostgroup - Negative Create
+        @id: a0232740-ae9f-44ce-9f3d-bafc8f1b05cb
 
         @Assert: Hostgroup is not created
         """
@@ -49,7 +64,7 @@ class HostgroupTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create new hostgroup with same name
 
-        @Feature: Hostgroup - Negative Create
+        @id: 237b684d-3b55-444a-be00-a9825952bb53
 
         @Assert: Hostgroup is not created
         """
@@ -66,7 +81,7 @@ class HostgroupTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete a hostgroup
 
-        @Feature: Hostgroup - Positive Delete
+        @id: f118532b-ca9b-4bf4-b53b-9573abcb347a
 
         @Assert: Hostgroup is deleted
         """
@@ -81,7 +96,7 @@ class HostgroupTestCase(UITestCase):
     def test_positive_update(self):
         """Update hostgroup with a new name
 
-        @Feature: Hostgroup - Positive Update
+        @id: 7c8de1b8-aced-44f0-88a0-dc9e6b83bf7f
 
         @Assert: Hostgroup is updated
         """

@@ -1,4 +1,19 @@
-"""API Tests for the errata management feature"""
+"""API Tests for the errata management feature
+
+@Requirement: Errata
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 # For ease of use hc refers to host-collection throughout this document
 
@@ -14,7 +29,7 @@ class ErrataTestCase(APITestCase):
     def test_positive_install(self):
         """Install errata in a host-collection
 
-        @Feature: Errata
+        @id: 6f0242df-6511-4c0f-95fc-3fa32c63a064
 
         @Setup: Errata synced on satellite server.
 
@@ -24,7 +39,9 @@ class ErrataTestCase(APITestCase):
 
         @Assert: errata is installed in the host-collection.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -32,7 +49,7 @@ class ErrataTestCase(APITestCase):
     def test_positive_list(self):
         """View all errata specific to an Org
 
-        @Feature: Errata
+        @id: 1efceabf-9821-4804-bacf-2213ac0c7550
 
         @Setup: Errata synced on satellite server.
 
@@ -42,7 +59,9 @@ class ErrataTestCase(APITestCase):
         @Assert: Check that the errata belonging to one Org is not showing in
         the other.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -50,7 +69,7 @@ class ErrataTestCase(APITestCase):
     def test_positive_list_updated(self):
         """View all errata in an Org sorted by Updated
 
-        @Feature: Errata
+        @id: 560d6584-70bd-4d1b-993a-cc7665a9e600
 
         @Setup: Errata synced on satellite server.
 
@@ -60,7 +79,9 @@ class ErrataTestCase(APITestCase):
 
         @Assert: Errata is filtered by Org and sorted by Updated date.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -68,7 +89,7 @@ class ErrataTestCase(APITestCase):
     def test_positive_filter_by_cve(self):
         """Filter errata by CVE
 
-        @Feature: Errata
+        @id: a921d4c2-8d3d-4462-ba6c-fbd4b898a3f2
 
         @Setup: Errata synced on satellite server.
 
@@ -78,7 +99,9 @@ class ErrataTestCase(APITestCase):
 
         @Assert: Errata is filtered by CVE.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -86,7 +109,7 @@ class ErrataTestCase(APITestCase):
     def test_positive_list_affected_hosts(self):
         """View a list of affected content hosts for an erratum
 
-        @Feature: Errata
+        @id: 27711bbd-b94f-4135-9b61-b004bd1cd365
 
         @Setup: Errata synced on satellite server.
 
@@ -97,7 +120,9 @@ class ErrataTestCase(APITestCase):
         @Assert: List of affected content hosts for the given erratum is
         retrieved.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -105,7 +130,7 @@ class ErrataTestCase(APITestCase):
     def test_positive_filter_by_affected_hosts(self):
         """Filter errata list based on affected content hosts
 
-        @Feature: Errata
+        @id: 82b44455-98bf-49fb-9f31-e2c05b67e69e
 
         @Setup: Errata synced on satellite server.
 
@@ -115,7 +140,9 @@ class ErrataTestCase(APITestCase):
 
         @Assert: Errata is filtered based on affected content hosts.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -123,7 +150,7 @@ class ErrataTestCase(APITestCase):
     def test_positive_sort_by_issued_date(self):
         """Filter errata by issued date
 
-        @Feature: Errata
+        @id: 6b4a783a-a7b4-4af4-b9e6-eb2928b7f7c1
 
         @Setup: Errata synced on satellite server.
 
@@ -133,7 +160,9 @@ class ErrataTestCase(APITestCase):
 
         @Assert: Errata is sorted by issued date.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -142,7 +171,7 @@ class ErrataTestCase(APITestCase):
         """Filter applicable errata for a content host by current and
         Library environments
 
-        @Feature: Errata
+        @id: f41bfcc2-39ee-4ae1-a71f-d2c9288875be
 
         @Setup:
 
@@ -156,7 +185,9 @@ class ErrataTestCase(APITestCase):
         @Assert: The errata for the content host is filtered by current and
         Library environments.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -164,7 +195,7 @@ class ErrataTestCase(APITestCase):
     def test_positive_get_count_for_chost(self):
         """Available errata count when retrieving Content host
 
-        @Feature: Errata
+        @id: 2f35933f-8026-414e-8f75-7f4ec048faae
 
         @Setup:
 
@@ -177,7 +208,9 @@ class ErrataTestCase(APITestCase):
 
         @Assert: The available errata count is retrieved.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -186,7 +219,7 @@ class ErrataTestCase(APITestCase):
         """Generate a difference in errata between a set of environments
         for a content view
 
-        @Feature: Errata
+        @id: 96732506-4a89-408c-8d7e-f30c8d469769
 
         @Setup:
 
@@ -200,7 +233,9 @@ class ErrataTestCase(APITestCase):
         @Assert: Difference in errata between a set of environments for a
         content view is retrieved.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -209,7 +244,7 @@ class ErrataTestCase(APITestCase):
         """Select multiple errata and apply them to multiple content
         views in multiple environments
 
-        @Feature: Errata
+        @id: 5d8f6aee-baac-4217-ba34-13adccdf1ca8
 
         @Setup:
 
@@ -223,7 +258,9 @@ class ErrataTestCase(APITestCase):
         @Assert: Selected errata are applied to multiple content views in
         multiple environments.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -232,7 +269,7 @@ class ErrataTestCase(APITestCase):
         """Query a subset of environments or content views to push new
         errata
 
-        @Feature: Errata
+        @id: f6ec8066-36cc-42a8-9a1a-156721e733c3
 
         @Setup:
 
@@ -245,7 +282,9 @@ class ErrataTestCase(APITestCase):
 
         @Assert: Subset of environments/content views retrieved.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -254,7 +293,7 @@ class ErrataTestCase(APITestCase):
         """Select multiple packages and apply them to multiple content
         views in multiple environments
 
-        @Feature: Errata
+        @id: 61549360-ce99-42a3-8d6b-2cd713f8b556
 
         @Setup:
 
@@ -267,5 +306,7 @@ class ErrataTestCase(APITestCase):
 
         @Assert: Packages are applied to multiple environments/content views.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """

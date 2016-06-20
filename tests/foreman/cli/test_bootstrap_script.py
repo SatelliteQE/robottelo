@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test for bootstrap script"""
+"""Test for bootstrap script
+
+@Requirement: Bootstrap script
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from robottelo.decorators import stubbed, tier1
 from robottelo.test import CLITestCase
 
@@ -17,7 +32,7 @@ class BootstrapScriptTestCase(CLITestCase):
     def test_positive_register(self):
         """System is registered
 
-        @Feature: Bootstrap Script
+        @id: e34561fd-e0d6-4587-84eb-f86bd131aab1
 
         @Steps:
 
@@ -26,7 +41,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         @Assert: system is registered, host is created
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @tier1
@@ -34,7 +49,7 @@ class BootstrapScriptTestCase(CLITestCase):
     def test_positive_reregister(self):
         """Registered system is re-registered
 
-        @Feature: Bootstrap Script
+        @id: d8a7aef1-7522-47a8-8478-77e81ca236be
 
         @Steps:
 
@@ -44,7 +59,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         @Assert: system is newly registered, host is created
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @tier1
@@ -52,7 +67,7 @@ class BootstrapScriptTestCase(CLITestCase):
     def test_positive_migrate(self):
         """RHN registered system is migrated
 
-        @Feature: Bootstrap Script
+        @id: 26911dce-f2e3-4aef-a490-ad55236493bf
 
         @Steps:
 
@@ -62,7 +77,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         @Assert: system is migrated, ie. registered
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @tier1
@@ -70,7 +85,7 @@ class BootstrapScriptTestCase(CLITestCase):
     def test_negative_register_no_subs(self):
         """Attempt to register when no subscriptions are available
 
-        @Feature: Bootstrap Script
+        @id: 26f04562-6242-4542-8852-4242156f6e45
 
         @Steps:
 
@@ -79,7 +94,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         @Assert: ends gracefully, reason displayed to user
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @tier1
@@ -87,7 +102,7 @@ class BootstrapScriptTestCase(CLITestCase):
     def test_negative_register_bad_hostgroup(self):
         """Attempt to register when hostgroup doesn't meet all criteria
 
-        @Feature: Bootstrap Script
+        @id: 29551e22-ae63-47f2-86f3-5f1444df8493
 
         @Steps:
 
@@ -97,7 +112,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         @Assert: ends gracefully, reason displayed to user
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @tier1
@@ -105,7 +120,7 @@ class BootstrapScriptTestCase(CLITestCase):
     def test_positive_register_host_collision(self):
         """Attempt to register with already created host
 
-        @Feature: Bootstrap Script
+        @id: ec39c981-5b8a-43a3-84f1-71871a951c53
 
         @Steps:
 
@@ -114,7 +129,7 @@ class BootstrapScriptTestCase(CLITestCase):
 
         @Assert: system is registered, pre-created host profile is used
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @tier1
@@ -122,7 +137,7 @@ class BootstrapScriptTestCase(CLITestCase):
     def test_negative_register_missing_sattools(self):
         """Attempt to register when sat tools not available
 
-        @Feature: Bootstrap Script
+        @id: 88f95080-a6f1-4a4f-bd7a-5d030c0bd2e0
 
         @Steps:
 
@@ -132,5 +147,5 @@ class BootstrapScriptTestCase(CLITestCase):
 
         @Assert: ends gracefully, reason displayed to user
 
-        @Status: Manual
+        @caseautomation: notautomated
         """

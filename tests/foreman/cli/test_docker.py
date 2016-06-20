@@ -1,5 +1,20 @@
 # pylint: attribute-defined-outside-init
-"""Unit tests for the Docker feature."""
+"""Unit tests for the Docker feature.
+
+@Requirement: Docker
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_alpha, gen_string, gen_url
 from random import choice, randint
 from robottelo.cli.base import CLIReturnCodeError
@@ -72,10 +87,12 @@ class DockerManifestTestCase(CLITestCase):
     def test_positive_read_docker_tags(self):
         """docker manifest displays tags information for a docker manifest
 
-        @Feature: Docker
+        @id: 59b605b5-ac2d-46e3-a85e-a259e78a07a8
 
         @Assert: docker manifest displays tags info for a docker manifest
 
+
+        @CaseLevel: Integration
         """
         organization = make_org()
         product = make_product_wait({
@@ -125,9 +142,9 @@ class DockerRepositoryTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Create one Docker-type repository
 
-        @Assert: A repository is created with a Docker upstream repository.
+        @id: e82a36c8-3265-4c10-bafe-c7e07db3be78
 
-        @Feature: Docker
+        @Assert: A repository is created with a Docker upstream repository.
 
         """
         for name in valid_data_list():
@@ -146,10 +163,10 @@ class DockerRepositoryTestCase(CLITestCase):
     def test_positive_create_repos_using_same_product(self):
         """Create multiple Docker-type repositories
 
+        @id: 6dd25cf4-f8b6-4958-976a-c116daf27b44
+
         @Assert: Multiple docker repositories are created with a Docker
         upstream repository and they all belong to the same product.
-
-        @Feature: Docker
 
         """
         product = make_product_wait({'organization-id': self.org_id})
@@ -172,10 +189,10 @@ class DockerRepositoryTestCase(CLITestCase):
         """Create multiple Docker-type repositories on multiple
         products.
 
+        @id: 43f4ab0d-731e-444e-9014-d663ff945f36
+
         @Assert: Multiple docker repositories are created with a Docker
         upstream repository and they all belong to their respective products.
-
-        @Feature: Docker
 
         """
         for _ in range(randint(2, 5)):
@@ -198,10 +215,10 @@ class DockerRepositoryTestCase(CLITestCase):
     def test_positive_sync(self):
         """Create and sync a Docker-type repository
 
+        @id: bff1d40e-181b-48b2-8141-8c86e0db62a2
+
         @Assert: A repository is created with a Docker repository
         and it is synchronized.
-
-        @Feature: Docker
 
         """
         repo = _make_docker_repo(
@@ -217,10 +234,10 @@ class DockerRepositoryTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Create a Docker-type repository and update its name.
 
+        @id: 8b3a8496-e9bd-44f1-916f-6763a76b9b1b
+
         @Assert: A repository is created with a Docker upstream repository and
         that its name can be updated.
-
-        @Feature: Docker
 
         """
         repo = _make_docker_repo(
@@ -240,10 +257,10 @@ class DockerRepositoryTestCase(CLITestCase):
     def test_positive_update_upstream_name(self):
         """Create a Docker-type repository and update its upstream name.
 
+        @id: 1a6985ed-43ec-4ea6-ba27-e3870457ac56
+
         @Assert: A repository is created with a Docker upstream repository and
         that its upstream name can be updated.
-
-        @Feature: Docker
 
         """
         new_upstream_name = 'fedora/ssh'
@@ -262,10 +279,10 @@ class DockerRepositoryTestCase(CLITestCase):
     def test_positive_update_url(self):
         """Create a Docker-type repository and update its URL.
 
+        @id: 73caacd4-7f17-42a7-8d93-3dee8b9341fa
+
         @Assert: A repository is created with a Docker upstream repository and
         that its URL can be updated.
-
-        @Feature: Docker
 
         """
         new_url = gen_url()
@@ -283,10 +300,10 @@ class DockerRepositoryTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Create and delete a Docker-type repository
 
+        @id: ab1e8228-92a8-45dc-a863-7181711f2745
+
         @Assert: A repository with a upstream repository is created and then
         deleted.
-
-        @Feature: Docker
 
         """
         repo = _make_docker_repo(
@@ -301,10 +318,10 @@ class DockerRepositoryTestCase(CLITestCase):
         """Create Docker-type repositories on multiple products and
         delete a random repository from a random product.
 
+        @id: d4db5eaa-7379-4788-9b72-76f2589d8f20
+
         @Assert: Random repository can be deleted from random product without
         altering the other products.
-
-        @Feature: Docker
 
         """
         products = [
@@ -372,10 +389,10 @@ class DockerContentViewTestCase(CLITestCase):
     def test_positive_add_docker_repo_by_id(self):
         """Add one Docker-type repository to a non-composite content view
 
+        @id: 87d6c7bb-92f8-4a32-8ad2-2a1af896500b
+
         @Assert: A repository is created with a Docker repository and the
         product is added to a non-composite content view
-
-        @Feature: Docker
 
         """
         repo = _make_docker_repo(
@@ -399,10 +416,10 @@ class DockerContentViewTestCase(CLITestCase):
     def test_positive_add_docker_repos_by_id(self):
         """Add multiple Docker-type repositories to a non-composite CV.
 
+        @id: 2eb19e28-a633-4c21-9469-75a686c83b34
+
         @Assert: Repositories are created with Docker upstream repositories
         and the product is added to a non-composite content view.
-
-        @Feature: Docker
 
         """
         product = make_product_wait({'organization-id': self.org_id})
@@ -431,11 +448,13 @@ class DockerContentViewTestCase(CLITestCase):
     def test_positive_add_synced_docker_repo_by_id(self):
         """Create and sync a Docker-type repository
 
+        @id: 6f51d268-ed23-48ab-9dea-cd3571daa647
+
         @Assert: A repository is created with a Docker repository
         and it is synchronized.
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         repo = _make_docker_repo(
             make_product_wait({'organization-id': self.org_id})['id'])
@@ -462,11 +481,11 @@ class DockerContentViewTestCase(CLITestCase):
     def test_positive_add_docker_repo_by_id_to_ccv(self):
         """Add one Docker-type repository to a composite content view
 
+        @id: 8e2ef5ba-3cdf-4ef9-a22a-f1701e20a5d5
+
         @Assert: A repository is created with a Docker repository and the
         product is added to a content view which is then added to a composite
         content view.
-
-        @Feature: Docker
 
         """
         self._create_and_associate_repo_with_cv()
@@ -495,11 +514,11 @@ class DockerContentViewTestCase(CLITestCase):
     def test_positive_add_docker_repos_by_id_to_ccv(self):
         """Add multiple Docker-type repositories to a composite content view.
 
+        @id: b79cbc97-3dba-4059-907d-19316684d569
+
         @Assert: One repository is created with a Docker upstream repository
         and the product is added to a random number of content views which are
         then added to a composite content view.
-
-        @Feature: Docker
 
         """
         cv_versions = []
@@ -544,12 +563,14 @@ class DockerContentViewTestCase(CLITestCase):
     def test_positive_publish_with_docker_repo(self):
         """Add Docker-type repository to content view and publish it once.
 
+        @id: 28480de3-ffb5-4b8e-8174-fffffeef6af4
+
         @Assert: One repository is created with a Docker upstream repository
         and the product is added to a content view which is then published only
         once.
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         self._create_and_associate_repo_with_cv()
         self.assertEqual(len(self.content_view['versions']), 0)
@@ -564,12 +585,14 @@ class DockerContentViewTestCase(CLITestCase):
     def test_positive_publish_with_docker_repo_composite(self):
         """Add Docker-type repository to composite CV and publish it once.
 
+        @id: 2d75419b-73ed-4f29-ae0d-9af8d9624c87
+
         @Assert: One repository is created with a Docker upstream repository
         and the product is added to a content view which is then published once
         and added to a composite content view which is also published once.
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         self._create_and_associate_repo_with_cv()
         self.assertEqual(len(self.content_view['versions']), 0)
@@ -609,12 +632,14 @@ class DockerContentViewTestCase(CLITestCase):
         """Add Docker-type repository to content view and publish it multiple
         times.
 
+        @id: 33c1b2ee-ae8a-4a7e-8254-123d97aaaa58
+
         @Assert: One repository is created with a Docker upstream repository
         and the product is added to a content view which is then published
         multiple times.
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         self._create_and_associate_repo_with_cv()
         self.assertEqual(len(self.content_view['versions']), 0)
@@ -632,12 +657,14 @@ class DockerContentViewTestCase(CLITestCase):
         """Add Docker-type repository to content view and publish it multiple
         times.
 
+        @id: 014adf90-d399-4a99-badb-76ee03a2c350
+
         @Assert: One repository is created with a Docker upstream repository
         and the product is added to a content view which is then added to a
         composite content view which is then published multiple times.
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         self._create_and_associate_repo_with_cv()
         self.assertEqual(len(self.content_view['versions']), 0)
@@ -678,11 +705,13 @@ class DockerContentViewTestCase(CLITestCase):
         """Add Docker-type repository to content view and publish it.
         Then promote it to the next available lifecycle-environment.
 
+        @id: a7df98f4-0ec0-40f6-8941-3dbb776d47b9
+
         @Assert: Docker-type repository is promoted to content view found in
         the specific lifecycle-environment.
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         lce = make_lifecycle_environment({'organization-id': self.org_id})
         self._create_and_associate_repo_with_cv()
@@ -709,11 +738,13 @@ class DockerContentViewTestCase(CLITestCase):
         """Add Docker-type repository to content view and publish it.
         Then promote it to multiple available lifecycle-environments.
 
+        @id: e9432bc4-a709-44d7-8e1d-00ca466aa32d
+
         @Assert: Docker-type repository is promoted to content view found in
         the specific lifecycle-environments.
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
@@ -741,11 +772,13 @@ class DockerContentViewTestCase(CLITestCase):
         """Add Docker-type repository to composite content view and publish it.
         Then promote it to the next available lifecycle-environment.
 
+        @id: fb7d132e-d7fa-4890-a0ec-746dd093513e
+
         @Assert: Docker-type repository is promoted to content view found in
         the specific lifecycle-environment.
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
@@ -795,11 +828,13 @@ class DockerContentViewTestCase(CLITestCase):
         """Add Docker-type repository to composite content view and publish it.
         Then promote it to the multiple available lifecycle-environments.
 
+        @id: 345288d6-581b-4c07-8062-e58cb6343f1b
+
         @Assert: Docker-type repository is promoted to content view found in
         the specific lifecycle-environments.
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
@@ -892,10 +927,12 @@ class DockerActivationKeyTestCase(CLITestCase):
         and publish it. Then create an activation key and associate it with the
         Docker content view.
 
+        @id: bb128642-d39f-45c2-aa69-a4776ea536a2
+
         @Assert: Docker-based content view can be added to activation key
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         activation_key = make_activation_key({
             'content-view-id': self.content_view['id'],
@@ -913,11 +950,13 @@ class DockerActivationKeyTestCase(CLITestCase):
         Docker content view. Then remove this content view from the activation
         key.
 
+        @id: d696e5fe-1818-46ce-9499-924c96e1ef88
+
         @Assert: Docker-based content view can be added and then removed
         from the activation key.
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         activation_key = make_activation_key({
             'content-view-id': self.content_view['id'],
@@ -960,10 +999,12 @@ class DockerActivationKeyTestCase(CLITestCase):
         and publish it. Create an activation key and associate it with the
         composite Docker content view.
 
+        @id: 1d9b82fd-8dab-4fd9-ad35-656d712d56a2
+
         @Assert: Docker-based content view can be added to activation key
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         comp_content_view = make_content_view({
             'composite': True,
@@ -1012,10 +1053,10 @@ class DockerActivationKeyTestCase(CLITestCase):
         composite Docker content view. Then, remove the composite content view
         from the activation key.
 
+        @id: b4e63537-d3a8-4afa-8e18-57052b93fb4c
+
         @Assert: Docker-based composite content view can be added and then
         removed from the activation key.
-
-        @Feature: Docker
 
         """
         comp_content_view = make_content_view({
@@ -1098,7 +1139,7 @@ class DockerClientTestCase(CLITestCase):
         """A Docker-enabled client can use ``docker pull`` to pull a
         Docker image off a Satellite 6 instance.
 
-        @Feature: Docker
+        @id: 023f0538-2aad-4f87-b8a8-6ccced648366
 
         @Steps:
 
@@ -1107,7 +1148,7 @@ class DockerClientTestCase(CLITestCase):
 
         @Assert: Client can pull Docker images from server and run it.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -1119,7 +1160,7 @@ class DockerClientTestCase(CLITestCase):
         Then, using ``docker build`` generate a new image which can then be
         uploaded back onto the Satellite 6 as a new repository.
 
-        @Feature: Docker
+        @id: 2c47559c-b27f-436e-9b1e-df5c3633b007
 
         @Steps:
 
@@ -1130,7 +1171,7 @@ class DockerClientTestCase(CLITestCase):
         image from a Satellite 6 instance, add a new package and upload the
         modified image (plus layer) back to the Satellite 6.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -1151,10 +1192,12 @@ class DockerComputeResourceTestCase(CLITestCase):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance.
 
+        @id: 8c8e6185-9aad-42d4-bab2-e067d9a98ffb
+
         @Assert: Compute Resource can be created and listed.
 
-        @Feature: Docker
 
+        @CaseLevel: System
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1176,11 +1219,13 @@ class DockerComputeResourceTestCase(CLITestCase):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance then edit its attributes.
 
+        @id: 0b6411a9-2e9d-4ea6-9b9d-e026b1ff3c1c
+
         @Assert: Compute Resource can be created, listed and its attributes can
         be updated.
 
-        @Feature: Docker
 
+        @CaseLevel: System
         """
         for url in (settings.docker.external_url,
                     settings.docker.get_unix_socket_url()):
@@ -1206,11 +1251,13 @@ class DockerComputeResourceTestCase(CLITestCase):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance then list its running containers.
 
+        @id: 52606017-bbf8-4630-9516-9ae069eaf09d
+
         @Assert: Compute Resource can be created, listed and existing running
         instances can be listed.
 
-        @Feature: Docker
 
+        @CaseLevel: System
         """
         for url in (settings.docker.external_url,
                     settings.docker.get_unix_socket_url()):
@@ -1241,10 +1288,12 @@ class DockerComputeResourceTestCase(CLITestCase):
         """Create a Docker-based Compute Resource using an external
         Docker-enabled system.
 
+        @id: d7c9fbc9-3b6b-4cff-8a48-9b93d63075a8
+
         @Assert: Compute Resource can be created and listed.
 
-        @Feature: Docker
 
+        @CaseLevel: System
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -1263,10 +1312,12 @@ class DockerComputeResourceTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Create a Docker-based Compute Resource then delete it.
 
+        @id: df96331a-6a4c-4db9-9188-5ff510ef4356
+
         @Assert: Compute Resource can be created, listed and deleted.
 
-        @Feature: Docker
 
+        @CaseLevel: System
         """
         for url in (settings.docker.external_url,
                     settings.docker.get_unix_socket_url()):
@@ -1317,10 +1368,12 @@ class DockerContainersTestCase(CLITestCase):
     def test_positive_create_with_compresource(self):
         """Create containers for local and external compute resources
 
-        @Feature: Docker
+        @id: aa1d5216-deaf-403e-9d4c-60157a251762
 
         @Assert: The docker container is created for each compute resource
 
+
+        @CaseLevel: System
         """
         for compute_resource in (self.cr_internal, self.cr_external):
             with self.subTest(compute_resource['url']):
@@ -1339,11 +1392,13 @@ class DockerContainersTestCase(CLITestCase):
         environment and docker repository for local and external compute
         resources
 
-        @Feature: Docker
+        @id: 5569186f-667b-4866-a88e-fd6cf6e821da
 
         @Assert: The docker container is created for each compute resource
 
         @BZ: 1282431
+
+        @CaseLevel: System
         """
         lce = make_lifecycle_environment({'organization-id': self.org['id']})
         repo = _make_docker_repo(
@@ -1388,13 +1443,15 @@ class DockerContainersTestCase(CLITestCase):
         """Create containers for local and external compute resource, then
         power them on and finally power them off
 
-        @Feature: Docker
+        @id: c7150e63-f81c-4a55-808d-a2bed1a4eaf2
 
         @Assert: The docker container is created for each compute resource
         and the power status is showing properly
 
         @BZ: 1230915, 1269196
 
+
+        @CaseLevel: System
         """
         # testing the text status may fail i18n tests but for now there is
         # nothing else to assert
@@ -1420,13 +1477,15 @@ class DockerContainersTestCase(CLITestCase):
         """Create containers for local and external compute resource and read
         their logs
 
-        @Feature: Docker
+        @id: 7c818e53-9833-4a4c-b9bf-a62895dad37f
 
         @Assert: The docker container is created for each compute resource and
         its log can be read
 
         @BZ: 1230915, 1269208
 
+
+        @CaseLevel: System
         """
         for compute_resource in (self.cr_internal, self.cr_external):
             with self.subTest(compute_resource['url']):
@@ -1443,12 +1502,12 @@ class DockerContainersTestCase(CLITestCase):
     def test_positive_create_with_external_registry(self):
         """Create a container pulling an image from a custom external registry
 
-        @Feature: Docker
+        @id: 006ff4c2-8ff8-41fc-8096-dda24267a223
 
         @Assert: The docker container is created and the image is pulled from
         the external registry
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -1458,13 +1517,15 @@ class DockerContainersTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Delete containers in local and external compute resources
 
-        @Feature: Docker
+        @id: 7280efa4-2569-4034-bce4-12dc08838e36
 
         @Assert: The docker containers are deleted in local and external
         compute resources
 
         @BZ: 1230915
 
+
+        @CaseLevel: System
         """
         for compute_resource in (self.cr_internal, self.cr_external):
             with self.subTest(compute_resource['url']):
@@ -1488,7 +1549,7 @@ class DockerRegistryTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Create an external docker registry
 
-        @Feature: Docker
+        @id: c2380323-56d6-4465-ad79-06868b97be16
 
         @Assert: the external registry is created
         """
@@ -1514,7 +1575,7 @@ class DockerRegistryTestCase(CLITestCase):
         """Create an external docker registry and update its name. Use registry
         ID to search by
 
-        @Feature: Docker
+        @id: b702a33c-1c23-4b55-9ea1-f0b3bfc9cca2
 
         @Assert: the external registry is updated with the new name
         """
@@ -1537,7 +1598,7 @@ class DockerRegistryTestCase(CLITestCase):
         """Create an external docker registry and update its name. Use registry
         name to search by
 
-        @Feature: Docker
+        @id: d74e5795-5336-414c-844f-04bf1171d337
 
         @Assert: the external registry is updated with the new name
         """
@@ -1560,7 +1621,7 @@ class DockerRegistryTestCase(CLITestCase):
         """Create an external docker registry and update its URL. Use registry
         ID to search by
 
-        @Feature: Docker
+        @id: 71e8c75a-ce5d-4e8a-9564-2c6d9084f8fc
 
         @Assert: the external registry is updated with the new URL
         """
@@ -1582,7 +1643,7 @@ class DockerRegistryTestCase(CLITestCase):
         """Create an external docker registry and update its URL. Use registry
         name to search by
 
-        @Feature: Docker
+        @id: 7d4fcdb3-c66f-4d0b-9df0-7a105ab29cb2
 
         @Assert: the external registry is updated with the new URL
         """
@@ -1604,7 +1665,7 @@ class DockerRegistryTestCase(CLITestCase):
         """Create an external docker registry and update its description. Use
         registry ID to search by
 
-        @Feature: Docker
+        @id: 84efd73c-517e-411a-8a4a-5cf2718ca03c
 
         @Assert: the external registry is updated with the new description
         """
@@ -1627,7 +1688,7 @@ class DockerRegistryTestCase(CLITestCase):
         """Create an external docker registry and update its description. Use
         registry name to search by
 
-        @Feature: Docker
+        @id: 0c452868-096f-46ae-b884-a6553611b1f3
 
         @Assert: the external registry is updated with the new description
         """
@@ -1650,7 +1711,7 @@ class DockerRegistryTestCase(CLITestCase):
         """Create an external docker registry and update its username. Use
         registry ID to search by
 
-        @Feature: Docker
+        @id: 58e119e9-5681-49f3-bb33-41bb7d024930
 
         @Assert: the external registry is updated with the new username
         """
@@ -1673,7 +1734,7 @@ class DockerRegistryTestCase(CLITestCase):
         """Create an external docker registry and update its username. Use
         registry name to search by
 
-        @Feature: Docker
+        @id: d139f89f-ce84-449c-9938-945c6dc980b6
 
         @Assert: the external registry is updated with the new username
         """
@@ -1695,7 +1756,7 @@ class DockerRegistryTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Create an external docker registry. Use registry ID to search by
 
-        @Feature: Docker
+        @id: c518011c-8665-4a7f-8b0e-af00232f876a
 
         @Assert: the external registry is created
         """
@@ -1709,7 +1770,7 @@ class DockerRegistryTestCase(CLITestCase):
     def test_positive_delete_by_name(self):
         """Create an external docker registry. Use registry name to search by
 
-        @Feature: Docker
+        @id: a0c52cef-1757-4b91-a144-7dc0405cd33d
 
         @Assert: the external registry is created
         """

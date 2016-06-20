@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Puppet Smart Variables"""
+"""Test class for Puppet Smart Variables
+
+@Requirement: Variables
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo.decorators import (
     run_only_on,
@@ -20,7 +35,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_create(self):
         """Create a Smart Variable.
 
-        @feature: Smart Variables - Create
+        @id: 4a8589bf-7b11-48e8-a25d-984bea2ba676
 
         @steps:
 
@@ -34,7 +49,7 @@ class SmartVariablesTestCase(UITestCase):
         3. In Host-> variables tab, the smart variable should be displayed with
         its respective puppet class.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -43,7 +58,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_create(self):
         """Smart Variable is not created with invalid data.
 
-        @feature: Smart Variables - Create
+        @id: 09a67cb6-5de0-41b3-90f4-593323936c6c
 
         @steps:
 
@@ -54,7 +69,7 @@ class SmartVariablesTestCase(UITestCase):
         1. Error is displayed for invalid variable name.
         2. The smart Variable is not created.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -63,7 +78,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_delete_smart_variables_menu(self):
         """Delete a Smart Variable from Smart Variables Menu.
 
-        @feature: Smart Variables - Delete
+        @id: 19fedbdf-48a1-46a7-b184-615a0efd7b4e
 
         @steps:
 
@@ -75,7 +90,7 @@ class SmartVariablesTestCase(UITestCase):
         2. In YAML output of associated Host, the variable should be removed.
         3. In Host-> variables tab, the smart variable should be removed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -84,7 +99,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_update_variable_puppet_class(self):
         """Update Smart Variable's puppet class.
 
-        @feature: Smart Variables - Puppet Class
+        @id: 6c3e2da9-420c-4e39-8b71-e5be6b605bd7
 
         @steps:
 
@@ -98,7 +113,7 @@ class SmartVariablesTestCase(UITestCase):
         2. In Host/HostGroup -> variables tab, the smart variable is updated
         with its newly updated puppet class.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -107,7 +122,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_globality(self):
         """Smart Variable with same names are not allowed.
 
-        @feature: Smart Variables - Globality
+        @id: 7f37194d-4a12-437b-a284-3350cf048eea
 
         @steps:
 
@@ -123,7 +138,9 @@ class SmartVariablesTestCase(UITestCase):
         2. The variable with same name are not allowed to create from
         any class.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -134,7 +151,7 @@ class SmartVariablesTestCase(UITestCase):
 
         Types - string, boolean, integer, real, array, hash, yaml, json
 
-        @feature:  Smart Variables - Variable Type
+        @id: d89cdd32-dd2b-46fe-bcc2-8c66d92cc6f8
 
         @steps:
 
@@ -144,7 +161,7 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Variable is Updated with a new type successfully.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -155,7 +172,7 @@ class SmartVariablesTestCase(UITestCase):
 
         Types - string, boolean, integer, real, array, hash, yaml, json
 
-        @feature: Smart Variables - Variable Type
+        @id: d64d1b6d-028a-4782-a6d4-e3029d7118b6
 
         @steps:
 
@@ -165,7 +182,7 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Variable is not updated with new type for invalid value.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -174,7 +191,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_validate_default_value_required_checkbox(self):
         """Error is raised for blank default Value - Required checkbox.
 
-        @feature: Smart Variables - Optional Validation
+        @id: cdbe5feb-daf1-49c4-98c0-5bbbd436c3e8
 
         @steps:
 
@@ -185,7 +202,9 @@ class SmartVariablesTestCase(UITestCase):
         @assert: Error is raised for blank default value by 'Required'
         checkbox.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -194,7 +213,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_validate_default_value_required_checkbox(self):
         """Error is not raised for default Value - Required checkbox.
 
-        @feature: Smart Variables - Optional Validation
+        @id: 09e42df9-2fe1-444f-a603-6f7b6b3f127e
 
         @steps:
 
@@ -204,7 +223,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is not raised default value by 'Required' checkbox.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -213,7 +234,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_validate_matcher_value_required_checkbox(self):
         """Error is raised for blank matcher Value - Required checkbox.
 
-        @feature: Smart Variables - Optional Validation
+        @id: 7e02efb6-e1a2-4872-877a-78075b2de182
 
         @steps:
 
@@ -225,7 +246,9 @@ class SmartVariablesTestCase(UITestCase):
         @assert: Error is raised for blank matcher value by 'Required'
         checkbox.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -234,7 +257,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_validate_matcher_value_required_checkbox(self):
         """Error is not raised for matcher Value - Required checkbox.
 
-        @feature: Smart Variables - Optional Validation
+        @id: 6c742180-ddb1-4cd0-a04c-911b2a8f4ea4
 
         @steps:
 
@@ -245,7 +268,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is not raised for matcher value by 'Required' checkbox.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -254,7 +279,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_validate_default_value_with_regex(self):
         """Error is raised for default value not matching with regex.
 
-        @feature: Smart Variables - Optional Validation
+        @id: 5285b784-e02c-4f3b-a053-93b36bf9fbfc
 
         @steps:
 
@@ -264,7 +289,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is raised for default value not matching with regex.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -273,7 +300,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_validate_default_value_with_regex(self):
         """Error is not raised for default value matching with regex.
 
-        @feature: Smart Variables - Optional Validation
+        @id: 7a329b05-7efd-42d2-b472-1a36d0ee6464
 
         @steps:
 
@@ -283,7 +310,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is not raised for default value matching with regex.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -292,7 +321,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_validate_matcher_value_with_regex(self):
         """Error is raised for matcher value not matching with regex.
 
-        @feature: Smart Variables - Optional Validation
+        @id: b8e039b3-2491-4dba-a91b-a4aa3fc7f544
 
         @steps:
 
@@ -302,7 +331,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is raised for matcher value not matching with regex.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -311,7 +342,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_validate_matcher_value_with_regex(self):
         """Error is not raised for matcher value matching with regex.
 
-        @feature: Smart Variables - Optional Validation
+        @id: 04a8f849-6323-4e54-9f07-fb750b911a4c
 
         @steps:
 
@@ -321,7 +352,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is not raised for matcher value matching with regex.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -330,7 +363,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_validate_default_value_with_list(self):
         """Error is raised for default value not in list.
 
-        @feature: Smart Variables - Optional Validation
+        @id: d1aa9149-9025-4492-95d0-e72aec8eadc3
 
         @steps:
 
@@ -340,7 +373,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is raised for default value not in list.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -349,7 +384,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_validate_default_value_with_list(self):
         """Error is not raised for default value in list.
 
-        @feature: Smart Variables - Optional Validation
+        @id: 5ea443f2-ec91-4986-b97c-1c28fb862e1c
 
         @steps:
 
@@ -359,7 +394,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is not raised for default value in list.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -368,7 +405,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_validate_matcher_value_with_list(self):
         """Error is raised for matcher value not in list.
 
-        @feature: Smart Variables - Optional Validation
+        @id: 87d128b9-c7f7-4396-b162-60021b0ef682
 
         @steps:
 
@@ -379,7 +416,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is raised for matcher value not in list.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -388,7 +427,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_validate_matcher_value_with_list(self):
         """Error is not raised for matcher value in list.
 
-        @feature: Smart Variables - Optional Validation
+        @id: ac91eaf5-2a15-4d54-b078-a37b60074287
 
         @steps:
 
@@ -398,7 +437,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is not raised for matcher value in list.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -407,7 +448,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_validate_matcher_value_with_default_type(self):
         """Error is raised for matcher value not of default type.
 
-        @feature: Smart Variables - Validation
+        @id: 466197ea-44f0-46d0-b111-686b72183fe5
 
         @steps:
 
@@ -417,7 +458,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is raised for matcher value not of default type.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -426,7 +469,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_validate_matcher_value_with_default_type(self):
         """No error for matcher value of default type.
 
-        @feature: Smart Variables - Validation
+        @id: 033bf7d8-a488-49c1-b900-9e7169e945e0
 
         @steps:
 
@@ -436,7 +479,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is not raised for matcher value of default type.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -445,7 +490,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_validate_matcher_and_default_value(self):
         """Error for invalid default and matcher value both at a time.
 
-        @feature: Smart Variables - Validation
+        @id: 9f5987d1-ac40-4031-bcfe-979dc95866d3
 
         @steps:
 
@@ -455,7 +500,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is raised for invalid default and matcher value both.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -464,7 +511,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_validate_matcher_non_existing_attribute(self):
         """Error while creating matcher for Non Existing Attribute.
 
-        @feature: Smart Variables - Validation
+        @id: 27ef1ef0-1c89-47eb-89e0-3da161154513
 
         @steps:
 
@@ -473,7 +520,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: Error is raised for non existing attribute.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -483,7 +532,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_create_matcher(self):
         """Create a Smart Variable with matcher.
 
-        @feature: Smart Variables - Matcher
+        @id: 42113584-d2db-4b91-8775-06bffee36be4
 
         @steps:
 
@@ -498,7 +547,7 @@ class SmartVariablesTestCase(UITestCase):
         3. In Host-> variables tab, the variable name with overrided value
         for host is displayed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -507,7 +556,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host.
 
-        @feature: Smart Variables - Matcher
+        @id: 65144295-f0ca-4bd0-ae01-96c50ca829fe
 
         @steps:
 
@@ -521,7 +570,7 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: The YAML output has the value only for fqdn matcher.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -530,7 +579,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host - alternate priority.
 
-        @feature: Smart Variables - Matcher
+        @id: 7e52b054-4fcb-4c58-ae49-0d3348d14570
 
         @steps:
 
@@ -547,7 +596,7 @@ class SmartVariablesTestCase(UITestCase):
         1.  The YAML output has the value only for step 5 matcher.
         2.  The YAML output doesn't have value for fqdn/host matcher.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -556,7 +605,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_create_matcher_merge_override(self):
         """Merge the values of all the associated matchers.
 
-        @feature: Smart Variables - Matcher
+        @id: b9c9b1c7-ff9a-4080-aeee-3b61b5414332
 
         @steps:
 
@@ -577,7 +626,7 @@ class SmartVariablesTestCase(UITestCase):
         2.  The YAML output doesn't have the default value of variable.
         3.  Duplicate values in YAML output if any are displayed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -586,7 +635,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_create_matcher_merge_override(self):
         """Attempt to merge the values from non associated matchers.
 
-        @feature: Smart Variables - Matcher
+        @id: 3cc2a7b3-7b46-4c8c-b719-79c004ae04c6
 
         @steps:
 
@@ -608,7 +657,7 @@ class SmartVariablesTestCase(UITestCase):
         3.  The YAML output doesn't have the default value of variable.
         4.  Duplicate values in YAML output if any are displayed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -617,7 +666,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_create_matcher_merge_default(self):
         """Merge the values of all the associated matchers + default value.
 
-        @feature: Smart Variables - Matcher
+        @id: 21d8fde8-0844-4384-b86a-30547c82b221
 
         @steps:
 
@@ -639,7 +688,7 @@ class SmartVariablesTestCase(UITestCase):
         2.  The YAML output has the default value of variable.
         3.  Duplicate values in YAML output if any are displayed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -648,7 +697,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_create_matcher_merge_default(self):
         """Empty default value is not shown in merged values.
 
-        @feature: Smart Variables - Matcher
+        @id: 98f8fe63-d125-4d27-a15a-2550c9e5f0ff
 
         @steps:
 
@@ -670,7 +719,7 @@ class SmartVariablesTestCase(UITestCase):
         2.  The YAML output doesn't have the empty default value of variable.
         3.  Duplicate values in YAML output if any are displayed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -679,7 +728,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_create_matcher_avoid_duplicate(self):
         """Merge the values of all the associated matchers, remove duplicates.
 
-        @feature: Smart Variables - Matcher
+        @id: 75fc514f-70dd-4cc1-8069-221e9edda89a
 
         @steps:
 
@@ -701,7 +750,7 @@ class SmartVariablesTestCase(UITestCase):
         2.  The YAML output has the default value of variable.
         3.  Duplicate values in YAML output are removed / not displayed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -710,7 +759,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_create_matcher_avoid_duplicate(self):
         """Duplicates not removed as they were not really present.
 
-        @feature: Smart Variables - Matcher
+        @id: 050c7cef-eed6-4a61-b567-371f398647a2
 
         @steps:
 
@@ -731,7 +780,7 @@ class SmartVariablesTestCase(UITestCase):
         2.  The YAML output has the default value of variable.
         3.  No value removed as duplicate value.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -740,7 +789,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_enable_merge_overrides_default_checkboxes(self):
         """Enable Merge Overrides, Merge Default checkbox for supported types.
 
-        @feature: Smart Variables - Matcher
+        @id: a86b3f97-f491-444b-ab7f-85218689e97f
 
         @steps:
 
@@ -749,7 +798,9 @@ class SmartVariablesTestCase(UITestCase):
         @assert: The Merge Overrides, Merge Default checkbox
         are enabled to check.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -758,7 +809,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_enable_merge_overrides_default_checkboxes(self):
         """Disable Merge Overrides, Merge Default checkboxes for non supported types.
 
-        @feature: Smart Variables - Matcher
+        @id: 834af938-e056-4a40-8831-91f6400aedd3
 
         @steps:
 
@@ -767,7 +818,9 @@ class SmartVariablesTestCase(UITestCase):
         @assert: The Merge Overrides, Merge Default checkboxes
         are not enabled to check.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -776,7 +829,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_enable_avoid_duplicates_checkbox(self):
         """Enable Avoid duplicates checkbox for supported type- array.
 
-        @feature: Smart Variables - Matcher
+        @id: 8856afbf-67cd-4470-9527-34bb0b2962e3
 
         @steps:
 
@@ -785,7 +838,9 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: The Avoid Duplicates checkbox is enabled to check.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -794,7 +849,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_negative_enable_avaoid_duplicates_checkbox(self):
         """Disable Avoid duplicates checkbox for non supported types.
 
-        @feature: Smart Variables - Matcher
+        @id: 8dc28e77-584a-46f9-aed7-dcc3345a2d9b
 
         @steps:
 
@@ -807,7 +862,9 @@ class SmartVariablesTestCase(UITestCase):
         2.  The Avoid duplicates checkbox not enabled to check
         for any type than array.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -816,7 +873,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_impact_delete_attribute(self):
         """Impact on variable after deleting associated attribute.
 
-        @feature: Smart Variables - Outside Impact
+        @id: 26ce3c25-0deb-415d-a2f5-0eacaf354f92
 
         @steps:
 
@@ -831,7 +888,9 @@ class SmartVariablesTestCase(UITestCase):
         2.  On recreating attribute, the matcher should not
         reappear in variable.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -840,7 +899,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_create_override_from_attribute(self):
         """Impact on variable on overriding the variable value from attribute.
 
-        @feature: Smart Variables - Outside Impact
+        @id: 0d4a6b5f-09d8-4d64-ae4b-efa152815ea8
 
         @steps:
 
@@ -854,7 +913,7 @@ class SmartVariablesTestCase(UITestCase):
         1.  The host/hostgroup is saved with changes.
         2.  New matcher for fqdn/hostgroup created inside variable.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -864,7 +923,7 @@ class SmartVariablesTestCase(UITestCase):
         """No impact on variable on overriding the variable
         with invalid value from attribute.
 
-        @feature: Smart Variables - Outside Impact
+        @id: 18071443-a511-49c4-9ca9-04c7594b831d
 
         @steps:
 
@@ -878,7 +937,7 @@ class SmartVariablesTestCase(UITestCase):
         1.  Error thrown for invalid type value.
         2.  No matcher for fqdn/hostgroup is created inside variable.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -888,7 +947,7 @@ class SmartVariablesTestCase(UITestCase):
         """Error for empty value on overriding the variable value
         from attribute - Required checked.
 
-        @feature: Smart Variables - Outside Impact
+        @id: b0756aa8-3e9b-446d-b5dd-8205b2a9218d
 
         @steps:
 
@@ -904,7 +963,7 @@ class SmartVariablesTestCase(UITestCase):
         2.  The info icon changed to warning icon for that variable.
         3.  No matcher for fqdn/hostgroup created inside variable.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -913,7 +972,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_update_matcher_from_attribute(self):
         """Impact on variable on editing the variable value from attribute.
 
-        @feature: Smart Variables - Outside Impact
+        @id: e98a8404-5e32-4d2e-af81-4339d214658a
 
         @steps:
 
@@ -928,7 +987,7 @@ class SmartVariablesTestCase(UITestCase):
         1.  The host/hostgroup is saved with changes.
         2.  Matcher value in variable is updated from fqdn/hostgroup.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -938,7 +997,7 @@ class SmartVariablesTestCase(UITestCase):
         """No Impact on variable on editing the variable with
         invalid value from attribute.
 
-        @feature: Smart Variables - Outside Impact
+        @id: bd4a2535-57dd-49a8-b8b5-c5e8de652aa7
 
         @steps:
 
@@ -953,7 +1012,7 @@ class SmartVariablesTestCase(UITestCase):
         1.  Error thrown for invalid value.
         2.  Matcher value in variable is not updated from fqdn/hostgroup.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -962,7 +1021,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_hide_default_value(self):
         """Hide the default value of variable.
 
-        @feature: Smart Variables - Value Hiding
+        @id: cd2ec5a5-4bf1-4239-9b3a-8fbca02d7070
 
         @steps:
 
@@ -976,7 +1035,9 @@ class SmartVariablesTestCase(UITestCase):
         2.  Changes submitted successfully.
         3.  Matcher values shown hidden if any.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -985,7 +1046,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_unhide_default_value(self):
         """Unhide the default value of variable.
 
-        @feature: Smart Variables - Value Hiding
+        @id: 708fbd15-5177-4eb5-800a-4266e2476439
 
         @steps:
 
@@ -1000,7 +1061,9 @@ class SmartVariablesTestCase(UITestCase):
         2.  Changes submitted successfully.
         3.  Matcher values shown unhidden if any.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1009,7 +1072,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_hide_default_value_in_attribute(self):
         """Hide the default value of variable in attribute.
 
-        @feature: Smart Variables - Value Hiding
+        @id: 3b9661f9-f7f7-4dbe-8b08-1a712db6a83d
 
         @steps:
 
@@ -1025,7 +1088,9 @@ class SmartVariablesTestCase(UITestCase):
         2.  The button for unhiding the value is displayed and accessible.
         3.  The button for overriding the value is displayed and accessible.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1034,7 +1099,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_unhide_default_value_in_attribute(self):
         """Unhide the default value of variable in attribute.
 
-        @feature: Smart Variables - Value Hiding
+        @id: 5d7c1eb2-3f98-4dfd-aac0-ff740b7f82ec
 
         @steps:
 
@@ -1052,7 +1117,9 @@ class SmartVariablesTestCase(UITestCase):
         3.  The button for overriding the value is displayed and accessible.
         4.  In variable, the default value is still hidden.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -1061,7 +1128,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_update_hidden_value(self):
         """Update the hidden default value of variable.
 
-        @feature: Smart Variables - Value Hiding
+        @id: b56e2b84-ba31-4fd2-b65a-ac9f3eb1c1e1
 
         @steps:
 
@@ -1076,7 +1143,7 @@ class SmartVariablesTestCase(UITestCase):
         1.  The variable default value is updated.
         2.  The variable default value displayed as hidden.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1085,7 +1152,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_update_hidden_value_in_attribute(self):
         """Update the hidden default value of variable in attribute.
 
-        @feature: Smart Variables - Value Hiding
+        @id: 2f506d47-aed5-45ad-a6fb-133ece18eb14
 
         @steps:
 
@@ -1103,7 +1170,7 @@ class SmartVariablesTestCase(UITestCase):
         3.  In variable, new matcher created for fqdn/hostgroup.
         4.  And the value shown hidden.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1112,7 +1179,7 @@ class SmartVariablesTestCase(UITestCase):
     def test_positive_hide_empty_default_value(self):
         """Hiding the empty default value.
 
-        @feature: Smart Variables - Value Hiding
+        @id: ee96bc8c-5294-4580-8316-e62e72e9e3ea
 
         @steps:
 
@@ -1127,5 +1194,7 @@ class SmartVariablesTestCase(UITestCase):
         2.  The default value shows empty on hide.
         2.  Matcher Value shown as hidden.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """

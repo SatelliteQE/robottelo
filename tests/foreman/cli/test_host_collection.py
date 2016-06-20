@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Host Collection CLI"""
+"""Test class for Host Collection CLI
+
+@Requirement: Host collection
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
@@ -77,7 +92,7 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Check if host collection can be created with random names
 
-        @Feature: Host Collection
+        @id: 40f1095a-cc1d-426e-b255-38319f5bd221
 
         @Assert: Host collection is created and has random name
 
@@ -92,7 +107,7 @@ class HostCollectionTestCase(CLITestCase):
         """Check if host collection can be created with random
         description
 
-        @Feature: Host Collection
+        @id: 9736e3aa-bbc1-4c5f-98e9-b9dd18ba47ca
 
         @Assert: Host collection is created and has random description
 
@@ -106,7 +121,7 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_create_with_limit(self):
         """Check if host collection can be created with random limits
 
-        @Feature: Host Collection
+        @id: 682b5624-1095-48e6-a0dd-c76e70ca6540
 
         @Assert: Host collection is created and has random limits
 
@@ -122,7 +137,7 @@ class HostCollectionTestCase(CLITestCase):
         """Create Host Collection with different values of
         unlimited-hosts parameter
 
-        @Feature: Host Collection - Unlimited Hosts
+        @id: d688fd4a-88eb-484e-9e90-854e0595edd0
 
         @Assert: Host Collection is created and unlimited-hosts
         parameter is set
@@ -148,7 +163,7 @@ class HostCollectionTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Check if host collection can be created with random names
 
-        @Feature: Host Collection
+        @id: 92a9eff0-693f-4ab8-b2c4-de08e5f709a7
 
         @Assert: Host collection is created and has random name
 
@@ -163,7 +178,7 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Check if host collection name can be updated
 
-        @Feature: Host Collection
+        @id: 10d395e6-4ac6-4c35-a78c-c59a78c55799
 
         @Assert: Host collection is created and name is updated
 
@@ -185,7 +200,7 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_update_description(self):
         """Check if host collection description can be updated
 
-        @Feature: Host Collection
+        @id: 298b1f86-d4ab-4e10-a948-a0034826505f
 
         @Assert: Host collection is created and description is updated
 
@@ -207,7 +222,7 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_update_limit(self):
         """Check if host collection limits be updated
 
-        @Feature: Host Collection
+        @id: 4c0e0c3b-82ac-4aa2-8378-6adc7946d4ec
 
         @Assert: Host collection limits is updated
 
@@ -230,7 +245,7 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Check if host collection can be created and deleted
 
-        @Feature: Host Collection
+        @id: ef54a26e-a18f-4f29-8ef4-a7124785dbae
 
         @Assert: Host collection is created and then deleted
 
@@ -250,9 +265,11 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_add_host_by_id(self):
         """Check if content host can be added to host collection
 
-        @Feature: Host Collection
+        @id: db987da4-6326-43d5-a4c5-93a0c4da7f00
 
         @Assert: Host collection is created and content-host is added
+
+        @CaseLevel: Integration
         """
         new_host_col = self._new_host_collection({
             'name': gen_string('alpha', 15)})
@@ -278,9 +295,11 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_remove_host_by_id(self):
         """Check if content host can be removed from host collection
 
-        @Feature: Host Collection
+        @id: 61f4aab1-398b-4d3a-a4f4-f558ad8d2679
 
         @Assert: Host collection is created and content-host is removed
+
+        @CaseLevel: Integration
         """
         new_host_col = self._new_host_collection({
             'name': gen_string('alpha', 15)})
@@ -315,11 +334,13 @@ class HostCollectionTestCase(CLITestCase):
     def test_positive_list_hosts(self):
         """Check if content hosts added to host collection is listed
 
-        @Feature: Host Collection
+        @id: 3075cb97-8448-4358-8ffc-0d5cd0078ca3
 
         @Assert: Content-host added to host-collection is listed
 
         @BZ: 1317677
+
+        @CaseLevel: Integration
         """
         host_col_name = gen_string('alpha', 15)
         new_host_col = self._new_host_collection({'name': host_col_name})

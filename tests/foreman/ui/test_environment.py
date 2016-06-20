@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Environment UI"""
+"""Test class for Environment UI
+
+@Requirement: Environment
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.datafactory import invalid_values_list, valid_environments_list
@@ -22,7 +37,7 @@ class EnvironmentTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create new environment
 
-        @Feature: Environment - Positive Create
+        @id: be8ee96a-29e4-4c64-9cae-78ab6aa483d7
 
         @Assert: Environment is created
         """
@@ -37,7 +52,7 @@ class EnvironmentTestCase(UITestCase):
     def test_positive_create_with_long_name(self):
         """Create new environment with 255 chars
 
-        @Feature: Environment - Positive Create
+        @id: 37a57326-debf-498f-96f8-8f9d518817aa
 
         @Assert: Environment is created
         """
@@ -60,7 +75,7 @@ class EnvironmentTestCase(UITestCase):
         """Try to create environment and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
-        @Feature: Environment - Negative Create
+        @id: 51c7e300-5f59-4de8-bc55-1a75b03aa456
 
         @Assert: Environment is not created
         """
@@ -78,7 +93,7 @@ class EnvironmentTestCase(UITestCase):
     def test_positive_update(self):
         """Update an environment and associated OS
 
-        @Feature: Environment - Positive Update
+        @id: 4fd6aa68-c850-4fcd-8c9b-f88d6c0d1c2d
 
         @Assert: Environment is updated
         """
@@ -96,7 +111,7 @@ class EnvironmentTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete an environment
 
-        @Feature: Environment - Positive Delete
+        @id: 8572461e-2457-4a1c-bb63-78f49ce2d0fd
 
         @Assert: Environment is deleted
         """

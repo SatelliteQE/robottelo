@@ -1,4 +1,19 @@
-"""Tests related to hammer command and its options and subcommands."""
+"""Tests related to hammer command and its options and subcommands.
+
+@Requirement: Hammer
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 import json
 
 from robottelo import ssh
@@ -134,7 +149,7 @@ class HammerCommandsTestCase(CLITestCase):
     def test_positive_all_options(self):
         """check all provided options for every hammer command
 
-        @Feature: Hammer
+        @id: 1203ab9f-896d-4039-a166-9e2d36925b5b
 
         @Assert: All expected options are present
         """

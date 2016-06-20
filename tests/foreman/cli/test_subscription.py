@@ -1,4 +1,19 @@
-"""Test class for Subscriptions"""
+"""Test class for Subscriptions
+
+@Requirement: Subscription
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from robottelo import manifests
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_org
@@ -44,7 +59,7 @@ class SubscriptionTestCase(CLITestCase):
     def test_positive_manifest_upload(self):
         """upload manifest
 
-        @Feature: Subscriptions/Manifest Upload
+        @id: e5a0e4f8-fed9-4896-87a0-ac33f6baa227
 
         @Assert: Manifest are uploaded properly
         """
@@ -58,7 +73,7 @@ class SubscriptionTestCase(CLITestCase):
     def test_positive_manifest_delete(self):
         """Delete uploaded manifest
 
-        @Feature: Subscriptions/Manifest Delete
+        @id: 01539c07-00d5-47e2-95eb-c0fd4f39090f
 
         @Assert: Manifest are deleted properly
         """
@@ -79,10 +94,12 @@ class SubscriptionTestCase(CLITestCase):
     def test_positive_enable_manifest_reposet(self):
         """enable repository set
 
-        @Feature: Subscriptions/Repository Sets
+        @id: cc0f8f40-5ea6-4fa7-8154-acdc2cb56b45
 
         @Assert: you are able to enable and synchronize
         repository contained in a manifest
+
+        @CaseLevel: Integration
         """
         self._upload_manifest(self.org['id'])
         Subscription.list(
@@ -106,7 +123,7 @@ class SubscriptionTestCase(CLITestCase):
     def test_positive_manifest_history(self):
         """upload manifest and check history
 
-        @Feature: Subscriptions/Manifest History
+        @id: 000ab0a0-ec1b-497a-84ff-3969a965b52c
 
         @Assert: Manifest history is shown properly
         """
@@ -127,7 +144,7 @@ class SubscriptionTestCase(CLITestCase):
     def test_positive_manifest_refresh(self):
         """upload manifest and refresh
 
-        @Feature: Subscriptions/Manifest refresh
+        @id: 579bbbf7-11cf-4d78-a3b1-16d73bd4ca57
 
         @Assert: Manifests can be refreshed
         """
@@ -149,7 +166,7 @@ class SubscriptionTestCase(CLITestCase):
     def test_negative_manifest_refresh(self):
         """manifest refresh must fail with a cloned manifest
 
-        @Feature: Subscriptions/Manifest refresh
+        @id: 7f40795f-7841-4063-8a43-de0325c92b1f
 
         @Assert: the refresh command returns a non-zero return code
 

@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""API Tests for foreman discovery feature"""
+"""API Tests for foreman discovery feature
+
+@Requirement: Discoveryrule
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_choice, gen_integer, gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
@@ -48,7 +63,7 @@ class DiscoveryRuleTestCase(APITestCase):
 
         Set query as (e.g CPU_Count = 1)
 
-        @Feature: Foreman Discovery
+        @id: b8ae7a80-b9a8-4924-808c-482a2b4102c4
 
         @Assert: Rule should be created with given name and query
         """
@@ -67,7 +82,7 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_delete(self):
         """Delete a discovery rule
 
-        @Feature: Foreman Discovery
+        @id: 9fdba953-dcc7-4532-9204-17a45b0d9e05
 
         @Assert: Rule should be deleted successfully
         """
@@ -83,7 +98,7 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_negative_create_with_too_long_name(self):
         """Create a discovery rule with more than 255 char in name
 
-        @Feature: Foreman Discovery
+        @id: 415379b7-0134-40b9-adb1-2fe0adb1ac36
 
         @Assert: Validation error should be raised
         """
@@ -99,7 +114,7 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_negative_create_with_invalid_host_limit(self):
         """Create a discovery rule with invalid host limit
 
-        @Feature: Foreman Discovery
+        @id: 84503d8d-86f6-49bf-ab97-eff418d3e3d0
 
         @Assert: Validation error should be raised
         """
@@ -111,7 +126,7 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_negative_create_with_invalid_priority(self):
         """Create a discovery rule with invalid priority
 
-        @Feature: Foreman Discovery
+        @id: 4ec7d76a-22ba-4c3e-952c-667a6f0a5728
 
         @Assert: Validation error should be raised
         """
@@ -124,7 +139,7 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update an existing discovery rule name
 
-        @Feature: Foreman Discovery
+        @id: 769c0739-538b-4451-af7b-deb2ecd3dc0d
 
         @Assert: User should be able to update the rule
         """
@@ -139,7 +154,7 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_update_search_rule(self):
         """Update an existing discovery search rule
 
-        @Feature: Foreman Discovery
+        @id: 2c5ecb7e-87bc-4980-9620-7ae00e3f360e
 
         @Assert: User should be able to update the rule
         """
@@ -154,7 +169,7 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_update_host_limit(self):
         """Update an existing rule with valid host limit.
 
-        @Feature: Foreman Discovery
+        @id: 33084060-2866-46b9-bfab-23d91aea73d8
 
         @Assert: User should be able to update the rule
         """
@@ -169,7 +184,7 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_disable(self):
         """Disable an existing enabled discovery rule.
 
-        @Feature: Foreman Discovery
+        @id: 330aa943-167b-46dd-b434-1a6e5fe8f283
 
         @Assert: User should be able to update the rule
         """
@@ -185,9 +200,11 @@ class DiscoveryRuleTestCase(APITestCase):
     def test_positive_update_rule_hostgroup(self):
         """Update host group of an existing rule.
 
-        @Feature: Foreman Discovery
+        @id: dcf15e83-c529-462a-b5da-fd45bb457fde
 
         @Assert: User should be able to update the rule
+
+        @CaseLevel: Integration
         """
         discovery_rule = self.discovery_rule.create()
         discovery_rule.hostgroup = entities.HostGroup().create()

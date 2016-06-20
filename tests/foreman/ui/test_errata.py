@@ -1,4 +1,19 @@
-"""UI Tests for the errata management feature"""
+"""UI Tests for the errata management feature
+
+@Requirement: Errata
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo.decorators import stubbed, tier2, tier3
 from robottelo.test import UITestCase
@@ -12,7 +27,7 @@ class ErrataTestCase(UITestCase):
     def test_positive_sort(self):
         """Sort the columns of Errata page
 
-        @Feature: Errata
+        @id: 213b8592-ccb5-485d-b5fa-e445b853b20c
 
         @Setup: Errata synced on satellite server.
 
@@ -23,8 +38,10 @@ class ErrataTestCase(UITestCase):
 
         @Assert: Errata is sorted by selected column.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -32,7 +49,7 @@ class ErrataTestCase(UITestCase):
     def test_positive_list(self):
         """View all errata in an Org
 
-        @Feature: Errata
+        @id: 71c7a054-a644-4c1e-b304-6bc34ea143f4
 
         @Setup: Errata synced on satellite server.
 
@@ -43,8 +60,10 @@ class ErrataTestCase(UITestCase):
         @Assert: Check that the errata belonging to one Org is not showing in
         the other.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -52,7 +71,7 @@ class ErrataTestCase(UITestCase):
     def test_positive_list_permission(self):
         """Show errata only if the User has permissions to view them
 
-        @Feature: Errata
+        @id: cdb28f6a-23df-47a2-88ab-cd3b492126b2
 
         @Setup:
 
@@ -67,8 +86,10 @@ class ErrataTestCase(UITestCase):
         @Assert: Check that the new user is able to see errata for one product
         only.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -76,7 +97,7 @@ class ErrataTestCase(UITestCase):
     def test_positive_apply_for_host(self):
         """Apply an erratum for selected content hosts
 
-        @Feature: Errata
+        @id: 442d1c20-bf7e-4e4c-9a48-ab3f4809fa61
 
         @Setup: Errata synced on satellite server.
 
@@ -88,8 +109,10 @@ class ErrataTestCase(UITestCase):
         @Assert: Check that the erratum is applied in the selected content
         hosts.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -97,7 +120,7 @@ class ErrataTestCase(UITestCase):
     def test_positive_apply_for_all_hosts(self):
         """Apply an erratum for all content hosts
 
-        @Feature: Errata
+        @id: d70a1bee-67f4-4883-a0b9-2ccc08a91738
 
         @Setup: Errata synced on satellite server.
 
@@ -108,8 +131,10 @@ class ErrataTestCase(UITestCase):
 
         @Assert: Check that the erratum is applied in all the content hosts.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -117,7 +142,7 @@ class ErrataTestCase(UITestCase):
     def test_positive_view(self):
         """View erratum similar to RH Customer portal
 
-        @Feature: Errata
+        @id: 7d0814fd-70e8-4451-ac96-c632cae55731
 
         @Setup: Errata synced on satellite server.
 
@@ -128,8 +153,10 @@ class ErrataTestCase(UITestCase):
         @Assert: The following fields are displayed: Errata Id, Title, Type,
         Affected Content Hosts, Updated.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -137,7 +164,7 @@ class ErrataTestCase(UITestCase):
     def test_positive_view_details(self):
         """View erratum details similar to RH Customer portal
 
-        @Feature: Errata
+        @id: c00aeacc-eefb-4371-a0ee-5a68041a16a2
 
         @Setup: Errata synced on satellite server.
 
@@ -149,8 +176,10 @@ class ErrataTestCase(UITestCase):
         Severity, Issued, Last Update on, Reboot Suggested, Topic, Description,
         Solution, Affected Packages.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -158,7 +187,7 @@ class ErrataTestCase(UITestCase):
     def test_positive_view_products_and_repos(self):
         """View a list of products/repositories for an erratum
 
-        @Feature: Errata
+        @id: 3023006d-514f-436a-b12b-dc08d9609fa6
 
         @Setup: Errata synced on satellite server.
 
@@ -168,8 +197,10 @@ class ErrataTestCase(UITestCase):
 
         @Assert: The Repositories tab lists affected Products and Repositories.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -177,7 +208,7 @@ class ErrataTestCase(UITestCase):
     def test_positive_view_cve(self):
         """View CVE number(s) in Errata Details page
 
-        @Feature: Errata
+        @id: e1c2de13-fed8-448e-b618-c2adb6e82a35
 
         @Setup: Errata synced on satellite server.
 
@@ -191,8 +222,10 @@ class ErrataTestCase(UITestCase):
 
         2. Check if 'N/A' is displayed if CVE information is not present.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -200,7 +233,7 @@ class ErrataTestCase(UITestCase):
     def test_positive_filter(self):
         """Filter Content hosts by environment
 
-        @Feature: Errata
+        @id: 578c3a92-c4d8-4933-b122-7ff511c276ec
 
         @Setup: Errata synced on satellite server.
 
@@ -211,8 +244,10 @@ class ErrataTestCase(UITestCase):
 
         @Assert: Content hosts can be filtered by Environment.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -220,7 +255,7 @@ class ErrataTestCase(UITestCase):
     def test_positive_search(self):
         """Check if autocomplete works in search field of Errata page
 
-        @Feature: Errata
+        @id: d93941d9-faad-4a31-9815-87dff9132082
 
         @Setup: Errata synced on satellite server.
 
@@ -230,8 +265,10 @@ class ErrataTestCase(UITestCase):
 
         @Assert: Check if autocomplete works in search field of Errata page.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -240,7 +277,7 @@ class ErrataTestCase(UITestCase):
         """Check if all the errata searches are redirected to the new
         errata page
 
-        @Feature: Errata
+        @id: 3de38510-d0d9-447e-8dee-a3aadba1f3c7
 
         @Setup: Errata synced on satellite server.
 
@@ -259,8 +296,10 @@ class ErrataTestCase(UITestCase):
         @Assert: Check if all the above mentioned scenarios redirect to the new
         errata page.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -269,7 +308,7 @@ class ErrataTestCase(UITestCase):
         """Check if the applicable errata are available from the content
         host's previous environment
 
-        @Feature: Errata
+        @id: 78110ba8-3942-46dd-8c14-bffa1dbd5195
 
         @Setup:
 
@@ -283,8 +322,10 @@ class ErrataTestCase(UITestCase):
 
         @Assert: The errata from previous enviornments are displayed.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -293,7 +334,7 @@ class ErrataTestCase(UITestCase):
         """Check if the applicable errata are available from the content
         host's Library
 
-        @Feature: Errata
+        @id: 4e627410-b7b8-471b-b9b4-a18e77fdd3f8
 
         @Setup:
 
@@ -307,8 +348,10 @@ class ErrataTestCase(UITestCase):
 
         @Assert: The errata from Library are displayed.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -316,7 +359,7 @@ class ErrataTestCase(UITestCase):
     def test_positive_show_count_on_content_host_page(self):
         """Available errata count displayed in Content hosts page
 
-        @Feature: Errata
+        @id: 8575e282-d56e-41dc-80dd-f5f6224417cb
 
         @Setup:
 
@@ -336,8 +379,10 @@ class ErrataTestCase(UITestCase):
            - If security errata, >0 = red
            - If any other errata, >0 = yellow
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -345,7 +390,7 @@ class ErrataTestCase(UITestCase):
     def test_positive_show_count_on_content_host_details_page(self):
         """Errata count on Content host Details page
 
-        @Feature: Errata
+        @id: 388229da-2b0b-41aa-a457-9b5ecbf3df4b
 
         @Setup:
 
@@ -363,8 +408,10 @@ class ErrataTestCase(UITestCase):
         2. The number should link to the errata details page, filtered  by
         type.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -373,7 +420,7 @@ class ErrataTestCase(UITestCase):
         """Update composite content views and environments with new
         point releases
 
-        @Feature: Errata
+        @id: d30bae6f-e45f-4ba9-9151-32dfa14ed2b8
 
         @Setup:
 
@@ -391,6 +438,8 @@ class ErrataTestCase(UITestCase):
 
         @Assert: Composite content views updated with point releases.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """

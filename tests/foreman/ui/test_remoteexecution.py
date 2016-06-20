@@ -1,4 +1,19 @@
-"""Test class for Remote Execution Management UI"""
+"""Test class for Remote Execution Management UI
+
+@Requirement: Remoteexecution
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from robottelo.decorators import stubbed, tier1, tier2, tier3
 from robottelo.test import UITestCase
 
@@ -11,7 +26,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_create_simple_job_template(self):
         """Create a simple Job Template
 
-        @Feature: Remote Execution
+        @id: 7cb1e5b0-5420-47c5-bb43-e2c58bed7a9d
 
         @Steps:
 
@@ -24,7 +39,7 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: The job template was successfully created
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -32,7 +47,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_create_job_template_input(self):
         """Create a Job Template using input
 
-        @Feature: Remote Execution
+        @id: dbaf5aa9-101d-47dc-bdf8-d5b4d1a52396
 
         @Steps:
 
@@ -48,7 +63,7 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: The job template was successfully created
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -56,7 +71,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_negative_create_job_template_with_same_name(self):
         """Create Job Template with duplicate name
 
-        @Feature: Remote Execution
+        @id: 2c193758-dc34-4701-863c-f2823851223a
 
         @Steps:
 
@@ -66,7 +81,7 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: The name duplication was caught, stopping creation
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -74,7 +89,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_delete_job_template(self):
         """Delete a job template
 
-        @Feature: Remote Execution
+        @id: b25e4fb9-ad75-407d-b15f-76df381c4f9c
 
         @Setup: Create a valid job template.
 
@@ -86,7 +101,7 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: The Job Template has been deleted
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -94,7 +109,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_clone_job_template(self):
         """Clone a Job Template
 
-        @Feature: Remote Execution
+        @id: a1ec5d1d-907f-4d18-93d3-adb1134d9cca
 
         @Setup: Create a valid job template.
 
@@ -107,7 +122,7 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: Verify all job template contents were successfully copied
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -115,7 +130,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_view_diff(self):
         """View diff within template editor
 
-        @Feature: Remote Execution
+        @id: 4b8fff93-4862-4119-bb97-aadc50fc817d
 
         @Setup: Create a valid job template.
 
@@ -127,7 +142,7 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: Verify that the new changes are displayed in the window
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -135,7 +150,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_template_upload(self):
         """Use a template file to populate the job template
 
-        @Feature: Remote Execution
+        @id: 976cf310-b2af-41bd-845a-f08baa2e8490
 
         @Setup: Create or use a pre-made job template file
 
@@ -148,7 +163,7 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: Verify the template correctly imported the file's contents
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -156,7 +171,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_preview_verify(self):
         """Use preview within the job template editor to verify template
 
-        @Feature: Remote Execution
+        @id: 4b4939f3-c056-4716-8071-e8fa00233e3e
 
         @Steps:
 
@@ -167,7 +182,7 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: Verify no errors are thrown
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -175,7 +190,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_negative_preview_verify(self):
         """Use a template file to populate the job template
 
-        @Feature: Remote Execution
+        @id: 8c0d132c-b500-44b5-a549-d32c7636a712
 
         @Steps:
 
@@ -187,7 +202,7 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: Verify appropriate errors are thrown
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -195,7 +210,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_run_job_template(self):
         """Run a job template against a single host
 
-        @Feature: Remote Execution
+        @id: 7f0cdd1a-c87c-4324-ae9c-dbc30abad217
 
         @Setup: Create a working job template.
 
@@ -207,7 +222,9 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: Verify the job was succesfully ran against the host
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -215,7 +232,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_run_job_template_multiple_hosts(self):
         """Run a job template against multiple hosts
 
-        @Feature: Remote Execution
+        @id: 7f1981cb-afcc-49b7-a565-7fef9aa8ddde
 
         @Setup: Create a working job template.
 
@@ -228,7 +245,9 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: Verify the job was succesfully ran against the hosts
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -236,7 +255,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_run_scheduled_job_template(self):
         """Schedule a job to be ran against a host
 
-        @Feature: Remote Execution
+        @id: 35c8b68e-1ac5-4c33-ad62-a939b87f76fb
 
         @Setup: Create a working job template.
 
@@ -253,7 +272,9 @@ class RemoteExecutionTestCase(UITestCase):
         1. Verify the job was not immediately ran
         2. Verify the job was succesfully ran after the designated time
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -261,7 +282,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_run_job_against_provisioned_rhel6_host(self):
         """Run a job against a single provisioned RHEL 6 host
 
-        @Feature: Remote Execution
+        @id: 7cc94029-69a0-43e0-8ce5-fdf802d0addc
 
         @Setup:
 
@@ -276,7 +297,9 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: Verify the job was succesfully ran on the provisioned host
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -284,7 +307,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_run_job_against_provisioned_rhel7_host(self):
         """Run a job against a single provisioned RHEL 7 host
 
-        @Feature: Remote Execution
+        @id: e911edfb-abcf-4ea2-940d-44f3e4de1954
 
         @Setup:
 
@@ -299,7 +322,9 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: Verify the job was succesfully ran on the provisioned host
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -307,7 +332,7 @@ class RemoteExecutionTestCase(UITestCase):
     def test_positive_run_job_against_multiple_provisioned_hosts(self):
         """Run a job against multiple provisioned hosts
 
-        @Feature: Remote Execution
+        @id: 7637f724-924f-478d-88d8-25f500335236
 
         @Setup:
 
@@ -323,5 +348,7 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: Verify the job was successfully ran on the provisioned hosts
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """

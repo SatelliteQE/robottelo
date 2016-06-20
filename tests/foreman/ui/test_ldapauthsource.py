@@ -1,4 +1,19 @@
-"""Test class for Active Directory Feature"""
+"""Test class for Active Directory Feature
+
+@Requirement: Ldapauthsource
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from robottelo.config import settings
 from robottelo.constants import LDAP_ATTR, LDAP_SERVER_TYPE
 from robottelo.datafactory import generate_strings_list
@@ -25,7 +40,7 @@ class LDAPAuthSourceTestCase(UITestCase):
     def test_positive_create_withad(self):
         """Create LDAP authentication with AD
 
-        @Feature: LDAP Authentication - Active Directory - create LDAP AD
+        @id: 02693108-83d9-4b2b-969e-2d8a00d0a935
 
         @steps:
 
@@ -59,7 +74,7 @@ class LDAPAuthSourceTestCase(UITestCase):
     def test_positive_delete_withad(self):
         """Delete LDAP authentication with AD
 
-        @Feature: LDAP Authentication - Active Directory - delete LDAP AD
+        @id: 0fbb09d3-7a19-468d-898c-1484a5682793
 
         @steps:
 

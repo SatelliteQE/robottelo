@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Multi-Network Support feature"""
+"""Test class for Multi-Network Support feature
+
+@Requirement: Multinetwork
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from robottelo.decorators import stubbed, tier3
 from robottelo.test import UITestCase
 
@@ -13,7 +28,7 @@ class MultinetworkTestCase(UITestCase):
         """Create host with default interface and set 'DHCP' for IPAM
         and BootMode for provisioning subnet
 
-        @Feature: Multi Network Support
+        @id: e953dbf1-3592-48d6-b217-956676fd04d7
 
         @Setup: Provisioning should be configured
 
@@ -25,7 +40,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Host should be provisioned with correct configuration under
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -35,7 +52,7 @@ class MultinetworkTestCase(UITestCase):
         'Internal DB' (without specifying start and end range) and BootMode
         set as 'DHCP' for provisioning subnet
 
-        @Feature: Multi Network Support
+        @id: 558a92e9-e769-4093-8a38-4a3e2f820aa2
 
         @Setup: Provisioning should be configured
 
@@ -49,7 +66,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Host should be provisioned with correct configuration under
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -59,7 +78,7 @@ class MultinetworkTestCase(UITestCase):
         'Internal DB' (with start and end IP range) and BootMode set as
         'DHCP' for provisioning subnet
 
-        @Feature: Multi Network Support
+        @id: c5d0eb65-33d6-4126-800c-ff3bf97e7fe0
 
         @Setup: Provisioning should be configured
 
@@ -73,7 +92,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Host should be provisioned with correct configuration under
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -83,7 +104,7 @@ class MultinetworkTestCase(UITestCase):
         'Internal DB' (with start and end IP range) and BootMode set as
         'Static' for provisioning subnet
 
-        @Feature: Multi Network Support
+        @id: 9130917a-b0f5-4fb3-a516-733ee569218e
 
         @Setup: Provisioning should be configured
 
@@ -97,7 +118,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Host should be provisioned with correct configuration under
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -107,7 +130,7 @@ class MultinetworkTestCase(UITestCase):
         'Internal DB' (without start and end IP range) and BootMode set
         as 'Static' for provisioning subnet
 
-        @Feature: Multi Network Support
+        @id: 36602343-377d-419a-8ad5-e0b37ceaddba
 
         @Setup: Provisioning should be configured
 
@@ -121,7 +144,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Host should be provisioned with correct configuration under
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -131,7 +156,7 @@ class MultinetworkTestCase(UITestCase):
         (with start and end IP range) and BootMode set as 'Static' for
         provisioning subnet
 
-        @Feature: Multi Network Support
+        @id: 37b950e8-ad30-4edd-aca8-54a7e16315bc
 
         @Setup: Provisioning should be configured
 
@@ -145,7 +170,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Host should be provisioned with correct configuration under
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -155,7 +182,7 @@ class MultinetworkTestCase(UITestCase):
         (without start and end IP range) and BootMode set as 'Static' for
         provisioning subnet
 
-        @Feature: Multi Network Support
+        @id: e1fe6337-8620-4b23-868a-ba2b95b4d046
 
         @Setup: Provisioning should be configured
 
@@ -169,7 +196,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Host should be provisioned with correct configuration under
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -178,7 +207,7 @@ class MultinetworkTestCase(UITestCase):
         """Create host with default interface when IPAM set as 'None'
         and BootMode set as 'Static' for provisioning subnet
 
-        @Feature: Multi Network Support
+        @id: 693725c9-5c46-4ea8-8f22-96e2a0808563
 
         @Setup: Provisioning should be configured
 
@@ -191,7 +220,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Host should be provisioned with correct configuration under
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -200,7 +231,7 @@ class MultinetworkTestCase(UITestCase):
         """Create host with default interface when IPAM set as 'None'
         and BootMode set as 'DHCP' for provisioning subnet
 
-        @Feature: Multi Network Support
+        @id: 8feea115-ecf3-4f1d-a579-484188377a9d
 
         @Setup: Provisioning should be configured
 
@@ -213,7 +244,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Host should be provisioned with correct configuration under
         /etc/sysconfig/network-scripts/ifcfg-<interface>
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -222,7 +255,7 @@ class MultinetworkTestCase(UITestCase):
         """Add an alias interface with mac different than
         primary interface's mac
 
-        @Feature: Multi Network Support
+        @id: 93671234-77af-494d-8d29-8d7255c94437
 
         @Setup: Provisioning should be configured
 
@@ -241,7 +274,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Validation error should be raised as mac address of alias
         interface should be same as of primary interface
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -249,7 +284,7 @@ class MultinetworkTestCase(UITestCase):
     def test_negative_add_alias_interface_without_nic(self):
         """Add an alias interface without selecting virtual nic
 
-        @Feature: Multi Network Support
+        @id: bf840727-b9a0-400e-9167-f1cdbca99546
 
         @Setup: Provisioning should be configured
 
@@ -266,7 +301,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Validation error should be raised as two nics can not have
         same mac
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -275,7 +312,7 @@ class MultinetworkTestCase(UITestCase):
         """Add an alias interface without defining
         'attached_to' interface under 'Virtual Nic'
 
-        @Feature: Multi Network Support
+        @id: 2f9273fb-a598-439c-af44-fec11548d918
 
         @Setup: Provisioning should be configured
 
@@ -294,7 +331,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Validation error should be raised as attached_to is mandatory
         option to create alias interface
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -303,7 +342,7 @@ class MultinetworkTestCase(UITestCase):
         """Add an alias interface when bootMode set to 'DHCP'
         mode under selected subnet
 
-        @Feature: Multi Network Support
+        @id: 9f2a916c-f8df-4d8b-b597-916f27d89073
 
         @Setup: Provisioning should be configured
 
@@ -325,7 +364,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Validation error should be raised as you can't configure alias
         interface in 'DHCP' mode.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -334,7 +375,7 @@ class MultinetworkTestCase(UITestCase):
         """Add an alias interface when bootMode set to 'Static'
         mode under selected subnet
 
-        @Feature: Multi Network Support
+        @id: dc8a9056-bc1c-43b6-80b8-f9a105264755
 
         @Setup: Provisioning should be configured
 
@@ -357,7 +398,9 @@ class MultinetworkTestCase(UITestCase):
         configuration should displayed on proviisoned host
         under /etc/sysconfig/network-scripts/ifcfg-<interface_name>
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -365,7 +408,7 @@ class MultinetworkTestCase(UITestCase):
     def test_negative_add_alias_interface_same(self):
         """Add an interface with same identifier of exiting interface
 
-        @Feature: Multi Network Support
+        @id: b976fe33-6b08-4f64-ba46-d32601e6f71f
 
         @Setup: Provisioning should be configured
 
@@ -386,7 +429,9 @@ class MultinetworkTestCase(UITestCase):
 
         @Assert: Validation error should be raised on UI
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -394,7 +439,7 @@ class MultinetworkTestCase(UITestCase):
     def test_positive_delete_alias_interface(self):
         """Delete an alias interface
 
-        @Feature: Multi Network Support
+        @id: 8370940a-088a-403b-9b77-1be499c992e7
 
         @Setup: Provisioning should be configured
 
@@ -406,7 +451,9 @@ class MultinetworkTestCase(UITestCase):
 
         @Assert: Interface should be deleted successfully
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -414,7 +461,7 @@ class MultinetworkTestCase(UITestCase):
     def test_positive_add_bond_interface_using_two_existing(self):
         """Add bond interface using existing two interfaces
 
-        @Feature: Multi Network Support
+        @id: 6d72a89a-48c4-44a9-afb4-d1427264695d
 
         @Setup: Provisioning should be configured
 
@@ -435,7 +482,9 @@ class MultinetworkTestCase(UITestCase):
 
         @Assert: Interface should be configured successfully with name bond0
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -444,7 +493,7 @@ class MultinetworkTestCase(UITestCase):
         """Add bond interface using existing two interfaces without
         specifying mac
 
-        @Feature: Multi Network Support
+        @id: 51498c07-a3ba-40d5-a521-bad3d012ce0e
 
         @Setup: Provisioning should be configured
 
@@ -466,7 +515,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: UI should raise validation error as user shouldn't be allowed
         create bond interface without mac
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -474,7 +525,7 @@ class MultinetworkTestCase(UITestCase):
     def test_positive_add_bond_interface_without_attached_device(self):
         """Add bond interface without specifying attached devices
 
-        @Feature: Multi Network Support
+        @id: 1ed737f5-a371-4bcb-95b5-fa75e372654b
 
         @Setup: Provisioning should be configured
 
@@ -496,7 +547,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Interface should be configured successfully without attaching
         any device to it.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -504,7 +557,7 @@ class MultinetworkTestCase(UITestCase):
     def test_positive_add_bond_interface(self):
         """Add bond interface with one alias interface
 
-        @Feature: Multi Network Support
+        @id: 0252b5a7-3854-47d9-9791-863ad245308d
 
         @Setup: Provisioning should be configured
 
@@ -527,7 +580,9 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Interface should be configured successfully with name bond0
         attached to eth0 eth0:0
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -535,7 +590,7 @@ class MultinetworkTestCase(UITestCase):
     def test_positive_add_bmc_interface(self):
         """Add bmc interface
 
-        @Feature: Multi Network Support
+        @id: 7c5a9bb8-70c9-4fe3-a61e-179d7946bb62
 
         @Setup: Provisioning should be configured
 
@@ -555,8 +610,10 @@ class MultinetworkTestCase(UITestCase):
         @Assert: Interface should be configured successfully and user
         should get On/OFF button on host page
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -564,7 +621,7 @@ class MultinetworkTestCase(UITestCase):
     def test_positive_add_bmc_interface_without_mac(self):
         """Add bmc interface without mac
 
-        @Feature: Multi Network Support
+        @id: 3daf53ed-2ef1-4503-b181-6f96377b187e
 
         @Setup: Provisioning should be configured
 
@@ -583,5 +640,7 @@ class MultinetworkTestCase(UITestCase):
 
         @Assert: UI should raise validation error
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """

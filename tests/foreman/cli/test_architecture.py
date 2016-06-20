@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Architecture CLI"""
+"""Test class for Architecture CLI
+
+@Requirement: Architecture
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
@@ -20,7 +35,7 @@ class ArchitectureTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Successfully creates an Architecture.
 
-        @Feature: Architecture
+        @id: a3955346-cfc0-428d-8871-a10386fe7c59
 
         @Assert: Architecture is created.
         """
@@ -33,7 +48,7 @@ class ArchitectureTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Don't create an Architecture with invalid data.
 
-        @Feature: Architecture
+        @id: cfed972e-9b09-4852-bdd2-b5a8a8aed170
 
         @Assert: Architecture is not created.
         """
@@ -46,7 +61,7 @@ class ArchitectureTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Successfully update an Architecture.
 
-        @Feature: Architecture
+        @id: 67f1e60b-29e2-44a4-8019-498e5ad0e201
 
         @Assert: Architecture is updated.
         """
@@ -65,7 +80,7 @@ class ArchitectureTestCase(CLITestCase):
     def test_negative_update_name(self):
         """Create Architecture then fail to update its name
 
-        @feature: Architecture
+        @id: 037c4892-5e62-46dd-a2ed-92243e870e40
 
         @assert: Architecture name is not updated
         """
@@ -86,7 +101,7 @@ class ArchitectureTestCase(CLITestCase):
         """Create Architecture with valid values then delete it
         by ID
 
-        @feature: Architecture
+        @id: df699e29-29a3-417a-a6ee-81e74b7211a4
 
         @assert: Architecture is deleted
         """
@@ -102,7 +117,7 @@ class ArchitectureTestCase(CLITestCase):
     def test_negative_delete_by_id(self):
         """Create Architecture then delete it by wrong ID
 
-        @feature: Architecture
+        @id: 78bae664-6493-4c74-a587-94170f20746e
 
         @assert: Architecture is not deleted
         """

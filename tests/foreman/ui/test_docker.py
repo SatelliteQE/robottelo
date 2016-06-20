@@ -1,4 +1,19 @@
-"""WebUI tests for the Docker feature."""
+"""WebUI tests for the Docker feature.
+
+@Requirement: Docker
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string, gen_url
 from nailgun import entities
@@ -96,11 +111,13 @@ class DockerTagTestCase(UITestCase):
     def test_positive_search_docker_image(self):
         """Search for a docker image
 
-        @Feature: Docker
+        @id: 28640396-c44d-4487-9d6d-3d5f2ed599d7
 
         @Assert: The docker tag can be searched and found
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
 
@@ -121,7 +138,7 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create one Docker-type repository using different names
 
-        @Feature: Docker
+        @id: 233f39b5-ec75-4035-a45f-0f37a40bbdfe
 
         @Assert: A repository is created with a Docker upstream repository.
         """
@@ -144,7 +161,7 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_create_repos_using_same_product(self):
         """Create multiple Docker-type repositories
 
-        @Feature: Docker
+        @id: f6e7d9fe-7dec-42ef-8cbd-071871e4b8ac
 
         @Assert: Multiple docker repositories are created with a Docker
         upstream repository and they all belong to the same product.
@@ -167,7 +184,7 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_create_repos_using_multiple_products(self):
         """Create multiple Docker-type repositories on multiple products.
 
-        @Feature: Docker
+        @id: da76f1e8-236e-455d-b300-676e00e3df8e
 
         @Assert: Multiple docker repositories are created with a Docker
         upstream repository and they all belong to their respective products.
@@ -191,10 +208,12 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_sync(self):
         """Create and sync a Docker-type repository
 
-        @Feature: Docker
+        @id: 00b700f4-7e52-48ed-98b2-e49b3be102f2
 
         @Assert: A repository is created with a Docker repository and it is
         synchronized.
+
+        @CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         product = entities.Product(organization=self.organization).create()
@@ -216,7 +235,7 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_update_name(self):
         """Create a Docker-type repository and update its name.
 
-        @Feature: Docker
+        @id: 64878d14-39ed-44fd-9a71-5923edaa6e3d
 
         @Assert: A repository is created with a Docker upstream repository and
         that its name can be updated.
@@ -244,7 +263,7 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_update_upstream_name(self):
         """Create a Docker-type repository and update its upstream name.
 
-        @Feature: Docker
+        @id: b7e17891-e248-4044-ac88-8f8a9d0e95f2
 
         @Assert: A repository is created with a Docker upstream repository and
         that its upstream name can be updated.
@@ -275,7 +294,7 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_update_url(self):
         """Create a Docker-type repository and update its URL.
 
-        @Feature: Docker
+        @id: d85892a2-a887-413d-81c6-97a2a518f365
 
         @Assert: A repository is created with a Docker upstream repository and
         that its URL can be updated.
@@ -305,7 +324,7 @@ class DockerRepositoryTestCase(UITestCase):
     def test_positive_delete(self):
         """Create and delete a Docker-type repository
 
-        @Feature: Docker
+        @id: 725a0f6b-67c5-4a59-a7b9-2308333a42bd
 
         @Assert: A repository is created with a Docker upstream repository and
         then deleted.
@@ -332,10 +351,12 @@ class DockerRepositoryTestCase(UITestCase):
         """Create Docker-type repositories on multiple products and
         delete a random repository from a random product.
 
-        @Feature: Docker
+        @id: a3dce435-c46e-41d7-a2f8-29421f7427f5
 
         @Assert: Random repository can be deleted from random product without
         altering the other products.
+
+        @CaseLevel: Integration
         """
         entities_list = []
         products = [
@@ -389,10 +410,12 @@ class DockerContentViewTestCase(UITestCase):
     def test_positive_add_docker_repo(self):
         """Add one Docker-type repository to a non-composite content view
 
-        @Feature: Docker
+        @id: 2868cfd5-d27e-4db9-b4a3-2827e31d1601
 
         @Assert: A repository is created with a Docker repository and the
         product is added to a non-composite content view
+
+        @CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -416,10 +439,12 @@ class DockerContentViewTestCase(UITestCase):
         """Add multiple Docker-type repositories to a non-composite
         content view.
 
-        @Feature: Docker
+        @id: 60d0ea23-fe8c-49f3-bed9-cc062ab1118d
 
         @Assert: Repositories are created with Docker upstream repositories and
         the product is added to a non-composite content view.
+
+        @CaseLevel: Integration
         """
         repos = []
         content_view = entities.ContentView(
@@ -445,10 +470,12 @@ class DockerContentViewTestCase(UITestCase):
     def test_positive_add_synced_docker_repo(self):
         """Create and sync a Docker-type repository
 
-        @Feature: Docker
+        @id: 338a7ed4-9e10-4bc0-8666-5c8cd0ff0504
 
         @Assert: A repository is created with a Docker repository and it is
         synchronized.
+
+        @CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -475,11 +502,13 @@ class DockerContentViewTestCase(UITestCase):
     def test_positive_add_docker_repo_to_ccv(self):
         """Add one Docker-type repository to a composite content view
 
-        @Feature: Docker
+        @id: 76b68407-b429-4ad7-b8b5-bfde327a0404
 
         @Assert: A repository is created with a Docker repository and the
         product is added to a content view which is then added to a composite
         content view.
+
+        @CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -509,11 +538,13 @@ class DockerContentViewTestCase(UITestCase):
         """Add multiple Docker-type repositories to a composite content
         view.
 
-        @Feature: Docker
+        @id: 30187102-7106-45de-a68b-e32fbaecedb9
 
         @Assert: One repository is created with a Docker upstream repository
         and the product is added to a random number of content views which are
         then added to a composite content view.
+
+        @CaseLevel: Integration
         """
         cvs = []
         with Session(self.browser) as session:
@@ -546,11 +577,13 @@ class DockerContentViewTestCase(UITestCase):
         """Add Docker-type repository to content view and publish it
         once.
 
-        @Feature: Docker
+        @id: 2004b2d4-177b-47de-9e61-bcfb58f05f88
 
         @Assert: One repository is created with a Docker upstream repository
         and the product is added to a content view which is then published only
         once.
+
+        @CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for repo_name in valid_data_list():
@@ -578,12 +611,14 @@ class DockerContentViewTestCase(UITestCase):
         """Add Docker-type repository to composite content view and
         publish it once.
 
-        @Feature: Docker
+        @id: 7aad525a-a9d3-4100-9611-ca02c6a95a22
 
         @Assert: One repository is created with a Docker upstream repository
         and the product is added to a content view which is then published only
         once and then added to a composite content view which is also published
         only once.
+
+        @CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -617,11 +652,13 @@ class DockerContentViewTestCase(UITestCase):
         """Add Docker-type repository to content view and publish it
         multiple times.
 
-        @Feature: Docker
+        @id: acc703b7-6e99-48d7-96ce-ea0985409ef9
 
         @Assert: One repository is created with a Docker upstream repository
         and the product is added to a content view which is then published
         multiple times.
+
+        @CaseLevel: Integration
         """
         repo_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -649,12 +686,14 @@ class DockerContentViewTestCase(UITestCase):
         """Add Docker-type repository to content view and publish it
         multiple times.
 
+        @id: 07755bff-9071-45e5-b861-77a5c2fed3d9
+
         @Assert: One repository is created with a Docker upstream repository
         and the product is added to a content view which is then added to a
         composite content view which is then published multiple times.
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -688,10 +727,12 @@ class DockerContentViewTestCase(UITestCase):
         """Add Docker-type repository to content view and publish it.
         Then promote it to the next available lifecycle-environment.
 
-        @Feature: Docker
+        @id: c7e8c4a2-9676-429b-a452-f50d7bdd78b3
 
         @Assert: Docker-type repository is promoted to content view found in
         the specific lifecycle-environment.
+
+        @CaseLevel: Integration
         """
         repo_name = gen_string('utf8')
         lce = entities.LifecycleEnvironment(
@@ -724,10 +765,12 @@ class DockerContentViewTestCase(UITestCase):
         """Add Docker-type repository to content view and publish it.
         Then promote it to multiple available lifecycle-environments.
 
-        @Feature: Docker
+        @id: c23d582e-502c-49ac-83f7-dcf0f192cbc6
 
         @Assert: Docker-type repository is promoted to content view found in
         the specific lifecycle-environments.
+
+        @CaseLevel: Integration
         """
         repo_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -762,11 +805,13 @@ class DockerContentViewTestCase(UITestCase):
         publish it. Then promote it to the next available
         lifecycle-environment.
 
+        @id: 1c7817c7-60b5-4383-bc6f-2878c2b27fa5
+
         @Assert: Docker-type repository is promoted to content view found in
         the specific lifecycle-environment.
 
-        @Feature: Docker
 
+        @CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         lce = entities.LifecycleEnvironment(
@@ -805,10 +850,12 @@ class DockerContentViewTestCase(UITestCase):
         publish it. Then promote it to the multiple available
         lifecycle-environments.
 
-        @Feature: Docker
+        @id: b735b1fa-3d60-4fc0-92d2-4af0ab003097
 
         @Assert: Docker-type repository is promoted to content view found in
         the specific lifecycle-environments.
+
+        @CaseLevel: Integration
         """
         repo_name = gen_string('alphanumeric')
         content_view = entities.ContentView(
@@ -876,9 +923,11 @@ class DockerActivationKeyTestCase(UITestCase):
         publish it. Then create an activation key and associate it with the
         Docker content view.
 
-        @Feature: Docker
+        @id: e4935729-c5bc-46be-a23a-93ebde6b3506
 
         @Assert: Docker-based content view can be added to activation key
+
+        @CaseLevel: Integration
         """
         ak_name = gen_string('utf8')
         with Session(self.browser) as session:
@@ -900,12 +949,14 @@ class DockerActivationKeyTestCase(UITestCase):
         publish it. Create an activation key and associate it with the Docker
         content view. Then remove this content view from the activation key.
 
-        @Feature: Docker
+        @id: 4336093e-141b-47e0-9a39-3952cfaaf377
 
         @Assert: Docker-based content view can be added and then removed
         from the activation key.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -916,9 +967,11 @@ class DockerActivationKeyTestCase(UITestCase):
         publish it. Create an activation key and associate it with the
         composite Docker content view.
 
-        @Feature: Docker
+        @id: 0d412f54-6333-413e-8040-4e51ae5c069c
 
         @Assert: Docker-based content view can be added to activation key
+
+        @CaseLevel: Integration
         """
         ak_name = gen_string('utf8')
         composite_name = gen_string('utf8')
@@ -953,12 +1006,14 @@ class DockerActivationKeyTestCase(UITestCase):
         composite Docker content view. Then, remove the composite content view
         from the activation key.
 
-        @Feature: Docker
+        @id: 0bf0360f-555a-4d79-9a14-71360f56633f
 
         @Assert: Docker-based composite content view can be added and then
         removed from the activation key.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
 
@@ -978,7 +1033,7 @@ class DockerComputeResourceTestCase(UITestCase):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance.
 
-        @Feature: Docker
+        @id: 78a65ed3-0dbf-413f-91cf-3a02f7ee12d1
 
         @Assert: Compute Resource can be created and listed.
         """
@@ -1004,7 +1059,7 @@ class DockerComputeResourceTestCase(UITestCase):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance then edit its attributes.
 
-        @Feature: Docker
+        @id: 6a22e770-6a9a-48ab-94b6-e991e484812d
 
         @Assert: Compute Resource can be created, listed and its attributes can
         be updated.
@@ -1034,13 +1089,15 @@ class DockerComputeResourceTestCase(UITestCase):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance then list its running containers.
 
+        @id: ebac82ed-5a29-4a06-8aae-bd5b08f60fba
+
         @Assert: Compute Resource can be created, listed and existing running
         instances can be listed.
 
-        @Feature: Docker
+        @caseautomation: notautomated
 
-        @Status: Manual
 
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -1049,7 +1106,7 @@ class DockerComputeResourceTestCase(UITestCase):
         """Create a Docker-based Compute Resource using an external
         Docker-enabled system.
 
-        @Feature: Docker
+        @id: 73ca3ee1-4353-4399-90ba-56560407246e
 
         @Assert: Compute Resource can be created and listed.
         """
@@ -1075,7 +1132,7 @@ class DockerComputeResourceTestCase(UITestCase):
         """Create a Docker-based Compute Resource using an external
         Docker-enabled system then edit its attributes.
 
-        @Feature: Docker
+        @id: 13d6c7ee-0c90-46cd-8661-73fa1a3c4ef3
 
         @Assert: Compute Resource can be created, listed and its
         attributes can be updated.
@@ -1107,12 +1164,14 @@ class DockerComputeResourceTestCase(UITestCase):
         """Create a Docker-based Compute Resource using an external
         Docker-enabled system then list its running containers.
 
-        @Feature: Docker
+        @id: 88b2344e-8bcc-42a9-a826-c9c48664b6df
 
         @Assert: Compute Resource can be created, listed and existing
         running instances can be listed.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -1120,7 +1179,7 @@ class DockerComputeResourceTestCase(UITestCase):
     def test_positive_delete(self):
         """Create a Docker-based Compute Resource then delete it.
 
-        @Feature: Docker
+        @id: 151d5c08-4f66-461d-9535-f904cd26ce49
 
         @Assert: Compute Resource can be created, listed and deleted.
         """
@@ -1203,9 +1262,11 @@ class DockerContainerTestCase(UITestCase):
     def test_positive_create_with_compresource(self):
         """Create containers for local and external compute resources
 
-        @Feature: Docker
+        @id: 4916c72f-e921-450c-8023-2ee516deaf25
 
         @Assert: The docker container is created for each compute resource
+
+        @CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for compute_resource in (self.cr_internal, self.cr_external):
@@ -1224,10 +1285,12 @@ class DockerContainerTestCase(UITestCase):
         """Create containers for local and external compute resource,
         then power them on and finally power them off
 
-        @Feature: Docker
+        @id: cc27bb6f-7fa4-4c87-bf7e-339f2f888717
 
         @Assert: The docker container is created for each compute resource and
         the power status is showing properly
+
+        @CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for compute_resource in (self.cr_internal, self.cr_external):
@@ -1252,12 +1315,14 @@ class DockerContainerTestCase(UITestCase):
         """Create a container pulling an image from a custom external
         registry
 
-        @Feature: Docker
+        @id: e609b411-7533-4f65-917a-bed3672ae03c
 
         @Assert: The docker container is created and the image is pulled from
         the external registry
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -1265,10 +1330,12 @@ class DockerContainerTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete containers in local and external compute resources
 
-        @Feature: Docker
+        @id: e69808e7-6a0c-4310-b57a-2271ac61d11a
 
         @Assert: The docker containers are deleted in local and external
         compute resources
+
+        @CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for compute_resource in (self.cr_internal, self.cr_external):
@@ -1291,10 +1358,12 @@ class DockerContainerTestCase(UITestCase):
         """Create and delete containers using direct API calls and verify
         result of these operations through UI interface
 
-        @Feature: Docker
+        @id: 047e2ef9-66b6-41e2-9c29-b7c2da2b64f8
 
         @Assert: The docker containers are deleted successfully and are not
         present on UI
+
+        @CaseLevel: Integration
         """
         for compute_resource in (self.cr_internal, self.cr_external):
             with self.subTest(compute_resource.url):
@@ -1324,7 +1393,7 @@ class DockerRegistryTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create an external docker registry
 
-        @Feature: Docker
+        @id: 7d2a2271-801e-454b-af0e-fedf1d96a7d5
 
         @Assert: the external registry is created
         """
@@ -1348,7 +1417,7 @@ class DockerRegistryTestCase(UITestCase):
     def test_positive_update_name(self):
         """Create an external docker registry and update its name
 
-        @Feature: Docker
+        @id: 2b59f929-4a47-4216-b8b3-7f923d8e7de9
 
         @Assert: the external registry is updated with the new name
         """
@@ -1377,7 +1446,7 @@ class DockerRegistryTestCase(UITestCase):
     def test_positive_update_url(self):
         """Create an external docker registry and update its URL
 
-        @Feature: Docker
+        @id: cf477436-085d-4517-ad86-23e3d254ad70
 
         @Assert: the external registry is updated with the new URL
         """
@@ -1405,7 +1474,7 @@ class DockerRegistryTestCase(UITestCase):
     def test_positive_update_description(self):
         """Create an external docker registry and update its description
 
-        @Feature: Docker
+        @id: 0ca5e992-b28e-452e-a2be-fca57b4b5195
 
         @Assert: the external registry is updated with the new description
         """
@@ -1434,7 +1503,7 @@ class DockerRegistryTestCase(UITestCase):
     def test_positive_update_username(self):
         """Create an external docker registry and update its username
 
-        @Feature: Docker
+        @id: 9cb24a5a-e383-446e-9b1a-3bf02e0ef439
 
         @Assert: the external registry is updated with the new username
         """
@@ -1463,7 +1532,7 @@ class DockerRegistryTestCase(UITestCase):
     def test_positive_delete(self):
         """Create an external docker registry and then delete it
 
-        @Feature: Docker
+        @id: a85d82f5-88b1-4235-8763-1d2f05c8913a
 
         @Assert: The external registry is deleted successfully
         """

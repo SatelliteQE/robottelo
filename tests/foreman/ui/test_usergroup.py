@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for UserGroup UI"""
+"""Test class for UserGroup UI
+
+@Requirement: Usergroup
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.datafactory import generate_strings_list, invalid_names_list
@@ -22,7 +37,7 @@ class UserGroupTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create new Usergroup using different names
 
-        @Feature: Usergroup - Positive Create
+        @id: 43e70c8d-455e-4da8-9c69-ab80dae2a0bc
 
         @Assert: Usergroup is created successfully
         """
@@ -48,7 +63,7 @@ class UserGroupTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create a new UserGroup with invalid names
 
-        @Feature: Usergroup - Negative Create
+        @id: 2c67dcd6-89b7-4a04-8528-d1f1f2c4530d
 
         @Assert: Usergroup is not created
         """
@@ -65,7 +80,7 @@ class UserGroupTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create a new UserGroup with same name
 
-        @Feature: Usergroup - Negative Create
+        @id: 5dafa0d4-e2a2-4ac0-926d-fa57d56bbe0b
 
         @Assert: Usergroup cannot be created with existing name
         """
@@ -83,7 +98,7 @@ class UserGroupTestCase(UITestCase):
     def test_positive_delete_empty(self):
         """Delete an empty Usergroup
 
-        @Feature: Usergroup - Positive Delete
+        @id: ca82f84b-bc5a-4f7d-b70d-9ee3e1b0fffa
 
         @Assert: Usergroup is deleted
         """
@@ -98,9 +113,11 @@ class UserGroupTestCase(UITestCase):
     def test_positive_delete_with_user(self):
         """Delete an Usergroup that contains a user
 
-        @Feature: Usergroup - Positive Delete
+        @id: 2bda3db5-f54f-412f-831f-8e005631f271
 
         @Assert: Usergroup is deleted but not the added user
+
+        @CaseLevel: Integration
         """
         user_name = gen_string('alpha')
         group_name = gen_string('utf8')
@@ -125,7 +142,7 @@ class UserGroupTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update usergroup with new name
 
-        @Feature: Usergroup - Positive Update
+        @id: 2f49ab7c-2f11-48c0-99c2-448fc86b5ad2
 
         @Assert: Usergroup is updated
         """
@@ -143,7 +160,7 @@ class UserGroupTestCase(UITestCase):
     def test_positive_update_user(self):
         """Update usergroup with new user
 
-        @Feature: Usergroup - Positive Update
+        @id: 5fdb1c36-196d-4ba5-898d-40f484b81090
 
         @Assert: Usergroup is updated
         """

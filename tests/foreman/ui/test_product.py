@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Products UI"""
+"""Test class for Products UI
+
+@Requirement: Product
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from nailgun import entities
@@ -26,7 +41,7 @@ class ProductTestCase(UITestCase):
         """Create Content Product providing different names and minimal
         input parameters
 
-        @Feature: Content Product - Positive Create
+        @id: b73d9440-1f30-4fc5-ad7c-e1febe879cbc
 
         @Assert: Product is created
         """
@@ -47,9 +62,11 @@ class ProductTestCase(UITestCase):
     def test_positive_create_in_different_orgs(self):
         """Create Content Product with same name but in another org
 
-        @Feature: Content Product - Positive Create
+        @id: 469fc036-a48a-4c0a-9da9-33e73f903479
 
         @Assert: Product is created successfully in both organizations.
+
+        @CaseLevel: Integration
         """
         organization_2 = entities.Organization().create()
         with Session(self.browser) as session:
@@ -70,7 +87,7 @@ class ProductTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create Content Product with invalid names
 
-        @Feature: Content Product - Negative Create zero length
+        @id: 11efd16c-6471-4191-934f-79c7278c66e8
 
         @Assert: Product is not created
         """
@@ -92,7 +109,7 @@ class ProductTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create Content Product with same name input parameter
 
-        @Feature: Content Product - Negative Create with same name
+        @id: 90ceee6e-0ccc-4065-87ba-42d36484f032
 
         @Assert: Product is not created
         """
@@ -116,7 +133,7 @@ class ProductTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update Content Product name with minimal input parameters
 
-        @Feature: Content Product - Positive Update
+        @id: 2c0539b4-84e1-46c6-aaca-12fe3865da3d
 
         @Assert: Product is updated
         """
@@ -141,9 +158,11 @@ class ProductTestCase(UITestCase):
     def test_positive_update_to_original_name(self):
         """Rename Product back to original name.
 
-        @Feature: Content Product - Positive Update
+        @id: 6632effe-06ba-4690-b81d-4f5eae20b7b9
 
         @Assert: Product renamed to previous value.
+
+        @CaseLevel: Integration
         """
         prd_name = gen_string('alphanumeric')
         new_prd_name = gen_string('alphanumeric')
@@ -166,7 +185,7 @@ class ProductTestCase(UITestCase):
     def test_negative_update_with_too_long_name(self):
         """Update Content Product with too long input parameters
 
-        @Feature: Content Product - Negative Update
+        @id: c6938675-4a2a-4bec-9315-b1c951b628bb
 
         @Assert: Product is not updated
         """
@@ -189,7 +208,7 @@ class ProductTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete Content Product
 
-        @Feature: Content Product - Positive Delete
+        @id: cf80bafb-8581-483a-b5c1-3a162642c6c1
 
         @Assert: Product is deleted
         """

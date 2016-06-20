@@ -1,4 +1,19 @@
-"""Test class for Subscriptions/Manifests UI"""
+"""Test class for Subscriptions/Manifests UI
+
+@Requirement: Subscription
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from nailgun import entities
 from robottelo import manifests
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
@@ -21,7 +36,7 @@ class SubscriptionTestCase(UITestCase):
     def test_positive_upload_and_delete(self):
         """Upload a manifest with minimal input parameters and delete it
 
-        @Feature: Manifest/Subscription
+        @id: 58e549b0-1ba3-421d-8075-dcf65d07510b
 
         @Assert: Manifest is uploaded and deleted successfully
         """

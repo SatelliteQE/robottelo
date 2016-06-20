@@ -1,5 +1,20 @@
 # coding=utf-8
-"""Smoke tests for the ``UI`` end-to-end scenario."""
+"""Smoke tests for the ``UI`` end-to-end scenario.
+
+@Requirement: Ui endtoend
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: ENDTOEND
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string, gen_ipaddr
 from robottelo import manifests
@@ -59,7 +74,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
     def test_positive_find_default_org(self):
         """@Test: Check if :data:`robottelo.constants.DEFAULT_ORG` is present
 
-        @Feature: Smoke Test
+        @id: 90646b0a-ce56-43cf-8cd7-2b4586478acc
 
         @Assert: 'Default Organization' is found
         """
@@ -72,7 +87,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
     def test_positive_find_default_loc(self):
         """@Test: Check if :data:`robottelo.constants.DEFAULT_LOC` is present
 
-        @Feature: Smoke Test
+        @id: 4b7cc80b-7368-4ee4-8aaf-c946968e49a4
 
         @Assert: 'Default Location' is found
         """
@@ -85,7 +100,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
     def test_positive_find_admin_user(self):
         """Check if Admin User is present
 
-        @Feature: Smoke Test
+        @id: 9cab1b65-70af-4245-98cb-7da90a98d347
 
         @Assert: Admin User is found and has Admin role
         """
@@ -118,7 +133,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             19. Create a new hostgroup and associate previous entities to it
             20. Provision a client
 
-        @Feature: End to End Test
+        @id: 6b7c6187-3cc2-4bd3-89f2-fa7a5f570986
 
         @Assert: All tests should succeed and Content should be successfully
         fetched by client.
@@ -313,7 +328,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
     def test_positive_puppet_install(self):
         """Perform puppet end to end smoke tests using RH repos.
 
-        @Feature: Smoke test puppet install and configure on client
+        @id: 30b0f872-d035-431a-988f-2b3fde620c78
 
         @Assert: Client should get configured by puppet-module.
         """

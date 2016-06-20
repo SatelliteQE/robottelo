@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Partition Table UI"""
+"""Test class for Partition Table UI
+
+@Requirement: Partitiontable
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from robottelo.constants import PARTITION_SCRIPT_DATA_FILE
 from robottelo.datafactory import (
@@ -55,9 +70,9 @@ class PartitionTableTestCase(UITestCase):
     def test_positive_create_with_one_character_name(self):
         """Create a Partition table with 1 character in name
 
-        @Assert: Partition table is created
+        @id: 2b8ee84f-34d4-464f-8fcb-4dd9647e43f0
 
-        @Feature: Partition Table - Positive Create
+        @Assert: Partition table is created
 
         @BZ: 1229384
         """
@@ -77,7 +92,7 @@ class PartitionTableTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create a new partition table
 
-        @Feature: Partition table - Positive Create
+        @id: 2dd8e34d-5a39-49d0-9bde-dd1cdfddb2ad
 
         @Assert: Partition table is created
         """
@@ -97,7 +112,7 @@ class PartitionTableTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create partition table with invalid names
 
-        @Feature: Partition table - Negative Create
+        @id: 225f1bb9-d5b2-4863-b89b-416f7cf5a7be
 
         @Assert: Partition table is not created
         """
@@ -120,7 +135,7 @@ class PartitionTableTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Create a new partition table with same name
 
-        @Feature: Partition table - Negative Create
+        @id: 3462ff33-1645-41c1-8fbd-513c7e4a18ed
 
         @Assert: Partition table is not created
         """
@@ -148,7 +163,7 @@ class PartitionTableTestCase(UITestCase):
     def test_negative_create_with_empty_layout(self):
         """Create a new partition table with empty layout
 
-        @Feature: Partition table - Negative Create
+        @id: 427bce9b-c38e-4d78-943f-3cc7f422ebcd
 
         @Assert: Partition table is not created
         """
@@ -165,7 +180,7 @@ class PartitionTableTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete a partition table
 
-        @Feature: Partition table - Positive Delete
+        @id: 405ed98a-4207-4bf8-899e-dcea7791850e
 
         @Assert: Partition table is deleted
         """
@@ -192,7 +207,7 @@ class PartitionTableTestCase(UITestCase):
     def test_positive_update(self):
         """Update partition table with its name, layout and OS family
 
-        @Feature: Partition table - Positive Update
+        @id: 63203508-7c73-4ce0-853e-64564167bec3
 
         @Assert: Partition table is updated
         """

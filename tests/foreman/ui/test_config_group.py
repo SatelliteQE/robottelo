@@ -1,4 +1,19 @@
-"""Test class for Config Groups UI"""
+"""Test class for Config Groups UI
+
+@Requirement: Config group
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.datafactory import (
@@ -21,7 +36,7 @@ class ConfigGroupTestCase(UITestCase):
     def test_positive_create(self):
         """Create new Config-Group
 
-        @Feature: Config-Groups - Positive Create
+        @id: b9e170a3-29b1-49e6-bfc6-c48fb0021ecb
 
         @Assert: Config-Groups is created
 
@@ -38,7 +53,7 @@ class ConfigGroupTestCase(UITestCase):
         """Try to create config group and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
-        @Feature: Config-Groups - Negative Create
+        @id: 1c8d098c-60c2-4dc4-af24-1c8a4cfff5e2
 
         @Assert: Config-Groups is not created
         """
@@ -55,7 +70,7 @@ class ConfigGroupTestCase(UITestCase):
     def test_positive_update(self):
         """Update selected config-group
 
-        @Feature: Config-Groups - Positive Update
+        @id: c8589969-1fdb-4977-b973-3795a36704be
 
         @Assert: Config-Groups is updated.
 
@@ -74,7 +89,7 @@ class ConfigGroupTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete selected config-groups
 
-        @Feature: Config-Groups - Positive delete
+        @id: 50879d3c-7c38-4294-aae4-0f3f146c9613
 
         @Assert: Config-Groups is deleted
 

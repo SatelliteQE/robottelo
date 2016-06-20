@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Smart/Puppet Class Parameter"""
+"""Test class for Smart/Puppet Class Parameter
+
+@Requirement: Classparameters
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
 from robottelo.test import APITestCase
@@ -14,11 +29,13 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_list_parameters_by_host_id(self):
         """List all the parameters included in specific Host by its id.
 
-        @feature: Class Parameters - List
+        @id: a9e551f9-261b-40e6-b7f6-35621fc46285
 
         @assert: Parameters listed for specific Host.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -27,11 +44,13 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_list_parameters_by_hostgroup_id(self):
         """List all the parameters included in specific HostGroup by id.
 
-        @feature: Class Parameters - List
+        @id: 88ceea89-b8b5-4ca2-9d59-3b2614c7f9a7
 
         @assert: Parameters listed for specific HostGroup.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -40,11 +59,13 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_list_parameters_by_puppetclass_id(self):
         """List all the parameters for specific puppet class by id.
 
-        @feature: Class Parameters - List
+        @id: c0378f1e-c215-4f85-892c-d21a8b5a7060
 
         @assert: Parameters listed for specific Puppet class.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -53,11 +74,13 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_list_parameters_by_environment_id(self):
         """List all the parameters for specific environment by id.
 
-        @feature: Class Parameters - List
+        @id: d4a06038-7405-4d75-b8ac-c43f48a3bc59
 
         @assert: Parameters listed for specific environment.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -66,7 +89,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_override_checkbox(self):
         """Override the Default Parameter value.
 
-        @feature: Class Parameters - Override
+        @id: eaa11546-79df-452e-9552-5b2507a27b48
 
         @steps:
 
@@ -75,7 +98,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Parameter Value overridden with new value.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -84,7 +109,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_override_checkbox(self):
         """Override the Default Parameter value - override Unchecked.
 
-        @feature: Class Parameters - Override
+        @id: f4d56d31-ac48-495f-9e56-545f274a060f
 
         @steps:
 
@@ -93,7 +118,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Parameter value not allowed/disabled to override.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -102,7 +129,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_puppet_default(self):
         """On Override, Set Puppet Default Value.
 
-        @feature: Class Parameters - Puppet Default
+        @id: 7261b409-b482-41ba-934d-4b724e8113ac
 
         @steps:
 
@@ -111,7 +138,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Puppet Default Value applied on parameter.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -122,7 +151,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         Types - string, boolean, integer, real, array, hash, yaml, json
 
-        @feature: Class Parameters - Parameter Type
+        @id: 1140c3bf-ab3b-4da6-99fb-9c508cefbbd1
 
         @steps:
 
@@ -132,7 +161,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Parameter Updated with a new type successfully.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -143,7 +172,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         Types - string, boolean, integer, real, array, hash, yaml, json
 
-        @feature: Class Parameters - Parameter Type
+        @id: 7f0ab885-5520-4431-a916-f739c0498a5b
 
         @steps:
 
@@ -156,7 +185,7 @@ class SmartClassParametersTestCase(APITestCase):
         1. Parameter not updated with string type for invalid value.
         2. Error raised for invalid default value.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -165,7 +194,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_puppet_default_value(self):
         """Validation doesn't work on puppet default value.
 
-        @feature: Class Parameters - Optional Validation
+        @id: 7d934091-e642-45df-b296-397865c0fe8e
 
         @steps:
 
@@ -175,7 +204,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Validation shouldn't work with puppet default value.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -184,7 +215,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_default_value_required_checkbox(self):
         """Error raised for blank default Value - Required check.
 
-        @feature: Class Parameters - Optional Validation
+        @id: cb602713-1c01-400e-83db-9a22e1d144f3
 
         @steps:
 
@@ -194,7 +225,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error raised for blank default value.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -203,7 +236,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_default_value_required_checkbox(self):
         """No error raised for non-empty default Value - Required check.
 
-        @feature: Class Parameters - Optional Validation
+        @id: 92977eb0-92c2-4734-84d9-6fda8ff9d2d8
 
         @steps:
 
@@ -213,7 +246,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: No error raised for non-empty default value
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -222,7 +257,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_matcher_value_required_checkbox(self):
         """Error is raised for blank matcher Value - Required check.
 
-        @feature: Class Parameters - Optional Validation
+        @id: 49de2c9b-40f1-4837-8ebb-dfa40d8fcb89
 
         @steps:
 
@@ -233,7 +268,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error raised for blank matcher value.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -242,7 +279,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_matcher_value_required_checkbox(self):
         """Error is not raised for matcher Value - Required checkbox.
 
-        @feature: Class Parameters - Optional Validation
+        @id: bf620cef-c7ab-4a32-9050-bd06040dc8d1
 
         @steps:
 
@@ -253,7 +290,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error not raised for matcher value.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -262,7 +301,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_default_value_with_regex(self):
         """Error is raised for default value not matching with regex.
 
-        @feature: Class Parameters - Optional Validation
+        @id: 99628b78-3037-4c20-95f0-7ce5455093ac
 
         @steps:
 
@@ -272,7 +311,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error raised for default value not matching with regex.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -281,7 +322,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_default_value_with_regex(self):
         """Error is not raised for default value matching with regex.
 
-        @feature: Class Parameters - Optional Validation
+        @id: d5df7804-9633-4ef8-a065-10807351d230
 
         @steps:
 
@@ -291,7 +332,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error not raised for default value matching with regex.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -300,7 +343,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_matcher_value_with_regex(self):
         """Error is raised for matcher value not matching with regex.
 
-        @feature: Class Parameters - Optional Validation
+        @id: 08820c89-2b93-40f1-be17-0bd38c519e90
 
         @steps:
 
@@ -311,7 +354,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error raised for matcher value not matching with regex.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -320,7 +365,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_matcher_value_with_regex(self):
         """Error is not raised for matcher value matching with regex.
 
-        @feature: Class Parameters - Optional Validation
+        @id: 74164406-885b-4f5b-8ea0-06738314310f
 
         @steps:
 
@@ -330,7 +375,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error not raised for matcher value matching with regex.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -339,7 +386,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_default_value_with_list(self):
         """Error is raised for default value not in list.
 
-        @feature: Class Parameters - Optional Validation
+        @id: 75b1dc0b-2287-4b99-b8dc-e50b83355819
 
         @steps:
 
@@ -349,7 +396,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error is raised for default value that is not in list.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -358,7 +407,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_default_value_with_list(self):
         """Error is not raised for default value in list.
 
-        @feature: Class Parameters - Optional Validation
+        @id: d5d5f084-fa62-4ec3-90ea-9fcabd7bda4f
 
         @steps:
 
@@ -368,7 +417,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error not raised for default value in list.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -377,7 +428,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_matcher_value_with_list(self):
         """Error is raised for matcher value not in list.
 
-        @feature: Class Parameters - Optional Validation
+        @id: a5e89e86-253f-4254-9ebb-eefb3dc2c2ab
 
         @steps:
 
@@ -388,7 +439,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error raised for matcher value not in list.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -397,7 +450,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_matcher_value_with_list(self):
         """Error is not raised for matcher value in list.
 
-        @feature: Class Parameters - Optional Validation
+        @id: 05c1a0bb-ba27-4842-bb6a-8420114cffe7
 
         @steps:
 
@@ -407,7 +460,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error not raised for matcher value in list.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -416,7 +471,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_matcher_value_with_default_type(self):
         """Error is raised for matcher value not of default type.
 
-        @feature: Class Parameters - Validation
+        @id: 21668ef4-1a7a-41cb-98e3-dc4c664db351
 
         @steps:
 
@@ -426,7 +481,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error raised for matcher value not of default type.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -435,7 +492,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_validate_matcher_value_with_default_type(self):
         """No error for matcher value of default type.
 
-        @feature: Class Parameters - Validation
+        @id: 77b6e90d-e38a-4973-98e3-c698eae5c534
 
         @steps:
 
@@ -445,7 +502,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error not raised for matcher value of default type.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -454,7 +513,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_matcher_and_default_value(self):
         """Error for invalid default and matcher value is raised both at a time.
 
-        @feature: Class Parameters - Validation
+        @id: e46a12cb-b3ea-42eb-b1bb-b750655b6a4a
 
         @steps:
 
@@ -464,7 +523,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error raised for invalid default and matcher value both.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -473,7 +534,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_validate_matcher_non_existing_attribute(self):
         """Error while creating matcher for Non Existing Attribute.
 
-        @feature: Class Parameters - Validation
+        @id: bef0e457-16be-4ca6-bc56-fa32dff55a01
 
         @steps:
 
@@ -482,7 +543,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Error raised for non existing attribute.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -491,7 +554,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher(self):
         """Create matcher for attribute in parameter.
 
-        @feature: Class Parameters - Matcher
+        @id: 19d319e6-9b12-485e-a680-c84d18742c40
 
         @steps:
 
@@ -501,7 +564,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: The matcher has been created successfully.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -511,7 +574,7 @@ class SmartClassParametersTestCase(APITestCase):
         """Create matcher for attribute in parameter where
         value is puppet default value.
 
-        @feature: Class Parameters - Matcher
+        @id: 2b205e9c-e50c-48cd-8ebb-3b6bea09be77
 
         @steps:
 
@@ -522,7 +585,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: The matcher has been created successfully.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -531,7 +594,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host.
 
-        @feature: Class Parameters - Matcher
+        @id: f951bdaa-eb3e-40a7-9314-8b67514dabe8
 
         @steps:
 
@@ -546,7 +609,7 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: The YAML output has the value only for fqdn matcher.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -555,7 +618,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host - alternate priority.
 
-        @feature: Class Parameters - Matcher
+        @id: 99c66726-83eb-40cb-949f-8d70e74beb09
 
         @steps:
 
@@ -573,7 +636,7 @@ class SmartClassParametersTestCase(APITestCase):
         1. The YAML output has the value only for step 5 matcher.
         2. The YAML output doesn't have value for fqdn/host matcher.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -582,7 +645,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher_merge_override(self):
         """Merge the values of all the associated matchers.
 
-        @feature: Class Parameters - Matcher
+        @id: ebbb3aa4-2a86-4f1a-b633-eb7bd91c9d3c
 
         @steps:
 
@@ -604,7 +667,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. The YAML output doesn't have the default value of parameter.
         3. Duplicate values in YAML output if any are displayed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -613,7 +676,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_create_matcher_merge_override(self):
         """Attempt to merge the values from non associated matchers.
 
-        @feature: Class Parameters - Matcher
+        @id: 2a37310d-1dc3-489d-8674-08d3b244c61e
 
         @steps:
 
@@ -636,7 +699,7 @@ class SmartClassParametersTestCase(APITestCase):
         3. The YAML output doesn't have the default value of parameter.
         4. Duplicate values in YAML output if any are displayed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -645,7 +708,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher_merge_override_puppet_value(self):
         """Merge the values of all the associated matchers + puppet default value.
 
-        @feature: Class Parameters - Matcher
+        @id: 0d829b65-a7cf-49d7-a907-6ab170a2004d
 
         @steps:
 
@@ -669,7 +732,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. The YAML output doesn't have the puppet default values of matchers.
         3. Duplicate values in YAML output if any are displayed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -678,7 +741,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher_merge_default(self):
         """Merge the values of all the associated matchers + default value.
 
-        @feature: Class Parameters - Matcher
+        @id: b338f637-449c-44a3-89e2-51e7278a6957
 
         @steps:
 
@@ -701,7 +764,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. The YAML output has the default value of parameter.
         3. Duplicate values in YAML output if any are displayed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -710,7 +773,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_create_matcher_merge_default(self):
         """Empty default value is not shown in merged values.
 
-        @feature: Class Parameters - Matcher
+        @id: 757b3e32-8789-4124-9ed8-e0d7e7735b0e
 
         @steps:
 
@@ -733,7 +796,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. The YAML output doesn't have the empty default value of parameter.
         3. Duplicate values in YAML output if any are displayed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -742,7 +805,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher_merge_puppet_default(self):
         """Merge the values of all the associated matchers + puppet default value.
 
-        @feature: Class Parameters - Matcher
+        @id: de18fbfd-1a71-4651-b3f8-fab6b22ccbc0
 
         @steps:
 
@@ -765,7 +828,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. The YAML output doesn't have the puppet default value.
         3. Duplicate values in YAML output if any are displayed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -774,7 +837,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_create_matcher_avoid_duplicate(self):
         """Merge the values of all the associated matchers, remove duplicates.
 
-        @feature: Class Parameters - Matcher
+        @id: 4c150b7d-3a1f-47c3-a2bd-be91435c4dfb
 
         @steps:
 
@@ -797,7 +860,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. The YAML output has the default value of parameter.
         3. Duplicate values in YAML output are removed / not displayed.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -806,7 +869,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_create_matcher_avoid_duplicate(self):
         """Duplicates are not removed as they were not really present.
 
-        @feature: Class Parameters - Matcher
+        @id: 71cc1f74-5acb-4516-8d30-213b5657dfd4
 
         @steps:
 
@@ -828,7 +891,7 @@ class SmartClassParametersTestCase(APITestCase):
         2. The YAML output has the default value of parameter.
         3. No value removed as duplicate value.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -837,7 +900,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_enable_merge_overrides_default_checkboxes(self):
         """Enable Merge Overrides, Merge Default checkbox for supported types.
 
-        @feature: Class Parameters - Matcher
+        @id: ae1c8e2d-c15d-4325-9aa6-cc6b091fb95a
 
         @steps:
 
@@ -846,7 +909,9 @@ class SmartClassParametersTestCase(APITestCase):
         @assert: The Merge Overrides, Merge Default checks are enabled to
         check.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -855,7 +920,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_enable_merge_overrides_default_checkboxes(self):
         """Disable Merge Overrides, Merge Default checkboxes for non supported types.
 
-        @feature: Class Parameters - Matcher
+        @id: d7b1c336-bd9f-40a3-a573-939f2a021cdc
 
         @steps:
 
@@ -864,7 +929,9 @@ class SmartClassParametersTestCase(APITestCase):
         @assert: The Merge Overrides, Merge Default checks are not enabled to
         check.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -873,7 +940,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_enable_avaoid_duplicates_checkbox(self):
         """Enable Avoid duplicates checkbox for supported type- array.
 
-        @feature: Class Parameters - Matcher
+        @id: 80bf52df-e678-4384-a4d5-7a88928620ce
 
         @steps:
 
@@ -882,7 +949,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: The Avoid Duplicates is enabled to set to True.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -891,7 +960,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_negative_enable_avoid_duplicates_checkbox(self):
         """Disable Avoid duplicates checkbox for non supported types.
 
-        @feature: Class Parameters - Matcher
+        @id: 11d75f6d-7105-4ee8-b147-b8329cae4156
 
         @steps:
 
@@ -904,7 +973,9 @@ class SmartClassParametersTestCase(APITestCase):
         2. The Avoid duplicates checkbox not enabled to check
         for any type than array.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -913,7 +984,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_remove_matcher(self):
         """Removal of matcher from parameter.
 
-        @feature: Class Parameters - Matcher
+        @id: 9018d624-07f2-4fb2-b421-8888c7d324a7
 
         @steps:
 
@@ -922,7 +993,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: The matcher removed from parameter.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -931,7 +1004,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_impact_parameter_delete_attribute(self):
         """Impact on parameter after deleting associated attribute.
 
-        @feature: Class Parameters - Outside Impact
+        @id: 3ffbf403-dac9-4172-a586-82267765abd8
 
         @steps:
 
@@ -946,7 +1019,9 @@ class SmartClassParametersTestCase(APITestCase):
         2. On recreating attribute, the matcher should not
         reappear in parameter.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -955,7 +1030,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_hide_parameter_default_value(self):
         """Hide the default value of parameter.
 
-        @feature: Class Parameters - Value Hiding
+        @id: 0cb8ab59-7910-4573-9dea-2e489d1578d4
 
         @steps:
 
@@ -965,7 +1040,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: The 'hidden value' set to True for that parameter.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -974,7 +1051,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_unhide_parameter_default_value(self):
         """Unhide the default value of parameter.
 
-        @feature: Class Parameters - Value Hiding
+        @id: 73151830-e902-4b9e-888e-149570869530
 
         @steps:
 
@@ -985,7 +1062,9 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: The 'hidden value' set to false for that parameter.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -994,7 +1073,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_update_hidden_value_in_parameter(self):
         """Update the hidden default value of parameter.
 
-        @feature: Class Parameters - Value Hiding
+        @id: 6f7ad3c4-7745-45bf-a9f9-697f049556da
 
         @steps:
 
@@ -1008,7 +1087,7 @@ class SmartClassParametersTestCase(APITestCase):
         1. The parameter default value is updated.
         2. The 'hidden value' set/displayed as True for that parameter.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -1017,7 +1096,7 @@ class SmartClassParametersTestCase(APITestCase):
     def test_positive_hide_empty_default_value(self):
         """Hiding the empty default value.
 
-        @feature: Class Parameters - Value Hiding
+        @id: b6882658-9201-4e87-978a-0195a99ec07d
 
         @steps:
 
@@ -1030,5 +1109,7 @@ class SmartClassParametersTestCase(APITestCase):
         1. The 'hidden value' set to True for that parameter.
         2. The default value is empty even after hide.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """

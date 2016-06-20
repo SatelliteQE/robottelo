@@ -1,4 +1,19 @@
-"""Test class for installer (UI)"""
+"""Test class for installer (UI)
+
+@Requirement: Ldap auth
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo.decorators import skip_if_not_set, stubbed, tier3
 from robottelo.test import UITestCase
@@ -27,7 +42,7 @@ class LDAPAuthTestCase(UITestCase):
     def test_positive_ipa_basic_no_roles(self):
         """Login with LDAP Auth- IPA for user with no roles/rights
 
-        @feature: LDAP Authentication
+        @id: e742a9ff-f41b-4fac-b277-b5ab9c9b346f
 
         @setup: assure properly functioning IPA server for authentication
 
@@ -37,8 +52,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: Log in to foreman UI successfully but cannot access
         functional areas of UI
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -47,7 +64,7 @@ class LDAPAuthTestCase(UITestCase):
     def test_positive_ipa_basic_roles(self):
         """Login with LDAP - IPA for user with roles/rights
 
-        @feature: LDAP Authentication
+        @id: e7c67103-b863-4576-8d89-d35fa69cc0eb
 
         @setup: assure properly functioning IPA server for authentication
 
@@ -57,8 +74,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: Log in to foreman UI successfully and can access appropriate
         functional areas in UI
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -68,7 +87,7 @@ class LDAPAuthTestCase(UITestCase):
         """LDAP - IPA user activity when IPA user account has been
         deleted or deactivated
 
-        @feature: LDAP Authentication
+        @id: dac8b17a-6644-41f8-9252-c13eb7abe86a
 
         @steps:
         1. Login to the foreman UI.
@@ -77,8 +96,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: This is handled gracefully (user is logged out perhaps?)
         and no data corruption
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -87,7 +108,7 @@ class LDAPAuthTestCase(UITestCase):
     def test_positive_ad_basic_no_roles(self):
         """Login with LDAP Auth- AD for user with no roles/rights
 
-        @feature: LDAP Authentication
+        @id: 7dc8d9a7-ff08-4d8e-a842-d370ffd69741
 
         @setup: assure properly functioning AD server for authentication
 
@@ -97,8 +118,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: Log in to foreman UI successfully but cannot access
         functional areas of UI
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -107,7 +130,7 @@ class LDAPAuthTestCase(UITestCase):
     def test_positive_ad_basic_roles(self):
         """Login with LDAP - AD for user with roles/rights
 
-        @feature: LDAP Authentication
+        @id: ef202e94-8e5d-4333-a4bc-e573b03ebfc8
 
         @setup: assure properly functioning AD server for authentication
 
@@ -117,8 +140,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: Log in to foreman UI successfully and can access appropriate
         functional areas in UI
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -128,7 +153,7 @@ class LDAPAuthTestCase(UITestCase):
         """LDAP - AD user activity when AD user account has been deleted
         or deactivated
 
-        @feature: LDAP Authentication
+        @id: a11dfd8e-9935-474b-9374-c7d8824dcf58
 
         @steps:
         1. Login to the Sat6 UI.
@@ -137,8 +162,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: This is handled gracefully (user is logged out perhaps?)
         and no data corruption
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -147,7 +174,7 @@ class LDAPAuthTestCase(UITestCase):
     def test_positive_openldap_basic_no_roles(self):
         """Login with LDAP - RHDSLDAP that has no roles / rights
 
-        @feature: LDAP Authentication
+        @id: 24ba9b67-faf5-4abc-a835-2d3ce6ff86cf
 
         @setup: assure properly functioning RHDSLDAP server for authentication
 
@@ -157,8 +184,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: Log in to foreman UI successfully but has no access to
         functional areas of UI.
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -168,7 +197,7 @@ class LDAPAuthTestCase(UITestCase):
         """Login with LDAP - RHDS LDAP for user with roles/rights
         assigned.
 
-        @feature: LDAP Authentication
+        @id: fe3ca8b9-470d-4d42-9a3e-7ad6b0ee1783
 
         @setup: assure properly functioning RHDS LDAP server for authentication
 
@@ -178,8 +207,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: Log in to foreman UI successfully and can access appropriate
         functional areas in UI
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -189,7 +220,7 @@ class LDAPAuthTestCase(UITestCase):
         """LDAP - RHDSLDAP user activity when RHDS ldap account has been
         deleted or deactivated
 
-        @feature: LDAP Authentication
+        @id: ec366106-58bd-4904-8014-965506767ea2
 
         @steps:
         1. Login to the foreman UI.
@@ -198,8 +229,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: This is handled gracefully (user is logged out perhaps?) and
         no data corruption
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -208,7 +241,7 @@ class LDAPAuthTestCase(UITestCase):
     def test_positive_multiple_ldap_backends(self):
         """LDAP - multiple LDAP servers kafo instance
 
-        @feature: LDAP Authentication
+        @id: fc23ec1b-c637-435c-aa85-28078470b311
 
         @setup: Assure more than one ldap server backend is provided for
         sat6
@@ -221,8 +254,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: Log in to foreman UI successfully for users on both LDAP
         servers.
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -235,7 +270,7 @@ class LDAPAuthTestCase(UITestCase):
         """LDAP - multiple LDAP servers colliding namespace
         (e.g "jsmith")
 
-        @feature: LDAP Authentication
+        @id: 936cd280-22de-47c3-b17d-aaffb7bf7c49
 
         @setup: more than 1 ldap server backend provide for instance with
 
@@ -247,8 +282,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: Foreman should have some method for distinguishing/specifying
         which server a user comes from.
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -262,7 +299,7 @@ class LDAPAuthTestCase(UITestCase):
         # I'm not sure about result
         """LDAP - what happens when we have an ldap user named "admin"?
 
-        @feature: LDAP Authentication
+        @id: 7dd6fef2-6813-4aa2-b8ba-98d99e92446d
 
         @steps:
         1. Try to login with ldap user "admin".
@@ -270,8 +307,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: Login from local db user "admin" overrides any ldap user
         "admin"
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -281,7 +320,7 @@ class LDAPAuthTestCase(UITestCase):
         """LDAP - what happens when we have an ldap server that goes
         down before logging in?
 
-        @feature: LDAP Authentication
+        @id: bc466317-6c7f-4765-b11f-9428e687c6da
 
         @steps:
         1. Try to login with ldap user when server is non-responsive.
@@ -289,8 +328,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: UI does handles situation gracefully, perhaps informing user
         that LDAP instance is not responding
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -300,7 +341,7 @@ class LDAPAuthTestCase(UITestCase):
         """LDAP - what happens when we have an ldap server that goes
         down after login?
 
-        @feature: LDAP Authentication
+        @id: de3e7466-b22f-416d-ac68-458d55c98390
 
         @steps:
         1. Try to login with ldap user.
@@ -309,8 +350,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: Situation is handled gracefully and without serious data
         loss on foreman server
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -319,7 +362,7 @@ class LDAPAuthTestCase(UITestCase):
     def test_positive_usergroup_roles_read(self):
         """Group roles get pushed down to user
 
-        @feature: LDAP Authentication
+        @id: 95fa0fd9-a5b7-42dc-85fa-7e573e5d34a2
 
         @setup: assign roles to an LDAP UserGroup
 
@@ -330,8 +373,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: User has access to all functional areas that are assigned to
         aforementioned UserGroup.
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -340,7 +385,7 @@ class LDAPAuthTestCase(UITestCase):
     def test_positive_usergroup_roles_update(self):
         """Added UserGroup roles get pushed down to user
 
-        @feature: LDAP Authentication
+        @id: e1d93ae4-cbd5-4d2c-b2b9-abc4ae1813c7
 
         @setup: assign additional roles to an LDAP UserGroup
 
@@ -351,8 +396,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: User has access to all NEW functional areas that are assigned
         to aforementioned UserGroup.
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -361,7 +408,7 @@ class LDAPAuthTestCase(UITestCase):
     def test_positive_usergroup_roles_delete(self):
         """Deleted UserGroup roles get pushed down to user
 
-        @feature: LDAP Authentication
+        @id: 149e0faf-48c3-4184-adcb-a1e55fe5d953
 
         @setup: delete roles from an LDAP UserGroup
 
@@ -372,8 +419,10 @@ class LDAPAuthTestCase(UITestCase):
         @assert: User no longer has access to all deleted functional areas
         that were assigned to aforementioned UserGroup.
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -383,7 +432,7 @@ class LDAPAuthTestCase(UITestCase):
         """Assure that user has roles/can access feature areas for
         additional roles assigned outside any roles assigned by his group
 
-        @feature: LDAP Authentication
+        @id: 52a2a22f-4862-4cdf-986e-cff18bab08fd
 
         @setup: Assign roles to UserGroup and users to this group;
         subsequently assign specified roles to the user(s) --
@@ -397,8 +446,10 @@ class LDAPAuthTestCase(UITestCase):
         UserGroup but those additional feature areas / roles assigned
         specifically to user
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @skip_if_not_set('ldap')
@@ -407,7 +458,7 @@ class LDAPAuthTestCase(UITestCase):
     def test_positive_ldap_auth_usergroup_user_add(self):
         """New user added to UserGroup inherits roles
 
-        @feature: LDAP Authentication
+        @id: 9df694d4-7fa5-4883-ae17-b996c2734f41
 
         @setup: UserGroup with specified roles.
 
@@ -419,6 +470,8 @@ class LDAPAuthTestCase(UITestCase):
         @assert: User can access feature areas as defined by roles in the
         UserGroup of which he is a part.
 
-        @status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """

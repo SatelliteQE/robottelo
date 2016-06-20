@@ -1,4 +1,19 @@
-"""Test class for OpenScap Feature"""
+"""Test class for OpenScap Feature
+
+@Requirement: Openscap
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from robottelo.decorators import stubbed, tier1, tier2, tier3
 from robottelo.test import UITestCase
 
@@ -11,7 +26,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_create_policy(self):
         """Create policies for OpenScap.
 
-        @Feature: OpenScap - Positive Create.
+        @id: 9a7564d6-387a-4a92-b6d6-d28683845b40
 
         @Steps:
 
@@ -20,7 +35,7 @@ class OpenScapTestCase(UITestCase):
 
         @Assert: Whether creating policies for OpenScap is successful.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -28,11 +43,11 @@ class OpenScapTestCase(UITestCase):
     def test_negative_create_policy(self):
         """Create policies for OpenScap with 256 chars.
 
-        @Feature: OpenScap - Negative Create.
+        @id: e832d9f4-fee1-4502-937e-375c08d5f042
 
         @Assert: Creating policies for OpenScap is unsuccessful.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -40,7 +55,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_delete_policy(self):
         """Delete policies of OpenScap.
 
-        @Feature: OpenScap - Delete.
+        @id: 7324f2a7-a9ad-49e6-b564-4e58a8bb2c42
 
         @Steps:
 
@@ -50,7 +65,7 @@ class OpenScapTestCase(UITestCase):
 
         @Assert: Whether deleting policies for OpenScap is successful.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -58,7 +73,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_create_content(self):
         """Create OpenScap content.
 
-        @Feature: OpenScap - Positive Create.
+        @id: 35c52cb4-b6c4-431a-b9c8-f5b15b6d67a8
 
         @Steps:
 
@@ -67,7 +82,7 @@ class OpenScapTestCase(UITestCase):
 
         @Assert: Whether creating  content for OpenScap is successful
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -75,11 +90,11 @@ class OpenScapTestCase(UITestCase):
     def test_negative_create_content(self):
         """Create OpenScap content with 256 chars.
 
-        @Feature: OpenScap - Negative Create.
+        @id: 3410fe9b-55ba-4b87-bc7a-ec9138fc035a
 
         @Assert: Creating content for OpenScap is unsuccessful
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -87,7 +102,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_delete_content(self):
         """Create OpenScap content and then delete it.
 
-        @Feature: OpenScap - Delete
+        @id: 1c6b63b3-c838-4b14-a7f4-a151d3bb49d4
 
         @Steps:
 
@@ -97,7 +112,7 @@ class OpenScapTestCase(UITestCase):
 
         @Assert: Deleting content for OpenScap is successful
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -105,11 +120,11 @@ class OpenScapTestCase(UITestCase):
     def test_positive_access_oscap_reports(self):
         """OpenScap should have it's own Compliance Reporting page.
 
-        @Feature: OpenScap - Compliance Reporting.
+        @id: b1decf7e-f4e8-45aa-941b-c9b9c5b9efb0
 
         @Assert: Whether separate Compliance Reporting page exists.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -117,7 +132,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_set_periodic_audit(self):
         """Should be able to periodically set OpenScap Audit.
 
-        @Feature: OpenScap - Periodic Audit.
+        @id: f750710b-14ed-4448-ae3c-cec2fde4297a
 
         @Steps:
 
@@ -135,7 +150,9 @@ class OpenScapTestCase(UITestCase):
         @Assert: Whether OpenScap Audit scans can be periodically set as per
         intervals.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -143,7 +160,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_set_custom_periodic_audit(self):
         """Should be able to periodically set custom OpenScap Audit.
 
-        @Feature: OpenScap - Periodic Audit.
+        @id: 595f87d6-ae35-4034-8b0d-50b6bec5d370
 
         @Steps:
 
@@ -160,7 +177,9 @@ class OpenScapTestCase(UITestCase):
         @Assert: Whether OpenScap Audit scans can be periodically set as per
         custom intervals.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -168,7 +187,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_search_audit(self):
         """Should be able to search OpenScap audit results.
 
-        @Feature: OpenScap - Search
+        @id: 77eb277f-c2a6-48fc-aa35-e08b7d595e41
 
         @Steps:
 
@@ -183,7 +202,9 @@ class OpenScapTestCase(UITestCase):
 
         @Assert: Whether searching audit results is possible.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -192,7 +213,7 @@ class OpenScapTestCase(UITestCase):
         """OpenScap should be able to audit foreman managed
         infrastructure(Reports from default Capsule.)
 
-        @Feature: OpenScap - Audit Foreman Infrastructure.
+        @id: 915b14e0-e41a-4857-b0ae-913c51251126
 
         @Steps:
 
@@ -207,7 +228,9 @@ class OpenScapTestCase(UITestCase):
         @Assert: Whether audit reports of Foreman managed Infrastructure
         (Hosts from default Capsule) are generated.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -216,7 +239,7 @@ class OpenScapTestCase(UITestCase):
         """OpenScap should be able to audit foreman managed
         infrastructure (Reports from Non-Default Capsule)
 
-        @Feature: OpenScap - Audit Foreman Infrastructure.
+        @id: db9db833-56a6-4628-9a91-6b3a9475dfc8
 
         @Steps:
 
@@ -231,7 +254,9 @@ class OpenScapTestCase(UITestCase):
         @Assert: Whether audit of Foreman managed Infrastructure
         (Hosts from Non-Default Capsule) is possible.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -239,7 +264,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_search_content(self):
         """Should be able to search OpenScap content.
 
-        @Feature: OpenScap - Search.
+        @id: 4aeef3ae-7e9a-488a-a906-b4aef024592f
 
         @steps:
 
@@ -249,7 +274,9 @@ class OpenScapTestCase(UITestCase):
 
         @Assert: Whether searching OpenScap content is possible.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -257,7 +284,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_search_policies(self):
         """Should be able to search OpenScap policies.
 
-        @Feature: OpenScap - Search.
+        @id: 6a46438a-7248-4e48-90dc-e5b0ee57e1ec
 
         @Steps:
 
@@ -266,7 +293,9 @@ class OpenScapTestCase(UITestCase):
 
         @Assert: Whether searching OpenScap policies is possible.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @stubbed()
@@ -274,7 +303,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_search_nonaudited_hosts(self):
         """Should be able to search Non-Audited Hosts/systems
 
-        @Feature: OpenScap - Search.
+        @id: c7ef2735-3af5-45a0-9ce7-e7e4ee1481eb
 
         @Steps:
 
@@ -289,7 +318,9 @@ class OpenScapTestCase(UITestCase):
 
         @Assert: Whether searching Non-Audited Hosts/Systems is possible.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -297,7 +328,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_search_noncompliant_hosts(self):
         """Should be able to search Non-Compliant "Hosts"/systems
 
-        @Feature: OpenScap - Search
+        @id: c75007f8-0567-444c-8f0e-08e535c3753c
 
         @Steps:
 
@@ -312,7 +343,9 @@ class OpenScapTestCase(UITestCase):
 
         @Assert: Whether searching Non-Compliant systems is possible.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -321,7 +354,7 @@ class OpenScapTestCase(UITestCase):
         """Should be able to compare multiple audit results of
         "Hosts"/systems.
 
-        @Feature: OpenScap - Compare
+        @id: 4169707c-02e6-4fc3-a478-39cb27379e33
 
         @Steps:
 
@@ -337,7 +370,9 @@ class OpenScapTestCase(UITestCase):
         @Assert: Whether Comparing multiple audit results of Hosts/Systems
         is possible.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -345,7 +380,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_assign_policies_for_hosts(self):
         """Should be able to assign policies for the hosts.
 
-        @Feature: OpenScap - Assigning policies.
+        @id: 1399ec3e-8f03-4faf-8440-d580e05368d9
 
         @Steps:
 
@@ -357,7 +392,9 @@ class OpenScapTestCase(UITestCase):
 
         @Assert: Whether assigning policies to multiple hosts is possible.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -366,9 +403,11 @@ class OpenScapTestCase(UITestCase):
         """Dashboard views that can tell Audited/Un-Audited,
         Compliant/Non-Compliant and trends.
 
-        @Feature: OpenScap - Dashboard.
+        @id: 41bc8692-0830-4b17-b5be-7a798a13cc4c
 
         @Assert: Expected Dashboard views are visible.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """

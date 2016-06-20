@@ -1,6 +1,21 @@
 # -*- encoding: utf-8 -*-
 # pylint: disable=unexpected-keyword-arg
-"""Test class for Activation key CLI"""
+"""Test class for Activation key CLI
+
+@Requirement: Activationkey
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo import manifests
@@ -73,7 +88,7 @@ class ActivationKeyTestCase(CLITestCase):
         """Create Activation key for all variations of Activation key
         name
 
-        @Feature: Activation key
+        @id: a5aaab5e-bc18-459e-a384-74aef752ec88
 
         @Assert: Activation key is created with chosen name
         """
@@ -86,7 +101,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_create_with_description(self):
         """Create Activation key for all variations of Description
 
-        @Feature: Activation key
+        @id: 5a5ca7f9-1449-4365-ac8a-978605620bf2
 
         @Assert: Activation key is created with chosen description
         """
@@ -102,7 +117,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_create_with_default_lce_by_id(self):
         """Create Activation key with associated default environment
 
-        @Feature: Activation key
+        @id: 9171adb2-c9ac-4cda-978f-776826668aa3
 
         @Assert: Activation key is created and associated to Library
         """
@@ -117,7 +132,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_create_with_non_default_lce(self):
         """Create Activation key with associated custom environment
 
-        @Feature: Activation key
+        @id: ad4d4611-3fb5-4449-ae47-305f9931350e
 
         @Assert: Activation key is created and associated to expected
         environment
@@ -133,7 +148,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_create_with_default_lce_by_name(self):
         """Create Activation key with associated environment by name
 
-        @feature: Activation key - Positive Create
+        @id: 7410f7c4-e8b5-4080-b6d2-65dbcedffe8a
 
         @assert: Activation key is created
         """
@@ -148,9 +163,11 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_create_with_cv(self):
         """Create Activation key for all variations of Content Views
 
-        @Feature: Activation key - Positive Create
+        @id: ec7b1af5-c3f4-40c3-b1df-c69c02a3b9a7
 
         @Assert: Activation key is created and has proper content view assigned
+
+        @CaseLevel: Integration
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -169,7 +186,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_create_with_usage_limit_default(self):
         """Create Activation key with default Usage limit (Unlimited)
 
-        @Feature: Activation key - Positive Create
+        @id: cba13c72-9845-486d-beff-e0fb55bb762c
 
         @Assert: Activation key is created
         """
@@ -180,7 +197,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_create_with_usage_limit_finite(self):
         """Create Activation key with finite Usage limit
 
-        @Feature: Activation key - Positive Create
+        @id: 529a0f9e-977f-4e9d-a1af-88bb98c28a6a
 
         @Assert: Activation key is created
         """
@@ -194,7 +211,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create Activation key with invalid Name
 
-        @Feature: Activation key - Negative Create
+        @id: d9b7e3a9-1d24-4e47-bd4a-dce75772d829
 
         @Assert: Activation key is not created. Appropriate error shown.
         """
@@ -207,7 +224,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_negative_create_with_usage_limit(self):
         """Create Activation key with invalid Usage Limit
 
-        @Feature: Activation key - Negative Create
+        @id: 247ebc2e-c80f-488b-aeaf-6bf5eba55375
 
         @Assert: Activation key is not created. Appropriate error shown.
         """
@@ -224,7 +241,7 @@ class ActivationKeyTestCase(CLITestCase):
         """Create Activation key and delete it for all variations of
         Activation key name
 
-        @Feature: Activation key - Positive Delete
+        @id: ef5f6a28-6bfd-415b-aac9-b3dc9a014ca9
 
         @Assert: Activation key is deleted
         """
@@ -247,7 +264,7 @@ class ActivationKeyTestCase(CLITestCase):
         """Create Activation key and delete it using organization name
         for which that key was created
 
-        @Feature: Activation key - Positive Delete
+        @id: 006cbe5c-fb72-43a1-9760-30c97043c36b
 
         @Assert: Activation key is deleted
         """
@@ -265,7 +282,7 @@ class ActivationKeyTestCase(CLITestCase):
         """Create Activation key and delete it using organization label
         for which that key was created
 
-        @Feature: Activation key - Positive Delete
+        @id: f66e5a42-b531-4290-a907-9f5c01305885
 
         @Assert: Activation key is deleted
         """
@@ -283,9 +300,11 @@ class ActivationKeyTestCase(CLITestCase):
         """Create activation key with content view assigned to it and
         delete it using activation key id
 
-        @Feature: Activation key - Positive Delete
+        @id: bba323fa-0362-4a9b-97af-560d446cbb6c
 
         @Assert: Activation key is deleted
+
+        @CaseLevel: Integration
         """
         new_cv = make_content_view({u'organization-id': self.org['id']})
         new_ak = self._make_activation_key({u'content-view': new_cv['name']})
@@ -299,9 +318,11 @@ class ActivationKeyTestCase(CLITestCase):
         """Create activation key with lifecycle environment assigned to
         it and delete it using activation key id
 
-        @Feature: Activation key - Positive Delete
+        @id: e1830e52-5b1a-4ac4-8d0a-df6efb218a8b
 
         @Assert: Activation key is deleted
+
+        @CaseLevel: Integration
         """
         new_ak = self._make_activation_key({
             u'lifecycle-environment': self.get_default_env()['name'],
@@ -315,7 +336,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_update_name_by_id(self):
         """Update Activation Key Name in Activation key searching by ID
 
-        @Feature: Activation key - Positive Update
+        @id: bc304894-fd9b-4622-96e3-57c2257e26ca
 
         @Assert: Activation key is updated
         """
@@ -336,7 +357,7 @@ class ActivationKeyTestCase(CLITestCase):
         """Update Activation Key Name in an Activation key searching by
         name
 
-        @Feature: Activation key - Positive Update
+        @id: bce4533e-1a58-4edb-a51a-4aa46bc28676
 
         @Assert: Activation key is updated
         """
@@ -355,7 +376,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_update_description(self):
         """Update Description in an Activation key
 
-        @Feature: Activation key - Positive Update
+        @id: 60a4e860-d99c-431e-b70b-9b0fa90d839b
 
         @Assert: Activation key is updated
         """
@@ -375,9 +396,11 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_update_lce(self):
         """Update Environment in an Activation key
 
-        @Feature: Activation key - Positive Update
+        @id: 55aaee60-b8c8-49f0-995a-6c526b9b653b
 
         @Assert: Activation key is updated
+
+        @CaseLevel: Integration
         """
         ak_env = self._make_activation_key({
             u'lifecycle-environment-id': self.get_default_env()['id'],
@@ -404,9 +427,11 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_update_cv(self):
         """Update Content View in an Activation key
 
-        @Feature: Activation key - Positive Update
+        @id: aa94997d-fc9b-4532-aeeb-9f27b9834914
 
         @Assert: Activation key is updated
+
+        @CaseLevel: Integration
         """
         cv = make_content_view({u'organization-id': self.org['id']})
         ak_cv = self._make_activation_key({u'content-view-id': cv['id']})
@@ -423,7 +448,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_update_usage_limit_to_finite_number(self):
         """Update Usage limit from Unlimited to a finite number
 
-        @Feature: Activation key - Positive Update
+        @id: a55bb8dc-c7d8-4a6a-ac0f-1d5a377da543
 
         @Assert: Activation key is updated
         """
@@ -441,7 +466,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_update_usage_limit_to_unlimited(self):
         """Update Usage limit from definite number to Unlimited
 
-        @Feature: Activation key - Positive Update
+        @id: 0b83657b-41d1-4fb2-9c23-c36011322b83
 
         @Assert: Activation key is updated
         """
@@ -461,7 +486,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_negative_update_name(self):
         """Try to update Activation Key using invalid value for its name
 
-        @Feature: Activation key - Negative Update
+        @id: b75e7c38-fde2-4110-ba65-4157319fc159
 
         @Assert: Activation key is not updated. Appropriate error shown.
         """
@@ -480,7 +505,7 @@ class ActivationKeyTestCase(CLITestCase):
         """Try to update Activation Key using invalid value for its
         usage limit attribute
 
-        @Feature: Activation key - Negative Update
+        @id: cb5fa263-924c-471f-9c57-9506117ca92d
 
         @Assert: Activation key is not updated. Appropriate error shown.
         """
@@ -497,7 +522,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_usage_limit(self):
         """Test that Usage limit actually limits usage
 
-        @Feature: Activation key - Usage limit
+        @id: 00ded856-e939-4140-ac84-91b6a8643623
 
         @Steps:
 
@@ -508,6 +533,8 @@ class ActivationKeyTestCase(CLITestCase):
            Limit
 
         @Assert: Content host Registration fails. Appropriate error shown
+
+        @CaseLevel: System
         """
         env = make_lifecycle_environment({u'organization-id': self.org['id']})
         new_cv = make_content_view({u'organization-id': self.org['id']})
@@ -541,11 +568,13 @@ class ActivationKeyTestCase(CLITestCase):
         """Test that host collection can be associated to Activation
         Keys
 
-        @Feature: Activation key - Host
+        @id: 2114132a-fede-4791-98e7-a463ad79f398
 
         @BZ: 1110476
 
         @Assert: Hosts are successfully associated to Activation key
+
+        @CaseLevel: Integration
         """
         for host_col_name in valid_data_list():
             with self.subTest(host_col_name):
@@ -573,9 +602,11 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_add_redhat_product(self):
         """Test that RH product can be associated to Activation Keys
 
-        @Feature: Activation key - Product
+        @id: 7b15de8e-edde-41aa-937b-ad6aa529891a
 
         @Assert: RH products are successfully associated to Activation key
+
+        @CaseLevel: System
         """
         result = setup_org_for_a_rh_repo({
             u'product': PRDS['rhel'],
@@ -594,9 +625,11 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_add_custom_product(self):
         """Test that custom product can be associated to Activation Keys
 
-        @Feature: Activation key - Product
+        @id: 96ace967-e165-4069-8ff7-f54c4c822de0
 
         @Assert: Custom products are successfully associated to Activation key
+
+        @CaseLevel: System
         """
         result = setup_org_for_a_custom_repo({
             u'url': FAKE_0_YUM_REPO,
@@ -616,7 +649,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_add_redhat_and_custom_products(self):
         """Test if RH/Custom product can be associated to Activation key
 
-        @Feature: Activation key - Product
+        @id: 74c77426-18f5-4abb-bca9-a2135f7fcc1f
 
         @Steps:
 
@@ -625,6 +658,8 @@ class ActivationKeyTestCase(CLITestCase):
         3. Associate custom product(s) to Activation Key
 
         @Assert: RH/Custom product is successfully associated to Activation key
+
+        @CaseLevel: System
         """
         result = setup_org_for_a_rh_repo({
             u'product': PRDS['rhel'],
@@ -652,7 +687,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_delete_manifest(self):
         """Check if deleting a manifest removes it from Activation key
 
-        @Feature: Activation key - Manifest
+        @id: 8256ac6d-3f60-4668-897d-2e88d29532d3
 
         @Steps:
         1. Upload manifest
@@ -662,7 +697,7 @@ class ActivationKeyTestCase(CLITestCase):
 
         @Assert: Deleting a manifest removes it from the Activation key
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @run_in_one_thread
@@ -672,9 +707,11 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_delete_subscription(self):
         """Check if deleting a subscription removes it from Activation key
 
-        @Feature: Activation key - Subscription
+        @id: bbbe4641-bfb0-48d6-acfc-de4294b18c15
 
         @Assert: Deleting subscription removes it from the Activation key
+
+        @CaseLevel: Integration
         """
         new_ak = self._make_activation_key()
         with manifests.clone() as manifest:
@@ -714,9 +751,11 @@ class ActivationKeyTestCase(CLITestCase):
         """Check if multiple Activation keys can be attached to a
         Content host
 
-        @Feature: Activation key - Content host
+        @id: 24fddd9c-03ae-41a7-8649-72296cbbafdf
 
         @Assert: Multiple Activation keys are attached to a Content host
+
+        @CaseLevel: System
         """
         env = make_lifecycle_environment({u'organization-id': self.org['id']})
         new_cv = make_content_view({u'organization-id': self.org['id']})
@@ -760,16 +799,18 @@ class ActivationKeyTestCase(CLITestCase):
         This means that we can re-use `--activationkey` option more than once
         to add different keys
 
-        @Feature: Activation key - Content host
+        @id: 888669e2-2ff7-48e3-9c56-6ac497bec5a0
 
         @Assert: Multiple Activation keys are attached to a Content host
+
+        @CaseLevel: System
         """
 
     @tier1
     def test_positive_list_by_name(self):
         """List Activation key for all variations of Activation key name
 
-        @Feature: Activation key - list
+        @id: 644b70d9-86c1-4e26-b38e-6aafab3efa34
 
         @Assert: Activation key is listed
         """
@@ -787,7 +828,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_list_by_cv_id(self):
         """List Activation key for provided Content View ID
 
-        @Feature: Activation key - list
+        @id: 4d9aad38-cd6e-41cb-99a0-9a593cf22655
 
         @Assert: Activation key is listed
         """
@@ -805,7 +846,7 @@ class ActivationKeyTestCase(CLITestCase):
         """Create activation key, rename it and create another with the
         initial name
 
-        @Feature: Activation key - Positive Create
+        @id: 9801319a-f42c-41a4-9ea4-3718e544c8e0
 
         @Assert: Activation key is created
         """
@@ -831,7 +872,7 @@ class ActivationKeyTestCase(CLITestCase):
         """Test that hosts associated to Activation Keys can be removed
         using id of that host collection
 
-        @Feature: Activation key - Host
+        @id: 20f8ecca-1756-4900-b966-f0144b6bd0aa
 
         @Steps:
 
@@ -842,6 +883,8 @@ class ActivationKeyTestCase(CLITestCase):
            collection
 
         @Assert: Host collection successfully removed from activation key
+
+        @CaseLevel: Integration
         """
         activation_key = self._make_activation_key()
         new_host_col = make_host_collection({
@@ -869,7 +912,7 @@ class ActivationKeyTestCase(CLITestCase):
         """Test that hosts associated to Activation Keys can be removed
         using name of that host collection
 
-        @Feature: Activation key - Host
+        @id: 1a559a82-db5f-48b0-beeb-2fa02aed7ef9
 
         @Steps:
 
@@ -880,6 +923,8 @@ class ActivationKeyTestCase(CLITestCase):
            of that collection
 
         @Assert: Host collection successfully removed from activation key
+
+        @CaseLevel: Integration
         """
         for host_col in valid_data_list():
             with self.subTest(host_col):
@@ -919,7 +964,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_add_subscription_by_id(self):
         """Test that subscription can be added to activation key
 
-        @Feature: Activation key - Subscription
+        @id: b884be1c-b35d-440a-9a9d-c854c83e10a7
 
         @Steps:
 
@@ -928,6 +973,8 @@ class ActivationKeyTestCase(CLITestCase):
         3. Associate the activation key to subscription
 
         @Assert: Subscription successfully added to activation key
+
+        @CaseLevel: Integration
         """
         with manifests.clone() as manifest:
             upload_file(manifest.content, manifest.filename)
@@ -952,7 +999,7 @@ class ActivationKeyTestCase(CLITestCase):
         """Copy Activation key for all valid Activation Key name
         variations
 
-        @Feature: Activation key copy
+        @id: c9ad8aff-07ba-4804-a198-f719fe905123
 
         @Assert: Activation key is successfully copied
         """
@@ -970,7 +1017,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_copy_by_parent_name(self):
         """Copy Activation key by passing name of parent
 
-        @Feature: Activation key copy
+        @id: 5d5405e6-3b26-47a3-96ff-f6c0f6c32607
 
         @Assert: Activation key is successfully copied
         """
@@ -986,7 +1033,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_negative_copy_with_same_name(self):
         """Copy activation key with duplicate name
 
-        @Feature: Activation key copy
+        @id: f867c468-4155-495c-a1e5-c04d9868a2e0
 
         @Assert: Activation key is not successfully copied
         """
@@ -1005,7 +1052,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_copy_subscription(self):
         """Copy Activation key and verify contents
 
-        @Feature: Activation key copy
+        @id: f4ee8096-4120-4d06-8c9a-57ac1eaa8f68
 
         @Steps:
 
@@ -1014,6 +1061,8 @@ class ActivationKeyTestCase(CLITestCase):
         3. Verify content was successfully copied
 
         @Assert: Activation key is successfully copied
+
+        @CaseLevel: Integration
         """
         # Begin test setup
         parent_ak = self._make_activation_key()
@@ -1051,7 +1100,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_update_autoattach_toggle(self):
         """Update Activation key with inverse auto-attach value
 
-        @Feature: Activation key update / info
+        @id: de3b5fb7-7963-420a-b4c9-c66e78a111dc
 
         @Steps:
 
@@ -1077,7 +1126,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_update_autoattach(self):
         """Update Activation key with valid auto-attach values
 
-        @Feature: Activation key update / info
+        @id: 9e18b950-6f0f-4f82-a3ac-ef6aba950a78
 
         @Assert: Activation key is successfully updated
         """
@@ -1096,7 +1145,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_negative_update_autoattach(self):
         """Attempt to update Activation key with bad auto-attach value
 
-        @Feature: Activation key update / info
+        @id: 54b6f808-ff54-4e69-a54d-e1f99a4652f9
 
         @Steps:
 
@@ -1119,7 +1168,7 @@ class ActivationKeyTestCase(CLITestCase):
     def test_positive_content_override(self):
         """Positive content override
 
-        @Feature: Activation key copy
+        @id: a4912cc0-3bf7-4e90-bb51-ec88b2fad227
 
         @Steps:
 
@@ -1129,6 +1178,8 @@ class ActivationKeyTestCase(CLITestCase):
         4. Verify that the command succeeded
 
         @Assert: Activation key content override was successful
+
+        @CaseLevel: System
         """
         result = setup_org_for_a_custom_repo({
             u'url': FAKE_0_YUM_REPO,

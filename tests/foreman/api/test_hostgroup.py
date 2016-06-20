@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Tests for the ``hostgroups`` paths."""
+"""Tests for the ``hostgroups`` paths.
+
+@Requirement: Hostgroup
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from nailgun import client, entities, entity_fields
 from random import randint
@@ -36,10 +51,12 @@ class HostGroupTestCase(APITestCase):
         assigned to it should inherit such puppet class information under
         'all_puppetclasses' field
 
-        @Feature: HostGroup and Host
+        @id: 7b840f3d-413c-40bb-9a7d-cd9dad3c0737
 
         @Assert: Host inherited 'all_puppetclasses' details from HostGroup that
         was used for such Host create procedure
+
+        @CaseLevel: System
         """
         # Creating entities like organization, content view and lifecycle_env
         # with not utf-8 names for easier interaction with puppet environment
@@ -168,7 +185,7 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create a hostgroup with different names
 
-        @feature: HostGroup
+        @id: fd5d353c-fd0c-4752-8a83-8f399b4c3416
 
         @assert: A hostgroup is created with expected name
         """
@@ -185,9 +202,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_parent(self):
         """Create a hostgroup with parent hostgroup specified
 
-        @feature: HostGroup
+        @id: 308d6921-0bf1-4fae-8bcf-7b312208e27c
 
         @assert: A hostgroup is created with expected parent hostgroup assigned
+
+        @CaseLevel: Integration
         """
         parent_hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -204,9 +223,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_env(self):
         """Create a hostgroup with environment specified
 
-        @feature: HostGroup
+        @id: 528afd01-356a-4082-9e88-a5b2a715a792
 
         @assert: A hostgroup is created with expected environment assigned
+
+        @CaseLevel: Integration
         """
         env = entities.Environment(
             location=[self.loc],
@@ -223,9 +244,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_os(self):
         """Create a hostgroup with operating system specified
 
-        @feature: HostGroup
+        @id: ca443d3f-2b99-4f0e-b92e-37c3e9fcc460
 
         @assert: A hostgroup is created with expected operating system assigned
+
+        @CaseLevel: Integration
         """
         arch = entities.Architecture().create()
         ptable = entities.PartitionTable().create()
@@ -246,9 +269,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_arch(self):
         """Create a hostgroup with architecture specified
 
-        @feature: HostGroup
+        @id: c2f50b94-fa80-49c9-8279-76cfe458bc74
 
         @assert: A hostgroup is created with expected architecture assigned
+
+        @CaseLevel: Integration
         """
         arch = entities.Architecture().create()
         hostgroup = entities.HostGroup(
@@ -262,9 +287,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_media(self):
         """Create a hostgroup with media specified
 
-        @feature: HostGroup
+        @id: b0b93207-a8bc-4af7-8ccd-d0bbf46dc0b0
 
         @assert: A hostgroup is created with expected media assigned
+
+        @CaseLevel: Integration
         """
         arch = entities.Architecture().create()
         ptable = entities.PartitionTable().create()
@@ -291,9 +318,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_ptable(self):
         """Create a hostgroup with partition table specified
 
-        @feature: HostGroup
+        @id: f161fd59-fa38-4c4e-a641-489f754d5977
 
         @assert: A hostgroup is created with expected partition table assigned
+
+        @CaseLevel: Integration
         """
         arch = entities.Architecture().create()
         ptable = entities.PartitionTable().create()
@@ -314,7 +343,7 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_puppet_ca_proxy(self):
         """Create a hostgroup with puppet CA proxy specified
 
-        @feature: HostGroup
+        @id: 5c715ee8-2fd6-42c6-aece-037733f67454
 
         @assert: A hostgroup is created with expected puppet CA proxy assigned
         """
@@ -330,9 +359,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_subnet(self):
         """Create a hostgroup with subnet specified
 
-        @feature: HostGroup
+        @id: affcaa2e-e22f-4601-97b2-4ca516f6ad2b
 
         @assert: A hostgroup is created with expected subnet assigned
+
+        @CaseLevel: Integration
         """
         subnet = entities.Subnet(
             location=[self.loc],
@@ -349,9 +380,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_domain(self):
         """Create a hostgroup with domain specified
 
-        @feature: HostGroup
+        @id: 4f4aee5d-1f43-45e6-ac60-0573083dbcee
 
         @assert: A hostgroup is created with expected domain assigned
+
+        @CaseLevel: Integration
         """
         domain = entities.Domain(
             location=[self.loc],
@@ -369,9 +402,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_realm(self):
         """Create a hostgroup with realm specified
 
-        @feature: HostGroup
+        @id: 4f07ff8d-746f-4ab5-ae0b-03d629f6296c
 
         @assert: A hostgroup is created with expected realm assigned
+
+        @CaseLevel: Integration
         """
         realm = entities.Realm(
             location=[self.loc],
@@ -389,7 +424,7 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_puppet_proxy(self):
         """Create a hostgroup with puppet proxy specified
 
-        @feature: HostGroup
+        @id: 4f39f246-d12f-468c-a33b-66486c3806fe
 
         @assert: A hostgroup is created with expected puppet proxy assigned
         """
@@ -405,7 +440,7 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_content_source(self):
         """Create a hostgroup with content source specified
 
-        @feature: HostGroup
+        @id: 39a6273e-8301-449a-a9d3-e3b61cda1e81
 
         @assert: A hostgroup is created with expected content source assigned
         """
@@ -422,9 +457,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_cv(self):
         """Create a hostgroup with content view specified
 
-        @feature: HostGroup
+        @id: 43dfd2e9-68fe-4682-9cac-61c622c11126
 
         @assert: A hostgroup is created with expected content view assigned
+
+        @CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.publish()
@@ -443,10 +480,12 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_lce(self):
         """Create a hostgroup with lifecycle environment specified
 
-        @feature: HostGroup
+        @id: 92215990-0754-429a-8fa2-c47806ece8a6
 
         @assert: A hostgroup is created with expected lifecycle environment
         assigned
+
+        @CaseLevel: Integration
         """
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         hostgroup = entities.HostGroup(
@@ -460,10 +499,12 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_locs(self):
         """Create a hostgroup with multiple locations specified
 
-        @feature: HostGroup
+        @id: 0c2ee2ff-9e7a-4931-8cea-f4eecbd8c4c0
 
         @assert: A hostgroup is created with expected multiple locations
         assigned
+
+        @CaseLevel: Integration
         """
         locs = [
             entities.Location(organization=[self.org]).create()
@@ -482,10 +523,12 @@ class HostGroupTestCase(APITestCase):
     def test_positive_create_with_orgs(self):
         """Create a hostgroup with multiple organizations specified
 
-        @feature: HostGroup
+        @id: 09642238-cf0d-469a-a0b5-c167b1b8edf5
 
         @assert: A hostgroup is created with expected multiple organizations
         assigned
+
+        @CaseLevel: Integration
         """
         orgs = [
             entities.Organization().create()
@@ -501,7 +544,7 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update a hostgroup with a new name
 
-        @feature: HostGroup
+        @id: 8abb151f-a058-4f47-a1c1-f60a32cd7572
 
         @assert: A hostgroup is updated with expected name
         """
@@ -519,9 +562,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_parent(self):
         """Update a hostgroup with a new parent hostgroup
 
-        @feature: HostGroup
+        @id: 6766d2e6-2305-49db-8db5-8417cf00b0a8
 
         @assert: A hostgroup is updated with expected parent hostgroup
+
+        @CaseLevel: Integration
         """
         parent = entities.HostGroup(
             location=[self.loc],
@@ -544,9 +589,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_env(self):
         """Update a hostgroup with a new environment
 
-        @feature: HostGroup
+        @id: 24f3852d-a94a-4d85-ab7b-afe845832d94
 
         @assert: A hostgroup is updated with expected environment
+
+        @CaseLevel: Integration
         """
         env = entities.Environment(
             location=[self.loc],
@@ -569,9 +616,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_os(self):
         """Update a hostgroup with a new operating system
 
-        @feature: HostGroup
+        @id: c52cdc4f-499b-4a5e-ab7b-a172db42b038
 
         @assert: A hostgroup is updated with expected operating system
+
+        @CaseLevel: Integration
         """
         arch = entities.Architecture().create()
         ptable = entities.PartitionTable().create()
@@ -598,9 +647,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_arch(self):
         """Update a hostgroup with a new architecture
 
-        @feature: HostGroup
+        @id: 57890ca6-dec7-43fe-ae4b-336cc2268d01
 
         @assert: A hostgroup is updated with expected architecture
+
+        @CaseLevel: Integration
         """
         hostgroup = entities.HostGroup(
             architecture=entities.Architecture().create(),
@@ -616,9 +667,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_media(self):
         """Update a hostgroup with a new media
 
-        @feature: HostGroup
+        @id: 9b6ffbb8-0518-4900-95fd-49fc1d90a4be
 
         @assert: A hostgroup is updated with expected media
+
+        @CaseLevel: Integration
         """
         arch = entities.Architecture().create()
         ptable = entities.PartitionTable().create()
@@ -652,9 +705,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_ptable(self):
         """Update a hostgroup with a new partition table
 
-        @feature: HostGroup
+        @id: 95fccc76-33c6-45a3-842e-61917cce40fc
 
         @assert: A hostgroup is updated with expected partition table
+
+        @CaseLevel: Integration
         """
         arch = entities.Architecture().create()
         ptable = entities.PartitionTable().create()
@@ -680,7 +735,7 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_puppet_ca_proxy(self):
         """Update a hostgroup with a new puppet CA proxy
 
-        @feature: HostGroup
+        @id: fd13ab0e-1a5b-48a0-a852-3fff8306271f
 
         @assert: A hostgroup is updated with expected puppet CA proxy
         """
@@ -697,9 +752,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_subnet(self):
         """Update a hostgroup with a new subnet
 
-        @feature: HostGroup
+        @id: 2b539fd9-5fcf-4d74-9cd8-3b3997bac992
 
         @assert: A hostgroup is updated with expected subnet
+
+        @CaseLevel: Integration
         """
         subnet = entities.Subnet(
             location=[self.loc],
@@ -722,9 +779,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_domain(self):
         """Update a hostgroup with a new domain
 
-        @feature: HostGroup
+        @id: db7b79e9-a833-4d93-96e2-d9adc9f35c21
 
         @assert: A hostgroup is updated with expected domain
+
+        @CaseLevel: Integration
         """
         domain = entities.Domain(
             location=[self.loc],
@@ -748,9 +807,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_realm(self):
         """Update a hostgroup with a new realm
 
-        @feature: HostGroup
+        @id: fd9d141f-7a71-4439-92c7-1dbc1eea4772
 
         @assert: A hostgroup is updated with expected realm
+
+        @CaseLevel: Integration
         """
         realm = entities.Realm(
             location=[self.loc],
@@ -775,7 +836,7 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_puppet_proxy(self):
         """Update a hostgroup with a new puppet proxy
 
-        @feature: HostGroup
+        @id: 86eca603-2cdd-4563-b6f6-aaa5cea1a723
 
         @assert: A hostgroup is updated with expected puppet proxy
         """
@@ -792,7 +853,7 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_content_source(self):
         """Update a hostgroup with a new puppet proxy
 
-        @feature: HostGroup
+        @id: 02ef1340-a21e-41b7-8aa7-d6fdea196c16
 
         @assert: A hostgroup is updated with expected puppet proxy
         """
@@ -810,9 +871,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_cv(self):
         """Update a hostgroup with a new content view
 
-        @feature: HostGroup
+        @id: 5fa39bc9-c780-49c5-b580-b973e2d25226
 
         @assert: A hostgroup is updated with expected content view
+
+        @CaseLevel: Integration
         """
         content_view = entities.ContentView(organization=self.org).create()
         content_view.publish()
@@ -837,9 +900,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_lce(self):
         """Update a hostgroup with a new lifecycle environment
 
-        @feature: HostGroup
+        @id: df89d8e3-bd36-4ad9-bde8-1872ae3dd918
 
         @assert: A hostgroup is updated with expected lifecycle environment
+
+        @CaseLevel: Integration
         """
         lce = entities.LifecycleEnvironment(organization=self.org).create()
         hostgroup = entities.HostGroup(
@@ -857,9 +922,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_loc(self):
         """Update a hostgroup with a new location
 
-        @feature: HostGroup
+        @id: 62d88bb0-34d1-447f-ae69-b2122d8142b4
 
         @assert: A hostgroup is updated with expected location
+
+        @CaseLevel: Integration
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -874,9 +941,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_org(self):
         """Update a hostgroup with a new organization
 
-        @feature: HostGroup
+        @id: 8f83983b-398f-40e4-8917-47b3205137d7
 
         @assert: A hostgroup is updated with expected organization
+
+        @CaseLevel: Integration
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -891,9 +960,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_locs(self):
         """Update a hostgroup with new multiple locations
 
-        @feature: HostGroup
+        @id: b045f7e8-d7c0-428b-a29c-8d54e53742e2
 
         @assert: A hostgroup is updated with expected locations
+
+        @CaseLevel: Integration
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -914,9 +985,11 @@ class HostGroupTestCase(APITestCase):
     def test_positive_update_orgs(self):
         """Update a hostgroup with new multiple organizations
 
-        @feature: HostGroup
+        @id: 5f6bd4f9-4bd6-4d7e-9a91-de824299020e
 
         @assert: A hostgroup is updated with expected organizations
+
+        @CaseLevel: Integration
         """
         hostgroup = entities.HostGroup(
             location=[self.loc],
@@ -937,7 +1010,7 @@ class HostGroupTestCase(APITestCase):
     def test_positive_delete(self):
         """Delete a hostgroup
 
-        @feature: HostGroup
+        @id: bef6841b-5077-4b84-842e-a286bfbb92d2
 
         @assert: A hostgroup is deleted
         """
@@ -953,7 +1026,7 @@ class HostGroupTestCase(APITestCase):
     def test_negative_create_with_name(self):
         """Attempt to create a hostgroup with invalid names
 
-        @feature: HostGroup
+        @id: 3f5aa17a-8db9-4fe9-b309-b8ec5e739da1
 
         @assert: A hostgroup is not created
         """
@@ -970,7 +1043,7 @@ class HostGroupTestCase(APITestCase):
     def test_negative_update_name(self):
         """Attempt to update a hostgroup with invalid names
 
-        @feature: HostGroup
+        @id: 6d8c4738-a0c4-472b-9a71-27c8a3832335
 
         @assert: A hostgroup is not updated
         """
@@ -1008,10 +1081,10 @@ class HostGroupMissingAttrTestCase(APITestCase):
     def test_positive_get_content_source(self):
         """Read a host group. Inspect the server's response.
 
+        @id: 9d42f47a-2f08-45ad-97d0-de94f0f1de2f
+
         @Assert: The response contains some value for the ``content_source``
         field.
-
-        @Feature: HostGroup
         """
         names = one_to_one_names('content_source')
         self.assertGreater(
@@ -1024,10 +1097,10 @@ class HostGroupMissingAttrTestCase(APITestCase):
     def test_positive_get_cv(self):
         """Read a host group. Inspect the server's response.
 
+        @id: 7d36f33e-f161-4d2a-9ee4-8eb949ed4cbf
+
         @Assert: The response contains some value for the ``content_view``
         field.
-
-        @Feature: HostGroup
         """
         names = one_to_one_names('content_view')
         self.assertGreater(
@@ -1040,10 +1113,10 @@ class HostGroupMissingAttrTestCase(APITestCase):
     def test_positive_get_lce(self):
         """Read a host group. Inspect the server's response.
 
+        @id: efa17f59-47f9-40c6-821d-c348c4d852ff
+
         @Assert: The response contains some value for the
         ``lifecycle_environment`` field.
-
-        @Feature: HostGroup
         """
         names = one_to_one_names('lifecycle_environment')
         self.assertGreater(

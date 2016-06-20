@@ -1,4 +1,19 @@
-"""Tests for Red Hat Access Insights Client rpm"""
+"""Tests for Red Hat Access Insights Client rpm
+
+@Requirement: Rhai client
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: RHAI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from nailgun import entities
@@ -54,12 +69,11 @@ class RHAIClientTestCase(TestCase):
         cls.org_name = org.name
 
     def test_positive_connection_option(self):
-        """Verify that '--test-connection' option for
-        redhat-access-insights client rpm tests the connection with the
-        satellite server
+        """Verify that '--test-connection' option for redhat-access-insights
+        client rpm tests the connection with the satellite server connection
+        with satellite server
 
-        @Feature: 'redhat-access-insights --test-connection' will check for the
-        connection with satellite server
+        @id: 167758c9-cbfa-4a81-9a11-27f88aaf9118
 
         @Assert: 'redhat-access-insights --test-connection' should return
         zero on a successfully registered machine to RHAI service

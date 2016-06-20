@@ -3,6 +3,20 @@
 An API reference is available here:
 http://theforeman.org/api/apidoc/v2/roles.html
 
+
+@Requirement: Role
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
 """
 
 from nailgun import entities
@@ -19,7 +33,7 @@ class RoleTestCase(APITestCase):
     def test_positive_create(self):
         """Create a role with name ``name_generator()``.
 
-        @Feature: Role
+        @id: 488a0970-f844-4286-b1eb-dd93005b4580
 
         @Assert: An entity can be created without receiving any errors, the
         entity can be fetched, and the fetched entity has the specified name.
@@ -35,7 +49,7 @@ class RoleTestCase(APITestCase):
     def test_positive_delete(self):
         """Delete a role with name ``name_generator()``.
 
-        @Feature: Role
+        @id: 6e1d9f9c-3cbb-460b-8ef8-4a156e6552a0
 
         @Assert: The role cannot be fetched after it is deleted.
         """
@@ -54,7 +68,7 @@ class RoleTestCase(APITestCase):
     def test_positive_update(self):
         """Update a role with and give a name of ``name_generator()``.
 
-        @Feature: Role
+        @id: 30cb4b42-24cd-48a0-a3c5-7ca44c060e2e
 
         @Assert: The role is updated with the given name.
         """

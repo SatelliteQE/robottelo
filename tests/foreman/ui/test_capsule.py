@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for UI functions against an isolated capsule"""
+"""Test class for UI functions against an isolated capsule
+
+@Requirement: Capsule
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo.decorators import run_only_on, stubbed, tier1, tier3, tier4
 from robottelo.test import UITestCase
@@ -14,7 +29,7 @@ class CapsuleTestCase(UITestCase):
         """User can push errata through to a client on
         an isolated capsule
 
-        @Feature: Capsules
+        @id: f714692d-534b-48e8-b052-c93241f86615
 
         @Setup: Client on an isolated capsule; errata synced
         on server
@@ -26,7 +41,9 @@ class CapsuleTestCase(UITestCase):
 
         @Assert: Errata can be installed.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -35,7 +52,7 @@ class CapsuleTestCase(UITestCase):
         """User can install a new errata on a client through
         an isolated capsule - this is a satellite-initiated action
 
-        @Feature: Capsules
+        @id: 682c8c57-461f-46ce-ae7a-9f4da6e09f1b
 
         @Setup: Client on an isolated capsule; rpms synced (RH,
         custom content)
@@ -47,7 +64,9 @@ class CapsuleTestCase(UITestCase):
 
         @Assert: Package is installed
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -56,7 +75,7 @@ class CapsuleTestCase(UITestCase):
         """user can install new puppet module on a client
         through an isolated capsule
 
-        @Feature: Capsules
+        @id: 34582de2-7dd4-472c-89ce-14224750eb21
 
         @Setup: Client on an isolated capsule; puppet content synced
 
@@ -67,7 +86,9 @@ class CapsuleTestCase(UITestCase):
 
         @Assert: module is installed
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -77,7 +98,7 @@ class CapsuleTestCase(UITestCase):
         the content hosts UI, any referenced capsule in order to
         learn/setup registration against said capsule(s).
 
-        @Feature: Capsules
+        @id: c9cd3c0e-78c8-4548-8103-be42de408f36
 
         @Setup: A satellite with at least one capsule configured.
 
@@ -91,7 +112,9 @@ class CapsuleTestCase(UITestCase):
         for using subscription-manager update accordingly when
         choosing said capsule(s).
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -100,7 +123,7 @@ class CapsuleTestCase(UITestCase):
     def test_positive_capsule_version(self):
         """Check Capsule Version in About Page.
 
-        @Feature: Capsule Management UI
+        @id: 24a6e423-9550-453a-a953-9350ff5a57bc
 
         @Steps:
 
@@ -109,7 +132,7 @@ class CapsuleTestCase(UITestCase):
 
         @Assert: The version of the Capsules exists in the about page.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -118,7 +141,7 @@ class CapsuleTestCase(UITestCase):
     def test_positive_capsule_status(self):
         """Check Capsule Status in Index Page.
 
-        @Feature: Capsule Management UI
+        @id: ec084b9f-ccb4-4657-8d5b-903156658703
 
         @Steps:
 
@@ -128,7 +151,7 @@ class CapsuleTestCase(UITestCase):
         @Assert: The status of the Capsules
         is up and running.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -137,7 +160,7 @@ class CapsuleTestCase(UITestCase):
     def test_positive_capsule_context(self):
         """Check Capsule has Location and Organization column in Index Page.
 
-        @Feature: Capsule Management UI
+        @id: 330da7b9-6f52-4dc0-a824-d7f3af964b7f
 
         @Steps:
 
@@ -147,7 +170,7 @@ class CapsuleTestCase(UITestCase):
         @Assert: The Capsules Organization and Location
         info is visible on the index page.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -156,7 +179,7 @@ class CapsuleTestCase(UITestCase):
     def test_positive_capsule_url(self):
         """Check Capsule no longer has 'Foreman URL' column in Index page.
 
-        @Feature: Capsule Management UI
+        @id: c5f7c1f9-d887-4600-b7d2-902039ffed65
 
         @Steps:
 
@@ -166,7 +189,7 @@ class CapsuleTestCase(UITestCase):
         @Assert: The Capsules no longer have the
         'Foreman URL' on the index page.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -176,7 +199,7 @@ class CapsuleTestCase(UITestCase):
         """Check Capsule has pulp_storage Used and Free
         info in the Overview tab of the Capsules show Page.
 
-        @Feature: Capsule Management UI
+        @id: 0bce3dbb-8444-4f37-a4c4-ab565927be39
 
         @Steps:
 
@@ -187,7 +210,7 @@ class CapsuleTestCase(UITestCase):
         is visible for the default capsule in the
         Overview Tab.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -196,7 +219,7 @@ class CapsuleTestCase(UITestCase):
     def test_positive_isolated_capsule_sync(self):
         """Check for Sync button and Syncing for Isolated Capsule in Overview tab.
 
-        @Feature: Capsule Management UI
+        @id: 6c68984a-1246-4868-bc52-6291e9df9b89
 
         @Steps:
 
@@ -206,7 +229,9 @@ class CapsuleTestCase(UITestCase):
         @Assert: The 'Content Sync' button is visible
         and sync works for the isolated capsule.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -216,7 +241,7 @@ class CapsuleTestCase(UITestCase):
         """Check for Cancel Sync button and whether sync cancels
         for Isolated Capsule in the Overview tab.
 
-        @Feature: Capsule Management UI
+        @id: 8f44dadd-00f0-4921-98bc-02dd860bc4fb
 
         @Steps:
 
@@ -226,7 +251,9 @@ class CapsuleTestCase(UITestCase):
         @Assert: The 'Cancel Sync" button is visible
         and sync cancels for the isolated capsule.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -235,7 +262,7 @@ class CapsuleTestCase(UITestCase):
     def test_positive_capsule_details(self):
         """Check for details of Capsule in the Overview tab.
 
-        @Feature: Capsule Management UI
+        @id: 4c012dc0-4ce3-4f88-b05c-67faa5ad16e4
 
         @Steps:
 
@@ -247,7 +274,7 @@ class CapsuleTestCase(UITestCase):
         'Registration Date', 'Packages', 'Location',
         'Puppet', 'Storage' info is displayed.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -256,7 +283,7 @@ class CapsuleTestCase(UITestCase):
     def test_positive_capsule_environment(self):
         """Check for environment info of Capsule in the Puppet tab.
 
-        @Feature: Capsule Management UI
+        @id: 2b1448c1-e566-49fa-a4dc-3136702fd74f
 
         @Steps:
 
@@ -270,7 +297,7 @@ class CapsuleTestCase(UITestCase):
         after adding the puppet-module to CV, exists in the
         Environment column of the Puppet Tab.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -279,7 +306,7 @@ class CapsuleTestCase(UITestCase):
     def test_positive_capsule_puppet_classes_count(self):
         """Check for Puppet Classes count info of Capsule in Puppet tab.
 
-        @Feature: Capsule Management UI
+        @id: 2e657b25-d777-4907-b0a9-19262a0a4e0b
 
         @Steps:
 
@@ -292,7 +319,7 @@ class CapsuleTestCase(UITestCase):
         @Assert: The puppet-classes count is visible in the
         'Number of classes' column.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -301,7 +328,7 @@ class CapsuleTestCase(UITestCase):
     def test_positive_capsule_puppet_hosts_managed_count(self):
         """Check Puppet 'Hosts managed' count info of Capsule in Puppet tab.
 
-        @Feature: Capsule Management UI
+        @id: 147e6472-3459-41e1-94fe-39f4db25a4de
 
         @Steps:
 
@@ -314,7 +341,9 @@ class CapsuleTestCase(UITestCase):
         @Assert: The Puppet Hosts managed count is visible in the
         'Number of classes' column.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -324,7 +353,7 @@ class CapsuleTestCase(UITestCase):
         """Check for Puppet 'Hosts managed' count info of Capsule
         in the Puppet-ca tab.
 
-        @Feature: Capsule Management UI
+        @id: 0af8acb3-3765-4cc8-8100-c62dda30513f
 
         @Steps:
 
@@ -337,7 +366,9 @@ class CapsuleTestCase(UITestCase):
         @Assert: The Puppet 'Hosts managed' count properly
         is visible.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -346,7 +377,7 @@ class CapsuleTestCase(UITestCase):
     def test_positive_capsule_puppetca_certificate_name(self):
         """Check for Hosts certifcate-name is visible in Puppet-ca tab.
 
-        @Feature: Capsule Management UI
+        @id: 7b3da902-f602-46c8-aa98-036125127752
 
         @Steps:
 
@@ -358,7 +389,9 @@ class CapsuleTestCase(UITestCase):
         @Assert: The Hosts certificate-name is visible in the
         Puppet-ca Tab.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -367,7 +400,7 @@ class CapsuleTestCase(UITestCase):
     def test_positive_capsule_puppetca_certificate_revoked(self):
         """Check for Hosts puppet certifcate can be revoked in Puppet-ca tab.
 
-        @Feature: Capsule Management UI
+        @id: 6ce6f088-1542-4df2-9004-eaaf53b1ccc1
 
         @Steps:
 
@@ -381,7 +414,9 @@ class CapsuleTestCase(UITestCase):
         @Assert: The puppet runs on hosts are possible
         after the certs are revoked for the host.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -390,7 +425,7 @@ class CapsuleTestCase(UITestCase):
     def test_positive_capsule_puppetca_autosign(self):
         """Check for Hosts puppet certifcate can be auto-signed in Puppet-ca tab.
 
-        @Feature: Capsule Management UI
+        @id: d88d6b8f-d6f1-4785-a949-84a65953e525
 
         @Steps:
 
@@ -405,5 +440,7 @@ class CapsuleTestCase(UITestCase):
         @Assert: The puppet run on host is possible
         without having to sign the certs manually for the host.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """

@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Users CLI"""
+"""Test class for Users CLI
+
+@Requirement: Myaccount
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
@@ -42,7 +57,7 @@ class MyAccountTestCase(CLITestCase):
     def test_positive_update_first_name(self):
         """Update Firstname in My Account
 
-        @Feature: My Account - Positive Update
+        @id: f8de3843-f2dc-4121-ab75-625c8f542627
 
         @Assert: Current User is updated
         """
@@ -56,7 +71,7 @@ class MyAccountTestCase(CLITestCase):
     def test_positive_update_surname(self):
         """Update Surname in My Account
 
-        @Feature: My Account - Positive Update
+        @id: 40ad2e78-a2af-45ca-bbd8-e9ca5178dc41
 
         @Assert: Current User is updated
         """
@@ -70,7 +85,7 @@ class MyAccountTestCase(CLITestCase):
     def test_positive_update_email(self):
         """Update Email Address in My Account
 
-        @Feature: My Account - Positive Update
+        @id: 70bab43b-0842-45a1-81fb-e47ff8646c8e
 
         @Assert: Current User is updated
         """
@@ -84,21 +99,21 @@ class MyAccountTestCase(CLITestCase):
     def test_positive_update_language(self):
         """Update Language in My Account
 
-        @Feature: My Account - Positive Update
+        @id: f0993495-5117-461d-a116-44867b820139
 
         @Steps:
         1. Update current User with all different Language options
 
         @Assert: Current User is updated
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @tier1
     def test_positive_update_password(self):
         """Update Password in My Account
 
-        @Feature: My Account - Positive Update
+        @id: e7e9b212-f0aa-4f7e-8433-b4639da89495
 
         @Assert: User is updated
         """
@@ -115,7 +130,7 @@ class MyAccountTestCase(CLITestCase):
     def test_negative_update_first_name(self):
         """Update My Account with invalid FirstName
 
-        @Feature: My Account - Negative Update
+        @id: 1e0e1a94-4cef-4110-b65c-8cd35df254e0
 
         @Assert: User is not updated. Appropriate error shown.
         """
@@ -129,7 +144,7 @@ class MyAccountTestCase(CLITestCase):
     def test_negative_update_surname(self):
         """Update My Account with invalid Surname
 
-        @Feature: My Account - Negative Update
+        @id: 4d31ba71-2dcc-47ee-94d2-adc168ba89d7
 
         @Assert: User is not updated. Appropriate error shown.
         """
@@ -143,7 +158,7 @@ class MyAccountTestCase(CLITestCase):
     def test_negative_update_email(self):
         """Update My Account with invalid Email Address
 
-        @Feature: My Account - Negative Update
+        @id: 619f6285-8d50-47d4-b074-d8854c7567a6
 
         @Assert: User is not updated. Appropriate error shown.
         """
@@ -160,7 +175,7 @@ class MyAccountTestCase(CLITestCase):
     def test_negative_update_password_invalid(self):
         """Update My Account with invalid Password/Verify fields
 
-        @Feature: My Account - Negative Update
+        @id: f9230699-fb8e-45d6-a0c2-abb8b751304d
 
         @Steps:
         1. Update Current user with all variations of Password/Verify fields
@@ -168,5 +183,5 @@ class MyAccountTestCase(CLITestCase):
 
         @Assert: User is not updated. Appropriate error shown.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """

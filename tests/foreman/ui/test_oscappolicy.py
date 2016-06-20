@@ -1,3 +1,19 @@
+"""Tests for Oscappolicy
+
+@Requirement: Oscappolicy
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from robottelo.config import settings
 from robottelo.constants import (
@@ -27,7 +43,7 @@ class OpenScapPolicy(UITestCase):
     def test_positive_create_with_policy_name(self):
         """Create OpenScap Policy.
 
-        @Feature: OpenScap Policy - Positive Create.
+        @id: cdf2bc8c-ce60-4d49-b4e9-9acbf1192bc2
 
         @Steps:
 
@@ -63,7 +79,7 @@ class OpenScapPolicy(UITestCase):
     def test_positive_delete_by_policy_name(self):
         """Create OpenScap Policy.
 
-        @Feature: OpenScap Policy - Positive Create.
+        @id: 7497aad0-1e2f-426e-928d-72e430a0e853
 
         @Steps:
 
@@ -102,7 +118,7 @@ class OpenScapPolicy(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create OpenScap Policy with negative values.
 
-        @Feature: OpenScap Policy - Negative Create.
+        @id: dfebf26b-194f-473d-b5a6-9061c520f57e
 
         @Steps:
 
@@ -139,7 +155,7 @@ class OpenScapPolicy(UITestCase):
     def test_positive_update(self):
         """Update OpenScap Policy.
 
-        @Feature: OpenScap Policy - Positive Update.
+        @id: 58392782-ab25-4c12-aebc-adf23c5d9d43
 
         @Steps:
 

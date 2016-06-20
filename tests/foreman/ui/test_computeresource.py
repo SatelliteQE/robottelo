@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test for Compute Resource UI"""
+"""Test for Compute Resource UI
+
+@Requirement: Computeresource
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
@@ -28,7 +43,7 @@ class ComputeResourceTestCase(UITestCase):
         """Create a new libvirt Compute Resource using different value
         types as a name
 
-        @Feature: Compute Resource - Create
+        @id: 71307d6d-04be-431f-b8fc-81ea883b4f19
 
         @Assert: A libvirt Compute Resource is created successfully
         """
@@ -51,7 +66,7 @@ class ComputeResourceTestCase(UITestCase):
     def test_positive_create_libvirt_with_description(self):
         """Create libvirt Compute Resource with description.
 
-        @Feature: Compute Resource - Create
+        @id: 0ef00468-d6e6-449b-be3e-de95ba03a73b
 
         @Assert: A libvirt Compute Resource is created successfully
         """
@@ -76,7 +91,7 @@ class ComputeResourceTestCase(UITestCase):
     def test_positive_create_libvirt_with_display_type(self):
         """Create libvirt Compute Resource with different display types.
 
-        @Feature: Compute Resource - Create
+        @id: 95e8cf49-8cb5-4c3b-9b21-8d33c51c9ac6
 
         @Assert: A libvirt Compute Resource is created successfully
         """
@@ -102,7 +117,7 @@ class ComputeResourceTestCase(UITestCase):
         """Create libvirt Compute Resource with checked/unchecked
         console password checkbox
 
-        @Feature: Compute Resource - Create
+        @id: 26726673-a467-47d5-b24a-4535b98b3e50
 
         @Assert: A libvirt Compute Resource is created successfully
         """
@@ -128,7 +143,7 @@ class ComputeResourceTestCase(UITestCase):
         """Create a new libvirt Compute Resource with incorrect values
         only
 
-        @Feature: Compute Resource - Create
+        @id: 4d9be6b5-f9d4-402e-ad13-843335d83879
 
         @Assert: A libvirt Compute Resource is not created
         """
@@ -155,7 +170,7 @@ class ComputeResourceTestCase(UITestCase):
     def test_positive_update_libvirt_name(self):
         """Update a libvirt Compute Resource name
 
-        @Feature: Compute Resource - Update
+        @id: 508d34bd-491c-461d-b568-7063c68e971d
 
         @Assert: The libvirt Compute Resource is updated
         """
@@ -182,7 +197,7 @@ class ComputeResourceTestCase(UITestCase):
     def test_positive_update_libvirt_organization(self):
         """Update a libvirt Compute Resource organization
 
-        @Feature: Compute Resource - Update
+        @id: a1c3fd14-62e9-4e80-8ef7-bfa36420ce9b
 
         @Assert: The libvirt Compute Resource is updated
         """
@@ -210,7 +225,7 @@ class ComputeResourceTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete a Compute Resource
 
-        @Feature: Compute Resource - Delete
+        @id: 2790e1c2-ecdc-4257-9912-49b50891aa1f
 
         @Assert: The Compute Resource is deleted
         """
@@ -234,7 +249,7 @@ class ComputeResourceTestCase(UITestCase):
         """Try to access libvirt compute resource via compute profile
         (1-Small) screen
 
-        @Feature: Compute Resource
+        @id: 860b0036-24ab-49de-8d99-75243444df06
 
         @Assert: The Compute Resource created and opened successfully
         """

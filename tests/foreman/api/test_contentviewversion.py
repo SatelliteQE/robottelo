@@ -1,4 +1,19 @@
-"""Unit tests for the ``content_view_versions`` paths."""
+"""Unit tests for the ``content_view_versions`` paths.
+
+@Requirement: Contentviewversion
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
@@ -33,9 +48,11 @@ class ContentViewVersionCreateTestCase(APITestCase):
     def test_positive_create(self):
         """Create a content view version.
 
+        @id: 627c84b3-e3f1-416c-a09b-5d2200d6429f
+
         @Assert: Content View Version is created.
 
-        @Feature: Content View Version
+        @CaseLevel: Integration
         """
         # Fetch content view for latest information
         cv = self.content_view.read()
@@ -52,9 +69,11 @@ class ContentViewVersionCreateTestCase(APITestCase):
     def test_negative_create(self):
         """Create content view version using the 'Default Content View'.
 
+        @id: 0afd49c6-f3a4-403e-9929-849f51ffa922
+
         @Assert: Content View Version is not created
 
-        @Feature: Content View Version
+        @CaseLevel: Integration
         """
         # The default content view cannot be published
         cv = entities.ContentView(
@@ -95,9 +114,11 @@ class ContentViewVersionPromoteTestCase(APITestCase):
         """Promote a content view version to 'next in sequence'
         lifecycle environment.
 
+        @id: f205ca06-8ab5-4546-83bd-deac4363d487
+
         @Assert: Promotion succeeds.
 
-        @Feature: Content View Version
+        @CaseLevel: Integration
         """
         # Create a new content view...
         cv = entities.ContentView(organization=self.org).create()
@@ -123,9 +144,11 @@ class ContentViewVersionPromoteTestCase(APITestCase):
         """Promote a content view version to a lifecycle environment
         that is 'out of sequence'.
 
+        @id: e88405de-843d-4279-9d81-cedaab7c23cf
+
         @Assert: The promotion succeeds.
 
-        @Feature: Content View Version
+        @CaseLevel: Integration
         """
         # Create a new content view...
         cv = entities.ContentView(organization=self.org).create()
@@ -147,9 +170,11 @@ class ContentViewVersionPromoteTestCase(APITestCase):
     def test_negative_promote_valid_environment(self):
         """Promote the default content view version.
 
+        @id: cd4f3c3d-93c5-425f-bc3b-d1ac17696a4a
+
         @Assert: The promotion fails.
 
-        @Feature: ContentViewVersion
+        @CaseLevel: Integration
         """
         with self.assertRaises(HTTPError):
             promote(self.default_cv, self.lce1.id)
@@ -159,9 +184,11 @@ class ContentViewVersionPromoteTestCase(APITestCase):
         """Promote a content view version to a lifecycle environment
         that is 'out of sequence'.
 
+        @id: 621d1bb6-92c6-4209-8369-6ea14a4c8a01
+
         @Assert: The promotion fails.
 
-        @Feature: Content View Version
+        @CaseLevel: Integration
         """
         # Create a new content view...
         cv = entities.ContentView(organization=self.org).create()
@@ -188,9 +215,11 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         that content view. Add repository and gpg key to initial content view
         for better coverage
 
+        @id: 066dec47-c942-4c01-8956-359c8b23a6d4
+
         @Assert: Content version deleted successfully
 
-        @Feature: ContentViewVersion
+        @CaseLevel: Integration
         """
         key_content = read_data_file(ZOO_CUSTOM_GPG_KEY)
         org = entities.Organization().create()
@@ -234,9 +263,11 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         and one more non-default environments through 'delete_from_environment'
         command and delete content view version from that content view.
 
+        @id: 95bb973c-ebec-4a72-a1b6-ad28b66bd11b
+
         @Assert: Content view version deleted successfully
 
-        @Feature: ContentViewVersion
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         content_view = entities.ContentView(organization=org).create()
@@ -262,9 +293,11 @@ class ContentViewVersionDeleteTestCase(APITestCase):
         view version while content view is still associated with lifecycle
         environment
 
+        @id: 21c35aae-2f9c-4679-b3ba-7cd9182bd880
+
         @Assert: Content view version is not deleted
 
-        @Feature: ContentViewVersion
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         content_view = entities.ContentView(organization=org).create()
@@ -285,10 +318,12 @@ class ContentViewVersionIncrementalTestCase(APITestCase):
     def test_positive_incremental_update_puppet(self):
         """Incrementally update a CVV with a puppet module.
 
+        @id: 19b2fe3b-6c91-4713-9910-17517fba661f
+
         @Assert: The incremental update succeeds with no errors, and the
         content view is given an additional version.
 
-        @Feature: ContentViewVersion
+        @CaseLevel: Integration
         """
         # Create a content view and add a yum repository to it. Publish the CV.
         product = entities.Product().create()

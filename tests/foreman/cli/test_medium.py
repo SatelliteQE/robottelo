@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test for Medium  CLI"""
+"""Test for Medium  CLI
+
+@Requirement: Medium
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_alphanumeric
 from robottelo.cli.base import CLIReturnCodeError
@@ -28,7 +43,7 @@ class MediumTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Check if Medium can be created
 
-        @Feature: Medium - Positive Create
+        @id: 4a1caaf8-4401-48cc-85ad-e7189944688d
 
         @Assert: Medium is created
 
@@ -43,7 +58,7 @@ class MediumTestCase(CLITestCase):
     def test_positive_create_with_location(self):
         """Check if medium with location can be created
 
-        @Feature: Medium - Positive create
+        @id: cbc6c586-fae7-4bb9-aeb1-e30158f16a98
 
         @Assert: Medium is created and has new location assigned
 
@@ -57,7 +72,7 @@ class MediumTestCase(CLITestCase):
     def test_positive_create_with_organization_by_id(self):
         """Check if medium with organization can be created
 
-        @Feature: Medium - Positive create
+        @id: 631bb6ed-e42b-482a-83f0-f6ce0f20729a
 
         @Assert: Medium is created and has new organization assigned
 
@@ -71,7 +86,7 @@ class MediumTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Check if Medium can be deleted
 
-        @Feature: Medium - Positive Delete
+        @id: dc62c9ad-d2dc-42df-80eb-02cf8d26cdee
 
         @Assert: Medium is deleted
 
@@ -89,10 +104,12 @@ class MediumTestCase(CLITestCase):
     def test_positive_add_os(self):
         """Check if Medium can be associated with operating system
 
-        @Feature: Medium - Add operating system
+        @id: 47d1e6f0-d8a6-4190-b2ac-41b09a559429
 
         @Assert: Operating system added
 
+
+        @CaseLevel: Integration
         """
         medium = make_medium()
         os = make_os()
@@ -106,10 +123,12 @@ class MediumTestCase(CLITestCase):
     def test_positive_remove_os(self):
         """Check if operating system can be removed from media
 
-        @Feature: Medium - Remove operating system
+        @id: 23b5b55b-3624-440c-8001-75c7c5a5a004
 
         @Assert: Operating system removed
 
+
+        @CaseLevel: Integration
         """
         medium = make_medium()
         os = make_os()
@@ -131,7 +150,7 @@ class MediumTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Check if medium can be updated
 
-        @Feature: Medium - Update medium
+        @id: 2111090a-21d3-47f7-bb81-5f19ab71a91d
 
         @Assert: Medium updated
 

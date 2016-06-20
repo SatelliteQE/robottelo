@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Login UI"""
+"""Test class for Login UI
+
+@Requirement: Login
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.datafactory import datacheck
@@ -27,7 +42,7 @@ class LoginTestCase(UITestCase):
     def test_positive_login(self):
         """Login as an admin user
 
-        @Feature: Login - Positive
+        @id: 7ec027ec-4c51-460a-81f9-643e5bb2c5f5
 
         @Assert: Successfully logged in as an admin user
         """
@@ -39,7 +54,7 @@ class LoginTestCase(UITestCase):
     def test_negative_login(self):
         """Login into application using invalid credentials
 
-        @Feature: Login - Negative
+        @id: 23090dce-b918-4a8e-8481-188ea76c376d
 
         @Assert: Fails to login
         """

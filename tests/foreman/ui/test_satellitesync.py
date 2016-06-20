@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for InterSatellite Sync feature"""
+"""Test class for InterSatellite Sync feature
+
+@Requirement: Satellitesync
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo.decorators import (
     run_only_on,
@@ -19,7 +34,7 @@ class InterSatelliteSyncTestCase(UITestCase):
     def test_positive_show_repo_export_history(self):
         """Product history shows repo export history on export.
 
-        @feature: ISS - Export
+        @id: 01d82253-081b-4d11-9a5b-e6052173fe47
 
         @steps:
 
@@ -28,7 +43,9 @@ class InterSatelliteSyncTestCase(UITestCase):
         @assert: Repo/Product history should reflect the export history with
         user and time.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -37,7 +54,7 @@ class InterSatelliteSyncTestCase(UITestCase):
     def test_positive_show_cv_export_history(self):
         """CV history shows CV version export history on export.
 
-        @feature: ISS - Export
+        @id: 06e26cca-e262-4eff-b8d7-fbca504a8acb
 
         @steps:
 
@@ -46,7 +63,9 @@ class InterSatelliteSyncTestCase(UITestCase):
         @assert: CV history should reflect the export history with user,
         version, action and time.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -55,7 +74,7 @@ class InterSatelliteSyncTestCase(UITestCase):
     def test_positive_update_cdn_url(self):
         """Update CDN URL to import from upstream.
 
-        @feature: ISS - Import
+        @id: 5ff30764-a1b1-48df-a6a1-0f1d23f883b9
 
         @steps:
 
@@ -70,7 +89,7 @@ class InterSatelliteSyncTestCase(UITestCase):
         1. The CDN URL is is updated successfully.
         2. The imported repo is enabled and sync.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -79,7 +98,7 @@ class InterSatelliteSyncTestCase(UITestCase):
     def test_negative_update_cdn_url(self):
         """Update non existing CDN URL to import from upstream.
 
-        @feature: ISS - Import
+        @id: 4bf74712-dac8-447b-9c9f-227a41cdec4d
 
         @steps:
 
@@ -91,7 +110,7 @@ class InterSatelliteSyncTestCase(UITestCase):
         1. The CDN URL is not allowed to update any non existing url.
         2. None of the repo is allowed to enable and sync.
 
-        @status: Manual
+        @caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -100,7 +119,7 @@ class InterSatelliteSyncTestCase(UITestCase):
     def test_positive_restrict_other_redhat_repo_import(self):
         """Restrict the import/sync of non exported repos.
 
-        @feature: ISS - Import
+        @id: 7091ca13-7f58-4733-87d5-1fa3670bfcee
 
         @steps:
 
@@ -111,5 +130,7 @@ class InterSatelliteSyncTestCase(UITestCase):
 
         @assert: The import of non exported repos is restricted.
 
-        @status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """

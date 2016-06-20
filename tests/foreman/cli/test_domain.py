@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Domain  CLI"""
+"""Test class for Domain  CLI
+
+@Requirement: Domain
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.domain import Domain
@@ -108,7 +123,7 @@ class DomainTestCase(CLITestCase):
     def test_positive_create_with_name_description(self):
         """Create domain with valid name and description
 
-        @Feature: Domain positive create
+        @id: 018740bf-1551-4162-b88e-4d4905af097b
 
         @Assert: Domain successfully created
 
@@ -125,7 +140,7 @@ class DomainTestCase(CLITestCase):
     def test_positive_create_with_loc(self):
         """Check if domain with location can be created
 
-        @Feature: Domain - Positive create
+        @id: 033cc37d-0189-4b88-94cf-97a96839197a
 
         @Assert: Domain is created and has new location assigned
 
@@ -139,7 +154,7 @@ class DomainTestCase(CLITestCase):
     def test_positive_create_with_org(self):
         """Check if domain with organization can be created
 
-        @Feature: Domain - Positive create
+        @id: f4dfef1b-9b2a-49b8-ade5-031da29e7f6a
 
         @Assert: Domain is created and has new organization assigned
 
@@ -153,7 +168,7 @@ class DomainTestCase(CLITestCase):
     def test_negative_create(self):
         """Create domain with invalid values
 
-        @Feature: Domain negative create
+        @id: 6d3aec19-75dc-41ca-89af-fef0ca37082d
 
         @Assert: Domain is not created
 
@@ -168,7 +183,7 @@ class DomainTestCase(CLITestCase):
     def test_positive_update(self):
         """Update domain with valid values
 
-        @Feature: Domain positive update
+        @id: 9da3cc96-c146-4f82-bb25-b237a367ba91
 
         @Assert: Domain is updated
 
@@ -190,7 +205,7 @@ class DomainTestCase(CLITestCase):
     def test_negative_update(self):
         """Update domain with invalid values
 
-        @Feature: Domain negative update
+        @id: 9fc708dc-20f9-4d7c-af53-863826462981
 
         @Assert: Domain is not updated
 
@@ -210,7 +225,7 @@ class DomainTestCase(CLITestCase):
     def test_positive_set_parameter(self):
         """Domain set-parameter with valid key and value
 
-        @Feature: Domain positive set-parameter
+        @id: 62fea9f7-95e2-47f7-bf4b-415ea6fd72f8
 
         @Assert: Domain parameter is set
 
@@ -232,7 +247,7 @@ class DomainTestCase(CLITestCase):
     def test_negative_set_parameter(self):
         """Domain set-parameter with invalid values
 
-        @Feature: Domain negative set-parameter
+        @id: 991fb849-83be-48f4-a12b-81eabb2bd8d3
 
         @Assert: Domain parameter is not set
 
@@ -254,7 +269,7 @@ class DomainTestCase(CLITestCase):
         """Create Domain with valid values then delete it
         by ID
 
-        @feature: Domain
+        @id: b50a5daa-67f8-4ecd-8e03-2a3c492d3c25
 
         @assert: Domain is deleted
         """
@@ -270,7 +285,7 @@ class DomainTestCase(CLITestCase):
     def test_negative_delete_by_id(self):
         """Create Domain then delete it by wrong ID
 
-        @feature: Domain
+        @id: 0e4ef107-f006-4433-abc3-f872613e0b91
 
         @assert: Domain is not deleted
         """
@@ -284,7 +299,7 @@ class DomainTestCase(CLITestCase):
     def test_positive_delete_parameter(self):
         """Domain delete-parameter removes parameter
 
-        @Feature: Domain positive delete-parameter
+        @id: 481afe1c-0b9e-435f-a581-159d9619291c
 
         @Assert: Domain parameter is removed
 

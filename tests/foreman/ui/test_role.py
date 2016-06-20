@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Roles UI"""
+"""Test class for Roles UI
+
+@Requirement: Role
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from nailgun import entities
@@ -18,7 +33,7 @@ class RoleTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create new role using different names
 
-        @Feature: Role - Positive Create
+        @id: 8170598b-cf3b-4ff7-9baa-bee73f90d255
 
         @Assert: Role is created successfully
         """
@@ -32,7 +47,7 @@ class RoleTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create new role using invalid names
 
-        @Feature: Role - Negative Create
+        @id: 4159a2ad-0952-4196-9e3b-56c721d24355
 
         @Assert: Role is not created
         """
@@ -47,7 +62,7 @@ class RoleTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete an existing role
 
-        @Feature: Role - Positive Delete
+        @id: c8bd515a-e556-4b98-a993-ec37f541ffc3
 
         @Assert: Role is deleted successfully
         """
@@ -61,7 +76,7 @@ class RoleTestCase(UITestCase):
     def test_positive_update_name(self):
         """Update existing role name
 
-        @Feature: Role - Positive Update
+        @id: c3ad9eed-6896-470d-9043-3fda37bbe489
 
         @Assert: Role is updated
         """
@@ -79,7 +94,7 @@ class RoleTestCase(UITestCase):
     def test_positive_update_permission(self):
         """Update existing role permissions
 
-        @Feature: Role - Positive Update
+        @id: d57abcf2-a42f-40db-a61c-61b56bcc55b9
 
         @Assert: Role is updated
         """
@@ -98,7 +113,7 @@ class RoleTestCase(UITestCase):
     def test_positive_update_org(self):
         """Update organization for selected role
 
-        @Feature: Role - Positive Update
+        @id: 593dfca9-18dc-46cf-a7b1-b32edad3550c
 
         @Assert: Role is updated
         """

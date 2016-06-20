@@ -1,4 +1,19 @@
-"""Test classes for Bookmark tests"""
+"""Test classes for Bookmark tests
+
+@Requirement: Bookmark
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 # -*- encoding: utf-8 -*-
 import random
 
@@ -80,7 +95,7 @@ class BookmarkTestCase(UITestCase):
     def test_positive_create_bookmark_populate_auto(self):
         """Create a bookmark with auto-populating of the query
 
-        @Feature: Scoped Search Bookmark Create
+        @id: 6a51a8d4-b641-4148-9ee8-a62f09aaa4af
 
         @Steps:
 
@@ -116,7 +131,7 @@ class BookmarkTestCase(UITestCase):
     def test_positive_create_bookmark_populate_manual(self):
         """Create a bookmark with manually populating the name and query
 
-        @Feature: Scoped Search Bookmark Create
+        @id: 6ab2221d-8fd5-484f-ac99-b856db9fa70a
 
         @Steps:
 
@@ -149,7 +164,7 @@ class BookmarkTestCase(UITestCase):
     def test_positive_create_bookmark_public(self):
         """Create and check visibility of the (non)public bookmarks
 
-        @Feature: Scoped Search Bookmark Visibility
+        @id: 93139529-7690-429b-83fe-3dcbac4f91dc
 
         @Setup:
 
@@ -179,7 +194,9 @@ class BookmarkTestCase(UITestCase):
         @Assert: No errors, Bookmark is displayed, controller matches the
         entity the bookmark was created for
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -190,7 +207,7 @@ class BookmarkTestCase(UITestCase):
     def test_negative_create_bookmark_no_name(self):
         """Create a bookmark with empty name
 
-        @Feature: Scoped Search Bookmark Create
+        @id: ebb64459-a865-4029-bc7e-93e8d13dd877
 
         @Steps:
 
@@ -226,7 +243,7 @@ class BookmarkTestCase(UITestCase):
     def test_negative_create_bookmark_no_query(self):
         """Create a bookmark with empty query
 
-        @Feature: Scoped Search Bookmark Create
+        @id: 2c22ba18-a465-4977-8013-9336d1f648e8
 
         @Steps:
 
@@ -257,7 +274,7 @@ class BookmarkTestCase(UITestCase):
     def test_negative_create_bookmark_same_name(self):
         """Create bookmarks with the same names
 
-        @Feature: Scoped Search Bookmark Create
+        @id: 210c36b2-29bd-40d9-b120-16a1a031b20c
 
         @Setup:
 
@@ -297,7 +314,7 @@ class BookmarkTestCase(UITestCase):
     def test_positive_update_bookmark_name(self):
         """Update and save a bookmark
 
-        @Feature: Scoped Search Bookmark Update
+        @id: 095ba7c5-82bd-4ed3-ae6d-f6ba0ad7480c
 
         @Setup:
 
@@ -335,7 +352,7 @@ class BookmarkTestCase(UITestCase):
     def test_negative_update_bookmark_name(self):
         """Update and save a bookmark with name already taken
 
-        @Feature: Scoped Search Bookmark Update
+        @id: 3e74cf60-2863-4ca3-9440-7081547f3c4f
 
         @Setup:
 
@@ -377,7 +394,7 @@ class BookmarkTestCase(UITestCase):
     def test_negative_update_bookmark_name_empty(self):
         """Update and save a bookmark with an empty name
 
-        @Feature: Scoped Search Bookmark Update
+        @id: 7d7f713d-e377-446e-a9e9-06364bcc25c0
 
         @Setup:
 
@@ -417,7 +434,7 @@ class BookmarkTestCase(UITestCase):
     def test_positive_update_bookmark_query(self):
         """Update and save a bookmark query
 
-        @Feature: Scoped Search Bookmark Update
+        @id: 19c994f0-2567-47bb-8486-bc441602bc7a
 
         @Setup:
 
@@ -457,7 +474,7 @@ class BookmarkTestCase(UITestCase):
     def test_negative_update_bookmark_query_empty(self):
         """Update and save a bookmark with an empty query
 
-        @Feature: Scoped Search Bookmark Update
+        @id: 516b314b-7712-455a-b1d4-d09730acbec9
 
         @Setup:
 
@@ -499,7 +516,7 @@ class BookmarkTestCase(UITestCase):
     def test_positive_update_bookmark_public(self):
         """Update and save a bookmark public state
 
-        @Feature: Scoped Search Bookmark Update
+        @id: 63646c41-5441-4547-a4d0-744286122405
 
         @Setup:
 
@@ -533,7 +550,9 @@ class BookmarkTestCase(UITestCase):
         @Assert: New public bookmark is listed, and the private
         one is hidden
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
@@ -544,7 +563,7 @@ class BookmarkTestCase(UITestCase):
     def test_positive_delete_bookmark(self):
         """Simple removal of a bookmark query
 
-        @Feature: Scoped Search Bookmark Delete
+        @id: 46c7cf47-7e86-4d81-ba07-4c2405801552
 
         @Setup:
 
@@ -577,7 +596,7 @@ class BookmarkTestCase(UITestCase):
     def test_negative_delete_bookmark(self):
         """Simple removal of a bookmark query without permissions
 
-        @Feature: Scoped Search Bookmark Delete
+        @id: 1a94bf2b-bcc6-4663-b70d-e13244a0783b
 
         @Setup:
 
@@ -592,7 +611,9 @@ class BookmarkTestCase(UITestCase):
 
         @Assert: The delete buttons are not displayed
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):

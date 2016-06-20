@@ -1,4 +1,19 @@
-"""Test class for Content-Host CLI"""
+"""Test class for Content-Host CLI
+
+@Requirement: Contenthost
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
@@ -76,7 +91,7 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Check if content host can be created with random names
 
-        @Feature: Content Hosts
+        @id: ad2b1b03-68a1-49c8-9523-4164fcd7ee14
 
         @Assert: Content host is created and has random name
         """
@@ -95,7 +110,7 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_create_with_org_name(self):
         """Check if content host can be created with organization name
 
-        @Feature: Content Hosts
+        @id: c08b0dac-9820-4261-bb0b-8a78f5c78a74
 
         @Assert: Content host is created using organization name
         """
@@ -117,7 +132,7 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_create_with_org_label(self):
         """Check if content host can be created with organization label
 
-        @Feature: Content Hosts
+        @id: 4723e735-3a14-4ebd-83c1-30be065f4b42
 
         @Assert: Content host is created using organization label
         """
@@ -140,7 +155,7 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_create_with_cv_default(self):
         """Check if content host can be created with content view name
 
-        @Feature: Content Hosts
+        @id: bb69a70e-17f9-4639-802d-90e6a4520afa
 
         @Assert: Content host is created using content view name
         """
@@ -158,7 +173,7 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_create_with_lce_library(self):
         """Check if content host can be created with lifecycle name
 
-        @Feature: Content Hosts
+        @id: 0093be1c-3664-448e-87f5-758bab34958a
 
         @Assert: Content host is created using lifecycle name
         """
@@ -179,7 +194,7 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_create_with_lce(self):
         """Check if content host can be created with new lifecycle
 
-        @Feature: Content Hosts
+        @id: e102b034-0011-471d-ba21-5ef8d129a61f
 
         @Assert: Content host is created using new lifecycle
         """
@@ -200,7 +215,7 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_create_with_cv(self):
         """Check if content host can be created with new content view
 
-        @Feature: Content Hosts
+        @id: f90873b9-fb3a-4c93-8647-4b1aea0a2c35
 
         @Assert: Content host is created using new published, promoted cv
         """
@@ -224,7 +239,7 @@ class ContentHostTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Check if content host can be created with random long names
 
-        @Feature: Content Hosts
+        @id: f92b6070-b2d1-4e3e-975c-39f1b1096697
 
         @Assert: Content host is not created
         """
@@ -243,7 +258,7 @@ class ContentHostTestCase(CLITestCase):
     def test_negative_create_with_unpublished_cv(self):
         """Check if content host can be created using unpublished cv
 
-        @Feature: Content Hosts
+        @id: 9997383d-3c27-4f14-94f9-4b8b51180eb6
 
         @Assert: Content host is not created using new unpublished cv
         """
@@ -265,7 +280,7 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Check if content host name can be updated
 
-        @Feature: Content Hosts
+        @id: 056fff14-e9ea-407e-8340-1d5b5da1e4e4
 
         @Assert: Content host is created and name is updated
 
@@ -290,7 +305,7 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Check if content host can be created and deleted by passing its ID
 
-        @Feature: Content Hosts
+        @id: 1aa55e52-a97e-4c11-aab1-244bd4de0dd3
 
         @Assert: Content host is created and then deleted
 
@@ -312,7 +327,7 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_delete_by_name(self):
         """Check if content host can be created and deleted by passing its name
 
-        @Feature: Content Hosts
+        @id: 22f1206c-b712-45e9-8e65-3a0a225d6188
 
         @Assert: Content host is created and then deleted
         """
@@ -332,7 +347,7 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_create_with_same_name(self):
         """Registering the same content host generates a new UUID.
 
-        @Feature: Content Hosts
+        @id: 178d3570-7177-435b-96e9-bcbb6b0b63b3
 
         @Assert: The UUID generated is different when registering the same
         content host.
@@ -360,9 +375,11 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_register_with_no_ak(self):
         """Register Content host to satellite without activation key
 
-        @Feature: Content Hosts
+        @id: 6a7cedd2-aa9c-4113-a83b-3f0eea43ecb4
 
         @Assert: Content host successfully registered to appropriate org
+
+        @CaseLevel: System
         """
         with VirtualMachine(distro='rhel71') as client:
             client.install_katello_ca()
@@ -383,9 +400,11 @@ class ContentHostTestCase(CLITestCase):
     def test_negative_register_twice(self):
         """Attempt to register a Content host twice to Satellite
 
-        @Feature: Content Hosts
+        @id: 0af81129-cd69-4fa7-a128-9e8fcf2d03b1
 
         @Assert: Content host cannot be registered twice
+
+        @CaseLevel: System
         """
         activation_key = make_activation_key({
             'content-view-id': self.PROMOTED_CV['id'],
@@ -413,9 +432,11 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_list(self):
         """List Content hosts for a given org
 
-        @Feature: Content Hosts
+        @id: b9c056cd-11ca-4870-bac4-0ebc4a782cb0
 
         @Assert: Content hosts are listed for the given org
+
+        @CaseLevel: System
         """
         activation_key = make_activation_key({
             'content-view-id': self.PROMOTED_CV['id'],
@@ -439,10 +460,12 @@ class ContentHostTestCase(CLITestCase):
     def test_positive_unregister(self):
         """Unregister Content host
 
-        @Feature: Content Hosts
+        @id: c5ce988d-d0ea-4958-9956-5a4b039b285c
 
         @Assert: After unregistering, content hosts list for the org does not
         show the content host
+
+        @CaseLevel: System
         """
         activation_key = make_activation_key({
             'content-view-id': self.PROMOTED_CV['id'],

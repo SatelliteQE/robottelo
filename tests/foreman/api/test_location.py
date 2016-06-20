@@ -3,6 +3,20 @@
 A full API reference for locations can be found here:
 http://theforeman.org/api/apidoc/v2/locations.html
 
+
+@Requirement: Location
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
 """
 from fauxfactory import gen_integer, gen_string
 from nailgun import entities
@@ -43,10 +57,10 @@ class LocationTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create new locations using different inputs as a name
 
+        @id: 90bb90a3-120f-4ea6-89a9-62757be42486
+
         @Assert: Location created successfully and has expected and correct
         name
-
-        @Feature: Location
         """
         for name in valid_loc_data_list():
             with self.subTest(name):
@@ -57,10 +71,10 @@ class LocationTestCase(APITestCase):
     def test_positive_create_with_description(self):
         """Create new location with custom description
 
+        @id: 8d82fe06-895d-4c99-87c0-354124e013fd
+
         @Assert: Location created successfully and has expected and correct
         description
-
-        @Feature: Location
         """
         description = gen_string('utf8')
         location = entities.Location(description=description).create()
@@ -70,10 +84,12 @@ class LocationTestCase(APITestCase):
     def test_positive_create_with_user(self):
         """Create new location with assigned user to it
 
+        @id: d3798742-c05d-4864-8eca-44872b4afdbf
+
         @Assert: Location created successfully and has correct user assigned to
         it with expected login name
 
-        @Feature: Location
+        @CaseLevel: Integration
         """
         user = entities.User().create()
         location = entities.Location(user=[user]).create()
@@ -85,10 +101,12 @@ class LocationTestCase(APITestCase):
         """Create new location with Libvirt compute resource assigned to
         it
 
+        @id: 292033fd-9a13-4537-ad10-095ba621d66b
+
         @Assert: Location created successfully and has correct Libvirt compute
         resource assigned to it
 
-        @Feature: Location
+        @CaseLevel: Integration
         """
         test_cr = entities.LibvirtComputeResource().create()
         location = entities.Location(compute_resource=[test_cr]).create()
@@ -101,10 +119,12 @@ class LocationTestCase(APITestCase):
         """Create new location with Docker compute resource assigned to
         it
 
+        @id: 0c55292b-d6ff-45e3-a065-d6a2c8ba2469
+
         @Assert: Location created successfully and has correct Docker compute
         resource assigned to it
 
-        @Feature: Location
+        @CaseLevel: Integration
         """
         test_cr = entities.DockerComputeResource().create()
         location = entities.Location(compute_resource=[test_cr]).create()
@@ -116,10 +136,12 @@ class LocationTestCase(APITestCase):
     def test_positive_create_with_template(self):
         """Create new location with config template assigned to it
 
+        @id: bf2daa6b-6478-472d-89f1-bfa74a75c349
+
         @Assert: Location created successfully and list of config templates
         assigned to that location should contain expected one
 
-        @Feature: Location
+        @CaseLevel: Integration
         """
         template = entities.ConfigTemplate().create()
         location = entities.Location(config_template=[template]).create()
@@ -133,10 +155,12 @@ class LocationTestCase(APITestCase):
     def test_positive_create_with_domain(self):
         """Create new location with assigned domain to it
 
+        @id: 3f79a584-e195-4f1d-a978-777bae200251
+
         @Assert: Location created successfully and has correct and expected
         domain assigned to it
 
-        @Feature: Location
+        @CaseLevel: Integration
         """
         domain = entities.Domain().create()
         location = entities.Location(domain=[domain]).create()
@@ -146,10 +170,12 @@ class LocationTestCase(APITestCase):
     def test_positive_create_with_subnet(self):
         """Create new location with assigned subnet to it
 
+        @id: d6104c39-02d8-4051-a35b-334d9f260a33
+
         @Assert: Location created successfully and has correct subnet with
         expected network address assigned to it
 
-        @Feature: Location
+        @CaseLevel: Integration
         """
         subnet = entities.Subnet().create()
         location = entities.Location(subnet=[subnet]).create()
@@ -160,10 +186,12 @@ class LocationTestCase(APITestCase):
     def test_positive_create_with_env(self):
         """Create new location with assigned environment to it
 
+        @id: ac9cd08d-2033-4758-b4d1-c59a41198e92
+
         @Assert: Location created successfully and has correct and expected
         environment assigned to it
 
-        @Feature: Location
+        @CaseLevel: Integration
         """
         env = entities.Environment().create()
         location = entities.Location(environment=[env]).create()
@@ -173,10 +201,12 @@ class LocationTestCase(APITestCase):
     def test_positive_create_with_hostgroup(self):
         """Create new location with assigned host group to it
 
+        @id: 154d55f8-41d7-411d-9a35-a2e8c639f144
+
         @Assert: Location created successfully and has correct and expected
         host group assigned to it
 
-        @Feature: Location
+        @CaseLevel: Integration
         """
         host_group = entities.HostGroup().create()
         location = entities.Location(hostgroup=[host_group]).create()
@@ -186,10 +216,12 @@ class LocationTestCase(APITestCase):
     def test_positive_create_with_org(self):
         """Create new location with assigned organization to it
 
+        @id: 5032a93f-4b37-4c19-b6d3-26e3a868d0f1
+
         @Assert: Location created successfully and has correct organization
         assigned to it with expected title
 
-        @Feature: Location
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         location = entities.Location(organization=[org]).create()
@@ -202,10 +234,12 @@ class LocationTestCase(APITestCase):
         assigned to it can be created in the system. Organizations were chosen
         for that purpose
 
+        @id: f55ab63f-9c10-4f43-be69-d1f90e26fd51
+
         @Assert: Location created successfully and has correct organizations
         assigned to it
 
-        @Feature: Location
+        @CaseLevel: Integration
         """
         orgs_amount = randint(3, 5)
         org_ids = [
@@ -220,10 +254,12 @@ class LocationTestCase(APITestCase):
     def test_positive_create_with_capsule(self):
         """Create new location with assigned capsule to it
 
+        @id: 73f07e4b-b180-4906-8189-e9c0345abc5c
+
         @Assert: Location created successfully and has correct capsule assigned
         to it
 
-        @Feature: Location
+        @CaseLevel: Integration
         """
         proxy_id = make_proxy()['id']
         # Add capsule to cleanup list
@@ -241,9 +277,9 @@ class LocationTestCase(APITestCase):
     def test_positive_delete(self):
         """Delete location
 
-        @Assert: Location was deleted
+        @id: 63691139-45de-4e15-9abb-66c90808cbbb
 
-        @Feature: Location - Delete
+        @Assert: Location was deleted
         """
         location = entities.Location().create()
         location.delete()
@@ -254,9 +290,9 @@ class LocationTestCase(APITestCase):
     def test_negative_create_with_name(self):
         """Attempt to create new location using invalid names only
 
-        @Assert: Location is not created and expected error is raised
+        @id: 320e6bca-5645-423b-b86a-2b6f35c8dae3
 
-        @Feature: Location
+        @Assert: Location is not created and expected error is raised
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -267,9 +303,9 @@ class LocationTestCase(APITestCase):
     def test_negative_create_with_same_name(self):
         """Attempt to create new location using name of existing entity
 
-        @Assert: Location is not created and expected error is raised
+        @id: bc09acb3-9ecf-4d23-b3ef-94f24e16e6db
 
-        @Feature: Location
+        @Assert: Location is not created and expected error is raised
         """
         name = gen_string('alphanumeric')
         location = entities.Location(name=name).create()
@@ -281,9 +317,9 @@ class LocationTestCase(APITestCase):
     def test_negative_create_with_domain(self):
         """Attempt to create new location using non-existent domain identifier
 
-        @Assert: Location is not created and expected error is raised
+        @id: 5449532d-7959-4547-ba05-9e194eea495d
 
-        @Feature: Location
+        @Assert: Location is not created and expected error is raised
         """
         with self.assertRaises(HTTPError):
             entities.Location(domain=[gen_integer(10000, 99999)]).create()
@@ -292,9 +328,9 @@ class LocationTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update location with new name
 
-        @Assert: Location updated successfully and name was changed
+        @id: 73ff6dab-e12a-4f7d-9c1f-6984fc076329
 
-        @Feature: Location - Update
+        @Assert: Location updated successfully and name was changed
         """
         for new_name in valid_loc_data_list():
             with self.subTest(new_name):
@@ -306,9 +342,9 @@ class LocationTestCase(APITestCase):
     def test_positive_update_description(self):
         """Update location with new description
 
-        @Assert: Location updated successfully and description was changed
+        @id: 1340811a-43db-4aab-93b4-c36e438281a6
 
-        @Feature: Location - Update
+        @Assert: Location updated successfully and description was changed
         """
         for new_description in valid_loc_data_list():
             with self.subTest(new_description):
@@ -323,9 +359,11 @@ class LocationTestCase(APITestCase):
     def test_positive_update_user(self):
         """Update location with new user
 
+        @id: 83ddb92d-f25d-44c0-87e7-631bdfc1f792
+
         @Assert: Location updated successfully and has correct user assigned
 
-        @Feature: Location - Update
+        @CaseLevel: Integration
         """
         location = entities.Location(user=[entities.User().create()]).create()
         new_user = entities.User().create()
@@ -336,10 +374,12 @@ class LocationTestCase(APITestCase):
     def test_positive_update_libvirt_compresource(self):
         """Update location with new Libvirt compute resource
 
+        @id: 9d0aef06-25dd-4352-8045-00b24b79b514
+
         @Assert: Location updated successfully and has correct Libvirt compute
         resource assigned
 
-        @Feature: Location - Update
+        @CaseLevel: Integration
         """
         location = entities.Location(
             compute_resource=[entities.LibvirtComputeResource().create()],
@@ -357,10 +397,12 @@ class LocationTestCase(APITestCase):
     def test_positive_update_docker_compresource(self):
         """Update location with new Docker compute resource
 
+        @id: 01ee537e-1629-44ab-b8f1-bb9a304050d6
+
         @Assert: Location updated successfully and has correct Docker compute
         resource assigned
 
-        @Feature: Location - Update
+        @CaseLevel: Integration
         """
         location = entities.Location(
             compute_resource=[entities.DockerComputeResource().create()],
@@ -378,10 +420,12 @@ class LocationTestCase(APITestCase):
     def test_positive_update_template(self):
         """Update location with new config template
 
+        @id: 9c8a1306-b0c7-4f72-8a31-4ff441bf5c75
+
         @Assert: Location updated successfully and has correct config template
         assigned
 
-        @Feature: Location - Update
+        @CaseLevel: Integration
         """
         location = entities.Location(
             config_template=[entities.ConfigTemplate().create()],
@@ -400,9 +444,11 @@ class LocationTestCase(APITestCase):
     def test_positive_update_domain(self):
         """Update location with new domain
 
+        @id: 1016dfb9-8103-45f1-8738-0579fa9754c1
+
         @Assert: Location updated successfully and has correct domain assigned
 
-        @Feature: Location - Update
+        @CaseLevel: Integration
         """
         location = entities.Location(
             domain=[entities.Domain().create()],
@@ -415,9 +461,11 @@ class LocationTestCase(APITestCase):
     def test_positive_update_subnet(self):
         """Update location with new subnet
 
+        @id: 67e5516a-26e2-4d44-9c62-5bb35486cfa7
+
         @Assert: Location updated successfully and has correct subnet assigned
 
-        @Feature: Location - Update
+        @CaseLevel: Integration
         """
         location = entities.Location(
             subnet=[entities.Subnet().create()],
@@ -430,10 +478,12 @@ class LocationTestCase(APITestCase):
     def test_positive_update_env(self):
         """Update location with new environment
 
+        @id: 900a2441-4897-4e44-b8e4-bf7a956292ac
+
         @Assert: Location updated successfully and has correct environment
         assigned
 
-        @Feature: Location - Update
+        @CaseLevel: Integration
         """
         location = entities.Location(
             environment=[entities.Environment().create()],
@@ -449,10 +499,12 @@ class LocationTestCase(APITestCase):
     def test_positive_update_hostgroup(self):
         """Update location with new host group
 
+        @id: 8f3f4569-8f96-46e2-bd01-7712bb9fa4f6
+
         @Assert: Location updated successfully and has correct host group
         assigned
 
-        @Feature: Location - Update
+        @CaseLevel: Integration
         """
         location = entities.Location(
             hostgroup=[entities.HostGroup().create()],
@@ -468,10 +520,12 @@ class LocationTestCase(APITestCase):
     def test_positive_update_org(self):
         """Update location with new organization
 
+        @id: 4791027f-f236-4152-ba20-b8f9624316c5
+
         @Assert: Location updated successfully and has correct organization
         assigned
 
-        @Feature: Location - Update
+        @CaseLevel: Integration
         """
         location = entities.Location(
             organization=[entities.Organization().create()],
@@ -487,10 +541,12 @@ class LocationTestCase(APITestCase):
     def test_positive_update_orgs(self):
         """Update location with with multiple organizations
 
+        @id: e53a0a93-5c7b-4e5b-99cb-decc123deeb6
+
         @Assert: Location created successfully and has correct organizations
         assigned
 
-        @Feature: Location - Update
+        @CaseLevel: Integration
         """
         location = entities.Location(
             organization=[entities.Organization().create()],
@@ -507,9 +563,11 @@ class LocationTestCase(APITestCase):
     def test_positive_update_capsule(self):
         """Update location with new capsule
 
+        @id: 2786146f-f466-4ed8-918a-5f46806558e2
+
         @Assert: Location updated successfully and has correct capsule assigned
 
-        @Feature: Location - Update
+        @CaseLevel: Integration
         """
         proxy_id_1 = make_proxy()['id']
         proxy_id_2 = make_proxy()['id']
@@ -532,9 +590,9 @@ class LocationTestCase(APITestCase):
     def test_negative_update_name(self):
         """Try to update location using invalid names only
 
-        @Assert: Location is not updated
+        @id: dd1e2bf5-44a8-4d15-ac4d-ae1dcc84b7fc
 
-        @Feature: Location - Update
+        @Assert: Location is not updated
         """
         for new_name in invalid_values_list():
             with self.subTest(new_name):
@@ -551,9 +609,11 @@ class LocationTestCase(APITestCase):
         """Try to update existing location with incorrect domain. Use
         domain id
 
+        @id: e26c92f2-42cb-4706-9e03-3e00a134cb9f
+
         @Assert: Location is not updated
 
-        @Feature: Location - Update
+        @CaseLevel: Integration
         """
         location = entities.Location(
             domain=[entities.Domain().create()],
@@ -570,9 +630,11 @@ class LocationTestCase(APITestCase):
     def test_positive_remove_capsule(self):
         """Remove a capsule from location
 
+        @id: 43221ef8-054b-4311-8be0-e02f32e30d98
+
         @Assert: Capsule was removed successfully
 
-        @Feature: Location - Update
+        @CaseLevel: Integration
         """
         proxy_id = make_proxy()['id']
         # Add capsule to cleanup list

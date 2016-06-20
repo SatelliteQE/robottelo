@@ -1,4 +1,19 @@
-"""Tests for the Oscap report upload feature"""
+"""Tests for the Oscap report upload feature
+
+@Requirement: Oscap
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: LONGRUN
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests, ssh
@@ -136,11 +151,13 @@ class OpenScapTestCase(UITestCase):
     def test_positive_upload_to_satellite(self):
         """Perform end to end oscap test and upload reports.
 
-        @Feature: Oscap End to End.
+        @id: 17a0978d-64f9-44ad-8303-1f54ada08602
 
         @Assert: Oscap reports from rhel6 and rhel7 clients should be
         uploaded to satellite6 and be searchable.
 
+
+        @CaseLevel: System
         """
         rhel6_repo = settings.rhel6_repo
         rhel7_repo = settings.rhel7_repo
@@ -254,7 +271,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_has_arf_report_summary_page(self):
         """OSCAP ARF Report now has summary page
 
-        @Feature: Oscap Reports
+        @id: 25be7898-50c5-4825-adc7-978c7b4e3488
 
         @Steps:
         1. Make sure the oscap report with it's corresponding hostname
@@ -263,7 +280,9 @@ class OpenScapTestCase(UITestCase):
 
         @Assert: Oscap ARF reports should have summary page.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -272,7 +291,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_view_full_report_button(self):
         """'View full Report' button should exist for OSCAP Reports.
 
-        @Feature: Oscap Reports
+        @id: 5a41916d-66db-4d2f-8261-b83f833189b9
 
         @Steps:
         1. Make sure the oscap report with it's corresponding hostname
@@ -282,7 +301,9 @@ class OpenScapTestCase(UITestCase):
         @Assert: Should have 'view full report' button to view the
         actual HTML report.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -292,7 +313,7 @@ class OpenScapTestCase(UITestCase):
         """'Download xml' button should exist for OSCAP Reports
         to be downloaded in xml format.
 
-        @Feature: Oscap Reports
+        @id: 07a5f495-a702-4ca4-b5a4-579a133f9181
 
         @Steps:
         1. Make sure the oscap report with it's corresponding hostname
@@ -302,7 +323,9 @@ class OpenScapTestCase(UITestCase):
         @Assert: Should have 'Download xml in bzip' button to download
         the xml report.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -312,7 +335,7 @@ class OpenScapTestCase(UITestCase):
         """Oscap-Proxy select box should exist while filling hosts
         and host-groups form.
 
-        @Feature: Oscap Proxy
+        @id: d56576c8-6fab-4af6-91c1-6a56d9cca94b
 
         @Steps:
         1.Choose the Oscap Proxy/capsule appropriately for the host
@@ -321,7 +344,9 @@ class OpenScapTestCase(UITestCase):
         @Assert: Should have an Oscap-Proxy select box while filling
         hosts and host-groups form.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -330,7 +355,7 @@ class OpenScapTestCase(UITestCase):
     def test_positive_delete_multiple_arf_reports(self):
         """Multiple arf reports deletion should be possible.
 
-        @Feature: Oscap Reports
+        @id: c1a8ce02-f42f-4c48-893d-8f31432b5520
 
         @Steps:
         1. Run Oscap scans are run for multiple Hosts.
@@ -341,7 +366,9 @@ class OpenScapTestCase(UITestCase):
 
         @Assert: Multiple Oscap ARF reports can be deleted.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """
 
     @run_only_on('sat')
@@ -350,9 +377,11 @@ class OpenScapTestCase(UITestCase):
     def test_positive_reporting_emails_of_oscap_reports(self):
         """Email Reporting of oscap reports should be possible.
 
-        @Feature: Oscap Reports
+        @id: 003d4d28-f694-4e54-a149-247f58298ecc
 
         @Assert: Whether email reporting of oscap reports is possible.
 
-        @Status: Manual
+        @caseautomation: notautomated
+
+        @CaseLevel: System
         """

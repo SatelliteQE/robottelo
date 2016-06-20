@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Location CLI"""
+"""Test class for Location CLI
+
+@Requirement: Location
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from random import randint
@@ -52,7 +67,7 @@ class LocationTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Try to create location using different value types as a name
 
-        @Feature: Location
+        @id: 76a90b92-296c-4b5a-9c81-183ff71937e2
 
         @Assert: Location is created successfully and has proper name
 
@@ -67,7 +82,7 @@ class LocationTestCase(CLITestCase):
     def test_positive_create_with_description(self):
         """Create new location with custom description
 
-        @Feature: Location
+        @id: e1844d9d-ec4a-44b3-9743-e932cc70020d
 
         @Assert: Location created successfully and has expected and correct
         description
@@ -82,7 +97,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with assigned user to it. Use user id as
         a parameter
 
-        @Feature: Location
+        @id: 96dd25bf-8535-41a5-ba63-60a2b52487b8
 
         @Assert: Location created successfully and has correct user assigned to
         it with expected login name
@@ -97,7 +112,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with assigned user to it. Use user login
         as a parameter
 
-        @Feature: Location
+        @id: ed65dfd2-00b6-4ec9-9da0-1956d8a5cf5d
 
         @Assert: Location created successfully and has correct user assigned to
         it with expected login name
@@ -112,7 +127,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with compute resource assigned to it. Use
         compute resource id as a parameter
 
-        @Feature: Location
+        @id: 49c72f7d-08b7-4dd3-af7f-5b97889a4583
 
         @Assert: Location created successfully and has correct compute resource
         assigned to it
@@ -127,7 +142,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with compute resource assigned to it. Use
         compute resource name as a parameter
 
-        @Feature: Location
+        @id: a849c847-bc18-4d87-a47b-43975090f509
 
         @Assert: Location created successfully and has correct compute resource
         assigned to it
@@ -142,7 +157,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with config template assigned to it. Use
         config template id as a parameter
 
-        @Feature: Location
+        @id: 1ae669e3-479a-427a-ac97-0878667c3dce
 
         @Assert: Location created successfully and list of config templates
         assigned to that location should contain expected one
@@ -161,7 +176,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with config template assigned to it. Use
         config template name as a parameter
 
-        @Feature: Location
+        @id: a523bf4e-dc90-4f15-ae79-5246d0568fa5
 
         @Assert: Location created successfully and list of config templates
         assigned to that location should contain expected one
@@ -180,7 +195,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with assigned domain to it. Use domain id
         as a parameter
 
-        @Feature: Location
+        @id: 54507b72-93ea-471e-bfd5-857c44b6abed
 
         @Assert: Location created successfully and has correct and expected
         domain assigned to it
@@ -195,7 +210,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with assigned domain to it. Use domain
         name as a parameter
 
-        @Feature: Location
+        @id: 06426c06-744d-44cf-bbba-449ef1f62659
 
         @Assert: Location created successfully and has correct and expected
         domain assigned to it
@@ -210,7 +225,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with assigned subnet to it. Use subnet id
         as a parameter
 
-        @Feature: Location
+        @id: cef956bd-7c78-49f8-917a-f344fadf217a
 
         @Assert: Location created successfully and has correct subnet with
         expected network address assigned to it
@@ -226,7 +241,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with assigned subnet to it. Use subnet
         name as a parameter
 
-        @Feature: Location
+        @id: efe2fce4-ecd9-4765-8d77-dff776a1ba13
 
         @Assert: Location created successfully and has correct subnet with
         expected network address assigned to it
@@ -242,7 +257,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with assigned environment to it. Use
         environment id as a parameter
 
-        @Feature: Location
+        @id: cd38b895-57f7-4d07-aa4b-7299a69ec203
 
         @Assert: Location created successfully and has correct and expected
         environment assigned to it
@@ -257,7 +272,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with assigned environment to it. Use
         environment name as a parameter
 
-        @Feature: Location
+        @id: 3c9a47b5-798b-4f41-a9dc-219ad43b6fdf
 
         @Assert: Location created successfully and has correct and expected
         environment assigned to it
@@ -272,7 +287,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with assigned host group to it. Use host
         group id as a parameter
 
-        @Feature: Location
+        @id: d4421f79-72ea-4d68-8ae7-aedd2b32dfe9
 
         @Assert: Location created successfully and has correct and expected
         host group assigned to it
@@ -287,7 +302,7 @@ class LocationTestCase(CLITestCase):
         """Create new location with assigned host group to it. Use host
         group name as a parameter
 
-        @Feature: Location
+        @id: 7b465d98-efcc-4c49-b45b-b51c26d5010d
 
         @Assert: Location created successfully and has correct and expected
         host group assigned to it
@@ -302,7 +317,7 @@ class LocationTestCase(CLITestCase):
     def test_positive_create_with_medium(self):
         """Create new location with assigned media to it.
 
-        @Feature: Location
+        @id: 72d71056-6bf7-4af0-95d4-828709e1efba
 
         @Assert: Location created successfully and has correct and expected
         media assigned to it
@@ -319,7 +334,7 @@ class LocationTestCase(CLITestCase):
         assigned to it by id can be created in the system. Environments were
         chosen for that purpose.
 
-        @Feature: Location
+        @id: eac6bfe2-1ead-4784-b9a8-d21b1f10d8d2
 
         @Assert: Location created successfully and has correct environments
         assigned to it
@@ -338,7 +353,7 @@ class LocationTestCase(CLITestCase):
         assigned to it by name can be created in the system. Domains were
         chosen for that purpose.
 
-        @Feature: Location
+        @id: 71e581ef-0950-4cc7-8671-6fddfd06e378
 
         @Assert: Location created successfully and has correct domains assigned
         to it
@@ -357,7 +372,7 @@ class LocationTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Try to create location using invalid names only
 
-        @Feature: Location
+        @id: 2dfe8ff0-e84a-42c0-a480-0f8345ee66d0
 
         @Assert: Location is not created
 
@@ -371,7 +386,7 @@ class LocationTestCase(CLITestCase):
     def test_negative_create_with_same_name(self):
         """Try to create location using same name twice
 
-        @Feature: Location
+        @id: 4fbaea41-9775-40a2-85a5-4dc05cc95134
 
         @Assert: Second location is not created
 
@@ -387,7 +402,7 @@ class LocationTestCase(CLITestCase):
         """Try to create new location with incorrect compute resource
         assigned to it. Use compute resource id as a parameter
 
-        @Feature: Location
+        @id: 83115ace-9340-44cd-9e47-5585b267d7ed
 
         @Assert: Location is not created
 
@@ -400,7 +415,7 @@ class LocationTestCase(CLITestCase):
         """Try to create new location with incorrect user assigned to it
         Use user login as a parameter
 
-        @Feature: Location
+        @id: fa892edf-8c42-44dc-8f36-bed50798b59b
 
         @Assert: Location is not created
 
@@ -412,7 +427,7 @@ class LocationTestCase(CLITestCase):
     def test_positive_update_with_name(self):
         """Try to update location using different value types as a name
 
-        @Feature: Location
+        @id: 09fa55a5-c688-4bd3-94df-8ab7a2ccda84
 
         @Assert: Location is updated successfully and has proper and expected
         name
@@ -434,7 +449,7 @@ class LocationTestCase(CLITestCase):
         that location and change assigned user on another one. Use user id as a
         parameter
 
-        @Feature: Location
+        @id: 123a8a28-f81d-439a-82d0-5c3d814d1a25
 
         @Assert: Location is updated successfully and has correct user assigned
         to it
@@ -456,7 +471,7 @@ class LocationTestCase(CLITestCase):
         that location and change assigned subnet on another one. Use subnet
         name as a parameter
 
-        @Feature: Location
+        @id: 2bb2ec4a-2423-46a8-8772-a263823640df
 
         @Assert: Location is updated successfully and has correct subnet with
         expected network address assigned to it
@@ -481,7 +496,7 @@ class LocationTestCase(CLITestCase):
         compute resources with a new single compute resource. Use compute
         resource id as a parameter
 
-        @Feature: Location
+        @id: 3a547413-53dc-4305-84e9-8db7a6bed3b2
 
         @Assert: Location updated successfully and has correct compute resource
         assigned to it
@@ -512,7 +527,7 @@ class LocationTestCase(CLITestCase):
         it. Try to update location and overwrite all host groups by new
         multiple (two) host groups. Use host groups name as a parameter
 
-        @Feature: Location
+        @id: e53504d0-8328-485c-bc8c-36ea9a2ad3e1
 
         @Assert: Location updated successfully and has correct and expected
         host groups assigned to it
@@ -539,7 +554,7 @@ class LocationTestCase(CLITestCase):
     def test_negative_update_with_name(self):
         """Try to update location using invalid names only
 
-        @Feature: Location
+        @id: a41abf03-61ca-4201-8a80-7062a6196851
 
         @Assert: Location is not updated
 
@@ -558,7 +573,7 @@ class LocationTestCase(CLITestCase):
         """Try to update existing location with incorrect domain. Use
         domain id as a parameter
 
-        @Feature: Location
+        @id: ec49ea4d-754a-4958-8180-f61eb6d8cede
 
         @Assert: Location is not updated
 
@@ -575,7 +590,7 @@ class LocationTestCase(CLITestCase):
         """Try to update existing location with incorrect config
         template. Use template name as a parameter
 
-        @Feature: Location
+        @id: 937730ff-bb46-437b-bfc7-915045d1782c
 
         @Assert: Location is not updated
 
@@ -592,9 +607,11 @@ class LocationTestCase(CLITestCase):
     def test_positive_add_capsule_by_name(self):
         """Add a capsule to location by its name
 
-        @Feature: Organization
+        @id: 32b1e969-a1a8-4d65-bde9-a825ab542b1d
 
         @Assert: Capsule is added to the org
+
+        @CaseLevel: Integration
         """
         loc = make_location()
         proxy = make_proxy()
@@ -614,9 +631,11 @@ class LocationTestCase(CLITestCase):
     def test_positive_add_capsule_by_id(self):
         """Add a capsule to location by its ID
 
-        @feature: Organization
+        @id: 15e3c1e6-4fa3-4965-8808-a9ba01d1c050
 
         @assert: Capsule is added to the org
+
+        @CaseLevel: Integration
         """
         loc = make_location()
         proxy = make_proxy()
@@ -636,9 +655,11 @@ class LocationTestCase(CLITestCase):
     def test_positive_remove_capsule_by_id(self):
         """Remove a capsule from organization by its id
 
-        @Feature: Organization
+        @id: 98681f4f-a5e2-44f6-8879-d23ad90b4c59
 
         @Assert: Capsule is removed from the org
+
+        @CaseLevel: Integration
         """
         loc = make_location()
         proxy = make_proxy()
@@ -662,9 +683,11 @@ class LocationTestCase(CLITestCase):
     def test_positive_remove_capsule_by_name(self):
         """Remove a capsule from organization by its name
 
-        @Feature: Organization
+        @id: 91dcafbe-5f52-48af-b5c7-9319b2929f5a
 
         @Assert: Capsule is removed from the org
+
+        @CaseLevel: Integration
         """
         loc = make_location()
         proxy = make_proxy()
@@ -688,7 +711,7 @@ class LocationTestCase(CLITestCase):
         """Try to delete location using name of that location as a
         parameter. Use different value types for testing.
 
-        @Feature: Location
+        @id: b44e56e4-00f0-4b7c-bef6-48b10c7b2b59
 
         @Assert: Location is deleted successfully
 
@@ -706,7 +729,7 @@ class LocationTestCase(CLITestCase):
         """Try to delete location using id of that location as a
         parameter
 
-        @Feature: Location
+        @id: 71e394e3-85e6-456d-b03d-6787db9059aa
 
         @Assert: Location is deleted successfully
 

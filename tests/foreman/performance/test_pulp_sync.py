@@ -1,4 +1,19 @@
-"""Test class for concurrent Synchronization"""
+"""Test class for concurrent Synchronization
+
+@Requirement: Pulp sync
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: PERFORMANCE
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 
 import csv
@@ -80,8 +95,9 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
         )
 
     def test_concurrent_synchronization(self):
-        """
-        Synchronize two repos concurrently
+        """Synchronize two repos concurrently
+
+        @id: ba0e8b76-f24d-433b-b14f-5bc7a7fefd95
 
         @Steps:
 
@@ -99,7 +115,6 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
             Then it would extract the max only and return the dictionary:
             ``{2: [95.33, 81.77, 33.16]}``. Repeat from 2-repo test case
             to 10-repo case.
-
         """
         total_max_timing = {}
         for current_num_threads in range(2, self.max_num_tests + 1):
@@ -209,18 +224,18 @@ class ConcurrentSyncTestCase(ConcurrentTestCase):
         )
 
     def test_sequential_synchronization(self):
-        """
-        Synchronize two repos sequentially
+        """Synchronize two repos sequentially
+
+        @id: 78ec0c73-d29e-4b11-b58d-7de473b16f61
 
         @Steps:
 
         1. get list of all enabled repositories (setUpClass)
         2. Synchronize from the first to last repo sequentially
         3. produce result of timing, delegated to
-            ``robottelo.tests.kick_off_sync_test``
+           ``robottelo.tests.kick_off_sync_test``
 
         @Assert: Target repositories are enabled
-
         """
         time_result_dict_sync = Pulp.repositories_sequential_sync(
             self.repo_names_list,

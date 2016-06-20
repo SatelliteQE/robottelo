@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Operating System UI"""
+"""Test class for Operating System UI
+
+@Requirement: Operatingsystem
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from nailgun import entities
@@ -59,7 +74,7 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create a new OS using different string types as a name
 
-        @Feature: OS - Positive Create
+        @id: 08cb212e-586f-4630-af1b-ad3e749e82e7
 
         @Assert: OS is created
         """
@@ -81,7 +96,7 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_create(self):
         """Create a new OS with different data values
 
-        @Feature: OS - Positive Create
+        @id: fcb41aff-c963-403b-a80f-5f9c467d0632
 
         @Assert: OS is created
         """
@@ -106,7 +121,7 @@ class OperatingSystemTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """OS - Create a new OS with invalid name
 
-        @Feature: Create a new OS - Negative
+        @id: aa035ef6-a503-48c4-b95a-021a03a145c0
 
         @Assert: OS is not created
         """
@@ -131,7 +146,7 @@ class OperatingSystemTestCase(UITestCase):
         """OS - Create a new OS with description containing
         256 characters
 
-        @Feature: Create a new OS - Negative
+        @id: 7f395b9a-2d48-468a-937b-bba4e6576ba9
 
         @Assert: OS is not created
         """
@@ -156,7 +171,7 @@ class OperatingSystemTestCase(UITestCase):
         """OS - Create a new OS with incorrect major version value
         (More than 5 characters, empty value, negative number)
 
-        @Feature: Create a new OS - Negative
+        @id: 89d061a8-cb4c-4460-a7fb-7cea73c323af
 
         @Assert: OS is not created
         """
@@ -182,7 +197,7 @@ class OperatingSystemTestCase(UITestCase):
         """OS - Create a new OS with incorrect minor version value
         (More than 16 characters and negative number)
 
-        @Feature: Create a new OS - Negative
+        @id: 2828cd68-d57a-4e3e-bced-90937290251e
 
         @Assert: OS is not created
         """
@@ -207,9 +222,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_negative_create_with_same_name_and_version(self):
         """OS - Create a new OS with same name and version
 
-        @Feature: Create a new OS - Negative
+        @id: f1865efe-bdc0-4065-90b8-b48c9fad80bb
 
         @Assert: OS is not created
+
+        @CaseLevel: Integration
         """
         name = gen_string('alpha')
         major_version = gen_string('numeric', 1)
@@ -240,7 +257,7 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete an existing OS
 
-        @Feature: OS - Positive Delete
+        @id: 252f1512-78a6-415d-a4fd-5f6d268cbb82
 
         @Assert: OS is deleted successfully
         """
@@ -254,7 +271,7 @@ class OperatingSystemTestCase(UITestCase):
         """Update OS name, major_version, minor_version, os_family
         and arch
 
-        @Feature: OS - Positive Update
+        @id: d86aeac2-c2b6-4766-96a8-c2e427a9c8be
 
         @Assert: OS is updated
         """
@@ -279,7 +296,7 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_update_medium(self):
         """Update OS medium
 
-        @Feature: OS - Positive Update
+        @id: 4fbcd341-5aff-465c-b251-7ecd97471e01
 
         @Assert: OS is updated
         """
@@ -301,7 +318,7 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_update_ptable(self):
         """Update OS partition table
 
-        @Feature: OS - Positive Update
+        @id: 08ddbc40-dcc1-4695-b209-ba72a6a458df
 
         @Assert: OS is updated
         """
@@ -326,7 +343,7 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_update_template(self):
         """Update provisioning template
 
-        @Feature: OS - Positive Update
+        @id: df21419a-1fdd-414c-86fc-64cde10d3e05
 
         @Assert: OS is updated
         """
@@ -349,9 +366,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_set_parameter(self):
         """Set Operating System parameter
 
-        @Feature: OS - Positive Update
+        @id: 05b504d8-2518-4359-a53a-f577339f1ebe
 
         @Assert: OS is updated with new parameter
+
+        @CaseLevel: Integration
         """
         with Session(self.browser):
             try:
@@ -368,9 +387,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_set_parameter_with_blank_value(self):
         """Set OS parameter with blank value
 
-        @Feature: OS - Positive update
+        @id: 38ef9293-0f83-4c9d-8314-0c72fdf7e2a6
 
         @Assert: Parameter is created with blank value
+
+        @CaseLevel: Integration
         """
         with Session(self.browser):
             try:
@@ -387,9 +408,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_positive_remove_parameter(self):
         """Remove selected OS parameter
 
-        @Feature: OS - Positive Update
+        @id: 14aa3459-9941-43ba-8c17-d7f32e9db43b
 
         @Assert: Expected OS parameter is removed
+
+        @CaseLevel: Integration
         """
         param_name = gen_string('alpha', 4)
         os_name = entities.OperatingSystem().create().name
@@ -406,9 +429,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_negative_set_parameter_same_values(self):
         """Set same OS parameter again as it was set earlier
 
-        @Feature: OS - Negative Update
+        @id: 4211c9c6-d61f-4254-ac45-6791f7577142
 
         @Assert: Proper error should be raised - Name is already taken
+
+        @CaseLevel: Integration
         """
         param_name = gen_string('alpha', 4)
         param_value = gen_string('alpha', 3)
@@ -429,9 +454,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_negative_set_parameter_with_blank_name_and_value(self):
         """Set OS parameter with blank name and value
 
-        @Feature: OS - Negative Update
+        @id: 635c354f-3360-403c-9bcb-78f2da9ed893
 
         @Assert: Proper error should be raised - Name can't contain whitespaces
+
+        @CaseLevel: Integration
         """
         with Session(self.browser):
             try:
@@ -448,9 +475,11 @@ class OperatingSystemTestCase(UITestCase):
     def test_negative_set_parameter_with_too_long_values(self):
         """Set OS parameter with name and value exceeding 255 characters
 
-        @Feature: OS - Negative Update
+        @id: e961ce00-f86b-476e-afad-468491cb2a12
 
         @Assert: Proper error should be raised, Name should contain a value
+
+        @CaseLevel: Integration
         """
         os_name = entities.OperatingSystem().create().name
         with Session(self.browser):

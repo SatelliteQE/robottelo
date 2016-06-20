@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Host CLI"""
+"""Test class for Host CLI
+
+@Requirement: Lifecycleenvironment
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cli.base import CLIReturnCodeError
@@ -30,7 +45,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_verify_bugzilla_1077386(self):
         """List subcommand returns standard output
 
-        @Feature: Lifecycle Environment
+        @id: cca249d0-fb77-422b-aae3-3361887269db
 
         @Assert: There should not be an error returned
 
@@ -53,7 +68,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         """Search lifecycle environment via its name containing UTF-8
         chars
 
-        @Feature: Lifecycle Environment
+        @id: d15001ed-5bbf-43cf-bdd3-1e129dff14ec
 
         @Assert: Can get info for lifecycle by its name
 
@@ -76,7 +91,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         """Create lifecycle environment with valid name, prior to
         Library
 
-        @Feature: Lifecycle Environment
+        @id: fffe67e2-9a45-478d-a538-99f04a9c40ff
 
         @Assert: Lifecycle environment is created with Library as prior
 
@@ -96,7 +111,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         """Create lifecycle environment with valid description prior to
         Library
 
-        @Feature: Lifecycle Environment
+        @id: 714c42f8-d09e-4e48-9f35-bbc25fe9e229
 
         @Assert: Lifecycle environment is created with Library as prior
 
@@ -119,7 +134,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_positive_create_with_label(self):
         """Create lifecycle environment with valid name and label
 
-        @Feature: Lifecycle Environment
+        @id: 8d82932f-dedf-46f0-a6dc-280cfb228f44
 
         @Assert: Lifecycle environment with label is created
 
@@ -139,7 +154,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_positive_create_with_organization_name(self):
         """Create lifecycle environment, specifying organization name
 
-        @Feature: Lifecycle Environment
+        @id: e62ddb5a-7a38-4b7c-9346-b4dce31448c1
 
         @Assert: Lifecycle environment is created for correct organization
 
@@ -155,7 +170,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_positive_create_with_organization_label(self):
         """Create lifecycle environment, specifying organization label
 
-        @Feature: Lifecycle Environment
+        @id: eb5cfc71-c83d-45ca-ba34-9ef79197691d
 
         @Assert: Lifecycle environment is created for correct organization
 
@@ -172,7 +187,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
         """Create lifecycle environment with valid name, prior to
         Library
 
-        @Feature: Lifecycle Environment
+        @id: 76989039-5389-4136-9f7c-220eb38f157b
 
         @Assert: Lifecycle environment is deleted
 
@@ -195,7 +210,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Create lifecycle environment then update its name
 
-        @Feature: Lifecycle Environment
+        @id: de67a44e-6c6a-430e-927b-4fa43c7c2771
 
         @Assert: Lifecycle environment name is updated
 
@@ -222,7 +237,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_positive_update_description(self):
         """Create lifecycle environment then update its description
 
-        @Feature: Lifecycle Environment
+        @id: 15b82949-3c3a-4942-b42b-db1de34cf5be
 
         @Assert: Lifecycle environment description is updated
 
@@ -249,7 +264,7 @@ class LifeCycleEnvironmentTestCase(CLITestCase):
     def test_positve_list_paths(self):
         """List the environment paths under a given organization
 
-        @Feature: Lifecycle Environment
+        @id: 71600d6b-1ef4-4b88-8e9b-eb2481ee1fe2
 
         @Assert: Lifecycle environment paths listed
 

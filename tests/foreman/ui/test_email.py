@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""UI Tests for the email notification feature"""
+"""UI Tests for the email notification feature
+
+@Requirement: Email
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo.decorators import stubbed, tier1, tier3
 from robottelo.test import UITestCase
@@ -13,7 +28,7 @@ class EmailTestCase(UITestCase):
     def test_positive_preferences(self):
         """Manage user email notification preferences
 
-        @Feature: Email Notification
+        @id: 6852256e-4907-454d-bb53-242063222a1f
 
         @Steps:
 
@@ -26,7 +41,7 @@ class EmailTestCase(UITestCase):
         @Assert: Enabling and disabling email notification preferences saved
         accordingly.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -35,7 +50,7 @@ class EmailTestCase(UITestCase):
     def test_positive_sync_with_enabled_notification(self):
         """Receive email after every sync operation
 
-        @Feature: Email Notification
+        @id: 79ed2bc9-3707-4548-bdab-290ae5e9abf3
 
         @Steps:
 
@@ -45,8 +60,10 @@ class EmailTestCase(UITestCase):
 
         @Assert: Email notification received after sync operation.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -54,7 +71,7 @@ class EmailTestCase(UITestCase):
     def test_positive_sync_with_disabled_notification(self):
         """Do not receive email after every sync operation
 
-        @Feature: Email Notification
+        @id: c0b8b5d6-ed44-42b7-9700-1dd26bb4ae55
 
         @Steps:
 
@@ -64,8 +81,10 @@ class EmailTestCase(UITestCase):
 
         @Assert: No email notification received after sync operation.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -73,7 +92,7 @@ class EmailTestCase(UITestCase):
     def test_positive_promote_with_enabled_notification(self):
         """Receive email after every promote operation
 
-        @Feature: Email Notification
+        @id: cb14b622-cbfd-4834-889d-bc6e7884bfb0
 
         @Steps:
 
@@ -83,8 +102,10 @@ class EmailTestCase(UITestCase):
 
         @Assert: Email notification received after Promote operation.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -92,7 +113,7 @@ class EmailTestCase(UITestCase):
     def test_positive_promote_with_disabled_notification(self):
         """Do not receive email after every promote operation
 
-        @Feature: Email Notification
+        @id: 4cca1869-f869-414b-b652-d6a5b3ce6f17
 
         @Steps:
 
@@ -102,8 +123,10 @@ class EmailTestCase(UITestCase):
 
         @Assert: No email notification received after Promote operation.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -111,7 +134,7 @@ class EmailTestCase(UITestCase):
     def test_positive_host_with_daily_notification(self):
         """Receive daily email with host advisory information
 
-        @Feature: Email Notification
+        @id: 3a21d0ef-3c67-4e47-bcec-a8dd1a5aa564
 
         @Steps:
 
@@ -121,8 +144,10 @@ class EmailTestCase(UITestCase):
         @Assert: Email notification received daily with Katello Host Advisory
         information.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -130,7 +155,7 @@ class EmailTestCase(UITestCase):
     def test_positive_host_with_weekly_notification(self):
         """Receive weekly email with host advisory information
 
-        @Feature: Email Notification
+        @id: b195fc2e-0449-4cb3-9f4c-ed8c8266651b
 
         @Steps:
 
@@ -140,8 +165,10 @@ class EmailTestCase(UITestCase):
         @Assert: Email notification received Weekly with Katello Host Advisory
         information.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -149,7 +176,7 @@ class EmailTestCase(UITestCase):
     def test_positive_host_with_monthly_notification(self):
         """Receive monthly email with host advisory information
 
-        @Feature: Email Notification
+        @id: e05398b9-6fbd-4aa5-84e9-70ae0a2db9a1
 
         @Steps:
 
@@ -159,8 +186,10 @@ class EmailTestCase(UITestCase):
         @Assert: Email notification received monthly with Katello Host Advisory
         information.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -168,7 +197,7 @@ class EmailTestCase(UITestCase):
     def test_positive_host_with_disabled_notification(self):
         """Receive no email with host advisory information
 
-        @Feature: Email Notification
+        @id: 5540ba69-aab0-42a3-afda-298249880348
 
         @Steps:
 
@@ -178,8 +207,10 @@ class EmailTestCase(UITestCase):
         @Assert: No email notification received with Katello Host Advisory
         information.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -187,7 +218,7 @@ class EmailTestCase(UITestCase):
     def test_positive_puppet_error_with_enabled_notification(self):
         """Receive email after puppet error
 
-        @Feature: Email Notification
+        @id: 2c14a0d9-2f37-47da-b095-0c984a24091d
 
         @Steps:
 
@@ -197,8 +228,10 @@ class EmailTestCase(UITestCase):
 
         @Assert: Email notification received with Puppet error.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -206,7 +239,7 @@ class EmailTestCase(UITestCase):
     def test_positive_puppet_error_with_disabled_notification(self):
         """Do not receive email after puppet error
 
-        @Feature: Email Notification
+        @id: fd6e7274-b9c1-44f8-91de-ad5162f21c74
 
         @Steps:
 
@@ -216,8 +249,10 @@ class EmailTestCase(UITestCase):
 
         @Assert: No email notification received after Puppet error.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -226,7 +261,7 @@ class EmailTestCase(UITestCase):
         """Receive 'Katello Sync Errata' notifications - only for
         repositories and content views that the user has view access to
 
-        @Feature: Email Notification
+        @id: b0e4a823-4225-4788-8cfd-2d1ccf4d9ded
 
         @setup:
 
@@ -243,8 +278,10 @@ class EmailTestCase(UITestCase):
 
         @Assert: Test user does not receive email notification.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -253,7 +290,7 @@ class EmailTestCase(UITestCase):
         """Receive 'Katello Promote Errata' notifications - only for
         repositories and content views that the user has view access to
 
-        @Feature: Email Notification
+        @id: 44435f4f-ea9f-4f6e-b1c0-d273974ec9e5
 
         @setup:
 
@@ -270,8 +307,10 @@ class EmailTestCase(UITestCase):
 
         @Assert: Test user does not receive email notification.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -280,7 +319,7 @@ class EmailTestCase(UITestCase):
         """Receive 'Katello Host Advisory' notifications - only for
         repositories and content views that the user has view access to
 
-        @Feature: Email Notification
+        @id: aea2cfa7-0a44-4b72-bd10-275e604100a9
 
         @setup:
 
@@ -296,8 +335,10 @@ class EmailTestCase(UITestCase):
         @Assert: Test user receives email notification with the host info for
         the repositories and content views that the user has access to.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -306,7 +347,7 @@ class EmailTestCase(UITestCase):
         """Receive 'Katello Host Advisory' notifications - only for
         content hosts that the user has view access to
 
-        @Feature: Email Notification
+        @id: 2acc2979-926a-4176-b87a-57bc880e4b31
 
         @setup:
 
@@ -322,6 +363,8 @@ class EmailTestCase(UITestCase):
         @Assert: Test user receives email notification which does not list the
         content hosts for which the user does not have view access.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """

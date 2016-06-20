@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test for capsule installer CLI"""
+"""Test for capsule installer CLI
+
+@Requirement: Capsule installer
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from robottelo.decorators import stubbed
 from robottelo.test import CLITestCase
 
@@ -11,7 +26,7 @@ class CapsuleInstallerTestCase(CLITestCase):
     def test_positive_basic(self):
         """perform a basic install of capsule.
 
-        @Feature: Capsule Installer
+        @id: 47445685-5924-4980-89d0-bbb2fb608f4d
 
         @Steps:
 
@@ -22,7 +37,7 @@ class CapsuleInstallerTestCase(CLITestCase):
 
         @Assert: product is installed
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -32,7 +47,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         capsule-installer to enable katello-agent functionality via
         remote clients
 
-        @Feature: capsule Installer
+        @id: d040a72d-72b2-41cf-b14e-a8e37e80200d
 
         @Steps:
 
@@ -41,7 +56,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         @Assert: Capsule installs correctly and qpid functionality is
         enabled.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -51,7 +66,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         capsule-installer to enable katello-agent functionality via
         remote clients
 
-        @Feature: capsule Installer
+        @id: 756fd76a-0183-4637-93c8-fe7c375be751
 
         @Steps:
 
@@ -60,7 +75,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         @Assert: Capsule installs correctly and functionality is
         enabled.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -68,7 +83,7 @@ class CapsuleInstallerTestCase(CLITestCase):
     def test_negative_invalid_parameters(self):
         """invalid (non-boolean) parameters cannot be passed to flag
 
-        @Feature: Capsule Installer
+        @id: f4366c87-e436-42b4-ada4-55f0e66a481e
 
         @Steps:
 
@@ -78,7 +93,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         @Assert: user is told that such parameters are invalid and install
         aborts.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -86,7 +101,7 @@ class CapsuleInstallerTestCase(CLITestCase):
     def test_negative_option_parent_reverse_proxy_port(self):
         """invalid (non-integer) parameters cannot be passed to flag
 
-        @Feature: Capsule Installer
+        @id: a1af16d3-84da-4e94-818e-90bc82cc5698
 
         @Setup: na
 
@@ -98,7 +113,7 @@ class CapsuleInstallerTestCase(CLITestCase):
 
         @Assert: user told parameters are invalid; install aborts.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -107,7 +122,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         """ valid parameters can be passed to --parent-reverse-proxy
         (true)
 
-        @Feature: Capsule Installer
+        @id: a905f4ca-a729-4efb-84fc-43923737f75b
 
         @Setup: note that this requires an accompanying, valid port value
 
@@ -117,7 +132,7 @@ class CapsuleInstallerTestCase(CLITestCase):
 
         @Assert: Install commences/completes with proxy installed correctly.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """
 
@@ -126,7 +141,7 @@ class CapsuleInstallerTestCase(CLITestCase):
         """valid parameters can be passed to
         --parent-reverse-proxy-port (integer)
 
-        @Feature: Capsule Installer
+        @id: 32238045-53e2-4ed4-ac86-57917e7aedcd
 
         @Setup: note that this requires an accompanying, valid host for
         proxy parameter
@@ -138,6 +153,6 @@ class CapsuleInstallerTestCase(CLITestCase):
         @Assert: Install commences and completes with proxy installed
         correctly.
 
-        @Status: Manual
+        @caseautomation: notautomated
 
         """

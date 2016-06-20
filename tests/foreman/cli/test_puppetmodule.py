@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for PuppetModule CLI"""
+"""Test class for PuppetModule CLI
+
+@Requirement: Puppetmodule
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from robottelo.cli.factory import make_org, make_product, make_repository
 from robottelo.cli.puppetmodule import PuppetModule
@@ -34,7 +49,7 @@ class PuppetModuleTestCase(CLITestCase):
         """Check if puppet-module list retrieves puppet-modules of
         the given org
 
-        @Feature: Puppet-module
+        @id: 77635e70-19e7-424d-9c89-ec5dbe91de75
 
         @Assert: Puppet-modules are retrieved for the given org
         """
@@ -48,7 +63,7 @@ class PuppetModuleTestCase(CLITestCase):
         """Check if puppet-module info retrieves info for the given
         puppet-module id
 
-        @Feature: Puppet-module
+        @id: 8aaa9243-5e20-49d6-95ce-620cc1ba18dc
 
         @Assert: The puppet-module info is retrieved
         """

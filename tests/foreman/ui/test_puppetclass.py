@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Puppet Classes UI"""
+"""Test class for Puppet Classes UI
+
+@Requirement: Puppetclass
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from nailgun import entities
 from robottelo.datafactory import valid_data_list
@@ -17,7 +32,7 @@ class PuppetClassTestCase(UITestCase):
         """Create new puppet-class and update its description to a valid
         one
 
-        @Feature: Puppet-Classes - Positive Update
+        @id: 711fe4de-b62f-48b5-9845-2d8725eb3548
 
         @Assert: Puppet-Classes is updated successfully.
         """
@@ -44,7 +59,7 @@ class PuppetClassTestCase(UITestCase):
     def test_positive_delete(self):
         """Create new puppet-class and then delete it
 
-        @Feature: Puppet-Classes - Positive delete
+        @id: 0d6e579e-8a7a-46a1-9932-5f345905671d
 
         @Assert: Puppet-Class is deleted successfully.
         """

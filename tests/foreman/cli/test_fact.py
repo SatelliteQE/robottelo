@@ -1,4 +1,19 @@
-"""Test class for Fact  CLI"""
+"""Test class for Fact  CLI
+
+@Requirement: Fact
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_string
 from robottelo.cli.fact import Fact
@@ -15,7 +30,7 @@ class FactTestCase(CLITestCase):
     def test_positive_list_by_name(self):
         """Test Fact List
 
-        @Feature: Fact - List Positive
+        @id: 83794d97-d21b-4482-9522-9b41053e595f
 
         @Assert: Fact List is displayed
 
@@ -32,7 +47,7 @@ class FactTestCase(CLITestCase):
     def test_negative_list_by_name(self):
         """Test Fact List failure
 
-        @Feature: Fact - List Negative
+        @id: bd56d27e-59c0-4f35-bd53-2999af7c6946
 
         @Assert: Fact List is not displayed
 

@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Sync Plan CLI"""
+"""Test class for Sync Plan CLI
+
+@Requirement: Syncplan
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from datetime import datetime, timedelta
 from fauxfactory import gen_string
@@ -164,7 +179,7 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Check if syncplan can be created with random names
 
-        @Feature: Sync Plan
+        @id: dc0a86f7-4219-427e-92fd-29352dbdbfce
 
         @Assert: Sync plan is created and has random name
         """
@@ -177,7 +192,7 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_create_with_description(self):
         """Check if syncplan can be created with random description
 
-        @Feature: Sync Plan
+        @id: a1bbe81b-60f5-4a19-b400-a02a23fa1dfa
 
         @Assert: Sync plan is created and has random description
         """
@@ -190,7 +205,7 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_create_with_interval(self):
         """Check if syncplan can be created with varied intervals
 
-        @Feature: Sync Plan
+        @id: 32eb0c1d-0c9a-4fb5-a185-68d0d705fbce
 
         @Assert: Sync plan is created and has selected interval
         """
@@ -210,7 +225,7 @@ class SyncPlanTestCase(CLITestCase):
     def test_negative_create_with_name(self):
         """Check if syncplan can be created with random names
 
-        @Feature: Sync Plan
+        @id: 4c1aee35-271e-4ed8-9369-d2abfea8cfd9
 
         @Assert: Sync plan is created and has random name
         """
@@ -223,7 +238,7 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_update_description(self):
         """Check if syncplan description can be updated
 
-        @Feature: Sync Plan
+        @id: 00a279cd-1f49-4ebb-a59a-6f0b4e4cb83c
 
         @Assert: Sync plan is created and description is updated
         """
@@ -241,7 +256,7 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_update_interval(self):
         """Check if syncplan interval be updated
 
-        @Feature: Sync Plan
+        @id: d676d7f3-9f7c-4375-bb8b-277d71af94b4
 
         @Assert: Sync plan interval is updated
         """
@@ -263,7 +278,7 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_update_sync_date(self):
         """Check if syncplan sync date can be updated
 
-        @Feature: Sync Plan
+        @id: f0c17d7d-3e86-4b64-9747-6cba6809815e
 
         @Assert: Sync plan is created and sync plan is updated
         """
@@ -307,7 +322,7 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Check if syncplan can be created and deleted
 
-        @Feature: Sync Plan
+        @id: b5d97c6b-aead-422b-8d9f-4a192bbe4a3b
 
         @Assert: Sync plan is created and then deleted
         """
@@ -322,7 +337,7 @@ class SyncPlanTestCase(CLITestCase):
     def test_positive_info_enabled_field_is_displayed(self):
         """Check if Enabled field is displayed in sync-plan info output
 
-        @Feature: Sync Plan Info
+        @id: 54e3a4ea-315c-4026-8101-c4605ca6b874
 
         @Assert: Sync plan Enabled state is displayed
         """
@@ -337,11 +352,13 @@ class SyncPlanTestCase(CLITestCase):
         """Verify product won't get synced immediately after adding association
         with a sync plan which has already been started
 
-        @Feature: Sync Plan
+        @id: c80f5c0c-3863-47da-8d7b-7d65c73664b0
 
         @Assert: Repository was not synchronized
 
         @BZ: 1279539
+
+        @CaseLevel: System
         """
         sync_plan = self._make_sync_plan({
             'enabled': 'true',
@@ -369,11 +386,13 @@ class SyncPlanTestCase(CLITestCase):
         custom product and verify the product gets synchronized on the next
         sync occurrence
 
+        @id: 21efdd08-698c-443c-a681-edce19a4c83a
+
         @Assert: Product is synchronized successfully.
 
-        @Feature: SyncPlan
-
         @BZ: 1279539
+
+        @CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
         sync_plan = self._make_sync_plan({
@@ -405,9 +424,11 @@ class SyncPlanTestCase(CLITestCase):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
 
+        @id: 635bffe2-df98-4971-8950-40edc89e479e
+
         @Assert: Product is synchronized successfully.
 
-        @Feature: SyncPlan
+        @CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         sync_plan = self._make_sync_plan({
@@ -442,9 +463,11 @@ class SyncPlanTestCase(CLITestCase):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
 
+        @id: dd262cf3-b836-422c-baca-b3adbc532478
+
         @Assert: Products are synchronized successfully.
 
-        @Feature: SyncPlan
+        @CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         sync_plan = self._make_sync_plan({
@@ -494,11 +517,13 @@ class SyncPlanTestCase(CLITestCase):
         RH product and verify the product gets synchronized on the next sync
         occurrence
 
+        @id: 47280ef4-3936-4dbc-8ed0-1076aa8d40df
+
         @Assert: Product is synchronized successfully.
 
-        @Feature: SyncPlan
-
         @BZ: 1279539
+
+        @CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
         org = make_org()
@@ -551,9 +576,11 @@ class SyncPlanTestCase(CLITestCase):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
 
+        @id: 6ce2f777-f230-4bb8-9822-2cf3580c21aa
+
         @Assert: Product is synchronized successfully.
 
-        @Feature: SyncPlan
+        @CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         org = make_org()

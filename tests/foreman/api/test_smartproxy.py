@@ -1,4 +1,19 @@
-"""Tests for the ``smart_proxies`` paths."""
+"""Tests for the ``smart_proxies`` paths.
+
+@Requirement: Smartproxy
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from nailgun import entities
 from robottelo.decorators import (
     skip_if_bug_open,
@@ -34,9 +49,9 @@ class SmartProxyMissingAttrTestCase(APITestCase):
     def test_positive_update_loc(self):
         """Update a smart proxy. Inspect the server's response.
 
-        @Assert: The response contains some value for the ``location`` field.
+        @id: 42d6b749-c047-4fd2-90ee-ffab7be558f9
 
-        @Feature: SmartProxy
+        @Assert: The response contains some value for the ``location`` field.
         """
         names = one_to_many_names('location')
         self.assertGreater(
@@ -49,10 +64,10 @@ class SmartProxyMissingAttrTestCase(APITestCase):
     def test_positive_update_org(self):
         """Update a smart proxy. Inspect the server's response.
 
+        @id: fbde9f87-33db-4b95-a5f7-71a618460c84
+
         @Assert: The response contains some value for the ``organization``
         field.
-
-        @Feature: SmartProxy
         """
         names = one_to_many_names('organization')
         self.assertGreater(

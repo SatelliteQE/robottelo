@@ -17,6 +17,20 @@ Subcommands::
     delete                        Delete a compute resource.
     image                         View and manage compute resource's images
 
+
+@Requirement: Computeresource
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
 """
 import random
 
@@ -102,7 +116,7 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Create Compute Resource
 
-        @Feature: Compute Resource - Positive Create
+        @id: 6460bcc7-d7f7-406a-aecb-b3d54d51e697
 
         @Assert: Compute resource is created
 
@@ -118,7 +132,7 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_info(self):
         """Test Compute Resource Info
 
-        @Feature: Compute Resource - Info
+        @id: f54af041-4471-4d8e-9429-45d821df0440
 
         @Assert: Compute resource Info is displayed
 
@@ -137,7 +151,7 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_list(self):
         """Test Compute Resource List
 
-        @Feature: Compute Resource - List
+        @id: 11123361-ffbc-4c59-a0df-a4af3408af7a
 
         @Assert: Compute resource List is displayed
 
@@ -158,7 +172,7 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_delete_by_name(self):
         """Test Compute Resource delete
 
-        @Feature: Compute Resource - Delete
+        @id: 7fcc0b66-f1c1-4194-8a4b-7f04b1dd439a
 
         @Assert: Compute resource deleted
 
@@ -179,7 +193,7 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_create_with_libvirt(self):
         """Test Compute Resource create
 
-        @Feature: Compute Resource positive create
+        @id: adc6f4f8-6420-4044-89d1-c69e0bfeeab9
 
         @Assert: Compute Resource created
 
@@ -198,7 +212,7 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_create_with_loc(self):
         """Create Compute Resource with location
 
-        @Feature: Compute Resource - Location Create
+        @id: 224c7cbc-6bac-4a94-8141-d6249896f5a2
 
         @Assert: Compute resource is created and has location assigned
 
@@ -213,7 +227,7 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_create_with_locs(self):
         """Create Compute Resource with multiple locations
 
-        @Feature: Compute Resource - Location Create
+        @id: f665c586-39bf-480a-a0fc-81d9e1eb7c54
 
         @Assert: Compute resource is created and has multiple locations
         assigned
@@ -235,7 +249,7 @@ class ComputeResourceTestCase(CLITestCase):
         """Create Compute Resource with different values of
         set-console-password parameter
 
-        @Feature: Compute Resource - Set Console Password
+        @id: 4531b3e3-906b-4835-a6ab-3332dc9bd636
 
         @Assert: Compute Resource is created and set-console-password
         parameter is set
@@ -263,7 +277,7 @@ class ComputeResourceTestCase(CLITestCase):
     def test_negative_create_with_name_url(self):
         """Compute Resource negative create with invalid values
 
-        @Feature: Compute Resource create
+        @id: cd432ff3-b3b9-49cd-9a16-ed00d81679dd
 
         @Assert: Compute resource not created
         """
@@ -282,7 +296,7 @@ class ComputeResourceTestCase(CLITestCase):
     def test_negative_create_with_same_name(self):
         """Compute Resource negative create with the same name
 
-        @Feature: Compute Resource create
+        @id: ddb5c45b-1ea3-46d0-b248-56c0388d2e4b
 
         @Assert: Compute resource not created
 
@@ -302,7 +316,7 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Compute Resource positive update
 
-        @Feature: Compute Resource update
+        @id: 213d7f04-4c54-4985-8ca0-d2a1a9e3b305
 
         @Assert: Compute Resource successfully updated
 
@@ -339,7 +353,7 @@ class ComputeResourceTestCase(CLITestCase):
     def test_negative_update(self):
         """Compute Resource negative update
 
-        @Feature: Compute Resource update
+        @id: e7aa9b39-dd01-4f65-8e89-ff5a6f4ee0e3
 
         @Assert: Compute Resource not updated
 
@@ -362,7 +376,7 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_create_with_console_password_and_name(self):
         """Create a compute resource with ``--set-console-password``.
 
-        @Feature: Compute Resource
+        @id: 5b4c838a-0265-4c71-a73d-305fecbe508a
 
         @Assert: No error is returned.
 
@@ -383,7 +397,7 @@ class ComputeResourceTestCase(CLITestCase):
     def test_positive_update_console_password(self):
         """Update a compute resource with ``--set-console-password``.
 
-        @Feature: Compute Resource
+        @id: ef09351e-dcd3-4b4f-8d3b-995e9e5873b3
 
         @Assert: No error is returned.
 

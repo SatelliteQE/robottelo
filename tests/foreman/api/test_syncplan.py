@@ -3,6 +3,20 @@
 A full API reference for sync plans can be found here:
 http://www.katello.org/docs/api/apidoc/sync_plans.html
 
+
+@Requirement: Syncplan
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: API
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
 """
 import random
 from datetime import datetime, timedelta
@@ -62,9 +76,9 @@ class SyncPlanTestCase(APITestCase):
     def test_positive_get_routes(self):
         """Issue an HTTP GET response to both available routes.
 
-        @Assert: The same response is returned.
+        @id: 9e40ea7f-71ea-4ced-94ba-cde03620c654
 
-        @Feature: SyncPlan
+        @Assert: The same response is returned.
 
         Targets BZ 1132817.
         """
@@ -106,9 +120,9 @@ class SyncPlanCreateTestCase(APITestCase):
     def test_positive_create_enabled_disabled(self):
         """Create sync plan with different 'enabled' field values.
 
-        @Assert: A sync plan is created, 'enabled' field has correct value.
+        @id: df5837e7-3d0f-464a-bd67-86b423c16eb4
 
-        @Feature: SyncPlan
+        @Assert: A sync plan is created, 'enabled' field has correct value.
         """
         for enabled in (False, True):
             with self.subTest(enabled):
@@ -123,9 +137,9 @@ class SyncPlanCreateTestCase(APITestCase):
     def test_positive_create_with_name(self):
         """Create a sync plan with a random name.
 
-        @Assert: A sync plan is created with the specified name.
+        @id: c1263134-0d7c-425a-82fd-df5274e1f9ba
 
-        @Feature: SyncPlan
+        @Assert: A sync plan is created with the specified name.
         """
         for name in valid_data_list():
             with self.subTest(name):
@@ -140,9 +154,9 @@ class SyncPlanCreateTestCase(APITestCase):
     def test_positive_create_with_description(self):
         """Create a sync plan with a random description.
 
-        @Assert: A sync plan is created with the specified description.
+        @id: 3e5745e8-838d-44a5-ad61-7e56829ad47c
 
-        @Feature: SyncPlan
+        @Assert: A sync plan is created with the specified description.
         """
         for description in valid_data_list():
             with self.subTest(description):
@@ -157,9 +171,9 @@ class SyncPlanCreateTestCase(APITestCase):
     def test_positive_create_with_interval(self):
         """Create a sync plan with a random interval.
 
-        @Assert: A sync plan is created with the specified interval.
+        @id: d160ed1c-b698-42dc-be0b-67ac693c7840
 
-        @Feature: SyncPlan
+        @Assert: A sync plan is created with the specified interval.
         """
         for interval in valid_sync_interval():
             with self.subTest(interval):
@@ -174,9 +188,9 @@ class SyncPlanCreateTestCase(APITestCase):
     def test_positive_create_with_sync_date(self):
         """Create a sync plan and update its sync date.
 
-        @Assert: A sync plan can be created with a random sync date.
+        @id: bdb6e0a9-0d3b-4811-83e2-2140b7bb62e3
 
-        @Feature: SyncPlan
+        @Assert: A sync plan can be created with a random sync date.
         """
         for syncdate in valid_sync_dates():
             with self.subTest(syncdate):
@@ -194,9 +208,9 @@ class SyncPlanCreateTestCase(APITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create a sync plan with an invalid name.
 
-        @Assert: A sync plan can not be created with the specified name.
+        @id: a3a0f844-2f81-4f87-9f68-c25506c29ce2
 
-        @Feature: SyncPlan
+        @Assert: A sync plan can not be created with the specified name.
         """
         for name in invalid_values_list():
             with self.subTest(name):
@@ -211,9 +225,9 @@ class SyncPlanCreateTestCase(APITestCase):
     def test_negative_create_with_invalid_interval(self):
         """Create a sync plan with invalid interval specified.
 
-        @Assert: A sync plan can not be created with invalid interval specified
+        @id: f5844526-9f58-4be3-8a96-3849a465fc02
 
-        @Feature: SyncPlan
+        @Assert: A sync plan can not be created with invalid interval specified
         """
         for interval in invalid_values_list():
             with self.subTest(interval):
@@ -228,9 +242,9 @@ class SyncPlanCreateTestCase(APITestCase):
     def test_negative_create_with_empty_interval(self):
         """Create a sync plan with no interval specified.
 
-        @Assert: A sync plan can not be created with no interval specified.
+        @id: b4686463-69c8-4538-b040-6fb5246a7b00
 
-        @Feature: SyncPlan
+        @Assert: A sync plan can not be created with no interval specified.
         """
         sync_plan = entities.SyncPlan(organization=self.org)
         sync_plan.create_missing()
@@ -253,9 +267,9 @@ class SyncPlanUpdateTestCase(APITestCase):
     def test_positive_update_enabled(self):
         """Create sync plan and update it with opposite 'enabled' value.
 
-        @Assert: Sync plan is updated with different 'enabled' value.
+        @id: 325c0ef5-c0e8-4cb9-b85e-87eb7f42c2f8
 
-        @Feature: SyncPlan
+        @Assert: Sync plan is updated with different 'enabled' value.
         """
         for enabled in (False, True):
             with self.subTest(enabled):
@@ -274,10 +288,10 @@ class SyncPlanUpdateTestCase(APITestCase):
     def test_positive_update_name(self):
         """Create a sync plan and update its name.
 
+        @id: dbfadf4f-50af-4aa8-8d7d-43988dc4528f
+
         @Assert: A sync plan is created and its name can be updated with the
         specified name.
-
-        @Feature: SyncPlan
         """
         sync_plan = entities.SyncPlan(organization=self.org).create()
         for name in valid_data_list():
@@ -290,10 +304,10 @@ class SyncPlanUpdateTestCase(APITestCase):
     def test_positive_update_description(self):
         """Create a sync plan and update its description.
 
+        @id: 4769fe9c-9eec-40c8-b015-1e3d7e570bec
+
         @Assert: A sync plan is created and its description can be updated with
         the specified description.
-
-        @Feature: SyncPlan
         """
         sync_plan = entities.SyncPlan(
             description=gen_string('alpha'),
@@ -312,10 +326,10 @@ class SyncPlanUpdateTestCase(APITestCase):
     def test_positive_update_interval(self):
         """Create a sync plan and update its interval.
 
+        @id: cf2eddf8-b4db-430e-a9b0-83c626b45068
+
         @Assert: A sync plan is created and its interval can be updated with
         the specified interval.
-
-        @Feature: SyncPlan
         """
         for interval in valid_sync_interval():
             with self.subTest(interval):
@@ -337,9 +351,9 @@ class SyncPlanUpdateTestCase(APITestCase):
     def test_positive_update_sync_date(self):
         """Updated sync plan's sync date.
 
-        @Assert: Sync date is updated with the specified sync date.
+        @id: fad472c7-01b4-453b-ae33-0845c9e0dfd4
 
-        @Feature: SyncPlan
+        @Assert: Sync date is updated with the specified sync date.
         """
         sync_plan = entities.SyncPlan(
             organization=self.org,
@@ -358,9 +372,9 @@ class SyncPlanUpdateTestCase(APITestCase):
     def test_negative_update_name(self):
         """Try to update a sync plan with an invalid name.
 
-        @Assert: A sync plan can not be updated with the specified name.
+        @id: ae502053-9d3c-4cad-aee4-821f846ceae5
 
-        @Feature: SyncPlan
+        @Assert: A sync plan can not be updated with the specified name.
         """
         sync_plan = entities.SyncPlan(organization=self.org).create()
         for name in invalid_values_list():
@@ -374,9 +388,9 @@ class SyncPlanUpdateTestCase(APITestCase):
     def test_negative_update_interval(self):
         """Try to update a sync plan with invalid interval.
 
-        @Assert: A sync plan can not be updated with empty interval specified.
+        @id: 8c981174-6f55-49c0-8baa-40e5c3fc598c
 
-        @Feature: SyncPlan
+        @Assert: A sync plan can not be updated with empty interval specified.
         """
         sync_plan = entities.SyncPlan(organization=self.org).create()
         for interval in invalid_values_list():
@@ -402,9 +416,11 @@ class SyncPlanProductTestCase(APITestCase):
     def test_positive_add_product(self):
         """Create a sync plan and add one product to it.
 
+        @id: 036dea02-f73d-4fc1-9c41-5515b6659c79
+
         @Assert: A sync plan can be created and one product can be added to it.
 
-        @Feature: SyncPlan
+        @CaseLevel: Integration
         """
         syncplan = entities.SyncPlan(organization=self.org).create()
         product = entities.Product(organization=self.org).create()
@@ -418,10 +434,12 @@ class SyncPlanProductTestCase(APITestCase):
     def test_positive_add_products(self):
         """Create a sync plan and add two products to it.
 
+        @id: 2a80ecad-2245-46d8-bbc6-0b802e68d50c
+
         @Assert: A sync plan can be created and two products can be added to
         it.
 
-        @Feature: SyncPlan
+        @CaseLevel: Integration
         """
         syncplan = entities.SyncPlan(organization=self.org).create()
         products = [
@@ -444,10 +462,12 @@ class SyncPlanProductTestCase(APITestCase):
         """Create a sync plan with two products and then remove one
         product from it.
 
+        @id: 987a0d94-ceb7-4115-9770-2297e60a63fa
+
         @Assert: A sync plan can be created and one product can be removed from
         it.
 
-        @Feature: SyncPlan
+        @CaseLevel: Integration
         """
         syncplan = entities.SyncPlan(organization=self.org).create()
         products = [
@@ -468,10 +488,12 @@ class SyncPlanProductTestCase(APITestCase):
         """Create a sync plan with two products and then remove both
         products from it.
 
+        @id: eed8c239-8ba3-4dbd-aa6b-c289cd4efd47
+
         @Assert: A sync plan can be created and both products can be removed
         from it.
 
-        @Feature: SyncPlan
+        @CaseLevel: Integration
         """
         syncplan = entities.SyncPlan(organization=self.org).create()
         products = [
@@ -492,10 +514,12 @@ class SyncPlanProductTestCase(APITestCase):
     def test_positive_repeatedly_add_remove(self):
         """Repeatedly add and remove a product from a sync plan.
 
+        @id: b67536ba-3a36-4bb7-a405-0e12081d5a7e
+
         @Assert: A task is returned which can be used to monitor the additions
         and removals.
 
-        @Feature: SyncPlan
+        @CaseLevel: Integration
         """
         syncplan = entities.SyncPlan(organization=self.org).create()
         product = entities.Product(organization=self.org).create()
@@ -553,11 +577,13 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         """Verify product won't get synced immediately after adding association
         with a sync plan which has already been started
 
+        @id: 263a6a79-8236-4757-bf9e-8d9091ba2a11
+
         @Assert: Product was not synchronized
 
-        @Feature: Sync Plan
-
         @BZ: 1279539
+
+        @CaseLevel: System
         """
         sync_plan = entities.SyncPlan(
             organization=self.org,
@@ -586,11 +612,13 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         custom product and verify the product gets synchronized on the next
         sync occurrence
 
+        @id: 0495cb39-2f15-4b6e-9828-1e9517c5c826
+
         @Assert: Product is synchronized successfully.
 
-        @Feature: SyncPlan
-
         @BZ: 1279539
+
+        @CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
         sync_plan = entities.SyncPlan(
@@ -619,9 +647,11 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         """Create a sync plan with sync date in a future and sync one custom
         product with it automatically.
 
+        @id: b70a0c50-7335-4285-b24c-edfc1187f034
+
         @Assert: Product is synchronized successfully.
 
-        @Feature: SyncPlan
+        @CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         sync_plan = entities.SyncPlan(
@@ -652,9 +682,11 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         """Create a sync plan with sync date in a future and sync multiple
         custom products with multiple repos automatically.
 
+        @id: e646196e-3951-4297-8c3c-1494d9895347
+
         @Assert: Products are synchronized successfully.
 
-        @Feature: SyncPlan
+        @CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         sync_plan = entities.SyncPlan(
@@ -705,11 +737,13 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         RH product and verify the product gets synchronized on the next sync
         occurrence
 
+        @id: 080c316d-4a06-4ee9-b5f6-1b210d8d0593
+
         @Assert: Product is synchronized successfully.
 
-        @Feature: SyncPlan
-
         @BZ: 1279539
+
+        @CaseLevel: System
         """
         interval = 60 * 60  # 'hourly' sync interval in seconds
         org = entities.Organization().create()
@@ -756,9 +790,11 @@ class SyncPlanSynchronizeTestCase(APITestCase):
         """Create a sync plan with sync date in a future and sync one RH
         product with it automatically.
 
+        @id: 6697a00f-2181-4c2b-88eb-2333268d780b
+
         @Assert: Product is synchronized successfully.
 
-        @Feature: SyncPlan
+        @CaseLevel: System
         """
         delay = 10 * 60  # delay for sync date in seconds
         org = entities.Organization().create()
@@ -817,10 +853,12 @@ class SyncPlanDeleteTestCase(APITestCase):
     def test_positive_delete_one_product(self):
         """Create a sync plan with one product and delete it.
 
+        @id: e565c464-33e2-4bca-8eca-15d5a7d4b155
+
         @Assert: A sync plan is created with one product and sync plan can be
         deleted.
 
-        @Feature: SyncPlan
+        @CaseLevel: Integration
         """
         sync_plan = entities.SyncPlan(organization=self.org).create()
         product = entities.Product(organization=self.org).create()
@@ -834,10 +872,12 @@ class SyncPlanDeleteTestCase(APITestCase):
     def test_positive_delete_products(self):
         """Create a sync plan with two products and delete them.
 
+        @id: f21bd57f-369e-4acd-a492-5532349a3804
+
         @Assert: A sync plan is created with one product and sync plan can be
         deleted.
 
-        @Feature: SyncPlan
+        @CaseLevel: Integration
         """
         sync_plan = entities.SyncPlan(organization=self.org).create()
         products = [
@@ -855,10 +895,12 @@ class SyncPlanDeleteTestCase(APITestCase):
     def test_positive_delete_synced_product(self):
         """Create a sync plan with one synced product and delete it.
 
+        @id: 195d8fec-1fa0-42ab-84a5-32dd81a285ca
+
         @Assert: A sync plan is created with one synced product and sync plan
         can be deleted.
 
-        @Feature: SyncPlan
+        @CaseLevel: Integration
         """
         sync_plan = entities.SyncPlan(organization=self.org).create()
         product = entities.Product(organization=self.org).create()

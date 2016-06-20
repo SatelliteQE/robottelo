@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Organization UI"""
+"""Test class for Organization UI
+
+@Requirement: Organization
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 from fauxfactory import gen_ipaddr, gen_string
 from nailgun import entities
@@ -71,7 +86,7 @@ class OrganizationTestCase(UITestCase):
         """Search for an organization can be auto-completed by partial
         name
 
-        @feature: Organizations
+        @id: f3c492ab-46fb-4b1d-b5d5-29a82385d681
 
         @assert: Auto search for created organization works as intended
         """
@@ -89,7 +104,7 @@ class OrganizationTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create organization with valid name only.
 
-        @feature: Organizations
+        @id: bb5c6400-e837-4e3b-add9-bab2c0b826c9
 
         @assert: Organization is created, label is auto-generated
         """
@@ -103,7 +118,7 @@ class OrganizationTestCase(UITestCase):
     def test_positive_create_with_unmatched_name_label(self):
         """Create organization with valid unmatching name and label only
 
-        @feature: Organizations
+        @id: 82954640-05c2-4d6c-a293-dc4aa3e5611b
 
         @assert: organization is created, label does not match name
         """
@@ -124,7 +139,7 @@ class OrganizationTestCase(UITestCase):
     def test_positive_create_with_same_name_and_label(self):
         """Create organization with valid matching name and label only.
 
-        @feature: Organizations
+        @id: 73befc8c-bf96-48b7-8315-34f0cfef9382
 
         @assert: organization is created, label matches name
         """
@@ -145,7 +160,7 @@ class OrganizationTestCase(UITestCase):
         """Create organization with valid name. Check that organization
         label is auto-populated
 
-        @feature: Organizations
+        @id: 29793945-c553-4a6e-881f-cdcde373aa62
 
         @assert: organization is created, label is auto-generated
 
@@ -166,9 +181,11 @@ class OrganizationTestCase(UITestCase):
     def test_positive_create_with_both_loc_and_org(self):
         """Select both organization and location.
 
-        @feature: Organizations
+        @id: 7387a8cd-6ebb-4143-b77e-cfc72cb89ca9
 
         @assert: Both organization and location are selected.
+
+        @CaseLevel: Integration
         """
         with Session(self.browser) as session:
             for name in generate_strings_list():
@@ -188,7 +205,7 @@ class OrganizationTestCase(UITestCase):
         """Try to create organization and use whitespace, blank, tab
         symbol or too long string of different types as its name value
 
-        @feature: Organizations Negative Tests
+        @id: e69ab8c1-e53f-41fa-a84f-290c6c152484
 
         @assert: organization is not created
         """
@@ -205,7 +222,7 @@ class OrganizationTestCase(UITestCase):
         """Create organization with valid names, then create a new one
         with same names.
 
-        @feature: Organizations Negative Test.
+        @id: d7fd91aa-1a0e-4403-8dea-cc03cbb93070
 
         @assert: organization is not created
         """
@@ -223,7 +240,7 @@ class OrganizationTestCase(UITestCase):
     def test_positive_delete(self):
         """Create organization with valid values then delete it.
 
-        @feature: Organizations Positive Delete test.
+        @id: 6b69d505-56b1-4d7d-bf2a-8762d5184ca8
 
         @assert: Organization is deleted successfully
         """
@@ -241,9 +258,11 @@ class OrganizationTestCase(UITestCase):
         """Create Organization with valid values and upload manifest.
         Then try to delete that organization.
 
-        @feature: Organization Positive Delete Test.
+        @id: 851c8557-a406-4a70-9c8b-94bcf0482f8d
 
         @assert: Organization is deleted successfully.
+
+        @CaseLevel: Integration
         """
         org_name = gen_string('alphanumeric')
         org = entities.Organization(name=org_name).create()
@@ -272,9 +291,11 @@ class OrganizationTestCase(UITestCase):
         certificate for that organization and refresh added manifest for few
         times in a row
 
-        @feature: Organizations.
+        @id: 1fcd7cd1-8ba1-434f-b9fb-c4e920046eb4
 
         @assert: Scenario passed successfully
+
+        @CaseLevel: Integration
         """
         org = entities.Organization().create()
         sub = entities.Subscription(organization=org)
@@ -298,7 +319,7 @@ class OrganizationTestCase(UITestCase):
     def test_positive_update_name(self):
         """Create organization with valid values then update its name.
 
-        @feature: Organizations Positive Update test.
+        @id: 776f5268-4f05-4cfc-a1e9-339a3e224677
 
         @assert: Organization name is updated successfully
         """
@@ -317,7 +338,7 @@ class OrganizationTestCase(UITestCase):
         """Create organization with valid values then try to update it
         using incorrect name values
 
-        @feature: Organizations Negative Update test.
+        @id: 1467a04e-ebd6-4106-94b1-841a4f0ddecb
 
         @assert: Organization name is not updated
         """
@@ -338,9 +359,11 @@ class OrganizationTestCase(UITestCase):
         """Add a domain to an organization and remove it by organization
         name and domain name.
 
-        @feature: Organizations Disassociate domain.
+        @id: a49e86c7-f859-4120-b59e-3f89e99a9054
 
         @assert: the domain is removed from the organization
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -372,9 +395,11 @@ class OrganizationTestCase(UITestCase):
         """Create admin users then add user and remove it
         by using the organization name.
 
-        @feature: Organizations Disassociate user.
+        @id: 01a221f7-d0fe-4b46-ab5c-b4e861677126
 
         @assert: The user is added then removed from the organization
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -414,9 +439,11 @@ class OrganizationTestCase(UITestCase):
         """Add a hostgroup and remove it by using the organization
         name and hostgroup name.
 
-        @feature: Organizations Remove Hostgroup.
+        @id: 12e2fc40-d721-4e71-af7c-3db67b9e718e
 
         @assert: hostgroup is added to organization then removed.
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -455,11 +482,13 @@ class OrganizationTestCase(UITestCase):
     def test_positive_add_smartproxy(self):
         """Add a smart proxy by using org and smartproxy name
 
-        @feature: Organizations
+        @id: 7ad6f610-91ca-4f1f-b9c4-8ce82f50ea9e
 
         @assert: smartproxy is added
 
-        @status: manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -467,9 +496,11 @@ class OrganizationTestCase(UITestCase):
     def test_positive_add_subnet(self):
         """Add a subnet using organization name and subnet name.
 
-        @feature: Organizations associate subnet.
+        @id: 6736cd82-a2b0-4fc0-a2bc-99c9f13464d7
 
         @assert: subnet is added.
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -497,9 +528,11 @@ class OrganizationTestCase(UITestCase):
     def test_positive_add_domain(self):
         """Add a domain to an organization.
 
-        @feature: Organizations associate domain.
+        @id: f5739862-ac2e-49ef-8f95-1823287f4978
 
         @assert: Domain is added to organization.
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -522,9 +555,11 @@ class OrganizationTestCase(UITestCase):
         """Create different types of users then add user using
         organization name.
 
-        @feature: Organizations associate user.
+        @id: 5f2ec06b-952d-445d-b8a1-c32d74d33584
 
         @assert: User is added to organization.
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -553,9 +588,11 @@ class OrganizationTestCase(UITestCase):
         """Add a hostgroup by using the organization
         name and hostgroup name.
 
-        @feature: Organizations associate host-group.
+        @id: ce1b5334-5601-42ae-aa04-3e766daa3984
 
         @assert: hostgroup is added to organization
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -580,9 +617,11 @@ class OrganizationTestCase(UITestCase):
         """Add a location by using the organization name and location
         name
 
-        @feature: Organizations associate location.
+        @id: 65ee568b-c0c5-4849-969d-02d7a804292c
 
         @assert: location is added to organization.
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -606,9 +645,11 @@ class OrganizationTestCase(UITestCase):
         """Remove compute resource using the organization name and
         compute resource name.
 
-        @feature: Organizations dis-associate compute-resource.
+        @id: db119bb1-8f79-415b-a056-70a19ffceeea
 
         @assert: compute resource is added then removed.
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -651,9 +692,11 @@ class OrganizationTestCase(UITestCase):
     def test_positive_remove_medium(self):
         """Remove medium by using organization name and medium name.
 
-        @feature: Organizations disassociate installation media.
+        @id: bcf3aaf4-cad9-4a22-a087-60b213eb87cf
 
         @assert: medium is added then removed.
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -692,9 +735,11 @@ class OrganizationTestCase(UITestCase):
     def test_positive_remove_template(self):
         """Remove config template.
 
-        @feature: Organizations dissociate config templates.
+        @id: 67bec745-5f10-494c-92a7-173ee63e8297
 
         @assert: Config Template is added and then removed.
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -727,9 +772,11 @@ class OrganizationTestCase(UITestCase):
     def test_positive_add_environment(self):
         """Add environment by using organization name and env name.
 
-        @feature: Organizations associate environment.
+        @id: 95b96642-0424-4df1-83ef-d548ceb6e10b
 
         @assert: Environment is added.
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -754,11 +801,13 @@ class OrganizationTestCase(UITestCase):
         """Remove smartproxy by using organization name and smartproxy
         name
 
-        @feature: Organizations
+        @id: 25bc6334-de59-462c-824a-51d615d9fdd0
 
         @assert: smartproxy is added then removed
 
-        @status: manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -767,9 +816,11 @@ class OrganizationTestCase(UITestCase):
         """Add compute resource using the organization
         name and compute resource name.
 
-        @feature: Organizations associate compute resource.
+        @id: de9f755a-cf06-4ee0-a2f7-f1bfb1015b36
 
         @assert: compute resource is added.
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -798,9 +849,11 @@ class OrganizationTestCase(UITestCase):
     def test_positive_add_medium(self):
         """Add medium by using the organization name and medium name.
 
-        @feature: Organizations associate medium.
+        @id: e9b1004d-55f0-448f-8013-543d8b9ec248
 
         @assert: medium is added.
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -829,9 +882,11 @@ class OrganizationTestCase(UITestCase):
         """Add config template by using organization name and
         config template name.
 
-        @feature: Organizations associate config template.
+        @id: 2af534d4-2f92-4b25-81d9-d0129f9cf866
 
         @assert: config template is added
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_deselect']
         with Session(self.browser) as session:
@@ -854,9 +909,11 @@ class OrganizationTestCase(UITestCase):
     def test_positive_remove_environment(self):
         """Remove environment by using org & environment name.
 
-        @feature: Organizations dis-associate environment.
+        @id: 270de90d-062e-4893-89c9-f6d0665ab967
 
         @assert: environment is removed from Organization.
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']
@@ -889,9 +946,11 @@ class OrganizationTestCase(UITestCase):
     def test_positive_remove_subnet(self):
         """Remove subnet by using organization name and subnet name.
 
-        @feature: Organizations dis-associate subnet.
+        @id: bc59bdeb-b538-4473-a096-e4de2454497d
 
         @assert: subnet is added then removed.
+
+        @CaseLevel: Integration
         """
         strategy, value = common_locators['entity_select']
         strategy1, value1 = common_locators['entity_deselect']

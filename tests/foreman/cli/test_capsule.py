@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for the capsule CLI."""
+"""Test class for the capsule CLI.
+
+@Requirement: Capsule
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: CLI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 import random
 import re
 
@@ -21,7 +36,7 @@ class CapsuleTestCase(CLITestCase):
     def test_negative_create_with_url(self):
         """Proxy creation with random URL
 
-        @Feature: Smart Proxy
+        @id: 9050b362-c710-43ba-9d77-7680b8f9ed8c
 
         @Assert: Proxy is not created
         """
@@ -38,7 +53,7 @@ class CapsuleTestCase(CLITestCase):
     def test_positive_create_with_name(self):
         """Proxy creation with the home proxy
 
-        @Feature: Smart Proxy
+        @id: 7decd7a3-2d35-43ff-9a20-de44e83c7389
 
         @Assert: Proxy is created
         """
@@ -54,7 +69,7 @@ class CapsuleTestCase(CLITestCase):
     def test_positive_delete_by_id(self):
         """Proxy deletion with the home proxy
 
-        @Feature: Smart Proxy
+        @id: 1b6973b1-259d-4866-b36f-c2d5fb154035
 
         @Assert: Proxy is deleted
         """
@@ -70,7 +85,7 @@ class CapsuleTestCase(CLITestCase):
     def test_positive_update_name(self):
         """Proxy name update with the home proxy
 
-        @Feature: Smart Proxy
+        @id: 1a02a06b-e9ab-4b9b-bcb0-ac7060188316
 
         @Assert: Proxy has the name updated
         """
@@ -94,9 +109,11 @@ class CapsuleTestCase(CLITestCase):
     def test_positive_refresh_features_by_id(self):
         """Refresh smart proxy features, search for proxy by id
 
-        @Feature: Smart Proxy
+        @id: d3db63ce-b877-40eb-a863-294c12489ddd
 
         @Assert: Proxy features are refreshed
+
+        @CaseLevel: Integration
         """
         proxy = make_proxy()
         # parse the port number so we can reopen the SSH tunnel
@@ -115,9 +132,11 @@ class CapsuleTestCase(CLITestCase):
     def test_positive_refresh_features_by_name(self):
         """Refresh smart proxy features, search for proxy by name
 
-        @Feature: Smart Proxy
+        @id: 2ddd0097-8f65-430e-963d-a3b5dcffe86b
 
         @Assert: Proxy features are refreshed
+
+        @CaseLevel: Integration
         """
         proxy = make_proxy()
         # parse the port number so we can reopen the SSH tunnel
@@ -139,7 +158,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
     def test_positive_provision(self):
         """User can provision through a capsule
 
-        @Feature: Capsules
+        @id: 1b91e6ed-56bb-4a21-9b69-8b41242458c5
 
         @Setup: Some valid, functional compute resource (perhaps one variation
         of this case for each supported compute resource type). Also,
@@ -154,14 +173,14 @@ class CapsuleIntegrationTestCase(CLITestCase):
         @Assert: Instance can be provisioned, with content coming through
         proxy-enabled capsule.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
     def test_positive_register(self):
         """User can register system through proxy-enabled capsule
 
-        @Feature: Capsules
+        @id: dc544ec8-0320-4897-a6ca-ce9ebad27975
 
         @Steps:
 
@@ -169,14 +188,14 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         @Assert: system is successfully registered
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
     def test_positive_unregister(self):
         """User can unregister system through proxy-enabled capsule
 
-        @Feature: Capsules
+        @id: 9b7714da-74be-4c0a-9209-9d15c2c98eaa
 
         @Steps:
 
@@ -184,7 +203,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         @Assert: system is successfully unregistered
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -192,7 +211,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """User can subscribe system to content through proxy-enabled
         capsule
 
-        @Feature: Capsules
+        @id: 091bba73-bc78-4b8c-ac27-5c10e9838cfb
 
         @Setup: Content source types configured/synced for [RH, Custom, Puppet,
         Docker] etc.
@@ -204,7 +223,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         @Assert: system is successfully subscribed to each content type
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -212,7 +231,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """User can consume content on system, from a content source,
         through proxy-enabled capsule
 
-        @Feature: Capsules
+        @id: a3fb9879-7799-4743-99a8-963701e687c1
 
         @Setup: Content source types configured/synced for [RH, Custom, Puppet,
         Docker] etc.
@@ -226,7 +245,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         @Assert: system successfully consume content
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -234,7 +253,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """User can unsubscribe system from content through
         proxy-enabled capsule
 
-        @Feature: Capsules
+        @id: 0d34713d-3d60-4e5a-ada6-9a24aa865cb4
 
         @Setup: Content source types configured/synced for [RH, Custom, Puppet]
         etc.
@@ -248,7 +267,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         @Assert: system is successfully unsubscribed from each content type
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
@@ -256,7 +275,7 @@ class CapsuleIntegrationTestCase(CLITestCase):
         """system can register via capsule using cert provided by
         the capsule itself.
 
-        @Feature: Capsules
+        @id: 785b94ea-ffbf-4c18-8160-f705e3d7cbe6
 
         @Setup: functional capsule and certs rpm installed on target client.
 
@@ -270,14 +289,14 @@ class CapsuleIntegrationTestCase(CLITestCase):
         @Assert: Registration works , and certs RPM installed
         from capsule.
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
     def test_positive_ssl_capsule(self):
         """Assure SSL functionality for capsules
 
-        @Feature: Capsules
+        @id: 4d19bee6-15d4-4fd5-b3de-9144608cdba7
 
         @Setup: A capsule installed with SSL enabled.
 
@@ -290,14 +309,14 @@ class CapsuleIntegrationTestCase(CLITestCase):
         @Assert: No failures executing said test scenarios against SSL,
         baseline functionality identical to non-SSL
 
-        @Status: Manual
+        @caseautomation: notautomated
         """
 
     @stubbed()
     def test_positive_enable_bmc(self):
         """Enable BMC feature on smart-proxy
 
-        @Feature: Capsules
+        @id: 9cc4db2f-3bec-4e51-89a2-18a0a6167012
 
         @Setup: A capsule installed with SSL enabled.
 
@@ -317,5 +336,5 @@ class CapsuleIntegrationTestCase(CLITestCase):
 
         @Assert: Katello installer should show the options to enable BMC
 
-        @Status: Manual
+        @caseautomation: notautomated
         """

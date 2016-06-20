@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for Template UI"""
+"""Test class for Template UI
+
+@Requirement: Template
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.constants import OS_TEMPLATE_DATA_FILE, SNIPPET_DATA_FILE
@@ -29,7 +44,7 @@ class TemplateTestCase(UITestCase):
     def test_positive_create_with_name(self):
         """Create new template using different valid names
 
-        @Feature: Template - Positive Create
+        @id: 12767d13-2531-4a3c-9527-3191bc9a1149
 
         @Assert: New template of type 'Provisioning template' should be created
         successfully
@@ -51,7 +66,7 @@ class TemplateTestCase(UITestCase):
     def test_negative_create_with_invalid_name(self):
         """Create a new template with invalid names
 
-        @Feature: Template - Negative Create
+        @id: cfbc8e10-96b3-425c-ac21-f995a8b038e8
 
         @Assert: Template is not created
         """
@@ -73,7 +88,7 @@ class TemplateTestCase(UITestCase):
     def test_negative_create_with_same_name(self):
         """Template - Create a new template with same name
 
-        @Feature: Template - Negative Create
+        @id: 52382553-2708-47d0-97b2-fce6ddb366ad
 
         @Assert: Template is not created
         """
@@ -102,7 +117,7 @@ class TemplateTestCase(UITestCase):
     def test_negative_create_without_type(self):
         """Template - Create a new template without selecting its type
 
-        @Feature: Template - Negative Create
+        @id: 370af6a5-0814-4474-b758-46ec25ccbc4a
 
         @Assert: Template is not created
         """
@@ -126,7 +141,7 @@ class TemplateTestCase(UITestCase):
     def test_negative_create_without_upload(self):
         """Template - Create a new template without uploading a template
 
-        @Feature: Template - Negative Create
+        @id: dd4bb3cb-a7a0-46fa-bc16-e2d117ce79d8
 
         @Assert: Template is not created
         """
@@ -150,7 +165,7 @@ class TemplateTestCase(UITestCase):
     def test_negative_create_with_too_long_audit(self):
         """Create a new template with 256 characters in audit comments
 
-        @Feature: Template - Negative Create
+        @id: 62b06765-f9d5-4e69-967f-76f2649f83ff
 
         @Assert: Template is not created
         """
@@ -171,7 +186,7 @@ class TemplateTestCase(UITestCase):
     def test_positive_create_with_snippet_type(self):
         """Create new template of type snippet
 
-        @Feature: Template - Positive Create
+        @id: 56f62153-6dd2-4120-9f23-386442f643c4
 
         @Assert: New provisioning template of type 'snippet' should be created
         successfully
@@ -193,7 +208,7 @@ class TemplateTestCase(UITestCase):
     def test_positive_delete(self):
         """Delete an existing template
 
-        @Feature: Template - Positive Delete
+        @id: e4a687e5-6581-4481-ad9b-8d2ac3f2c9d5
 
         @Assert: Template is deleted successfully
         """
@@ -212,7 +227,7 @@ class TemplateTestCase(UITestCase):
     def test_positive_update_name_and_type(self):
         """Update template name and template type
 
-        @Feature: Template - Positive Update
+        @id: f1a7d44d-5ac8-47e1-9084-ce8f166dbde5
 
         @Assert: The template name and type should be updated successfully
         """
@@ -237,7 +252,7 @@ class TemplateTestCase(UITestCase):
         """Creates new template, along with two OS's and associate list
         of OS's with created template
 
-        @Feature: Template - Positive Update
+        @id: 160d7906-dd60-4870-8ca0-dde61ccab67c
 
         @Assert: The template should be updated with newly created OS's
         successfully
@@ -264,13 +279,15 @@ class TemplateTestCase(UITestCase):
     def test_positive_clone(self):
         """Assure ability to clone a provisioning template
 
-        @Feature: Template - Clone
+        @id: 912f1619-4bb0-4e0f-88ce-88b5726fdbe0
 
         @Steps:
          1.  Go to Provisioning template UI
          2.  Choose a template and attempt to clone it
 
         @Assert: The template is cloned
+
+        @CaseLevel: Integration
         """
         name = gen_string('alpha')
         clone_name = gen_string('alpha')

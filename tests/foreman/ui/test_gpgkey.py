@@ -1,5 +1,20 @@
 # -*- encoding: utf-8 -*-
-"""Test class for GPG Key UI"""
+"""Test class for GPG Key UI
+
+@Requirement: Gpgkey
+
+@CaseAutomation: Automated
+
+@CaseLevel: Acceptance
+
+@CaseComponent: UI
+
+@TestType: Functional
+
+@CaseImportance: High
+
+@Upstream: No
+"""
 
 import random
 from fauxfactory import gen_string
@@ -55,7 +70,7 @@ class GPGKey(UITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import
 
-        @feature: GPG Keys
+        @id: 3a6f3a58-da2d-4fd7-9ceb-c95f7c9dce7c
 
         @assert: gpg key is created
         """
@@ -77,7 +92,7 @@ class GPGKey(UITestCase):
         """Create gpg key with valid name and valid gpg key text via
         cut and paste/string
 
-        @feature: GPG Keys
+        @id: 8b5d112c-b52c-458d-bddd-56bd26afdeb1
 
         @assert: gpg key is created
         """
@@ -100,7 +115,7 @@ class GPGKey(UITestCase):
         """Create gpg key with valid name and valid gpg key via
         file import then try to create new one with same name
 
-        @feature: GPG Keys
+        @id: d5e28e8a-e0ef-4c74-a18b-e2646a2cdba5
 
         @assert: gpg key is not created
         """
@@ -125,7 +140,7 @@ class GPGKey(UITestCase):
         """Create gpg key with valid name and valid gpg key text via
         cut and paste/string import then try to create new one with same name
 
-        @feature: GPG Keys
+        @id: c6b256a5-6b9b-4927-a6c6-048ba36d2834
 
         @assert: gpg key is not created
         """
@@ -148,7 +163,7 @@ class GPGKey(UITestCase):
     def test_negative_create_without_content(self):
         """Create gpg key with valid name and no gpg key
 
-        @feature: GPG Keys
+        @id: 20167716-48c5-4f28-afe2-07fa22aeb240
 
         @assert: gpg key is not created
         """
@@ -164,7 +179,7 @@ class GPGKey(UITestCase):
         """Create gpg key with invalid name and valid gpg key via
         file import
 
-        @feature: GPG Keys
+        @id: bc5f96e6-e997-4995-ad04-614e66480b7f
 
         @assert: gpg key is not created
         """
@@ -190,7 +205,7 @@ class GPGKey(UITestCase):
         """Create gpg key with invalid name and valid gpg key text via
         cut and paste/string
 
-        @feature: GPG Keys
+        @id: 652857de-c522-4c68-a758-13d0b37cc62a
 
         @assert: gpg key is not created
         """
@@ -217,7 +232,7 @@ class GPGKey(UITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import then delete it
 
-        @feature: GPG Keys
+        @id: 495547c0-8e38-49cc-9be4-3f24a20d3af7
 
         @assert: gpg key is deleted
         """
@@ -240,7 +255,7 @@ class GPGKey(UITestCase):
         """Create gpg key with valid name and valid gpg key text via
         cut and paste/string then delete it
 
-        @feature: GPG Keys
+        @id: 77c97202-a877-4647-b7e2-3a9b68945fc4
 
         @assert: gpg key is deleted
         """
@@ -264,7 +279,7 @@ class GPGKey(UITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import then update its name
 
-        @feature: GPG Keys
+        @id: 85e211fb-bcb4-4895-af3e-febb189be5c0
 
         @assert: gpg key is updated
         """
@@ -290,7 +305,7 @@ class GPGKey(UITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import then update its gpg key file
 
-        @feature: GPG Keys
+        @id: 9f74b337-3ea5-48a1-af6e-d72ab41c2348
 
         @assert: gpg key is updated
         """
@@ -316,7 +331,7 @@ class GPGKey(UITestCase):
         """Create gpg key with valid name and valid gpg key text via
         cut and paste/string then update its name
 
-        @feature: GPG Keys
+        @id: 4336b539-15fd-4a40-bb98-0b0248f8abd8
 
         @assert: gpg key is updated
         """
@@ -341,7 +356,7 @@ class GPGKey(UITestCase):
         """Create gpg key with valid name and valid gpg key text via
         cut and paste/string then update its gpg key text
 
-        @feature: GPG Keys
+        @id: 07902ef6-a918-433a-9dad-d5376c3dd001
 
         @assert: gpg key is updated
         """
@@ -368,7 +383,7 @@ class GPGKey(UITestCase):
         """Create gpg key with valid name and valid gpg key via file
         import then fail to update its name
 
-        @feature: GPG Keys
+        @id: 969aad7c-ba4c-4d1d-84a5-c9e1b9130867
 
         @assert: gpg key is not updated
         """
@@ -397,9 +412,11 @@ class GPGKey(UITestCase):
         """Hosts can install packages using gpg key associated with
         single custom repository
 
-        @feature: GPG Keys
+        @id: c6b78312-91d3-47a2-a6c6-f906a4522fe4
 
         @assert: host can install package from custom repository
+
+        @CaseLevel: System
         """
         key_name = gen_string('alphanumeric')
         # step1: Create gpg-key
@@ -511,12 +528,14 @@ class GPGKey(UITestCase):
         """Hosts can install packages using gpg key associated with
         multiple custom repositories
 
-        @feature: GPG Keys
+        @id: bef406dd-1266-4c87-8eac-9bbdb6f81085
 
         @assert: host can install package from custom repositories
 
-        @status: manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -526,12 +545,14 @@ class GPGKey(UITestCase):
         """Hosts can install packages using different gpg keys
         associated with multiple custom repositories
 
-        @feature: GPG Keys
+        @id: ad48a055-72d3-4f4b-a0dc-faee1e29e28e
 
         @assert: host can install package from custom repositories
 
-        @status: manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: System
         """
 
     @stubbed()
@@ -540,11 +561,11 @@ class GPGKey(UITestCase):
     def test_positive_list(self):
         """Create gpg key and list it
 
-        @feature: GPG Keys
+        @id: 9963f533-47aa-49a9-b251-3d81fc07e732
 
         @assert: gpg key is displayed/listed
 
-        @status: manual
+        @caseautomation: notautomated
 
         """
 
@@ -554,11 +575,11 @@ class GPGKey(UITestCase):
     def test_positive_search(self):
         """Create gpg key and search/find it
 
-        @feature: GPG Keys
+        @id: d55b8034-7f55-45cc-8ee0-43db0534e586
 
         @assert: gpg key can be found
 
-        @status: manual
+        @caseautomation: notautomated
 
         """
 
@@ -568,11 +589,11 @@ class GPGKey(UITestCase):
     def test_positive_info(self):
         """Create single gpg key and get its info
 
-        @feature: GPG Keys
+        @id: c8b75db1-9394-4a99-9d91-0d388aacfd1a
 
         @assert: specific information for gpg key matches the creation values
 
-        @status: manual
+        @caseautomation: notautomated
 
         """
 
@@ -593,9 +614,11 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         """Create gpg key with valid name and valid gpg key
         then associate it with empty (no repos) custom product
 
-        @feature: GPG Keys
+        @id: e18ae9f5-43d9-4049-92ca-1eafaca05096
 
         @assert: gpg key is associated with product
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -623,10 +646,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         """Create gpg key with valid name and valid gpg key
         then associate it with custom product that has one repository
 
-        @feature: GPG Keys
+        @id: 7514b33a-da75-43bd-a84b-5a805c84511d
 
         @assert: gpg key is associated with product as well as
         with the repository
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -660,10 +685,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         """Create gpg key with valid name and valid gpg key
         then associate it with custom product that has more than one repository
 
-        @feature: GPG Keys
+        @id: 0edffad7-0ab4-4bef-b16b-f6c8de55b0dc
 
         @assert: gpg key is associated with product as well as with
         the repositories
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -704,12 +731,14 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         """Create gpg key with valid name and valid gpg key
         then associate it with custom product using Repo discovery method
 
-        @feature: GPG Keys
+        @id: 7490a5a6-8575-45eb-addc-298ed3b62649
 
         @assert: gpg key is associated with product as well as with
         the repositories
 
         @BZ: 1210180
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         with Session(self.browser) as session:
@@ -739,10 +768,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         """Create gpg key with valid name and valid gpg key then
         associate it to repository from custom product that has one repository
 
-        @feature: GPG Keys
+        @id: 5d78890f-4130-4dc3-9cfe-48999149422f
 
         @assert: gpg key is associated with the repository but not with
         the product
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -780,10 +811,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         associate it to repository from custom product that has more than
         one repository
 
-        @feature: GPG Keys
+        @id: 1fb38e01-4c04-4609-842d-069f96157317
 
         @assert: gpg key is associated with one of the repositories but
         not with the product
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -827,11 +860,13 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         """Create gpg key with valid name and valid gpg key then
         associate it to repos from custom product using Repo discovery method
 
-        @feature: GPG Keys
+        @id: d841f0f2-8623-443f-8deb-212cee9a247e
 
         @assert: gpg key is associated with product and all the repositories
 
-        @status: manual
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -840,9 +875,11 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         """Create gpg key with valid name and valid gpg key then
         associate it with empty (no repos) custom product then update the key
 
-        @feature: GPG Keys
+        @id: 519817c3-9b67-4859-8069-95987ebf9453
 
         @assert: gpg key is associated with product before/after update
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         new_name = gen_string('alpha')
@@ -878,10 +915,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         then associate it with custom product that has one repository
         then update the key
 
-        @feature: GPG Keys
+        @id: 02cb0601-6aa2-4589-b61e-3d3785a7e100
 
         @assert: gpg key is associated with product as well as with
         repository before/after update
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -924,10 +963,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         then associate it with custom product that has more than one
         repository then update the key
 
-        @feature: GPG Keys
+        @id: 3ca4d9ff-8032-4c2a-aed9-00ac2d1352d1
 
         @assert: gpg key is associated with product as well as with
         repositories before/after update
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -977,12 +1018,14 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         then associate it with custom product using Repo discovery
         method then update the key
 
-        @feature: GPG Keys
+        @id: 49279be8-cbea-477e-a1ff-c07171e7084e
 
         @assert: gpg key is associated with product as well as with
         repository before/after update
 
         @BZ: 1210180
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         new_name = gen_string('alpha')
@@ -1019,10 +1062,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         associate it to repository from custom product that has one repository
         then update the key
 
-        @feature: GPG Keys
+        @id: 9827306e-76d7-4aef-8074-e97fc39d3bbb
 
         @assert: gpg key is associated with repository before/after update but
         not with product.
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -1072,10 +1117,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         associate it to repository from custom product that has more than
         one repository then update the key
 
-        @feature: GPG Keys
+        @id: d4f2fa16-860c-4ad5-b04f-8ce24b5618e9
 
         @assert: gpg key is associated with single repository
         before/after update but not with product
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -1131,13 +1178,15 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         then associate it to repos from custom product
         using Repo discovery method then update the key
 
-        @feature: GPG Keys
+        @id: d0777db3-109a-4c63-9387-7cff235c5f46
 
         @assert: gpg key is associated with product and all repositories
         before/after update
 
-        @status: manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
@@ -1146,10 +1195,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         """Create gpg key with valid name and valid gpg key then
         associate it with empty (no repos) custom product then delete it
 
-        @feature: GPG Keys
+        @id: b9766403-61b2-4a88-a744-a25d53d577fb
 
         @assert: gpg key is associated with product during creation but
         removed from product after deletion
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -1181,10 +1232,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         """Create gpg key with valid name and valid gpg key then
         associate it with custom product that has one repository then delete it
 
-        @feature: GPG Keys
+        @id: 75057dd2-9083-47a8-bea7-4f073bdb667e
 
         @assert: gpg key is associated with product as well as with the
         repository during creation but removed from product after deletion
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -1224,10 +1277,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         associate it with custom product that has more than one repository then
         delete it
 
-        @feature: GPG Keys
+        @id: cb5d4efd-863a-4b8e-b1f8-a0771e90ff5e
 
         @assert: gpg key is associated with product as well as with
         repositories during creation but removed from product after deletion
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -1273,13 +1328,15 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         """Create gpg key with valid name and valid gpg then associate
         it with custom product using Repo discovery method then delete it
 
-        @feature: GPG Keys
+        @id: 513ae138-84d9-4c43-8d4e-7b9fb797208d
 
         @assert: gpg key is associated with product as well as with
         the repositories during creation but removed from product
         after deletion
 
         @BZ: 1210180
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         product_name = gen_string('alpha')
@@ -1315,10 +1372,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         associate it to repository from custom product that has one repository
         then delete the key
 
-        @feature: GPG Keys
+        @id: 92ba492e-79af-48fe-84cb-763102b42fa7
 
         @assert: gpg key is associated with single repository
         during creation but removed from repository after deletion
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         gpg_key = entities.GPGKey(
@@ -1362,10 +1421,12 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         associate it to repository from custom product that has more than
         one repository then delete the key
 
-        @feature: GPG Keys
+        @id: 5f204a44-bf7b-4a9c-9974-b701e0d38860
 
         @assert: gpg key is associated with single repository but not with
         product during creation but removed from repository after deletion
+
+        @CaseLevel: Integration
         """
         name = get_random_gpgkey_name()
         # Creates New GPGKey
@@ -1418,12 +1479,14 @@ class GPGKeyProductAssociateTestCase(UITestCase):
         associate it to repos from custom product using Repo discovery method
         then delete the key
 
-        @feature: GPG Keys
+        @id: b1ece282-0cba-4816-9e6a-312c63894168
 
         @assert: gpg key is associated with product and all repositories
         during creation but removed from product and all repositories
         after deletion
 
-        @status: manual
+        @caseautomation: notautomated
 
+
+        @CaseLevel: Integration
         """
