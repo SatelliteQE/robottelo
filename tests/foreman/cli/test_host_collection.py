@@ -247,15 +247,12 @@ class HostCollectionTestCase(CLITestCase):
                     HostCollection.info({'id': new_host_col['id']})
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1328925)
     def test_positive_add_host_by_id(self):
         """Check if content host can be added to host collection
 
         @Feature: Host Collection
 
         @Assert: Host collection is created and content-host is added
-
-        @BZ: 1328925
         """
         new_host_col = self._new_host_collection({
             'name': gen_string('alpha', 15)})
@@ -267,7 +264,7 @@ class HostCollectionTestCase(CLITestCase):
         })
         no_of_content_host = new_host_col['total-hosts']
         HostCollection.add_host({
-            u'hosts': new_system['id'],
+            u'host-ids': new_system['id'],
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
         })
@@ -278,15 +275,12 @@ class HostCollectionTestCase(CLITestCase):
         self.assertGreater(result['total-hosts'], no_of_content_host)
 
     @tier2
-    @skip_if_bug_open('bugzilla', 1328925)
-    def test_positive_remove_chost_by_id(self):
+    def test_positive_remove_host_by_id(self):
         """Check if content host can be removed from host collection
 
         @Feature: Host Collection
 
         @Assert: Host collection is created and content-host is removed
-
-        @BZ: 1328925
         """
         new_host_col = self._new_host_collection({
             'name': gen_string('alpha', 15)})
@@ -297,7 +291,7 @@ class HostCollectionTestCase(CLITestCase):
             u'organization-id': self.org['id'],
         })
         HostCollection.add_host({
-            u'hosts': new_system['id'],
+            u'host-ids': new_system['id'],
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
         })
@@ -306,7 +300,7 @@ class HostCollectionTestCase(CLITestCase):
             u'organization-id': self.org['id']
         })['total-hosts']
         HostCollection.remove_host({
-            u'hosts': new_system['id'],
+            u'host-ids': new_system['id'],
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
         })
@@ -316,8 +310,8 @@ class HostCollectionTestCase(CLITestCase):
         })
         self.assertGreater(no_of_content_host, result['total-hosts'])
 
+    @skip_if_bug_open('bugzilla', 1317677)
     @tier2
-    @skip_if_bug_open('bugzilla', 1328925)
     def test_positive_list_hosts(self):
         """Check if content hosts added to host collection is listed
 
@@ -325,7 +319,7 @@ class HostCollectionTestCase(CLITestCase):
 
         @Assert: Content-host added to host-collection is listed
 
-        @BZ: 1328925
+        @BZ: 1317677
         """
         host_col_name = gen_string('alpha', 15)
         new_host_col = self._new_host_collection({'name': host_col_name})
@@ -337,7 +331,7 @@ class HostCollectionTestCase(CLITestCase):
         })
         no_of_content_host = new_host_col['total-hosts']
         HostCollection.add_host({
-            u'hosts': new_system['id'],
+            u'host-ids': new_system['id'],
             u'id': new_host_col['id'],
             u'organization-id': self.org['id'],
         })
@@ -346,7 +340,7 @@ class HostCollectionTestCase(CLITestCase):
             u'organization-id': self.org['id']
         })
         self.assertGreater(result['total-hosts'], no_of_content_host)
-        result = HostCollection.content_hosts({
+        result = HostCollection.hosts({
             u'name': host_col_name,
             u'organization-id': self.org['id']
         })
