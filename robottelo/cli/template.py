@@ -11,40 +11,38 @@ Parameters::
 
 Subcommands::
 
-    add_operatingsystem           Associate a resource
-    create                        Create a template
-    delete                        Delete a template
+    add_operatingsystem           Associate an operating system
+    build-pxe-default             Update the default PXE menu on all configured
+                                  TFTP servers
+    clone                         Clone a provision template
+
+    create                        Create a provisioning template
+    delete                        Delete a provisioning template
     dump                          View config template content.
-    info                          Show template details
+    info                          Show provisioning template details
     kinds                         List available config template kinds.
-    list                          List templates
-    remove_operatingsystem        Disassociate a resource
-    update                        Update a template
+    list                          List provisioning templates
+    remove_operatingsystem        Disassociate an operating system
+    update                        Update a provisioning template
 """
 
 from robottelo.cli.base import Base
 
 
 class Template(Base):
-    """
-    Manipulates Foreman's configuration templates.
-    """
+    """Manipulates Foreman's configuration templates."""
 
     command_base = 'template'
 
     @classmethod
     def kinds(cls, options=None):
-        """
-        Returns list of types of templates.
-        """
-
+        """Returns list of types of templates."""
         cls.command_sub = 'kinds'
 
         result = cls.execute(
             cls._construct_command(options), output_format='csv')
 
         kinds = []
-
         if result:
             kinds = result
 
@@ -52,10 +50,7 @@ class Template(Base):
 
     @classmethod
     def add_operatingsystem(cls, options=None):
-        """
-        Adds operating system, requires "id" and "operatingsystem-id".
-        """
-
+        """Adds operating system, requires "id" and "operatingsystem-id"."""
         cls.command_sub = 'add-operatingsystem'
 
         result = cls.execute(
@@ -65,13 +60,17 @@ class Template(Base):
 
     @classmethod
     def remove_operatingsystem(cls, options=None):
-        """
-        Remove operating system, requires "id" and "operatingsystem-id".
-        """
-
+        """Remove operating system, requires "id" and "operatingsystem-id"."""
         cls.command_sub = 'remove-operatingsystem'
 
         result = cls.execute(
             cls._construct_command(options), output_format='csv')
 
         return result
+
+    @classmethod
+    def clone(cls, options=None):
+        """Clone provided provisioning template"""
+        cls.command_sub = 'clone'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
