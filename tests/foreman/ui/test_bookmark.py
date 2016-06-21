@@ -23,11 +23,11 @@ from robottelo.constants import BOOKMARK_ENTITIES, STRING_TYPES
 from robottelo.decorators import (
     bz_bug_is_open,
     skip_if_bug_open,
-    stubbed,
     tier1,
     tier2,
 )
 from robottelo.test import UITestCase
+from robottelo.ui.base import UIError
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
@@ -47,6 +47,14 @@ class BookmarkTestCase(UITestCase):
         cls.per_page.value = '100000'
         cls.per_page.update({'value'})
         cls.entities = []
+
+        # Custom user for bookmark visibility testing
+        role = entities.Role().search(query={'search': 'name="Viewer"'})[0]
+        cls.custom_password = gen_string('alphanumeric')
+        cls.custom_user = entities.User(
+            role=[role],
+            password=cls.custom_password,
+        ).create()
 
         for entity in BOOKMARK_ENTITIES:
             # Skip the entities, which can't be tested ATM (require framework
@@ -159,7 +167,6 @@ class BookmarkTestCase(UITestCase):
                     self.assertIsNotNone(
                         self.bookmark.search(entity['controller'], name))
 
-    @stubbed()
     @tier2
     def test_positive_create_bookmark_public(self):
         """Create and check visibility of the (non)public bookmarks
@@ -194,13 +201,26 @@ class BookmarkTestCase(UITestCase):
         @Assert: No errors, Bookmark is displayed, controller matches the
         entity the bookmark was created for
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
         for entity in self.getOneEntity():
             with self.subTest(entity):
-                pass
+                with Session(self.browser):
+                    name = gen_string(random.choice(STRING_TYPES))
+                    ui_lib = getattr(self, entity['name'].lower())
+                    ui_lib.create_a_bookmark(
+                        name=name,
+                        public=False,
+                        searchbox_query=gen_string(
+                            random.choice(STRING_TYPES)
+                        ),
+                    )
+                    self.assertIsNotNone(
+                        self.bookmark.search(entity['controller'], name))
+                with Session(self.browser, user=self.custom_user.login,
+                             password=self.custom_password):
+                    self.assertIsNone(
+                        self.bookmark.search(entity['controller'], name))
 
     @skip_if_bug_open('bugzilla', 1326633)
     @tier1
@@ -511,7 +531,6 @@ class BookmarkTestCase(UITestCase):
                             entity['controller'], name, 'query', query)
                     )
 
-    @stubbed()
     @tier2
     def test_positive_update_bookmark_public(self):
         """Update and save a bookmark public state
@@ -550,13 +569,42 @@ class BookmarkTestCase(UITestCase):
         @Assert: New public bookmark is listed, and the private
         one is hidden
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
-        for entity in self.getOneEntity():
-            with self.subTest(entity):
-                pass
+        with Session(self.browser):
+            bm1_name = gen_string(random.choice(STRING_TYPES))
+            bm1_entity = self.getOneEntity()[0]
+            bm2_name = gen_string(random.choice(STRING_TYPES))
+            bm2_entity = self.getOneEntity()[0]
+            bm1_page = getattr(self, bm1_entity['name'].lower())
+            bm1_page.create_a_bookmark(
+                name=bm1_name,
+                public=True,
+                query=gen_string('alphanumeric'),
+            )
+            bm2_page = getattr(self, bm2_entity['name'].lower())
+            bm2_page.create_a_bookmark(
+                name=bm2_name,
+                public=False,
+                query=gen_string('alphanumeric'),
+            )
+        with Session(self.browser, user=self.custom_user.login,
+                     password=self.custom_password):
+            self.assertIsNotNone(
+                self.bookmark.search(bm1_entity['controller'], bm1_name))
+            self.assertIsNone(
+                self.bookmark.search(bm2_entity['controller'], bm2_name))
+        with Session(self.browser):
+            self.bookmark.update(
+                bm1_entity['controller'], bm1_name, new_public=False)
+            self.bookmark.update(
+                bm2_entity['controller'], bm2_name, new_public=True)
+        with Session(self.browser, user=self.custom_user.login,
+                     password=self.custom_password):
+            self.assertIsNone(
+                self.bookmark.search(bm1_entity['controller'], bm1_name))
+            self.assertIsNotNone(
+                self.bookmark.search(bm2_entity['controller'], bm2_name))
 
     # DELETE TESTS
     @tier1
@@ -591,7 +639,6 @@ class BookmarkTestCase(UITestCase):
                         self.bookmark.search(entity['controller'], name))
                     self.bookmark.delete(entity['controller'], name)
 
-    @stubbed()
     @tier2
     def test_negative_delete_bookmark(self):
         """Simple removal of a bookmark query without permissions
@@ -611,10 +658,13 @@ class BookmarkTestCase(UITestCase):
 
         @Assert: The delete buttons are not displayed
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
-        for entity in self.getOneEntity():
-            with self.subTest(entity):
-                pass
+        bm = entities.Bookmark(
+            controller=self.getOneEntity()[0]['controller'],
+            public=True,
+        ).create()
+        with Session(self.browser, user=self.custom_user.login,
+                     password=self.custom_password):
+            with self.assertRaises(UIError):
+                self.bookmark.delete(bm.controller, bm.name)

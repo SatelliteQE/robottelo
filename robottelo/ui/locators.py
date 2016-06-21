@@ -788,7 +788,7 @@ locators = LocatorDict({
     "bookmark.select_name": (
         By.XPATH,
         ("//td[following-sibling::td[text()='%s']]"
-         "/a[contains(@href,'bookmarks')][span[contains(.,'%s')]]")),
+         "/a[span[contains(.,'%s')]]")),
     "bookmark.new": (
         By.XPATH,
         ("//ul[contains(@class, 'dropdown-menu')]"
@@ -809,7 +809,7 @@ locators = LocatorDict({
     "bookmark.select_long_name": (
         By.XPATH,
         ("//td[following-sibling::td[text()='%s']]"
-         "/a[contains(@href,'bookmarks')][span[@data-original-title='%s']]")),
+         "/a[span[@data-original-title='%s']]")),
     "bookmark.delete": (
         By.XPATH,
         "//a[@class='delete' and contains(@data-confirm, '%s')]"),
