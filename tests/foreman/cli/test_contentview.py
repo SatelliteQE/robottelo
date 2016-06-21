@@ -265,7 +265,7 @@ class ContentViewTestCase(CLITestCase):
             ContentView.info({'id': con_view['id']})
 
     @tier1
-    @skip_if_bug_open('bugzilla', 1265703)
+    @skip_if_bug_open('bugzilla', 1317057)
     def test_positive_delete_with_custom_repo_by_name_and_verify_files(self):
         """Delete content view containing custom repo and verify it was
         actually deleted from hard drive.
@@ -275,8 +275,7 @@ class ContentViewTestCase(CLITestCase):
         @Assert: Content view was deleted and pulp folder doesn't contain
         content view files anymore
 
-        @BZ: 1265703
-
+        @BZ: 1317057, 1265703
         """
         # Create and sync a repository
         new_product = make_product({u'organization-id': self.org['id']})
