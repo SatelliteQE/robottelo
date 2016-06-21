@@ -25,10 +25,12 @@ class Package(Base):
         All values should be passed in absolute correspondence to UI. For
         example, we have 'Description' or 'Checksum Type' fields, so next
         parameter list should be passed::
+
             [
                 ['Description', 'Expected description'],
                 ['Checksum Type', 'sha256'],
             ]
+
         """
         self.click(self.search(name))
         for parameter_name, parameter_value in parameter_list:

@@ -445,7 +445,7 @@ tab_locators = LocatorDict({
     "context.tab_users": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'users')]"),
-    "context.tab_sm_prx": (
+    "context.tab_capsules": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'smart_proxies')]"),
     "context.tab_subnets": (
@@ -460,6 +460,9 @@ tab_locators = LocatorDict({
     "context.tab_template": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'template')]"),
+    "context.tab_ptable": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href,'ptables')]"),
     "context.tab_domains": (
         By.XPATH,
         "//a[@data-toggle='tab' and contains(@href,'domains')]"),
@@ -1420,7 +1423,11 @@ locators = LocatorDict({
     # Partition Table
     "ptable.new": (By.XPATH, "//a[contains(@href, '/ptables/new')]"),
     "ptable.name": (By.ID, "ptable_name"),
+    "ptable.default_template": (By.XPATH, "//input[@id='ptable_default']"),
+    "ptable.snippet": (By.XPATH, "//input[@id='ptable_snippet']"),
     "ptable.layout_template": (By.XPATH, "//input[@id='template_file']"),
+    "ptable.audit_comment": (
+        By.XPATH, "//textarea[@id='ptable_audit_comment']"),
     "ptable.os_family": (
         By.XPATH,
         ("//div[contains(@id, 'ptable_os_family')]/a"

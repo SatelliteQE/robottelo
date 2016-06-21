@@ -1,7 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Implements Partition Table UI."""
 
-from robottelo.ui.base import Base, UIError
+from robottelo.ui.base import Base
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.navigator import Navigator
 
@@ -17,27 +17,33 @@ class PartitionTable(Base):
         """Specify locator for Partition Table entity search procedure"""
         return locators['ptable.ptable_name']
 
-    def _configure_partition_table(self, os_family=None):
-        """Configures the os family of partition table."""
+    def _configure_partition_table(self, audit_comment=None, default=None,
+                                   os_family=None, snippet=None):
+        """Configures the optional parameters of partition table."""
+        if audit_comment:
+            self.assign_value(locators['ptable.audit_comment'], audit_comment)
+        if default is not None:
+            self.assign_value(locators['ptable.default_template'], default)
         if os_family:
-            self.select(locators['ptable.os_family'], os_family)
+            self.assign_value(locators['ptable.os_family'], os_family)
+        if snippet:
+            self.assign_value(locators['ptable.snippet'], snippet)
 
-    def create(self, name, template_path=None, os_family=None,
-               custom_really=True):
+    def create(self, name, audit_comment=None, default=False,
+               template_path=None, os_family=None, snippet=None):
         """Creates new partition table from UI."""
         self.click(locators['ptable.new'])
-
-        if self.wait_until_element(locators['ptable.name']) is None:
-            raise UIError(
-                u'Could not create partition table "{0}"'.format(name)
-            )
-        self.find_element(locators['ptable.name']).send_keys(name)
+        self.wait_until_element(locators['ptable.name']).send_keys(name)
         if template_path:
-            self.find_element(
-                locators['ptable.layout_template']
-            ).send_keys(template_path)
-            self.handle_alert(custom_really)
-        self._configure_partition_table(os_family)
+            self.wait_until_element(
+                locators['ptable.layout_template']).send_keys(template_path)
+            self.handle_alert(True)
+        self._configure_partition_table(
+            audit_comment=audit_comment,
+            default=default,
+            os_family=os_family,
+            snippet=snippet,
+        )
         self.click(common_locators['submit'])
 
     def delete(self, name, really=True):
@@ -50,23 +56,21 @@ class PartitionTable(Base):
         )
 
     def update(self, old_name, new_name=None, new_template_path=None,
-               new_os_family=None, custom_really=True):
-        """Updates partition table name, layout and OS family."""
-        element = self.search(old_name)
-        if element is None:
-            raise UIError(
-                u'Could not update partition table "{0}"'.format(old_name)
-            )
-        self.click(element)
+               new_os_family=None, audit_comment=None, default=None,
+               snippet=None):
+        """Updates partition table parameters"""
+        self.click(self.search(old_name))
         if new_name:
-            self.wait_until_element(locators['ptable.name'])
-            self.field_update('ptable.name', new_name)
+            self.text_field_update(locators['ptable.name'], new_name)
         if new_template_path:
-            self.wait_until_element(locators['ptable.layout_template'])
-            self.find_element(
+            self.wait_until_element(
                 locators['ptable.layout_template']
             ).send_keys(new_template_path)
-            self.handle_alert(custom_really)
-        if new_os_family:
-            self._configure_partition_table(new_os_family)
+            self.handle_alert(True)
+        self._configure_partition_table(
+            audit_comment=audit_comment,
+            default=default,
+            os_family=new_os_family,
+            snippet=snippet,
+        )
         self.click(common_locators['submit'])

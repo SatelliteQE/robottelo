@@ -769,6 +769,43 @@ class OrganizationTestCase(UITestCase):
 
     @run_only_on('sat')
     @tier2
+    def test_positive_remove_ptable(self):
+        """Remove partition table.
+
+        @id: 75662a83-0921-45fd-a4b5-012c48bb003a
+
+        @assert: Partition table is added and then removed.
+
+        @CaseLevel: Integration
+        """
+        strategy, value = common_locators['entity_select']
+        strategy1, value1 = common_locators['entity_deselect']
+        with Session(self.browser) as session:
+            for ptable_name in generate_strings_list():
+                with self.subTest(ptable_name):
+                    org_name = gen_string('alpha')
+                    # Create partition table using nailgun
+                    entities.PartitionTable(name=ptable_name).create()
+                    make_org(
+                        session, org_name=org_name, ptables=[ptable_name])
+                    self.org.click(self.org.search(org_name))
+                    self.org.click(tab_locators['context.tab_ptable'])
+                    element = self.org.wait_until_element(
+                        (strategy1, value1 % ptable_name))
+                    # Item is listed in 'Selected Items' list and not
+                    # 'All Items' list.
+                    self.assertIsNotNone(element)
+                    self.org.update(org_name, ptables=[ptable_name])
+                    self.org.click(self.org.search(org_name))
+                    self.org.click(tab_locators['context.tab_ptable'])
+                    element = self.org.wait_until_element(
+                        (strategy, value % ptable_name))
+                    # Item is listed in 'All Items' list and not
+                    # 'Selected Items' list.
+                    self.assertIsNotNone(element)
+
+    @run_only_on('sat')
+    @tier2
     def test_positive_add_environment(self):
         """Add environment by using organization name and env name.
 
