@@ -175,5 +175,6 @@ class ConfigTemplateTestCase(APITestCase):
         template = entities.ConfigTemplate().create()
         for name in valid_data_list():
             with self.subTest(name):
-                new_template = template.clone(data={u'name': name})
+                new_template = entities.ConfigTemplate(
+                    id=template.clone(data={u'name': name})['id']).read()
                 self.assertEqual(name, new_template.name)
