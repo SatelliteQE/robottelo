@@ -17,6 +17,7 @@
 """
 from fauxfactory import gen_alpha, gen_string, gen_url
 from random import choice, randint
+from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.docker import Docker
 from robottelo.cli.factory import (
@@ -47,7 +48,6 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
-    stubbed,
     tier1,
     tier2,
     tier3,
@@ -1131,10 +1131,10 @@ class DockerClientTestCase(CLITestCase):
     def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerClientTestCase, cls).setUpClass()
-        cls.org_id = make_org()['id']
+        cls.org = make_org()
 
-    @stubbed()
     @run_only_on('sat')
+    @tier3
     def test_positive_pull_image(self):
         """A Docker-enabled client can use ``docker pull`` to pull a
         Docker image off a Satellite 6 instance.
@@ -1148,12 +1148,33 @@ class DockerClientTestCase(CLITestCase):
 
         @Assert: Client can pull Docker images from server and run it.
 
-        @caseautomation: notautomated
-
+        @CaseLevel: System
         """
+        product = make_product_wait({'organization-id': self.org['id']})
+        repo = _make_docker_repo(product['id'])
+        Repository.synchronize({'id': repo['id']})
+        repo = Repository.info({'id': repo['id']})
+        try:
+            result = ssh.command(
+                'docker pull {0}'.format(repo['published-at']))
+            self.assertEqual(result.return_code, 0)
+            try:
+                result = ssh.command(
+                    'docker run {0}'.format(repo['published-at']))
+                self.assertEqual(result.return_code, 0)
+            finally:
+                # Stop and remove the container
+                result = ssh.command(
+                    'docker ps -a | grep {0}'.format(repo['published-at']))
+                container_id = result.stdout[0].split()[0]
+                ssh.command('docker stop {0}'.format(container_id))
+                ssh.command('docker rm {0}'.format(container_id))
+        finally:
+            # Remove docker image
+            ssh.command('docker rmi {0}'.format(repo['published-at']))
 
-    @stubbed()
     @run_only_on('sat')
+    @tier3
     def test_positive_upload_image(self):
         """A Docker-enabled client can create a new ``Dockerfile``
         pointing to an existing Docker image from a Satellite 6 and modify it.
@@ -1171,9 +1192,78 @@ class DockerClientTestCase(CLITestCase):
         image from a Satellite 6 instance, add a new package and upload the
         modified image (plus layer) back to the Satellite 6.
 
-        @caseautomation: notautomated
-
+        @CaseLevel: System
         """
+        compute_resource = make_compute_resource({
+            'organization-ids': [self.org['id']],
+            'provider': DOCKER_PROVIDER,
+            'url': settings.docker.get_unix_socket_url(),
+        })
+        try:
+            container = make_container({
+                'compute-resource-id': compute_resource['id'],
+                'organization-ids': [self.org['id']],
+            })
+            Docker.container.start({'id': container['id']})
+            repo_name = gen_string('alphanumeric').lower()
+            # Commit a new docker image
+            result = ssh.command(
+                'docker commit {0} {1}/{2}:latest'.format(
+                    container['uuid'],
+                    repo_name,
+                    REPO_UPSTREAM_NAME,
+                )
+            )
+            self.assertEqual(result.return_code, 0)
+            # Verify image was created
+            result = ssh.command(
+                'docker images --all | grep {0}/{1}'.format(
+                    repo_name,
+                    REPO_UPSTREAM_NAME,
+                )
+            )
+            self.assertEqual(result.return_code, 0)
+            self.assertIn(
+                '{0}/{1}'.format(repo_name, REPO_UPSTREAM_NAME),
+                result.stdout[0],
+            )
+            # Save the image to a tar archive
+            result = ssh.command(
+                'docker save -o {0}.tar {0}/{1}'.format(
+                    repo_name,
+                    REPO_UPSTREAM_NAME,
+                )
+            )
+            self.assertEqual(result.return_code, 0)
+            # Verify archive was created
+            result = ssh.command('ls | grep {0}.tar'.format(repo_name))
+            self.assertEqual(result.return_code, 0)
+            self.assertIn('{0}.tar'.format(repo_name), result.stdout[0])
+            # Upload tarred repository
+            product = make_product_wait({'organization-id': self.org['id']})
+            repo = _make_docker_repo(product['id'])
+            Repository.upload_content({
+                'id': repo['id'],
+                'path': './{0}.tar'.format(repo_name),
+            })
+            # Verify repository was uploaded successfully
+            repo = Repository.info({'id': repo['id']})
+            self.assertIn(settings.server.hostname, repo['published-at'])
+            self.assertIn(
+                '{0}-{1}-{2}'.format(
+                    self.org['label'].lower(),
+                    product['label'].lower(),
+                    repo['label'].lower(),
+                ),
+                repo['published-at'],
+            )
+        finally:
+            # Remove archive, docker image and container
+            ssh.command('rm -f {0}.tar'.format(repo_name))
+            ssh.command(
+                'docker rmi {0}/{1}'.format(repo_name, REPO_UPSTREAM_NAME))
+            Docker.container.stop({'id': container['id']})
+            ssh.command('docker rm {0}'.format(container['uuid']))
 
 
 class DockerComputeResourceTestCase(CLITestCase):
@@ -1497,8 +1587,9 @@ class DockerContainersTestCase(CLITestCase):
                 logs = Docker.container.logs({'id': container['id']})
                 self.assertTrue(logs['logs'])
 
+    @run_in_one_thread
     @run_only_on('sat')
-    @stubbed()
+    @tier2
     def test_positive_create_with_external_registry(self):
         """Create a container pulling an image from a custom external registry
 
@@ -1507,9 +1598,26 @@ class DockerContainersTestCase(CLITestCase):
         @Assert: The docker container is created and the image is pulled from
         the external registry
 
-        @caseautomation: notautomated
-
+        @CaseLevel: Integration
         """
+        repo_name = 'rhel'
+        registry = make_registry({'url': DOCKER_0_EXTERNAL_REGISTRY})
+        try:
+            compute_resource = make_compute_resource({
+                'organization-ids': [self.org['id']],
+                'provider': DOCKER_PROVIDER,
+                'url': settings.docker.get_unix_socket_url(),
+            })
+            container = make_container({
+                'compute-resource-id': compute_resource['id'],
+                'organization-ids': [self.org['id']],
+                'registry-id': registry['id'],
+                'repository-name': repo_name,
+            })
+            self.assertEqual(container['registry'], registry['name'])
+            self.assertEqual(container['image-repository'], repo_name)
+        finally:
+            Docker.registry.delete({'id': registry['id']})
 
     @tier3
     @run_only_on('sat')

@@ -36,7 +36,6 @@ from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
     skip_if_not_set,
-    stubbed,
     tier1,
     tier2,
 )
@@ -1332,11 +1331,9 @@ class DockerContainerTestCase(APITestCase):
                 ).create()
                 self.assertTrue(container.logs()['logs'])
 
-    @tier2
+    @run_in_one_thread
     @run_only_on('sat')
-    @stubbed()
-    # Return to that case once BZ 1230710 is fixed (with adding
-    # DockerRegistryContainer class to Nailgun)
+    @tier2
     def test_positive_create_with_external_registry(self):
         """Create a container pulling an image from a custom external
         registry
@@ -1346,10 +1343,25 @@ class DockerContainerTestCase(APITestCase):
         @Assert: The docker container is created and the image is pulled from
         the external registry
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        repo_name = 'rhel'
+        registry = entities.Registry(url=DOCKER_0_EXTERNAL_REGISTRY).create()
+        try:
+            compute_resource = entities.DockerComputeResource(
+                organization=[self.org],
+                url=settings.docker.get_unix_socket_url(),
+            ).create()
+            container = entities.DockerRegistryContainer(
+                compute_resource=compute_resource,
+                organization=[self.org],
+                registry=registry,
+                repository_name=repo_name,
+            ).create()
+            self.assertEqual(container.registry.id, registry.id)
+            self.assertEqual(container.repository_name, repo_name)
+        finally:
+            registry.delete()
 
     @tier1
     @run_only_on('sat')
