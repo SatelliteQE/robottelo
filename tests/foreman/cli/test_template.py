@@ -191,23 +191,3 @@ class TemplateTestCase(CLITestCase):
         Template.delete({'id': template['id']})
         with self.assertRaises(CLIReturnCodeError):
             Template.info({'id': template['id']})
-
-    @run_only_on('sat')
-    @tier2
-    def test_positive_clone(self):
-        """Assure ability to clone a provisioning template
-
-        @id: 27d69c1e-0d83-4b99-8a3c-4f1bdec3d261
-
-        @Assert: The template is cloned successfully
-
-        @CaseLevel: Integration
-        """
-        cloned_template_name = gen_string('alpha')
-        template = make_template()
-        result = Template.clone({
-            'id': template['id'],
-            'new-name': cloned_template_name,
-        })
-        new_template = Template.info({'id': result[0]['id']})
-        self.assertEqual(new_template['name'], cloned_template_name)
