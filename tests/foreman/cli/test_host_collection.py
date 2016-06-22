@@ -329,7 +329,6 @@ class HostCollectionTestCase(CLITestCase):
         })
         self.assertGreater(no_of_content_host, result['total-hosts'])
 
-    @skip_if_bug_open('bugzilla', 1317677)
     @tier2
     def test_positive_list_hosts(self):
         """Check if content hosts added to host collection is listed
@@ -337,8 +336,6 @@ class HostCollectionTestCase(CLITestCase):
         @id: 3075cb97-8448-4358-8ffc-0d5cd0078ca3
 
         @Assert: Content-host added to host-collection is listed
-
-        @BZ: 1317677
 
         @CaseLevel: Integration
         """
@@ -365,4 +362,4 @@ class HostCollectionTestCase(CLITestCase):
             u'name': host_col_name,
             u'organization-id': self.org['id']
         })
-        self.assertEqual(new_system['id'], result[0]['id'])
+        self.assertEqual(new_system['name'].lower(), result[0]['name'])

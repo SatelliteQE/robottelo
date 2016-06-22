@@ -12697,6 +12697,96 @@
           "name": "hosts",
           "options": [
             {
+              "help": "Name to search by",
+              "name": "environment",
+              "shortname": null,
+              "value": "ENVIRONMENT_NAME"
+            },
+            {
+              "help": "",
+              "name": "environment-id",
+              "shortname": null,
+              "value": "ENVIRONMENT_ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "hostgroup",
+              "shortname": null,
+              "value": "HOSTGROUP_NAME"
+            },
+            {
+              "help": "",
+              "name": "hostgroup-id",
+              "shortname": null,
+              "value": "HOSTGROUP_ID"
+            },
+            {
+              "help": "Host Collection ID",
+              "name": "id",
+              "shortname": null,
+              "value": "HOST_COLLECTION_ID"
+            },
+            {
+              "help": "Name to search by",
+              "name": "location",
+              "shortname": null,
+              "value": "LOCATION_NAME"
+            },
+            {
+              "help": "",
+              "name": "location-id",
+              "shortname": null,
+              "value": "LOCATION_ID"
+            },
+            {
+              "help": "Host Collection Name",
+              "name": "name",
+              "shortname": null,
+              "value": "HOST_COLLECTION_NAME"
+            },
+            {
+              "help": "sort results",
+              "name": "order",
+              "shortname": null,
+              "value": "ORDER"
+            },
+            {
+              "help": "Organization name to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "organization ID",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
+              "help": "Organization label to search by",
+              "name": "organization-label",
+              "shortname": null,
+              "value": "ORGANIZATION_LABEL"
+            },
+            {
+              "help": "paginate results",
+              "name": "page",
+              "shortname": null,
+              "value": "PAGE"
+            },
+            {
+              "help": "number of entries per request",
+              "name": "per-page",
+              "shortname": null,
+              "value": "PER_PAGE"
+            },
+            {
+              "help": "filter results",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
+            },
+            {
               "help": "print help",
               "name": "help",
               "shortname": "h",
