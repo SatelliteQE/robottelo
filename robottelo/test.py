@@ -7,6 +7,7 @@ to help writing API, CLI and UI tests.
 import csv
 import logging
 import os
+import pytest
 import unittest2
 
 try:
@@ -93,6 +94,25 @@ LOGGER = logging.getLogger(__name__)
 
 class TestCase(unittest2.TestCase):
     """Robottelo test case"""
+
+    @pytest.fixture(autouse=True)
+    def _set_worker_logger(self, worker_id):
+        """Set up a separate logger for each pytest-xdist worker
+        if worker_id != 'master' then xdist is running in multi-threading so
+        a logfile named 'robottelo_gw{worker_id}.log' will be created.
+        """
+        self.worker_id = worker_id
+        if worker_id != 'master':
+            formatter = logging.Formatter(
+                fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                datefmt='%Y-%m-%d %H:%M:%S'
+            )
+            handler = logging.FileHandler(
+                'robottelo_{0}.log'.format(worker_id))
+            handler.setFormatter(formatter)
+            self.logger.addHandler(handler)
+            # Nailgun HTTP logs should also be included in gw* logs
+            logging.getLogger('nailgun').addHandler(handler)
 
     @classmethod
     def setUpClass(cls):  # noqa
