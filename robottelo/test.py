@@ -17,10 +17,10 @@ except ImportError:
     sauceclient = None
 
 from datetime import datetime
-from collections import deque, defaultdict
 from fauxfactory import gen_string
-from nailgun import entities, signals
+from nailgun import entities
 from robottelo import ssh
+from robottelo.cleanup import EntitiesCleaner
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.org import Org as OrgCli
 from robottelo.cli.subscription import Subscription
@@ -94,9 +94,6 @@ LOGGER = logging.getLogger(__name__)
 class TestCase(unittest2.TestCase):
     """Robottelo test case"""
 
-    cleanup_queue = defaultdict(deque)
-    deleted_entities = defaultdict(set)
-
     @classmethod
     def setUpClass(cls):  # noqa
         super(TestCase, cls).setUpClass()
@@ -109,75 +106,19 @@ class TestCase(unittest2.TestCase):
         cls.longMessage = True
         cls.foreman_user = settings.server.admin_username
         cls.foreman_password = settings.server.admin_password
-
-    @classmethod
-    def delete_entities(cls, entity_list, **kwargs):
-        cls.logger.debug('Cleanup got %s entities to delete', len(entity_list))
-        for entity in entity_list:
-            entity_type = entity.__class__.__name__
-            if entity.id in cls.deleted_entities[entity_type]:
-                # skip already deleted entities
-                continue
-            try:
-                if isinstance(entity, entities.Organization):
-                    query = {'search': 'organization_id={0}'.format(entity.id)}
-                    org_hosts = entities.Host().search(query=query)
-                    if org_hosts:  # Do not delete organizations with hosts
-                        cls.logger.debug(
-                            'Org %s can\'t be deleted as it has %s hosts',
-                            entity.id,
-                            len(org_hosts)
-                        )
-                        return
-                entity.delete(**kwargs)
-                cls.deleted_entities[entity_type].add(entity.id)
-            except Exception as e:
-                cls.logger.warn('Error deleting entity %s', str(e))
-
-    @classmethod
-    def update_entities(cls, entity_list, **kwargs):
-        cls.logger.debug('Cleanup got %s entities to update', len(entity_list))
-        for entity in entity_list:
-            try:
-                for key, value in kwargs.items():
-                    setattr(entity, key, value)
-                entity.update(fields=kwargs.keys())
-            except Exception as e:
-                cls.logger.warn('Error updating entity %s', str(e))
+        if settings.cleanup:
+            cls.cleaner = EntitiesCleaner(
+                entities.Organization,
+                entities.Host,
+                entities.HostGroup
+            )
 
     @classmethod
     def tearDownClass(cls):
         cls.logger.debug('Started tearDownClass: {0}/{1}'.format(
             cls.__module__, cls.__name__))
-        if not settings.cleanup:
-            return
-        default_org = entities.Organization(id=1)
-        # reassign created hosts to default org
-        cls.update_entities(
-            cls.cleanup_queue.get(entities.Host.__name__, []),
-            hostgroup=None,
-            managed=False,
-            organization=default_org
-        )
-        # reassign created host groups to default org
-        cls.update_entities(
-            cls.cleanup_queue.get(entities.HostGroup.__name__, []),
-            lifecycle_environment=None,
-            content_view=None,
-            organization=[default_org]
-        )
-        # delete organizations
-        cls.delete_entities(
-            cls.cleanup_queue.get(entities.Organization.__name__, []),
-            synchronous=False
-        )
-
-        cls.logger.debug(
-            'Cleanup deleted %s entities', len(cls.deleted_entities))
-
-    @classmethod
-    def register_entity_for_cleanup(cls, sender, entity, **kwargs):
-        cls.cleanup_queue[entity.__class__.__name__].appendleft(entity)
+        if settings.cleanup:
+            cls.cleaner.clean()
 
     def setUp(self):
         """setup for tests"""
@@ -194,14 +135,6 @@ class TestCase(unittest2.TestCase):
             type(self).__name__,
             self._testMethodName,
         ))
-
-
-signals.post_create.connect(TestCase.register_entity_for_cleanup,
-                            sender=entities.Organization)
-signals.post_create.connect(TestCase.register_entity_for_cleanup,
-                            sender=entities.Host)
-signals.post_create.connect(TestCase.register_entity_for_cleanup,
-                            sender=entities.HostGroup)
 
 
 class APITestCase(TestCase):

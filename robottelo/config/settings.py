@@ -637,7 +637,7 @@ class Settings(object):
             'robottelo', 'screenshots_path', '/tmp/robottelo/screenshots')
         self.run_one_datapoint = self.reader.get(
             'robottelo', 'run_one_datapoint', False, bool)
-        self.cleanup = self.reader.get('robottelo', 'cleanup', True, bool)
+        self.cleanup = self.reader.get('robottelo', 'cleanup', False, bool)
         self.upstream = self.reader.get('robottelo', 'upstream', True, bool)
         self.verbosity = self.reader.get(
             'robottelo',
