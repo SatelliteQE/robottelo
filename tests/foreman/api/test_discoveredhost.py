@@ -18,16 +18,24 @@
 from fauxfactory import gen_string, gen_ipaddr, gen_mac
 from nailgun import entities
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, stubbed, tier2, tier3
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+    tier2,
+    tier3,
+)
 from robottelo.test import APITestCase
 
 
-def _create_discovered_host(name=None, ipaddress=None, discovery_bootif=None):
+def _create_discovered_host(name=None, ipaddress=None, macaddress=None):
     """Creates discovered host by uploading few fake facts.
 
     :param str name: Name of discovered host. If ``None`` then a random
         value will be generated.
     :param str ipaddress: A valid ip address.
+        If ``None`` then then a random value will be generated.
+    :param str macaddress: A valid mac address.
         If ``None`` then then a random value will be generated.
     :return: A ``dict`` of ``DiscoveredHost`` facts.
     """
@@ -35,13 +43,18 @@ def _create_discovered_host(name=None, ipaddress=None, discovery_bootif=None):
         name = gen_string('alpha')
     if ipaddress is None:
         ipaddress = gen_ipaddr()
-    if discovery_bootif is None:
-        discovery_bootif = gen_mac()
+    if macaddress is None:
+        macaddress = gen_mac()
     return entities.DiscoveredHost().facts(json={
         u'facts': {
             u'name': name,
+            u'discovery_bootip': ipaddress,
+            u'discovery_bootif': macaddress,
+            u'interfaces': 'eth0',
             u'ipaddress': ipaddress,
-            u'discovery_bootif': discovery_bootif,
+            u'macaddress': macaddress,
+            u'macaddress_eth0': macaddress,
+            u'ipaddress_eth0': ipaddress,
         }
     })
 
@@ -112,8 +125,9 @@ class DiscoveryTestCase(APITestCase):
         @CaseLevel: System
         """
 
-    @tier2
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1349364)
+    @tier2
     def test_positive_upload_facts(self):
         """Upload fake facts to create a discovered host
 
