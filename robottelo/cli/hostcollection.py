@@ -16,14 +16,13 @@ Subcommands::
  create                        Create a host collection
  delete                        Destroy a host collection
  erratum                       Manipulate errata for a host collection
- hosts
+ hosts                         List all hosts
  info                          Show a host collection
  list                          List host collections
  package                       Manipulate packages for a host collection
  package-group                 Manipulate package-groups for a host collection
  remove-host                   Remove hosts from the host collection
  update                        Update a host collection
-
 """
 
 from robottelo.cli.base import Base
@@ -77,11 +76,25 @@ class HostCollection(Base):
 
         Options::
 
-            --id ID                       Id of the host collection
-            --name NAME                   Host collection name to search by
-            --organization ORGANIZATION_NAME Organization name to search by
-            --organization-id ORGANIZATION_ID
-            --organization-label Organization label to search by
+             --environment ENVIRONMENT_NAME          Name to search by
+             --environment-id ENVIRONMENT_ID
+             --hostgroup HOSTGROUP_NAME              Name to search by
+             --hostgroup-id HOSTGROUP_ID
+             --id HOST_COLLECTION_ID                 Host Collection ID
+             --location LOCATION_NAME                Name to search by
+             --location-id LOCATION_ID
+             --name HOST_COLLECTION_NAME             Host Collection Name
+             --order ORDER                           sort results
+             --organization ORGANIZATION_NAME        Organization name to
+                                                     search by
+             --organization-id ORGANIZATION_ID       organization ID
+             --organization-label ORGANIZATION_LABEL Organization label to
+                                                     search by
+             --page PAGE                             paginate results
+             --per-page PER_PAGE                     number of entries per
+                                                     request
+             --search SEARCH                         filter results
+             -h, --help                              print help
         """
         cls.command_sub = 'hosts'
         return cls.execute(
