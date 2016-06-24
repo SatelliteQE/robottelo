@@ -271,6 +271,14 @@ LANGUAGES = [
     u'sv_SE',
 ]
 
+TIMEZONES = [
+    u'(GMT+00:00) UTC',
+    u'(GMT-10:00) Hawaii',
+    u'(GMT+02:00) Europe/Kiev',
+    u'(GMT+08:00) Hong Kong',
+    u'(GMT-07:00) Arizona',
+]
+
 FILTER_CONTENT_TYPE = {
     'package': "Package",
     'package group': "Package Group",

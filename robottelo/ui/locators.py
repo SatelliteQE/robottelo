@@ -1300,6 +1300,14 @@ locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@id, 'user_locale')]/a"
          "/span[contains(@class, 'arrow')]")),
+    "users.timezone": (
+        By.XPATH,
+        ("//div[contains(@id, 'user_timezone')]/a"
+         "/span[contains(@class, 'chosen')]")),
+    "users.timezone_dropdown": (
+        By.XPATH,
+        ("//div[contains(@id, 'user_timezone')]/a"
+         "/span[contains(@class, 'arrow')]")),
     "users.selected_lang": (
         By.XPATH, ("//select[@id='user_locale']"
                    "/option[@selected='selected']")),

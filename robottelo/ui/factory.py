@@ -304,6 +304,7 @@ def make_user(session, org=None, loc=None, force_context=True, **kwargs):
         u'admin': False,
         u'username': None,
         u'email': gen_email(),
+        u'timezone': None,
         u'password1': password,
         u'password2': password,
         u'authorized_by': u'INTERNAL',
