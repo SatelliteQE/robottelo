@@ -105,7 +105,6 @@ def _create_repository(session, org, name, product, upstream_name=None):
 class DockerTagTestCase(UITestCase):
     """Tests related to Content > Docker Tags page"""
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_search_docker_image(self):
@@ -115,10 +114,21 @@ class DockerTagTestCase(UITestCase):
 
         @Assert: The docker tag can be searched and found
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        organization = entities.Organization().create()
+        pr = entities.Product(organization=organization).create()
+        repo = entities.Repository(
+            content_type='docker',
+            docker_upstream_name='busybox',
+            product=pr,
+            url=DOCKER_REGISTRY_HUB,
+        ).create()
+        repo.sync()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(organization.name)
+            self.assertIsNotNone(
+                self.dockertag.search('latest', pr.name, repo.name))
 
 
 class DockerRepositoryTestCase(UITestCase):
@@ -1083,9 +1093,8 @@ class DockerComputeResourceTestCase(UITestCase):
             self.assertIsNotNone(self.compute_resource.wait_until_element(
                 common_locators['notif.success']))
 
-    @stubbed()
     @tier2
-    def test_positive_list_containers_internal(self):
+    def test_positive_list_containers(self):
         """Create a Docker-based Compute Resource in the Satellite 6
         instance then list its running containers.
 
@@ -1094,11 +1103,31 @@ class DockerComputeResourceTestCase(UITestCase):
         @Assert: Compute Resource can be created, listed and existing running
         instances can be listed.
 
-        @caseautomation: notautomated
-
-
         @CaseLevel: Integration
         """
+        cr_internal = entities.DockerComputeResource(
+            organization=[self.organization],
+            url=settings.docker.get_unix_socket_url(),
+        ).create()
+        cr_external = entities.DockerComputeResource(
+            organization=[self.organization],
+            url=settings.docker.external_url,
+        ).create()
+        for compute_resource in (cr_internal, cr_external):
+            with self.subTest(compute_resource):
+                containers = [
+                    entities.DockerHubContainer(
+                        compute_resource=compute_resource,
+                        organization=[self.organization],
+                    ).create()
+                    for _ in range(randint(2, 5))
+                ]
+                with Session(self.browser) as session:
+                    session.nav.go_to_select_org(self.organization.name)
+                    for container in containers:
+                        result = self.compute_resource.search_container(
+                            compute_resource.name, container.name)
+                        self.assertIsNotNone(result)
 
     @run_only_on('sat')
     @tier1
@@ -1156,23 +1185,6 @@ class DockerComputeResourceTestCase(UITestCase):
             )
             self.assertIsNotNone(self.compute_resource.wait_until_element(
                 common_locators['notif.success']))
-
-    @stubbed()
-    @run_only_on('sat')
-    @tier2
-    def test_positive_list_containers_external(self):
-        """Create a Docker-based Compute Resource using an external
-        Docker-enabled system then list its running containers.
-
-        @id: 88b2344e-8bcc-42a9-a826-c9c48664b6df
-
-        @Assert: Compute Resource can be created, listed and existing
-        running instances can be listed.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
 
     @run_only_on('sat')
     @tier1
@@ -1308,7 +1320,6 @@ class DockerContainerTestCase(UITestCase):
                     self.assertEqual(self.container.set_power_status(
                         compute_resource.name, name, False), u'Off')
 
-    @stubbed()
     @run_only_on('sat')
     @tier2
     def test_positive_create_with_external_registry(self):
@@ -1320,10 +1331,37 @@ class DockerContainerTestCase(UITestCase):
         @Assert: The docker container is created and the image is pulled from
         the external registry
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        repo_name = 'rhel'
+        container_name = gen_string('alphanumeric')
+        registry = entities.Registry(url=DOCKER_0_EXTERNAL_REGISTRY).create()
+        try:
+            with Session(self.browser) as session:
+                session.nav.go_to_select_org(self.organization.name)
+                make_container(
+                    session,
+                    org=self.organization.name,
+                    resource_name=self.cr_external.name + ' (Docker)',
+                    name=container_name,
+                    parameter_list=[
+                        {'main_tab_name': 'Image',
+                         'sub_tab_name': 'External registry',
+                         'name': 'Registry', 'value': registry.name},
+                        {'main_tab_name': 'Image',
+                         'sub_tab_name': 'External registry',
+                         'name': 'Search', 'value': repo_name},
+                        {'main_tab_name': 'Image',
+                         'sub_tab_name': 'External registry',
+                         'name': 'Tag', 'value': 'latest'},
+                    ],
+                )
+                self.assertIsNotNone(
+                    self.container.search(
+                        self.cr_external.name, container_name)
+                )
+        finally:
+            registry.delete()
 
     @run_only_on('sat')
     @tier2

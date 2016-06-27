@@ -101,6 +101,11 @@ class Container(Base):
                     parameter['sub_tab_name'] + ' Tab')
                 self.click(locators[current_tab])
                 self.assign_value(
+                    locators[
+                        self._form_locator_name(
+                            'registry.' + parameter['name'])
+                    ]
+                    if parameter['sub_tab_name'] == 'External registry' else
                     locators[self._form_locator_name(parameter['name'])],
                     parameter['value']
                 )
