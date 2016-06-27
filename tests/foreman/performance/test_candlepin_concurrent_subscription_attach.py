@@ -6,7 +6,7 @@
 
 @CaseLevel: Acceptance
 
-@CaseComponent: PERFORMANCE
+@CaseComponent: OTHER
 
 @TestType: Functional
 

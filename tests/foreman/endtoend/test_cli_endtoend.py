@@ -7,7 +7,7 @@
 
 @CaseLevel: Acceptance
 
-@CaseComponent: ENDTOEND
+@CaseComponent: CLI
 
 @TestType: Functional
 

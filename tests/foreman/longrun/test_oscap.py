@@ -6,7 +6,7 @@
 
 @CaseLevel: Acceptance
 
-@CaseComponent: LONGRUN
+@CaseComponent: UI
 
 @TestType: Functional
 
