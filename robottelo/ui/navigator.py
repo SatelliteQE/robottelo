@@ -135,6 +135,12 @@ class Navigator(Base):
             menu_locators['menu.puppet_modules'],
         )
 
+    def go_to_docker_tags(self):
+        self.menu_click(
+            menu_locators['menu.content'],
+            menu_locators['menu.docker_tags'],
+        )
+
     def go_to_all_containers(self):
         self.menu_click(
             menu_locators['menu.containers'],

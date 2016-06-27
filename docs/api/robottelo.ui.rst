@@ -43,6 +43,11 @@
 
 .. automodule:: robottelo.ui.contentviews
 
+:mod:`robottelo.ui.dockertag`
+-----------------------------
+
+.. automodule:: robottelo.ui.dockertag
+
 :mod:`robottelo.ui.domain`
 --------------------------
 
