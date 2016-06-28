@@ -1,20 +1,5 @@
 # coding=utf-8
-"""Module that aggregates common bits of the end to end tests.
-
-@Requirement: Utils
-
-@CaseAutomation: Automated
-
-@CaseLevel: Acceptance
-
-@CaseComponent: ENDTOEND
-
-@TestType: Functional
-
-@CaseImportance: High
-
-@Upstream: No
-"""
+"""Module that aggregates common bits of the end to end tests."""
 from robottelo.decorators import setting_is_set
 from robottelo.vm import VirtualMachine
 

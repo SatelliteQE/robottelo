@@ -7,7 +7,7 @@
 
 @CaseLevel: Acceptance
 
-@CaseComponent: RHCI
+@CaseComponent: API
 
 @TestType: Functional
 

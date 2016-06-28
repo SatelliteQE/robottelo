@@ -6,7 +6,7 @@
 
 @CaseLevel: Acceptance
 
-@CaseComponent: RHAI
+@CaseComponent: UI
 
 @TestType: Functional
 
