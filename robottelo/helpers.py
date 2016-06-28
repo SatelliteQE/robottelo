@@ -3,7 +3,9 @@
 import logging
 import os
 import re
+import requests
 
+from tempfile import mkstemp
 from nailgun.config import ServerConfig
 from robottelo import ssh
 from robottelo.config import settings
@@ -21,6 +23,42 @@ class HostInfoError(Exception):
 
 class InvalidArgumentError(Exception):
     """Indicates an error when an invalid argument is received."""
+
+
+class DownloadFileError(Exception):
+    """Indicates an error when failure in downloading file from server."""
+
+
+class ServerFileDownloader(object):
+    """Downloads file from given fileurl to local /temp dirctory."""
+
+    def __init__(self):
+        self.file_downloaded = False
+        self.fd = None
+        self.file_path = None
+
+    def __call__(self, extention, fileurl):
+        """Downloads file from given fileurl to local /temp directory with
+        given extention.
+
+        :param str extention: The file extention with which the file to be
+            saved in /temp directory.
+        :param str fileurl: The complete server file path from where the
+            file will be downloaded.
+        :returns: Returns complete file path with name of downloaded file.
+        """
+        if not self.file_downloaded:
+            self.fd, self.file_path = mkstemp(suffix='.{}'.format(extention))
+            fileobj = os.fdopen(self.fd, 'w')
+            fileobj.write(requests.get(fileurl).content)
+            fileobj.close()
+            if os.path.exists(self.file_path):
+                self.file_downloaded = True
+            else:
+                raise DownloadFileError('Failed to download file from Server.')
+        return self.file_path
+
+download_server_file = ServerFileDownloader()
 
 
 def get_server_software():
