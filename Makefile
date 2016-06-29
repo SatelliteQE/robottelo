@@ -4,7 +4,7 @@ FOREMAN_API_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), api)
 FOREMAN_CLI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), cli)
 FOREMAN_RHAI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhai)
 FOREMAN_RHCI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), rhci)
-FOREMAN_SMOKE_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), smoke)
+FOREMAN_ENDTOEND_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), endtoend)
 FOREMAN_TIERS_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), {api,cli,ui})
 FOREMAN_TESTS_PATH=tests/foreman/
 FOREMAN_UI_TESTS_PATH=$(join $(FOREMAN_TESTS_PATH), ui)
@@ -41,7 +41,7 @@ help:
 	@echo "  test-foreman-rhci          to test a Foreman deployment w/RHCI plugin"
 	@echo "  test-foreman-ui            to test a Foreman deployment UI"
 	@echo "  test-foreman-ui-xvfb       to test a Foreman deployment UI using xvfb-run"
-	@echo "  test-foreman-smoke         to perform a generic smoke test"
+	@echo "  test-foreman-endtoend      to perform a generic end-to-end test"
 	@echo "  graph-entities             to graph entity relationships"
 	@echo "  lint                       to run pylint on the entire codebase"
 	@echo "  logs-join                  to join xdist log files into one"
@@ -91,8 +91,8 @@ test-foreman-ui:
 test-foreman-ui-xvfb:
 	xvfb-run py.test $(PYTEST_OPTS) $(FOREMAN_UI_TESTS_PATH)
 
-test-foreman-smoke:
-	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_SMOKE_TESTS_PATH)
+test-foreman-endtoend:
+	$(PYTEST) $(PYTEST_OPTS) $(FOREMAN_ENDTOEND_TESTS_PATH)
 
 test-foreman-tier1:
 	$(PYTEST) $(PYTEST_XDIST_OPTS) -m 'not stubbed and tier1' $(FOREMAN_TIERS_TESTS_PATH)
@@ -130,5 +130,5 @@ logs-clean:
         test-robottelo-coverage test-foreman-api test-foreman-cli \
         test-foreman-rhai test-foreman-rhci test-foreman-tier1 \
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
-        test-foreman-ui test-foreman-ui-xvfb test-foreman-smoke \
+        test-foreman-ui test-foreman-ui-xvfb test-foreman-endtoend \
         graph-entities lint logs-join logs-clean pyc-clean
