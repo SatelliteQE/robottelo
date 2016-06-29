@@ -230,9 +230,13 @@ class VirtualMachine(object):
             raise VirtualMachineError(
                 'Failed to download and install the katello-ca rpm')
 
-    def register_contenthost(self, activation_key, org, force=True,
-                             releasever=None):
-        """Registers content host on foreman server using activation-key.
+    def register_contenthost(self, org, activation_key=None, lce=None,
+                             force=True, releasever=None):
+        """Registers content host on foreman server using activation-key. This
+        can be done in two ways: either by specifying organization name and
+        activation key name or by specifying organization name and lifecycle
+        environment name (administrator credentials for authentication will be
+        passed automatically)
 
         :param activation_key: Activation key name to register content host
             with.
@@ -243,10 +247,20 @@ class VirtualMachine(object):
             registration.
 
         """
-        cmd = (
-            u'subscription-manager register --activationkey {0} --org {1}'
-            .format(activation_key, org)
-        )
+        cmd = (u'subscription-manager register --org {0}'.format(org))
+        if activation_key is not None:
+            cmd += u' --activationkey {0}'.format(activation_key)
+        elif lce is not None:
+            cmd += u' --environment {0} --username {1} --password {2}'.format(
+                lce,
+                settings.server.admin_username,
+                settings.server.admin_password,
+            )
+        else:
+            raise VirtualMachineError(
+                'Please provide either activation key or lifecycle '
+                'environment name to successfully register a host'
+            )
         if releasever is not None:
             cmd += u' --release {0}'.format(releasever)
         if force:
@@ -398,7 +412,7 @@ class VirtualMachine(object):
         """
         # Download and Install ketello-ca rpm
         self.install_katello_ca()
-        self.register_contenthost(activation_key, org)
+        self.register_contenthost(org, activation_key)
 
         # Red Hat Access Insights requires RHEL 6/7 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.

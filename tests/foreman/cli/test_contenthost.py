@@ -414,12 +414,12 @@ class ContentHostTestCase(CLITestCase):
         with VirtualMachine(distro='rhel71') as client:
             client.install_katello_ca()
             client.register_contenthost(
-                activation_key['name'],
                 self.NEW_ORG['label'],
+                activation_key['name'],
             )
             result = client.register_contenthost(
-                activation_key['name'],
                 self.NEW_ORG['label'],
+                activation_key['name'],
                 force=False,
             )
             # Depending on distro version, successful return_code may be 0 or
@@ -446,8 +446,8 @@ class ContentHostTestCase(CLITestCase):
         with VirtualMachine(distro='rhel71') as client:
             client.install_katello_ca()
             client.register_contenthost(
-                activation_key['name'],
                 self.NEW_ORG['label'],
+                activation_key['name'],
             )
             result = ContentHost.list({
                 'organization-id': self.NEW_ORG['id'],
@@ -475,8 +475,8 @@ class ContentHostTestCase(CLITestCase):
         with VirtualMachine(distro='rhel71') as client:
             client.install_katello_ca()
             client.register_contenthost(
-                activation_key['name'],
                 self.NEW_ORG['label'],
+                activation_key['name'],
             )
             result = ContentHost.list({
                 'organization-id': self.NEW_ORG['id'],

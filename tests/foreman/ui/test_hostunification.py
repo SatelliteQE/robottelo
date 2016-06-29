@@ -16,11 +16,27 @@
 @Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier3
+from fauxfactory import gen_string
+from nailgun import entities
+from robottelo.cli.factory import setup_org_for_a_rh_repo
+from robottelo.constants import (
+    DEFAULT_CV,
+    DEFAULT_SUBSCRIPTION_NAME,
+    ENVIRONMENT,
+    PRDS,
+    REPOS,
+    REPOSET,
+)
+from robottelo.decorators import run_only_on, tier3
 from robottelo.test import UITestCase
+from robottelo.ui.base import UIError
+from robottelo.ui.factory import make_host
+from robottelo.ui.locators import common_locators
+from robottelo.ui.session import Session
+from robottelo.vm import VirtualMachine
 
 
-class HostcontenthostUnificationTestCase(UITestCase):
+class HostContentHostUnificationTestCase(UITestCase):
     """Implements Host and Content-host Unification tests in UI"""
     # Testing notes for host/content-host unification in katello/foreman
     # Basically assuring that hosts in foreman/katello bits are joined
@@ -30,7 +46,12 @@ class HostcontenthostUnificationTestCase(UITestCase):
     # (the link/join will) "Most likely an internal UUID, not something
     # fuzzy like hostname"
 
-    @stubbed()
+    @classmethod
+    def setUpClass(cls):
+        """Create an organization which can be re-used in tests."""
+        super(HostContentHostUnificationTestCase, cls).setUpClass()
+        cls.org_ = entities.Organization().create()
+
     @run_only_on('sat')
     @tier3
     def test_positive_register_host_via_rhsm(self):
@@ -46,12 +67,17 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: Hosts registered via rhsm appears under 'All hosts' as well
         as under content-hosts.
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        with VirtualMachine(distro='rhel71') as vm:
+            vm.install_katello_ca()
+            result = vm.register_contenthost(self.org_.label, lce='Library')
+            self.assertEqual(result.return_code, 0)
+            with Session(self.browser) as session:
+                session.nav.go_to_select_org(self.org_.name)
+                self.assertIsNotNone(self.hosts.search(vm.hostname))
+                self.assertIsNotNone(self.contenthost.search(vm.hostname))
 
-    @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_register_host_via_ak(self):
@@ -67,32 +93,33 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: Hosts registered via activation key appears under 'All hosts'
         as well as under content-hosts
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        org = entities.Organization().create()
+        env = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        activation_key = entities.ActivationKey(
+            environment=env,
+            organization=org,
+        ).create()
+        setup_org_for_a_rh_repo({
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhst7'],
+            'repository': REPOS['rhst7']['name'],
+            'organization-id': org.id,
+            'content-view-id': content_view.id,
+            'lifecycle-environment-id': env.id,
+            'activationkey-id': activation_key.id,
+        })
+        with VirtualMachine(distro='rhel71') as vm:
+            vm.install_katello_ca()
+            result = vm.register_contenthost(org.label, activation_key.name)
+            self.assertEqual(result.return_code, 0)
+            with Session(self.browser) as session:
+                session.nav.go_to_select_org(org.name)
+                self.assertIsNotNone(self.hosts.search(vm.hostname))
+                self.assertIsNotNone(self.contenthost.search(vm.hostname))
 
-    @stubbed()
-    @run_only_on('sat')
-    @tier3
-    def test_positive_validate_org(self):
-        """Assign org to host at registration time if not already
-
-        @id: ef9e161a-738c-4b98-b4de-e53ff4853246
-
-        @steps:
-        1.  Register a host via rhsm by specifying org
-        2.  View host under content hosts
-
-        @assert: Registered host should be associated with organization
-        specified at registration
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
-
-    @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_provision_foreman_host(self):
@@ -109,12 +136,44 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: Hosts provisioned via foreman should appear under 'All hosts'
         as well as under content-hosts.
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        host = entities.Host()
+        host.create_missing()
+        os_name = u'{0} {1}'.format(
+            host.operatingsystem.name, host.operatingsystem.major)
+        with Session(self.browser) as session:
+            make_host(
+                session,
+                name=host.name,
+                org=host.organization.name,
+                parameters_list=[
+                    ['Host', 'Organization', host.organization.name],
+                    ['Host', 'Location', host.location.name],
+                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
+                    ['Host', 'Content View', DEFAULT_CV],
+                    ['Host', 'Puppet Environment', host.environment.name],
+                    [
+                        'Operating System',
+                        'Architecture',
+                        host.architecture.name
+                    ],
+                    ['Operating System', 'Operating system', os_name],
+                    ['Operating System', 'Media', host.medium.name],
+                    ['Operating System', 'Partition table', host.ptable.name],
+                    ['Operating System', 'Root password', host.root_pass],
+                ],
+                interface_parameters=[
+                    ['Type', 'Interface'],
+                    ['MAC address', host.mac],
+                    ['Domain', host.domain.name],
+                    ['Primary', True],
+                ],
+            )
+            hostname = u'{0}.{1}'.format(host.name, host.domain.name)
+            self.assertIsNotNone(self.contenthost.search(hostname))
+            self.assertIsNotNone(self.hosts.search(hostname))
 
-    @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_rename_foreman_host(self):
@@ -129,12 +188,32 @@ class HostcontenthostUnificationTestCase(UITestCase):
 
         @assert: Host appears in both places despite being renamed
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        with VirtualMachine(distro='rhel71') as vm:
+            vm.install_katello_ca()
+            result = vm.register_contenthost(self.org_.label, lce='Library')
+            self.assertEqual(result.return_code, 0)
+            with Session(self.browser) as session:
+                session.nav.go_to_select_org(self.org_.name)
+                name, domain_name = vm.hostname.split('.', 1)
+                new_name = gen_string('alphanumeric').lower()
+                self.hosts.update(
+                    name,
+                    domain_name,
+                    new_name=new_name,
+                )
+                # Host rename operation is not atomic and may take some time
+                for _ in range(3):
+                    searched = self.hosts.search(vm.hostname)
+                    if not searched:
+                        break
+                else:
+                    self.fail('Host was not renamed')
+                self.assertIsNotNone(self.hosts.search(new_name))
+                self.assertIsNone(self.contenthost.search(vm.hostname))
+                self.assertIsNotNone(self.contenthost.search(new_name))
 
-    @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_rename_content_host(self):
@@ -149,12 +228,24 @@ class HostcontenthostUnificationTestCase(UITestCase):
 
         @assert: Host appears in both places despite being renamed
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        with VirtualMachine(distro='rhel71') as vm:
+            vm.install_katello_ca()
+            result = vm.register_contenthost(self.org_.label, lce='Library')
+            self.assertEqual(result.return_code, 0)
+            with Session(self.browser) as session:
+                session.nav.go_to_select_org(self.org_.name)
+                new_name = gen_string('alphanumeric').lower()
+                self.contenthost.update(
+                    vm.hostname,
+                    new_name=new_name,
+                )
+                self.assertIsNone(self.contenthost.search(vm.hostname))
+                self.assertIsNotNone(self.contenthost.search(new_name))
+                self.assertIsNone(self.hosts.search(vm.hostname))
+                self.assertIsNotNone(self.hosts.search(new_name))
 
-    @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_delete_from_allhosts(self):
@@ -170,12 +261,17 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: Host should be removed from 'All hosts' as well as
         content-hosts
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        with VirtualMachine(distro='rhel71') as vm:
+            vm.install_katello_ca()
+            result = vm.register_contenthost(self.org_.label, lce='Library')
+            self.assertEqual(result.return_code, 0)
+            with Session(self.browser) as session:
+                session.nav.go_to_select_org(self.org_.name)
+                self.hosts.delete(vm.hostname)
+                self.assertIsNone(self.contenthost.search(vm.hostname))
 
-    @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_unregister_content_host(self):
@@ -191,12 +287,36 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: Hosts un-registered from content-host should appear in both
         sides of UI
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        org = entities.Organization().create()
+        env = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        activation_key = entities.ActivationKey(
+            environment=env,
+            organization=org,
+        ).create()
+        setup_org_for_a_rh_repo({
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhst7'],
+            'repository': REPOS['rhst7']['name'],
+            'organization-id': org.id,
+            'content-view-id': content_view.id,
+            'lifecycle-environment-id': env.id,
+            'activationkey-id': activation_key.id,
+        })
+        with VirtualMachine(distro='rhel71') as vm:
+            vm.install_katello_ca()
+            result = vm.register_contenthost(org.label, activation_key.name)
+            self.assertEqual(result.return_code, 0)
+            with Session(self.browser) as session:
+                session.nav.go_to_select_org(org.name)
+                self.contenthost.unregister(vm.hostname)
+                self.contenthost.validate_subscription_status(
+                    vm.hostname, False)
+                self.assertIsNotNone(self.contenthost.search(vm.hostname))
+                self.assertIsNotNone(self.hosts.search(vm.hostname))
 
-    @stubbed()
     @run_only_on('sat')
     @tier3
     def test_positive_re_register_host(self):
@@ -212,15 +332,44 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: A single entry of host should appear at both places on
         re-registering
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        org = entities.Organization().create()
+        env = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        activation_key = entities.ActivationKey(
+            environment=env,
+            organization=org,
+        ).create()
+        setup_org_for_a_rh_repo({
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhst7'],
+            'repository': REPOS['rhst7']['name'],
+            'organization-id': org.id,
+            'content-view-id': content_view.id,
+            'lifecycle-environment-id': env.id,
+            'activationkey-id': activation_key.id,
+        })
+        with VirtualMachine(distro='rhel71') as vm:
+            vm.install_katello_ca()
+            result = vm.register_contenthost(org.label, activation_key.name)
+            self.assertEqual(result.return_code, 0)
+            with Session(self.browser) as session:
+                session.nav.go_to_select_org(org.name)
+                self.contenthost.unregister(vm.hostname)
+                self.contenthost.validate_subscription_status(
+                    vm.hostname, False)
+                result = vm.register_contenthost(
+                    org.label, activation_key.name)
+                self.assertEqual(result.return_code, 0)
+                self.contenthost.validate_subscription_status(
+                    vm.hostname, True)
+                self.assertIsNotNone(self.contenthost.search(vm.hostname))
+                self.assertIsNotNone(self.hosts.search(vm.hostname))
 
-    @stubbed()
     @run_only_on('sat')
     @tier3
-    def test_positive_add_subs_to_unregistered_host(self):
+    def test_negative_add_subs_to_unregistered_host(self):
         """Perform a subscription action on a host which is not registered
 
         @id: 83ebd98e-309d-4209-bf01-0547334af5af
@@ -232,15 +381,50 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: User get a warning:
         This Host is not currently registered with subscription-manager.
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        host = entities.Host()
+        host.create_missing()
+        os_name = u'{0} {1}'.format(
+            host.operatingsystem.name, host.operatingsystem.major)
+        with Session(self.browser) as session:
+            make_host(
+                session,
+                name=host.name,
+                org=host.organization.name,
+                parameters_list=[
+                    ['Host', 'Organization', host.organization.name],
+                    ['Host', 'Location', host.location.name],
+                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
+                    ['Host', 'Content View', DEFAULT_CV],
+                    ['Host', 'Puppet Environment', host.environment.name],
+                    [
+                        'Operating System',
+                        'Architecture',
+                        host.architecture.name
+                    ],
+                    ['Operating System', 'Operating system', os_name],
+                    ['Operating System', 'Media', host.medium.name],
+                    ['Operating System', 'Partition table', host.ptable.name],
+                    ['Operating System', 'Root password', host.root_pass],
+                ],
+                interface_parameters=[
+                    ['Type', 'Interface'],
+                    ['MAC address', host.mac],
+                    ['Domain', host.domain.name],
+                    ['Primary', True],
+                ],
+            )
+            hostname = u'{0}.{1}'.format(host.name, host.domain.name)
+            with self.assertRaises(UIError):
+                self.contenthost.update(
+                    hostname,
+                    add_subscriptions=[DEFAULT_SUBSCRIPTION_NAME],
+                )
 
-    @stubbed()
     @run_only_on('sat')
     @tier3
-    def test_positive_add_contents_to_unregistered_host(self):
+    def test_negative_add_contents_to_unregistered_host(self):
         """Perform a content action like on a host which is not registered
 
         @id: 67396c26-67fa-4cee-9937-65c2b9befabc
@@ -252,7 +436,43 @@ class HostcontenthostUnificationTestCase(UITestCase):
         @assert: User get a warning:
         This Host is not currently registered with subscription-manager.
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        host = entities.Host()
+        host.create_missing()
+        os_name = u'{0} {1}'.format(
+            host.operatingsystem.name, host.operatingsystem.major)
+        with Session(self.browser) as session:
+            make_host(
+                session,
+                name=host.name,
+                org=host.organization.name,
+                parameters_list=[
+                    ['Host', 'Organization', host.organization.name],
+                    ['Host', 'Location', host.location.name],
+                    ['Host', 'Lifecycle Environment', ENVIRONMENT],
+                    ['Host', 'Content View', DEFAULT_CV],
+                    ['Host', 'Puppet Environment', host.environment.name],
+                    [
+                        'Operating System',
+                        'Architecture',
+                        host.architecture.name
+                    ],
+                    ['Operating System', 'Operating system', os_name],
+                    ['Operating System', 'Media', host.medium.name],
+                    ['Operating System', 'Partition table', host.ptable.name],
+                    ['Operating System', 'Root password', host.root_pass],
+                ],
+                interface_parameters=[
+                    ['Type', 'Interface'],
+                    ['MAC address', host.mac],
+                    ['Domain', host.domain.name],
+                    ['Primary', True],
+                ],
+            )
+            hostname = u'{0}.{1}'.format(host.name, host.domain.name)
+            self.contenthost.install_package(hostname, 'busybox')
+            self.assertIsNotNone(
+                self.contenthost.wait_until_element(
+                    common_locators['alert.error'])
+            )

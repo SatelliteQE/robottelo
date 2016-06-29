@@ -439,7 +439,7 @@ class ActivationKeyTestCase(UITestCase):
                 common_locators['alert.success_sub_form']))
             with VirtualMachine(distro=self.vm_distro) as vm:
                 vm.install_katello_ca()
-                result = vm.register_contenthost(name, self.organization.label)
+                result = vm.register_contenthost(self.organization.label, name)
                 self.assertEqual(result.return_code, 0)
                 self.activationkey.delete(name)
 
@@ -797,11 +797,11 @@ class ActivationKeyTestCase(UITestCase):
                 with VirtualMachine(distro=self.vm_distro) as vm2:
                     vm1.install_katello_ca()
                     result = vm1.register_contenthost(
-                        name, self.organization.label)
+                        self.organization.label, name)
                     self.assertEqual(result.return_code, 0)
                     vm2.install_katello_ca()
                     result = vm2.register_contenthost(
-                        name, self.organization.label)
+                        self.organization.label, name)
                     self.assertNotEqual(result.return_code, 0)
                     self.assertGreater(len(result.stderr), 0)
                     self.assertIn(
@@ -838,7 +838,7 @@ class ActivationKeyTestCase(UITestCase):
             # Creating VM
             with VirtualMachine(distro=self.vm_distro) as vm:
                 vm.install_katello_ca()
-                vm.register_contenthost(key_name, self.organization.label)
+                vm.register_contenthost(self.organization.label, key_name)
                 name = self.activationkey.fetch_associated_content_host(
                     key_name)
                 self.assertEqual(vm.hostname, name)
@@ -1107,8 +1107,8 @@ class ActivationKeyTestCase(UITestCase):
             with VirtualMachine(distro=self.vm_distro) as vm:
                 vm.install_katello_ca()
                 result = vm.register_contenthost(
+                    self.organization.label,
                     '{0},{1}'.format(key_1_name, key_2_name),
-                    self.organization.label
                 )
                 self.assertEqual(result.return_code, 0)
                 # Assert the content-host association with activation-key

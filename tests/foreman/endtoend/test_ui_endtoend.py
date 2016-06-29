@@ -436,7 +436,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             # Create VM
             with VirtualMachine(distro='rhel67') as vm:
                 vm.install_katello_ca()
-                vm.register_contenthost(activation_key_name, org_name)
+                vm.register_contenthost(org_name, activation_key_name)
                 vm.configure_puppet(rhel6_repo)
                 host = vm.hostname
                 set_context(session, org=ANY_CONTEXT['org'])
