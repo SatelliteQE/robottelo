@@ -144,3 +144,14 @@ class ComputeResource(Base):
             locators['resource.delete'],
             drop_locator=locators['resource.dropdown'],
         )
+
+    def search_container(self, cr_name, container_name):
+        """Searches for specific container located in compute resource under
+        'Containers' tab
+        """
+        self.click(self.search(cr_name))
+        self.click(tab_locators['resource.tab_containers'])
+        self.text_field_update(
+            locators['resource.filter_containers'], container_name)
+        strategy, value = locators['resource.select_container']
+        return self.wait_until_element((strategy, value % container_name))

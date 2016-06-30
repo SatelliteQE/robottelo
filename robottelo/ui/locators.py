@@ -649,6 +649,10 @@ tab_locators = LocatorDict({
         "contains(@ui-sref, 'host-collections.details.hosts.list')]"),
     "hostcollection.collection_actions": (
         By.XPATH, "//a[contains(@href, 'actions')]/span"),
+
+    # Compute resources
+    "resource.tab_containers": (
+        By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'vms')]"),
 })
 
 common_locators = LocatorDict({
@@ -1017,6 +1021,12 @@ locators = LocatorDict({
          "/following::td/div/ul/li/a[@class='delete']")),
     "resource.edit": (
         By.XPATH, "//a[contains(@data-id,'edit') and contains(@href,'%s')]"),
+    "resource.filter_containers": (
+        By.XPATH, "//div[contains(@id, 'filter')]//input[@type='text']"),
+    "resource.select_container": (
+        By.XPATH,
+        ("//a[contains(@href, 'compute_resources/') and "
+         "contains(@href, 'vms/') and contains(., '%s')]")),
 
     # Hosts
 
@@ -2521,6 +2531,15 @@ locators = LocatorDict({
          "/span[contains(@class, 'arrow')]")),
     "container.docker_hub_tag": (
         By.ID, "hub_docker_container_wizard_states_image_tag"),
+    "container.registry.registry": (
+        By.XPATH,
+        ("//div[contains(@id, 'image_registry_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "container.registry.search": (
+        By.ID,
+        "registry_docker_container_wizard_states_image_repository_name"),
+    "container.registry.tag": (
+        By.ID, "registry_docker_container_wizard_states_image_tag"),
     "container.name": (
         By.ID, "docker_container_wizard_states_configuration_name"),
     "container.command": (
