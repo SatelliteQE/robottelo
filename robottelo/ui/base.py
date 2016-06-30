@@ -82,8 +82,14 @@ class Base(object):
         """Perform navigation to main page for specific entity"""
         raise NotImplementedError('Subclasses must implement navigator method')
 
-    def search(self, element_name):
-        """Uses the search box to locate an element from a list of elements."""
+    def search(self, element):
+        """Uses the search box to locate an element from a list of elements.
+
+        :param element: either element name or a tuple, containing element name
+            as a first element and all the rest variables required for element
+            locator.
+        """
+        element_name = element[0] if isinstance(element, tuple) else element
         # Navigate to the page
         self.logger.debug(u'Searching for: %s', element_name)
         self.navigate_to_entity()
@@ -123,15 +129,14 @@ class Base(object):
         # Make sure that found element is returned no matter it described by
         # its own locator or common one (locator can transform depending on
         # element name length)
-        strategy, value = element_locator
-        strategy2, value2 = common_locators['select_filtered_entity']
         for _ in range(self.result_timeout):
-            element = self.find_element((strategy, value % element_name))
-            if element is not None:
-                return element
-            element2 = self.find_element((strategy2, value2 % element_name))
-            if element2 is not None:
-                return element2
+            for strategy, value in (
+                    element_locator,
+                    common_locators['select_filtered_entity']
+            ):
+                result = self.find_element((strategy, value % element))
+                if result is not None:
+                    return result
             time.sleep(1)
         return None
 

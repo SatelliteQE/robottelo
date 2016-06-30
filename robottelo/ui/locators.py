@@ -131,6 +131,10 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
          "//a[@id='menu_item_puppet_modules']")),
+    "menu.docker_tags": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_docker_tags']")),
 
     # Containers Menu
     "menu.containers": (
@@ -2562,6 +2566,12 @@ locators = LocatorDict({
         By.XPATH,
         "//div[@class='tab-content']/div[contains(@class, 'active')]//"
         "td[@id='%s']/../td/span[contains(@class, 'label-')]"),
+
+    # Docker Tags
+    "dockertag.select_name": (
+        By.XPATH,
+        ("//td[contains(., '%s') and following-sibling::td[contains(., '%s')] "
+         "and following-sibling::td[contains(., '%s')]]/a")),
 
     # Host Collections
     "hostcollection.new": (
