@@ -508,6 +508,7 @@ PERMISSIONS = {
         'create_params',
         'edit_params',
         'destroy_params',
+        'view_params',
     ],
     'Hostgroup': [
         'view_hostgroups',
