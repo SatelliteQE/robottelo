@@ -1,5 +1,4 @@
 """Utility module to handle the shared ssh connection."""
-import json
 import logging
 from contextlib import contextmanager
 
@@ -26,7 +25,7 @@ class SSHCommandResult(object):
             if output_format == 'csv':
                 self.stdout = hammer.parse_csv(stdout) if stdout else {}
             if output_format == 'json':
-                self.stdout = json.loads(stdout) if stdout else None
+                self.stdout = hammer.parse_json(stdout) if stdout else None
 
 
 def _call_paramiko_sshclient():
