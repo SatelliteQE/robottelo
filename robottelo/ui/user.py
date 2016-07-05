@@ -55,22 +55,22 @@ class User(Base):
             if default_org:
                 self.select(locators['users.default_org'], default_org)
 
-    def create(self, username=None, email=None, password1=None, password2=None,
-               authorized_by='INTERNAL', locale=None, first_name=None,
-               last_name=None, roles=None, admin=False, locations=None,
-               organizations=None, edit=False, default_org=None,
-               default_loc=None, select=True, submit=True):
+    def create(self, username=None, email=None, timezone=None, password1=None,
+               password2=None, authorized_by='INTERNAL', locale=None,
+               first_name=None, last_name=None, roles=None, admin=False,
+               locations=None, organizations=None, edit=False,
+               default_org=None, default_loc=None, select=True, submit=True):
         """Create new user from UI."""
         self.click(locators['users.new'])
-        if self.wait_until_element(locators['users.username']):
-            self.field_update('users.username', username)
+        self.text_field_update(locators['users.username'], username)
         if first_name:
-            self.field_update('users.firstname', first_name)
+            self.text_field_update(locators['users.firstname'], first_name)
         if last_name:
-            self.field_update('users.lastname', last_name)
-        # The following fields are not available via LDAP auth
-        if self.wait_until_element(locators['users.email']):
-            self.field_update('users.email', email)
+            self.text_field_update(locators['users.lastname'], last_name)
+        if email:
+            self.text_field_update(locators['users.email'], email)
+        if timezone:
+            self.select(locators['users.timezone_dropdown'], timezone)
         if locale:
             self.select(locators['users.language_dropdown'], locale)
         if authorized_by:
@@ -105,15 +105,14 @@ class User(Base):
             locators['users.delete'],
         )
 
-    def update(self, username, new_username=None, email=None, password=None,
-               first_name=None, last_name=None, locale=None, roles=None,
+    def update(self, username, new_username=None, email=None,
+               new_password=None, password_confirmation=None, first_name=None,
+               last_name=None, locale=None, roles=None, timezone=None,
                new_roles=None, locations=None, new_locations=None,
                organizations=None, new_organizations=None, default_org=None,
                default_loc=None, select=False, authorized_by=None,
                submit=True):
-        """Update username, email, password, firstname, lastname and locale
-        from UI
-        """
+        """Update user related fields from UI"""
         self.click(self.search(username))
         if new_username:
             self.field_update('users.username', new_username)
@@ -125,12 +124,15 @@ class User(Base):
             self.field_update('users.lastname', last_name)
         if locale:
             self.select(locators['users.language_dropdown'], locale)
+        if timezone:
+            self.select(locators['users.timezone_dropdown'], timezone)
         if authorized_by:
             self.select(locators['users.authorized_by'], authorized_by)
-        if password:
-            if self.wait_until_element(locators['users.password']):
-                self.field_update('users.password', password)
-                self.field_update('users.password_confirmation', password)
+        if new_password:
+            self.text_field_update(locators['users.password'], new_password)
+        if password_confirmation:
+            self.text_field_update(
+                locators['users.password_confirmation'], password_confirmation)
         self._configure_user(
             roles=roles,
             new_roles=new_roles,
@@ -151,15 +153,7 @@ class User(Base):
         """Checks if selected user has Administrator privileges according to
         expected state and assign/unassign them otherwise
         """
-        element = self.search(username)
-
-        if element is None:
-            raise UINoSuchElementError(
-                'Unable to find the username "{0}".'.format(username)
-            )
-
-        element.click()
-        self.wait_for_ajax()
+        self.click(self.search(username))
         self.click(tab_locators['users.tab_roles'])
         admin_role_locator = locators['users.admin_role']
         is_admin_role_selected = self.find_element(
@@ -200,7 +194,7 @@ class User(Base):
                     .format(field_name, field_value)
                 )
 
-        element.click()
+        self.click(element)
         if (self.wait_until_element(
                 locators['users.' + field_name]
                 ).get_attribute('value') != field_value and

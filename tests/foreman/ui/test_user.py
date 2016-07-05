@@ -20,7 +20,15 @@ import random
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import ssh
-from robottelo.constants import DEFAULT_ORG, LANGUAGES, ROLES
+from robottelo.config import settings
+from robottelo.constants import (
+    DEFAULT_ORG,
+    LANGUAGES,
+    LDAP_ATTR,
+    LDAP_SERVER_TYPE,
+    ROLES,
+    TIMEZONES,
+)
 from robottelo.datafactory import (
     datacheck,
     invalid_emails_list,
@@ -28,7 +36,13 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_emails_list,
 )
-from robottelo.decorators import skip_if_bug_open, stubbed, tier1, tier2, tier3
+from robottelo.decorators import (
+    skip_if_not_set,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_user, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
@@ -195,7 +209,7 @@ class UserTestCase(UITestCase):
         role = entities.Role().create()
         with Session(self.browser) as session:
             make_user(session, username=name, roles=[role.name], edit=True)
-            self.user.search(name).click()
+            self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_roles'])
             element = self.user.wait_until_element(
                 (strategy, value % role.name))
@@ -219,8 +233,7 @@ class UserTestCase(UITestCase):
             entities.Role(name=role).create()
         with Session(self.browser) as session:
             make_user(session, username=name, roles=[role1, role2], edit=True)
-            self.user.search(name).click()
-            self.user.wait_for_ajax()
+            self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_roles'])
             for role in [role1, role2]:
                 element = self.user.wait_until_element(
@@ -262,7 +275,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(
                 session, username=name, organizations=[org_name], edit=True)
-            self.user.search(name).click()
+            self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_organizations'])
             element = self.user.wait_until_element(
                 (strategy, value % org_name))
@@ -292,28 +305,12 @@ class UserTestCase(UITestCase):
                 organizations=[org_name1, org_name2],
                 edit=True,
             )
-            self.user.search(name).click()
+            self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_organizations'])
             for org_name in [org_name1, org_name2, DEFAULT_ORG]:
                 element = self.user.wait_until_element(
                     (strategy, value % org_name))
                 self.assertIsNotNone(element)
-
-    @stubbed()
-    @tier2
-    def test_positive_create_in_ldap_modes(self):
-        """Create User in supported ldap modes - (Active Driectory, IPA,
-        Posix)
-
-        @id: 0668b2ca-831e-4568-94fb-80e45dd7d001
-
-        @Assert: User is created without specifying the password
-
-        @caseautomation: notautomated
-
-
-        @CaseLevel: Integration
-        """
 
     @tier1
     def test_positive_create_with_default_org(self):
@@ -330,8 +327,8 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name, organizations=[org_name],
                       edit=True, default_org=org_name)
-            self.user.search(name).click()
-            session.nav.click(tab_locators['users.tab_organizations'])
+            self.user.click(self.user.search(name))
+            self.user.click(tab_locators['users.tab_organizations'])
             element = session.nav.wait_until_element(
                 (strategy, value % org_name))
             self.assertIsNotNone(element)
@@ -354,8 +351,8 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name, locations=[loc_name],
                       edit=True, default_loc=loc_name)
-            self.user.search(name).click()
-            session.nav.click(tab_locators['users.tab_locations'])
+            self.user.click(self.user.search(name))
+            self.user.click(tab_locators['users.tab_locations'])
             element = session.nav.wait_until_element(
                 (strategy, value % loc_name))
             self.assertIsNotNone(element)
@@ -395,10 +392,8 @@ class UserTestCase(UITestCase):
             for user_name in invalid_values_list(interface='ui'):
                 with self.subTest(user_name):
                     make_user(session, username=user_name)
-                    self.assertIsNotNone(
-                        self.user.wait_until_element(
-                            common_locators['haserror'])
-                    )
+                    self.assertIsNotNone(self.user.wait_until_element(
+                        common_locators['haserror']))
 
     @tier1
     def test_negative_create_with_invalid_firstname(self):
@@ -418,10 +413,8 @@ class UserTestCase(UITestCase):
                         username=gen_string('alpha'),
                         first_name=first_name,
                     )
-                    self.assertIsNotNone(
-                        self.user.wait_until_element(
-                            common_locators['haserror'])
-                    )
+                    self.assertIsNotNone(self.user.wait_until_element(
+                        common_locators['haserror']))
 
     @tier1
     def test_negative_create_with_invalid_surname(self):
@@ -441,10 +434,8 @@ class UserTestCase(UITestCase):
                         username=gen_string('alpha'),
                         last_name=last_name,
                     )
-                    self.assertIsNotNone(
-                        self.user.wait_until_element(
-                            common_locators['haserror'])
-                    )
+                    self.assertIsNotNone(self.user.wait_until_element(
+                        common_locators['haserror']))
 
     @tier1
     def test_negative_create_with_invalid_emails(self):
@@ -459,10 +450,8 @@ class UserTestCase(UITestCase):
                 with self.subTest(email):
                     name = gen_string('alpha')
                     make_user(session, username=name, email=email)
-                    self.assertIsNotNone(
-                        self.user.wait_until_element(
-                            common_locators['haserror'])
-                    )
+                    self.assertIsNotNone(self.user.wait_until_element(
+                        common_locators['haserror']))
 
     @tier1
     def test_negative_create_with_blank_auth(self):
@@ -603,7 +592,11 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             # Role 'Site' meaning 'Site Manager' here
             make_user(session, username=user_name, edit=True, roles=['Site'])
-            self.user.update(user_name, password=new_password)
+            self.user.update(
+                user_name,
+                new_password=new_password,
+                password_confirmation=new_password,
+            )
             self.login.logout()
             self.login.login(user_name, new_password)
             self.assertTrue(self.login.is_logged())
@@ -650,12 +643,12 @@ class UserTestCase(UITestCase):
         role_name = entities.Role().create().name
         with Session(self.browser) as session:
             make_user(session, username=name)
-            self.user.search(name).click()
+            self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_roles'])
             self.assertIsNone(
                 self.user.wait_until_element((strategy, value % role_name)))
             self.user.update(name, new_roles=[role_name])
-            self.user.search(name).click()
+            self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_roles'])
             self.assertIsNotNone(
                 self.user.wait_until_element((strategy, value % role_name)))
@@ -679,7 +672,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name)
             self.user.update(name, new_roles=role_names)
-            self.user.search(name).click()
+            self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_roles'])
             for role in role_names:
                 self.assertIsNotNone(
@@ -700,7 +693,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name)
             self.user.update(name, new_roles=ROLES)
-            self.user.search(name).click()
+            self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_roles'])
             for role in ROLES:
                 self.assertIsNotNone(
@@ -721,7 +714,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name)
             self.user.update(name, new_organizations=[org_name])
-            self.user.search(name).click()
+            self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_organizations'])
             element = self.user.wait_until_element(
                 (strategy, value % org_name))
@@ -746,7 +739,7 @@ class UserTestCase(UITestCase):
         with Session(self.browser) as session:
             make_user(session, username=name)
             self.user.update(name, new_organizations=org_names)
-            self.user.search(name).click()
+            self.user.click(self.user.search(name))
             self.user.click(tab_locators['users.tab_organizations'])
             for org in org_names:
                 self.assertIsNotNone(
@@ -766,10 +759,8 @@ class UserTestCase(UITestCase):
             for new_user_name in invalid_names_list():
                 with self.subTest(new_user_name):
                     self.user.update(name, new_username=new_user_name)
-                    self.assertIsNotNone(
-                        self.user.wait_until_element(
-                            common_locators['haserror'])
-                    )
+                    self.assertIsNotNone(self.user.wait_until_element(
+                        common_locators['haserror']))
 
     @tier1
     def test_negative_update_firstname(self):
@@ -785,10 +776,8 @@ class UserTestCase(UITestCase):
             for new_first_name in invalid_names_list():
                 with self.subTest(new_first_name):
                     self.user.update(name, first_name=new_first_name)
-                    self.assertIsNotNone(
-                        self.user.wait_until_element(
-                            common_locators['haserror'])
-                    )
+                    self.assertIsNotNone(self.user.wait_until_element(
+                        common_locators['haserror']))
 
     @tier1
     def test_negative_update_surname(self):
@@ -804,10 +793,8 @@ class UserTestCase(UITestCase):
             for new_surname in invalid_names_list():
                 with self.subTest(new_surname):
                     self.user.update(name, last_name=new_surname)
-                    self.assertIsNotNone(
-                        self.user.wait_until_element(
-                            common_locators['haserror'])
-                    )
+                    self.assertIsNotNone(self.user.wait_until_element(
+                        common_locators['haserror']))
 
     @tier1
     def test_negative_update_email(self):
@@ -823,12 +810,9 @@ class UserTestCase(UITestCase):
             for new_email in invalid_emails_list():
                 with self.subTest(new_email):
                     self.user.update(name, email=new_email)
-                    self.assertIsNotNone(
-                        self.user.wait_until_element(
-                            common_locators['haserror'])
-                    )
+                    self.assertIsNotNone(self.user.wait_until_element(
+                        common_locators['haserror']))
 
-    @stubbed()
     @tier1
     def test_negative_update_password(self):
         """Update different values in Password and verify fields
@@ -841,9 +825,40 @@ class UserTestCase(UITestCase):
         verify fields
 
         @Assert: User is not updated.  Appropriate error shown.
-
-        @caseautomation: notautomated
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_user(session, username=name)
+            self.user.update(
+                name,
+                new_password=gen_string('alphanumeric'),
+                password_confirmation=gen_string('alphanumeric'),
+            )
+            self.assertIsNotNone(self.user.wait_until_element(
+                common_locators['haserror']))
+
+    @tier1
+    def test_negative_update_password_empty_confirmation(self):
+        """Update user password without providing confirmation value
+
+        @id: c2b569c9-8120-4125-8bfe-61324a881395
+
+        @Steps:
+        1. Create User
+        2. Update the password by entering value only in Password field
+
+        @Assert: User is not updated.  Appropriate error shown.
+        """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_user(session, username=name)
+            self.user.update(
+                name,
+                new_password=gen_string('alphanumeric'),
+                password_confirmation='',
+            )
+            self.assertIsNotNone(self.user.wait_until_element(
+                common_locators['haserror']))
 
     @tier1
     def test_negative_update(self):
@@ -869,7 +884,6 @@ class UserTestCase(UITestCase):
             self.assertIsNotNone(self.user.search(username))
             self.assertIsNone(self.user.search(new_username))
 
-    @skip_if_bug_open('bugzilla', 1314894)
     @tier1
     def test_positive_delete_user(self):
         """Delete an existing User
@@ -911,25 +925,6 @@ class UserTestCase(UITestCase):
             make_user(session, username=user_name)
             self.assertIsNotNone(self.user.search(user_name))
             self.user.delete(user_name, really=False)
-
-    @stubbed()
-    @tier2
-    def test_negative_delete_last_admin(self):
-        """Attempt to delete the last remaining admin user
-
-        @id: f94929f2-0159-4b19-9cb6-b94e88c124f8
-
-        @Steps:
-        1. Create multiple Users and admin users
-        2. Delete the users except the last admin user
-        3. Attempt to delete the last admin user
-
-        @Assert: User is not deleted
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
 
     @stubbed()
     @tier3
@@ -977,117 +972,6 @@ class UserTestCase(UITestCase):
         @CaseLevel: System
         """
 
-    @stubbed()
-    @tier2
-    def test_positive_create_bookmark_default(self):
-        """Create a bookmark with default values
-
-        @id: 260fbfbd-7a9f-44c5-a3c2-0dac79211ce5
-
-        @Steps:
-        1. Search for a criteria
-        2. Create bookmark with default values
-
-        @Assert: Search bookmark is created
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_create_bookmark_alter_default(self):
-        """Create a bookmark by altering the default values
-
-        @id: b2b9887f-850c-4e04-ae84-1ff2441f5d28
-
-        @Steps:
-        1. Search for a criteria
-        2. Create bookmark updating all the default values
-
-        @Assert: Search bookmark is created
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_create_bookmark_public(self):
-        """Create a bookmark in public mode
-
-        @id: c9efede7-1938-4177-b435-2a8926aed4bb
-
-        @Steps:
-        1. Search for a criteria
-        2. Create bookmark in public mode
-
-        @Assert: Search bookmark is created in public mode and is accessible
-        by other users
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_create_bookmark_private(self):
-        """Create a bookmark in private mode
-
-        @id: 7d6b99c9-4d68-4c96-bdbc-f73a5d2324f6
-
-        @Steps:
-        1. Search for a criteria
-        2. Create bookmark in private mode
-
-        @Assert: Search bookmark is created in private mode and is not
-        accessible by other users
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_negative_create_bookmark_with_blank_name(self):
-        """Create a bookmark with a blank bookmark name
-
-        @id: 3611bd25-ae3c-4015-8098-2ffc9010bbb3
-
-        @Steps:
-        1. Search for a criteria
-        2. Create bookmark with a blank bookmark name
-
-        @Assert: Search bookmark not created. Appropriate error shown.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_negative_create_bookmark_with_blank_query(self):
-        """Create a bookmark with a blank bookmark query
-
-        @id: 35cefd95-c376-4f25-9dab-e1f1dd74c765
-
-        @Steps:
-        1. Search for a criteria
-        2. Create bookmark with a blank bookmark query
-
-        @Assert: Search bookmark not created. Appropriate error shown.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    @stubbed()
     @tier1
     def test_positive_set_timezone(self):
         """Set a new timezone for the user
@@ -1102,9 +986,13 @@ class UserTestCase(UITestCase):
         4.Try to apply some timezone
 
         @Assert: User should be able to change timezone
-
-        @caseautomation: notautomated
         """
+        with Session(self.browser) as session:
+            for timezone in TIMEZONES:
+                with self.subTest(timezone):
+                    name = gen_string('alpha')
+                    make_user(session, username=name, timezone=timezone)
+                    self.user.validate_user(name, 'timezone', timezone, False)
 
     @stubbed()
     @tier1
@@ -1168,3 +1056,57 @@ class UserTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
+
+
+class ActiveDirectoryUserTestCase(UITestCase):
+    """Implements Active Directory feature tests for user in UI."""
+
+    @classmethod
+    @skip_if_not_set('ldap')
+    def setUpClass(cls):  # noqa
+        super(ActiveDirectoryUserTestCase, cls).setUpClass()
+        cls.ldap_user_name = settings.ldap.username
+        cls.ldap_user_passwd = settings.ldap.password
+        cls.base_dn = settings.ldap.basedn
+        cls.group_base_dn = settings.ldap.grpbasedn
+        cls.ldap_hostname = settings.ldap.hostname
+        cls.usergroup_name = gen_string('alpha')
+
+        authsource_attrs = entities.AuthSourceLDAP(
+            onthefly_register=True,
+            account=cls.ldap_user_name,
+            account_password=cls.ldap_user_passwd,
+            base_dn=cls.base_dn,
+            groups_base=cls.group_base_dn,
+            attr_firstname=LDAP_ATTR['firstname'],
+            attr_lastname=LDAP_ATTR['surname'],
+            attr_login=LDAP_ATTR['login_ad'],
+            server_type=LDAP_SERVER_TYPE['API']['ad'],
+            attr_mail=LDAP_ATTR['mail'],
+            name=gen_string('alpha'),
+            host=cls.ldap_hostname,
+            tls=False,
+            port='389',
+        ).create()
+        cls.ldap_server_name = authsource_attrs.name
+
+    @tier2
+    def test_positive_create_in_ldap_mode(self):
+        """Create User in ldap mode
+
+        @id: 0668b2ca-831e-4568-94fb-80e45dd7d001
+
+        @Assert: User is created without specifying the password
+
+        @CaseLevel: Integration
+        """
+        user_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_user(
+                session,
+                username=user_name,
+                authorized_by='LDAP-' + self.ldap_server_name,
+                password1='',
+                password2='',
+            )
+            self.assertIsNotNone(self.user.search(user_name))
