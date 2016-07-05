@@ -426,10 +426,7 @@ class Base(object):
 
     @classmethod
     def _construct_command(cls, options=None):
-        """
-        Build a hammer cli command based on the options passed
-        """
-
+        """Build a hammer cli command based on the options passed"""
         tail = u''
 
         if options is None:

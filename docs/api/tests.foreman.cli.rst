@@ -193,11 +193,6 @@
 
 .. automodule:: tests.foreman.cli.test_role
 
-:mod:`tests.foreman.cli.test_scparam`
--------------------------------------
-
-.. automodule:: tests.foreman.cli.test_scparam
-
 :mod:`tests.foreman.cli.test_sso`
 ---------------------------------
 

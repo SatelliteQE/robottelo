@@ -175,10 +175,10 @@ Submodules:
 
 .. automodule:: robottelo.cli.settings
 
-:mod:`robottelo.cli.smartclass`
--------------------------------
+:mod:`robottelo.cli.scparams`
+-----------------------------
 
-.. automodule:: robottelo.cli.smartclass
+.. automodule:: robottelo.cli.scparams
 
 :mod:`robottelo.cli.subnet`
 ---------------------------

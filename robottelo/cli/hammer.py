@@ -153,8 +153,9 @@ def parse_info(output):
         if line == '':
             continue
         if line.startswith(' '):  # sub-properties are indented
-            # values are separated by ':' or '=>'
-            if line.find(':') != -1:
+            # values are separated by ':' or '=>', but not by '::' which can be
+            # entity name like 'test::params::keys'
+            if line.find(':') != -1 and not line.find('::') != -1:
                 key, value = line.lstrip().split(":", 1)
             elif line.find('=>') != -1:
                 key, value = line.lstrip().split(" =>", 1)

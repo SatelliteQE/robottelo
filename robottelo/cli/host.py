@@ -39,9 +39,7 @@ from robottelo.cli.base import Base
 
 
 class Host(Base):
-    """
-    Manipulates Foreman's hosts.
-    """
+    """Manipulates Foreman's hosts."""
 
     command_base = 'host'
 
@@ -339,3 +337,22 @@ class Host(Base):
         """
         cls.command_sub = 'subscription unregister'
         return cls.execute(cls._construct_command(options))
+
+    @classmethod
+    def sc_params(cls, options=None):
+        """List all smart class parameters
+
+        Usage:
+            hammer host sc-params [OPTIONS]
+
+        Options:
+            --host HOST_NAME              Host name
+            --host-id HOST_ID
+            --order ORDER                 sort results
+            --page PAGE                   paginate results
+            --per-page PER_PAGE           number of entries per request
+            --search SEARCH               filter results
+        """
+        cls.command_sub = 'sc-params'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
