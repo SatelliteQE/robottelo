@@ -146,10 +146,9 @@ class Sync(Base):
                 # Below loop helps when reposet checkbox is already expanded
                 # and when selecting multiple repos.
                 if rs_exp:
-                    self.scroll_into_view(rs_exp)
-                    rs_exp.click()
+                    self.click(rs_exp, scroll=True)
                 elif rs_cb:
-                    rs_cb.click()
+                    self.click(rs_cb)
                     # Selecting a rs checkbox takes time and spinner is visible
                     # the below code loops for over 2 mins till the spinner is
                     # visible.
