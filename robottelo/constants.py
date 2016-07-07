@@ -274,7 +274,7 @@ LANGUAGES = [
 TIMEZONES = [
     u'(GMT+00:00) UTC',
     u'(GMT-10:00) Hawaii',
-    u'(GMT+02:00) Europe/Kiev',
+    u'(GMT+02:00) Kyiv',
     u'(GMT+08:00) Hong Kong',
     u'(GMT-07:00) Arizona',
 ]
