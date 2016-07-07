@@ -37,11 +37,7 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.product import Product
 from robottelo.cli.repository import Repository
 from robottelo.config import settings
-from robottelo.constants import (
-    DOCKER_0_EXTERNAL_REGISTRY,
-    DOCKER_1_EXTERNAL_REGISTRY,
-    DOCKER_REGISTRY_HUB,
-)
+from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import generate_strings_list, valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
@@ -1601,7 +1597,7 @@ class DockerContainersTestCase(CLITestCase):
         @CaseLevel: Integration
         """
         repo_name = 'rhel'
-        registry = make_registry({'url': DOCKER_0_EXTERNAL_REGISTRY})
+        registry = make_registry({'url': settings.docker.external_registry_1})
         try:
             compute_resource = make_compute_resource({
                 'organization-ids': [self.org['id']],
@@ -1652,6 +1648,15 @@ class DockerRegistryTestCase(CLITestCase):
     repositories.
     """
 
+    @classmethod
+    @skip_if_not_set('docker')
+    def setUpClass(cls):
+        """Skip the tests if docker section is not set in properties file and
+        set external docker registry url which can be re-used in tests.
+        """
+        super(DockerRegistryTestCase, cls).setUpClass()
+        cls.url = settings.docker.external_registry_1
+
     @tier1
     @run_only_on('sat')
     def test_positive_create_with_name(self):
@@ -1667,13 +1672,12 @@ class DockerRegistryTestCase(CLITestCase):
                 registry = make_registry({
                     'description': description,
                     'name': name,
-                    'url': DOCKER_0_EXTERNAL_REGISTRY,
+                    'url': self.url,
                 })
                 try:
                     self.assertEqual(registry['name'], name)
                     self.assertEqual(registry['description'], description)
-                    self.assertEqual(
-                        registry['url'], DOCKER_0_EXTERNAL_REGISTRY)
+                    self.assertEqual(registry['url'], self.url)
                 finally:
                     Docker.registry.delete({'id': registry['id']})
 
@@ -1735,7 +1739,7 @@ class DockerRegistryTestCase(CLITestCase):
         """
         registry = make_registry()
         try:
-            new_url = DOCKER_1_EXTERNAL_REGISTRY
+            new_url = settings.docker.external_registry_2
             Docker.registry.update({
                 'id': registry['id'],
                 'url': new_url,
@@ -1757,7 +1761,7 @@ class DockerRegistryTestCase(CLITestCase):
         """
         registry = make_registry()
         try:
-            new_url = DOCKER_1_EXTERNAL_REGISTRY
+            new_url = settings.docker.external_registry_2
             Docker.registry.update({
                 'name': registry['name'],
                 'url': new_url,

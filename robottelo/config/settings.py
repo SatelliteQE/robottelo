@@ -248,20 +248,28 @@ class DockerSettings(FeatureSettings):
         super(DockerSettings, self).__init__(*args, **kwargs)
         self.unix_socket = None
         self.external_url = None
+        self.external_registry_1 = None
+        self.external_registry_2 = None
 
     def read(self, reader):
         """Read docker settings."""
         self.unix_socket = reader.get(
             'docker', 'unix_socket', False, bool)
         self.external_url = reader.get('docker', 'external_url')
+        self.external_registry_1 = reader.get('docker', 'external_registry_1')
+        self.external_registry_2 = reader.get('docker', 'external_registry_2')
 
     def validate(self):
         """Validate docker settings."""
         validation_errors = []
-        if not any(vars(self).values()):
+        if not any((self.unix_socket, self.external_url)):
             validation_errors.append(
                 'Either [docker] unix_socket or external_url options must '
                 'be provided or enabled.')
+        if not all((self.external_registry_1, self.external_registry_2)):
+            validation_errors.append(
+                'Both [docker] external_registry_1 and external_registry_2 '
+                'options must be provided.')
         return validation_errors
 
     def get_unix_socket_url(self):

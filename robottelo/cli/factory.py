@@ -50,9 +50,9 @@ from robottelo.cli.syncplan import SyncPlan
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
 from robottelo.cli.usergroup import UserGroup, UserGroupExternal
+from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
-    DOCKER_0_EXTERNAL_REGISTRY,
     FAKE_1_YUM_REPO,
     FOREMAN_PROVIDERS,
     OPERATING_SYSTEMS,
@@ -648,7 +648,7 @@ def make_registry(options=None):
         u'description': None,
         u'name': gen_string('alphanumeric'),
         u'password': None,
-        u'url': DOCKER_0_EXTERNAL_REGISTRY,
+        u'url': settings.docker.external_registry_1,
         u'username': None,
     }
 

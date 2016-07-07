@@ -141,6 +141,12 @@ ssh_key=
 # in other words, the daemon is initialized with `--host tcp://0.0.0.0:<port>`.
 # This will be used by tests that test external docker daemon.
 # external_url=http://localhost:2375
+# These will be used by tests that exercise external docker registries. Second
+# one will be used by tests that validate updating from one docker registry url
+# to another
+# External docker registries urls in the format http[s]://<server>[:<port>].
+# external_registry_1=
+# external_registry_2=
 
 
 # For testing Red Hat Access Insights

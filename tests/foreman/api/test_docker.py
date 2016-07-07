@@ -21,11 +21,7 @@ from random import choice, randint, shuffle
 from requests.exceptions import HTTPError
 from robottelo.api.utils import promote
 from robottelo.config import settings
-from robottelo.constants import (
-    DOCKER_REGISTRY_HUB,
-    DOCKER_0_EXTERNAL_REGISTRY,
-    DOCKER_1_EXTERNAL_REGISTRY,
-)
+from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import (
     datacheck,
     generate_strings_list,
@@ -1346,7 +1342,8 @@ class DockerContainerTestCase(APITestCase):
         @CaseLevel: Integration
         """
         repo_name = 'rhel'
-        registry = entities.Registry(url=DOCKER_0_EXTERNAL_REGISTRY).create()
+        registry = entities.Registry(
+            url=settings.docker.external_registry_1).create()
         try:
             compute_resource = entities.DockerComputeResource(
                 organization=[self.org],
@@ -1390,7 +1387,15 @@ class DockerRegistryTestCase(APITestCase):
     """Tests specific to performing CRUD methods against ``Registries``
     repositories.
     """
-    url = DOCKER_0_EXTERNAL_REGISTRY
+
+    @classmethod
+    @skip_if_not_set('docker')
+    def setUpClass(cls):
+        """Skip the tests if docker section is not set in properties file and
+        set external docker registry url which can be re-used in tests.
+        """
+        super(DockerRegistryTestCase, cls).setUpClass()
+        cls.url = settings.docker.external_registry_1
 
     @tier1
     @run_only_on('sat')
@@ -1447,7 +1452,7 @@ class DockerRegistryTestCase(APITestCase):
 
         @CaseLevel: Integration
         """
-        new_url = DOCKER_1_EXTERNAL_REGISTRY
+        new_url = settings.docker.external_registry_2
         registry = entities.Registry(url=self.url).create()
         try:
             self.assertEqual(registry.url, self.url)
