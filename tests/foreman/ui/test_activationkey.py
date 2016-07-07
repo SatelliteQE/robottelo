@@ -1032,7 +1032,6 @@ class ActivationKeyTestCase(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
             # Verify subscription is assigned to activation key
-            self.navigator.go_to_activation_keys()
             self.assertIsNotNone(
                 self.activationkey.search_key_subscriptions(
                     activation_key.name, DEFAULT_SUBSCRIPTION_NAME
@@ -1042,9 +1041,8 @@ class ActivationKeyTestCase(UITestCase):
             self.navigator.go_to_red_hat_subscriptions()
             self.subscriptions.delete()
             self.assertIsNotNone(self.subscriptions.wait_until_element(
-                common_locators['alert.success_sub_form']))
+                common_locators['alert.success']))
             # Verify the subscription was removed from the activation key
-            self.navigator.go_to_activation_keys()
             self.assertIsNone(
                 self.activationkey.search_key_subscriptions(
                     activation_key.name, DEFAULT_SUBSCRIPTION_NAME

@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Implements Activation keys UI."""
 from robottelo.constants import DEFAULT_CV
-from robottelo.helpers import escape_search
 from robottelo.ui.base import Base, UIError, UINoSuchElementError
 from robottelo.ui.locators import locators, common_locators, tab_locators
 from robottelo.ui.navigator import Navigator
@@ -51,23 +50,10 @@ class ActivationKey(Base):
 
     def search_key_subscriptions(self, ak_name, subscription_name):
         """Fetch associated subscriptions from selected activation key"""
-        activation_key = self.search(ak_name)
-        if activation_key is None:
-            raise UINoSuchElementError(
-                u'Could not find activation key {0}'.format(ak_name))
-        activation_key.click()
-        self.wait_for_ajax()
-        if self.wait_until_element(tab_locators['ak.subscriptions']) is None:
-            raise UINoSuchElementError('Could not find Subscriptions tab')
+        self.click(self.search(ak_name))
         self.click(tab_locators['ak.subscriptions'])
-        searchbox = self.wait_until_element(
-            locators['ak.subscriptions.search'])
-        if searchbox is None:
-            raise UINoSuchElementError(
-                'Could not find Subscriptions search box')
-        searchbox.clear()
-        searchbox.send_keys(escape_search(subscription_name))
-        self.click(locators['ak.subscriptions.search_button'])
+        self.text_field_update(
+            locators['ak.subscriptions.search'], subscription_name)
         strategy, value = locators['ak.get_subscription_name']
         element = self.wait_until_element(
             (strategy, value % subscription_name))
@@ -120,15 +106,7 @@ class ActivationKey(Base):
 
     def associate_product(self, name, products):
         """Associate an existing product with activation key."""
-        element = self.search(name)
-
-        if not element:
-            raise UIError(
-                'Could not find the selected activation key "{0}"'.format(name)
-            )
-
-        element.click()
-        self.wait_for_ajax()
+        self.click(self.search(name))
         self.click(tab_locators['ak.subscriptions'])
         self.click(tab_locators['ak.subscriptions_add'])
         strategy, value = locators['ak.select_subscription']
@@ -158,21 +136,13 @@ class ActivationKey(Base):
 
     def get_attribute(self, name, locator):
         """Get the attribute of selected locator."""
-        element = self.search(name)
-
-        if element:
-            element.click()
-            self.wait_for_ajax()
-            if self.wait_until_element(locator):
-                result = self.find_element(locator).text
-                return result
-            else:
-                raise UIError(
-                    'Could not get text attribute of a given locator'
-                )
+        self.click(self.search(name))
+        if self.wait_until_element(locator):
+            result = self.find_element(locator).text
+            return result
         else:
             raise UIError(
-                'Could not find the selected activation key "{0}"'.format(name)
+                'Could not get text attribute of a given locator'
             )
 
     def add_host_collection(self, name, host_collection_name):
@@ -204,16 +174,10 @@ class ActivationKey(Base):
 
     def copy(self, name, new_name=None):
         """Copies an existing activation key"""
-        element = self.search(name)
-
-        if element and new_name:
-            element.click()
-            self.wait_for_ajax()
-            self.edit_entity(
-                locators['ak.copy'],
-                locators['ak.copy_name'],
-                new_name,
-                locators['ak.copy_create'],
-            )
-        else:
-            raise UIError('Could not copy activation key "{0}"'.format(name))
+        self.click(self.search(name))
+        self.edit_entity(
+            locators['ak.copy'],
+            locators['ak.copy_name'],
+            new_name,
+            locators['ak.copy_create'],
+        )
