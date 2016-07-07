@@ -19,7 +19,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, stubbed, tier1, tier2
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_lifecycle_environment
 from robottelo.ui.session import Session
@@ -127,3 +127,30 @@ class LifeCycleEnvironmentTestCase(UITestCase):
                 gen_string('alpha')
             )
             self.assertIsNotNone(self.lifecycleenvironment.search(new_name))
+
+    @tier2
+    @stubbed('Implement once BZ1348727 is fixed')
+    def test_positive_create_environment_after_host_register(self):
+        """Verify that no error is thrown when creating an evironment after
+        registering a host to Library.
+
+        @id: feab2298-4faf-470b-b906-8b50d148f52a
+
+        @BZ: 1348727
+
+        @Setup:
+
+        1. Create an organization.
+        2. Create a new content host.
+        3. Register the content host to the Library environment.
+
+        @Steps:
+
+        1. Create a new environment.
+
+        @Assert: The environment is created without any errors.
+
+        @CaseLevel: Integration
+
+        @caseautomation: notautomated
+        """

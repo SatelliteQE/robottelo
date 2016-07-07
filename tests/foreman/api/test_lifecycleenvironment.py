@@ -23,7 +23,7 @@ from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.constants import ENVIRONMENT
 from robottelo.datafactory import invalid_values_list, valid_data_list
-from robottelo.decorators import run_only_on, tier1, tier2
+from robottelo.decorators import run_only_on, stubbed, tier1, tier2
 from robottelo.test import APITestCase
 
 
@@ -198,3 +198,30 @@ class LifecycleEnvironmentTestCase(APITestCase):
             {lc_env_.name for lc_env_ in lc_envs},
             {u'Library', lc_env.name},
         )
+
+    @tier2
+    @stubbed('Implement once BZ1348727 is fixed')
+    def test_positive_create_environment_after_host_register(self):
+        """Verify that no error is thrown when creating an evironment after
+        registering a host to Library.
+
+        @id: ceedf88d-1ad1-47ff-aab1-04587a8121ee
+
+        @BZ: 1348727
+
+        @Setup:
+
+        1. Create an organization.
+        2. Create a new content host.
+        3. Register the content host to the Library environment.
+
+        @Steps:
+
+        1. Create a new environment.
+
+        @Assert: The environment is created without any errors.
+
+        @CaseLevel: Integration
+
+        @caseautomation: notautomated
+        """
