@@ -1849,17 +1849,18 @@ locators = LocatorDict({
         By.XPATH, ("//div[@id='ui-tabs-1']//td[contains(.,'%s')]"
                    "/span[@class='expander']")),
     "rh.reposet_expander": (
-        By.XPATH, ("//span[@class='expander_area' and contains(.,'%s')]"
-                   "/span")),
+        By.XPATH, ("//span[contains(@class, 'expander_area') and "
+                   "contains(.,'%s')]/span")),
     "rh.reposet_checkbox": (
-        By.XPATH, ("//span[@class='expander_area' and contains(.,'%s')]"
+        By.XPATH, ("//span[contains(@class, 'expander_area') and "
+                   "contains(.,'%s')]"
                    "/../../td/input[@class='repo_set_enable']")),
     "rh.repo_checkbox": (
         By.XPATH, ("//table[@class='repo_table']//td[contains(.,'%s')]"
                    "/../td/label/input[@class='repo_enable']")),
     "rh.reposet_spinner": (
-        By.XPATH, ("//span[@class='expander_area' and contains(.,'%s')]"
-                   "/../../td/img[@alt='Spinner']")),
+        By.XPATH, ("//span[contains(@class, 'expander_area') and "
+                   "contains(.,'%s')]/../../td/img[@alt='Spinner']")),
     "rh.repo_spinner": (
         By.XPATH, ("//table[@class='repo_table']//td[contains(.,'%s')]"
                    "/../td/label/img[@alt='Spinner']")),
