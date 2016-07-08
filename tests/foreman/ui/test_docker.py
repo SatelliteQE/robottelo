@@ -21,8 +21,6 @@ from random import randint, shuffle
 from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import (
-    DOCKER_0_EXTERNAL_REGISTRY,
-    DOCKER_1_EXTERNAL_REGISTRY,
     DOCKER_REGISTRY_HUB,
     FOREMAN_PROVIDERS,
     REPO_TYPE,
@@ -1335,7 +1333,8 @@ class DockerContainerTestCase(UITestCase):
         """
         repo_name = 'rhel'
         container_name = gen_string('alphanumeric')
-        registry = entities.Registry(url=DOCKER_0_EXTERNAL_REGISTRY).create()
+        registry = entities.Registry(
+            url=settings.docker.external_registry_1).create()
         try:
             with Session(self.browser) as session:
                 session.nav.go_to_select_org(self.organization.name)
@@ -1425,6 +1424,15 @@ class DockerRegistryTestCase(UITestCase):
     repositories.
     """
 
+    @classmethod
+    @skip_if_not_set('docker')
+    def setUpClass(cls):
+        """Skip the tests if docker section is not set in properties file and
+        set external docker registry url which can be re-used in tests.
+        """
+        super(DockerRegistryTestCase, cls).setUpClass()
+        cls.url = settings.docker.external_registry_1
+
     @run_only_on('sat')
     @tier1
     @skip_if_bug_open('bugzilla', 1333805)
@@ -1441,7 +1449,7 @@ class DockerRegistryTestCase(UITestCase):
                     make_registry(
                         session,
                         name=name,
-                        url=DOCKER_0_EXTERNAL_REGISTRY,
+                        url=self.url,
                         description=gen_string('utf8'),
                     )
                     try:
@@ -1464,7 +1472,7 @@ class DockerRegistryTestCase(UITestCase):
             make_registry(
                 session,
                 name=name,
-                url=DOCKER_0_EXTERNAL_REGISTRY,
+                url=self.url,
                 description=gen_string('utf8'),
             )
             try:
@@ -1493,12 +1501,12 @@ class DockerRegistryTestCase(UITestCase):
             make_registry(
                 session,
                 name=name,
-                url=DOCKER_0_EXTERNAL_REGISTRY,
+                url=self.url,
             )
             try:
                 registry_entity = entities.Registry(name=name).search()[0]
                 self.assertIsNotNone(self.registry.search(name))
-                new_url = DOCKER_1_EXTERNAL_REGISTRY
+                new_url = settings.docker.external_registry_2
                 self.registry.update(name, new_url=new_url)
                 self.registry.search(name).click()
                 self.assertIsNotNone(self.registry.wait_until_element(
@@ -1521,7 +1529,7 @@ class DockerRegistryTestCase(UITestCase):
             make_registry(
                 session,
                 name=name,
-                url=DOCKER_0_EXTERNAL_REGISTRY,
+                url=self.url,
                 description=gen_string('alphanumeric'),
             )
             try:
@@ -1550,7 +1558,7 @@ class DockerRegistryTestCase(UITestCase):
             make_registry(
                 session,
                 name=name,
-                url=DOCKER_0_EXTERNAL_REGISTRY,
+                url=self.url,
                 username=gen_string('alphanumeric'),
             )
             try:
@@ -1580,7 +1588,7 @@ class DockerRegistryTestCase(UITestCase):
                     make_registry(
                         session,
                         name=name,
-                        url=DOCKER_0_EXTERNAL_REGISTRY,
+                        url=self.url,
                         description=gen_string('utf8'),
                     )
                     self.registry.delete(name)
