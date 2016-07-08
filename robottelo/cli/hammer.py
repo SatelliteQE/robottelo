@@ -1,10 +1,12 @@
 """Helpers to interact with hammer command line utility."""
 import csv
+import json
+
 import re
 import six
-
-from six.moves import zip
+from six import text_type
 from six.moves import cStringIO as StringIO
+from six.moves import zip
 
 
 def _csv_reader(output):
@@ -38,11 +40,39 @@ def _csv_reader(output):
             yield row
 
 
+def _normalize(header):
+    """Replace empty spaces with '-' and lower all chars
+    """
+    return header.replace(' ', '-').lower()
+
+
+def parse_json(stdout):
+    """Parse JSON output from Hammer CLI and convert it to python dictionary
+    while normalizing keys.
+    """
+    parsed = json.loads(stdout)
+    return _normalize_obj(parsed)
+
+
+def _normalize_obj(obj):
+    """Normalize all dict's keys replacing empty spaces with "-" and lowering
+    chars
+    """
+    if isinstance(obj, dict):
+        return {_normalize(k): _normalize_obj(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [_normalize_obj(v) for v in obj]
+    # doing this to conform to csv parser
+    elif isinstance(obj, int) and not isinstance(obj, bool):
+        return text_type(obj)
+    return obj
+
+
 def parse_csv(output):
     """Parse CSV output from Hammer CLI and convert it to python dictionary."""
     reader = _csv_reader(output)
     # Generate the key names, spaces will be converted to dashes "-"
-    keys = [header.replace(' ', '-').lower() for header in next(reader)]
+    keys = [_normalize(header) for header in next(reader)]
     # For each entry, create a dict mapping each key with each value
     return [dict(zip(keys, values)) for values in reader if len(values) > 0]
 
