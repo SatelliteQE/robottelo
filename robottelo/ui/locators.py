@@ -546,6 +546,30 @@ tab_locators = LocatorDict({
     "contentviews.tab_remove": (
         By.XPATH, "//a[contains(@ui-sref, 'list')]"),
 
+    # Content Hosts
+    # Third level UI
+    "contenthost.tab_details": (
+        By.XPATH, "//a[@class='ng-scope' and contains(@href,'info')]"),
+    "contenthost.tab_subscriptions": (
+        By.XPATH,
+        ("//li[@class='dropdown' and contains(@ng-class, "
+         "'content-hosts.details.subscriptions.list')]/a")),
+    "contenthost.tab_subscriptions_subscriptions": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@href,'subscriptions')]"),
+    "contenthost.tab_packages": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@href,'packages')]"),
+    # Fourth level UI
+    "contenthost.list_subscriptions": (
+        By.XPATH,
+        ("//a[contains(@ui-sref,'subscriptions.list')]"
+         "/span[@class='ng-scope']")),
+    "contenthost.add_subscription": (
+        By.XPATH,
+        ("//a[contains(@ui-sref,'subscriptions.add')]"
+         "/span[@class='ng-scope']")),
+
     # Sync Plans
     # Third level UI
     "sp.tab_details": (
@@ -1027,6 +1051,47 @@ locators = LocatorDict({
         By.XPATH,
         ("//a[contains(@href, 'compute_resources/') and "
          "contains(@href, 'vms/') and contains(., '%s')]")),
+
+    # Content Hosts
+    "contenthost.select_name": (
+       By.XPATH, "//a[contains(@href, 'content_hosts') and contains(.,'%s')]"),
+    "contenthost.edit_name": (
+        By.XPATH, "//form[@bst-edit-text='host.name']//div/span/i"),
+    "contenthost.edit_name_text": (
+        By.XPATH,
+        "//form[@bst-edit-text='host.name']/div/input"),
+    "contenthost.save_name": (
+        By.XPATH,
+        "//form[@bst-edit-text='host.name']//button[@ng-click='save()']"),
+    "contenthost.unregister": (
+        By.XPATH, "//button[@ng-disabled='host.deleting']"),
+    "contenthost.subscription_active": (
+        By.XPATH,
+        ("//td[a[contains(@href, 'content_hosts') and contains(.,'%s')]]"
+         "/following-sibling::td/span[contains(@ng-class, "
+         "'host.subscription_status') and  contains(@class, 'green')]")),
+    "contenthost.subscription_not_active": (
+        By.XPATH,
+        ("//td[a[contains(@href, 'content_hosts') and contains(.,'%s')]]"
+         "/following-sibling::td/span[contains(@ng-class, "
+         "'host.subscription_status') and  contains(@class, 'red')]")),
+    "contenthost.subscription_select": (
+        By.XPATH,
+        ("//tr[//a[contains(@href,'info') and contains(.,'%s')]]"
+         "/following-sibling::tr[1]/td/input[@type='checkbox']")),
+    "contenthost.add_selected": (
+        By.XPATH, "//button[contains(@ng-click, 'addSelected()')]"),
+    "contenthost.remove_selected": (
+        By.XPATH, "//button[contains(@ng-click, 'removeSelected()')]"),
+    "contenthost.remote_actions": (
+        By.XPATH, "//select[@name='remote_action']"),
+    "contenthost.package_name_input": (
+        By.XPATH,
+        "//input[@type='text' and contains(@ng-model, 'packageAction')]"),
+    "contenthost.perform_remote_action": (
+        By.XPATH,
+        ("//form[@ng-submit='performPackageAction()']"
+         "//button[contains(@class, 'ng-scope')]")),
 
     # Hosts
 

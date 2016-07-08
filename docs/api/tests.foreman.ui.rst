@@ -94,7 +94,7 @@
 .. automodule:: tests.foreman.ui.test_host
 
 :mod:`tests.foreman.ui.test_hostunification`
-----------------------------------------------------
+--------------------------------------------
 
 .. automodule:: tests.foreman.ui.test_hostunification
 

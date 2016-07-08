@@ -30,7 +30,7 @@ class ClientProvisioningMixin(object):
             vm.install_katello_ca()
             # Register client with foreman server using act keys
             result = vm.register_contenthost(
-                activation_key_name, organization_label)
+                organization_label, activation_key_name)
             self.assertEqual(result.return_code, 0)
             # Install rpm on client
             result = vm.run('yum install -y {0}'.format(package_name))

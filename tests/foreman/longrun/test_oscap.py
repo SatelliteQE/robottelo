@@ -223,7 +223,7 @@ class OpenScapTestCase(UITestCase):
                 with VirtualMachine(distro=value['distro']) as vm:
                     host = vm.hostname
                     vm.install_katello_ca()
-                    vm.register_contenthost(self.ak_name, self.org_name)
+                    vm.register_contenthost(self.org_name, self.ak_name)
                     vm.configure_puppet(value['rhel_repo'])
                     session.nav.go_to_hosts()
                     set_context(session, org=ANY_CONTEXT['org'])
@@ -252,7 +252,7 @@ class OpenScapTestCase(UITestCase):
                     self.assertEqual(result.return_code, 0)
                     # BZ 1259188 , required till CH and Hosts unification.
                     # We need to re-register because of above bug and FE
-                    vm.register_contenthost(self.ak_name, self.org_name)
+                    vm.register_contenthost(self.org_name, self.ak_name)
                     # Runs the actual oscap scan on the vm/clients and
                     # uploads report to Internal Capsule.
                     vm.execute_foreman_scap_client()

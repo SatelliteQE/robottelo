@@ -48,6 +48,7 @@ from robottelo.ui.computeprofile import ComputeProfile
 from robottelo.ui.computeresource import ComputeResource
 from robottelo.ui.configgroups import ConfigGroups
 from robottelo.ui.container import Container
+from robottelo.ui.contenthost import ContentHost
 from robottelo.ui.contentviews import ContentViews
 from robottelo.ui.discoveredhosts import DiscoveredHosts
 from robottelo.ui.discoveryrules import DiscoveryRules
@@ -267,6 +268,7 @@ class UITestCase(TestCase):
         self.container = Container(self.browser)
         self.compute_profile = ComputeProfile(self.browser)
         self.compute_resource = ComputeResource(self.browser)
+        self.contenthost = ContentHost(self.browser)
         self.configgroups = ConfigGroups(self.browser)
         self.content_views = ContentViews(self.browser)
         self.dockertag = DockerTag(self.browser)

@@ -38,6 +38,11 @@
 
 .. automodule:: robottelo.ui.container
 
+:mod:`robottelo.ui.contenthost`
+-------------------------------
+
+.. automodule:: robottelo.ui.contenthost
+
 :mod:`robottelo.ui.contentviews`
 --------------------------------
 

@@ -945,8 +945,8 @@ class KatelloAgentTestCase(CLITestCase):
         self.client.install_katello_ca()
         # Register content host, install katello-agent
         self.client.register_contenthost(
+            KatelloAgentTestCase.org['label'],
             KatelloAgentTestCase.activation_key['name'],
-            KatelloAgentTestCase.org['label']
         )
         self.host = Host.info({'name': self.client.hostname})
         self.client.enable_repo(REPOS['rhst7']['id'])

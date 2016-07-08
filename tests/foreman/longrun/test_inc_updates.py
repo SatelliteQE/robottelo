@@ -231,8 +231,8 @@ class IncrementalUpdateTestCase(TestCase):
 
         # Register content host, install katello-agent
         result = client.register_contenthost(
-            act_key,
             org_name,
+            act_key,
             releasever='6.7'
         )
         assert result.return_code == 0
