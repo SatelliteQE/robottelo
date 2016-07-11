@@ -27,7 +27,12 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
 )
-from robottelo.decorators import run_only_on, tier3
+from robottelo.decorators import (
+    run_in_one_thread,
+    run_only_on,
+    skip_if_not_set,
+    tier3,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_host
@@ -47,6 +52,7 @@ class HostContentHostUnificationTestCase(UITestCase):
     # fuzzy like hostname"
 
     @classmethod
+    @skip_if_not_set('clients', 'fake_manifest')
     def setUpClass(cls):
         """Create an organization which can be re-used in tests."""
         super(HostContentHostUnificationTestCase, cls).setUpClass()
@@ -78,6 +84,7 @@ class HostContentHostUnificationTestCase(UITestCase):
                 self.assertIsNotNone(self.hosts.search(vm.hostname))
                 self.assertIsNotNone(self.contenthost.search(vm.hostname))
 
+    @run_in_one_thread
     @run_only_on('sat')
     @tier3
     def test_positive_register_host_via_ak(self):
@@ -272,6 +279,7 @@ class HostContentHostUnificationTestCase(UITestCase):
                 self.hosts.delete(vm.hostname)
                 self.assertIsNone(self.contenthost.search(vm.hostname))
 
+    @run_in_one_thread
     @run_only_on('sat')
     @tier3
     def test_positive_unregister_content_host(self):
@@ -317,6 +325,50 @@ class HostContentHostUnificationTestCase(UITestCase):
                 self.assertIsNotNone(self.contenthost.search(vm.hostname))
                 self.assertIsNotNone(self.hosts.search(vm.hostname))
 
+    @run_in_one_thread
+    @run_only_on('sat')
+    @tier3
+    def test_positive_delete_content_host(self):
+        """Unregister and delete a host from content-hosts page
+
+        @id: 3c75c1e6-85e3-49e6-a10e-6052a0db2b7f
+
+        @steps:
+        1.  Un-register and delete a host from content-host page
+        2.  View host under content hosts
+        3.  View host under 'All hosts'
+
+        @assert: Hosts un-registered from content-host should disappear from
+        both sides of UI
+
+        @CaseLevel: System
+        """
+        org = entities.Organization().create()
+        env = entities.LifecycleEnvironment(organization=org).create()
+        content_view = entities.ContentView(organization=org).create()
+        activation_key = entities.ActivationKey(
+            environment=env,
+            organization=org,
+        ).create()
+        setup_org_for_a_rh_repo({
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhst7'],
+            'repository': REPOS['rhst7']['name'],
+            'organization-id': org.id,
+            'content-view-id': content_view.id,
+            'lifecycle-environment-id': env.id,
+            'activationkey-id': activation_key.id,
+        })
+        with VirtualMachine(distro='rhel71') as vm:
+            vm.install_katello_ca()
+            result = vm.register_contenthost(org.label, activation_key.name)
+            self.assertEqual(result.return_code, 0)
+            with Session(self.browser) as session:
+                session.nav.go_to_select_org(org.name)
+                self.contenthost.delete(vm.hostname)
+                self.assertIsNone(self.hosts.search(vm.hostname))
+
+    @run_in_one_thread
     @run_only_on('sat')
     @tier3
     def test_positive_re_register_host(self):
@@ -471,7 +523,11 @@ class HostContentHostUnificationTestCase(UITestCase):
                 ],
             )
             hostname = u'{0}.{1}'.format(host.name, host.domain.name)
-            self.contenthost.install_package(hostname, 'busybox')
+            self.contenthost.execute_package_action(
+                hostname,
+                'Package Install',
+                'busybox',
+            )
             self.assertIsNotNone(
                 self.contenthost.wait_until_element(
                     common_locators['alert.error'])

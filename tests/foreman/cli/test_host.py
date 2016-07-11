@@ -953,6 +953,7 @@ class KatelloAgentTestCase(CLITestCase):
         self.client.install_katello_agent()
 
     def tearDown(self):
+        """Destroy the VM"""
         self.client.destroy()
         super(KatelloAgentTestCase, self).tearDown()
 

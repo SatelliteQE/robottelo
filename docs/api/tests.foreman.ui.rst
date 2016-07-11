@@ -43,6 +43,11 @@
 
 .. automodule:: tests.foreman.ui.test_config_group
 
+:mod:`tests.foreman.ui.test_contenthost`
+----------------------------------------
+
+.. automodule:: tests.foreman.ui.test_contenthost
+
 :mod:`tests.foreman.ui.test_contentview`
 ----------------------------------------
 
