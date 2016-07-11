@@ -18,7 +18,7 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.datafactory import (
-    datacheck,
+    filtered_datapoint,
     generate_strings_list,
     invalid_values_list,
 )
@@ -29,7 +29,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@datacheck
+@filtered_datapoint
 def valid_arch_os_names():
     """Returns a list of arch/os names for creation tests"""
     return [

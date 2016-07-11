@@ -28,7 +28,7 @@ from robottelo.api.utils import enable_rhrepo_and_fetchid
 from robottelo.config import settings
 from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.datafactory import (
-    datacheck,
+    filtered_datapoint,
     invalid_values_list,
     valid_data_list,
 )
@@ -46,7 +46,7 @@ from robottelo.test import APITestCase
 from time import sleep
 
 
-@datacheck
+@filtered_datapoint
 def valid_sync_dates():
     """Returns a list of valid sync dates."""
     return [
@@ -63,7 +63,7 @@ def valid_sync_dates():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_sync_interval():
     """Returns a list of valid sync intervals."""
     return [u'hourly', u'daily', u'weekly']

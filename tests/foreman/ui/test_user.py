@@ -30,7 +30,7 @@ from robottelo.constants import (
     TIMEZONES,
 )
 from robottelo.datafactory import (
-    datacheck,
+    filtered_datapoint,
     invalid_emails_list,
     invalid_names_list,
     invalid_values_list,
@@ -49,7 +49,7 @@ from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
 
 
-@datacheck
+@filtered_datapoint
 def valid_strings(len1=10):
     """Generates a list of all the input strings, (excluding html)"""
     return [

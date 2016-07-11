@@ -35,7 +35,7 @@ from robottelo.cli.subscription import Subscription
 from robottelo.cli.syncplan import SyncPlan
 from robottelo.constants import PRDS, REPOS, REPOSET
 from robottelo.datafactory import (
-    datacheck,
+    filtered_datapoint,
     valid_data_list,
     invalid_values_list,
 )
@@ -51,7 +51,7 @@ from robottelo.test import CLITestCase
 from time import sleep
 
 
-@datacheck
+@filtered_datapoint
 def valid_name_interval_create_tests():
     """Returns a list of valid data for interval create tests."""
     return [
@@ -76,7 +76,7 @@ def valid_name_interval_create_tests():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_name_interval_update_tests():
     """Returns a list of valid data for interval update tests."""
     return[

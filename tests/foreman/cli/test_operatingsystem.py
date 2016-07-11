@@ -27,7 +27,7 @@ from robottelo.cli.factory import (
     make_template,
 )
 from robottelo.datafactory import (
-    datacheck,
+    filtered_datapoint,
     invalid_values_list,
     valid_data_list,
 )
@@ -35,7 +35,7 @@ from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import CLITestCase
 
 
-@datacheck
+@filtered_datapoint
 def negative_delete_data():
     """Returns a list of invalid data for operating system deletion"""
     return [

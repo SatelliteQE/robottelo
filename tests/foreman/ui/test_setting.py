@@ -19,7 +19,7 @@
 from fauxfactory import gen_email, gen_string, gen_url
 from functools import wraps
 from random import choice, randint
-from robottelo.datafactory import datacheck
+from robottelo.datafactory import filtered_datapoint
 from robottelo.decorators import (
     bz_bug_is_open,
     run_only_on,
@@ -47,7 +47,7 @@ def pick_one_if_bz_open(func):
     return func_wrapper
 
 
-@datacheck
+@filtered_datapoint
 def valid_boolean_values():
     """Returns a list of valid boolean values"""
     return [
@@ -56,7 +56,7 @@ def valid_boolean_values():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_settings_values():
     """Returns a list of valid settings values"""
     return [
@@ -70,7 +70,7 @@ def valid_settings_values():
     ]
 
 
-@datacheck
+@filtered_datapoint
 @pick_one_if_bz_open
 def invalid_foreman_urls():
     """Returns a list of invalid foreman urls"""
@@ -83,14 +83,14 @@ def invalid_foreman_urls():
     ]
 
 
-@datacheck
+@filtered_datapoint
 @pick_one_if_bz_open
 def invalid_settings_values():
     """Returns a list of invalid settings values"""
     return [' ', '-1', 'text', '0']
 
 
-@datacheck
+@filtered_datapoint
 def valid_maxtrend_timeout_values():
     """Returns a list of valid maxtrend, timeout values"""
     return [
@@ -99,7 +99,7 @@ def valid_maxtrend_timeout_values():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_urls():
     """Returns a list of valid urls"""
     return [
@@ -118,7 +118,7 @@ def valid_urls():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_login_delegation_values():
     """Returns a list of valid delegation values"""
     return [
@@ -130,7 +130,7 @@ def valid_login_delegation_values():
     ]
 
 
-@datacheck
+@filtered_datapoint
 @pick_one_if_bz_open
 def invalid_oauth_active_values():
     """Returns a list of invalid oauth_active values"""
@@ -142,7 +142,7 @@ def invalid_oauth_active_values():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_trusted_puppetmaster_hosts():
     """Returns a list of valid trusted puppetmaster hosts"""
     return [
@@ -152,13 +152,13 @@ def valid_trusted_puppetmaster_hosts():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_token_duration():
     """Returns a list of valid token durations"""
     return ['90', '0']
 
 
-@datacheck
+@filtered_datapoint
 @pick_one_if_bz_open
 def invalid_token_duration():
     """Returns a list of invalid token durations"""

@@ -25,7 +25,7 @@ from robottelo.constants import (
     FOREMAN_PROVIDERS,
     REPO_TYPE,
 )
-from robottelo.datafactory import datacheck, valid_data_list
+from robottelo.datafactory import filtered_datapoint, valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
@@ -50,7 +50,7 @@ from robottelo.ui.products import Products
 from robottelo.ui.session import Session
 
 
-@datacheck
+@filtered_datapoint
 def valid_docker_upstream_names():
     """Generates a list of valid docker upstream names"""
     return [

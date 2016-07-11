@@ -25,11 +25,11 @@ from requests.exceptions import HTTPError
 from robottelo.cleanup import capsule_cleanup, location_cleanup
 from robottelo.cli.factory import make_proxy
 from robottelo.decorators import tier1, tier2
-from robottelo.datafactory import datacheck, invalid_values_list
+from robottelo.datafactory import filtered_datapoint, invalid_values_list
 from robottelo.test import APITestCase
 
 
-@datacheck
+@filtered_datapoint
 def valid_loc_data_list():
     """List of valid data for input testing.
 

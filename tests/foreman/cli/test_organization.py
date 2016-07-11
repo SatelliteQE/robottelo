@@ -39,7 +39,7 @@ from robottelo.cli.org import Org
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS
 from robottelo.datafactory import (
-    datacheck,
+    filtered_datapoint,
     invalid_values_list,
     valid_data_list,
     valid_org_names_list,
@@ -52,7 +52,7 @@ from robottelo.decorators import (
 from robottelo.test import CLITestCase
 
 
-@datacheck
+@filtered_datapoint
 def valid_labels_list():
     """Random simpler data for positive creation
 
