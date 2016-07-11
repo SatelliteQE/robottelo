@@ -17,7 +17,7 @@
 
 from fauxfactory import gen_string
 from robottelo.datafactory import (
-    datacheck,
+    filtered_datapoint,
     invalid_values_list,
     valid_data_list,
 )
@@ -28,7 +28,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@datacheck
+@filtered_datapoint
 def valid_hw_model_names():
     """Returns a list of valid hw model names"""
     return [

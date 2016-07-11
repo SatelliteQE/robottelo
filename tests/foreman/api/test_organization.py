@@ -24,14 +24,14 @@ from nailgun import client, entities
 from random import randint
 from requests.exceptions import HTTPError
 from robottelo.config import settings
-from robottelo.datafactory import datacheck, invalid_values_list
+from robottelo.datafactory import filtered_datapoint, invalid_values_list
 from robottelo.decorators import skip_if_bug_open, tier1, tier2
 from robottelo.helpers import get_nailgun_config
 from robottelo.test import APITestCase
 from six.moves import http_client
 
 
-@datacheck
+@filtered_datapoint
 def valid_org_data_list():
     """List of valid data for input testing.
 

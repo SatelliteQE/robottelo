@@ -15,7 +15,7 @@ class InvalidArgumentError(Exception):
     """Indicates an error when an invalid argument is received."""
 
 
-def datacheck(func):
+def filtered_datapoint(func):
     """Overrides the data creator functions in this class to return 1 value
 
     If run_one_datapoint=false, return the entire data set. (default: False)
@@ -32,7 +32,7 @@ def datacheck(func):
     return func_wrapper
 
 
-@datacheck
+@filtered_datapoint
 def generate_strings_list(length=None, exclude_types=None, bug_id=None,
                           min_length=3, max_length=30):
     """Generates a list of different input strings.
@@ -67,7 +67,7 @@ def generate_strings_list(length=None, exclude_types=None, bug_id=None,
     return list(strings.values())
 
 
-@datacheck
+@filtered_datapoint
 def invalid_emails_list():
     """Returns a list of invalid emails."""
     return [
@@ -84,7 +84,7 @@ def invalid_emails_list():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def invalid_id_list():
     """Generates a list of invalid IDs."""
     return [
@@ -95,13 +95,13 @@ def invalid_id_list():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def invalid_names_list():
     """Generates a list of invalid names."""
     return generate_strings_list(300)
 
 
-@datacheck
+@filtered_datapoint
 def invalid_usernames_list():
     return [
         '',
@@ -111,7 +111,7 @@ def invalid_usernames_list():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def invalid_values_list(interface=None):
     """Generates a list of invalid input values.
 
@@ -133,7 +133,7 @@ def invalid_values_list(interface=None):
         return ['', ' ', '\t'] + invalid_names_list()
 
 
-@datacheck
+@filtered_datapoint
 def valid_data_list():
     """Generates a list of valid input values.
 
@@ -157,7 +157,7 @@ def valid_data_list():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_emails_list():
     """Returns a list of valid emails."""
     return [
@@ -178,7 +178,7 @@ def valid_emails_list():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_environments_list():
     """Returns a list of valid environment names"""
     return[
@@ -188,7 +188,7 @@ def valid_environments_list():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_hosts_list(domain_length=10):
     """Generates a list of valid host names.
 
@@ -211,7 +211,7 @@ def valid_hosts_list(domain_length=10):
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_hostgroups_list():
     """Generates a list of valid host group names.
 
@@ -233,7 +233,7 @@ def valid_hostgroups_list():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_labels_list():
     """Generates a list of valid labels."""
     return [
@@ -242,7 +242,7 @@ def valid_labels_list():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_names_list():
     """Generates a list of valid names."""
     return [
@@ -264,7 +264,7 @@ def valid_names_list():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_org_names_list():
     """Generates a list of valid organization names.
 
@@ -286,7 +286,7 @@ def valid_org_names_list():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_usernames_list():
     """Returns a list of valid user names."""
     return generate_strings_list(

@@ -31,15 +31,15 @@ else:
     from unittest import mock
 
 
-class DataCheckTestCase(unittest2.TestCase):
-    """Tests for :meth:`robottelo.datafactory.datacheck` decorator"""
+class FilteredDataPointTestCase(unittest2.TestCase):
+    """Tests for :meth:`robottelo.datafactory.filtered_datapoint` decorator"""
 
     @classmethod
     def setUpClass(cls):
         """Backup the config smoke property"""
         cls.backup = settings.run_one_datapoint
 
-    def test_datacheck_True(self):
+    def test_filtered_datapoint_True(self):
         """Tests if run_one_datapoint=false returns all data points"""
         settings.run_one_datapoint = False
         self.assertEqual(len(generate_strings_list()), 7)
@@ -58,7 +58,7 @@ class DataCheckTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_org_names_list()), 7)
         self.assertEqual(len(valid_usernames_list()), 6)
 
-    def test_datacheck_False(self):
+    def test_filtered_datapoint_False(self):
         """Tests if run_one_datapoint=True returns one data point"""
         settings.run_one_datapoint = True
         self.assertEqual(len(generate_strings_list()), 1)

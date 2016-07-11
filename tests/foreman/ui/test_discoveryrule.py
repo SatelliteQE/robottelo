@@ -18,7 +18,7 @@
 from fauxfactory import gen_integer, gen_ipaddr, gen_string
 from nailgun import entities
 from robottelo.datafactory import (
-    datacheck,
+    filtered_datapoint,
     invalid_values_list,
     valid_data_list,
 )
@@ -29,7 +29,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@datacheck
+@filtered_datapoint
 def valid_search_queries():
     """Generates a list of all the input strings, (excluding html)"""
     return [

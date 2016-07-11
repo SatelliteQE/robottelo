@@ -23,7 +23,7 @@ from robottelo.api.utils import promote
 from robottelo.config import settings
 from robottelo.constants import DOCKER_REGISTRY_HUB
 from robottelo.datafactory import (
-    datacheck,
+    filtered_datapoint,
     generate_strings_list,
     valid_data_list,
 )
@@ -41,7 +41,7 @@ from robottelo.test import APITestCase
 DOCKER_PROVIDER = 'Docker'
 
 
-@datacheck
+@filtered_datapoint
 def _invalid_names():
     """Return a list of various kinds of invalid strings for Docker
     repositories.
@@ -83,7 +83,7 @@ def _invalid_names():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def _valid_names():
     """Return a list of various kinds of valid strings for Docker repositories.
 

@@ -24,12 +24,12 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_domain, make_subnet, CLIFactoryError
 from robottelo.cli.subnet import Subnet
 from robottelo.constants import SUBNET_IPAM_TYPES
-from robottelo.datafactory import datacheck, valid_data_list
+from robottelo.datafactory import filtered_datapoint, valid_data_list
 from robottelo.decorators import run_only_on, tier1
 from robottelo.test import CLITestCase
 
 
-@datacheck
+@filtered_datapoint
 def valid_addr_pools():
     """Returns a list of valid address pools"""
     return [
@@ -40,7 +40,7 @@ def valid_addr_pools():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def invalid_addr_pools():
     """Returns a list of invalid address pools"""
     return [
@@ -52,7 +52,7 @@ def invalid_addr_pools():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def invalid_missing_attributes():
     """Returns a list of invalid missing attributes"""
     return [

@@ -18,7 +18,7 @@
 from fauxfactory import gen_string
 from robottelo.constants import DOMAIN
 from robottelo.datafactory import (
-    datacheck,
+    filtered_datapoint,
     generate_strings_list,
     invalid_values_list,
 )
@@ -36,7 +36,7 @@ from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
 
 
-@datacheck
+@filtered_datapoint
 def valid_long_domain_names():
     """Returns a list of valid long domain names
 
@@ -52,7 +52,7 @@ def valid_long_domain_names():
     ]
 
 
-@datacheck
+@filtered_datapoint
 def valid_domain_update_data():
     """Returns a list of valid test data for domain update tests"""
     return [

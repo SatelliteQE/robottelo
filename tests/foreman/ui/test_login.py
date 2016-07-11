@@ -17,12 +17,12 @@
 """
 
 from fauxfactory import gen_string
-from robottelo.datafactory import datacheck
+from robottelo.datafactory import filtered_datapoint
 from robottelo.decorators import tier1
 from robottelo.test import UITestCase
 
 
-@datacheck
+@filtered_datapoint
 def invalid_credentials():
     """Returns a list of invalid credentials"""
     return [

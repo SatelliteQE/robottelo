@@ -19,7 +19,7 @@ from nailgun import client, entities
 from requests.exceptions import HTTPError
 from robottelo.config import settings
 from robottelo.datafactory import (
-    datacheck,
+    filtered_datapoint,
     invalid_names_list,
     valid_data_list,
 )
@@ -28,13 +28,13 @@ from robottelo.test import APITestCase
 from six.moves import http_client
 
 
-@datacheck
+@filtered_datapoint
 def _good_max_hosts():
     """Return a list of valid ``max_hosts`` values."""
     return [gen_integer(*limits) for limits in ((1, 20), (10000, 20000))]
 
 
-@datacheck
+@filtered_datapoint
 def _bad_max_hosts():
     """Return a list of invalid ``max_hosts`` values."""
     return [gen_integer(-100, -1), 0, gen_string('alpha')]
