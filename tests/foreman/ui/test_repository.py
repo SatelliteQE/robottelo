@@ -26,6 +26,8 @@ from robottelo.constants import (
     FAKE_0_PUPPET_REPO,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
+    FEDORA22_OSTREE_REPO,
+    FEDORA23_OSTREE_REPO,
     REPO_DISCOVERY_URL,
     REPO_TYPE,
     VALID_GPG_KEY_BETA_FILE,
@@ -519,7 +521,6 @@ class RepositoryTestCase(UITestCase):
                     self.assertTrue(self.prd_sync_is_ok(repo_name))
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_custom_ostree_repo(self):
         """Create Custom ostree repository.
@@ -527,12 +528,22 @@ class RepositoryTestCase(UITestCase):
         @id: 852cccdc-7289-4d2f-b23a-7caad2dfa195
 
         @Assert: Create custom ostree repository should be successful
-
-        @caseautomation: notautomated
         """
+        prod = entities.Product(organization=self.organization).create()
+        with Session(self.browser) as session:
+            for repo_name in generate_strings_list():
+                with self.subTest(repo_name):
+                    session.nav.go_to_select_org(self.organization.name)
+                    self.products.click(self.products.search(prod.name))
+                    make_repository(
+                        session,
+                        name=repo_name,
+                        repo_type=REPO_TYPE['ostree'],
+                        url=FEDORA23_OSTREE_REPO,
+                    )
+                    self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_delete_custom_ostree_repo(self):
         """Delete custom ostree repository.
@@ -540,21 +551,84 @@ class RepositoryTestCase(UITestCase):
         @id: 87dcb236-4eb4-4897-9c2a-be1d0f4bc3e7
 
         @Assert: Delete custom ostree repository should be successful
-
-        @caseautomation: notautomated
         """
+        prod = entities.Product(organization=self.organization).create()
+        repo_name = gen_string('alphanumeric')
+        # Creates new ostree repository using api
+        entities.Repository(
+            name=repo_name,
+            content_type='ostree',
+            url=FEDORA22_OSTREE_REPO,
+            product=prod,
+            unprotected=False,
+        ).create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            self.products.click(self.products.search(prod.name))
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.repository.delete(repo_name)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
-    def test_positive_update_custom_ostree_repo(self):
-        """Update custom ostree repository.
+    def test_positive_update_custom_ostree_repo_name(self):
+        """Update custom ostree repository name.
 
         @id: 098ee88f-6cdb-45e0-850a-e1b71662f7ab
 
-        @Steps: Update repo name and URL
+        @Steps: Update repo name
 
-        @Assert: URL and name should be updated successfully
-
-        @caseautomation: notautomated
+        @Assert: ostree repo name should be updated successfully
         """
+        prod = entities.Product(organization=self.organization).create()
+        repo_name = gen_string('alphanumeric')
+        new_repo_name = gen_string('numeric')
+        # Creates new ostree repository using api
+        entities.Repository(
+            name=repo_name,
+            content_type='ostree',
+            url=FEDORA22_OSTREE_REPO,
+            product=prod,
+            unprotected=False,
+        ).create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            self.products.click(self.products.search(prod.name))
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.repository.update(
+                repo_name, new_name=new_repo_name)
+            self.products.click(self.products.search(prod.name))
+            self.assertIsNotNone(self.repository.search(new_repo_name))
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_update_custom_ostree_repo_url(self):
+        """Update custom ostree repository url.
+
+        @id: dfd392f9-6f1d-4d87-a43b-ced40606b8c2
+
+        @Steps: Update ostree repo URL
+
+        @Assert: ostree repo URL should be updated successfully
+        """
+        prod = entities.Product(organization=self.organization).create()
+        repo_name = gen_string('alphanumeric')
+        # Creates new ostree repository using api
+        entities.Repository(
+            name=repo_name,
+            content_type='ostree',
+            url=FEDORA22_OSTREE_REPO,
+            product=prod,
+            unprotected=False,
+        ).create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            self.products.click(self.products.search(prod.name))
+            self.assertIsNotNone(self.repository.search(repo_name))
+            self.repository.update(
+                repo_name,
+                new_url=FEDORA23_OSTREE_REPO
+            )
+            self.products.click(self.products.search(prod.name))
+            # Validate the new repo URL
+            self.assertTrue(self.repository.validate_field(
+                            repo_name, 'url', FEDORA23_OSTREE_REPO))
