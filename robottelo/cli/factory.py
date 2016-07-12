@@ -1467,6 +1467,10 @@ def make_hostgroup(options=None):
         --domain-id DOMAIN_ID         May be numerical id or domain name
         --environment ENVIRONMENT_NAME Environment name
         --environment-id ENVIRONMENT_ID
+        --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME   Name to search by
+        --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID
+        --lifecycle-environment-organization-id ORGANIZATION_ID Organization ID
+
         --location-ids LOCATION_IDS   REPLACE locations with given ids
                                       Comma separated list of values.
         --medium MEDIUM_NAME          Medium name
@@ -1501,6 +1505,9 @@ def make_hostgroup(options=None):
         u'environment': None,
         u'environment-id': None,
         u'location-ids': None,
+        u'lifecycle-environment': None,
+        u'lifecycle-environment-id': None,
+        u'lifecycle-environment-organization-id': None,
         u'medium': None,
         u'medium-id': None,
         u'name': gen_alphanumeric(6),
