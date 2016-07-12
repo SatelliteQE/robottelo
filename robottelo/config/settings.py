@@ -529,6 +529,23 @@ class VlanNetworkSettings(FeatureSettings):
         return validation_errors
 
 
+class UpgradeSettings(FeatureSettings):
+    """Satellite upgrade settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(UpgradeSettings, self).__init__(*args, **kwargs)
+        self.upgrade_data = None
+
+    def read(self, reader):
+        """Read and validate Satellite server settings."""
+        self.upgrade_data = reader.get('upgrade', 'upgrade_data')
+
+    def validate(self):
+        validation_errors = []
+        if self.upgrade_data is None:
+            validation_errors.append('[upgrade] data must be provided.')
+        return validation_errors
+
+
 class Settings(object):
     """Robottelo's settings representation."""
 
@@ -565,6 +582,7 @@ class Settings(object):
         self.rhai = RHAISettings()
         self.transition = TransitionSettings()
         self.vlan_networking = VlanNetworkSettings()
+        self.upgrade = UpgradeSettings()
 
     def configure(self):
         """Read the settings file and parse the configuration.
@@ -621,6 +639,9 @@ class Settings(object):
         if self.reader.has_section('vlan_networking'):
             self.vlan_networking.read(self.reader)
             self._validation_errors.extend(self.vlan_networking.validate())
+        if self.reader.has_section('upgrade'):
+            self.upgrade.read(self.reader)
+            self._validation_errors.extend(self.upgrade.validate())
 
         if self._validation_errors:
             raise ImproperlyConfigured(

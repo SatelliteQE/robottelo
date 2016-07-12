@@ -252,3 +252,8 @@ ssh_key=
 # The default libvirt image dir will be used
 # "/var/lib/libvirt/images/".
 # libvirt_image_dir=/var/lib/libvirt/images
+
+# Section for PostUpgrade Verification Tests
+# [upgrade]
+# Option for providing a preUpgrade yaml data file location on server
+# upgrade_data=

@@ -26,6 +26,7 @@ setup(
         'pygal',
         'pytest',
         'python-bugzilla',
+        'PyYAML',
         'requests',
         'selenium<2.49',
         'six',
