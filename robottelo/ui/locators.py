@@ -1065,6 +1065,10 @@ locators = LocatorDict({
         "//form[@bst-edit-text='host.name']//button[@ng-click='save()']"),
     "contenthost.unregister": (
         By.XPATH, "//button[@ng-disabled='host.deleting']"),
+    "contenthost.confirm_deletion": (
+        By.XPATH,
+        ("//input[@type='radio' and @ng-model='host.unregisterDelete' and "
+         "@ng-value='true']")),
     "contenthost.subscription_active": (
         By.XPATH,
         ("//td[a[contains(@href, 'content_hosts') and contains(.,'%s')]]"
@@ -1092,6 +1096,19 @@ locators = LocatorDict({
         By.XPATH,
         ("//form[@ng-submit='performPackageAction()']"
          "//button[contains(@class, 'ng-scope')]")),
+    "contenthost.remote_action_finished": (
+        By.XPATH,
+        ("//div[contains(@class, 'progress') and "
+         "@value='task.progressbar.value' and "
+         "div[contains(@style, '100%')]]")),
+    "contenthost.package_search_box": (
+        By.XPATH, "//input[@ng-model='detailsTable.searchTerm']"),
+    "contenthost.package_search_button": (
+        By.XPATH, "//button[contains(@ng-click, 'detailsTable.search')]"),
+    "contenthost.package_search_name": (
+        By.XPATH,
+        ("//tr[@class='ng-scope' and @row-select='package']"
+         "/td[contains(@class, 'ng-scope') and contains(., '%s')]")),
 
     # Hosts
 

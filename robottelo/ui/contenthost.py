@@ -65,6 +65,35 @@ class ContentHost(Base):
         else:
             self.click(common_locators['cancel'])
 
+    def delete(self, name, really=True):
+        """Unregisters and completely deletes content host. Custom helper is
+        needed as deletion works through unregistering menu, by selecting
+        appropriate radio button."""
+        self.logger.debug(u'Deleting entity %s', name)
+        self.click(self.search(name))
+        self.click(locators['contenthost.unregister'])
+        self.click(locators['contenthost.confirm_deletion'])
+        if really:
+            self.click(common_locators['confirm_remove'])
+        else:
+            self.click(common_locators['cancel'])
+        # Make sure that element is really removed from UI
+        self.button_timeout = 3
+        self.result_timeout = 1
+        try:
+            for _ in range(3):
+                searched = self.search(name)
+                if bool(searched) != really:
+                    break
+                self.browser.refresh()
+            if bool(searched) == really:
+                raise UIError(
+                    u'Delete functionality works improperly for "{0}" entity'
+                    .format(name))
+        finally:
+            self.button_timeout = 15
+            self.result_timeout = 15
+
     def validate_subscription_status(self, name, expected_value=True,
                                      timeout=120):
         """Check whether a content host has active subscription or not"""
@@ -80,12 +109,43 @@ class ContentHost(Base):
                 return True
         return False
 
-    def install_package(self, name, package_name):
-        """Remotely install package to content host"""
+    def execute_package_action(self, name, action_name, action_value,
+                               timeout=120):
+        """Execute remote package action on a content host
+
+        :param name: content host name to remotely execute package action on
+        :param action_name: remote action to execute. Can be one of 5: 'Package
+            Install', 'Package Update', 'Package Remove', 'Group Install' or
+            'Group Remove'
+        :param action_value: Package or package group group name to remotely
+            install/upgrade/remove (depending on `action_name`)
+        :param timeout: Timeout in seconds for remote action task to finish
+        :raise: UIError if remote task finished by timeout
+
+        :return: Returns a string containing task status
+        """
         self.click(self.search(name))
         self.click(tab_locators['contenthost.tab_packages'])
         self.assign_value(
-            locators['contenthost.remote_actions'], 'Package Install')
+            locators['contenthost.remote_actions'], action_name)
         self.assign_value(
-            locators['contenthost.package_name_input'], package_name)
+            locators['contenthost.package_name_input'], action_value)
         self.click(locators['contenthost.perform_remote_action'])
+        result = self.wait_until_element(
+            locators['contenthost.remote_action_finished'],
+            timeout=timeout,
+        )
+        if result is None:
+            raise UIError('Timeout waiting for package action to finish')
+        return result.get_attribute('type')
+
+    def package_search(self, name, package_name):
+        """Search for installed package on specific content host"""
+        self.click(self.search(name))
+        self.click(tab_locators['contenthost.tab_packages'])
+        self.wait_until_element(locators['contenthost.package_search_box'])
+        self.assign_value(
+            locators['contenthost.package_search_box'], package_name)
+        self.click(locators['contenthost.package_search_button'])
+        strategy, value = locators['contenthost.package_search_name']
+        return self.wait_until_element((strategy, value % package_name))
