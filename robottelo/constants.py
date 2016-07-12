@@ -146,6 +146,7 @@ REPO_TYPE = {
     'yum': "yum",
     'puppet': "puppet",
     'docker': "docker",
+    'ostree': "ostree",
 }
 
 CHECKSUM_TYPE = {
@@ -304,6 +305,8 @@ FAKE_4_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet04'
 FAKE_5_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet05'
 FAKE_6_PUPPET_REPO = u'http://kbidarka.fedorapeople.org/repos/puppet-modules/'
 FAKE_7_PUPPET_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakepuppet01/'
+FEDORA22_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/22/'
+FEDORA23_OSTREE_REPO = u'https://kojipkgs.fedoraproject.org/atomic/23/'
 REPO_DISCOVERY_URL = u'http://omaciel.fedorapeople.org/'
 FAKE_0_CUSTOM_PACKAGE = 'bear-4.1-1.noarch'
 FAKE_0_CUSTOM_PACKAGE_NAME = 'bear'
