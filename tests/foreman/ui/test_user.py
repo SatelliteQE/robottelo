@@ -164,13 +164,11 @@ class UserTestCase(UITestCase):
         @Assert: User is created successfully
         """
         test_data = valid_strings()
-        #  List is extended to test additional password data points
-        test_data.extend([
-            x for x in (
-                u'foo@!#$^&*( ) {0}'.format(gen_string('alpha', 2)),
-                u'bar+{{}}|\"?hi {0}'.format(gen_string('alpha', 2)),
-            )
-        ])
+        extra_passwords = (
+            u'foo@!#$^&*( ) {0}'.format(gen_string('alpha', 2)),
+            u'bar+{{}}|\"?hi {0}'.format(gen_string('alpha', 2)),
+        )
+        test_data.extend(extra_passwords)
         with Session(self.browser) as session:
             for password in test_data:
                 with self.subTest(password):
@@ -1055,6 +1053,65 @@ class UserTestCase(UITestCase):
         @caseautomation: notautomated
 
         @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_parameters_tab_access_with_edit_params(self):
+        """Check if non admin users with edit_params permission can access
+        parameters tab on organization details screen
+
+        @id: 086ea8bf-2219-425e-acf4-d2ba59a77ee9
+
+        @BZ: 1354572
+
+        @Steps:
+
+        1.Create a Role in Administer -> Roles
+        2.On Role creation set Resource type to Parameters
+        3.On Role creation add permission edit_params
+        4.On Role creation set Resource type to Organization
+        5.On Role creation add permissions edit_organizations and
+        view_organizations
+        6.Create a non admin user in Administer -> Users
+        7.Add previous role to this user
+        8.Login with previous user credentials
+        9.Go to Organization -> Manage Organizations
+        10.Choose Default Organization
+        11.Assert "Parameters" tab is present
+
+        @Assert: Parameters tab visible to users with edit_params permission
+
+        @caseautomation: notautomated
+        """
+
+    @stubbed()
+    @tier1
+    def test_negative_parameters_tab_access_without_edit_params(self):
+        """Check if non admin users without edit_params permission can not
+        access parameters tab on organization details screen
+
+        @id: eac65b64-16d4-4df5-8402-e58ddb31050d
+
+        @BZ: 1354572
+
+        @Steps:
+
+        1.Create a Role in Administer -> Roles
+        4.On Role creation set Resource type to Organization
+        5.On Role creation add permissions edit_organizations and
+        view_organizations
+        6.Create a non admin user in Administer -> Users
+        7.Add previous role to this user
+        8.Login with previous user credentials
+        9.Go to Organization -> Manage Organizations
+        10.Choose Default Organization
+        11.Assert "Parameters" tab is not present
+
+        @Assert: Parameters tab not visible to users with no edit_params
+        permission
+
+        @caseautomation: notautomated
         """
 
 
