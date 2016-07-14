@@ -130,3 +130,62 @@ class HostCollection(Base):
             (strategy, value % host_name), timeout=8)
         if element is None:
             raise UIError("Adding host {0} is failed".format(host_name))
+
+    def execute_bulk_package_action(self,
+                                    name,
+                                    action_name,
+                                    action_type='package',
+                                    action_value=None,
+                                    action_via='katello_agent',
+                                    org_name=None):
+        """Execute remote package action on a host collection
+
+        :param name: hostcollection name to remotely execute package action on
+        :param action_name: remote action to execute. Can be one of 4:
+            'update all', 'install', 'update', 'remove'
+        :param action_type: type of package. can be one of 2:
+            'package' or 'package_group'
+        :param action_value: Package or package group name to remotely
+            install/update/remove (depending on `action_name`)
+        :param action_via: the way to perform the action. Can be one of 3:
+            'katello_agent', 'remote_execution', 'remote_execution_custom'
+        :param org_name: The name of the organization for context, it is an
+            optional param since org can be previously selected on session
+        :raise: UIError if remote task finished by timeout
+
+        :return: Returns a string containing task status
+        """
+
+        if action_name != 'update all' and not action_value:
+            raise AttributeError('package or group name is required')
+
+        if org_name:
+            Navigator(self.browser).go_to_select_org(org_name, force=False)
+
+        self.click(self.search(name))
+        self.click(tab_locators['hostcollection.collection_actions'])
+        self.click(locators['hostcollection.collection_actions.packages'])
+
+        if action_value:
+            type_loc = "contenthost.bulk_actions.{0}_type".format(action_type)
+            self.click(locators[type_loc])
+            self.assign_value(
+                locators['contenthost.bulk_actions.package_name_input'],
+                action_value
+            )
+
+        strategy, action_link_locator_path = locators[
+            'contenthost.bulk_actions.via_{0}'.format(action_via)]
+        action_link_locator_path = action_link_locator_path % action_name
+        action_link_locator = (strategy, action_link_locator_path)
+
+        strategy, value = locators['contenthost.bulk_actions.action_dropdown']
+        self.click((strategy, value % action_link_locator_path))
+        self.click(action_link_locator)
+
+        result = self.wait_until_element(
+            locators['contenthost.bulk_actions.remote_action_scheduled']
+        )  # this alert box fades after 2 seconds
+
+        if result is None:
+            raise UIError('Timeout waiting for package action to schedule')

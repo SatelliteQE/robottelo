@@ -397,14 +397,23 @@ class Navigator(Base):
             menu_locators['menu.oscap_reports'],
         )
 
-    def go_to_select_org(self, org):
+    def go_to_select_org(self, org, force=True):
         """Selects the specified organization.
 
         :param str org: The organization to select.
+        :param force: Force navigation to org even if org is already selected
         :return: Returns the organization.
         :rtype: str
 
         """
+
+        # if force=False and org is already the current selected, do nothing.
+        if not force and self.find_element(
+                menu_locators['menu.current_text']).text == org:
+            self.logger.debug(u'%s is already the org in the context', org)
+            return
+
+        self.logger.debug(u'Changing context to %s organization', org)
         strategy, value = menu_locators['org.select_org']
         self.menu_click(
             menu_locators['menu.any_context'],
