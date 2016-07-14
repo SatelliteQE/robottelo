@@ -61,7 +61,6 @@ API_PATHS = {
         u'/katello/api/activation_keys/:id/product_content',
         u'/katello/api/activation_keys/:id/releases',
         u'/katello/api/activation_keys/:id/remove_subscriptions',
-        u'/katello/api/activation_keys/:id/subscriptions',
     ),
     u'api': (),
     u'architectures': (
@@ -216,11 +215,6 @@ API_PATHS = {
         u'/docker/api/v2/containers/:id',
         u'/docker/api/v2/containers/:id/logs',
         u'/docker/api/v2/containers/:id/power',
-    ),
-    u'content_reports':(
-        u'/katello/api/content_reports/status_trend',
-        u'/katello/api/content_reports/system_status',
-        u'/katello/api/content_reports/system_trend',
     ),
     u'content_view_histories': (
         u'/katello/api/content_views/:id/history',
@@ -779,6 +773,7 @@ API_PATHS = {
 class AvailableURLsTestCase(TestCase):
     """Tests for ``api/v2``."""
     longMessage = True
+    maxDiff = None
 
     def setUp(self):
         """Define commonly-used variables."""
