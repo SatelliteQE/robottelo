@@ -16,22 +16,29 @@
 @Upstream: No
 """
 
+from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.factory import (
+    make_architecture,
+    make_domain,
     make_environment,
     make_hostgroup,
+    make_lifecycle_environment,
     make_location,
+    make_medium,
     make_org,
     make_os,
+    make_partition_table,
+    make_subnet,
 )
 from robottelo.datafactory import (
     invalid_id_list,
     invalid_values_list,
     valid_hostgroups_list,
 )
-from robottelo.decorators import run_only_on, tier1
+from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
 from robottelo.test import CLITestCase
 
 
@@ -149,6 +156,180 @@ class HostGroupTestCase(CLITestCase):
         self.assertEqual(
             puppet_proxy['id'],
             hostgroup['puppet-master-proxy-id'],
+        )
+
+    @skip_if_bug_open('bugzilla', 1354544)
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_architecture(self):
+        """Check if hostgroup with architecture can be created
+
+        @id: 21c619f4-7339-4fb0-9e29-e12dae65f943
+
+        @Assert: Hostgroup should be created and has architecture assigned
+
+        @BZ: 1354544
+        """
+        arch = 'x86_64'
+        hostgroup = make_hostgroup({'architecture': arch})
+        self.assertEqual(arch, hostgroup['architecture'])
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_domain(self):
+        """Check if hostgroup with domain can be created
+
+        @id: c468fcac-9e42-4ee6-a431-abe29b6848ce
+
+        @Assert: Hostgroup should be created and has domain assigned
+        """
+        domain = make_domain()
+        hostgroup = make_hostgroup({'domain-id': domain['id']})
+        self.assertEqual(domain['name'], hostgroup['domain'])
+
+    @skip_if_bug_open('bugzilla', 1309107)
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_lifecycle_environment(self):
+        """Check if hostgroup with lifecyle environment can be created
+
+        @id: c468fcac-9e42-4ee6-a431-abe29b6848ce
+
+        @Assert: Hostgroup should be created and has lifecycle env assigned
+
+        @BZ: 1309107
+        """
+        org = make_org()
+        lc_env = make_lifecycle_environment({'organization-id': org['id']})
+        hostgroup = make_hostgroup({
+            'lifecycle-environment': lc_env['name'],
+            'organization-ids': org['id'],
+            'lifecycle-environment-organization-id': org['id'],
+        })
+        self.assertEqual(
+            lc_env['name'],
+            hostgroup['lifecycle-environment'],
+        )
+
+    @skip_if_bug_open('bugzilla', 1309107)
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_multiple_entities(self):
+        """Check if hostgroup with multiple options can be created
+
+        @id: a3ef4f0e-971d-4307-8d0a-35103dff6586
+
+        @Assert: Hostgroup should be created and has all defined entities
+        assigned
+
+        @BZ: 1309107
+        """
+        subnet = make_subnet()
+        domain = make_domain()
+        org = make_org()
+        lc_env = make_lifecycle_environment({'organization-id': org['id']})
+        loc = make_location()
+        env = make_environment()
+        os = make_os()
+        media = make_medium()
+        arch = make_architecture()
+        puppet_proxy = Proxy.list()[0]
+        ptable = make_partition_table()
+        hostgroup = make_hostgroup({
+            'domain-id': domain['id'],
+            'subnet-id': subnet['id'],
+            'organization-ids': org['id'],
+            'location-ids': loc['id'],
+            'environment-id': env['id'],
+            'puppet-proxy-id': puppet_proxy['id'],
+            'puppet-ca-proxy-id': puppet_proxy['id'],
+            'operatingsystem-id': os['id'],
+            'architecture-id': arch['id'],
+            'lifecycle-environment': lc_env['name'],
+            'lifecyle-environment-organization-id': org['id'],
+            'partition-table-id': ptable['id'],
+            'medium-id': media['id'],
+        })
+        self.assertEqual(domain['name'], hostgroup['domain'])
+        self.assertEqual(subnet['name'], hostgroup['subnet'])
+        self.assertEqual(org['name'], hostgroup['organization'])
+        self.assertEqual(loc['name'], hostgroup['location'])
+        self.assertEqual(env['name'], hostgroup['environment'])
+        self.assertEqual(puppet_proxy['name'], hostgroup['puppet-proxy'])
+        self.assertEqual(puppet_proxy['name'], hostgroup['puppet-ca-proxy'])
+        self.assertEqual(os['name'], hostgroup['operatingsystem'])
+        self.assertEqual(arch['name'], hostgroup['architecture'])
+        self.assertEqual(lc_env['name'], hostgroup['lifecycle-environment'])
+        self.assertEqual(ptable['name'], hostgroup['partition-table'])
+        self.assertEqual(media['name'], hostgroup['medium'])
+
+    @skip_if_bug_open('bugzilla', 1354568)
+    @run_only_on('sat')
+    @tier1
+    def test_negative_create_with_subnet_id(self):
+        """Check if hostgroup with invalid subnet id raises proper error
+
+        @id: c352d7ea-4fc6-4b78-863d-d3ee4c0ad439
+
+        @Assert: Proper error should be raised
+
+        @BZ: 1354568
+        """
+        subnet_id = gen_string('numeric', 4)
+        with self.assertRaises(CLIReturnCodeError) as exception:
+            HostGroup.create({
+                'name': gen_string('alpha'),
+                'subnet-id': subnet_id
+            })
+        self.assertIs(
+            exception.exception.stderr,
+            'Could not find subnet {0}'.format(subnet_id)
+        )
+
+    @skip_if_bug_open('bugzilla', 1354568)
+    @run_only_on('sat')
+    @tier1
+    def test_negative_create_with_domain_id(self):
+        """Check if hostgroup with invalid domain id raises proper error
+
+        @id: b36c83d6-b27c-4f1a-ac45-6c4999005bf7
+
+        @Assert: Proper error should be raised
+
+        @BZ: 1354568
+        """
+        domain_id = gen_string('numeric', 4)
+        with self.assertRaises(CLIReturnCodeError) as exception:
+            HostGroup.create({
+                'name': gen_string('alpha'),
+                'domain-id': domain_id
+            })
+        self.assertIs(
+            exception.exception.stderr,
+            'Could not find domain {0}'.format(domain_id)
+        )
+
+    @skip_if_bug_open('bugzilla', 1354568)
+    @run_only_on('sat')
+    @tier1
+    def test_negative_create_with_architecture_id(self):
+        """Check if hostgroup with invalid architecture id raises proper error
+
+        @id: 7b7de0fa-aee9-4163-adc2-354c1e720d90
+
+        @Assert: Proper error should be raised
+
+        @BZ: 1354568
+        """
+        arch_id = gen_string('numeric', 4)
+        with self.assertRaises(CLIReturnCodeError) as exception:
+            HostGroup.create({
+                'name': gen_string('alpha'),
+                'architecture-id': arch_id
+            })
+        self.assertIs(
+            exception.exception.stderr,
+            'Could not find architecture {0}'.format(arch_id)
         )
 
     @tier1
