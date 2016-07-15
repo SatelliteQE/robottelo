@@ -27,6 +27,11 @@ class SSHCommandResult(object):
             if output_format == 'json':
                 self.stdout = hammer.parse_json(stdout) if stdout else None
 
+    def __repr__(self):
+        tmpl = u'SSHCommandResult(stdout={stdout!r}, stderr={stderr!r}, ' + \
+               u'return_code={return_code!r}, output_format={output_format!r})'
+        return tmpl.format(**self.__dict__)
+
 
 def _call_paramiko_sshclient():
     """Call ``paramiko.SSHClient``.
