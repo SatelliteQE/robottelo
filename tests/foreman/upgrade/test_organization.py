@@ -10,7 +10,7 @@
 
 @CaseComponent: CLI
 
-@TestType: Upgrade
+@TestType: Structural
 
 @CaseImportance: High
 
