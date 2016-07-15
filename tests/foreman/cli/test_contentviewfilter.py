@@ -73,6 +73,7 @@ class ContentViewFilterTestCase(CLITestCase):
                 ContentView.filter_create({
                     'content-view-id': self.content_view['id'],
                     'name': name,
+                    'organization-id': self.org['id'],
                     'type': filter_content_type,
                 })
                 cvf = ContentView.filter_info({
@@ -99,6 +100,7 @@ class ContentViewFilterTestCase(CLITestCase):
                 ContentView.filter_create({
                     'content-view-id': self.content_view['id'],
                     'name': cvf_name,
+                    'organization-id': self.org['id'],
                     'type': filter_content_type,
                 })
                 cvf = ContentView.filter_info({
@@ -125,6 +127,7 @@ class ContentViewFilterTestCase(CLITestCase):
                     'content-view-id': self.content_view['id'],
                     'inclusion': inclusion,
                     'name': cvf_name,
+                    'organization-id': self.org['id'],
                     'type': 'rpm',
                 })
                 cvf = ContentView.filter_info({
@@ -151,6 +154,7 @@ class ContentViewFilterTestCase(CLITestCase):
             'content-view-id': self.content_view['id'],
             'description': description,
             'name': cvf_name,
+            'organization-id': self.org['id'],
             'type': 'package_group',
         })
         cvf = ContentView.filter_info({
@@ -159,6 +163,7 @@ class ContentViewFilterTestCase(CLITestCase):
         })
         self.assertEqual(cvf['description'], description)
 
+    @skip_if_bug_open('bugzilla', 1356906)
     @tier1
     def test_positive_create_by_cv_name(self):
         """Create new content view filter and assign it to existing content
@@ -168,6 +173,7 @@ class ContentViewFilterTestCase(CLITestCase):
 
         @Assert: Content view filter created successfully
 
+        @BZ: 1356906
         """
         cvf_name = gen_string('utf8')
         ContentView.filter_create({
@@ -246,6 +252,7 @@ class ContentViewFilterTestCase(CLITestCase):
             'inclusion': 'true',
             'name': cvf_name,
             'repository-ids': self.repo['id'],
+            'organization-id': self.org['id'],
             'type': 'rpm',
         })
         cvf = ContentView.filter_info({
@@ -338,6 +345,7 @@ class ContentViewFilterTestCase(CLITestCase):
             'inclusion': 'true',
             'name': cvf_name,
             'repository-ids': repos,
+            'organization-id': self.org['id'],
             'type': 'rpm',
         })
         cvf = ContentView.filter_info({
@@ -363,6 +371,7 @@ class ContentViewFilterTestCase(CLITestCase):
                     ContentView.filter_create({
                         'content-view-id': self.content_view['id'],
                         'name': name,
+                        'organization-id': self.org['id'],
                         'type': 'rpm',
                     })
 
@@ -379,12 +388,14 @@ class ContentViewFilterTestCase(CLITestCase):
         ContentView.filter_create({
             'content-view-id': self.content_view['id'],
             'name': cvf_name,
+            'organization-id': self.org['id'],
             'type': 'rpm',
         })
         with self.assertRaises(CLIReturnCodeError):
             ContentView.filter_create({
                 'content-view-id': self.content_view['id'],
                 'name': cvf_name,
+                'organization-id': self.org['id'],
                 'type': 'rpm',
             })
 
@@ -402,6 +413,7 @@ class ContentViewFilterTestCase(CLITestCase):
             ContentView.filter_create({
                 'content-view-id': self.content_view['id'],
                 'name': gen_string('utf8'),
+                'organization-id': self.org['id'],
             })
 
     @tier1
@@ -434,6 +446,7 @@ class ContentViewFilterTestCase(CLITestCase):
                 'content-view-id': self.content_view['id'],
                 'name': gen_string('utf8'),
                 'repository-ids': gen_string('numeric', 6),
+                'organization-id': self.org['id'],
                 'type': 'rpm',
             })
 
@@ -455,6 +468,7 @@ class ContentViewFilterTestCase(CLITestCase):
         ContentView.filter_create({
             'content-view-id': self.content_view['id'],
             'name': cvf_name,
+            'organization-id': self.org['id'],
             'type': 'rpm',
         })
         for new_name in valid_data_list():
@@ -463,6 +477,7 @@ class ContentViewFilterTestCase(CLITestCase):
                     'content-view-id': self.content_view['id'],
                     'name': cvf_name,
                     'new-name': new_name,
+                    'organization-id': self.org['id'],
                 })
                 cvf = ContentView.filter_info({
                     u'content-view-id': self.content_view['id'],
@@ -589,6 +604,7 @@ class ContentViewFilterTestCase(CLITestCase):
             'content-view-id': self.content_view['id'],
             'inclusion': 'true',
             'name': cvf_name,
+            'organization-id': self.org['id'],
             'type': 'rpm',
         })
         cvf = ContentView.filter_info({
@@ -600,6 +616,7 @@ class ContentViewFilterTestCase(CLITestCase):
             'content-view-id': self.content_view['id'],
             'name': cvf_name,
             'inclusion': 'false',
+            'organization-id': self.org['id'],
         })
         cvf = ContentView.filter_info({
             u'content-view-id': self.content_view['id'],
@@ -621,6 +638,7 @@ class ContentViewFilterTestCase(CLITestCase):
         content_view_filter = ContentView.filter_create({
             'content-view-id': self.content_view['id'],
             'name': cvf_name,
+            'organization-id': self.org['id'],
             'type': 'rpm',
         })
         for new_name in invalid_values_list():
@@ -659,12 +677,14 @@ class ContentViewFilterTestCase(CLITestCase):
         ContentView.filter_create({
             'content-view-id': self.content_view['id'],
             'name': cvf_name,
+            'organization-id': self.org['id'],
             'type': 'rpm',
         })
         new_name = gen_string('alpha', 100)
         ContentView.filter_create({
             'content-view-id': self.content_view['id'],
             'name': new_name,
+            'organization-id': self.org['id'],
             'type': 'rpm',
         })
         with self.assertRaises(CLIReturnCodeError):
@@ -689,6 +709,7 @@ class ContentViewFilterTestCase(CLITestCase):
             'content-view-id': self.content_view['id'],
             'inclusion': 'true',
             'name': cvf_name,
+            'organization-id': self.org['id'],
             'type': 'rpm',
         })
         with self.assertRaises(CLIReturnCodeError):
@@ -767,6 +788,7 @@ class ContentViewFilterTestCase(CLITestCase):
                 ContentView.filter_create({
                     'content-view-id': self.content_view['id'],
                     'name': name,
+                    'organization-id': self.org['id'],
                     'type': 'rpm',
                 })
                 ContentView.filter_info({
@@ -797,6 +819,7 @@ class ContentViewFilterTestCase(CLITestCase):
         ContentView.filter_create({
             'content-view-id': self.content_view['id'],
             'name': cvf_name,
+            'organization-id': self.org['id'],
             'type': 'rpm',
         })
         cvf = ContentView.filter_info({
@@ -825,6 +848,7 @@ class ContentViewFilterTestCase(CLITestCase):
         ContentView.filter_create({
             'content-view-id': self.content_view['id'],
             'name': cvf_name,
+            'organization-id': self.org['id'],
             'type': 'rpm',
         })
         ContentView.filter_info({
