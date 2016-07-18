@@ -1110,6 +1110,35 @@ locators = LocatorDict({
         ("//tr[@class='ng-scope' and @row-select='package']"
          "/td[contains(@class, 'ng-scope') and contains(., '%s')]")),
 
+    # Content Host - Bulk Actions
+
+    # %s action names: 'update all', 'install', 'update', 'remove'
+    "contenthost.bulk_actions.via_katello_agent": (
+        By.XPATH,
+        ("//a[contains(@ng-click, \"performViaKatelloAgent"
+         "('%s', content)\")]")),
+    "contenthost.bulk_actions.via_remote_execution": (
+        By.XPATH,
+        ("//a[contains(@ng-click, \"performViaRemoteExecution"
+         "('%s', false)\")]")),
+    "contenthost.bulk_actions.via_remote_execution_custom": (
+        By.XPATH,
+        ("//a[contains(@ng-click, \"performViaRemoteExecution"
+         "('%s', true)\")]")),
+
+    "contenthost.bulk_actions.package_type": (By.ID, "package"),
+    "contenthost.bulk_actions.package_group_type": (By.ID, "package_group"),
+    "contenthost.bulk_actions.package_name_input": (
+        By.XPATH,
+        "//input[@type='text' and contains(@ng-model, 'content.content')]"),
+
+    "contenthost.bulk_actions.action_dropdown": (
+        By.XPATH,
+        "%s/../../../button[contains(@data-toggle,'dropdown')]"),
+
+    "contenthost.bulk_actions.remote_action_scheduled": (
+        By.XPATH, '//div[@bst-alert="success"]'),
+
     # Hosts
 
     # Default tab (Host)
@@ -2740,4 +2769,8 @@ locators = LocatorDict({
     "hostcollection.add_host": (
         By.XPATH,
         "//button[contains(@ng-click, 'addSelected')]"),
+    "hostcollection.collection_actions.packages": (
+        By.XPATH,
+        ("//li[@bst-feature-flag='remote_actions']"
+         "//a[contains(@href, 'packages')]")),
 })
