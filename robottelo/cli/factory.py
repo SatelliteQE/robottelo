@@ -1486,9 +1486,11 @@ def make_hostgroup(options=None):
         --ptable-id PTABLE_ID
         --puppet-ca-proxy PUPPET_CA_PROXY_NAME  Name of puppet CA proxy
         --puppet-ca-proxy-id PUPPET_CA_PROXY_ID
+        --puppet-class-ids PUPPETCLASS_IDS      List of puppetclass ids
+                                                Comma separated list of values.
+        --puppet-classes PUPPET_CLASS_NAMES     Comma separated list of values.
         --puppet-proxy PUPPET_CA_PROXY_NAME     Name of puppet proxy
         --puppet-proxy-id PUPPET_PROXY_ID
-        --puppetclass-ids PUPPETCLASS_IDS  Comma separated list of values.
         --realm REALM_NAME                 Name to search by
         --realm-id REALM_ID                May be numerical id or realm name
         --subnet SUBNET_NAME               Subnet name
@@ -1519,9 +1521,10 @@ def make_hostgroup(options=None):
         u'ptable-id': None,
         u'puppet-ca-proxy': None,
         u'puppet-ca-proxy-id': None,
+        u'puppet-class-ids': None,
+        u'puppet-classes': None,
         u'puppet-proxy': None,
         u'puppet-proxy-id': None,
-        u'puppetclass-ids': None,
         u'realm': None,
         u'realm-id': None,
         u'subnet': None,

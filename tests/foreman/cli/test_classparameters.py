@@ -16,16 +16,137 @@
 @Upstream: No
 """
 
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
+import json
+from random import choice
+from robottelo import ssh
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.environment import Environment
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.host import Host
+from robottelo.cli.hostgroup import HostGroup
+from robottelo.cli.proxy import Proxy
+from robottelo.cli.puppet import Puppet
+from robottelo.cli.scparams import SmartClassParameter
+from robottelo.config import settings
+from robottelo.datafactory import filtered_datapoint, gen_string
+from robottelo.decorators import (
+    run_in_one_thread,
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+    tier1,
+    tier2,
+)
 from robottelo.test import CLITestCase
 
 
+@filtered_datapoint
+def valid_sc_parameters_data():
+    """Returns a list of valid smart class parameter types and values"""
+    return [
+        {
+            u'sc_type': 'string',
+            u'value': gen_string('utf8'),
+        },
+        {
+            u'sc_type': 'boolean',
+            u'value': choice(['0', '1']),
+        },
+        {
+            u'sc_type': 'integer',
+            u'value': gen_string('numeric', 5),
+        },
+        {
+            u'sc_type': 'real',
+            u'value': -123.0,
+        },
+        {
+            u'sc_type': 'array',
+            u'value': "['ZvqqjmtkeW', 'SGnfs123yekPk']",
+        },
+        {
+            u'sc_type': 'hash',
+            u'value': {'a': str(gen_string('alpha'))},
+        },
+        {
+            u'sc_type': 'yaml',
+            u'value': 'name=>XYZ',
+        },
+        {
+            u'sc_type': 'json',
+            u'value': '{\\"name\\": \\"XYZ\\"}',
+        },
+    ]
+
+
+@filtered_datapoint
+def invalid_sc_parameters_data():
+    """Returns a list of invalid smart class parameter types and values"""
+    return [
+        {
+            u'sc_type': 'boolean',
+            u'value': gen_string('alphanumeric'),
+        },
+        {
+            u'sc_type': 'integer',
+            u'value': gen_string('utf8'),
+        },
+        {
+            u'sc_type': 'real',
+            u'value': gen_string('alpha'),
+        },
+        {
+            u'sc_type': 'array',
+            u'value': '0',
+        },
+        {
+            u'sc_type': 'hash',
+            u'value': 'a:test',
+        },
+        {
+            u'sc_type': 'yaml',
+            u'value': '{a:test}',
+        },
+        {
+            u'sc_type': 'json',
+            u'value': gen_string('alpha'),
+        },
+    ]
+
+
+@run_in_one_thread
 class SmartClassParametersTestCase(CLITestCase):
     """Implements Smart Class Parameter tests in CLI"""
 
+    @classmethod
+    def setUpClass(cls):
+        """Import some parametrized puppet classes. This is required to make
+        sure that we have smart class variable available.
+        Read all available smart class parameters for imported puppet class to
+        be able to work with unique entity for each specific test. Raise an
+        exception and skip all tests in case not enough parameters returned.
+        """
+        super(SmartClassParametersTestCase, cls).setUpClass()
+        cls.host_name = settings.server.hostname
+        ssh.command('puppet module install --force puppetlabs/ntp')
+        cls.env = Environment.info({u'name': 'production'})
+        Proxy.importclasses({
+            u'environment': cls.env['name'],
+            u'name': cls.host_name,
+        })
+        cls.puppet = Puppet.info({u'name': 'ntp'})
+        sc_params_list = SmartClassParameter.list({
+            'environment': cls.env['name'],
+            'search': 'puppetclass=ntp'
+        })
+        if len(sc_params_list) < 45:
+            raise RuntimeError('There are not enough smart class parameters to'
+                               ' work with in provided puppet class')
+        cls.sc_params_ids_list = [
+            sc_param['id'] for sc_param in sc_params_list]
+
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_positive_list_parameters_by_host_name(self):
         """List all the parameters included in specific Host by its name.
 
@@ -33,14 +154,27 @@ class SmartClassParametersTestCase(CLITestCase):
 
         @assert: Parameters listed for specific Host.
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['override'], True)
+        Host.update({
+            u'name': self.host_name,
+            u'puppet-classes': 'ntp'
+        })
+        host_sc_params_list = Host.sc_params({u'host': self.host_name})
+        self.assertGreater(len(host_sc_params_list), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_positive_list_parameters_by_host_id(self):
         """List all the parameters included in specific Host by its id.
 
@@ -48,14 +182,28 @@ class SmartClassParametersTestCase(CLITestCase):
 
         @assert: Parameters listed for specific Host.
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['override'], True)
+        Host.update({
+            u'name': self.host_name,
+            u'puppet-classes': 'ntp'
+        })
+        host_id = Host.info({u'name': self.host_name})['id']
+        host_sc_params_list = Host.sc_params({u'host-id': host_id})
+        self.assertGreater(len(host_sc_params_list), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_positive_list_parameters_by_hostgroup_name(self):
         """List all the parameters included in specific HostGroup by its name.
 
@@ -63,14 +211,28 @@ class SmartClassParametersTestCase(CLITestCase):
 
         @assert: Parameters listed for specific HostGroup.
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['override'], True)
+        hostgroup = make_hostgroup({
+            'environment-id': self.env['id'],
+            'puppet-class-ids': self.puppet['id']
+        })
+        hostgroup_sc_params = HostGroup.sc_params({
+            u'hostgroup': hostgroup['name']})
+        self.assertGreater(len(hostgroup_sc_params), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_positive_list_parameters_by_hostgroup_id(self):
         """List all the parameters included in specific HostGroup by id.
 
@@ -78,45 +240,59 @@ class SmartClassParametersTestCase(CLITestCase):
 
         @assert: Parameters listed for specific HostGroup.
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['override'], True)
+        hostgroup = make_hostgroup({
+            'environment-id': self.env['id'],
+            'puppet-class-ids': self.puppet['id']
+        })
+        hostgroup_sc_params = HostGroup.sc_params({
+            u'hostgroup-id': hostgroup['id']})
+        self.assertGreater(len(hostgroup_sc_params), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_list_parameters_by_puppetclass_name(self):
         """List all the parameters for specific puppet class by name.
 
         @id: 6d62968f-dc5b-4d7f-ac21-c1335a827960
 
         @assert: Parameters listed for specific Puppet class.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_params_list = SmartClassParameter.list({
+            'environment': self.env['name'],
+            'puppet-class': self.puppet['name']
+        })
+        self.assertGreater(len(sc_params_list), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_list_parameters_by_puppetclass_id(self):
         """List all the parameters for specific puppet class by id.
 
         @id: a7a8af1a-514b-4910-9e19-75306f634041
 
         @assert: Parameters listed for specific Puppet class.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_params_list = SmartClassParameter.list({
+            'environment': self.env['name'],
+            'puppet-class-id': self.puppet['id']
+        })
+        self.assertGreater(len(sc_params_list), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_override_check(self):
+    @tier1
+    def test_positive_override(self):
         """Override the Default Parameter value.
 
         @id: 25e34bac-084c-4b68-a082-822633e19f7e
@@ -128,16 +304,23 @@ class SmartClassParametersTestCase(CLITestCase):
         3.  Submit the changes.
 
         @assert: Parameter Value overridden with new value.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        value = gen_string('alpha')
+        SmartClassParameter.update({
+            'default-value': value,
+            'id': sc_param_id,
+            'override': 1,
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['default-value'], value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_negative_override_uncheck(self):
+    @tier1
+    def test_negative_override(self):
         """Override the Default Parameter value - override Unchecked.
 
         @id: eb24c44d-0e34-40a3-aa3e-05a3cd4ed1ea
@@ -148,16 +331,18 @@ class SmartClassParametersTestCase(CLITestCase):
         2.  Set the new valid Default Value.
         3.  Attempt to submit the changes.
 
-        @assert: Parameter value not allowed/disabled to override.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: Not overridden parameter value cannot be updated.
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        with self.assertRaises(CLIReturnCodeError):
+            SmartClassParameter.update({
+                'default-value': gen_string('alpha'),
+                'id': sc_param_id,
+            })
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @skip_if_bug_open('bugzilla', 1352502)
+    @tier1
     def test_positive_puppet_default(self):
         """On Override, Set Puppet Default Value.
 
@@ -170,14 +355,20 @@ class SmartClassParametersTestCase(CLITestCase):
         3.  Submit the changes.
 
         @assert: Puppet Default Value applied on parameter.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+            'use-puppet-default': 1,
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['use-puppet-default'], 'true')
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_parameter_type(self):
         """Positive Parameter Update for parameter types - Valid Value.
@@ -194,12 +385,38 @@ class SmartClassParametersTestCase(CLITestCase):
         3.  Submit the changes.
 
         @assert: Parameter Updated with a new type successfully.
-
-        @caseautomation: notautomated
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        for data in valid_sc_parameters_data():
+            with self.subTest(data):
+                SmartClassParameter.update({
+                    'parameter-type': data['sc_type'],
+                    'default-value': data['value'],
+                    'id': sc_param_id,
+                    'override': 1,
+                })
+                sc_param = SmartClassParameter.info({
+                    'puppet-class': 'ntp',
+                    'id': sc_param_id,
+                })
+                if data['sc_type'] == 'boolean':
+                    self.assertEqual(
+                        sc_param['default-value'],
+                        True if data['value'] == '1' else False
+                    )
+                elif data['sc_type'] == 'array':
+                    string_list = [
+                        str(element) for element in sc_param['default-value']]
+                    self.assertEqual(str(string_list), data['value'])
+                elif data['sc_type'] == 'json':
+                    self.assertEqual(
+                        sc_param['default-value'],
+                        json.loads(data['value'].replace("\\", ""))
+                    )
+                else:
+                    self.assertEqual(sc_param['default-value'], data['value'])
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_update_parameter_type(self):
         """Negative Parameter Update for parameter types - Invalid Value.
@@ -219,56 +436,26 @@ class SmartClassParametersTestCase(CLITestCase):
 
         1.  Parameter not updated with string type for invalid value.
         2.  Error raised for invalid default value.
-
-        @caseautomation: notautomated
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        for test_data in invalid_sc_parameters_data():
+            with self.subTest(test_data):
+                with self.assertRaises(CLIReturnCodeError):
+                    SmartClassParameter.update({
+                        'parameter-type': test_data['sc_type'],
+                        'default-value': test_data['value'],
+                        'id': sc_param_id,
+                        'override': 1,
+                    })
+                sc_param = SmartClassParameter.info({
+                    'puppet-class': 'ntp',
+                    'id': sc_param_id,
+                })
+                self.assertNotEqual(
+                    sc_param['default-value'], test_data['value'])
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_validate_puppet_default_value(self):
-        """Validation doesn't works on puppet default value.
-
-        @id: ca69f1e8-d383-4563-a302-9758ffae1129
-
-        @steps:
-
-        1.  Override the parameter.
-        2.  Set puppet default value to 'Use Puppet Default'.
-        3.  Validate this value under section 'Optional Input Validator'.
-
-        @assert: Validation shouldn't work with puppet default value.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_negative_validate_default_value_required_check(self):
-        """Error raised for blank default Value - Required check.
-
-        @id: 6ceeae8c-86ba-4ccc-a0b9-7da2d687aaee
-
-        @steps:
-
-        1.  Override the parameter.
-        2.  Set empty default value.
-        3.  Set '--required' check.
-        4.  Submit the change.
-
-        @assert: Error raised for blank default value.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_default_value_required_check(self):
         """No error raised for non-empty default Value - Required check.
 
@@ -282,38 +469,24 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Submit the change.
 
         @assert: No error raised for non-empty default value
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'parameter-type': 'boolean',
+            'id': sc_param_id,
+            'default-value': u'true',
+            'override': 1,
+            'required': 1
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['required'], True)
+        self.assertEqual(sc_param['default-value'], True)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_negative_validate_matcher_value_required_check(self):
-        """Error raised for blank matcher Value - Required check.
-
-        @id: 5f9a65d7-b4e4-42d1-8e29-220f41e7450f
-
-        @steps:
-
-        1.  Override the parameter.
-        2.  Create a matcher for Parameter for some attribute.
-        3.  Dont provide Value for matcher. Keep blank.
-        4.  Set '--required' check.
-        5.  Submit the change.
-
-        @assert: Error raised for blank matcher value.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_matcher_value_required_check(self):
         """Error not raised for matcher Value - Required check.
 
@@ -328,15 +501,26 @@ class SmartClassParametersTestCase(CLITestCase):
         5.  Submit the change.
 
         @assert: Error not raised for matcher value.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.add_override_value({
+            'smart-class-parameter-id': sc_param_id,
+            'match': 'domain=example.com',
+            'value': gen_string('alpha')
+        })
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+            'required': 1
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['required'], True)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_default_value_with_regex(self):
         """Error raised for default value not matching with regex.
 
@@ -350,15 +534,25 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Submit the change.
 
         @assert: Error raised for default value not matching with regex.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        value = gen_string('alpha')
+        sc_param_id = self.sc_params_ids_list.pop()
+        with self.assertRaises(CLIReturnCodeError):
+            SmartClassParameter.update({
+                'id': sc_param_id,
+                'default-value': value,
+                'override': 1,
+                'validator-type': 'regexp',
+                'validator-rule': '[0-9]',
+            })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertNotEqual(sc_param['default-value'], value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_default_value_with_regex(self):
         """Error not raised for default value matching with regex.
 
@@ -372,15 +566,26 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Submit the change.
 
         @assert: Error not raised for default value matching with regex.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        value = gen_string('numeric')
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'default-value': value,
+            'override': 1,
+            'validator-type': 'regexp',
+            'validator-rule': '[0-9]',
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['default-value'], value)
+        self.assertEqual(sc_param['validator']['type'], 'regexp')
+        self.assertEqual(sc_param['validator']['rule'], '[0-9]')
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_value_with_regex(self):
         """Error raised for matcher value not matching with regex.
 
@@ -395,15 +600,30 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Submit the change.
 
         @assert: Error raised for matcher value not matching with regex.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        value = gen_string('numeric')
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.add_override_value({
+            'smart-class-parameter-id': sc_param_id,
+            'match': 'domain=test.com',
+            'value': gen_string('alpha')
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartClassParameter.update({
+                'id': sc_param_id,
+                'default-value': value,
+                'override': 1,
+                'validator-type': 'regexp',
+                'validator-rule': '[0-9]',
+            })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertNotEqual(sc_param['default-value'], value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_matcher_value_with_regex(self):
         """Error not raised for matcher value matching with regex.
 
@@ -417,15 +637,29 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Submit the change.
 
         @assert: Error not raised for matcher value matching with regex.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        value = gen_string('numeric')
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.add_override_value({
+            'smart-class-parameter-id': sc_param_id,
+            'match': 'domain=test.com',
+            'value': gen_string('numeric')
+        })
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'default-value': value,
+            'override': 1,
+            'validator-type': 'regexp',
+            'validator-rule': '[0-9]',
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['default-value'], value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_default_value_with_list(self):
         """Error raised for default value not in list.
 
@@ -439,15 +673,25 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Submit the change.
 
         @assert: Error raised for default value not in list.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        value = gen_string('alphanumeric')
+        sc_param_id = self.sc_params_ids_list.pop()
+        with self.assertRaises(CLIReturnCodeError):
+            SmartClassParameter.update({
+                'id': sc_param_id,
+                'default-value': value,
+                'override': 1,
+                'validator-type': 'list',
+                'validator-rule': '5, test',
+            })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertNotEqual(sc_param['default-value'], value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_default_value_with_list(self):
         """Error not raised for default value in list.
 
@@ -461,15 +705,25 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Submit the change.
 
         @assert: Error not raised for default value in list.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'default-value': 'test',
+            'override': 1,
+            'validator-type': 'list',
+            'validator-rule': '5, test',
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['default-value'], 'test')
+        self.assertEqual(sc_param['validator']['type'], 'list')
+        self.assertEqual(sc_param['validator']['rule'], '5, test')
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_value_with_list(self):
         """Error raised for matcher value not in list.
 
@@ -484,15 +738,29 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Submit the change.
 
         @assert: Error raised for matcher value not in list.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.add_override_value({
+            'smart-class-parameter-id': sc_param_id,
+            'match': 'domain=test.com',
+            'value': 'myexample'
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartClassParameter.update({
+                'id': sc_param_id,
+                'default-value': '50',
+                'override': 1,
+                'validator-type': 'list',
+                'validator-rule': '25, example, 50',
+            })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertNotEqual(sc_param['default-value'], '50')
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_matcher_value_with_list(self):
         """Error not raised for matcher value in list.
 
@@ -506,15 +774,28 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Submit the change.
 
         @assert: Error not raised for matcher value in list.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.add_override_value({
+            'smart-class-parameter-id': sc_param_id,
+            'match': 'domain=test.com',
+            'value': '30'
+        })
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'default-value': 'example',
+            'override': 1,
+            'validator-type': 'list',
+            'validator-rule': 'test, example, 30',
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['default-value'], 'example')
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_value_with_default_type(self):
         """Error raised for matcher value not of default type.
 
@@ -528,15 +809,23 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Submit the change.
 
         @assert: Error raised for matcher value not of default type.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'parameter-type': 'boolean',
+            'override': 1,
+            'default-value': u'true',
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartClassParameter.add_override_value({
+                'smart-class-parameter-id': sc_param_id,
+                'match': 'domain=test.com',
+                'value': gen_string('alpha')
+            })
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_matcher_value_with_default_type(self):
         """No error for matcher value of default type.
 
@@ -550,15 +839,32 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Submit the change.
 
         @assert: Error not raised for matcher value of default type.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'parameter-type': 'boolean',
+            'override': 1,
+            'default-value': u'true',
+        })
+        SmartClassParameter.add_override_value({
+            'smart-class-parameter-id': sc_param_id,
+            'match': 'domain=test.com',
+            'value': u'false'
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(
+            sc_param['override-values']['values']['1']['match'],
+            'domain=test.com'
+        )
+        self.assertEqual(
+            sc_param['override-values']['values']['1']['value'], False)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_and_default_value(self):
         """Error for invalid default and matcher value both at a time.
 
@@ -572,15 +878,23 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Attempt to submit the change.
 
         @assert: Error raised for invalid default and matcher value both.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.add_override_value({
+            'smart-class-parameter-id': sc_param_id,
+            'match': 'domain=test.com',
+            'value': gen_string('alpha'),
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartClassParameter.update({
+                'id': sc_param_id,
+                'parameter-type': 'boolean',
+                'override': 1,
+                'default-value': gen_string('alpha'),
+            })
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_non_existing_attribute(self):
         """Error while creating matcher for Non Existing Attribute.
 
@@ -593,14 +907,16 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Attempt to submit the change.
 
         @assert: Error raised for non existing attribute.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        with self.assertRaises(CLIReturnCodeError):
+            SmartClassParameter.add_override_value({
+                'smart-class-parameter-id': sc_param_id,
+                'match': 'non_existing_attribute',
+                'value': gen_string('alpha')
+            })
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_matcher(self):
         """Create matcher for attribute in parameter.
@@ -615,12 +931,49 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Submit the change.
 
         @assert: The matcher has been created successfully.
-
-        @caseautomation: notautomated
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        value = gen_string('alpha')
+        SmartClassParameter.add_override_value({
+            'smart-class-parameter-id': sc_param_id,
+            'match': 'is_virtual=true',
+            'value': value
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(
+            sc_param['override-values']['values']['1']['match'],
+            'is_virtual=true'
+        )
+        self.assertEqual(
+            sc_param['override-values']['values']['1']['value'], value)
 
     @run_only_on('sat')
-    @stubbed()
+    @tier1
+    def test_negative_create_matcher(self):
+        """Error while creating matcher with empty value
+
+        @id: d4d9f730-152c-428d-b48c-294a23b183ea
+
+        @steps:
+
+        1.  Override the parameter.
+        2.  Create a matcher with empty value.
+        4.  Attempt to submit the change.
+
+        @assert: Error is raised for attempt to add matcher with empty value
+        """
+        sc_param_id = self.sc_params_ids_list.pop()
+        with self.assertRaises(CLIReturnCodeError):
+            SmartClassParameter.add_override_value({
+                'smart-class-parameter-id': sc_param_id,
+                'match': 'is_virtual=true',
+                'value': '',
+            })
+
+    @run_only_on('sat')
     @tier1
     def test_positive_create_matcher_puppet_default_value(self):
         """Create matcher for attribute in parameter,
@@ -637,9 +990,30 @@ class SmartClassParametersTestCase(CLITestCase):
         4.  Submit the change.
 
         @assert: The matcher has been created successfully.
-
-        @caseautomation: notautomated
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        value = gen_string('alpha')
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+            'default-value': gen_string('alpha'),
+        })
+        SmartClassParameter.add_override_value({
+            'smart-class-parameter-id': sc_param_id,
+            'match': 'domain=test.com',
+            'value': value,
+            'use-puppet-default': 1
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(
+            sc_param['override-values']['values']['1']['match'],
+            'domain=test.com'
+        )
+        self.assertEqual(
+            sc_param['override-values']['values']['1']['value'], value)
 
     @run_only_on('sat')
     @stubbed()
@@ -948,8 +1322,7 @@ class SmartClassParametersTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
-    @tier2
+    @tier1
     def test_positive_remove_matcher(self):
         """Removal of matcher from parameter.
 
@@ -957,46 +1330,35 @@ class SmartClassParametersTestCase(CLITestCase):
 
         @steps:
 
-        1. Override the parameter and create a matcher
-        for some attribute.
+        1. Override the parameter and create a matcher for some attribute.
         2. Remove the matcher created in step 1.
 
         @assert: The matcher removed from parameter.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        value = gen_string('alpha')
+        SmartClassParameter.add_override_value({
+            'smart-class-parameter-id': sc_param_id,
+            'match': 'is_virtual=true',
+            'value': value
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(len(sc_param['override-values']['values']), 1)
+        SmartClassParameter.remove_override_value({
+            'smart-class-parameter-id': sc_param_id,
+            'id': sc_param['override-values']['values']['1']['id'],
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(len(sc_param['override-values']['values']), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_impact_parameter_delete_attribute(self):
-        """Impact on parameter after deleting associated attribute.
-
-        @id: 8d221485-ca88-49cb-a3d3-7ed5f1ce4653
-
-        @steps:
-
-        1.  Override the parameter and create a matcher
-        for some attribute.
-        2.  Delete the attribute.
-        3.  Recreate the attribute with same name as earlier.
-
-        @assert:
-
-        1.  The matcher for deleted attribute removed from parameter.
-        2.  On recreating attribute, the matcher should not
-        reappear in parameter.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_hide_parameter_default_value(self):
         """Hide the default value of parameter.
 
@@ -1009,15 +1371,22 @@ class SmartClassParametersTestCase(CLITestCase):
         3. Set 'Hidden Value' to true.
 
         @assert: The 'hidden value' set to true for that parameter.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+            'default-value': gen_string('alpha'),
+            'hidden-value': 1,
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['hidden-value?'], True)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_unhide_parameter_default_value(self):
         """Unhide the default value of parameter.
 
@@ -1031,14 +1400,30 @@ class SmartClassParametersTestCase(CLITestCase):
         4. After hiding, set the 'Hidden Value' to false.
 
         @assert: The 'hidden value' set to false for that parameter.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+            'default-value': gen_string('alpha'),
+            'hidden-value': 1,
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['hidden-value?'], True)
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'hidden-value': 0,
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['hidden-value?'], False)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_hidden_value_in_parameter(self):
         """Update the hidden default value of parameter.
@@ -1056,13 +1441,35 @@ class SmartClassParametersTestCase(CLITestCase):
 
         1. The parameter default value is updated.
         2. The 'hidden value' displayed as true for that parameter.
-
-        @caseautomation: notautomated
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        old_value = gen_string('alpha')
+        new_value = gen_string('alpha')
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+            'default-value': old_value,
+            'hidden-value': 1,
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['hidden-value?'], True)
+        self.assertEqual(sc_param['default-value'], old_value)
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'default-value': new_value,
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertEqual(sc_param['hidden-value?'], True)
+        self.assertEqual(sc_param['default-value'], new_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_hide_empty_default_value(self):
         """Hiding the empty default value.
 
@@ -1078,8 +1485,17 @@ class SmartClassParametersTestCase(CLITestCase):
 
         1. The 'hidden value' set to true for that parameter.
         2. The default value is still empty on hide.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param_id = self.sc_params_ids_list.pop()
+        SmartClassParameter.update({
+            'id': sc_param_id,
+            'override': 1,
+            'hidden-value': 1,
+            'default-value': '',
+        })
+        sc_param = SmartClassParameter.info({
+            'puppet-class': 'ntp',
+            'id': sc_param_id,
+        })
+        self.assertFalse(sc_param['default-value'])
+        self.assertEqual(sc_param['hidden-value?'], True)
