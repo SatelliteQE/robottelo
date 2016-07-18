@@ -119,7 +119,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.user.update(
                 username=self.ldap_user_name,
                 authorized_by='LDAP-' + self.ldap_server_name,
-                password=self.ldap_user_passwd,
+                new_password=self.ldap_user_passwd,
+                password_confirmation=self.ldap_user_passwd,
             )
         with Session(
             self.browser,
@@ -172,7 +173,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.user.update(
                 username=self.ldap_user_name,
                 authorized_by='LDAP-' + self.ldap_server_name,
-                password=self.ldap_user_passwd,
+                new_password=self.ldap_user_passwd,
+                password_confirmation=self.ldap_user_passwd,
             )
         with Session(
             self.browser,
@@ -226,7 +228,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.user.update(
                 username=self.ldap_user_name,
                 authorized_by='LDAP-' + self.ldap_server_name,
-                password=self.ldap_user_passwd,
+                new_password=self.ldap_user_passwd,
+                password_confirmation=self.ldap_user_passwd,
             )
         with Session(
                 self.browser,
@@ -396,7 +399,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.user.update(
                 username=self.ldap_user_name,
                 authorized_by='LDAP-' + self.ldap_server_name,
-                password=self.ldap_user_passwd,
+                new_password=self.ldap_user_passwd,
+                password_confirmation=self.ldap_user_passwd,
             )
         with Session(
             self.browser,
@@ -474,7 +478,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.user.update(
                 username=self.ldap_user_name,
                 authorized_by='LDAP-' + self.ldap_server_name,
-                password=self.ldap_user_passwd,
+                new_password=self.ldap_user_passwd,
+                password_confirmation=self.ldap_user_passwd,
             )
         with Session(
             self.browser, self.ldap_user_name, self.ldap_user_passwd
@@ -548,7 +553,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.user.update(
                 username=self.ldap_user_name,
                 authorized_by='LDAP-' + self.ldap_server_name,
-                password=self.ldap_user_passwd,
+                new_password=self.ldap_user_passwd,
+                password_confirmation=self.ldap_user_passwd,
             )
         with Session(
             self.browser,
