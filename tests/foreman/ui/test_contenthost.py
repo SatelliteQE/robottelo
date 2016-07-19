@@ -45,39 +45,45 @@ class ContentHostTestCase(UITestCase):
 
     @classmethod
     def set_session_org(cls):
-        """Create separate organization for each test"""
+        """Create an organization for tests, which will be selected
+        automatically"""
         cls.session_org = entities.Organization().create()
 
+    @classmethod
     @skip_if_not_set('clients', 'fake_manifest')
-    def setUp(self):
-        """Create Lifecycle Environment, Content View, Activation key,
-        then create a VM, subscribe it to satellite-tools repo, install
-        katello-ca and katello-agent packages"""
-        super(ContentHostTestCase, self).setUp()
-        self.env = entities.LifecycleEnvironment(
-            organization=self.session_org).create()
-        self.content_view = entities.ContentView(
-            organization=self.session_org).create()
-        self.activation_key = entities.ActivationKey(
-            environment=self.env,
-            organization=self.session_org,
+    def setUpClass(cls):
+        """Create Lifecycle Environment, Content View and Activation key
+        """
+        super(ContentHostTestCase, cls).setUpClass()
+        cls.env = entities.LifecycleEnvironment(
+            organization=cls.session_org).create()
+        cls.content_view = entities.ContentView(
+            organization=cls.session_org).create()
+        cls.activation_key = entities.ActivationKey(
+            environment=cls.env,
+            organization=cls.session_org,
         ).create()
         setup_org_for_a_rh_repo({
             'product': PRDS['rhel'],
             'repository-set': REPOSET['rhst7'],
             'repository': REPOS['rhst7']['name'],
-            'organization-id': self.session_org.id,
-            'content-view-id': self.content_view.id,
-            'lifecycle-environment-id': self.env.id,
-            'activationkey-id': self.activation_key.id,
+            'organization-id': cls.session_org.id,
+            'content-view-id': cls.content_view.id,
+            'lifecycle-environment-id': cls.env.id,
+            'activationkey-id': cls.activation_key.id,
         })
         setup_org_for_a_custom_repo({
             'url': FAKE_0_YUM_REPO,
-            'organization-id': self.session_org.id,
-            'content-view-id': self.content_view.id,
-            'lifecycle-environment-id': self.env.id,
-            'activationkey-id': self.activation_key.id,
+            'organization-id': cls.session_org.id,
+            'content-view-id': cls.content_view.id,
+            'lifecycle-environment-id': cls.env.id,
+            'activationkey-id': cls.activation_key.id,
         })
+
+    def setUp(self):
+        """Create a VM, subscribe it to satellite-tools repo, install
+        katello-ca and katello-agent packages"""
+        super(ContentHostTestCase, self).setUp()
         self.client = VirtualMachine(distro='rhel71')
         self.client.create()
         self.client.install_katello_ca()
