@@ -22,6 +22,7 @@ from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.factory import (
     make_architecture,
+    make_content_view,
     make_domain,
     make_environment,
     make_hostgroup,
@@ -187,7 +188,7 @@ class HostGroupTestCase(CLITestCase):
         hostgroup = make_hostgroup({'domain-id': domain['id']})
         self.assertEqual(domain['name'], hostgroup['domain'])
 
-    @skip_if_bug_open('bugzilla', 1309107)
+    @skip_if_bug_open('bugzilla', 1359694)
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_lifecycle_environment(self):
@@ -197,21 +198,20 @@ class HostGroupTestCase(CLITestCase):
 
         @Assert: Hostgroup should be created and has lifecycle env assigned
 
-        @BZ: 1309107
+        @BZ: 1359694
         """
         org = make_org()
         lc_env = make_lifecycle_environment({'organization-id': org['id']})
         hostgroup = make_hostgroup({
             'lifecycle-environment': lc_env['name'],
             'organization-ids': org['id'],
-            'lifecycle-environment-organization-id': org['id'],
         })
         self.assertEqual(
             lc_env['name'],
             hostgroup['lifecycle-environment'],
         )
 
-    @skip_if_bug_open('bugzilla', 1309107)
+    @skip_if_bug_open('bugzilla', 1359694)
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_multiple_entities(self):
@@ -222,12 +222,13 @@ class HostGroupTestCase(CLITestCase):
         @Assert: Hostgroup should be created and has all defined entities
         assigned
 
-        @BZ: 1309107
+        @BZ: 1359694
         """
         subnet = make_subnet()
         domain = make_domain()
         org = make_org()
         lc_env = make_lifecycle_environment({'organization-id': org['id']})
+        cv = make_content_view({'organization-id': org['id']})
         loc = make_location()
         env = make_environment()
         os = make_os()
@@ -245,20 +246,21 @@ class HostGroupTestCase(CLITestCase):
             'puppet-ca-proxy-id': puppet_proxy['id'],
             'operatingsystem-id': os['id'],
             'architecture-id': arch['id'],
+            'content-view-id': cv['id'],
             'lifecycle-environment': lc_env['name'],
-            'lifecyle-environment-organization-id': org['id'],
             'partition-table-id': ptable['id'],
             'medium-id': media['id'],
         })
         self.assertEqual(domain['name'], hostgroup['domain'])
         self.assertEqual(subnet['name'], hostgroup['subnet'])
-        self.assertEqual(org['name'], hostgroup['organization'])
+        self.assertIn(org['name'], hostgroup['organizations'])
         self.assertEqual(loc['name'], hostgroup['location'])
         self.assertEqual(env['name'], hostgroup['environment'])
         self.assertEqual(puppet_proxy['name'], hostgroup['puppet-proxy'])
         self.assertEqual(puppet_proxy['name'], hostgroup['puppet-ca-proxy'])
         self.assertEqual(os['name'], hostgroup['operatingsystem'])
         self.assertEqual(arch['name'], hostgroup['architecture'])
+        self.assertEqual(cv['name'], hostgroup['content-view'])
         self.assertEqual(lc_env['name'], hostgroup['lifecycle-environment'])
         self.assertEqual(ptable['name'], hostgroup['partition-table'])
         self.assertEqual(media['name'], hostgroup['medium'])
