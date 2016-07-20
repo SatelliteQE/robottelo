@@ -19,14 +19,33 @@
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.api.utils import promote
-from robottelo.cli.factory import make_content_host
+from robottelo.cli.factory import (
+    make_content_host,
+    setup_org_for_a_custom_repo,
+    setup_org_for_a_rh_repo,
+)
+from robottelo.constants import (
+    FAKE_0_CUSTOM_PACKAGE,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_2_CUSTOM_PACKAGE,
+    FAKE_0_CUSTOM_PACKAGE_GROUP,
+    FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+    FAKE_0_YUM_REPO,
+    PRDS,
+    REPOS,
+    REPOSET,
+)
 from robottelo.datafactory import (
     invalid_names_list,
     invalid_values_list,
     valid_data_list,
 )
 from robottelo.decorators import (
+    run_in_one_thread,
     skip_if_bug_open,
+    skip_if_not_set,
     tier1,
     tier3,
 )
@@ -35,6 +54,8 @@ from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_host_collection
 from robottelo.ui.locators import common_locators
 from robottelo.ui.session import Session
+from robottelo.vm import VirtualMachine
+from time import sleep
 
 
 class HostCollectionTestCase(UITestCase):
@@ -383,3 +404,225 @@ class HostCollectionTestCase(UITestCase):
                 self.hostcollection.add_host(name, new_systems[1])
             self.assertIsNotNone(self.hostcollection.wait_until_element(
                 common_locators['alert.error_sub_form']))
+
+
+@run_in_one_thread
+class HostCollectionPackageManagementTest(UITestCase):
+    """Implements Host Collection package management related tests in UI"""
+
+    hosts_number = 2  # number of hosts per host collection
+
+    @classmethod
+    def set_session_org(cls):
+        """Create an organization for tests, which will be selected
+        automatically
+        """
+        cls.session_org = entities.Organization().create()
+
+    @classmethod
+    @skip_if_not_set('clients', 'fake_manifest')
+    def setUpClass(cls):
+        """Create Org, Lifecycle Environment, Content View, Activation key"""
+        super(HostCollectionPackageManagementTest, cls).setUpClass()
+        cls.env = entities.LifecycleEnvironment(
+            organization=cls.session_org).create()
+        cls.content_view = entities.ContentView(
+            organization=cls.session_org).create()
+        cls.activation_key = entities.ActivationKey(
+            environment=cls.env,
+            organization=cls.session_org,
+        ).create()
+        setup_org_for_a_rh_repo({
+            'product': PRDS['rhel'],
+            'repository-set': REPOSET['rhst7'],
+            'repository': REPOS['rhst7']['name'],
+            'organization-id': cls.session_org.id,
+            'content-view-id': cls.content_view.id,
+            'lifecycle-environment-id': cls.env.id,
+            'activationkey-id': cls.activation_key.id,
+        })
+        setup_org_for_a_custom_repo({
+            'url': FAKE_0_YUM_REPO,
+            'organization-id': cls.session_org.id,
+            'content-view-id': cls.content_view.id,
+            'lifecycle-environment-id': cls.env.id,
+            'activationkey-id': cls.activation_key.id,
+        })
+
+    def setUp(self):
+        """Create VMs, subscribe them to satellite-tools repo, install
+        katello-ca and katello-agent packages, then create Host collection,
+        associate it with previously created hosts.
+        """
+        super(HostCollectionPackageManagementTest, self).setUp()
+        self.hosts = []
+        for _ in range(self.hosts_number):
+            client = VirtualMachine(distro='rhel71')
+            self.hosts.append(client)
+            client.create()
+            client.install_katello_ca()
+            result = client.register_contenthost(
+                self.session_org.label, self.activation_key.name)
+            self.assertEqual(result.return_code, 0)
+            client.enable_repo(REPOS['rhst7']['id'])
+            client.install_katello_agent()
+        host_ids = [
+            entities.Host().search(query={
+                'search': 'name={0}'.format(host.hostname)})[0].id
+            for host in self.hosts
+        ]
+        self.host_collection = entities.HostCollection(
+            host=host_ids,
+            organization=self.session_org,
+        ).create()
+
+    def tearDown(self):
+        """Destroy all the VMs"""
+        for client in self.hosts:
+            client.destroy()
+        super(HostCollectionPackageManagementTest, self).tearDown()
+
+    def _validate_package_installed(self, hosts, package_name,
+                                    expected_installed=True, timeout=120):
+        """Check whether package was installed on the list of hosts."""
+
+        for host in hosts:
+            for _ in range(timeout / 15):
+                result = self.contenthost.package_search(
+                    host.hostname, package_name)
+                if (result is not None and expected_installed or
+                        result is None and not expected_installed):
+                    break
+                sleep(15)
+            else:
+                self.fail(
+                    u'Package {0} was not {1} host {2}'.format(
+                        package_name,
+                        'installed on ' if expected_installed else
+                        'removed from ',
+                        host.hostname,
+                    )
+                )
+
+    @tier3
+    def test_positive_install_package(self):
+        """Install a package to hosts inside host collection remotely
+
+        @id: eead8392-0ffc-4062-b045-5d0252670775
+
+        @assert: Package was successfully installed on all the hosts in host
+        collection
+
+        @CaseLevel: System
+        """
+        with Session(self.browser):
+            self.hostcollection.execute_bulk_package_action(
+                self.host_collection.name,
+                'install',
+                'package',
+                FAKE_0_CUSTOM_PACKAGE_NAME,
+            )
+            self._validate_package_installed(
+                self.hosts, FAKE_0_CUSTOM_PACKAGE_NAME)
+
+    @tier3
+    def test_positive_remove_package(self):
+        """Remove a package from hosts inside host collection remotely
+
+        @id: 488fa88d-d0ef-4108-a050-96fb621383df
+
+        @Assert: Package was successfully removed from all the hosts in host
+        collection
+
+        @CaseLevel: System
+        """
+        for client in self.hosts:
+            client.download_install_rpm(
+                FAKE_0_YUM_REPO,
+                FAKE_0_CUSTOM_PACKAGE
+            )
+        with Session(self.browser):
+            self.hostcollection.execute_bulk_package_action(
+                self.host_collection.name,
+                'remove',
+                'package',
+                FAKE_0_CUSTOM_PACKAGE_NAME,
+            )
+            self._validate_package_installed(
+                self.hosts,
+                FAKE_0_CUSTOM_PACKAGE_NAME,
+                expected_installed=False,
+            )
+
+    @tier3
+    def test_positive_upgrade_package(self):
+        """Upgrade a package on hosts inside host collection remotely
+
+        @id: 5a6fff0a-686f-419b-a773-4d03713e47e9
+
+        @Assert: Package was successfully upgraded on all the hosts in host
+        collection
+
+        @CaseLevel: System
+        """
+        for client in self.hosts:
+            client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        with Session(self.browser):
+            self.hostcollection.execute_bulk_package_action(
+                self.host_collection.name,
+                'update',
+                'package',
+                FAKE_1_CUSTOM_PACKAGE_NAME,
+            )
+            self._validate_package_installed(self.hosts, FAKE_2_CUSTOM_PACKAGE)
+
+    @tier3
+    def test_positive_install_package_group(self):
+        """Install a package group to hosts inside host collection remotely
+
+        @id: 2bf47798-d30d-451a-8de5-bc03bd8b9a48
+
+        @Assert: Package group was successfully installed on all the hosts in
+        host collection
+
+        @CaseLevel: System
+        """
+        with Session(self.browser):
+            self.hostcollection.execute_bulk_package_action(
+                self.host_collection.name,
+                'install',
+                'package_group',
+                FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+            )
+            for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
+                self._validate_package_installed(self.hosts, package)
+
+    @tier3
+    def test_positive_remove_package_group(self):
+        """Remove a package group from hosts inside host collection remotely
+
+        @id: 458897dc-9836-481a-b777-b147d64836f2
+
+        @Assert: Package group was successfully removed  on all the hosts in
+        host collection
+
+        @CaseLevel: System
+        """
+        with Session(self.browser):
+            self.hostcollection.execute_bulk_package_action(
+                self.host_collection.name,
+                'install',
+                'package_group',
+                FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+            )
+            for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
+                self._validate_package_installed(self.hosts, package)
+            self.hostcollection.execute_bulk_package_action(
+                self.host_collection.name,
+                'remove',
+                'package_group',
+                FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+            )
+            for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
+                self._validate_package_installed(
+                    self.hosts, package, expected_installed=False)
