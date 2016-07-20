@@ -415,10 +415,11 @@ class Navigator(Base):
         # if force=False and org is already the current selected, do nothing.
         if not force and self.find_element(
                 menu_locators['menu.current_text']).text == org:
-            self.logger.debug(u'%s is already the org in the context', org)
+            self.logger.debug(
+                u'%s is already the org in the context', org)
             return
 
-        self.logger.debug(u'Changing context to %s organization', org)
+        self.logger.debug(u'Selecting Organization: %s', org)
         strategy, value = menu_locators['org.select_org']
         self.menu_click(
             menu_locators['menu.any_context'],
@@ -431,9 +432,7 @@ class Navigator(Base):
             org_dropdown = org[:27] + '...'
         if self.wait_until_element(
                 menu_locators['menu.fetch_org']).text != org_dropdown:
-            raise UIError(
-                u'Could not select the organization: {0}'.format(org)
-            )
+            raise UIError(u'Error Selecting Organization: %s' % org)
         # close dropdown
         self.click(menu_locators['menu.current_text'])
         # get to left corner of the browser instance to not have impact on
@@ -449,6 +448,7 @@ class Navigator(Base):
         :rtype: str
 
         """
+        self.logger.debug(u'Selecting Location: %s', loc)
         strategy, value = menu_locators['loc.select_loc']
         self.menu_click(
             menu_locators['menu.any_context'],
@@ -461,9 +461,7 @@ class Navigator(Base):
             loc_dropdown = loc[:27] + '...'
         if self.wait_until_element(
                 menu_locators['menu.fetch_loc']).text != loc_dropdown:
-            raise UIError(
-                u'Could not select the location: {0}'.format(loc)
-            )
+            raise UIError(u'Error Selecting Location: %s' % loc)
         # close dropdown
         self.click(menu_locators['menu.current_text'])
         # get to left corner of the browser instance to not have impact on

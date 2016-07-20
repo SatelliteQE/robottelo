@@ -26,31 +26,94 @@ def _sauce_ondemand_url(saucelabs_user, saucelabs_key):
         saucelabs_user, saucelabs_key)
 
 
+# Dict of callables to format the output of selenium commands logging
+param_formatters = {
+    # normally this value is ['a', 'b', 'c'] but we want ['abc']
+    'sendKeysToElement': lambda x: {
+        'id': x['id'], 'value': ''.join(x['value'])
+    }
+}
+
+
+class DriverLoggerMixin(object):
+    """Custom Driver Mixin to allow logging of commands execution"""
+    def execute(self, driver_command, params=None):
+        # execute and intercept the response
+        response = super(DriverLoggerMixin, self).execute(driver_command,
+                                                          params)
+
+        # skip messages for commands not in settings
+        if driver_command not in settings.log_driver_commands:
+            return response
+
+        if params:
+            # we dont need the sessionId in the log output
+            params.pop('sessionId', None)
+            value = response.get('value')
+            id_msg = ''
+            # append the 'id' of element in the front of message
+            if isinstance(value, webdriver.remote.webelement.WebElement):
+                id_msg = "id: %s" % value.id
+            # Build the message like 'findElement: id: 1: {using: xpath}'
+            msg = '%s: %s %s' % (
+                driver_command,
+                id_msg,
+                param_formatters.get(driver_command, lambda x: x)(params)
+            )
+        else:
+            msg = driver_command
+
+        # output the log message
+        LOGGER.debug(msg)
+
+        return response
+
+
+class Firefox(DriverLoggerMixin, webdriver.Firefox):
+    """Custom Firefox for custom logging"""
+
+
+class Chrome(DriverLoggerMixin, webdriver.Chrome):
+    """Custom Chrome for custom logging"""
+
+
+class Ie(DriverLoggerMixin, webdriver.Ie):
+    """Custom Ie for custom logging"""
+
+
+class PhantomJS(DriverLoggerMixin, webdriver.PhantomJS):
+    """Custom PhantomJS for custom logging"""
+
+
+class Remote(DriverLoggerMixin, webdriver.Remote):
+    """Custom Remote for custom logging"""
+
+
 def browser():
     """Creates a webdriver browser instance based on configuration."""
     webdriver_name = settings.webdriver.lower()
     if settings.browser == 'selenium':
         if webdriver_name == 'firefox':
-            return webdriver.Firefox(
+            return Firefox(
                 firefox_binary=webdriver.firefox.firefox_binary.FirefoxBinary(
                     settings.webdriver_binary)
             )
         elif webdriver_name == 'chrome':
             return (
-                webdriver.Chrome() if settings.webdriver_binary is None
-                else webdriver.Chrome(
+                Chrome() if settings.webdriver_binary is None
+                else Chrome(
                     executable_path=settings.webdriver_binary)
             )
         elif webdriver_name == 'ie':
             return (
-                webdriver.Ie() if settings.webdriver_binary is None
-                else webdriver.Ie(executable_path=settings.webdriver_binary)
+                Ie() if settings.webdriver_binary is None
+                else Ie(executable_path=settings.webdriver_binary)
             )
         elif webdriver_name == 'phantomjs':
-            return webdriver.PhantomJS(
+            return PhantomJS(
                 service_args=['--ignore-ssl-errors=true'])
         elif webdriver_name == 'remote':
-            return webdriver.Remote()
+            return Remote()
     elif settings.browser == 'saucelabs':
         if webdriver_name == 'chrome':
             desired_capabilities = webdriver.DesiredCapabilities.CHROME.copy()
@@ -62,7 +125,7 @@ def browser():
         if settings.webdriver_desired_capabilities:
             desired_capabilities.update(
                 settings.webdriver_desired_capabilities)
-        return webdriver.Remote(
+        return Remote(
             command_executor=_sauce_ondemand_url(
                 settings.saucelabs_user, settings.saucelabs_key),
             desired_capabilities=desired_capabilities
@@ -111,7 +174,7 @@ class DockerBrowser(object):
         # yet. Give up to 10 seconds for a container being ready.
         for attempt in range(20):
             try:
-                self.webdriver = webdriver.Remote(
+                self.webdriver = Remote(
                     command_executor='http://127.0.0.1:{0}/wd/hub'.format(
                         self.container['HostPort']),
                     desired_capabilities=webdriver.DesiredCapabilities.FIREFOX

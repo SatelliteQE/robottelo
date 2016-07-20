@@ -682,6 +682,18 @@ class Settings(object):
 
     def _read_robottelo_settings(self):
         """Read Robottelo's general settings."""
+        self.log_driver_commands = self.reader.get(
+            'robottelo',
+            'log_driver_commands',
+            ['newSession',
+             'windowMaximize',
+             'get',
+             'findElement',
+             'sendKeysToElement',
+             'clickElement',
+             'mouseMoveTo'],
+            list
+        )
         self.browser = self.reader.get(
             'robottelo', 'browser', 'selenium')
         self.locale = self.reader.get('robottelo', 'locale', 'en_US.UTF-8')

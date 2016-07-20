@@ -39,6 +39,10 @@ ssh_key=
 # Logging verbosity, one of debug, info, warning, error, critical
 # verbosity=debug
 
+# Webdriver logging options
+# A list of commands to be logged
+# log_driver_commands=newSession,windowMaximize,get,findElement,sendKeysToElement,clickElement,mouseMoveTo
+
 # browser tells robottelo which browser to use when testing UI. Valid values
 # are:
 # * selenium
