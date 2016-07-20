@@ -1,34 +1,17 @@
+"""Implements decorator regarding satellite host"""
 import logging
 import re
-import six
 import unittest2
 
 from robottelo import ssh
 from robottelo.config import settings
+from robottelo.helpers import lru_cache
 from functools import wraps
-
-if six.PY3:
-    from functools import lru_cache
-elif six.PY2:
-    # workaround only for this module, its not doing exactly the same as
-    # original from Python 3, but it fits this specific case
-    def lru_cache(maxsize):
-        def decorator(func):
-            cache = []
-
-            @wraps(func)
-            def wrapper():
-                if not cache:
-                    cache.append(func())
-                return cache[0]
-
-            return wrapper
-
-        return decorator
 
 LOGGER = logging.getLogger(__name__)
 
 
+@lru_cache(maxsize=1)
 def _get_host_os_version():
     """Fetchs host's OS version through SSH
     :return: str with version
@@ -36,19 +19,15 @@ def _get_host_os_version():
     cmd = ssh.command('cat /etc/redhat-release')
     if cmd.stdout:
         version_description = cmd.stdout[0]
-        r = r'Red Hat Enterprise Linux Server release (?P<version>\d(\.\d)*).*'
-        m = re.search(r, version_description)
-        if m:
-            return 'RHEL{}'.format(m.group('version'))
+        version_re = (
+            r'Red Hat Enterprise Linux Server release (?P<version>\d(\.\d)*).*'
+        )
+        result = re.search(version_re, version_description)
+        if result:
+            return 'RHEL{}'.format(result.group('version'))
 
     LOGGER.warning('Host version not available: {!r}'.format(cmd))
     return 'Not Available'
-
-
-# not decorating _get_host_os_version to make test easier
-@lru_cache(maxsize=1)
-def _cached_host_os_version():
-    return _get_host_os_version()
 
 
 def skip_if_os(*versions):
@@ -77,7 +56,8 @@ def skip_if_os(*versions):
     versions = set(map(lambda s: s.upper(), versions))
 
     def decorator(func):
-        """Wrap test methods in order to skip them accordingly with host version.
+        """Wrap test methods in order to skip them accordingly with host
+        version.
         """
 
         @wraps(func)
@@ -89,7 +69,7 @@ def skip_if_os(*versions):
             if not settings.configured:
                 settings.configure()
 
-            host_version = _cached_host_os_version()
+            host_version = _get_host_os_version()
 
             if host_version in versions:
                 skip_msg = 'host {0} in ignored versions {1}'.format(
@@ -109,9 +89,3 @@ def skip_if_os(*versions):
         return wrapper
 
     return decorator
-
-
-if __name__ == '__main__':
-    if not settings.configured:
-        settings.configure()
-    print(_get_host_os_version())

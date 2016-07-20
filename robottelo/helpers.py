@@ -4,11 +4,18 @@ import logging
 import os
 import re
 import requests
+import six
 
 from tempfile import mkstemp
 from nailgun.config import ServerConfig
 from robottelo import ssh
 from robottelo.config import settings
+
+# This conditional is here to centralize use of lru_cache
+if six.PY3:  # pragma: no cover
+    from functools import lru_cache  # noqa
+else:  # pragma: no cover
+    from cachetools import lru_cache  # noqa
 
 LOGGER = logging.getLogger(__name__)
 

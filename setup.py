@@ -16,6 +16,7 @@ setup(
     package_data={'': ['LICENSE']},
     include_package_data=True,
     install_requires=[
+        'cachetools',
         'cryptography',
         'fauxfactory',
         'inflector',
