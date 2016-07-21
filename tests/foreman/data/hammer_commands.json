@@ -799,10 +799,40 @@
           "name": "subscriptions",
           "options": [
             {
+              "help": "Activation key name to search by",
+              "name": "activation-key",
+              "shortname": null,
+              "value": "ACTIVATION_KEY_NAME"
+            },
+            {
+              "help": "ID of the activation key",
+              "name": "activation-key-id",
+              "shortname": null,
+              "value": "ACTIVATION_KEY_ID"
+            },
+            {
               "help": "Object to show subscriptions available for, either 'host' or 'activation_key'",
               "name": "available-for",
               "shortname": null,
               "value": "AVAILABLE_FOR"
+            },
+            {
+              "help": "Field to sort the results on",
+              "name": "by",
+              "shortname": null,
+              "value": "BY"
+            },
+            {
+              "help": "Whether or not to show all results One of true/false, yes/no, 1/0.",
+              "name": "full-results",
+              "shortname": null,
+              "value": "FULL_RESULTS"
+            },
+            {
+              "help": "Name to search by",
+              "name": "host",
+              "shortname": null,
+              "value": "HOST_NAME"
             },
             {
               "help": "id of a host",
@@ -841,6 +871,12 @@
               "value": "NO_OVERLAP"
             },
             {
+              "help": "Sort field and order, eg. 'name DESC'",
+              "name": "order",
+              "shortname": null,
+              "value": "ORDER"
+            },
+            {
               "help": "Organization name to search by",
               "name": "organization",
               "shortname": null,
@@ -857,6 +893,24 @@
               "name": "organization-label",
               "shortname": null,
               "value": "ORGANIZATION_LABEL"
+            },
+            {
+              "help": "Page number, starting at 1",
+              "name": "page",
+              "shortname": null,
+              "value": "PAGE"
+            },
+            {
+              "help": "Number of results per page to return",
+              "name": "per-page",
+              "shortname": null,
+              "value": "PER_PAGE"
+            },
+            {
+              "help": "Search string",
+              "name": "search",
+              "shortname": null,
+              "value": "SEARCH"
             },
             {
               "help": "print help",
@@ -13536,6 +13590,18 @@
               "value": "OPERATINGSYSTEM_ID"
             },
             {
+              "help": "Organization name to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "Organization ID to search by",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
+            },
+            {
               "help": "REPLACE organizations with given ids. Comma separated list of values.",
               "name": "organization-ids",
               "shortname": null,
@@ -14155,6 +14221,18 @@
               "name": "operatingsystem-id",
               "shortname": null,
               "value": "OPERATINGSYSTEM_ID"
+            },
+            {
+              "help": "Organization name to search by",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION_NAME"
+            },
+            {
+              "help": "Organization ID to search by",
+              "name": "organization-id",
+              "shortname": null,
+              "value": "ORGANIZATION_ID"
             },
             {
               "help": "REPLACE organizations with given ids. Comma separated list of values.",
