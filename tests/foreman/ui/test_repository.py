@@ -39,6 +39,7 @@ from robottelo.datafactory import (
     invalid_values_list,
 )
 from robottelo.decorators import run_only_on, stubbed, tier1, tier2
+from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import read_data_file
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_repository, set_context
@@ -521,6 +522,7 @@ class RepositoryTestCase(UITestCase):
                     self.assertTrue(self.prd_sync_is_ok(repo_name))
 
     @run_only_on('sat')
+    @skip_if_os('RHEL6')
     @tier1
     def test_positive_create_custom_ostree_repo(self):
         """Create Custom ostree repository.
@@ -544,6 +546,7 @@ class RepositoryTestCase(UITestCase):
                     self.assertIsNotNone(self.repository.search(repo_name))
 
     @run_only_on('sat')
+    @skip_if_os('RHEL6')
     @tier1
     def test_positive_delete_custom_ostree_repo(self):
         """Delete custom ostree repository.
@@ -569,6 +572,7 @@ class RepositoryTestCase(UITestCase):
             self.repository.delete(repo_name)
 
     @run_only_on('sat')
+    @skip_if_os('RHEL6')
     @tier1
     def test_positive_update_custom_ostree_repo_name(self):
         """Update custom ostree repository name.
@@ -600,6 +604,7 @@ class RepositoryTestCase(UITestCase):
             self.assertIsNotNone(self.repository.search(new_repo_name))
 
     @run_only_on('sat')
+    @skip_if_os('RHEL6')
     @tier1
     def test_positive_update_custom_ostree_repo_url(self):
         """Update custom ostree repository url.
