@@ -187,6 +187,10 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
          "//a[@id='menu_item_partition_tables']")),
+    "menu.job_templates": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
+         "//a[@id='menu_item_job_templates']")),
     "menu.installation_media": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style, 'fixed')]"
@@ -427,6 +431,13 @@ tab_locators = LocatorDict({
     "provision.tab_association": (By.XPATH,
                                   "//a[@href='#template_associations']"),
     "provision.tab_history": (By.XPATH, "//a[@href='#history']"),
+
+    # Job Templates
+    # Third level UI
+
+    "job.tab_job": (By.XPATH, "//a[@href='#template_job']"),
+    "job.tab_type": (By.XPATH, "//a[@href='#template_type']"),
+    "job.tab_history": (By.XPATH, "//a[@href='#history']"),
 
     # Users
     # Third level UI
@@ -811,7 +822,15 @@ common_locators = LocatorDict({
         By.XPATH,
         "//*[@class='modal-backdrop fade in']",
     ),
-    "select_repo": (By.XPATH, "//select[@ng-model='repository']")
+    "select_repo": (By.XPATH, "//select[@ng-model='repository']"),
+
+    # ace editor
+    "ace.input": (By.XPATH, "//label[contains(., 'Input') and"
+                            " contains(@class, 'btn')]"),
+    "ace.diff": (By.XPATH, "//label[contains(., 'Diff') and"
+                           " contains(@class, 'btn')]"),
+    "ace.preview": (By.XPATH, "//label[contains(., 'Preview') and"
+                              " contains(@class, 'btn')]"),
 })
 
 locators = LocatorDict({
@@ -1054,7 +1073,8 @@ locators = LocatorDict({
 
     # Content Hosts
     "contenthost.select_name": (
-       By.XPATH, "//a[contains(@href, 'content_hosts') and contains(.,'%s')]"),
+        By.XPATH,
+        "//a[contains(@href, 'content_hosts') and contains(.,'%s')]"),
     "contenthost.edit_name": (
         By.XPATH, "//form[@bst-edit-text='host.name']//div/span/i"),
     "contenthost.edit_name_text": (
@@ -1386,6 +1406,66 @@ locators = LocatorDict({
         By.XPATH,
         ("//label[@class='operatingsystem'"
             "and contains(., '%s')]/input[@type='checkbox']")),
+
+    # Job templates
+    "job.template_new": (
+        By.XPATH, "//a[contains(@href, '/job_templates/new')]"),
+    "job.template_select": (
+        By.XPATH,
+        ("//a[contains(@href, 'job_templates')"
+            "and normalize-space(.)='%s']")),
+    "job.template_name": (By.ID, "job_template_name"),
+    "job.template_file": (By.XPATH, "//input[@id='template_file']"),
+    "job.template_input": (By.XPATH, "//div[contains(@class, 'ace_editor')]"),
+    "job.template_default": (By.XPATH, "//input[@id='job_template_default']"),
+    "job.audit_comment": (
+        By.XPATH, "//input[@id='job_template_audit_comment']"),
+    "job.job_category": (
+        By.XPATH, "//input[@name='job_template[job_category]']"),
+    "job.description_format": (
+        By.XPATH, "//input[@id='job_template_description_format']"),
+    "job.provider_type": (
+        By.XPATH,
+        ("//div[contains(@id, 'job_template_provider_type')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "job.effective_user_value": (
+        By.XPATH,
+        "//input[@id='job_template_effective_user_attributes_value']"),
+    "job.current_user": (
+        By.XPATH,
+        "//input[@id='job_template_effective_user_attributes_current_user']"),
+    "job.effective_user_overridable": (
+        By.XPATH,
+        "//input[@id='job_template_effective_user_attributes_overridable']"),
+    "job.template_snippet": (By.XPATH, "//input[@id='job_template_snippet']"),
+    "job.template_delete": (
+        By.XPATH, "//a[contains(@data-confirm, '%s')]"),
+    "job.template_dropdown": (
+        By.XPATH,
+        ("//td/a[normalize-space(.)='%s']"
+         "/following::td/div/a[@data-toggle='dropdown']")),
+    "job.template_clone": (
+        By.XPATH, "//a[contains(@href,'clone_template')]"),
+    "job.add_new_input": (By.XPATH, "//a[text()='+ Add Input']"),
+    "job.input_name": (
+        By.XPATH, "(//input[contains(@name, '[template_inputs_attributes]') "
+                  "and contains(@name, '[name]')])[last()]"),
+    "job.input_required": (
+        By.XPATH, "(//input[contains(@name, '[template_inputs_attributes]') "
+                  "and contains(@name, '[required]')])[last()]"),
+    "job.input_input_type": (
+        By.XPATH, "(//select[contains(@name, '[template_inputs_attributes]') "
+                  "and contains(@name, '[input_type]')])[last()]"),
+    "job.input_advanced": (
+        By.XPATH, "(//input[contains(@name, '[template_inputs_attributes]') "
+                  "and contains(@name, '[advanced]')])[last()]"),
+    "job.input_options": (
+        By.XPATH, "(//textarea[contains(@name, '[template_inputs_attributes]')"
+                  " and contains(@name, '[options]')])[last()]"),
+    "job.input_description": (
+        By.XPATH, "(//textarea[contains(@name, '[template_inputs_attributes]')"
+                  " and contains(@name, '[description]')])[last()]"),
+
 
     # Hostgroups
 

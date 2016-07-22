@@ -14,14 +14,35 @@
 
 @Upstream: No
 """
+from nailgun import entities
+from robottelo.constants import OS_TEMPLATE_DATA_FILE
+from robottelo.datafactory import (
+    gen_string,
+    generate_strings_list,
+    invalid_values_list,
+)
 from robottelo.decorators import stubbed, tier1, tier2, tier3
+from robottelo.helpers import get_data_file
 from robottelo.test import UITestCase
+from robottelo.ui.factory import make_job_template
+from robottelo.ui.locators import common_locators, locators
+from robottelo.ui.session import Session
+
+OS_TEMPLATE_DATA_FILE = get_data_file(OS_TEMPLATE_DATA_FILE)
 
 
 class RemoteExecutionTestCase(UITestCase):
     """Test class for remote execution feature"""
 
-    @stubbed()
+    @classmethod
+    def setUpClass(cls):
+        """Create an organization and host which can be re-used in tests."""
+        super(RemoteExecutionTestCase, cls).setUpClass()
+        cls.organization = entities.Organization().create()
+        cls.host = entities.Host(organization=cls.organization).create()
+        entities.OperatingSystem(
+            id=cls.host.operatingsystem.id, family='Redhat').update(['family'])
+
     @tier1
     def test_positive_create_simple_job_template(self):
         """Create a simple Job Template
@@ -38,11 +59,46 @@ class RemoteExecutionTestCase(UITestCase):
         6. Click submit
 
         @Assert: The job template was successfully created
-
-        @caseautomation: notautomated
         """
+        with Session(self.browser) as session:
+            for name in generate_strings_list():
+                with self.subTest(name):
+                    make_job_template(
+                        session,
+                        name=name,
+                        template_type='input',
+                        template_content=gen_string('alphanumeric', 500),
+                    )
+                    self.assertIsNotNone(self.jobtemplate.search(name))
 
-    @stubbed()
+    @tier1
+    def test_positive_template_upload(self):
+        """Use a template file to populate the job template
+
+        @id: 976cf310-b2af-41bd-845a-f08baa2e8490
+
+        @Setup: Create or use a pre-made job template file
+
+        @Steps:
+
+        1. Create a new job template.
+        2. Enter a valid name
+        3. Click the upload button to upload a template from the file
+        4. Select the file with the desired template
+
+        @Assert: Verify the template correctly imported the file's contents
+        """
+        with Session(self.browser) as session:
+            for name in generate_strings_list():
+                with self.subTest(name):
+                    make_job_template(
+                        session,
+                        name=name,
+                        template_type='file',
+                        template_content=OS_TEMPLATE_DATA_FILE,
+                    )
+                    self.assertIsNotNone(self.jobtemplate.search(name))
+
     @tier1
     def test_positive_create_job_template_input(self):
         """Create a Job Template using input
@@ -61,12 +117,52 @@ class RemoteExecutionTestCase(UITestCase):
         8. Populate the template code and reference the newly created input
         9. Click submit
 
-        @Assert: The job template was successfully created
-
-        @caseautomation: notautomated
+        @Assert: The job template was successfully saved with new input added
         """
+        name = gen_string('alpha')
+        var_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_job_template(
+                session,
+                name=name,
+                template_type='input',
+                template_content=gen_string('alphanumeric', 20),
+            )
+            self.assertIsNotNone(self.jobtemplate.search(name))
+            self.jobtemplate.add_input(name, var_name)
+            self.jobtemplate.update(
+                name,
+                template_type='input',
+                template_content='<%= input("{0}") %>'.format(var_name)
+            )
 
-    @stubbed()
+    @tier1
+    def test_negative_create_job_template(self):
+        """Create Job Template with invalid name
+
+        @id: 79342781-1369-4d1f-a512-ca1a809d98fb
+
+        @Steps:
+
+        1. Navigate to Hosts -> Job Templates
+        2. Enter an invalid name
+        3. Click submit
+
+        @Assert: Job Template with invalid name cannot be created and error is
+        raised
+        """
+        with Session(self.browser) as session:
+            for name in invalid_values_list('ui'):
+                with self.subTest(name):
+                    make_job_template(
+                        session,
+                        name=name,
+                        template_type='input',
+                        template_content=gen_string('alphanumeric', 20),
+                    )
+                    self.assertIsNotNone(self.jobtemplate.wait_until_element(
+                        common_locators['name_haserror']))
+
     @tier1
     def test_negative_create_job_template_with_same_name(self):
         """Create Job Template with duplicate name
@@ -79,12 +175,26 @@ class RemoteExecutionTestCase(UITestCase):
         2. Enter a name that has already been used
         3. Click submit
 
-        @Assert: The name duplication was caught, stopping creation
-
-        @caseautomation: notautomated
+        @Assert: The name duplication is caught and error is raised
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_job_template(
+                session,
+                name=name,
+                template_type='input',
+                template_content=gen_string('alphanumeric', 20),
+            )
+            self.assertIsNotNone(self.jobtemplate.search(name))
+            make_job_template(
+                session,
+                name=name,
+                template_type='input',
+                template_content=gen_string('alphanumeric', 20),
+            )
+            self.assertIsNotNone(self.jobtemplate.wait_until_element(
+                common_locators['name_haserror']))
 
-    @stubbed()
     @tier1
     def test_positive_delete_job_template(self):
         """Delete a job template
@@ -100,11 +210,17 @@ class RemoteExecutionTestCase(UITestCase):
         3. Confirm the deletion
 
         @Assert: The Job Template has been deleted
-
-        @caseautomation: notautomated
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_job_template(
+                session,
+                name=name,
+                template_type='input',
+                template_content=gen_string('alphanumeric', 20),
+            )
+            self.jobtemplate.delete(name)
 
-    @stubbed()
     @tier1
     def test_positive_clone_job_template(self):
         """Clone a Job Template
@@ -121,11 +237,20 @@ class RemoteExecutionTestCase(UITestCase):
         4. Click submit
 
         @Assert: Verify all job template contents were successfully copied
-
-        @caseautomation: notautomated
         """
+        name = gen_string('alpha')
+        clone_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_job_template(
+                session,
+                name=name,
+                template_type='input',
+                template_content=gen_string('alphanumeric', 20),
+            )
+            self.assertIsNotNone(self.jobtemplate.search(name))
+            self.jobtemplate.clone(name, clone_name)
+            self.assertIsNotNone(self.jobtemplate.search(clone_name))
 
-    @stubbed()
     @tier1
     def test_positive_view_diff(self):
         """View diff within template editor
@@ -141,32 +266,26 @@ class RemoteExecutionTestCase(UITestCase):
         3. Click the Diff button
 
         @Assert: Verify that the new changes are displayed in the window
-
-        @caseautomation: notautomated
         """
+        name = gen_string('alpha')
+        old_template = gen_string('alpha')
+        new_template = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            make_job_template(
+                session,
+                name=name,
+                template_type='input',
+                template_content=old_template,
+            )
+            self.jobtemplate.click(self.jobtemplate.search(name))
+            self.jobtemplate.assign_value(
+                locators['job.template_input'], new_template)
+            self.jobtemplate.click(common_locators['ace.diff'])
+            template_text = self.jobtemplate.wait_until_element(
+                locators['job.template_input']).text
+            self.assertIn('-' + old_template, template_text)
+            self.assertIn('+' + new_template, template_text)
 
-    @stubbed()
-    @tier1
-    def test_positive_template_upload(self):
-        """Use a template file to populate the job template
-
-        @id: 976cf310-b2af-41bd-845a-f08baa2e8490
-
-        @Setup: Create or use a pre-made job template file
-
-        @Steps:
-
-        1. Create a new job template.
-        2. Enter a valid name
-        3. Click the upload button to upload a template from the file
-        4. Select the file with the desired template
-
-        @Assert: Verify the template correctly imported the file's contents
-
-        @caseautomation: notautomated
-        """
-
-    @stubbed()
     @tier1
     def test_positive_preview_verify(self):
         """Use preview within the job template editor to verify template
@@ -181,11 +300,31 @@ class RemoteExecutionTestCase(UITestCase):
         4. Select "preview" within the template viewer
 
         @Assert: Verify no errors are thrown
-
-        @caseautomation: notautomated
         """
+        name = gen_string('alpha')
+        var_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_job_template(
+                session,
+                name=name,
+                template_type='input',
+                template_content=gen_string('alpha'),
+                org=self.organization.name,
+            )
+            self.jobtemplate.add_input(name, var_name)
+            self.jobtemplate.update(
+                name,
+                template_type='input',
+                template_content='<%= input("{0}") %>'.format(var_name)
+            )
+            self.jobtemplate.click(self.jobtemplate.search(name))
+            self.jobtemplate.click(common_locators['ace.preview'])
+            self.assertEqual(
+                u'$USER_INPUT[{0}]'.format(var_name),
+                self.jobtemplate.wait_until_element(
+                    locators['job.template_input']).text
+            )
 
-    @stubbed()
     @tier1
     def test_negative_preview_verify(self):
         """Use a template file to populate the job template
@@ -197,13 +336,31 @@ class RemoteExecutionTestCase(UITestCase):
         1. Create a new job template
         2. Add input controls under jobs
         3. Incorrectly reference those input controls in the template text
-        4. And/or reference non-existant input controls in the template text
+        4. And/or reference non-existent input controls in the template text
         5. Select "preview" within the template viewer
 
         @Assert: Verify appropriate errors are thrown
-
-        @caseautomation: notautomated
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_job_template(
+                session,
+                name=name,
+                template_type='input',
+                template_content=gen_string('alpha'),
+                org=self.organization.name,
+            )
+            self.jobtemplate.add_input(name, gen_string('alpha'))
+            self.jobtemplate.update(
+                name,
+                template_type='input',
+                template_content='<%= input("{0}") %>'.format(
+                    gen_string('alphanumeric'))
+            )
+            self.jobtemplate.click(self.jobtemplate.search(name))
+            self.jobtemplate.click(common_locators['ace.preview'])
+            self.assertIsNotNone(self.jobtemplate.wait_until_element(
+                common_locators['alert.error']))
 
     @stubbed()
     @tier2
@@ -220,7 +377,7 @@ class RemoteExecutionTestCase(UITestCase):
         2. Select the job and appropriate template
         3. Run the job
 
-        @Assert: Verify the job was succesfully ran against the host
+        @Assert: Verify the job was successfully ran against the host
 
         @caseautomation: notautomated
 
@@ -243,7 +400,7 @@ class RemoteExecutionTestCase(UITestCase):
         3. Select the job and appropriate template
         4. Run the job
 
-        @Assert: Verify the job was succesfully ran against the hosts
+        @Assert: Verify the job was successfully ran against the hosts
 
         @caseautomation: notautomated
 
@@ -270,7 +427,7 @@ class RemoteExecutionTestCase(UITestCase):
         @Assert:
 
         1. Verify the job was not immediately ran
-        2. Verify the job was succesfully ran after the designated time
+        2. Verify the job was successfully ran after the designated time
 
         @caseautomation: notautomated
 
@@ -295,7 +452,7 @@ class RemoteExecutionTestCase(UITestCase):
         2. Select the created job and appropriate template
         3. Click submit
 
-        @Assert: Verify the job was succesfully ran on the provisioned host
+        @Assert: Verify the job was successfully ran on the provisioned host
 
         @caseautomation: notautomated
 
@@ -320,7 +477,7 @@ class RemoteExecutionTestCase(UITestCase):
         2. Select the created job and appropriate template
         3. Click submit
 
-        @Assert: Verify the job was succesfully ran on the provisioned host
+        @Assert: Verify the job was successfully ran on the provisioned host
 
         @caseautomation: notautomated
 

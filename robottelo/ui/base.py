@@ -688,6 +688,9 @@ class Base(object):
             state = self.wait_until_element(locator).is_selected()
             if value != state:
                 self.click(locator)
+        elif element_type == 'div' and 'ace' in locator[1]:
+            self.browser.execute_script(
+                "Editor.setValue('{0}');".format(value))
         else:
             raise ValueError(
                 u'Provided locator {0} is not supported by framework'

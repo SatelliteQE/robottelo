@@ -200,6 +200,12 @@ class Navigator(Base):
             menu_locators['menu.partition_tables'],
         )
 
+    def go_to_job_templates(self):
+        self.menu_click(
+            menu_locators['menu.hosts'],
+            menu_locators['menu.job_templates'],
+        )
+
     def go_to_installation_media(self):
         self.menu_click(
             menu_locators['menu.hosts'],
