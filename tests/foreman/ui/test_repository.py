@@ -517,7 +517,8 @@ class RepositoryTestCase(UITestCase):
                         content_type=REPO_TYPE['docker'],
                     ).create()
                     self.setup_navigate_syncnow(
-                        session, product.name, repo_name,)
+                        session, product.name, repo_name
+                    )
                     # prd_sync_is_ok returns boolean values and not objects
                     self.assertTrue(self.prd_sync_is_ok(repo_name))
 
@@ -635,5 +636,8 @@ class RepositoryTestCase(UITestCase):
             )
             self.products.click(self.products.search(prod.name))
             # Validate the new repo URL
-            self.assertTrue(self.repository.validate_field(
-                            repo_name, 'url', FEDORA23_OSTREE_REPO))
+            self.assertTrue(
+                self.repository.validate_field(
+                    repo_name, 'url', FEDORA23_OSTREE_REPO
+                )
+            )

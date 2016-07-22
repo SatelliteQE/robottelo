@@ -24,7 +24,9 @@ def _get_host_os_version():
         )
         result = re.search(version_re, version_description)
         if result:
-            return 'RHEL{}'.format(result.group('version'))
+            host_os_version = 'RHEL{}'.format(result.group('version'))
+            LOGGER.debug('Host version: {}'.format(host_os_version))
+            return host_os_version
 
     LOGGER.warning('Host version not available: {!r}'.format(cmd))
     return 'Not Available'
@@ -65,26 +67,24 @@ def skip_if_os(*versions):
             """Wrapper that will skip the test if one of defined versions
             match host's version.
             """
+            def log_version_info(msg, template):
+                LOGGER.debug(template, func.__name__, func.__module__, msg)
 
             if not settings.configured:
                 settings.configure()
 
             host_version = _get_host_os_version()
 
-            if host_version in versions:
+            if any(host_version.startswith(version) for version in versions):
                 skip_msg = 'host {0} in ignored versions {1}'.format(
                     host_version,
                     versions
                 )
-                LOGGER.debug(
-                    'Skipping test %s in module %s due to %s',
-                    func.__name__,
-                    func.__module__,
-                    skip_msg
-                )
+                skip_template = 'Skipping test %s in module %s due to %s'
+                log_version_info(skip_msg, skip_template)
                 raise unittest2.SkipTest(skip_msg)
-            else:
-                return func(*args, **kwargs)
+
+            return func(*args, **kwargs)
 
         return wrapper
 

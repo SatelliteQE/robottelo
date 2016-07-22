@@ -129,8 +129,8 @@ class SkipIfOSIsUnavailableTestCase(TestCase):
         Mocking _get_host_os_version to define host version to 'Not Available'
         so it emulates an error when trying to fetch it through ssh
         """
-        down_versions = u'6 6.1 6.1.1 7 7.0'.split()
-        up_versions = u'7.1.1 7.2 7.2.1 8'.split()
+        down_versions = u'6 6.1 6.1.1'.split()
+        up_versions = u'7.1.1 7.2 7.2.1'.split()
         cls._up_and_down_versions = tuple(
             u'RHEL' + v for v in chain(down_versions, up_versions)
         )
@@ -144,6 +144,13 @@ class SkipIfOSIsUnavailableTestCase(TestCase):
         )
         cls._settings_patcher.start()
 
+    def assert_not_skipped(self, dummy):
+        """Assert a dummy function is not skipped"""
+        try:
+            self.assertTrue(dummy())
+        except unittest2.SkipTest:
+            self.fail('Should not be skipped')
+
     @classmethod
     def tearDownClass(cls):
         cls._get_host_os_patcher.stop()
@@ -156,7 +163,7 @@ class SkipIfOSIsUnavailableTestCase(TestCase):
             def dummy():
                 return True
 
-            self.assertTrue(dummy())
+            self.assert_not_skipped(dummy)
 
     def test_dont_skipping_with_multiple_versions(self):
         """Check don't skip if os version isn't available with multiple
@@ -167,7 +174,7 @@ class SkipIfOSIsUnavailableTestCase(TestCase):
         def dummy():
             return True
 
-        self.assertTrue(dummy())
+        self.assert_not_skipped(dummy)
 
 
 class SkipIfOSTestCase(SkipIfOSIsUnavailableTestCase):
@@ -177,16 +184,41 @@ class SkipIfOSTestCase(SkipIfOSIsUnavailableTestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Mocking depencies just like superclass, but set host version to 7.1
+        """Mocking dependencies just like superclass, but set host version to
+        RHEL7.1.0
         """
         super(SkipIfOSTestCase, cls).setUpClass()
-        cls._host_version = u'RHEL7.1'
+        cls._host_version = u'RHEL7.1.0'
         cls._get_host_mock.return_value = cls._host_version
 
-    def test_skipping_with_single_version(self):
-        """Test skipping when decorator params is equals to host version"""
+    def test_skipping_with_patch_version(self):
+        """Test skipping when decorator param is exactly equals to host
+        version
+        """
 
         @host.skip_if_os(self._host_version)
+        def dummy():
+            return True
+
+        self.assertRaises(unittest2.SkipTest, dummy)
+
+    def test_skipping_with_single_minor_version(self):
+        """Test skipping when decorator param is equals to host version but
+        omits patch
+        """
+
+        @host.skip_if_os('RHEL7.1')
+        def dummy():
+            return True
+
+        self.assertRaises(unittest2.SkipTest, dummy)
+
+    def test_skipping_with_single_major_version(self):
+        """Test skipping when decorator param is equals to host version but
+        omits minor and patch
+        """
+
+        @host.skip_if_os(u'RHEL7')
         def dummy():
             return True
 
@@ -208,7 +240,7 @@ class SkipIfOSTestCase(SkipIfOSIsUnavailableTestCase):
             'rhel', 'Rhel', 'rHel', 'RHel', 'rhEl', 'RhEl', 'rHEl', 'RHEl',
             'rheL', 'RheL', 'rHeL', 'RHeL', 'rhEL', 'RhEL', 'rHEL', 'RHEL'
         )
-        for v in (p + '7.1' for p in all_cases):
+        for v in (p + '7.1.0' for p in all_cases):
             @host.skip_if_os(v)
             def dummy():
                 return True
