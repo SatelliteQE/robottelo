@@ -17,6 +17,7 @@ from robottelo.ui.hardwaremodel import HardwareModel
 from robottelo.ui.hostcollection import HostCollection
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.hosts import Hosts
+from robottelo.ui.job_template import JobTemplate
 from robottelo.ui.ldapauthsource import LdapAuthSource
 from robottelo.ui.lifecycleenvironment import LifecycleEnvironment
 from robottelo.ui.location import Location
@@ -448,7 +449,6 @@ def make_media(session, org=None, loc=None, force_context=True, **kwargs):
 
 def make_templates(session, org=None, loc=None, force_context=True, **kwargs):
     """Creates a provisioning template"""
-
     create_args = {
         u'name': None,
         u'template_path': None,
@@ -462,6 +462,29 @@ def make_templates(session, org=None, loc=None, force_context=True, **kwargs):
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
     Template(session.browser).create(**create_args)
+
+
+def make_job_template(session, org=None, loc=None, force_context=True,
+                      **kwargs):
+    """Creates a job template"""
+    create_args = {
+        u'name': None,
+        u'template_content': None,
+        u'template_type': 'file',
+        u'default': None,
+        u'audit_comment': None,
+        u'job_category': None,
+        u'description_format': None,
+        u'provider_type': None,
+        u'effective_user_value': None,
+        u'current_user': None,
+        u'overridable': None,
+        u'snippet': None,
+    }
+    page = session.nav.go_to_job_templates
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc, force_context=force_context)
+    JobTemplate(session.browser).create(**create_args)
 
 
 def make_os(session, org=None, loc=None, force_context=True, **kwargs):
