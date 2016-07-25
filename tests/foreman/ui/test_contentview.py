@@ -40,7 +40,6 @@ from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
-    skip_if_bug_open,
     skip_if_not_set,
     stubbed,
     tier1,
@@ -531,7 +530,6 @@ class ContentViewTestCase(UITestCase):
         # until we logout and navigate again to puppet-module tab
         with Session(self.browser) as session:
             session.nav.go_to_select_org(org.name)
-            session.nav.go_to_content_views()
             module = self.content_views.fetch_puppet_module(
                 cv_name1, puppet_module)
             self.assertIsNotNone(module)
@@ -540,11 +538,8 @@ class ContentViewTestCase(UITestCase):
             self.content_views.publish(cv_name2)
             self.content_views.create(composite_name, is_composite=True)
             session.nav.go_to_select_org(org.name)
-            session.nav.go_to_content_views()
             self.content_views.add_remove_cv(
                 composite_name, [cv_name1, cv_name2])
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -630,7 +625,6 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(self.content_views.wait_until_element(
                 common_locators['alert.success_sub_form']))
 
-    @skip_if_bug_open('bugzilla', 1297308)
     @run_only_on('sat')
     @tier2
     def test_negative_add_puppet_repo_to_composite(self):
@@ -642,7 +636,6 @@ class ContentViewTestCase(UITestCase):
 
         @assert: User cannot create a composite content view
         that contains direct puppet repos.
-
 
         @CaseLevel: Integration
         """
@@ -658,10 +651,10 @@ class ContentViewTestCase(UITestCase):
             with self.assertRaises(UIError) as context:
                 self.content_views.add_puppet_module(
                     composite_name, 'httpd', filter_term='Latest')
-                self.assertEqual(
-                    context.exception.message,
-                    'Could not find tab to add puppet_modules'
-                )
+            self.assertEqual(
+                context.exception.message,
+                'Could not find tab to add puppet_modules'
+            )
 
     @run_only_on('sat')
     @tier2

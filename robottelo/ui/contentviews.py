@@ -271,13 +271,19 @@ class ContentViews(Base):
         or by 'version'.
         """
         self.click(self.search(cv_name))
-        self.click(tab_locators['contentviews.tab_puppet_modules'])
+        if self.wait_until_element(
+                tab_locators['contentviews.tab_puppet_modules']):
+            self.click(tab_locators['contentviews.tab_puppet_modules'])
+        else:
+            raise UIError('Could not find tab to add puppet_modules')
         self.click(locators['contentviews.add_module'])
-        self.text_field_update(common_locators['cv_filter'], module_name)
+        self.text_field_update(
+            locators['contentviews.search_filters'], module_name)
+        self.click(locators['contentviews.search_button'])
         strategy, value = locators['contentviews.select_module']
         self.click((strategy, value % module_name))
         self.text_field_update(
-            common_locators['cv_filter'], filter_term)
+            locators['contentview.version_filter'], filter_term)
         strategy, value = locators['contentviews.select_module_ver']
         self.click((strategy, value % filter_term))
 
@@ -286,15 +292,7 @@ class ContentViews(Base):
         When 'is_add' Flag is set then add_contentView will be performed,
         otherwise remove_contentView
         """
-        element = self.search(composite_cv)
-
-        if not element:
-            raise UIError(
-                'Could not find the selected CV "{0}"'.format(composite_cv)
-            )
-
-        element.click()
-        self.wait_for_ajax()
+        self.click(self.search(composite_cv))
         self.click(tab_locators['contentviews.tab_content_views'])
         for cv_name in cv_names:
             if is_add:
