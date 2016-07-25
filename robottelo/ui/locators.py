@@ -747,8 +747,6 @@ common_locators = LocatorDict({
         ("//div[@id='parameters']/span[@class='help-block'"
          "and string-length(text()) > 10]")),
 
-    "cv_filter": (
-        By.XPATH, "//input[@ng-model='filterTerm']"),
     "search": (By.ID, "search"),
     "auto_search": (
         By.XPATH, "//ul[contains(@id, 'ui-id')]/li/a[contains(., '%s')]"),
@@ -2231,6 +2229,8 @@ locators = LocatorDict({
          "//input[@ng-model='detailsTable.searchTerm']")),
     "contentviews.search_button": (
         By.XPATH, "//button[contains(@ng-click, 'detailsTable.search')]"),
+    "contentviews.table_filter": (
+        By.XPATH, "//input[@ng-model='filterTerm']"),
     "contentviews.filter_name": (
         By.XPATH, "//tr[@row-select='filter']/td[2]/a[contains(., '%s')]"),
     "contentviews.copy": (
