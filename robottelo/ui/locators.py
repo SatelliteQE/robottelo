@@ -571,6 +571,9 @@ tab_locators = LocatorDict({
     "contenthost.tab_packages": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href,'packages')]"),
+    "contenthost.tab_errata": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@href,'errata')]"),
     # Fourth level UI
     "contenthost.list_subscriptions": (
         By.XPATH,
@@ -1101,6 +1104,15 @@ locators = LocatorDict({
         By.XPATH,
         ("//tr[//a[contains(@href,'info') and contains(.,'%s')]]"
          "/following-sibling::tr[1]/td/input[@type='checkbox']")),
+    "contenthost.errata_select": (
+        By.XPATH,
+        ("//tr[td/a[@ng-click='transitionToErratum(erratum)' and "
+         "contains(.,'%s')]]/td/input[@type='checkbox']")),
+    "contenthost.errata_apply": (
+        By.XPATH,
+        ("//button[contains(@ng-click, 'openModal()') and "
+         "contains(@ng-hide, 'edit_hosts')]")),
+    "contenthost.confirm_errata": (By.XPATH, "//button[@ng-click='ok()']"),
     "contenthost.add_selected": (
         By.XPATH, "//button[contains(@ng-click, 'addSelected()')]"),
     "contenthost.remove_selected": (
@@ -1143,6 +1155,17 @@ locators = LocatorDict({
         By.XPATH,
         ("//a[contains(@ng-click, \"performViaRemoteExecution"
          "('%s', true)\")]")),
+
+    # errata
+    "contenthost.bulk_actions.errata.via_katello_agent": (
+        By.XPATH,
+        "//a[contains(@ng-click, 'installErrataViaKatelloAgent()')]"),
+    "contenthost.bulk_actions.errata.via_remote_execution": (
+        By.XPATH,
+        "//a[contains(@ng-click, 'installErrataViaRemoteExecution(false)')]"),
+    "contenthost.bulk_actions.errata.via_remote_execution_custom": (
+        By.XPATH,
+        "//a[contains(@ng-click, 'installErrataViaRemoteExecution(false)')]"),
 
     "contenthost.bulk_actions.package_type": (By.ID, "package"),
     "contenthost.bulk_actions.package_group_type": (By.ID, "package_group"),
@@ -2853,4 +2876,19 @@ locators = LocatorDict({
         By.XPATH,
         ("//li[@bst-feature-flag='remote_actions']"
          "//a[contains(@href, 'packages')]")),
+    "hostcollection.collection_actions.errata": (
+        By.XPATH,
+        ("//li[@bst-feature-flag='remote_actions']"
+         "//a[contains(@href, 'errata')]")),
+    "hostcollection.errata.errata_select": (
+        By.XPATH,
+        ("//tr[td/a[@ng-click='transitionToErrata(erratum)' and "
+         "contains(.,'%s')]]/td/input[@type='checkbox']")),
+    "hostcollection.errata.errata_apply": (
+        By.XPATH, "//button[contains(@ng-click, 'showConfirmDialog()')]"),
+    "hostcollection.errata.confirm_installation": (
+        By.XPATH, "//button[contains(@ng-click, 'installErrata()')]"),
+    "hostcollection.errata.cancel_installation": (
+        By.XPATH,
+        "//button[contains(@ng-click, 'detailsTable.working = false')]"),
 })

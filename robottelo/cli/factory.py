@@ -1751,6 +1751,11 @@ def activationkey_add_subscription_to_repo(options=None):
         per_page=False
     )
     # Add subscription to activation-key
+    if options['subscription'] not in (sub['name'] for sub in subscriptions):
+        raise CLIFactoryError(
+            u'Subscription {0} not found in the given org'
+            .format(options['subscription'])
+        )
     for subscription in subscriptions:
         if subscription['name'] == options['subscription']:
             if int(subscription['quantity']) == 0:
