@@ -608,19 +608,21 @@ class ActivationKeyTestCase(CLITestCase):
 
         @CaseLevel: System
         """
+        org = make_org()
         result = setup_org_for_a_rh_repo({
             u'product': PRDS['rhel'],
             u'repository-set': REPOSET['rhst7'],
             u'repository': REPOS['rhst7']['name'],
-            u'organization-id': self.org['id'],
+            u'organization-id': org['id'],
         })
         content = ActivationKey.product_content({
             u'id': result['activationkey-id'],
-            u'organization-id': self.org['id'],
+            u'organization-id': org['id'],
         })
         self.assertEqual(content[0]['name'], REPOSET['rhst7'])
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1360239)
     @tier3
     def test_positive_add_custom_product(self):
         """Test that custom product can be associated to Activation Keys
@@ -644,6 +646,7 @@ class ActivationKeyTestCase(CLITestCase):
 
     @run_in_one_thread
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1360239)
     @skip_if_not_set('fake_manifest')
     @tier3
     def test_positive_add_redhat_and_custom_products(self):
@@ -661,15 +664,16 @@ class ActivationKeyTestCase(CLITestCase):
 
         @CaseLevel: System
         """
+        org = make_org()
         result = setup_org_for_a_rh_repo({
             u'product': PRDS['rhel'],
             u'repository-set': REPOSET['rhst7'],
             u'repository': REPOS['rhst7']['name'],
-            u'organization-id': self.org['id'],
+            u'organization-id': org['id'],
         })
         result = setup_org_for_a_custom_repo({
             u'url': FAKE_0_YUM_REPO,
-            u'organization-id': self.org['id'],
+            u'organization-id': org['id'],
             u'activationkey-id': result['activationkey-id'],
             u'content-view-id': result['content-view-id'],
             u'lifecycle-environment-id': result['lifecycle-environment-id'],
@@ -677,7 +681,7 @@ class ActivationKeyTestCase(CLITestCase):
         repo = Repository.info({u'id': result['repository-id']})
         content = ActivationKey.product_content({
             u'id': result['activationkey-id'],
-            u'organization-id': self.org['id'],
+            u'organization-id': org['id'],
         })
         self.assertEqual(len(content), 2)
         self.assertEqual(
@@ -1164,6 +1168,7 @@ class ActivationKeyTestCase(CLITestCase):
         self.assertIn(
             u"'--auto-attach': value must be one of", exe.exception.stderr)
 
+    @skip_if_bug_open('bugzilla', 1360239)
     @tier3
     def test_positive_content_override(self):
         """Positive content override
