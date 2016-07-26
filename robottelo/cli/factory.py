@@ -1463,13 +1463,17 @@ def make_hostgroup(options=None):
 
         --architecture ARCHITECTURE_NAME Architecture name
         --architecture-id ARCHITECTURE_ID
+        --ask-root-pass ASK_ROOT_PW  One of true/false, yes/no, 1/0.
+        --content-source-id CONTENT_SOURCE_ID
+        --content-view CONTENT_VIEW_NAME Name to search by
+        --content-view-id CONTENT_VIEW_ID content view numeric identifier
+
         --domain DOMAIN_NAME          Domain name
         --domain-id DOMAIN_ID         May be numerical id or domain name
         --environment ENVIRONMENT_NAME Environment name
         --environment-id ENVIRONMENT_ID
         --lifecycle-environment LIFECYCLE_ENVIRONMENT_NAME   Name to search by
         --lifecycle-environment-id LIFECYCLE_ENVIRONMENT_ID
-        --lifecycle-environment-organization-id ORGANIZATION_ID Organization ID
 
         --location-ids LOCATION_IDS   REPLACE locations with given ids
                                       Comma separated list of values.
@@ -1502,6 +1506,9 @@ def make_hostgroup(options=None):
     args = {
         u'architecture': None,
         u'architecture-id': None,
+        u'content-source-id': None,
+        u'content-view': None,
+        u'content-view-id': None,
         u'domain': None,
         u'domain-id': None,
         u'environment': None,
