@@ -474,6 +474,7 @@ class DockerContentViewTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repo_by_id_to_ccv(self):
         """Add one Docker-type repository to a composite content view
 
@@ -483,6 +484,7 @@ class DockerContentViewTestCase(CLITestCase):
         product is added to a content view which is then added to a composite
         content view.
 
+        @BZ: 1359665
         """
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
@@ -507,6 +509,7 @@ class DockerContentViewTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repos_by_id_to_ccv(self):
         """Add multiple Docker-type repositories to a composite content view.
 
@@ -516,6 +519,7 @@ class DockerContentViewTestCase(CLITestCase):
         and the product is added to a random number of content views which are
         then added to a composite content view.
 
+        @BZ: 1359665
         """
         cv_versions = []
         product = make_product_wait({'organization-id': self.org_id})
@@ -578,6 +582,7 @@ class DockerContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_publish_with_docker_repo_composite(self):
         """Add Docker-type repository to composite CV and publish it once.
 
@@ -589,6 +594,8 @@ class DockerContentViewTestCase(CLITestCase):
 
 
         @CaseLevel: Integration
+
+        @BZ: 1359665
         """
         self._create_and_associate_repo_with_cv()
         self.assertEqual(len(self.content_view['versions']), 0)
@@ -649,6 +656,7 @@ class DockerContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_publish_multiple_with_docker_repo_composite(self):
         """Add Docker-type repository to content view and publish it multiple
         times.
@@ -661,6 +669,8 @@ class DockerContentViewTestCase(CLITestCase):
 
 
         @CaseLevel: Integration
+
+        @BZ: 1359665
         """
         self._create_and_associate_repo_with_cv()
         self.assertEqual(len(self.content_view['versions']), 0)
@@ -764,6 +774,7 @@ class DockerContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_promote_with_docker_repo_composite(self):
         """Add Docker-type repository to composite content view and publish it.
         Then promote it to the next available lifecycle-environment.
@@ -775,6 +786,8 @@ class DockerContentViewTestCase(CLITestCase):
 
 
         @CaseLevel: Integration
+
+        @BZ: 1359665
         """
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
@@ -820,6 +833,7 @@ class DockerContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_promote_multiple_with_docker_repo_composite(self):
         """Add Docker-type repository to composite content view and publish it.
         Then promote it to the multiple available lifecycle-environments.
@@ -831,6 +845,8 @@ class DockerContentViewTestCase(CLITestCase):
 
 
         @CaseLevel: Integration
+
+        @BZ: 1359665
         """
         self._create_and_associate_repo_with_cv()
         ContentView.publish({'id': self.content_view['id']})
@@ -989,6 +1005,7 @@ class DockerActivationKeyTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_add_docker_repo_ccv(self):
         """Add Docker-type repository to a non-composite content view
         and publish it. Then add this content view to a composite content view
@@ -1001,6 +1018,8 @@ class DockerActivationKeyTestCase(CLITestCase):
 
 
         @CaseLevel: Integration
+
+        @BZ: 1359665
         """
         comp_content_view = make_content_view({
             'composite': True,
@@ -1042,6 +1061,7 @@ class DockerActivationKeyTestCase(CLITestCase):
 
     @tier1
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_remove_docker_repo_ccv(self):
         """Add Docker-type repository to a non-composite content view
         and publish it. Then add this content view to a composite content view
@@ -1054,6 +1074,7 @@ class DockerActivationKeyTestCase(CLITestCase):
         @Assert: Docker-based composite content view can be added and then
         removed from the activation key.
 
+        @BZ: 1359665
         """
         comp_content_view = make_content_view({
             'composite': True,
