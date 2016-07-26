@@ -517,7 +517,9 @@ PERMISSIONS = {
         'create_params',
         'edit_params',
         'destroy_params',
-        'view_params',
+        # This permission was removed for downstream version 6.2.
+        # However this change is temporary and the plan is to add it back
+        # 'view_params',
     ],
     'Hostgroup': [
         'view_hostgroups',
