@@ -523,11 +523,13 @@ class HostContentHostUnificationTestCase(UITestCase):
                 ],
             )
             hostname = u'{0}.{1}'.format(host.name, host.domain.name)
-            self.contenthost.execute_package_action(
-                hostname,
-                'Package Install',
-                'busybox',
-            )
+            with self.assertRaises(UIError):
+                self.contenthost.execute_package_action(
+                    hostname,
+                    'Package Install',
+                    'busybox',
+                    timeout=5,
+                )
             self.assertIsNotNone(
                 self.contenthost.wait_until_element(
                     common_locators['alert.error'])
