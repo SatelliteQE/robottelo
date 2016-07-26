@@ -208,6 +208,7 @@ class ContentViewTestCase(CLITestCase):
     # pylint: disable=unexpected-keyword-arg
     @tier1
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1359665)
     def test_positive_update_name(self):
         """Update content view name
 
@@ -215,6 +216,7 @@ class ContentViewTestCase(CLITestCase):
 
         @assert: Content view is updated with new name
 
+        @BZ: 1359665
         """
         con_view = make_content_view({
             'name': gen_string('utf8'),
@@ -680,6 +682,7 @@ class ContentViewTestCase(CLITestCase):
 
     @run_in_one_thread
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1359665)
     @tier2
     def test_positive_add_rh_repo_by_id_and_create_filter(self):
         """Associate Red Hat content to a content view and create filter
@@ -694,6 +697,8 @@ class ContentViewTestCase(CLITestCase):
 
 
         @CaseLevel: Integration
+
+        @BZ: 1359665
         """
         self.create_rhel_content()
         # Create CV
@@ -1600,6 +1605,7 @@ class ContentViewTestCase(CLITestCase):
 
     @run_in_one_thread
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1359665)
     @tier3
     def test_positive_subscribe_chost_by_id_using_rh_content_and_filters(self):
         """Attempt to subscribe content host to filtered content view
@@ -1612,6 +1618,8 @@ class ContentViewTestCase(CLITestCase):
 
 
         @CaseLevel: System
+
+        @BZ: 1359665
         """
         self.create_rhel_content()
         env = make_lifecycle_environment({
