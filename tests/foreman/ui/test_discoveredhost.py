@@ -17,7 +17,13 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.decorators import run_only_on, skip_if_not_set, stubbed, tier3
+from robottelo.decorators import (
+    run_in_one_thread,
+    run_only_on,
+    skip_if_not_set,
+    stubbed,
+    tier3
+)
 from robottelo.libvirt_discovery import LibvirtGuest
 from robottelo.test import UITestCase
 from robottelo.ui.base import UIError
@@ -27,6 +33,7 @@ from robottelo.ui.session import Session
 from time import sleep
 
 
+@run_in_one_thread
 class DiscoveryTestCase(UITestCase):
     """Implements Foreman discovery tests in UI."""
 
@@ -34,11 +41,11 @@ class DiscoveryTestCase(UITestCase):
         """
         Check if host is visible under 'Discovered Hosts' on UI
 
-        Introduced a delay of 120secs by polling every 10 secs to see if
+        Introduced a delay of 300secs by polling every 10 secs to see if
         unknown host gets discovered and become visible on UI
         """
         discovered_host = self.discoveredhosts.search(hostname)
-        for _ in range(12):
+        for _ in range(30):
             if discovered_host is None:
                 sleep(10)
                 discovered_host = self.discoveredhosts.search(hostname)
