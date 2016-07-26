@@ -109,7 +109,7 @@ class HostGroupTestCase(APITestCase):
         # We have two environments (one created after publishing and one more
         # was created after promotion), so we need to select promoted one
         environments = entities.Environment().search(
-            query={'organization_id': org.id}
+            query={'search': 'organization_id={0}'.format(org.id)}
         )
         self.assertEqual(len(environments), 2)
         environments = [
