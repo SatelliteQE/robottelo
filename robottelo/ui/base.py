@@ -261,8 +261,8 @@ class Base(object):
             self.button_timeout = 15
             self.result_timeout = 15
 
-    def wait_until_element_exists(
-            self, locator, timeout=12, poll_frequency=0.5):
+    def wait_until_element_exists(self, locator, timeout=12,
+                                  poll_frequency=0.5):
         """Wrapper around Selenium's WebDriver that allows you to pause your
         test until an element in the web page is present.
 

@@ -19,7 +19,7 @@ from robottelo import manifests
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
 from robottelo.decorators import run_in_one_thread, skip_if_not_set, tier1
 from robottelo.test import UITestCase
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import tab_locators
 from robottelo.ui.session import Session
 
 
@@ -45,11 +45,11 @@ class SubscriptionTestCase(UITestCase):
             # Step 1: Attempt to upload a manifest
             with manifests.clone() as manifest:
                 self.subscriptions.upload(manifest)
-            self.assertTrue(self.subscriptions.wait_until_element(
-                common_locators['alert.success']))
+            self.assertTrue(self.subscriptions.wait_until_element_exists(
+                tab_locators['subs.import_history.imported.success']))
             # Step 2: Attempt to delete the manifest
             self.subscriptions.delete()
-            self.assertTrue(self.subscriptions.wait_until_element(
-                common_locators['alert.success']))
+            self.assertTrue(self.subscriptions.wait_until_element_exists(
+                tab_locators['subs.import_history.deleted']))
             self.assertIsNone(
                 self.subscriptions.search(DEFAULT_SUBSCRIPTION_NAME))
