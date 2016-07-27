@@ -29,6 +29,10 @@ FOREMAN_PROVIDERS = {
 
 LIBVIRT_RESOURCE_URL = 'qemu+ssh://root@%s/system'
 
+RHEV_RESOURCE_URL = 'https://%s/api'
+RHEV_ADMIN = '%s@internal'
+RHEV_PASSWORD = '%s'
+
 
 HTML_TAGS = [
     'A', 'ABBR', 'ACRONYM', 'ADDRESS', 'APPLET', 'AREA', 'B',
