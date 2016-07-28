@@ -253,3 +253,20 @@ def remove_katello_ca(hostname=None):
             )
             if result.return_code != 0:
                 raise AssertionError('Failed to reset the rhsm.conf')
+
+
+def add_remote_execution_ssh_key(hostname, key_path=None, **kwargs):
+    """Add remote execution keys to the client
+
+    :param str hostname: The client hostname
+    :param str key: Path to a key on the satellite server
+    :param dict kwargs: directly passed to `ssh.add_authorized_key`
+    """
+
+    # get satellite box ssh-key or defaults to foreman-proxy
+    key_path = key_path or '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
+    # This connection defaults to settings.server
+    server_key = ssh.command('cat %s' % key_path).stdout
+
+    # add that key to the client using hostname and kwargs for connection
+    ssh.add_authorized_key(server_key, hostname=hostname, **kwargs)

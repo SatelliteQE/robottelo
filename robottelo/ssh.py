@@ -1,14 +1,23 @@
 """Utility module to handle the shared ssh connection."""
+import base64
 import logging
-from contextlib import contextmanager
-
+import os
 import paramiko
 import re
+import six
 
+from contextlib import contextmanager
 from robottelo.cli import hammer
 from robottelo.config import settings
 
 logger = logging.getLogger(__name__)
+
+
+def decode_to_utf8(text):  # pragma: no cover
+    """In python 3 all strings are already unicode, no need to decode"""
+    if six.PY2:
+        return text.decode('utf-8')
+    return text
 
 
 class SSHCommandResult(object):
@@ -37,7 +46,7 @@ def _call_paramiko_sshclient():
     """Call ``paramiko.SSHClient``.
 
     This function does not alter the behaviour of ``paramiko.SSHClient``. It
-    exists soley for the sake of easing unit testing: it can be overridden for
+    exists solely for the sake of easing unit testing: it can be overridden for
     mocking purposes.
 
     """
@@ -97,11 +106,70 @@ def _get_connection(hostname=None, username=None, password=None,
     client_id = hex(id(client))
     try:
         logger.info('Instantiated Paramiko client {0}'.format(client_id))
+        logger.debug('Connected to [%s]', hostname)
         yield client
     finally:
         logger.info('Destroying Paramiko client {0}'.format(client_id))
         client.close()
         logger.info('Destroyed Paramiko client {0}'.format(client_id))
+
+
+def add_authorized_key(key, hostname=None, username=None, password=None,
+                       key_filename=None, timeout=10):
+    """Appends a local public ssh key to remote authorized keys
+
+    refer to: remote_execution_ssh_keys provisioning template
+
+    :param key: either a file path, key string or a file-like obj to append.
+    :param str hostname: The hostname of the server to establish connection. If
+        it is ``None`` ``hostname`` from configuration's ``server`` section
+        will be used.
+    :param str username: The username to use when connecting. If it is ``None``
+        ``ssh_username`` from configuration's ``server`` section will be used.
+    :param str password: The password to use when connecting. If it is ``None``
+        ``ssh_password`` from configuration's ``server`` section will be used.
+        Should be applied only in case ``key_filename`` is not set
+    :param str key_filename: The path of the ssh private key to use when
+        connecting to the server. If it is ``None`` ``key_filename`` from
+        configuration's ``server`` section will be used.
+    :param int timeout: Time to wait for establish the connection.
+    """
+
+    if getattr(key, 'read', None):  # key is a file-like object
+        key_content = key.read()
+    elif is_ssh_pub_key(key):  # key is a valid key-string
+        key_content = key
+    elif os.path.exists(key):  # key is a path to a pub key-file
+        with open(key, 'r') as key_file:
+            key_content = key_file.read()
+    else:
+        raise AttributeError('Invalid key')
+
+    key_content = key_content.strip()
+    ssh_path = '~/.ssh'
+    auth_file = os.path.join(ssh_path, 'authorized_keys')
+
+    with _get_connection(hostname=hostname, username=username,
+                         password=password, key_filename=key_filename,
+                         timeout=timeout) as con:
+
+        # ensure ssh directory exists
+        execute_command('mkdir -p %s' % ssh_path, con)
+
+        # append the key if doesn't exists
+        add_key = "grep -q '{key}' {dest} || echo '{key}' >> {dest}".format(
+            key=key_content, dest=auth_file)
+        execute_command(add_key, con)
+
+        # set proper permissions
+        execute_command('chmod 700 %s' % ssh_path, con)
+        execute_command('chmod 600 %s' % auth_file, con)
+        ssh_user = username or settings.server.ssh_username
+        execute_command('chown -R %s %s' % (ssh_user, ssh_path), con)
+
+        # Restore SELinux context with restorecon, if it's available:
+        cmd = 'command -v restorecon && restorecon -RvF %s || true' % ssh_path
+        execute_command(cmd, con)
 
 
 def upload_file(local_file, remote_file, hostname=None):
@@ -141,50 +209,94 @@ def download_file(remote_file, local_file=None, hostname=None):
             sftp.close()
 
 
-def command(cmd, hostname=None, output_format=None, timeout=None):
+def command(cmd, hostname=None, output_format=None, username=None,
+            password=None, key_filename=None, timeout=10):
+    """Executes SSH command(s) on remote hostname.
+
+    :param str cmd: The command to run
+    :param str output_format: json, csv or None
+    :param str hostname: The hostname of the server to establish connection. If
+        it is ``None`` ``hostname`` from configuration's ``server`` section
+        will be used.
+    :param str username: The username to use when connecting. If it is ``None``
+        ``ssh_username`` from configuration's ``server`` section will be used.
+    :param str password: The password to use when connecting. If it is ``None``
+        ``ssh_password`` from configuration's ``server`` section will be used.
+        Should be applied only in case ``key_filename`` is not set
+    :param str key_filename: The path of the ssh private key to use when
+        connecting to the server. If it is ``None`` ``key_filename`` from
+        configuration's ``server`` section will be used.
+    :param int timeout: Time to wait for establish the connection.
     """
-    Executes SSH command(s) on remote hostname.
-    Defaults to main.server.hostname.
+    hostname = hostname or settings.server.hostname
+    with _get_connection(hostname=hostname, username=username,
+                         password=password, key_filename=key_filename,
+                         timeout=timeout) as connection:
+        return execute_command(cmd, connection, output_format, timeout)
+
+
+def execute_command(cmd, connection, output_format=None, timeout=120):
+    """Execute a command via ssh in the given connection
+
+    :param cmd: a command to be executed via ssh
+    :param connection: SSH Paramiko client connection
+    :param output_format: json|csv valid only for hammer commands
+    :param timeout: defaults to 120
+    :return: SSHCommandResult
     """
+    logger.debug('>>> %s', cmd)
+    _, stdout, stderr = connection.exec_command(cmd, timeout)
 
-    # Set a default timeout of 120 seconds
-    if timeout is None:
-        timeout = 120
+    errorcode = stdout.channel.recv_exit_status()
 
-    # Variable to hold results returned from the command
-    stdout = stderr = errorcode = None
-
+    stdout = stdout.read()
+    stderr = stderr.read()
     # Remove escape code for colors displayed in the output
     regex = re.compile(r'\x1b\[\d\d?m')
-
-    hostname = hostname or settings.server.hostname
-
-    logger.debug('>>> [%s] %s', hostname, cmd)
-
-    with _get_connection(hostname=hostname) as connection:
-        _, stdout, stderr = connection.exec_command(cmd, timeout)
-        errorcode = stdout.channel.recv_exit_status()
-        stdout = stdout.read()
-        stderr = stderr.read()
-
     if stdout:
         # Convert to unicode string
-        stdout = stdout.decode('utf-8')
+        stdout = decode_to_utf8(stdout)
         logger.debug('<<< stdout\n%s', stdout)
     if stderr:
         # Convert to unicode string and remove all color codes characters
-        stderr = regex.sub('', stderr.decode('utf-8'))
+        stderr = regex.sub('', decode_to_utf8(stderr))
         logger.debug('<<< stderr\n%s', stderr)
-
-    if stdout and output_format != 'json':
-        # For output we don't really want to see all of Rails traffic
+    if stdout and output_format == 'csv':
+        # Only for hammer commands
+        # for output we don't really want to see all of Rails traffic
         # information, so strip it out.
         # Empty fields are returned as "" which gives us u'""'
         stdout = stdout.replace('""', '')
         stdout = u''.join(stdout).split('\n')
         stdout = [
-            regex.sub('', line) for line in stdout if not line.startswith('[')
+            regex.sub('', line)
+            for line in stdout
+            if not line.startswith('[')
         ]
-
     return SSHCommandResult(
         stdout, stderr, errorcode, output_format)
+
+
+def is_ssh_pub_key(key):
+    """Validates if a string is in valid ssh pub key format
+
+    :param key: A string containing a ssh public key encoded in base64
+    :return: Boolean
+    """
+
+    # 1) a valid pub key has 3 parts separated by space
+    try:
+        key_type, key_string, comment = key.split()
+    except ValueError:  # need more than one value to unpack
+        return False
+
+    # 2) The second part (key string) should be a valid base64
+    try:
+        base64.decodestring(key_string.encode('ascii'))
+    except base64.binascii.Error:
+        return False
+
+    # 3) The first part, the type, should be one of below
+    return key_type in (
+        'ecdsa-sha2-nistp256', 'ssh-dss', 'ssh-rsa', 'ssh-ed25519'
+    )
