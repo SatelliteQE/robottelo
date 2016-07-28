@@ -372,6 +372,45 @@ class LibvirtHostSettings(FeatureSettings):
         return validation_errors
 
 
+class RhevHostSettings(FeatureSettings):
+    """Rhev host settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(RhevHostSettings, self).__init__(*args, **kwargs)
+        self.rhev_image_dir = None
+        self.rhev_hostname = None
+        self.rhev_admin = None
+        self.rhev_password = None
+
+    def read(self, reader):
+        """Read rhev host settings."""
+        self.rhev_image_dir = reader.get(
+            'rhev_compute', 'rhev_image_dir', '/var/lib/Rhev/images'
+        )
+        self.rhev_hostname = reader.get(
+            'rhev_compute', 'rhev_hostname')
+        self.rhev_admin = reader.get(
+            'rhev_compute', 'rhev_admin')
+        self.rhev_password = reader.get(
+            'rhev_compute', 'rhev_password')
+
+    def validate(self):
+        """Validate rhev host settings."""
+        validation_errors = []
+        if self.rhev_hostname is None:
+            validation_errors.append(
+                '[rhev_compute] rhev_hostname must be provided.'
+            )
+        if self.rhev_admin is None:
+            validation_errors.append(
+                '[rhev_compute] rhev_admin must be provided.'
+            )
+        if self.rhev_password is None:
+            validation_errors.append(
+                '[rhev_compute] rhev_password must be provided.'
+            )
+        return validation_errors
+
+
 class DiscoveryISOSettings(FeatureSettings):
     """Discovery ISO name settings definition."""
     def __init__(self, *args, **kwargs):
@@ -573,6 +612,7 @@ class Settings(object):
         # Features
         self.clients = ClientsSettings()
         self.compute_resources = LibvirtHostSettings()
+        self.rhev_compute = RhevHostSettings()
         self.discovery = DiscoveryISOSettings()
         self.docker = DockerSettings()
         self.fake_manifest = FakeManifestSettings()
@@ -612,6 +652,9 @@ class Settings(object):
         if self.reader.has_section('compute_resources'):
             self.compute_resources.read(self.reader)
             self._validation_errors.extend(self.compute_resources.validate())
+        if self.reader.has_section('rhev_compute'):
+            self.rhev_compute.read(self.reader)
+            self._validation_errors.extend(self.rhev_compute.validate())
         if self.reader.has_section('discovery'):
             self.discovery.read(self.reader)
             self._validation_errors.extend(self.discovery.validate())

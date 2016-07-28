@@ -253,6 +253,13 @@ ssh_key=
 # "/var/lib/libvirt/images/".
 # libvirt_image_dir=/var/lib/libvirt/images
 
+#Section for Rhev Compute Resource
+
+[rhev_compute]
+rhev_hostname=
+rhev_admin=
+rhev_password=
+
 # Section for PostUpgrade Verification Tests
 # [upgrade]
 # Option for providing a preUpgrade yaml data file location on server

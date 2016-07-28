@@ -19,6 +19,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import FOREMAN_PROVIDERS, LIBVIRT_RESOURCE_URL
+from robottelo.constants import RHEV_RESOURCE_URL, RHEV_ADMIN, RHEV_PASSWORD
 from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import run_only_on, tier1
 from robottelo.test import UITestCase
@@ -265,3 +266,46 @@ class ComputeResourceTestCase(UITestCase):
             )
             self.assertIsNotNone(self.compute_profile.select_resource(
                 '1-Small', name, 'Libvirt'))
+
+
+class RhevComputeResourceTestCase(UITestCase):
+    """Implements Rhev Compute Resource tests in UI"""
+    @classmethod
+    def setUpClass(cls):
+        super(RhevComputeResourceTestCase, cls).setUpClass()
+        cls.current_rhev_url = (
+            RHEV_RESOURCE_URL % settings.rhev_compute.rhev_hostname
+        )
+        cls.current_rhev_admin = (
+            RHEV_ADMIN % settings.rhev_compute.rhev_admin
+        )
+        cls.current_rhev_password = (
+            RHEV_PASSWORD % settings.rhev_compute.rhev_password
+        )
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_rhev_with_name(self):
+        """Create a new rhev Compute Resource using different value
+        types as a name
+
+        @id: 3042371e-4ba9-4759-b2ac-d1ffad116b2f
+
+        @Assert: A rhev Compute Resource is created successfully
+        """
+
+        with Session(self.browser) as session:
+            for name in valid_data_list():
+                with self.subTest(name):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['rhev'],
+                        parameter_list=[
+                            ['URL', self.current_rhev_url, 'field'],
+                            ['Username', self.current_rhev_admin, 'field'],
+                            ['Password', self.current_rhev_password, 'field']
+                        ],
+                    )
+                    search = self.compute_resource.search(name)
+                    self.assertIsNotNone(search)
