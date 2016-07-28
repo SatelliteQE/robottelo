@@ -23,7 +23,6 @@ from robottelo.test import APITestCase
 from robottelo.api.utils import one_to_many_names
 
 
-@skip_if_bug_open('bugzilla', 1262037)
 class SmartProxyMissingAttrTestCase(APITestCase):
     """Tests to see if the server returns the attributes it should.
 
@@ -34,6 +33,7 @@ class SmartProxyMissingAttrTestCase(APITestCase):
     """
 
     @classmethod
+    @skip_if_bug_open('bugzilla', 1262037)
     def setUpClass(cls):
         """Find a ``SmartProxy``.
 

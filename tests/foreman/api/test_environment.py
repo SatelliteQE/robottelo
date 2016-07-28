@@ -209,7 +209,6 @@ class EnvironmentTestCase(APITestCase):
                     env.read()
 
 
-@skip_if_bug_open('bugzilla', 1262029)
 class MissingAttrEnvironmentTestCase(APITestCase):
     """Tests to see if the server returns the attributes it should.
 
@@ -221,6 +220,7 @@ class MissingAttrEnvironmentTestCase(APITestCase):
     """
 
     @classmethod
+    @skip_if_bug_open('bugzilla', 1262029)
     def setUpClass(cls):
         """Create an ``Environment``."""
         super(MissingAttrEnvironmentTestCase, cls).setUpClass()

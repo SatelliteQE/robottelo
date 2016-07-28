@@ -1060,7 +1060,6 @@ class HostGroupTestCase(APITestCase):
                 self.assertEqual(hostgroup.read().name, original_name)
 
 
-@skip_if_bug_open('bugzilla', 1235377)
 class HostGroupMissingAttrTestCase(APITestCase):
     """Tests to see if the server returns the attributes it should.
 

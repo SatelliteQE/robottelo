@@ -32,7 +32,6 @@ Subcommands::
     status                        Get status of host
     stop                          Power a host off
     update                        Update a host
-
 """
 
 from robottelo.cli.base import Base
@@ -69,10 +68,12 @@ class Host(Base):
         """
         List all fact values.
 
-        Usage:
+        Usage::
+
             hammer host facts [OPTIONS]
 
-        Options:
+        Options::
+
             --id ID                       resource id
             --name NAME                   resource name
             --order ORDER                 sort results
@@ -140,10 +141,12 @@ class Host(Base):
         """
         Force a puppet run on the agent.
 
-        Usage:
+        Usage::
+
             hammer host puppetrun [OPTIONS]
 
-        Options:
+        Options::
+
             --id ID                       resource id
             --name NAME                   resource name
             -h, --help                    print help
@@ -160,10 +163,12 @@ class Host(Base):
         """
         Reboot a host
 
-        Usage:
+        Usage::
+
             hammer host reboot [OPTIONS]
 
-        Options:
+        Options::
+
             --id ID                       resource id
             --name NAME                   resource name
             -h, --help                    print help
@@ -180,10 +185,12 @@ class Host(Base):
         """
         List all reports.
 
-        Usage:
+        Usage::
+
             hammer host reports [OPTIONS]
 
-        Options:
+        Options::
+
             --id ID                       resource id
             --name NAME                   resource name
             --order ORDER                 sort results
@@ -210,10 +217,12 @@ class Host(Base):
         """
         Power a host on
 
-        Usage:
+        Usage::
+
             hammer host start [OPTIONS]
 
-        Options:
+        Options::
+
             --id ID                       resource id
             --name NAME                   resource name
             -h, --help                    print help
@@ -230,10 +239,12 @@ class Host(Base):
         """
         Get status of host
 
-        Usage:
+        Usage::
+
             hammer host status [OPTIONS]
 
-        Options:
+        Options::
+
             --id ID                       resource id
             --name NAME                   resource name
             -h, --help                    print help
@@ -250,10 +261,12 @@ class Host(Base):
         """
         Power a host off
 
-        Usage:
+        Usage::
+
             hammer host stop [OPTIONS]
 
-        Options:
+        Options::
+
             --force                       Force turning off a host
             --id ID                       resource id
             --name NAME                   resource name
@@ -270,10 +283,12 @@ class Host(Base):
     def subscription_register(cls, options=None):
         """Register a host with subscription and information.
 
-        Usage:
+        Usage::
+
             hammer host subscription register [OPTIONS]
 
-        Options:
+        Options::
+
             --content-view CONTENT_VIEW_NAME                    Content view
                                                                 name to search
                                                                 by
@@ -328,10 +343,12 @@ class Host(Base):
     def subscription_unregister(cls, options=None):
         """Unregister the host as a subscription consumer.
 
-        Usage:
+        Usage::
+
             hammer host subscription unregister [OPTIONS]
 
-        Options:
+        Options::
+
             --host HOST_NAME              Name to search by
             --host-id HOST_ID             Host ID
         """
@@ -342,10 +359,12 @@ class Host(Base):
     def sc_params(cls, options=None):
         """List all smart class parameters
 
-        Usage:
+        Usage::
+
             hammer host sc-params [OPTIONS]
 
-        Options:
+        Options::
+
             --host HOST_NAME              Host name
             --host-id HOST_ID
             --order ORDER                 sort results
