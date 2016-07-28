@@ -15,7 +15,7 @@ PYTEST_XDIST_OPTS=$(PYTEST_OPTS) -n $(PYTEST_XDIST_NUMPROCESSES) --boxed
 ROBOTTELO_TESTS_PATH=tests/robottelo/
 TESTIMONY_TOKENS="assert, bz, caseautomation, casecomponent, caseimportance, caselevel, caseposneg, id, requirement, setup, subtype1, steps, testtype, upstream"
 TESTIMONY_MINIMUM_TOKENS="id, requirement, caseautomation, caselevel, casecomponent, testtype, caseimportance, upstream"
-TESTIMONY_OPTIONS=--tokens=$(TESTIMONY_TOKENS) --minimum-tokens=$(TESTIMONY_MINIMUM_TOKENS)
+TESTIMONY_OPTIONS=--tokens=$(TESTIMONY_TOKENS) --token-prefix "@" --minimum-tokens=$(TESTIMONY_MINIMUM_TOKENS)
 
 # Commands --------------------------------------------------------------------
 
