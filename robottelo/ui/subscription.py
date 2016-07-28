@@ -46,6 +46,8 @@ class Subscriptions(Base):
         """Deletes Manifest/subscriptions via UI."""
         self.click(locators['subs.manage_manifest'])
         self.click(locators['subs.delete_manifest'])
+        self.wait_until_element_is_not_visible(
+            locators['subs.manifest_exists'], 300)
 
     def refresh(self):
         """Refreshes Manifest/subscriptions via UI."""

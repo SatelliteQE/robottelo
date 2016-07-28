@@ -626,6 +626,10 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[contains(@ui-sref,'manifest.details')]"),
     "subs.import_history": (
         By.XPATH, "//a[contains(@ui-sref,'manifest.history')]"),
+    "subs.import_history.imported.success": (
+        By.XPATH, "//td[text()[contains(.,'imported successfully')]]"),
+    "subs.import_history.deleted": (
+        By.XPATH, "//td[text()[contains(., 'deleted')]]"),
 
     # Oscap Policy
     "oscap.content": (
