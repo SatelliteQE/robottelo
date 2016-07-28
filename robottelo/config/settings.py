@@ -372,6 +372,28 @@ class LibvirtHostSettings(FeatureSettings):
         return validation_errors
 
 
+class FakeCapsuleSettings(FeatureSettings):
+    """Fake Capsule settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(FakeCapsuleSettings, self).__init__(*args, **kwargs)
+        self.port_range = None
+
+    def read(self, reader):
+        """Read fake capsule settings"""
+        self.port_range = reader.get(
+            'fake_capsules', 'port_range', cast=tuple
+        )
+
+    def validate(self):
+        """Validate fake capsule settings."""
+        validation_errors = []
+        if self.port_range is None:
+            validation_errors.append(
+                '[fake_capsules] port_range option must be provided.'
+            )
+        return validation_errors
+
+
 class DiscoveryISOSettings(FeatureSettings):
     """Discovery ISO name settings definition."""
     def __init__(self, *args, **kwargs):
@@ -575,6 +597,7 @@ class Settings(object):
         self.compute_resources = LibvirtHostSettings()
         self.discovery = DiscoveryISOSettings()
         self.docker = DockerSettings()
+        self.fake_capsules = FakeCapsuleSettings()
         self.fake_manifest = FakeManifestSettings()
         self.ldap = LDAPSettings()
         self.oscap = OscapSettings()
@@ -618,6 +641,9 @@ class Settings(object):
         if self.reader.has_section('docker'):
             self.docker.read(self.reader)
             self._validation_errors.extend(self.docker.validate())
+        if self.reader.has_section('fake_capsules'):
+            self.fake_capsules.read(self.reader)
+            self._validation_errors.extend(self.fake_capsules.validate())
         if self.reader.has_section('fake_manifest'):
             self.fake_manifest.read(self.reader)
             self._validation_errors.extend(self.fake_manifest.validate())

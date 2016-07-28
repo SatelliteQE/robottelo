@@ -15,22 +15,28 @@
 
 @Upstream: No
 """
-import random
-import re
 
 from fauxfactory import gen_alphanumeric, gen_string
 from robottelo.cleanup import capsule_cleanup
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import CLIFactoryError, make_proxy
-from robottelo.cli.proxy import Proxy, default_url_on_new_port
+from robottelo.cli.proxy import Proxy
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2
+from robottelo.decorators import (
+    run_only_on, stubbed, tier1, tier2, skip_if_not_set
+    )
+from robottelo.helpers import (
+    default_url_on_new_port,
+    get_available_capsule_port
+)
+from robottelo.config import settings
 from robottelo.test import CLITestCase
 
 
 class CapsuleTestCase(CLITestCase):
     """Proxy cli tests"""
 
+    @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_url(self):
@@ -48,6 +54,7 @@ class CapsuleTestCase(CLITestCase):
                     gen_string('numeric', 4)),
             })
 
+    @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_name(self):
@@ -64,6 +71,7 @@ class CapsuleTestCase(CLITestCase):
                 # Add capsule id to cleanup list
                 self.addCleanup(capsule_cleanup, proxy['id'])
 
+    @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
     @tier1
     def test_positive_delete_by_id(self):
@@ -80,6 +88,7 @@ class CapsuleTestCase(CLITestCase):
                 with self.assertRaises(CLIReturnCodeError):
                     Proxy.info({u'id': proxy['id']})
 
+    @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
     @tier1
     def test_positive_update_name(self):
@@ -90,9 +99,9 @@ class CapsuleTestCase(CLITestCase):
         @Assert: Proxy has the name updated
         """
         proxy = make_proxy({u'name': gen_alphanumeric()})
-        newport = random.randint(9091, 49090)
         for new_name in valid_data_list():
             with self.subTest(new_name):
+                newport = get_available_capsule_port()
                 with default_url_on_new_port(9090, newport) as url:
                     Proxy.update({
                         u'id': proxy['id'],
@@ -104,6 +113,7 @@ class CapsuleTestCase(CLITestCase):
         # Add capsule id to cleanup list
         self.addCleanup(capsule_cleanup, proxy['id'])
 
+    @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
     @tier2
     def test_positive_refresh_features_by_id(self):
@@ -115,18 +125,20 @@ class CapsuleTestCase(CLITestCase):
 
         @CaseLevel: Integration
         """
-        proxy = make_proxy()
-        # parse the port number so we can reopen the SSH tunnel
-        port_regexp = re.search(u':([0-9]+)', proxy['url'])
-        if port_regexp:
-            port = port_regexp.group(1)
-            with default_url_on_new_port(9090, port):
-                Proxy.refresh_features({u'id': proxy['id']})
-        else:
-            raise ValueError('Unable to parse port number from proxy URL')
+        # Since we want to run multiple commands against our fake capsule, we
+        # need the tunnel kept open in order not to allow different concurrent
+        # test to claim it. Thus we want to manage the tunnel manually.
+
+        # get an available port for our fake capsule
+        port = get_available_capsule_port()
+        with default_url_on_new_port(9090, port):
+            url = u'https://{0}:{1}'.format(settings.server.hostname, port)
+            proxy = make_proxy({u'url': url})
+            Proxy.refresh_features({u'id': proxy['id']})
         # Add capsule id to cleanup list
         self.addCleanup(capsule_cleanup, proxy['id'])
 
+    @skip_if_not_set('fake_capsules')
     @run_only_on('sat')
     @tier2
     def test_positive_refresh_features_by_name(self):
@@ -138,15 +150,16 @@ class CapsuleTestCase(CLITestCase):
 
         @CaseLevel: Integration
         """
-        proxy = make_proxy()
-        # parse the port number so we can reopen the SSH tunnel
-        port_regexp = re.search(u':([0-9]+)', proxy['url'])
-        if port_regexp:
-            port = port_regexp.group(1)
-            with default_url_on_new_port(9090, port):
-                Proxy.refresh_features({u'name': proxy['name']})
-        else:
-            raise ValueError('Unable to parse port number from proxy URL')
+        # Since we want to run multiple commands against our fake capsule, we
+        # need the tunnel kept open in order not to allow different concurrent
+        # test to claim it. Thus we want to manage the tunnel manually.
+
+        # get an available port for our fake capsule
+        port = get_available_capsule_port()
+        with default_url_on_new_port(9090, port):
+            url = u'https://{0}:{1}'.format(settings.server.hostname, port)
+            proxy = make_proxy({u'url': url})
+            Proxy.refresh_features({u'id': proxy['name']})
         # Add capsule id to cleanup list
         self.addCleanup(capsule_cleanup, proxy['id'])
 

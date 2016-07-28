@@ -40,7 +40,7 @@ from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.org import Org
 from robottelo.cli.partitiontable import PartitionTable
 from robottelo.cli.product import Product
-from robottelo.cli.proxy import Proxy, SSHTunnelError, default_url_on_new_port
+from robottelo.cli.proxy import CapsuleTunnelError, Proxy
 from robottelo.cli.repository import Repository
 from robottelo.cli.repository_set import RepositorySet
 from robottelo.cli.role import Role
@@ -60,7 +60,9 @@ from robottelo.constants import (
     TEMPLATE_TYPES,
 )
 from robottelo.decorators import bz_bug_is_open, cacheable
-from robottelo.helpers import update_dictionary
+from robottelo.helpers import (
+    update_dictionary, default_url_on_new_port, get_available_capsule_port
+)
 from robottelo.ssh import upload_file
 from tempfile import mkstemp
 from time import sleep
@@ -616,15 +618,15 @@ def make_proxy(options=None):
     }
 
     if options is None or 'url' not in options:
-        newport = random.randint(9191, 49090)
+        newport = get_available_capsule_port()
         try:
             with default_url_on_new_port(9090, newport) as url:
                 args['url'] = url
                 return create_object(Proxy, args, options)
-        except SSHTunnelError as err:
+        except CapsuleTunnelError as err:
             raise CLIFactoryError(
                 'Failed to create ssh tunnel: {0}'.format(err))
-
+    args['url'] = options['url']
     return create_object(Proxy, args, options)
 
 
