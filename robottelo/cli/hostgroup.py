@@ -35,10 +35,12 @@ class HostGroup(Base):
     def sc_params(cls, options=None):
         """List all smart class parameters
 
-        Usage:
+        Usage::
+
             hammer hostgroup sc-params [OPTIONS]
 
-        Options:
+        Options::
+
             --hostgroup HOSTGROUP_NAME        Hostgroup name
             --hostgroup-id HOSTGROUP_ID
             --hostgroup-title HOSTGROUP_TITLE Hostgroup title
