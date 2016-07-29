@@ -8,6 +8,7 @@ Submodules:
     robottelo.cli
     robottelo.performance
     robottelo.ui
+    robottelo.decorators
 
 .. automodule:: robottelo
 
@@ -20,11 +21,6 @@ Submodules:
 ----------------------------------
 
 .. automodule:: robottelo.datafactory
-
-:mod:`robottelo.decorators`
-----------------------------------
-
-.. automodule:: robottelo.decorators
 
 :mod:`robottelo.helpers`
 -------------------------------

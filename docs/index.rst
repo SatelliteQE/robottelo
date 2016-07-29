@@ -220,6 +220,7 @@ Miscellany
     committing
     code_standards
     reviewing_PRs
+    features/index
     api/index
 
 Want to contribute? Before submitting code, read through the :doc:`committing
