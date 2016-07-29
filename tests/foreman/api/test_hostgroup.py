@@ -1082,14 +1082,16 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
         @id: 9d42f47a-2f08-45ad-97d0-de94f0f1de2f
 
-        @Assert: The response contains some value for the ``content_source``
+        @Assert: The response contains both values for the ``content_source``
         field.
         """
         names = one_to_one_names('content_source')
-        self.assertGreater(
-            len(names & self.host_group_attrs),
-            1,
-            'None of {0} are in {1}'.format(names, self.host_group_attrs)
+        self.assertTrue(
+            names.issubset(self.host_group_attrs),
+            '{0} not found in {1}'.format(
+                names.difference(self.host_group_attrs),
+                self.host_group_attrs
+            )
         )
 
     @tier1
@@ -1098,14 +1100,16 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
         @id: 7d36f33e-f161-4d2a-9ee4-8eb949ed4cbf
 
-        @Assert: The response contains some value for the ``content_view``
+        @Assert: The response contains both values for the ``content_view``
         field.
         """
         names = one_to_one_names('content_view')
-        self.assertGreater(
-            len(names & self.host_group_attrs),
-            1,
-            'None of {0} are in {1}'.format(names, self.host_group_attrs)
+        self.assertTrue(
+            names.issubset(self.host_group_attrs),
+            '{0} not found in {1}'.format(
+                names.difference(self.host_group_attrs),
+                self.host_group_attrs
+            )
         )
 
     @tier1
@@ -1114,12 +1118,14 @@ class HostGroupMissingAttrTestCase(APITestCase):
 
         @id: efa17f59-47f9-40c6-821d-c348c4d852ff
 
-        @Assert: The response contains some value for the
+        @Assert: The response contains both values for the
         ``lifecycle_environment`` field.
         """
         names = one_to_one_names('lifecycle_environment')
-        self.assertGreater(
-            len(names & self.host_group_attrs),
-            1,
-            'None of {0} are in {1}'.format(names, self.host_group_attrs)
+        self.assertTrue(
+            names.issubset(self.host_group_attrs),
+            '{0} not found in {1}'.format(
+                names.difference(self.host_group_attrs),
+                self.host_group_attrs
+            )
         )
