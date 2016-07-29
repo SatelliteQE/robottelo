@@ -79,14 +79,14 @@ def one_to_one_names(name):
 
     Example of usage::
 
-        >>> one_to_many_names('person') == {'person', 'person_id'}
+        >>> one_to_many_names('person') == {'person_name', 'person_id'}
         True
 
     :param name: A field name.
     :returns: A set including both ``name`` and variations on ``name``.
 
     """
-    return set((name, name + '_id'))
+    return set((name + '_name', name + '_id'))
 
 
 def one_to_many_names(name):
