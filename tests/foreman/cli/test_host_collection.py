@@ -19,11 +19,11 @@
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
-from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.factory import (
     CLIFactoryError, make_org, make_host_collection, make_content_view,
     make_lifecycle_environment, make_content_host)
 from robottelo.cli.hostcollection import HostCollection
+from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.constants import DEFAULT_CV, ENVIRONMENT
 from robottelo.datafactory import valid_data_list, invalid_values_list
 from robottelo.decorators import skip_if_bug_open, tier1, tier2
@@ -58,10 +58,10 @@ class HostCollectionTestCase(CLITestCase):
                 u'name': ENVIRONMENT,
             })
         if HostCollectionTestCase.default_cv is None:
-            HostCollectionTestCase.default_cv = ContentView.info(
-                {u'organization-id': HostCollectionTestCase.org['id'],
-                 u'name': DEFAULT_CV}
-            )
+            HostCollectionTestCase.default_cv = ContentView.info({
+                u'organization-id': HostCollectionTestCase.org['id'],
+                u'name': DEFAULT_CV
+            })
         if HostCollectionTestCase.new_cv is None:
             HostCollectionTestCase.new_cv = make_content_view(
                 {u'organization-id': HostCollectionTestCase.org['id']}
@@ -87,6 +87,15 @@ class HostCollectionTestCase(CLITestCase):
             options['organization-id'] = self.org['id']
 
         return make_host_collection(options)
+
+    def _make_content_host_helper(self):
+        """Make a new content host"""
+        return make_content_host({
+            u'content-view-id': self.default_cv['id'],
+            u'lifecycle-environment-id': self.library['id'],
+            u'name': gen_string('alpha', 15),
+            u'organization-id': self.org['id'],
+        })
 
     @tier1
     def test_positive_create_with_name(self):
@@ -272,13 +281,9 @@ class HostCollectionTestCase(CLITestCase):
         @CaseLevel: Integration
         """
         new_host_col = self._new_host_collection({
-            'name': gen_string('alpha', 15)})
-        new_system = make_content_host({
-            u'content-view-id': self.default_cv['id'],
-            u'lifecycle-environment-id': self.library['id'],
-            u'name': gen_string('alpha', 15),
-            u'organization-id': self.org['id'],
+            'name': gen_string('alpha', 15)
         })
+        new_system = self._make_content_host_helper()
         no_of_content_host = new_host_col['total-hosts']
         HostCollection.add_host({
             u'host-ids': new_system['id'],
@@ -302,13 +307,9 @@ class HostCollectionTestCase(CLITestCase):
         @CaseLevel: Integration
         """
         new_host_col = self._new_host_collection({
-            'name': gen_string('alpha', 15)})
-        new_system = make_content_host({
-            u'content-view-id': self.default_cv['id'],
-            u'lifecycle-environment-id': self.library['id'],
-            u'name': gen_string('alpha', 15),
-            u'organization-id': self.org['id'],
+            'name': gen_string('alpha', 15)
         })
+        new_system = self._make_content_host_helper()
         HostCollection.add_host({
             u'host-ids': new_system['id'],
             u'id': new_host_col['id'],
@@ -341,12 +342,7 @@ class HostCollectionTestCase(CLITestCase):
         """
         host_col_name = gen_string('alpha', 15)
         new_host_col = self._new_host_collection({'name': host_col_name})
-        new_system = make_content_host({
-            u'content-view-id': self.default_cv['id'],
-            u'lifecycle-environment-id': self.library['id'],
-            u'name': gen_string('alpha', 15),
-            u'organization-id': self.org['id'],
-        })
+        new_system = self._make_content_host_helper()
         no_of_content_host = new_host_col['total-hosts']
         HostCollection.add_host({
             u'host-ids': new_system['id'],
@@ -363,3 +359,38 @@ class HostCollectionTestCase(CLITestCase):
             u'organization-id': self.org['id']
         })
         self.assertEqual(new_system['name'].lower(), result[0]['name'])
+
+    @tier2
+    def test_positive_host_collection_host_pagination(self):
+        """Check if pagination configured on per-page param defined in hammer
+        host-collection hosts command overrides global configuration defined
+        on /etc/hammer/cli_config.yml, which default is 20 per page
+
+        @BZ: 1343583
+
+        @id: bbe1108b-bfb2-4a03-94ef-8fd1b5a0ec82
+
+        @Assert: Number of host per page follows per_page configuration
+        restriction
+
+        @CaseLevel: Integration
+        """
+        host_collection = self._new_host_collection({
+            'name': gen_string('alpha', 15)
+        })
+        host_ids = ','.join(
+            self._make_content_host_helper()['id'] for i in range(2)
+        )
+        HostCollection.add_host({
+            u'host-ids': host_ids,
+            u'id': host_collection['id'],
+            u'organization-id': self.org['id'],
+        })
+
+        for number in range(1, 3):
+            listed_hosts = HostCollection.hosts({
+                u'id': host_collection['id'],
+                u'organization-id': self.org['id'],
+                u'per-page': number
+            })
+            self.assertEqual(len(listed_hosts), number)
