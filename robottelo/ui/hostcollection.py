@@ -189,3 +189,48 @@ class HostCollection(Base):
 
         if result is None:
             raise UIError('Timeout waiting for package action to schedule')
+
+    def execute_bulk_errata_installation(self,
+                                         name,
+                                         errata_id,
+                                         action_via='katello_agent',
+                                         timeout=120,
+                                         org_name=None):
+        """Execute errata installation on a host collection
+
+        :param name: host collection name to install errata on
+        :param errata_id: errata id, e.g. 'RHEA-2012:0055'
+        :param action_via: the way to perform the action. Can be one of 3:
+            'katello_agent', 'remote_execution', 'remote_execution_custom'
+        :param timeout: Timeout in seconds for errata installation task to
+            finish
+        :param org_name: The name of the organization for context, it is an
+            optional param since org can be previously selected on session
+        :raise: UIError if remote task finished by timeout
+
+        :return: Returns a string containing task status
+        """
+        if org_name:
+            Navigator(self.browser).go_to_select_org(org_name, force=False)
+
+        self.click(self.search(name))
+        self.click(tab_locators['hostcollection.collection_actions'])
+        self.click(locators['hostcollection.collection_actions.errata'])
+
+        strategy, value = locators['hostcollection.errata.errata_select']
+        self.click((strategy, value % errata_id))
+
+        strategy, action_link_locator_path = locators[
+            'contenthost.bulk_actions.errata.via_{0}'.format(action_via)]
+
+        strategy, value = locators['contenthost.bulk_actions.action_dropdown']
+        self.click((strategy, value % action_link_locator_path))
+        self.click((strategy, action_link_locator_path))
+
+        result = self.wait_until_element(
+            locators['contenthost.remote_action_finished'],
+            timeout=timeout,
+        )
+        if result is None:
+            raise UIError('Timeout waiting for errata installation to finish')
+        return result.get_attribute('type')

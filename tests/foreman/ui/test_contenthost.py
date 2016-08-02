@@ -22,13 +22,14 @@ from robottelo.cli.factory import (
 )
 from robottelo.constants import (
     FAKE_0_CUSTOM_PACKAGE,
-    FAKE_0_CUSTOM_PACKAGE_NAME,
-    FAKE_1_CUSTOM_PACKAGE,
-    FAKE_1_CUSTOM_PACKAGE_NAME,
-    FAKE_2_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_0_YUM_REPO,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_1_ERRATA_ID,
+    FAKE_2_CUSTOM_PACKAGE,
     PRDS,
     REPOS,
     REPOSET,
@@ -210,3 +211,23 @@ class ContentHostTestCase(UITestCase):
             for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
                 self.assertIsNone(self.contenthost.package_search(
                     self.client.hostname, package))
+
+    @tier3
+    def test_positive_install_errata(self):
+        """Install a errata to a host remotely
+
+        @id: 13b9422d-4b7a-4068-9a57-a94602cd6410
+
+        @assert: Errata was successfully installed
+
+        @CaseLevel: System
+        """
+        self.client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        with Session(self.browser):
+            result = self.contenthost.install_errata(
+                self.client.hostname,
+                FAKE_1_ERRATA_ID,
+            )
+            self.assertEqual(result, 'success')
+            self.assertIsNotNone(self.contenthost.package_search(
+                self.client.hostname, FAKE_2_CUSTOM_PACKAGE))

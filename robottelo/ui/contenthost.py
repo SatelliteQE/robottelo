@@ -139,6 +139,31 @@ class ContentHost(Base):
             raise UIError('Timeout waiting for package action to finish')
         return result.get_attribute('type')
 
+    def install_errata(self, name, errata_id, timeout=120):
+        """Install errata on a content host
+
+        :param name: content host name to apply errata on
+        :param errata_id: errata id, e.g. 'RHEA-2012:0055'
+        :param timeout: Timeout in seconds for errata installation task to
+            finish
+        :raise: UIError if remote task finished by timeout
+
+        :return: Returns a string containing task status
+        """
+        self.click(self.search(name))
+        self.click(tab_locators['contenthost.tab_errata'])
+        strategy, value = locators['contenthost.errata_select']
+        self.click((strategy, value % errata_id))
+        self.click(locators['contenthost.errata_apply'])
+        self.click(locators['contenthost.confirm_errata'])
+        result = self.wait_until_element(
+            locators['contenthost.remote_action_finished'],
+            timeout=timeout,
+        )
+        if result is None:
+            raise UIError('Timeout waiting for errata installation to finish')
+        return result.get_attribute('type')
+
     def package_search(self, name, package_name):
         """Search for installed package on specific content host"""
         self.click(self.search(name))

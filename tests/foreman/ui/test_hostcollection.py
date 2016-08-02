@@ -26,13 +26,14 @@ from robottelo.cli.factory import (
 )
 from robottelo.constants import (
     FAKE_0_CUSTOM_PACKAGE,
-    FAKE_0_CUSTOM_PACKAGE_NAME,
-    FAKE_1_CUSTOM_PACKAGE,
-    FAKE_1_CUSTOM_PACKAGE_NAME,
-    FAKE_2_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
+    FAKE_0_CUSTOM_PACKAGE_NAME,
     FAKE_0_YUM_REPO,
+    FAKE_1_CUSTOM_PACKAGE,
+    FAKE_1_CUSTOM_PACKAGE_NAME,
+    FAKE_1_ERRATA_ID,
+    FAKE_2_CUSTOM_PACKAGE,
     PRDS,
     REPOS,
     REPOSET,
@@ -626,3 +627,24 @@ class HostCollectionPackageManagementTest(UITestCase):
             for package in FAKE_0_CUSTOM_PACKAGE_GROUP:
                 self._validate_package_installed(
                     self.hosts, package, expected_installed=False)
+
+    @tier3
+    def test_positive_install_errata(self):
+        """Install an errata to the hosts inside host collection remotely
+
+        @id: 5a6fff0a-686f-419b-a773-4d03713e47e9
+
+        @Assert: Errata was successfully installed in all the hosts in host
+        collection
+
+        @CaseLevel: System
+        """
+        for client in self.hosts:
+            client.run('yum install -y {0}'.format(FAKE_1_CUSTOM_PACKAGE))
+        with Session(self.browser):
+            result = self.hostcollection.execute_bulk_errata_installation(
+                self.host_collection.name,
+                FAKE_1_ERRATA_ID,
+            )
+            self.assertEqual(result, 'success')
+            self._validate_package_installed(self.hosts, FAKE_2_CUSTOM_PACKAGE)
