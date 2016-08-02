@@ -207,7 +207,7 @@ class SSHTestCase(TestCase):
         settings.server.ssh_password = 'test_password'
         with ssh._get_connection() as connection:  # pylint:disable=W0212
             ret = ssh.execute_command('ls -la', connection)
-            self.assertEquals(ret.stdout, u'ls -la')
+            self.assertEquals(ret.stdout, [u'ls -la'])
             self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     @mock.patch('robottelo.ssh.settings')
@@ -219,7 +219,7 @@ class SSHTestCase(TestCase):
         settings.server.ssh_password = 'test_password'
 
         ret = ssh.command('ls -la')
-        self.assertEquals(ret.stdout, u'ls -la')
+        self.assertEquals(ret.stdout, [u'ls -la'])
         self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     @mock.patch('robottelo.ssh.settings')
