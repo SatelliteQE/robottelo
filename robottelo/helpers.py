@@ -1,7 +1,9 @@
 # -*- encoding: utf-8 -*-
 """Several helper methods and functions."""
+import contextlib
 import logging
 import os
+import random
 import re
 import requests
 import six
@@ -9,6 +11,7 @@ import six
 from tempfile import mkstemp
 from nailgun.config import ServerConfig
 from robottelo import ssh
+from robottelo.cli.proxy import CapsuleTunnelError
 from robottelo.config import settings
 
 # This conditional is here to centralize use of lru_cache
@@ -270,3 +273,91 @@ def add_remote_execution_ssh_key(hostname, key_path=None, **kwargs):
 
     # add that key to the client using hostname and kwargs for connection
     ssh.add_authorized_key(server_key, hostname=hostname, **kwargs)
+
+
+def get_available_capsule_port(port_pool=None):
+    """returns a list of unused ports dedicated for fake capsules
+    This calls a fuser command on the server prompting for a port range. fuser
+    commands returns a list of ports which have a PID assigned (a list of ports
+    which are already used). This function then substracts unavailable ports
+    from the other ones and returns one of available ones randomly.
+
+    :param port_pool: A list of ports used for fake capsules (for RHEL7+: don't
+        forget to set a correct selinux context before otherwise you'll get
+        Connection Refused error)
+
+    :return: Random available port from interval <9091, 9190>.
+    :rtype: int
+    """
+    if port_pool is None:
+        port_pool_range = settings.fake_capsules.port_range
+        if type(port_pool_range) is tuple and len(port_pool_range) is 2:
+            port_pool = range(int(port_pool_range[0]), int(port_pool_range[1]))
+        else:
+            raise TypeError(
+                '''Expected type of port_range is a tuple of 2 elements,
+                got {0} instead'''
+                .format(type(port_pool_range))
+            )
+    # returns a list of strings
+    fuser_cmd = ssh.command(
+        'fuser -n tcp {{{0}..{1}}} 2>&1 | awk -F/ \'{{print$1}}\''
+        .format(port_pool[0], port_pool[-1])
+    )
+    if fuser_cmd.stderr:
+        raise CapsuleTunnelError(
+            'Failed to create ssh tunnel: Error getting port status: {0}'
+            .format(fuser_cmd.stderr)
+        )
+    # converts a List of strings to a List of integers
+    try:
+        used_ports = (map(int, fuser_cmd.stdout[:-1]))
+    except ValueError:
+        raise CapsuleTunnelError(
+            'Failed parsing the port numbers from stdout: {0}'
+            .format(fuser_cmd.stdout[:-1])
+        )
+    try:
+        # take the list of available ports and return randomly selected one
+        return random.choice(
+            [port for port in port_pool if port not in used_ports]
+        )
+    except IndexError:
+        raise CapsuleTunnelError(
+            'Failed to create ssh tunnel: No more ports available for mapping'
+        )
+
+
+@contextlib.contextmanager
+def default_url_on_new_port(oldport, newport):
+    """Creates context where the default capsule is forwarded on a new port
+
+    :param int oldport: Port to be forwarded.
+    :param int newport: New port to be used to forward `oldport`.
+
+    :return: A string containing the new capsule URL with port.
+    :rtype: str
+
+    """
+    logger = logging.getLogger('robottelo')
+    domain = settings.server.hostname
+
+    with ssh._get_connection() as connection:
+        command = (
+            u'nc -kl -p {0} -c "nc {1} {2}"'
+        ).format(newport, domain, oldport)
+        logger.debug('Creating tunnel: {0}'.format(command))
+        transport = connection.get_transport()
+        channel = transport.open_session()
+        channel.get_pty()
+        channel.exec_command(command)
+        # if exit_status appears until command_timeout, throw error
+        if channel.exit_status_ready():
+            if channel.recv_exit_status() != 0:
+                stderr = u''
+                while channel.recv_stderr_ready():
+                    stderr += channel.recv_stderr(1)
+                logger.debug('Tunnel failed: {0}'.format(stderr))
+                # Something failed, so raise an exception.
+                raise CapsuleTunnelError(stderr)
+        yield 'https://{0}:{1}'.format(domain, newport)
