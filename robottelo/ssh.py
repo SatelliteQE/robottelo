@@ -261,7 +261,7 @@ def execute_command(cmd, connection, output_format=None, timeout=120):
         # Convert to unicode string and remove all color codes characters
         stderr = regex.sub('', decode_to_utf8(stderr))
         logger.debug('<<< stderr\n%s', stderr)
-    if stdout and output_format == 'csv':
+    if stdout and output_format != 'json':
         # Only for hammer commands
         # for output we don't really want to see all of Rails traffic
         # information, so strip it out.
