@@ -63,6 +63,11 @@
 
 .. automodule:: robottelo.ui.environment
 
+:mod:`robottelo.ui.errata`
+--------------------------
+
+.. automodule:: robottelo.ui.errata
+
 :mod:`robottelo.ui.factory`
 ---------------------------
 

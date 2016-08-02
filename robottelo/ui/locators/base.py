@@ -302,6 +302,14 @@ locators = LocatorDict({
     "contenthost.select_name": (
         By.XPATH,
         "//a[contains(@href, 'content_hosts') and contains(.,'%s')]"),
+    "contenthost.select_errata_counts": (
+        By.XPATH,
+        ("//a[contains(@href, 'content_hosts') and contains(.,'%s')]/../"
+         "following-sibling::td/a[contains(@href, 'errata')]//"
+         "span[@class='errata-count']")),
+    "contenthost.details_page_errata_counts": (
+        By.XPATH, "//a[contains(@href, 'errata') and @class='ng-binding']"),
+    "contenthost.errata_counts_icon": (By.XPATH, "i"),
     "contenthost.edit_name": (
         By.XPATH, "//form[@bst-edit-text='host.name']//div/span/i"),
     "contenthost.edit_name_text": (
@@ -334,6 +342,10 @@ locators = LocatorDict({
         By.XPATH,
         ("//tr[td/a[@ng-click='transitionToErratum(erratum)' and "
          "contains(.,'%s')]]/td/input[@type='checkbox']")),
+    "contenthost.errata_environment_select": (
+        By.XPATH,
+        ("//select[@ng-model='selectedErrataOption']/"
+         "option[contains(text(), '%s')]")),
     "contenthost.errata_apply": (
         By.XPATH,
         ("//button[contains(@ng-click, 'openModal()') and "
@@ -2125,4 +2137,32 @@ locators = LocatorDict({
     "hostcollection.errata.cancel_installation": (
         By.XPATH,
         "//button[contains(@ng-click, 'detailsTable.working = false')]"),
+
+    # Errata
+    "errata.filter_applicable": (
+        By.XPATH, "//input[@ng-model='showApplicable']"),
+    "errata.select_name": (By.XPATH, "//a[contains(., '%s')]"),
+    "errata.cves": (
+        By.XPATH,
+        "//span[text()='CVEs']/../../span[contains(@class, 'info-value')]"),
+    "errata.content_hosts.installable": (
+        By.XPATH, "//input[@ng-model='restrictInstallable']"),
+    "errata.content_hosts.env_filter": (
+        By.XPATH, "//select[@ng-model='environmentFilter']"),
+    "errata.content_hosts.ch_select": (
+        By.XPATH, "//tr[td/a[contains(.,'%s')]]/td/input[@type='checkbox']"),
+    "errata.content_hosts.errata_apply": (
+        By.XPATH,
+        ("//button[contains(@class, 'btn-primary') and "
+         "contains(@ng-disabled, 'detailsTable')]")),
+    "errata.content_hosts.confirm_installation": (
+        By.XPATH,
+        "//button[contains(@class, 'btn-primary') and @type='submit']"),
+    "errata.content_hosts.cancel_installation": (
+        By.XPATH, "//button[@ng-click='transitionBack()']"),
+    "errata.repositories.repo_select": (
+        By.XPATH,
+        ("//a[contains(@href, 'repositories') and contains(., '%s')]"
+         "[../following-sibling::td/a[contains(@ui-sref, 'products.details') "
+         "and contains(., '%s')]]")),
 })
