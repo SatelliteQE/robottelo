@@ -54,7 +54,8 @@ class HostTestCase(UITestCase):
         5. Publish and promote the content-view to next environment.
         6. Search for puppet environment and associate location.
         7. Search for smart-proxy and associate location.
-        8. Search for domain and associate org, location and dns proxy.
+        8. Search for existing domain or create new otherwise. Associate org,
+           location and dns proxy.
         9. Search for '192.168.100.0' network and associate org, location,
            dns/dhcp/tftp proxy, and if its not there then creates new.
         10. Search for existing compute-resource with 'libvirt' provider and
@@ -129,18 +130,27 @@ class HostTestCase(UITestCase):
         cls.proxy.organization = [cls.org_]
         cls.proxy = cls.proxy.update(['organization'])
 
-        # Search for domain and associate org, location
+        # Search for existing domain or create new otherwise. Associate org,
+        # location and dns to it
         _, _, domain = settings.server.hostname.partition('.')
         cls.domain = entities.Domain().search(
             query={
                 u'search': u'name="{0}"'.format(domain)
             }
-        )[0]
+        )
+        if len(cls.domain) == 1:
+            cls.domain = cls.domain[0].read()
+            cls.domain.location.append(cls.loc)
+            cls.domain.organization.append(cls.org_)
+            cls.domain.dns = cls.proxy
+            cls.domain = cls.domain.update(['dns', 'location', 'organization'])
+        else:
+            cls.domain = entities.Domain(
+                dns=cls.proxy,
+                location=[cls.loc],
+                organization=[cls.org],
+            ).create()
         cls.domain_name = cls.domain.name
-        cls.domain.location = [cls.loc]
-        cls.domain.organization = [cls.org_]
-        cls.domain.dns = cls.proxy
-        cls.domain = cls.domain.update(['dns', 'location', 'organization'])
 
         # Search if subnet is defined with given network.
         # If so, just update its relevant fields otherwise,
