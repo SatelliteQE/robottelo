@@ -441,7 +441,11 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 host = vm.hostname
                 set_context(session, org=ANY_CONTEXT['org'])
                 session.nav.go_to_hosts()
-                self.hosts.update_host_bulkactions(host=host, org=org_name)
+                self.hosts.update_host_bulkactions(
+                    [host],
+                    action='Assign Organization',
+                    parameters_list=[{'organization': org_name}],
+                )
                 self.hosts.update(
                     name=host,
                     parameters_list=[

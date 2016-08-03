@@ -60,6 +60,7 @@ from robottelo.ui.hardwaremodel import HardwareModel
 from robottelo.ui.hostcollection import HostCollection
 from robottelo.ui.hostgroup import Hostgroup
 from robottelo.ui.hosts import Hosts
+from robottelo.ui.job import Job
 from robottelo.ui.job_template import JobTemplate
 from robottelo.ui.ldapauthsource import LdapAuthSource
 from robottelo.ui.lifecycleenvironment import LifecycleEnvironment
@@ -282,6 +283,7 @@ class UITestCase(TestCase):
         self.hostcollection = HostCollection(self.browser)
         self.hostgroup = Hostgroup(self.browser)
         self.hosts = Hosts(self.browser)
+        self.job = Job(self.browser)
         self.jobtemplate = JobTemplate(self.browser)
         self.ldapauthsource = LdapAuthSource(self.browser)
         self.lifecycleenvironment = LifecycleEnvironment(self.browser)

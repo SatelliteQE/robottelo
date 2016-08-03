@@ -53,10 +53,6 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//a[@id='menu_item_dashboard']")),
-    "menu.content_dashboard": (
-        By.XPATH,
-        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
-         "//a[@id='menu_item_content_dashboard']")),
     "menu.reports": (
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
@@ -77,6 +73,11 @@ menu_locators = LocatorDict({
         By.XPATH,
         ("//div[contains(@style,'static') or contains(@style,'fixed')]"
          "//a[@id='menu_item_audits']")),
+
+    "menu.jobs": (
+        By.XPATH,
+        ("//div[contains(@style,'static') or contains(@style,'fixed')]"
+         "//a[@id='menu_item_jobs']")),
 
     # Content Menu
     "menu.content": (
@@ -836,6 +837,9 @@ common_locators = LocatorDict({
                            " contains(@class, 'btn')]"),
     "ace.preview": (By.XPATH, "//label[contains(., 'Preview') and"
                               " contains(@class, 'btn')]"),
+
+    # 'Run Job' button that is accessible from Jobs and Hosts pages
+    "run_job": (By.XPATH, "//a[@data-id='aid_job_invocations_new']"),
 })
 
 locators = LocatorDict({
@@ -954,6 +958,61 @@ locators = LocatorDict({
     "trend.delete": (
         By.XPATH,
         "//a[contains(@href,'%s') and contains(.,'Delete')]"),
+
+    # Jobs invocation
+
+    "job_invocation.select": (
+        By.XPATH,
+        ("//a[contains(@href, 'job_invocations')"
+            "and normalize-space(.)='%s']")),
+    "job_invocation.job_category": (
+        By.XPATH,
+        ("//div[contains(@id, 'job_category')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "job_invocation.job_template": (
+        By.XPATH,
+        ("//div[contains(@id, 'providers_SSH_job_template_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "job_invocation.bookmark": (
+        By.XPATH,
+        ("//div[contains(@id, 'targeting_bookmark_id')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "job_invocation.query": (
+        By.XPATH, "//textarea[@id='targeting_search_query']"),
+    "job_invocation.command": (By.XPATH, "//textarea[@id='command']"),
+    "job_invocation.errata": (By.XPATH, "//textarea[@id='errata']"),
+    "job_invocation.package": (By.XPATH, "//textarea[@id='package']"),
+    "job_invocation.puppet_options": (
+        By.XPATH, "//textarea[@id='puppet_options']"),
+    "job_invocation.service": (By.XPATH, "//textarea[@id='service']"),
+    "job_invocation.action": (
+        By.XPATH,
+        "//div[contains(@id, 'action')]/a/span[contains(@class, 'arrow')]"),
+    "job_invocation.schedule_type": (
+        By.XPATH,
+        "//input[contains(@id, 'triggering_mode') and @value='%s']"),
+    "job_invocation.schedule.start_at": (
+        By.XPATH, "//input[@id='triggering_start_at_raw']"),
+    "job_invocation.schedule.start_before": (
+        By.XPATH, "//input[@id='triggering_start_before_raw']"),
+    "job_invocation.schedule.repeats": (
+        By.XPATH,
+        ("//div[contains(@id, 'input_type_selector')]/a"
+         "/span[contains(@class, 'arrow')]")),
+    "job_invocation.schedule.repeats_n_times": (
+        By.XPATH, "//input[@id='triggering_max_iteration']"),
+    "job_invocation.title": (
+        By.XPATH, "//div[@id='content']/div/h1"),
+    "job_invocation.refresh": (By.XPATH, "//a[@*='Refresh this page']"),
+    "job_invocation.rerun": (By.XPATH, "//a[@*='Rerun the job']"),
+    "job_invocation.rerun_failed": (
+        By.XPATH, "//a[@*='Rerun on failed hosts']"),
+    "job_invocation.job_task": (
+        By.XPATH, "//a[@*='See the last task details']"),
+    "job_invocation.cancel": (By.XPATH, "//a[@*='Try to cancel the job']"),
+    "job_invocation.status": (
+        By.XPATH, "//div[@id='status' and @data-title='%s']"),
+
 
     # Operating system (OS)
     "operatingsys.new": (
@@ -1380,11 +1439,10 @@ locators = LocatorDict({
     "host.checkbox": (
         By.XPATH,
         "//a[contains(@href, '%s')]/../../td/input[@type='checkbox']"),
-    "host.select_action": (
+    "host.select_action_list": (
         By.XPATH,
         "//div[@id='submit_multiple']/a[contains(@class, 'dropdown-toggle')]"),
-    "host.assign_org": (
-        By.XPATH, "//a[contains(@onclick, 'select_multiple_organization')]"),
+    "host.select_action": (By.XPATH, "//li/a[text()='%s']"),
     "host.fix_mismatch": (By.ID, "organization_optimistic_import_yes"),
     "host.select_org": (By.ID, "organization_id"),
     "host.bulk_submit": (

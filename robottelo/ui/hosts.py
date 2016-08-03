@@ -161,13 +161,37 @@ class Hosts(Base):
             drop_locator=locators['host.dropdown'],
         )
 
-    def update_host_bulkactions(self, host=None, org=None):
-        """Updates host via bulkactions"""
-        strategy1, value1 = locators['host.checkbox']
-        self.click((strategy1, value1 % host))
-        self.click(locators['host.select_action'])
-        if org:
-            self.click(locators['host.assign_org'])
-            self.click(locators['host.fix_mismatch'])
-            self.select(locators['host.select_org'], org)
-        self.click(locators['host.bulk_submit'])
+    def update_host_bulkactions(
+            self, hosts=None, action=None, parameters_list=None):
+        """Updates host via bulkactions
+
+        :param hosts: List of hosts that should be selected for action
+        :param action: Specify exact action to perform according to UI list. At
+            that moment we support only Assign Organization and Run Job actions
+        :param parameters_list: List of parameters that are needed for the
+            dialogs that go after necessary action was selected. For example::
+
+            [{'organization': 'My_org01'}]
+            [{'command': 'ls'}]
+        """
+        for host in hosts:
+            strategy, value = locators['host.checkbox']
+            self.click((strategy, value % host))
+        self.click(locators['host.select_action_list'])
+        strategy, value = locators['host.select_action']
+        self.click((strategy, value % action))
+        if parameters_list:
+            for parameter in parameters_list:
+                if action == 'Assign Organization':
+                    self.click(locators['host.fix_mismatch'])
+                    self.assign_value(
+                        locators['host.select_org'],
+                        parameter['organization']
+                    )
+                    self.click(locators['host.bulk_submit'])
+                if action == 'Run Job':
+                    self.assign_value(
+                        locators['job_invocation.command'],
+                        parameter['command']
+                    )
+                    self.click(common_locators['submit'])
