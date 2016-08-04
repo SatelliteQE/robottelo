@@ -36,12 +36,6 @@ class Navigator(Base):
             menu_locators['menu.monitor'], menu_locators['menu.dashboard'],
         )
 
-    def go_to_content_dashboard(self):
-        self.menu_click(
-            menu_locators['menu.monitor'],
-            menu_locators['menu.content_dashboard'],
-        )
-
     def go_to_reports(self):
         self.menu_click(
             menu_locators['menu.monitor'], menu_locators['menu.reports'],
@@ -65,6 +59,11 @@ class Navigator(Base):
     def go_to_audits(self):
         self.menu_click(
             menu_locators['menu.monitor'], menu_locators['menu.audits'],
+        )
+
+    def go_to_jobs(self):
+        self.menu_click(
+            menu_locators['menu.monitor'], menu_locators['menu.jobs'],
         )
 
     def go_to_life_cycle_environments(self):

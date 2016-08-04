@@ -156,7 +156,6 @@ class OpenScapTestCase(UITestCase):
         @Assert: Oscap reports from rhel6 and rhel7 clients should be
         uploaded to satellite6 and be searchable.
 
-
         @CaseLevel: System
         """
         rhel6_repo = settings.rhel6_repo
@@ -228,8 +227,9 @@ class OpenScapTestCase(UITestCase):
                     session.nav.go_to_hosts()
                     set_context(session, org=ANY_CONTEXT['org'])
                     self.hosts.update_host_bulkactions(
-                        host=host,
-                        org=self.org_name
+                        [host],
+                        action='Assign Organization',
+                        parameters_list=[{'organization': self.org_name}],
                     )
                     self.hosts.update(
                         name=host,

@@ -14,6 +14,7 @@
 
 @Upstream: No
 """
+from datetime import datetime, timedelta
 from nailgun import entities
 from robottelo.constants import OS_TEMPLATE_DATA_FILE
 from robottelo.datafactory import (
@@ -22,22 +23,23 @@ from robottelo.datafactory import (
     invalid_values_list,
 )
 from robottelo.decorators import stubbed, tier1, tier2, tier3
-from robottelo.helpers import get_data_file
+from robottelo.helpers import add_remote_execution_ssh_key, get_data_file
 from robottelo.test import UITestCase
-from robottelo.ui.factory import make_job_template
+from robottelo.ui.factory import make_job_template, set_context
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
+from robottelo.vm import VirtualMachine
 
 OS_TEMPLATE_DATA_FILE = get_data_file(OS_TEMPLATE_DATA_FILE)
 
 
-class RemoteExecutionTestCase(UITestCase):
-    """Test class for remote execution feature"""
+class JobsTemplateTestCase(UITestCase):
+    """Test class for jobs template feature"""
 
     @classmethod
     def setUpClass(cls):
         """Create an organization and host which can be re-used in tests."""
-        super(RemoteExecutionTestCase, cls).setUpClass()
+        super(JobsTemplateTestCase, cls).setUpClass()
         cls.organization = entities.Organization().create()
         cls.host = entities.Host(organization=cls.organization).create()
         entities.OperatingSystem(
@@ -362,9 +364,50 @@ class RemoteExecutionTestCase(UITestCase):
             self.assertIsNotNone(self.jobtemplate.wait_until_element(
                 common_locators['alert.error']))
 
-    @stubbed()
+
+class RemoteExecutionTestCase(UITestCase):
+    """Test class for remote execution feature"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create an organization which can be re-used in tests."""
+        super(RemoteExecutionTestCase, cls).setUpClass()
+        cls.organization = entities.Organization().create()
+
     @tier2
-    def test_positive_run_job_template(self):
+    def test_positive_run_default_job_template(self):
+        """Run a job template against a single host
+
+        @id: 7f0cdd1a-c87c-4324-ae9c-dbc30abad217
+
+        @Setup: Use pre-defined job template.
+
+        @Steps:
+
+        1. Navigate to an individual host and click Run Job
+        2. Select the job and appropriate template
+        3. Run the job
+
+        @Assert: Verify the job was successfully ran against the host
+
+        @CaseLevel: Integration
+        """
+        with VirtualMachine(distro='rhel71') as client:
+            client.install_katello_ca()
+            client.register_contenthost(self.organization.label, lce='Library')
+            add_remote_execution_ssh_key(client.ip_addr)
+            with Session(self.browser) as session:
+                set_context(session, org=self.organization.name)
+                self.hosts.click(self.hosts.search(client.hostname))
+                status = self.job.run(
+                    job_category='Commands',
+                    job_template='Run Command - SSH Default',
+                    options_list=[{'name': 'command', 'value': 'ls'}]
+                )
+                self.assertTrue(status)
+
+    @tier3
+    def test_positive_run_custom_job_template(self):
         """Run a job template against a single host
 
         @id: 7f0cdd1a-c87c-4324-ae9c-dbc30abad217
@@ -379,13 +422,35 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: Verify the job was successfully ran against the host
 
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
+        @CaseLevel: System
         """
+        jobs_template_name = gen_string('alpha')
+        with VirtualMachine(distro='rhel71') as client:
+            client.install_katello_ca()
+            client.register_contenthost(self.organization.label, lce='Library')
+            add_remote_execution_ssh_key(client.ip_addr)
+            with Session(self.browser) as session:
+                set_context(session, org=self.organization.name)
+                make_job_template(
+                    session,
+                    name=jobs_template_name,
+                    template_type='input',
+                    template_content='<%= input("command") %>',
+                    provider_type='SSHExecutionProvider',
+                )
+                self.assertIsNotNone(
+                    self.jobtemplate.search(jobs_template_name))
+                self.jobtemplate.add_input(
+                    jobs_template_name, 'command', required=True)
+                self.hosts.click(self.hosts.search(client.hostname))
+                status = self.job.run(
+                    job_category='Miscellaneous',
+                    job_template=jobs_template_name,
+                    options_list=[{'name': 'command', 'value': 'ls'}]
+                )
+                self.assertTrue(status)
 
-    @stubbed()
-    @tier2
+    @tier3
     def test_positive_run_job_template_multiple_hosts(self):
         """Run a job template against multiple hosts
 
@@ -402,19 +467,34 @@ class RemoteExecutionTestCase(UITestCase):
 
         @Assert: Verify the job was successfully ran against the hosts
 
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
+        @CaseLevel: System
         """
+        with VirtualMachine(distro='rhel71') as client:
+            with VirtualMachine(distro='rhel71') as client2:
+                for vm in client, client2:
+                    vm.install_katello_ca()
+                    vm.register_contenthost(
+                        self.organization.label, lce='Library')
+                    add_remote_execution_ssh_key(vm.ip_addr)
+                with Session(self.browser) as session:
+                    set_context(session, org=self.organization.name)
+                    self.hosts.navigate_to_entity()
+                    self.hosts.update_host_bulkactions(
+                        [client.hostname, client2.hostname],
+                        action='Run Job',
+                        parameters_list=[{'command': 'ls'}],
+                    )
+                    strategy, value = locators['job_invocation.status']
+                    self.job.wait_until_element(
+                        (strategy, value % 'succeeded'), 240)
 
-    @stubbed()
-    @tier2
+    @tier3
     def test_positive_run_scheduled_job_template(self):
         """Schedule a job to be ran against a host
 
         @id: 35c8b68e-1ac5-4c33-ad62-a939b87f76fb
 
-        @Setup: Create a working job template.
+        @Setup: Use pre-defined job template.
 
         @Steps:
 
@@ -429,10 +509,32 @@ class RemoteExecutionTestCase(UITestCase):
         1. Verify the job was not immediately ran
         2. Verify the job was successfully ran after the designated time
 
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
+        @CaseLevel: System
         """
+        with VirtualMachine(distro='rhel71') as client:
+            client.install_katello_ca()
+            client.register_contenthost(self.organization.label, lce='Library')
+            add_remote_execution_ssh_key(client.ip_addr)
+            with Session(self.browser) as session:
+                set_context(session, org=self.organization.name)
+                self.hosts.click(self.hosts.search(client.hostname))
+                plan_time = (datetime.now() + timedelta(seconds=90)).strftime(
+                    "%Y-%m-%d %H:%M")
+                status = self.job.run(
+                    job_category='Commands',
+                    job_template='Run Command - SSH Default',
+                    options_list=[{'name': 'command', 'value': 'ls'}],
+                    schedule='future',
+                    schedule_options=[
+                        {'name': 'start_at', 'value': plan_time}],
+                    result='queued'
+                )
+                self.assertTrue(status)
+                strategy, value = locators['job_invocation.status']
+                self.job.wait_until_element_is_not_visible(
+                    (strategy, value % 'queued'), 95)
+                self.job.wait_until_element(
+                    (strategy, value % 'succeeded'), 30)
 
     @stubbed()
     @tier3

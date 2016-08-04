@@ -93,6 +93,11 @@
 
 .. automodule:: robottelo.ui.hosts
 
+:mod:`robottelo.ui.job`
+-----------------------
+
+.. automodule:: robottelo.ui.job
+
 :mod:`robottelo.ui.job_template`
 --------------------------------
 
