@@ -311,7 +311,13 @@ def get_available_capsule_port(port_pool=None):
         )
     # converts a List of strings to a List of integers
     try:
-        used_ports = (map(int, fuser_cmd.stdout[:-1]))
+        print(fuser_cmd)
+        used_ports = map(
+            int,
+            [val for val in fuser_cmd.stdout[:-1]
+                if val != 'Cannot stat file ']
+        )
+
     except ValueError:
         raise CapsuleTunnelError(
             'Failed parsing the port numbers from stdout: {0}'
@@ -344,7 +350,7 @@ def default_url_on_new_port(oldport, newport):
 
     with ssh._get_connection() as connection:
         command = (
-            u'nc -kl -p {0} -c "nc {1} {2}"'
+            u'ncat -kl -p {0} -c "ncat {1} {2}"'
         ).format(newport, domain, oldport)
         logger.debug('Creating tunnel: {0}'.format(command))
         transport = connection.get_transport()
