@@ -164,6 +164,8 @@ class ContentViews(Base):
             self.click(locators['contentviews.content_repo'])
         elif repo_type == 'docker':
             self.click(tab_locators['contentviews.tab_docker_content'])
+        elif repo_type == 'ostree':
+            self.click(tab_locators['contentviews.tab_ostree_content'])
         strategy, value = locators['contentviews.select_repo']
         for repo_name in repo_names:
             if add_repo:

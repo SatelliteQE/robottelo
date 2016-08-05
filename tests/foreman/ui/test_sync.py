@@ -15,10 +15,18 @@
 @Upstream: No
 """
 
+from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
-from robottelo.constants import FAKE_1_YUM_REPO
+from robottelo.constants import (
+    ATOMIC_HOST_TREE,
+    FAKE_1_YUM_REPO,
+    FEDORA23_OSTREE_REPO,
+    PRDS,
+    REPOS,
+    REPO_TAB,
+)
 from robottelo.datafactory import generate_strings_list
 from robottelo.decorators import (
     run_in_one_thread,
@@ -29,6 +37,7 @@ from robottelo.decorators import (
     tier2,
     tier4,
 )
+from robottelo.decorators.host import skip_if_os
 from robottelo.test import UITestCase
 from robottelo.ui.session import Session
 
@@ -95,7 +104,7 @@ class SyncTestCase(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             session.nav.go_to_red_hat_repositories()
-            self.sync.enable_rh_repos(repos)
+            self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
             session.nav.go_to_sync_status()
             sync = self.sync.sync_rh_repos(repos)
             # syn.sync_rh_repos returns boolean values and not objects
@@ -131,7 +140,7 @@ class SyncTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_sync_custom_ostree_repo(self):
         """Create custom ostree repository and sync it.
@@ -140,13 +149,28 @@ class SyncTestCase(UITestCase):
 
         @Assert: ostree repo should be synced successfully
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        prod = entities.Product(organization=self.organization).create()
+        repo_name = gen_string('alpha')
+        # Creates new ostree repository using api
+        entities.Repository(
+            name=repo_name,
+            content_type='ostree',
+            url=FEDORA23_OSTREE_REPO,
+            product=prod,
+            unprotected=False,
+        ).create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            session.nav.go_to_sync_status()
+            sync = self.sync.sync_custom_repos(prod.name, [repo_name])
+            # sync.sync_custom_repos returns boolean value
+            self.assertTrue(sync)
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
+    @skip_if_not_set('fake_manifest')
     @tier2
     def test_positive_sync_rh_ostree_repo(self):
         """Sync CDN based ostree repository .
@@ -159,7 +183,17 @@ class SyncTestCase(UITestCase):
 
         @Assert: ostree repo should be synced successfully from CDN
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        repos = self.sync.create_repos_tree(ATOMIC_HOST_TREE)
+        org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            session.nav.go_to_red_hat_repositories()
+            self.sync.enable_rh_repos(repos, repo_tab=REPO_TAB['ostree'])
+            session.nav.go_to_sync_status()
+            self.assertTrue(self.sync.sync_noversion_rh_repos(
+                PRDS['rhah'], [REPOS['rhaht']['name']]
+            ))

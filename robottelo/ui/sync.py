@@ -8,7 +8,7 @@ from collections import defaultdict
 from functools import partial
 from robottelo.constants import PRDS, REPOSET
 from robottelo.ui.base import Base
-from robottelo.ui.locators import locators
+from robottelo.ui.locators import locators, tab_locators
 
 
 class Sync(Base):
@@ -118,7 +118,7 @@ class Sync(Base):
             repos_tree[p][rs][r][ra] = value
         return repos_tree
 
-    def enable_rh_repos(self, repos_tree):
+    def enable_rh_repos(self, repos_tree, repo_tab):
         """Enables Red Hat Repos, after importing a RedHat Manifest.
 
         We need to first select the PRD to enable, then the reposet
@@ -126,10 +126,18 @@ class Sync(Base):
         each reposet could have multiple repos.
 
         :param repos_tree: Repositories to enable which is a List of dictionary
+        :param str repo_tab: To select Repository tab from RH repositories page
         :return: None.
 
         """
-        strategy, value = locators['rh.prd_expander']
+        # Locator to select content tabs from Red Hat repositories page
+        # e.g. 'RPMs', 'KIckstarts', 'ISOs', 'OSTree'
+        repo_tab_locator = 'manifest.{0}_tab'.format(repo_tab.lower())
+        self.click(tab_locators[repo_tab_locator])
+        # Locator to select product expander from Red Hat repositories page,
+        # its based on content tabs
+        product_expander_loc = 'rh.{0}_prd_expander'.format(repo_tab.lower())
+        strategy, value = locators[product_expander_loc]
         strategy1, value1 = locators['rh.reposet_expander']
         strategy2, value2 = locators['rh.reposet_checkbox']
         strategy3, value3 = locators['rh.repo_checkbox']
