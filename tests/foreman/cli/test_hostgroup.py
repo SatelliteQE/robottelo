@@ -18,6 +18,7 @@
 
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.contentview import ContentView
 from robottelo.cli.hostgroup import HostGroup
 from robottelo.cli.proxy import Proxy
 from robottelo.cli.factory import (
@@ -39,7 +40,13 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_hostgroups_list,
 )
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
+from robottelo.decorators import (
+    bz_bug_is_open,
+    run_only_on,
+    skip_if_bug_open,
+    tier1,
+    tier2,
+)
 from robottelo.test import CLITestCase
 
 
@@ -128,6 +135,23 @@ class HostGroupTestCase(CLITestCase):
         hostgroup = make_hostgroup({'organization-ids': org['id']})
         self.assertIn(org['name'], hostgroup['organizations'])
 
+    @tier1
+    def test_positive_create_with_orgs(self):
+        """Check if hostgroup with multiple organizations can be created
+
+        @id: 32be4630-0032-4f5f-89d4-44f8d05fe585
+
+        @Assert: Hostgroup is created and has both new organizations assigned
+        """
+        orgs = [make_org() for _ in range(2)]
+        hostgroup = make_hostgroup({
+            'organization-ids': [org['id'] for org in orgs],
+        })
+        self.assertEqual(
+            set(org['name'] for org in orgs),
+            set(hostgroup['organizations'])
+        )
+
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_puppet_ca_proxy(self):
@@ -150,7 +174,6 @@ class HostGroupTestCase(CLITestCase):
         @id: 3a922d9f-7466-4565-b279-c1481f63a4ce
 
         @Assert: Hostgroup is created and has puppet proxy server assigned
-
         """
         puppet_proxy = Proxy.list()[0]
         hostgroup = make_hostgroup({'puppet-proxy': puppet_proxy['name']})
@@ -188,7 +211,7 @@ class HostGroupTestCase(CLITestCase):
         hostgroup = make_hostgroup({'domain-id': domain['id']})
         self.assertEqual(domain['name'], hostgroup['domain'])
 
-    @skip_if_bug_open('bugzilla', 1359694)
+    @skip_if_bug_open('bugzilla', 1313056)
     @run_only_on('sat')
     @tier1
     def test_positive_create_with_lifecycle_environment(self):
@@ -204,16 +227,37 @@ class HostGroupTestCase(CLITestCase):
         lc_env = make_lifecycle_environment({'organization-id': org['id']})
         hostgroup = make_hostgroup({
             'lifecycle-environment': lc_env['name'],
-            'organization-ids': org['id'],
+            'organization-id': org['id'],
         })
         self.assertEqual(
             lc_env['name'],
             hostgroup['lifecycle-environment'],
         )
 
-    @skip_if_bug_open('bugzilla', 1359694)
-    @run_only_on('sat')
     @tier1
+    def test_positive_create_with_orgs_and_lce(self):
+        """Check if hostgroup with multiple organizations can be created
+        if one of them is associated with lifecycle environment
+
+        @id: 32be4630-0032-4f5f-89d4-44f8d05fe585
+
+        @Assert: Hostgroup is created, has both new organizations assigned
+        and has lifecycle env assigned
+        """
+        orgs = [make_org() for _ in range(2)]
+        lce = make_lifecycle_environment({'organization-id': orgs[0]['id']})
+        hostgroup = make_hostgroup({
+            'organization-ids': [org['id'] for org in orgs],
+            'lifecycle-environment-id': lce['id'],
+            'organization-id': orgs[0]['id']
+        })
+        self.assertEqual(
+            set(org['name'] for org in orgs),
+            set(hostgroup['organizations'])
+        )
+
+    @run_only_on('sat')
+    @tier2
     def test_positive_create_with_multiple_entities(self):
         """Check if hostgroup with multiple options can be created
 
@@ -222,48 +266,90 @@ class HostGroupTestCase(CLITestCase):
         @Assert: Hostgroup should be created and has all defined entities
         assigned
 
-        @BZ: 1359694
+        @CaseLevel: Integration
         """
-        subnet = make_subnet()
-        domain = make_domain()
-        org = make_org()
-        lc_env = make_lifecycle_environment({'organization-id': org['id']})
-        cv = make_content_view({'organization-id': org['id']})
+        # Common entities
         loc = make_location()
-        env = make_environment()
-        os = make_os()
-        media = make_medium()
-        arch = make_architecture()
-        puppet_proxy = Proxy.list()[0]
-        ptable = make_partition_table()
-        hostgroup = make_hostgroup({
-            'domain-id': domain['id'],
-            'subnet-id': subnet['id'],
+        org = make_org()
+        env = make_environment({
+            'location-ids': loc['id'],
             'organization-ids': org['id'],
+        })
+        lce = make_lifecycle_environment({'organization-id': org['id']})
+        puppet_proxy = Proxy.list()[0]
+        # Content View should be promoted to be used with LC Env
+        cv = make_content_view({'organization-id': org['id']})
+        ContentView.publish({'id': cv['id']})
+        cv = ContentView.info({'id': cv['id']})
+        ContentView.version_promote({
+            'id': cv['versions'][0]['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        # Network
+        domain = make_domain({
+            'location-ids': loc['id'],
+            'organization-ids': org['id'],
+        })
+        subnet = make_subnet({
+            'domain-ids': domain['id'],
+            'organization-ids': org['id'],
+        })
+        # Operating System
+        arch = make_architecture()
+        ptable = make_partition_table({
+            'location-ids': loc['id'],
+            'organization-ids': org['id'],
+        })
+        os = make_os({
+            'architecture-ids': arch['id'],
+            'partition-table-ids': ptable['id'],
+        })
+        media = make_medium({
+            'operatingsystem-ids': os['id'],
+            'location-ids': loc['id'],
+            'organization-ids': org['id'],
+        })
+
+        hostgroup = make_hostgroup({
             'location-ids': loc['id'],
             'environment-id': env['id'],
+            'lifecycle-environment': lce['name'],
             'puppet-proxy-id': puppet_proxy['id'],
             'puppet-ca-proxy-id': puppet_proxy['id'],
-            'operatingsystem-id': os['id'],
-            'architecture-id': arch['id'],
             'content-view-id': cv['id'],
-            'lifecycle-environment': lc_env['name'],
+            'domain-id': domain['id'],
+            'subnet-id': subnet['id'],
+            'organization-id': org['id'],
+            'architecture-id': arch['id'],
             'partition-table-id': ptable['id'],
             'medium-id': media['id'],
+            'operatingsystem-id': os['id'],
         })
+        self.assertIn(org['name'], hostgroup['organizations'])
+        self.assertIn(loc['name'], hostgroup['locations'])
+        self.assertEqual(env['name'], hostgroup['environment'])
+        self.assertEqual(
+            puppet_proxy['id'], hostgroup['puppet-master-proxy-id']
+        )
+        self.assertEqual(puppet_proxy['id'], hostgroup['puppet-ca-proxy-id'])
         self.assertEqual(domain['name'], hostgroup['domain'])
         self.assertEqual(subnet['name'], hostgroup['subnet'])
-        self.assertIn(org['name'], hostgroup['organizations'])
-        self.assertEqual(loc['name'], hostgroup['location'])
-        self.assertEqual(env['name'], hostgroup['environment'])
-        self.assertEqual(puppet_proxy['name'], hostgroup['puppet-proxy'])
-        self.assertEqual(puppet_proxy['name'], hostgroup['puppet-ca-proxy'])
-        self.assertEqual(os['name'], hostgroup['operatingsystem'])
         self.assertEqual(arch['name'], hostgroup['architecture'])
-        self.assertEqual(cv['name'], hostgroup['content-view'])
-        self.assertEqual(lc_env['name'], hostgroup['lifecycle-environment'])
         self.assertEqual(ptable['name'], hostgroup['partition-table'])
         self.assertEqual(media['name'], hostgroup['medium'])
+        self.assertEqual(
+            "{0} {1}.{2}".format(
+                os['name'],
+                os['major-version'],
+                os['minor-version']
+            ),
+            hostgroup['operating-system']
+        )
+        if not bz_bug_is_open('1313056'):
+            self.assertEqual(cv['name'], hostgroup['content-view'])
+            self.assertEqual(
+                lce['name'], hostgroup['lifecycle-environment']
+            )
 
     @skip_if_bug_open('bugzilla', 1354568)
     @run_only_on('sat')
