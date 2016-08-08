@@ -93,10 +93,8 @@ class ContentView(Base):
         cls.command_sub = 'version incremental-update'
         if options is None:
             options = {}
-            return cls.execute(
-                cls._construct_command(options),
-                output_format='info'
-            )
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')
 
     @classmethod
     def puppet_module_add(cls, options):
