@@ -19,6 +19,7 @@ import readline
 import rlcompleter
 import importlib
 from robottelo.config import settings
+from robottelo.ui import locators
 
 
 @click.group()
@@ -42,7 +43,8 @@ def shell(ipython):
         'settings': settings,
         'entities': nailgun.entities,
         'ng': nailgun,
-        'rt': RobotteloLoader()
+        'rt': RobotteloLoader(),
+        'locators': locators
     }
     _vars.update(auto_imported)
     banner_msg = (

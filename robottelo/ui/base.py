@@ -5,7 +5,7 @@ import logging
 import time
 
 from robottelo.helpers import escape_search
-from robottelo.ui.locators import locators, common_locators
+from robottelo.ui.locators import locators, common_locators, Locator
 from selenium.common.exceptions import NoSuchElementException
 from selenium.common.exceptions import TimeoutException
 from selenium.common.exceptions import WebDriverException
@@ -408,7 +408,6 @@ class Base(object):
         """
         txt_field = self.find_element(locators[loc_string])
         txt_field.clear()
-        self.logger.debug(u'Updating field:%s with:%s', loc_string, newtext)
         txt_field.send_keys(newtext)
         self.wait_for_ajax()
 
@@ -418,7 +417,6 @@ class Base(object):
         """
         txt_field = self.wait_until_element(locator)
         txt_field.clear()
-        self.logger.debug(u'Updating text field:%s with:%s', locator, newtext)
         txt_field.send_keys(newtext)
         self.wait_for_ajax()
 
@@ -579,7 +577,7 @@ class Base(object):
         :raise: UINoSuchElementError if the element could not be found.
 
         """
-        if isinstance(target, tuple):
+        if isinstance(target, (tuple, Locator)):
             element = self.wait_until_element(target, timeout=waiter_timeout)
         else:
             element = target
