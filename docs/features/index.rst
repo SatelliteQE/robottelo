@@ -5,8 +5,9 @@ This is Robottelo Features documentation. It contains a high level explanation
 about its capabilities.
 
 .. toctree::
-    :maxdepth: 2
+    :maxdepth: 1
 
     decorators
+    ssh
 
 

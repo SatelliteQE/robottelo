@@ -1,7 +1,7 @@
 Decorators
 ==========
 
-This section explains Robottello decorators.
+This section explains Robottelo decorators.
 
 .. contents::
 
