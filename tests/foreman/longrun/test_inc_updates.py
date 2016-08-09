@@ -19,20 +19,36 @@ from datetime import date, timedelta
 from fauxfactory import gen_alpha
 from nailgun import entity_mixins
 from nailgun.entities import (
-    ActivationKey, ContentView, ContentViewFilterRule, ContentViewVersion,
-    Errata, ErratumContentViewFilter, Host, HostCollection,
-    LifecycleEnvironment, Organization, Repository, Subscription,
+    ActivationKey,
+    ContentView,
+    ContentViewFilterRule,
+    ContentViewVersion,
+    Errata,
+    ErratumContentViewFilter,
+    Host,
+    HostCollection,
+    LifecycleEnvironment,
+    Organization,
+    Repository,
+    Subscription,
 )
 from robottelo import manifests
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid, promote, upload_manifest
 )
 from robottelo.cli.contentview import ContentView as ContentViewCLI
-from robottelo.constants import PRD_SETS
+from robottelo.constants import (
+    DEFAULT_ARCHITECTURE,
+    DEFAULT_RELEASE_VERSION,
+    DEFAULT_SUBSCRIPTION_NAME,
+    PRDS,
+    REAL_0_RH_PACKAGE,
+    REPOS,
+    REPOSET,
+)
 from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
-    skip_if_bug_open,
     skip_if_not_set,
     tier4,
 )
@@ -47,12 +63,13 @@ class IncrementalUpdateTestCase(TestCase):
     @classmethod
     @skip_if_not_set('clients')
     def setUpClass(cls):
-        """Creates all the pre-requisites for the Incremental updates test"""
+        """Creates the pre-requisites for the Incremental updates that used in
+        all test"""
         super(IncrementalUpdateTestCase, cls).setUpClass()
-        # Step 1 - Create a new Organization
+        # Create a new Organization
         cls.org = Organization(name=gen_alpha()).create()
 
-        # Step 2 - Create two life cycle environments - DEV, QE
+        # Create two lifecycle environments - DEV, QE
         cls.dev_lce = LifecycleEnvironment(
             name='DEV',
             organization=cls.org
@@ -63,63 +80,65 @@ class IncrementalUpdateTestCase(TestCase):
             organization=cls.org
         ).create()
 
-        # Step 3: Upload manifest
+        # Upload manifest
         with manifests.clone() as manifest:
             upload_manifest(cls.org.id, manifest.content)
 
-        # Step 4: Enable repositories - 6Server and rhel6 sat6tools
-        rhel_66_repo_id = enable_rhrepo_and_fetchid(
-            basearch=PRD_SETS['rhel_66']['arch'],
+        # Enable repositories - RHE Virtualization Agents and rhel6 sat6tools
+        rhva_6_repo_id = enable_rhrepo_and_fetchid(
+            basearch=DEFAULT_ARCHITECTURE,
             org_id=cls.org.id,
-            product=PRD_SETS['rhel_66']['product'],
-            repo=PRD_SETS['rhel_66']['reponame'],
-            reposet=PRD_SETS['rhel_66']['reposet'],
-            releasever=PRD_SETS['rhel_66']['releasever']
+            product=PRDS['rhel'],
+            repo=REPOS['rhva6']['name'],
+            reposet=REPOSET['rhva6'],
+            releasever=DEFAULT_RELEASE_VERSION,
         )
         rhel6_sat6tools_repo_id = enable_rhrepo_and_fetchid(
-            basearch=PRD_SETS['rhel6_sat6tools']['arch'],
+            basearch=DEFAULT_ARCHITECTURE,
             org_id=cls.org.id,
-            product=PRD_SETS['rhel6_sat6tools']['product'],
-            repo=PRD_SETS['rhel6_sat6tools']['reponame'],
-            reposet=PRD_SETS['rhel6_sat6tools']['reposet'],
-            releasever=PRD_SETS['rhel6_sat6tools']['releasever']
+            product=PRDS['rhel'],
+            repo=REPOS['rhst6']['name'],
+            reposet=REPOSET['rhst6'],
+            releasever=None,
         )
 
-        # Step 5: Read the repositories
-        cls.rhel_66_repo = Repository(id=rhel_66_repo_id).read()
+        # Read the repositories
+        cls.rhva_6_repo = Repository(id=rhva_6_repo_id).read()
         cls.rhel6_sat6tools_repo = Repository(
             id=rhel6_sat6tools_repo_id
         ).read()
 
-        # Step 6: Sync the enabled repositories
+        # Sync the enabled repositories
         try:
             cls.old_task_timeout = entity_mixins.TASK_TIMEOUT
-            # Update timeout to 2 hours to finish sync
-            entity_mixins.TASK_TIMEOUT = 7200
-            for repo in [cls.rhel_66_repo, cls.rhel6_sat6tools_repo]:
+            # Update timeout to 15 minutes to finish sync
+            entity_mixins.TASK_TIMEOUT = 900
+            for repo in [cls.rhva_6_repo, cls.rhel6_sat6tools_repo]:
                 assert Repository(id=repo.id).sync()['result'] == u'success'
         finally:
             entity_mixins.TASK_TIMEOUT = cls.old_task_timeout
 
-        # Step 7: Create two content views - one will be used with all erratas
-        # and another with erratas filtered
-        for cv_name in ('rhel_6_cv', 'rhel_6_partial_cv'):
-            setattr(cls, cv_name, ContentView(
-                organization=cls.org,
-                name=cv_name,
-                repository=[cls.rhel_66_repo, cls.rhel6_sat6tools_repo]
-            ).create())
-
-        # Step 8: Create a content view filter to filter out errata
-        rhel_6_partial_cvf = ErratumContentViewFilter(
-            content_view=cls.rhel_6_partial_cv,
-            type='erratum',
-            name='rhel_6_partial_cv_filter',
-            repository=[cls.rhel_66_repo]
+    def setUp(self):
+        """Creates the pre-requisites for the Incremental updates that used per
+        each test"""
+        super(IncrementalUpdateTestCase, self).setUp()
+        # Create content view that will be used filtered erratas
+        self.rhel_6_partial_cv = ContentView(
+            organization=self.org,
+            name=gen_alpha(),
+            repository=[self.rhva_6_repo, self.rhel6_sat6tools_repo]
         ).create()
 
-        # Step 9: Create a content view filter rule - filtering out errata in
-        # the last 365 days
+        # Create a content view filter to filter out errata
+        rhel_6_partial_cvf = ErratumContentViewFilter(
+            content_view=self.rhel_6_partial_cv,
+            type='erratum',
+            name='rhel_6_partial_cv_filter',
+            repository=[self.rhva_6_repo]
+        ).create()
+
+        # Create a content view filter rule - filtering out errata in the last
+        # 365 days
         start_date = (date.today() - timedelta(days=365)).strftime('%Y-%m-%d')
         ContentViewFilterRule(
             content_view_filter=rhel_6_partial_cvf,
@@ -128,100 +147,66 @@ class IncrementalUpdateTestCase(TestCase):
             end_date=date.today().strftime('%Y-%m-%d')
         ).create()
 
-        # Step 10: Publish both the content views and re-read the content views
+        # Publish content view and re-read it
 
-        # Changing the nailgun timeout time for the rest of the steps as
-        # publish/promote of larger repos take more than 5 minutes
-        entity_mixins.TASK_TIMEOUT = 3600
-        for content_view in (cls.rhel_6_cv, cls.rhel_6_partial_cv):
-            content_view.publish()
-        cls.rhel_6_cv = cls.rhel_6_cv.read()
-        cls.rhel_6_partial_cv = cls.rhel_6_partial_cv.read()
+        self.rhel_6_partial_cv.publish()
+        self.rhel_6_partial_cv = self.rhel_6_partial_cv.read()
 
-        # Step 11: Promote both content views to 'DEV' and 'QE'
-        for content_view in (cls.rhel_6_cv, cls.rhel_6_partial_cv):
-            assert len(content_view.version) == 1
-            for env in (cls.dev_lce, cls.qe_lce):
-                promote(content_view.version[0], env.id)
+        # Promote content view to 'DEV' and 'QE'
+        assert len(self.rhel_6_partial_cv.version) == 1
+        for env in (self.dev_lce, self.qe_lce):
+            promote(self.rhel_6_partial_cv.version[0], env.id)
 
-        # Step 12: Create host collections
-        for hc_name in ('rhel_6_hc', 'rhel_6_partial_hc'):
-            setattr(
-                cls,
-                hc_name,
-                HostCollection(
-                    organization=cls.org, name=hc_name, max_content_hosts=5
-                ).create()
-            )
+        # Create host collection
+        self.rhel_6_partial_hc = HostCollection(
+            organization=self.org, name=gen_alpha(), max_hosts=5).create()
 
-        # Step 13: Create activation keys for both content views
-        kwargs = {'organization': cls.org, 'environment': cls.qe_lce.id}
-        rhel_6_ak = ActivationKey(
-            name=u'rhel_6_ak',
-            content_view=cls.rhel_6_cv,
-            host_collection=[cls.rhel_6_hc],
-            **kwargs
-        ).create()
+        # Create activation key for content view
+        kwargs = {'organization': self.org, 'environment': self.qe_lce.id}
         rhel_6_partial_ak = ActivationKey(
-            name=u'rhel_6_partial_ak',
-            content_view=cls.rhel_6_partial_cv,
-            host_collection=[cls.rhel_6_partial_hc],
+            name=gen_alpha(),
+            content_view=self.rhel_6_partial_cv,
+            host_collection=[self.rhel_6_partial_hc],
             **kwargs
         ).create()
 
-        # Step 14: Assign subscriptions to activation keys
-        # Fetch available subscriptions
-        subs = Subscription(organization=cls.org).search()
+        # Assign subscription to activation key. Fetch available subscriptions
+        subs = Subscription(organization=self.org).search()
         assert len(subs) > 0
 
-        # Add subscriptions to activation key
+        # Add subscription to activation key
         sub_found = False
         for sub in subs:
-            if sub.read_json()['product_name'] == u'Employee SKU':
-                for act_key in [rhel_6_ak, rhel_6_partial_ak]:
-                    act_key.add_subscriptions(data={
-                        u'subscription_id': sub.id
-                    })
+            if sub.read_json()['product_name'] == DEFAULT_SUBSCRIPTION_NAME:
+                rhel_6_partial_ak.add_subscriptions(data={
+                    u'subscription_id': sub.id
+                })
                 sub_found = True
         assert sub_found
 
-        # Step 15: Enable product content in activation keys
-        for act_key in [rhel_6_ak, rhel_6_partial_ak]:
-            act_key.content_override(data={'content_override': {
-                u'content_label': PRD_SETS['rhel6_sat6tools']['label'],
-                u'value': u'1'
-            }})
+        # Enable product content in activation key
+        rhel_6_partial_ak.content_override(data={'content_override': {
+            u'content_label': REPOS['rhst6']['id'],
+            u'value': u'1'
+        }})
 
-        # Step 16: Create three client machines and register them to satellite
-        # Register the first vm with rhel_6_ak and the other two vms with
+        # Create client machine and register it to satellite with
         # rhel_6_partial_ak
-        cls.vm = [
-            VirtualMachine(distro='rhel67', tag='incupdate')
-            for _ in range(3)
-        ]
-        cls.setup_vm(cls.vm[0], rhel_6_ak.name, cls.org.label)
-        for i in range(1, 3):
-            cls.setup_vm(cls.vm[i], rhel_6_partial_ak.name, cls.org.label)
+        self.vm = VirtualMachine(distro='rhel67', tag='incupdate')
+        self.setup_vm(self.vm, rhel_6_partial_ak.name, self.org.label)
+        self.vm.enable_repo(REPOS['rhva6']['id'])
+        self.vm.run('yum install -y {0}'.format(REAL_0_RH_PACKAGE))
 
         # Find the content hosts and save them
-        hosts = Host(organization=cls.org).search()
-        cls.hosts = []
-        cls.partial_hosts = []
-
+        hosts = Host(organization=str(self.org.id)).search()
+        self.partial_hosts = []
         for host in hosts:
-            if (host.read().content_facet_attributes['content_view_name'] ==
-                    cls.rhel_6_cv.name):
-                cls.hosts.append(host)
-            else:
-                cls.partial_hosts.append(host)
+            self.partial_hosts.append(host)
 
-    @classmethod
-    def tearDownClass(cls):
-        """Destroys all provisioned vms"""
-        for virt_machine in cls.vm:
-            virt_machine.destroy()
-        entity_mixins.TASK_TIMEOUT = cls.old_task_timeout
-        super(IncrementalUpdateTestCase, cls).tearDownClass()
+    def tearDown(self):
+        """Destroys provisioned vm"""
+        self.vm.destroy()
+        super(IncrementalUpdateTestCase, self).tearDown()
 
     @staticmethod
     def setup_vm(client, act_key, org_name):
@@ -233,7 +218,7 @@ class IncrementalUpdateTestCase(TestCase):
         result = client.register_contenthost(
             org_name,
             act_key,
-            releasever='6.7'
+            releasever=DEFAULT_RELEASE_VERSION
         )
         assert result.return_code == 0
         result = client.install_katello_agent()
@@ -260,7 +245,7 @@ class IncrementalUpdateTestCase(TestCase):
         test. For example::
 
             self.rhel_6_partial_cv = ContentView(id=38).read()
-            self.rhel_66_repo = Repository(id=164).read()
+            self.rhva_6_repo = Repository(id=164).read()
             self.qe_lce = LifecycleEnvironment(id=46).read()
 
         @Assert: Incremental update completed with no errors and Content view
@@ -274,7 +259,7 @@ class IncrementalUpdateTestCase(TestCase):
         cv_versions = self.rhel_6_partial_cv.version
 
         # Get the applicable errata
-        errata_list = self.get_applicable_errata(self.rhel_66_repo)
+        errata_list = self.get_applicable_errata(self.rhva_6_repo)
         self.assertGreater(len(errata_list), 0)
 
         # Apply incremental update using the first applicable errata
@@ -295,7 +280,6 @@ class IncrementalUpdateTestCase(TestCase):
             len(cv_versions)
         )
 
-    @skip_if_bug_open('bugzilla', 1259057)
     @run_only_on('sat')
     @tier4
     def test_positive_noapply_cli(self):
@@ -307,7 +291,6 @@ class IncrementalUpdateTestCase(TestCase):
         @Assert: Incremental update completed with no errors and Content view
         has a newer version
 
-
         @CaseLevel: System
         """
         # Get the content view versions and use the recent one.  API always
@@ -317,13 +300,13 @@ class IncrementalUpdateTestCase(TestCase):
         cv_versions = self.rhel_6_partial_cv.version
 
         # Get the applicable errata
-        errata_list = self.get_applicable_errata(self.rhel_66_repo)
+        errata_list = self.get_applicable_errata(self.rhva_6_repo)
         self.assertGreater(len(errata_list), 0)
 
         # Apply incremental update using the first applicable errata
         ContentViewCLI.version_incremental_update({
             u'content-view-version-id': cv_versions[-1].id,
-            u'environment-ids': self.qe_lce.id,
+            u'lifecycle-environment-ids': self.qe_lce.id,
             u'errata-ids': errata_list[0].id,
         })
 

@@ -188,6 +188,7 @@ REPOS = {
         ),
     },
     'rhva6': {
+        'id': 'rhel-6-server-rhev-agent-rpms',
         'name': (
             'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
             'x86_64 6Server'
@@ -199,27 +200,6 @@ REPOS = {
             'x86_64 6.5'
         ),
     },
-}
-
-PRD_SETS = {
-    'rhel_66': {
-        'product': u'Red Hat Enterprise Linux Server',
-        'reposet': u'Red Hat Enterprise Linux 6 Server (RPMs)',
-        'reponame': u'Red Hat Enterprise Linux 6 Server RPMs x86_64 6.7',
-        'arch': u'x86_64',
-        'releasever': u'6.7',
-        'label': u'rhel-6-server-rpms'
-    },
-    'rhel6_sat6tools': {
-        'product': u'Red Hat Enterprise Linux Server',
-        'reposet': u'Red Hat Satellite Tools 6.1 (for RHEL 6 Server) '
-                   '(RPMs)',
-        'reponame': u'Red Hat Satellite Tools 6.1 for RHEL 6 Server RPMs '
-                    'x86_64',
-        'arch': u'x86_64',
-        'releasever': None,
-        'label': u'rhel-6-server-satellite-tools-6.1-rpms'
-    }
 }
 
 RHEL_6_MAJOR_VERSION = 6
@@ -262,6 +242,8 @@ DEFAULT_CV = "Default Organization View"
 DEFAULT_PTABLE = "Kickstart default"
 DEFAULT_SUBSCRIPTION_NAME = (
     'Red Hat Enterprise Linux Server Entry Level, Self-support')
+DEFAULT_ARCHITECTURE = 'x86_64'
+DEFAULT_RELEASE_VERSION = '6Server'
 
 LANGUAGES = [
     u'zh_TW',
@@ -314,6 +296,7 @@ FAKE_1_CUSTOM_PACKAGE = 'walrus-0.71-1.noarch'
 FAKE_1_CUSTOM_PACKAGE_NAME = 'walrus'
 FAKE_2_CUSTOM_PACKAGE = 'walrus-5.21-1.noarch'
 FAKE_2_CUSTOM_PACKAGE_NAME = 'walrus'
+REAL_0_RH_PACKAGE = 'rhevm-sdk-python-3.3.0.21-1.el6ev.noarch'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
 FAKE_1_ERRATA_ID = 'RHEA-2012:0002'
