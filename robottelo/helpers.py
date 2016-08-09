@@ -406,7 +406,7 @@ def default_url_on_new_port(oldport, newport):
         raise CapsuleTunnelError(
             u'Tunnel not created: The src port {0} is closed'.format(oldport)
         )
-    with ssh._get_connection() as connection:
+    with ssh.get_connection() as connection:
         command = (
             u'ncat -kl -p {0} -c "ncat {1} {2}"'
         ).format(newport, domain, oldport)

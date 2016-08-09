@@ -90,11 +90,11 @@ class SSHTestCase(TestCase):
     """Tests for module ``robottelo.ssh``."""
     @mock.patch('robottelo.ssh.settings')
     def test_get_connection_key(self, settings):
-        """Test method ``_get_connection`` using key file to connect to the
+        """Test method ``get_connection`` using key file to connect to the
         server.
 
         Mock up ``paramiko.SSHClient`` (by overriding method
-        ``_call_paramiko_sshclient``) before calling ``_get_connection``.
+        ``_call_paramiko_sshclient``) before calling ``get_connection``.
         Assert that certain parameters are passed to the (mock)
         ``paramiko.SSHClient`` object, and that certain methods on that object
         are called.
@@ -107,7 +107,7 @@ class SSHTestCase(TestCase):
         settings.server.hostname = 'example.com'
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = key_filename
-        with ssh._get_connection() as connection:  # pylint:disable=W0212
+        with ssh.get_connection() as connection:  # pylint:disable=W0212
             self.assertEqual(connection.set_missing_host_key_policy_, 1)
             self.assertEqual(connection.connect_, 1)
             self.assertEqual(connection.close_, 0)
@@ -120,11 +120,11 @@ class SSHTestCase(TestCase):
 
     @mock.patch('robottelo.ssh.settings')
     def test_get_connection_pass(self, settings):
-        """Test method ``_get_connection`` using password of user to connect to
+        """Test method ``get_connection`` using password of user to connect to
         the server
 
         Mock up ``paramiko.SSHClient`` (by overriding method
-        ``_call_paramiko_sshclient``) before calling ``_get_connection``.
+        ``_call_paramiko_sshclient``) before calling ``get_connection``.
         Assert that certain parameters are passed to the (mock)
         ``paramiko.SSHClient`` object, and that certain methods on that object
         are called.
@@ -134,7 +134,7 @@ class SSHTestCase(TestCase):
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
-        with ssh._get_connection() as connection:  # pylint:disable=W0212
+        with ssh.get_connection() as connection:  # pylint:disable=W0212
             self.assertEqual(connection.set_missing_host_key_policy_, 1)
             self.assertEqual(connection.connect_, 1)
             self.assertEqual(connection.close_, 0)
@@ -205,7 +205,7 @@ class SSHTestCase(TestCase):
         settings.server.ssh_username = 'nobody'
         settings.server.ssh_key = None
         settings.server.ssh_password = 'test_password'
-        with ssh._get_connection() as connection:  # pylint:disable=W0212
+        with ssh.get_connection() as connection:  # pylint:disable=W0212
             ret = ssh.execute_command('ls -la', connection)
             self.assertEquals(ret.stdout, [u'ls -la'])
             self.assertIsInstance(ret, ssh.SSHCommandResult)

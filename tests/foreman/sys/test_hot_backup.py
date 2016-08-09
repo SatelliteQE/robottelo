@@ -26,7 +26,7 @@ from robottelo.decorators import (
         stubbed,
 )
 from robottelo.helpers import get_services_status
-from robottelo.ssh import _get_connection
+from robottelo.ssh import get_connection
 from robottelo.test import TestCase
 
 BCK_MSG = 'BACKUP Complete, contents can be found in: /tmp/{0}'
@@ -85,7 +85,7 @@ class HotBackupTestCase(TestCase):
         running.
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
             connection.run('katello-service start')
             result = connection.run(
@@ -121,7 +121,7 @@ class HotBackupTestCase(TestCase):
         keep running.
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             dir_name = gen_string('alpha')
             tmp_directory_cleanup(connection, dir_name)
             connection.run('katello-service start')
@@ -160,7 +160,7 @@ class HotBackupTestCase(TestCase):
         @expectedresults: katello-backup finished with correct exit code
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             connection.run('katello-service start')
             dir_name = gen_string('alpha')
             dead_service = 'postgresql'
@@ -187,7 +187,7 @@ class HotBackupTestCase(TestCase):
         stopped
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             connection.run('katello-service start')
             result = connection.run(
                 'katello-backup --online-backup',
@@ -211,7 +211,7 @@ class HotBackupTestCase(TestCase):
         stopped
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             result = connection.run(
                 'katello-backup',
                 output_format='plain'
@@ -239,7 +239,7 @@ class HotBackupTestCase(TestCase):
         candlepin.dump are created
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             connection.run('katello-service start')
             dir_name = gen_string('alpha')
             result = connection.run(
@@ -276,7 +276,7 @@ class HotBackupTestCase(TestCase):
         related files are not present. Services keep running.
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
             connection.run('katello-service start')
             result = connection.run(
@@ -312,7 +312,7 @@ class HotBackupTestCase(TestCase):
         files are not present. Services are started back again.
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             dir_name = make_random_tmp_directory(connection)
             result = connection.run(
                 'katello-backup /tmp/{0} '
@@ -346,7 +346,7 @@ class HotBackupTestCase(TestCase):
         started back again.
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             b1_dir = make_random_tmp_directory(connection)
             # run full backup
             result_full = connection.run(
@@ -404,7 +404,7 @@ class HotBackupTestCase(TestCase):
         stopped
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             result = connection.run(
                 'katello-backup --incremental',
                 output_format='plain'
@@ -427,7 +427,7 @@ class HotBackupTestCase(TestCase):
         stopped
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             result = connection.run(
                 'katello-backup --incremental /tmp',
                 output_format='plain'
@@ -450,7 +450,7 @@ class HotBackupTestCase(TestCase):
         stopped
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             dir_name = gen_string('alpha')
             tmp_directory_cleanup(connection, dir_name)
             result = connection.run(
@@ -479,7 +479,7 @@ class HotBackupTestCase(TestCase):
         @bz: 1445224
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             b1_dir = make_random_tmp_directory(connection)
             connection.run('katello-service start')
             # run full backup
@@ -541,7 +541,7 @@ class HotBackupTestCase(TestCase):
         @bz: 1445224
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             b1_dir = make_random_tmp_directory(connection)
             # run full backup
             result = connection.run(
@@ -604,7 +604,7 @@ class HotBackupTestCase(TestCase):
         @expectedresults: Backup "ib1" is backed up.
 
         """
-        with _get_connection() as connection:
+        with get_connection() as connection:
             b1_dir = make_random_tmp_directory(connection)
             connection.run('katello-service start')
             # run full backup
