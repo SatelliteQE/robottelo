@@ -92,6 +92,13 @@ def create_object(cli_object, options, values):
     :return: A dictionary representing the newly created resource.
 
     """
+    if values:
+        diff = set(values.keys()).difference(set(options.keys()))
+        if diff:
+            logger.debug(
+                "Option(s) {0} not supported by CLI factory. Please check for "
+                "a typo or update default options".format(diff)
+            )
     update_dictionary(options, values)
     try:
         result = cli_object.create(options)
