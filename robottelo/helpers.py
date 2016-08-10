@@ -348,7 +348,7 @@ def default_url_on_new_port(oldport, newport):
     logger = logging.getLogger('robottelo')
     domain = settings.server.hostname
 
-    with ssh._get_connection() as connection:
+    with ssh.get_connection() as connection:
         command = (
             u'ncat -kl -p {0} -c "ncat {1} {2}"'
         ).format(newport, domain, oldport)

@@ -54,8 +54,8 @@ def _call_paramiko_sshclient():
 
 
 @contextmanager
-def _get_connection(hostname=None, username=None, password=None,
-                    key_filename=None, timeout=10):
+def get_connection(hostname=None, username=None, password=None,
+                   key_filename=None, timeout=10):
     """Yield an ssh connection object.
 
     The connection will be configured with the specified arguments or will
@@ -65,7 +65,7 @@ def _get_connection(hostname=None, username=None, password=None,
     caller is done using it using ``contextlib``, so clients should use the
     ``with`` statement to handle the object::
 
-        with _get_connection() as connection:
+        with get_connection() as connection:
             ...
 
     :param str hostname: The hostname of the server to establish connection. If
@@ -82,7 +82,7 @@ def _get_connection(hostname=None, username=None, password=None,
     :param int timeout: Time to wait for establish the connection.
 
     :return: An SSH connection.
-    :rtype: paramiko.SSHClient
+    :rtype: ``paramiko.SSHClient``
 
     """
     if hostname is None:
@@ -149,9 +149,9 @@ def add_authorized_key(key, hostname=None, username=None, password=None,
     ssh_path = '~/.ssh'
     auth_file = os.path.join(ssh_path, 'authorized_keys')
 
-    with _get_connection(hostname=hostname, username=username,
-                         password=password, key_filename=key_filename,
-                         timeout=timeout) as con:
+    with get_connection(hostname=hostname, username=username,
+                        password=password, key_filename=key_filename,
+                        timeout=timeout) as con:
 
         # ensure ssh directory exists
         execute_command('mkdir -p %s' % ssh_path, con)
@@ -181,7 +181,7 @@ def upload_file(local_file, remote_file, hostname=None):
     :param hostname: target machine hostname. If not provided will be used the
         ``server.hostname`` from the configuration.
     """
-    with _get_connection(hostname=hostname) as connection:
+    with get_connection(hostname=hostname) as connection:
         try:
             sftp = connection.open_sftp()
             # Check if local_file is a file-like object and use the proper
@@ -201,7 +201,7 @@ def download_file(remote_file, local_file=None, hostname=None):
     """
     if local_file is None:
         local_file = remote_file
-    with _get_connection(hostname=hostname) as connection:
+    with get_connection(hostname=hostname) as connection:
         try:
             sftp = connection.open_sftp()
             sftp.get(remote_file, local_file)
@@ -229,9 +229,9 @@ def command(cmd, hostname=None, output_format=None, username=None,
     :param int timeout: Time to wait for establish the connection.
     """
     hostname = hostname or settings.server.hostname
-    with _get_connection(hostname=hostname, username=username,
-                         password=password, key_filename=key_filename,
-                         timeout=timeout) as connection:
+    with get_connection(hostname=hostname, username=username,
+                        password=password, key_filename=key_filename,
+                        timeout=timeout) as connection:
         return execute_command(cmd, connection, output_format, timeout)
 
 
