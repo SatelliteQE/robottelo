@@ -1,35 +1,13 @@
 """Implements decorator regarding satellite host"""
 import logging
-import re
-import unittest2
-
-from robottelo import ssh
-from robottelo.config import settings
-from robottelo.helpers import lru_cache
 from functools import wraps
 
+import unittest2
+
+from robottelo.config import settings
+from robottelo.host_info import get_host_os_version
+
 LOGGER = logging.getLogger(__name__)
-
-
-@lru_cache(maxsize=1)
-def _get_host_os_version():
-    """Fetchs host's OS version through SSH
-    :return: str with version
-    """
-    cmd = ssh.command('cat /etc/redhat-release')
-    if cmd.stdout:
-        version_description = cmd.stdout[0]
-        version_re = (
-            r'Red Hat Enterprise Linux Server release (?P<version>\d(\.\d)*).*'
-        )
-        result = re.search(version_re, version_description)
-        if result:
-            host_os_version = 'RHEL{}'.format(result.group('version'))
-            LOGGER.debug('Host version: {}'.format(host_os_version))
-            return host_os_version
-
-    LOGGER.warning('Host version not available: {!r}'.format(cmd))
-    return 'Not Available'
 
 
 def skip_if_os(*versions):
@@ -73,7 +51,7 @@ def skip_if_os(*versions):
             if not settings.configured:
                 settings.configure()
 
-            host_version = _get_host_os_version()
+            host_version = get_host_os_version()
 
             if any(host_version.startswith(version) for version in versions):
                 skip_msg = 'host {0} in ignored versions {1}'.format(

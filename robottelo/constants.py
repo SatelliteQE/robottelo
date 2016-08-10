@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Defines various constants"""
 from nailgun import entities
+from robottelo.host_info import SatVersionDependentValues
 
 # Bugzilla
 BZ_OPEN_STATUSES = [
@@ -28,7 +29,6 @@ FOREMAN_PROVIDERS = {
 }
 
 LIBVIRT_RESOURCE_URL = 'qemu+ssh://root@%s/system'
-
 
 HTML_TAGS = [
     'A', 'ABBR', 'ACRONYM', 'ADDRESS', 'APPLET', 'AREA', 'B',
@@ -138,9 +138,11 @@ ENVIRONMENT = "Library"
 
 NOT_IMPLEMENTED = 'Test not implemented'
 
-SYNC_INTERVAL = {'hour': "hourly",
-                 'day': "daily",
-                 'week': "weekly"}
+SYNC_INTERVAL = {
+    'hour': "hourly",
+    'day': "daily",
+    'week': "weekly"
+}
 
 REPO_TYPE = {
     'yum': "yum",
@@ -172,7 +174,7 @@ PRDS = {
     'rhah': 'Red Hat Enterprise Linux Atomic Host',
 }
 
-REPOSET = {
+_REPOSET_6_1 = {
     'rhct6': 'Red Hat CloudForms Tools for RHEL 6 (RPMs)',
     'rhel6': 'Red Hat Enterprise Linux 6 Server (RPMs)',
     'rhva6': (
@@ -180,10 +182,27 @@ REPOSET = {
     ),
     'rhst7': 'Red Hat Satellite Tools 6.1 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.1 (for RHEL 6 Server) (RPMs)',
-    'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)'
 }
 
-REPOS = {
+_REPOSET_6_2 = {
+    'rhct6': 'Red Hat CloudForms Tools for RHEL 6 (RPMs)',
+    'rhel6': 'Red Hat Enterprise Linux 6 Server (RPMs)',
+    'rhva6': (
+        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'
+    ),
+    'rhst7': 'Red Hat Satellite Tools 6.2 (for RHEL 7 Server) (RPMs)',
+    'rhst6': 'Red Hat Satellite Tools 6.2 (for RHEL 6 Server) (RPMs)',
+}
+
+_REPOSET_COMMON = {'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)'}
+
+REPOSET = SatVersionDependentValues(
+    {u'6.1': _REPOSET_6_1},
+    {u'6.2': _REPOSET_6_2},
+    common=_REPOS_COMMON
+)
+
+_REPOS_6_1 = {
     'rhst7': {
         'id': 'rhel-7-server-satellite-tools-6.1-rpms',
         'name': (
@@ -195,7 +214,25 @@ REPOS = {
         'name': (
             'Red Hat Satellite Tools 6.1 for RHEL 6 Server RPMs x86_64'
         ),
+    }
+}
+
+_REPOS_6_2 = {
+    'rhst7': {
+        'id': 'rhel-7-server-satellite-tools-6.2-rpms',
+        'name': (
+            'Red Hat Satellite Tools 6.2 for RHEL 7 Server RPMs x86_64'
+        ),
     },
+    'rhst6': {
+        'id': 'rhel-6-server-satellite-tools-6.2-rpms',
+        'name': (
+            'Red Hat Satellite Tools 6.2 for RHEL 6 Server RPMs x86_64'
+        ),
+    },
+}
+
+_REPOS_COMMON = {
     'rhva6': {
         'id': 'rhel-6-server-rhev-agent-rpms',
         'name': (
@@ -214,6 +251,10 @@ REPOS = {
     },
 }
 
+REPOS = SatVersionDependentValues(
+    {u'6.1': _REPOS_6_1}, {u'6.2': _REPOS_6_2}, common=_REPOS_COMMON
+)
+
 RHEL_6_MAJOR_VERSION = 6
 RHEL_7_MAJOR_VERSION = 7
 
@@ -226,21 +267,27 @@ RHEL_7_MAJOR_VERSION = 7
 # 6Server
 
 RHVA_REPO_TREE = [
-    ('rhel', 'rhva6', 'rhva65', 'repo_name',
-     'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
-     'x86_64 6.5'),
+    (
+        'rhel', 'rhva6', 'rhva65', 'repo_name',
+        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
+        'x86_64 6.5'
+    ),
     ('rhel', 'rhva6', 'rhva65', 'repo_arch', 'x86_64'),
     ('rhel', 'rhva6', 'rhva65', 'repo_ver', '6.5'),
-    ('rhel', 'rhva6', 'rhva6S', 'repo_name',
-     'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
-     'x86_64 6Server'),
+    (
+        'rhel', 'rhva6', 'rhva6S', 'repo_name',
+        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
+        'x86_64 6Server'
+    ),
     ('rhel', 'rhva6', 'rhva6S', 'repo_arch', 'x86_64'),
     ('rhel', 'rhva6', 'rhva6S', 'repo_ver', '6Server')
 ]
 
 SAT6_TOOLS_TREE = [
-    ('rhel', 'rhst6', 'rhst6', 'repo_name',
-     'Red Hat Satellite Tools 6.1 for RHEL 6 Server RPMs x86_64'),
+    (
+        'rhel', 'rhst6', 'rhst6', 'repo_name',
+        'Red Hat Satellite Tools 6.1 for RHEL 6 Server RPMs x86_64'
+    ),
     ('rhel', 'rhst6', 'rhst6', 'repo_arch', 'x86_64'),
     ('rhel', 'rhst6', 'rhst6', 'repo_ver', '6.1'),
 ]
@@ -735,8 +782,10 @@ PERMISSIONS = {
     ],
 }
 
-ANY_CONTEXT = {'org': "Any Organization",
-               'location': "Any Location"}
+ANY_CONTEXT = {
+    'org': "Any Organization",
+    'location': "Any Location"
+}
 
 SUBNET_IPAM_TYPES = {
     'dhcp': 'DHCP',
@@ -833,61 +882,101 @@ BOOKMARK_ENTITIES = [
     {'name': 'Task', 'controller': 'foreman_tasks_tasks', 'skip_for_ui': True},
     {'name': 'Subscriptions', 'controller': 'katello_subscriptions'},
     {'name': 'Products', 'controller': 'katello_products'},
-    {'name': 'Repository', 'controller': 'katello_repositories',
-        'skip_for_ui': True},
+    {
+        'name': 'Repository', 'controller': 'katello_repositories',
+        'skip_for_ui': True
+    },
     {'name': 'GPGKey', 'controller': 'katello_gpg_keys'},
     {'name': 'SyncPlan', 'controller': 'katello_sync_plans'},
     {'name': 'Content_Views', 'controller': 'katello_content_views'},
     {'name': 'Errata', 'controller': 'katello_errata', 'skip_for_ui': True},
-    {'name': 'Package', 'controller': 'katello_erratum_packages',
-        'skip_for_ui': True},
-    {'name': 'PuppetModule', 'controller': 'katello_puppet_modules',
-        'skip_for_ui': True},
-    {'name': 'DockerTag', 'controller': 'katello_docker_tags',
-        'skip_for_ui': True},
-    {'name': 'Registry', 'controller': 'docker_registries',
-        'skip_for_ui': 1302724},
+    {
+        'name': 'Package', 'controller': 'katello_erratum_packages',
+        'skip_for_ui': True
+    },
+    {
+        'name': 'PuppetModule', 'controller': 'katello_puppet_modules',
+        'skip_for_ui': True
+    },
+    {
+        'name': 'DockerTag', 'controller': 'katello_docker_tags',
+        'skip_for_ui': True
+    },
+    {
+        'name': 'Registry', 'controller': 'docker_registries',
+        'skip_for_ui': 1302724
+    },
     {'name': 'Hosts', 'controller': 'hosts', 'setup': entities.Host},
-    {'name': 'ContentHost', 'controller': 'katello_systems',
-        'skip_for_ui': True},
+    {
+        'name': 'ContentHost', 'controller': 'katello_systems',
+        'skip_for_ui': True
+    },
     {'name': 'HostCollection', 'controller': 'katello_host_collections'},
     {'name': 'Architecture', 'controller': 'architectures'},
     {'name': 'HardwareModel', 'controller': 'models', 'setup': entities.Model},
-    {'name': 'InstallationMedia', 'controller': 'media',
-        'setup': entities.Media, 'skip_for_ui': True},
+    {
+        'name': 'InstallationMedia', 'controller': 'media',
+        'setup': entities.Media, 'skip_for_ui': True
+    },
     {'name': 'OperatingSys', 'controller': 'operatingsystems'},
-    {'name': 'PartitionTable', 'controller': 'ptables',
-        'setup': entities.PartitionTable, 'skip_for_ui': False},
+    {
+        'name': 'PartitionTable', 'controller': 'ptables',
+        'setup': entities.PartitionTable, 'skip_for_ui': False
+    },
     {'name': 'Template', 'controller': 'provisioning_templates'},
-    {'name': 'HostGroup', 'controller': 'hostgroups',
-        'setup': entities.HostGroup},
-    {'name': 'DiscoveryRules', 'controller': 'discovery_rules',
-        'skip_for_ui': 1324508, 'setup': entities.DiscoveryRule},
-    {'name': 'GlobalParameter', 'controller': 'common_parameters',
-        'setup': entities.CommonParameter, 'skip_for_ui': True},
-    {'name': 'ConfigGroups', 'controller': 'config_groups',
-        'setup': entities.ConfigGroup},
-    {'name': 'PuppetEnv', 'controller': 'environments',
-        'setup': entities.Environment, 'skip_for_ui': True},
-    {'name': 'PuppetClasses', 'controller': 'puppetclasses',
-        'setup': entities.PuppetClass},
-    {'name': 'SmartVariable', 'controller': 'lookup_keys',
-        'setup': entities.SmartVariable, 'skip_for_ui': True},
+    {
+        'name': 'HostGroup', 'controller': 'hostgroups',
+        'setup': entities.HostGroup
+    },
+    {
+        'name': 'DiscoveryRules', 'controller': 'discovery_rules',
+        'skip_for_ui': 1324508, 'setup': entities.DiscoveryRule
+    },
+    {
+        'name': 'GlobalParameter', 'controller': 'common_parameters',
+        'setup': entities.CommonParameter, 'skip_for_ui': True
+    },
+    {
+        'name': 'ConfigGroups', 'controller': 'config_groups',
+        'setup': entities.ConfigGroup
+    },
+    {
+        'name': 'PuppetEnv', 'controller': 'environments',
+        'setup': entities.Environment, 'skip_for_ui': True
+    },
+    {
+        'name': 'PuppetClasses', 'controller': 'puppetclasses',
+        'setup': entities.PuppetClass
+    },
+    {
+        'name': 'SmartVariable', 'controller': 'lookup_keys',
+        'setup': entities.SmartVariable, 'skip_for_ui': True
+    },
     {'name': 'SmartProxy', 'controller': 'smart_proxies', 'skip_for_ui': True},
-    {'name': 'Compute_Resource', 'controller': 'compute_resources',
-        'setup': entities.DockerComputeResource},
-    {'name': 'Compute_Profile', 'controller': 'compute_profiles',
-        'setup': entities.ComputeProfile},
-    {'name': 'Subnet', 'controller': 'subnets',
-        'setup': entities.Subnet},
+    {
+        'name': 'Compute_Resource', 'controller': 'compute_resources',
+        'setup': entities.DockerComputeResource
+    },
+    {
+        'name': 'Compute_Profile', 'controller': 'compute_profiles',
+        'setup': entities.ComputeProfile
+    },
+    {
+        'name': 'Subnet', 'controller': 'subnets',
+        'setup': entities.Subnet
+    },
     {'name': 'Domain', 'controller': 'domains', 'setup': entities.Domain},
-    {'name': 'Realm', 'controller': 'realms', 'setup': entities.Realm,
-        'skip_for_ui': True},
+    {
+        'name': 'Realm', 'controller': 'realms', 'setup': entities.Realm,
+        'skip_for_ui': True
+    },
     {'name': 'Location', 'controller': 'locations'},
     {'name': 'Org', 'controller': 'organizations'},
     {'name': 'User', 'controller': 'users'},
-    {'name': 'UserGroup', 'controller': 'usergroups',
-        'setup': entities.UserGroup},
+    {
+        'name': 'UserGroup', 'controller': 'usergroups',
+        'setup': entities.UserGroup
+    },
     {'name': 'Role', 'controller': 'roles'},
     {'name': 'Settings', 'controller': 'settings'},
 ]
