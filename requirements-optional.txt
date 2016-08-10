@@ -19,5 +19,5 @@ docker-py
 # For reporting test results on SauceLabs
 sauceclient
 
-# For interactive shell
-click
+# For 'manage' interactive shell
+manage>=0.1.12
