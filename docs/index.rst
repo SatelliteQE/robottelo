@@ -27,11 +27,11 @@ ensure that Paramiko's dependencies build correctly:
 
 On Fedora, you can install these with the following command::
 
-    dnf install -y libffi-devel openssl-devel python-devel
+    dnf install -y gcc libffi-devel openssl-devel python-devel
 
 On Red Hat Enterprise Linux, you can install these with the following command::
 
-    yum install -y libffi-devel openssl-devel python-devel
+    yum install -y gcc libffi-devel openssl-devel python-devel
 
 For more information, see `Paramiko: Installing
 <http://www.paramiko.org/installing.html>`_.
