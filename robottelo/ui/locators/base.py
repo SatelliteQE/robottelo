@@ -1276,8 +1276,17 @@ locators = LocatorDict({
          "div/form/div[2]/div/span[contains(@class,'editable')]")),
 
     # Enable RH Repos expander
-    "rh.prd_expander": (
+    "rh.rpms_prd_expander": (
         By.XPATH, ("//div[@id='ui-tabs-1']//td[contains(.,'%s')]"
+                   "/span[@class='expander']")),
+    "rh.kickstarts_prd_expander": (
+        By.XPATH, ("//div[@id='ui-tabs-2']//td[contains(.,'%s')]"
+                   "/span[@class='expander']")),
+    "rh.isos_prd_expander": (
+        By.XPATH, ("//div[@id='ui-tabs-6']//td[contains(.,'%s')]"
+                   "/span[@class='expander']")),
+    "rh.ostree_prd_expander": (
+        By.XPATH, ("//div[@id='ui-tabs-7']//td[contains(.,'%s')]"
                    "/span[@class='expander']")),
     "rh.reposet_expander": (
         By.XPATH, ("//span[contains(@class, 'expander_area') and "

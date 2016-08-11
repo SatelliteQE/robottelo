@@ -141,6 +141,9 @@ tab_locators = LocatorDict({
     "contentviews.tab_docker_content": (
         By.XPATH,
         "//a[@class='ng-scope' and contains(@href, 'docker')]"),
+    "contentviews.tab_ostree_content": (
+        By.XPATH,
+        "//a[@class='ng-scope' and contains(@href, 'ostree')]"),
     "contentviews.tab_history": (
         By.XPATH, "//a[@class='ng-scope' and contains(@href, 'history')]"),
     "contentviews.tab_tasks": (
@@ -235,6 +238,18 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[contains(@ui-sref, 'details.products')]/span/span"),
 
     # Manifest / subscriptions
+    "manifest.rpms_tab": (
+        By.XPATH,
+        "//div[@id='content_tabs']/ul/li/a[contains(@href, 'rpms')]"),
+    "manifest.kickstarts_tab": (
+        By.XPATH,
+        "//div[@id='content_tabs']/ul/li/a[contains(@href, 'kickstarts')]"),
+    "manifest.isos_tab": (
+        By.XPATH,
+        "//div[@id='content_tabs']/ul/li/a[contains(@href, 'isos')]"),
+    "manifest.ostree_tab": (
+        By.XPATH,
+        "//div[@id='content_tabs']/ul/li/a[contains(@href, 'ostree')]"),
     "subs.tab_details": (
         By.XPATH, "//a[contains(@ui-sref,'manifest.details')]"),
     "subs.import_history": (

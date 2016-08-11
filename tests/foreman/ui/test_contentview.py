@@ -21,13 +21,18 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
+from robottelo.api.utils import (
+    enable_rhrepo_and_fetchid,
+    promote,
+    upload_manifest,
+)
 from robottelo import manifests
 from robottelo.constants import (
     DEFAULT_CV,
     ENVIRONMENT,
     FAKE_0_PUPPET_REPO,
     FAKE_1_YUM_REPO,
+    FEDORA23_OSTREE_REPO,
     FILTER_CONTENT_TYPE,
     FILTER_TYPE,
     PRDS,
@@ -46,6 +51,7 @@ from robottelo.decorators import (
     tier2,
     tier3,
 )
+from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import read_data_file
 from robottelo.ui.base import UIError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
@@ -64,7 +70,7 @@ class ContentViewTestCase(UITestCase):
 
     # pylint: disable=too-many-arguments
     def setup_to_create_cv(self, repo_name=None, repo_url=None, repo_type=None,
-                           rh_repo=None, org_id=None):
+                           repo_unprotected=True, rh_repo=None, org_id=None):
         """Create product/repo and sync it"""
 
         if not rh_repo:
@@ -80,6 +86,7 @@ class ContentViewTestCase(UITestCase):
                 url=(repo_url or FAKE_1_YUM_REPO),
                 content_type=(repo_type or REPO_TYPE['yum']),
                 product=product,
+                unprotected=repo_unprotected,
             ).create().id
         elif rh_repo:
             # Uploads the manifest and returns the result.
@@ -1439,7 +1446,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.validate_version_deleted(cv.name, version)
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_add_custom_ostree(self):
         """Create a CV with custom ostree contents
@@ -1448,10 +1455,30 @@ class ContentViewTestCase(UITestCase):
 
         @Assert: CV should be created successfully with custom ostree contents
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        repo_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        self.setup_to_create_cv(
+            repo_name=repo_name,
+            repo_url=FEDORA23_OSTREE_REPO,
+            repo_type=REPO_TYPE['ostree'],
+            repo_unprotected=False
+        )
+        with Session(self.browser) as session:
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # Add repository to selected CV
+            self.content_views.add_remove_repos(
+                cv_name,
+                [repo_name],
+                repo_type='ostree'
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
 
     @run_only_on('sat')
     @stubbed()
@@ -1469,7 +1496,7 @@ class ContentViewTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_remove_custom_ostree(self):
         """Create a CV with custom ostree contents and remove the
@@ -1480,10 +1507,40 @@ class ContentViewTestCase(UITestCase):
         @Assert: Content should be removed and CV should be updated
         successfully
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        repo_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        self.setup_to_create_cv(
+            repo_name=repo_name,
+            repo_url=FEDORA23_OSTREE_REPO,
+            repo_type=REPO_TYPE['ostree'],
+            repo_unprotected=False
+        )
+        with Session(self.browser) as session:
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # Add repository to selected CV
+            self.content_views.add_remove_repos(
+                cv_name,
+                [repo_name],
+                repo_type='ostree'
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.add_remove_repos(
+                cv_name,
+                [repo_name],
+                add_repo=False,
+                repo_type='ostree'
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
 
     @run_only_on('sat')
     @stubbed()
@@ -1503,7 +1560,7 @@ class ContentViewTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_create_with_custom_ostree_other_contents(self):
         """Create a CV with custom ostree contents and other custom yum, puppet
@@ -1513,10 +1570,66 @@ class ContentViewTestCase(UITestCase):
 
         @Assert: CV should be created successfully with all custom contents
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        cv_name = gen_string('alpha')
+        puppet_module = 'httpd'
+        prod = entities.Product(organization=self.organization).create()
+        # Creates new ostree repository using api
+        ostree_repo = entities.Repository(
+            content_type='ostree',
+            url=FEDORA23_OSTREE_REPO,
+            product=prod,
+            unprotected=False,
+        ).create()
+        ostree_repo.sync()
+        yum_repo = entities.Repository(
+            url=FAKE_1_YUM_REPO,
+            product=prod,
+        ).create()
+        yum_repo.sync()
+        puppet_repo = entities.Repository(
+            url=FAKE_0_PUPPET_REPO,
+            content_type='puppet',
+            product=prod,
+        ).create()
+        puppet_repo.sync()
+        with Session(self.browser) as session:
+            # Create content-view
+            make_contentview(session, org=self.organization.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # Add ostree repository to selected CV
+            self.content_views.add_remove_repos(
+                cv_name,
+                [ostree_repo.name],
+                repo_type='ostree'
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            # Add yum repository to selected CV
+            self.content_views.add_remove_repos(
+                cv_name,
+                [yum_repo.name],
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.add_puppet_module(
+                cv_name,
+                puppet_module,
+                filter_term='Latest',
+            )
+        # Workaround to fetch added puppet module name:
+        # UI doesn't refresh and populate the added module name
+        # until we logout and navigate again to puppet-module tab
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            module = self.content_views.fetch_puppet_module(
+                cv_name, puppet_module)
+            self.assertIsNotNone(module)
 
     @run_only_on('sat')
     @stubbed()
@@ -1534,7 +1647,7 @@ class ContentViewTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_publish_with_custom_ostree(self):
         """Create a CV with custom ostree contents and publish it.
@@ -1543,13 +1656,34 @@ class ContentViewTestCase(UITestCase):
 
         @Assert: CV should be published with OStree contents
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        prod = entities.Product(organization=self.organization).create()
+        # Creates new ostree repository using api
+        ostree_repo = entities.Repository(
+            content_type='ostree',
+            url=FEDORA23_OSTREE_REPO,
+            product=prod,
+            unprotected=False,
+        ).create()
+        ostree_repo.sync()
+        cv = entities.ContentView(organization=self.organization).create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            # Add repository to selected CV
+            self.content_views.add_remove_repos(
+                cv.name,
+                [ostree_repo.name],
+                repo_type='ostree'
+            )
+            self.content_views.publish(cv.name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_remove_published_custom_ostree_version(self):
         """Remove published custom ostree contents version from selected CV.
@@ -1559,13 +1693,33 @@ class ContentViewTestCase(UITestCase):
         @Assert: Published version with OStree contents should be removed
         successfully.
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        prod = entities.Product(organization=org).create()
+        # Creates new ostree repository using api
+        ostree_repo = entities.Repository(
+            content_type='ostree',
+            url=FEDORA23_OSTREE_REPO,
+            product=prod,
+            unprotected=False,
+        ).create()
+        ostree_repo.sync()
+        cv = entities.ContentView(organization=org).create()
+        cv.repository = [ostree_repo]
+        cv = cv.update(['repository'])
+        cv.publish()
+        cv = cv.read()
+        cv_info = cv.version[0].read()
+        version = 'Version {0}'.format(cv_info.version)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            self.content_views.delete_version(cv.name, version)
+            self.content_views.check_progress_bar_status(version)
+            self.content_views.validate_version_deleted(cv.name, version)
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_promote_with_custom_ostree(self):
         """Create a CV with custom ostree contents and publish, promote it
@@ -1575,13 +1729,40 @@ class ContentViewTestCase(UITestCase):
 
         @Assert: CV should be promoted with custom OStree contents
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        prod = entities.Product(organization=self.organization).create()
+        lc_env = entities.LifecycleEnvironment(
+            organization=self.organization
+        ).create()
+        # Creates new ostree repository using api
+        ostree_repo = entities.Repository(
+            content_type='ostree',
+            url=FEDORA23_OSTREE_REPO,
+            product=prod,
+            unprotected=False,
+        ).create()
+        ostree_repo.sync()
+        cv = entities.ContentView(organization=self.organization).create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            # Add repository to selected CV
+            self.content_views.add_remove_repos(
+                cv.name,
+                [ostree_repo.name],
+                repo_type='ostree'
+            )
+            self.content_views.publish(cv.name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.promote(cv.name, 'Version 1', lc_env.name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_remove_promoted_custom_ostree_contents(self):
         """Remove promoted custom ostree contents from selected environment of
@@ -1591,13 +1772,36 @@ class ContentViewTestCase(UITestCase):
 
         @Assert: Promoted custom OStree contents should be removed successfully
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        org = entities.Organization().create()
+        prod = entities.Product(organization=org).create()
+        # Creates new ostree repository using api
+        ostree_repo = entities.Repository(
+            content_type='ostree',
+            url=FEDORA23_OSTREE_REPO,
+            product=prod,
+            unprotected=False,
+        ).create()
+        ostree_repo.sync()
+        cv = entities.ContentView(organization=org).create()
+        cv.repository = [ostree_repo]
+        cv = cv.update(['repository'])
+        cv.publish()
+        cv = cv.read()
+        cv_info = cv.version[0].read()
+        version = 'Version {0}'.format(cv_info.version)
+        lc_env = entities.LifecycleEnvironment(organization=org).create()
+        promote(cv.version[0], lc_env.id)
+
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            self.content_views.delete_version(cv.name, version)
+            self.content_views.check_progress_bar_status(version)
+            self.content_views.validate_version_deleted(cv.name, version)
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_publish_promote_with_custom_ostree_and_other(self):
         """Create a CV with ostree as well as yum and puppet type contents and
@@ -1608,10 +1812,58 @@ class ContentViewTestCase(UITestCase):
         @Assert: CV should be published and promoted with custom OStree and all
         other contents
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        puppet_module = 'httpd'
+        lc_env = entities.LifecycleEnvironment(
+            organization=self.organization
+        ).create()
+        prod = entities.Product(organization=self.organization).create()
+        # Creates new ostree repository using api
+        ostree_repo = entities.Repository(
+            content_type='ostree',
+            url=FEDORA23_OSTREE_REPO,
+            product=prod,
+            unprotected=False,
+        ).create()
+        ostree_repo.sync()
+        yum_repo = entities.Repository(
+            url=FAKE_1_YUM_REPO,
+            product=prod,
+        ).create()
+        yum_repo.sync()
+        puppet_repo = entities.Repository(
+            url=FAKE_0_PUPPET_REPO,
+            content_type='puppet',
+            product=prod,
+        ).create()
+        puppet_repo.sync()
+        cv = entities.ContentView(organization=self.organization).create()
+        cv.repository = [ostree_repo, yum_repo]
+        cv = cv.update(['repository'])
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            self.content_views.add_puppet_module(
+                cv.name,
+                puppet_module,
+                filter_term='Latest',
+            )
+        # Workaround to fetch added puppet module name:
+        # UI doesn't refresh and populate the added module name
+        # until we logout and navigate again to puppet-module tab
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            module = self.content_views.fetch_puppet_module(
+                cv.name, puppet_module)
+            self.assertIsNotNone(module)
+            self.content_views.publish(cv.name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.promote(cv.name, 'Version 1', lc_env.name)
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
 
     @run_only_on('sat')
     @stubbed()

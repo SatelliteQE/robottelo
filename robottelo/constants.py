@@ -155,6 +155,13 @@ CHECKSUM_TYPE = {
     'sha1': "sha1",
 }
 
+REPO_TAB = {
+    'rpms': "RPMs",
+    'kickstarts': "Kickstarts",
+    'isos': "ISOs",
+    'ostree': "OSTree",
+}
+
 # On importing manifests, Red Hat repositories are listed like this:
 # Product -> RepositorySet -> Repository
 # We need to first select the Product, then the reposet and then the repos
@@ -162,6 +169,7 @@ CHECKSUM_TYPE = {
 PRDS = {
     'rhcf': 'Red Hat CloudForms',
     'rhel': 'Red Hat Enterprise Linux Server',
+    'rhah': 'Red Hat Enterprise Linux Atomic Host',
 }
 
 REPOSET = {
@@ -172,6 +180,7 @@ REPOSET = {
     ),
     'rhst7': 'Red Hat Satellite Tools 6.1 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.1 (for RHEL 6 Server) (RPMs)',
+    'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)'
 }
 
 REPOS = {
@@ -199,6 +208,9 @@ REPOS = {
             'Red Hat Enterprise Virtualization Agents for RHEL 6 Server RPMs '
             'x86_64 6.5'
         ),
+    },
+    'rhaht': {
+        'name': ('Red Hat Enterprise Linux Atomic Host Trees'),
     },
 }
 
@@ -231,6 +243,13 @@ SAT6_TOOLS_TREE = [
      'Red Hat Satellite Tools 6.1 for RHEL 6 Server RPMs x86_64'),
     ('rhel', 'rhst6', 'rhst6', 'repo_arch', 'x86_64'),
     ('rhel', 'rhst6', 'rhst6', 'repo_ver', '6.1'),
+]
+
+ATOMIC_HOST_TREE = [
+    ('rhah', 'rhaht', 'rhaht', 'repo_name',
+     'Red Hat Enterprise Linux Atomic Host Trees'),
+    ('rhah', 'rhaht', 'rhaht', 'repo_arch', None),
+    ('rhah', 'rhaht', 'rhaht', 'repo_ver', None),
 ]
 
 DEFAULT_ORG_ID = 1

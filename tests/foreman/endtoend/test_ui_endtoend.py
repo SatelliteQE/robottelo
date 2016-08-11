@@ -33,6 +33,7 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
     REPO_TYPE,
+    REPO_TAB,
     RHVA_REPO_TREE,
     SAT6_TOOLS_TREE,
     FAKE_6_PUPPET_REPO,
@@ -212,7 +213,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             # step 2.7: Enable a Red Hat repository
             if self.fake_manifest_is_set:
                 session.nav.go_to_red_hat_repositories()
-                self.sync.enable_rh_repos(repos)
+                self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
 
             # step 2.8: Synchronize the three repositories
             self.navigator.go_to_sync_status()
@@ -359,7 +360,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             session.nav.go_to_red_hat_repositories()
             # List of dictionary passed to enable the redhat repos
             # It selects Product->Reposet-> Repo
-            self.sync.enable_rh_repos(repos)
+            self.sync.enable_rh_repos(repos, REPO_TAB['rpms'])
             session.nav.go_to_sync_status()
             # Sync the repos
             # syn.sync_rh_repos returns boolean values and not objects
