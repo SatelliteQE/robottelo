@@ -645,6 +645,43 @@ class ContentViewTestCase(CLITestCase):
             'version was not associated to composite CV',
         )
 
+    @tier2
+    @run_only_on('sat')
+    def test_positive_create_composite_with_component_ids(self):
+        """create a composite content view with a component_ids option
+
+        @id: 6d4b94da-258d-4690-a5b6-bacaf6b1671a
+
+        @assert: Composite content view component ids are similar to the
+        nested content view versions ids
+
+        @CaseLevel: Integration
+        """
+        # Create CV
+        new_cv = make_content_view({u'organization-id': self.org['id']})
+        # Publish a new version of CV twice
+        for _ in range(2):
+            ContentView.publish({u'id': new_cv['id']})
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        # Let us now store the version ids
+        component_ids = [new_cv['versions'][0]['id'],
+                         new_cv['versions'][1]['id']]
+        # Create CV
+        comp_cv = make_content_view({
+            'composite': True,
+            'organization-id': self.org['id'],
+            'component-ids': component_ids
+        })
+        # Assert whether the composite content view components IDs are equal
+        # to the component_ids input values
+        comp_cv = ContentView.info({u'id': comp_cv['id']})
+        self.assertEqual(
+            [comp['id'] for comp in comp_cv['components']],
+            component_ids,
+            'IDs of the composite content view components differ from '
+            'the input values',
+        )
+
     # Content Views: Adding products/repos
 
     @run_in_one_thread
