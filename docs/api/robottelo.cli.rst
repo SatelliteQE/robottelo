@@ -60,6 +60,11 @@ Submodules:
 
 .. automodule:: robottelo.cli.factory
 
+:mod:`robottelo.cli.filter`
+---------------------------
+
+.. automodule:: robottelo.cli.filter
+
 :mod:`robottelo.cli.globalparam`
 --------------------------------
 
