@@ -78,6 +78,11 @@
 
 .. automodule:: tests.foreman.cli.test_fact
 
+:mod:`tests.foreman.cli.test_filter`
+------------------------------------
+
+.. automodule:: tests.foreman.cli.test_filter
+
 :mod:`tests.foreman.cli.test_globalparam`
 -----------------------------------------
 
