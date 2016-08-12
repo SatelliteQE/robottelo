@@ -42,7 +42,7 @@ class SSHCommandResult(object):
         return tmpl.format(**self.__dict__)
 
 
-def _call_paramiko_sshclient():
+def _call_paramiko_sshclient():  # pragma: no cover
     """Call ``paramiko.SSHClient``.
 
     This function does not alter the behaviour of ``paramiko.SSHClient``. It
@@ -136,11 +136,11 @@ def add_authorized_key(key, hostname=None, username=None, password=None,
     """
 
     if getattr(key, 'read', None):  # key is a file-like object
-        key_content = key.read()
+        key_content = key.read()  # pragma: no cover
     elif is_ssh_pub_key(key):  # key is a valid key-string
         key_content = key
     elif os.path.exists(key):  # key is a path to a pub key-file
-        with open(key, 'r') as key_file:
+        with open(key, 'r') as key_file:  # pragma: no cover
             key_content = key_file.read()
     else:
         raise AttributeError('Invalid key')
@@ -181,7 +181,7 @@ def upload_file(local_file, remote_file, hostname=None):
     :param hostname: target machine hostname. If not provided will be used the
         ``server.hostname`` from the configuration.
     """
-    with get_connection(hostname=hostname) as connection:
+    with get_connection(hostname=hostname) as connection:  # pragma: no cover
         try:
             sftp = connection.open_sftp()
             # Check if local_file is a file-like object and use the proper
@@ -199,9 +199,9 @@ def download_file(remote_file, local_file=None, hostname=None):
     provided will be used the server.
 
     """
-    if local_file is None:
+    if local_file is None:  # pragma: no cover
         local_file = remote_file
-    with get_connection(hostname=hostname) as connection:
+    with get_connection(hostname=hostname) as connection:  # pragma: no cover
         try:
             sftp = connection.open_sftp()
             sftp.get(remote_file, local_file)
@@ -240,7 +240,7 @@ def execute_command(cmd, connection, output_format=None, timeout=120):
 
     :param cmd: a command to be executed via ssh
     :param connection: SSH Paramiko client connection
-    :param output_format: json|csv valid only for hammer commands
+    :param output_format: plain|json|csv valid only for hammer commands
     :param timeout: defaults to 120
     :return: SSHCommandResult
     """
@@ -261,8 +261,9 @@ def execute_command(cmd, connection, output_format=None, timeout=120):
         # Convert to unicode string and remove all color codes characters
         stderr = regex.sub('', decode_to_utf8(stderr))
         logger.debug('<<< stderr\n%s', stderr)
-    if stdout and output_format != 'json':
-        # Only for hammer commands
+    # we don't want a list as output of 'plain' just pure text
+    if stdout and output_format not in ('json', 'plain'):
+        # Mostly only for hammer commands
         # for output we don't really want to see all of Rails traffic
         # information, so strip it out.
         # Empty fields are returned as "" which gives us u'""'
@@ -283,6 +284,10 @@ def is_ssh_pub_key(key):
     :param key: A string containing a ssh public key encoded in base64
     :return: Boolean
     """
+
+    if not isinstance(key, six.string_types):
+        raise ValueError(
+            "Key should be a string type, received: %s" % type(key))
 
     # 1) a valid pub key has 3 parts separated by space
     try:
