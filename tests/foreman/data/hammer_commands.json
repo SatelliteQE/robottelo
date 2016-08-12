@@ -1033,6 +1033,81 @@
       ]
     },
     {
+      "description": "Administrative server-side tasks",
+      "name": "admin",
+      "options": [
+        {
+          "help": "print help",
+          "name": "help",
+          "shortname": "h",
+          "value": null
+        }
+      ],
+      "subcommands": [
+        {
+          "description": "Logging verbosity level setup",
+          "name": "logging",
+          "options": [
+            {
+              "help": "Skip configuration backups creation",
+              "name": "no-backup",
+              "shortname": null,
+              "value": null
+            },
+            {
+              "help": "Operate on prefixed environment (e.g. chroot).",
+              "name": "prefix",
+              "shortname": null,
+              "value": "PATH"
+            },
+            {
+              "help": "Apply to all components.",
+              "name": "all",
+              "shortname": "a",
+              "value": null
+            },
+            {
+              "help": "Components to apply, use --list to get them. Comma separated list of values.",
+              "name": "components",
+              "shortname": "c",
+              "value": "COMPONENTS"
+            },
+            {
+              "help": "Increase verbosity level to debug.",
+              "name": "level-debug",
+              "shortname": "d",
+              "value": null
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "List available components.",
+              "name": "list",
+              "shortname": "l",
+              "value": null
+            },
+            {
+              "help": "Do not apply specified changes.",
+              "name": "dry-run",
+              "shortname": "n",
+              "value": null
+            },
+            {
+              "help": "Decrease verbosity level to standard.",
+              "name": "level-production",
+              "shortname": "p",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        }
+      ]
+    },
+    {
       "description": "Manipulate architectures.",
       "name": "architecture",
       "options": [
