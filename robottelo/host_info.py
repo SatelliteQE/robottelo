@@ -82,12 +82,6 @@ def _extract_sat_version(ssh_cmd):
     return 'Not Available', ssh_result
 
 
-if __name__ == '__main__':
-    from robottelo.config import settings
-    settings.configure()
-    print(get_host_sat_version())
-
-
 class SatVersionDependentValues(object):
     """Class which return values depending on Satellite host version"""
 

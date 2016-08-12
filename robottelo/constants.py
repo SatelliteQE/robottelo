@@ -199,7 +199,7 @@ _REPOSET_COMMON = {'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)'}
 REPOSET = SatVersionDependentValues(
     {u'6.1': _REPOSET_6_1},
     {u'6.2': _REPOSET_6_2},
-    common=_REPOS_COMMON
+    common=_REPOSET_COMMON
 )
 
 _REPOS_6_1 = {
@@ -293,8 +293,10 @@ SAT6_TOOLS_TREE = [
 ]
 
 ATOMIC_HOST_TREE = [
-    ('rhah', 'rhaht', 'rhaht', 'repo_name',
-     'Red Hat Enterprise Linux Atomic Host Trees'),
+    (
+        'rhah', 'rhaht', 'rhaht', 'repo_name',
+        'Red Hat Enterprise Linux Atomic Host Trees'
+    ),
     ('rhah', 'rhaht', 'rhaht', 'repo_arch', None),
     ('rhah', 'rhaht', 'rhaht', 'repo_ver', None),
 ]
@@ -332,10 +334,13 @@ FILTER_CONTENT_TYPE = {
     'package': "Package",
     'package group': "Package Group",
     'erratum by id': "Erratum - by ID",
-    'erratum by date and type': "Erratum - by Date and Type"}
+    'erratum by date and type': "Erratum - by Date and Type"
+}
 
-FILTER_TYPE = {'include': "Include",
-               'exclude': "Exclude"}
+FILTER_TYPE = {
+    'include': "Include",
+    'exclude': "Exclude"
+}
 
 DOCKER_REGISTRY_HUB = u'https://registry-1.docker.io'
 GOOGLE_CHROME_REPO = u'http://dl.google.com/linux/chrome/rpm/stable/x86_64'
