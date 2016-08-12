@@ -18,6 +18,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 
 @Upstream: No
 """
+import random
 
 from fauxfactory import gen_string
 from nailgun import entities
@@ -29,6 +30,7 @@ from robottelo.api.utils import (
 from robottelo import manifests
 from robottelo.constants import (
     DEFAULT_CV,
+    DOCKER_REGISTRY_HUB,
     ENVIRONMENT,
     FAKE_0_PUPPET_REPO,
     FAKE_1_YUM_REPO,
@@ -95,7 +97,8 @@ class ContentViewTestCase(UITestCase):
             # Enables the RedHat repo and fetches it's Id.
             repo_id = enable_rhrepo_and_fetchid(
                 basearch=rh_repo['basearch'],
-                org_id=str(org_id),  # OrgId is passed as data in API hence str
+                # OrgId is passed as data in API hence str
+                org_id=str(org_id),
                 product=rh_repo['product'],
                 repo=rh_repo['name'],
                 reposet=rh_repo['reposet'],
@@ -103,6 +106,7 @@ class ContentViewTestCase(UITestCase):
             )
         # Sync repository
         entities.Repository(id=repo_id).sync()
+        return repo_id
 
     @run_only_on('sat')
     @tier1
@@ -1481,7 +1485,7 @@ class ContentViewTestCase(UITestCase):
             )
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_add_rh_ostree(self):
         """Create a CV with RH ostree contents
@@ -1490,10 +1494,33 @@ class ContentViewTestCase(UITestCase):
 
         @Assert: CV should be created successfully with RH ostree contents
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        cv_name = gen_string('alpha')
+        rh_repo = {
+            'name': REPOS['rhaht']['name'],
+            'product': PRDS['rhah'],
+            'reposet': REPOSET['rhaht'],
+            'basearch': None,
+            'releasever': None,
+        }
+        # Create new org to import manifest
+        org = entities.Organization().create()
+        self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
+        with Session(self.browser) as session:
+            # Create content-view
+            make_contentview(session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # Add repository to selected CV
+            self.content_views.add_remove_repos(
+                cv_name,
+                [rh_repo['name']],
+                repo_type='ostree'
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
 
     @run_only_on('sat')
     @skip_if_os('RHEL6')
@@ -1543,7 +1570,7 @@ class ContentViewTestCase(UITestCase):
             )
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_remove_rh_ostree(self):
         """Create a CV with RH ostree contents and remove the
@@ -1554,10 +1581,43 @@ class ContentViewTestCase(UITestCase):
         @Assert: Content should be removed and CV should be updated
         successfully
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        cv_name = gen_string('alpha')
+        rh_repo = {
+            'name': REPOS['rhaht']['name'],
+            'product': PRDS['rhah'],
+            'reposet': REPOSET['rhaht'],
+            'basearch': None,
+            'releasever': None,
+        }
+        # Create new org to import manifest
+        org = entities.Organization().create()
+        self.setup_to_create_cv(rh_repo=rh_repo, org_id=org.id)
+        with Session(self.browser) as session:
+            # Create content-view
+            make_contentview(session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # Add repository to selected CV
+            self.content_views.add_remove_repos(
+                cv_name,
+                [rh_repo['name']],
+                repo_type='ostree'
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.add_remove_repos(
+                cv_name,
+                [rh_repo['name']],
+                add_repo=False,
+                repo_type='ostree'
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
 
     @run_only_on('sat')
     @skip_if_os('RHEL6')
@@ -1632,7 +1692,7 @@ class ContentViewTestCase(UITestCase):
             self.assertIsNotNone(module)
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_create_with_rh_ostree_other_contents(self):
         """Create a CV with RH ostree contents and other RH yum repos.
@@ -1641,10 +1701,64 @@ class ContentViewTestCase(UITestCase):
 
         @Assert: CV should be created successfully with all custom contents
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        cv_name = gen_string('alpha')
+        rh_ah_repo = {
+            'name': REPOS['rhaht']['name'],
+            'product': PRDS['rhah'],
+            'reposet': REPOSET['rhaht'],
+            'basearch': None,
+            'releasever': None,
+        }
+        rh_st_repo = {
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': None,
+        }
+        # Create new org to import manifest
+        org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        for rh_repo in [rh_ah_repo, rh_st_repo]:
+            # Enables the RedHat repo and fetches it's Id.
+            repo_id = enable_rhrepo_and_fetchid(
+                basearch=rh_repo['basearch'],
+                # OrgId is passed as data in API hence str
+                org_id=str(org.id),
+                product=rh_repo['product'],
+                repo=rh_repo['name'],
+                reposet=rh_repo['reposet'],
+                releasever=rh_repo['releasever'],
+            )
+            # Sync repository
+            entities.Repository(id=repo_id).sync()
+
+        with Session(self.browser) as session:
+            # Create content-view
+            make_contentview(session, org=org.name, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # Add repository to selected CV
+            self.content_views.add_remove_repos(
+                cv_name,
+                [rh_ah_repo['name']],
+                repo_type='ostree'
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.add_remove_repos(
+                cv_name,
+                [rh_st_repo['name']],
+                repo_type='yum'
+            )
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
 
     @run_only_on('sat')
     @skip_if_os('RHEL6')
@@ -1862,11 +1976,13 @@ class ContentViewTestCase(UITestCase):
                     common_locators['alert.success_sub_form'])
             )
             self.content_views.promote(cv.name, 'Version 1', lc_env.name)
-            self.assertIsNotNone(self.content_views.wait_until_element(
-                common_locators['alert.success_sub_form']))
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_remove_published_version_of_mixed_contents(self):
         """Remove mixed(ostree, yum, puppet, docker) published content version
@@ -1877,13 +1993,64 @@ class ContentViewTestCase(UITestCase):
         @Assert: Published version with mixed(ostree, yum, puppet, docker)
         contents should be removed successfully.
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        prod = entities.Product(organization=self.organization).create()
+        # Creates new ostree repository using api
+        ostree_repo = entities.Repository(
+            content_type='ostree',
+            url=FEDORA23_OSTREE_REPO,
+            product=prod,
+            unprotected=False,
+        ).create()
+        ostree_repo.sync()
+        # Create new yum repository
+        yum_repo = entities.Repository(
+            url=FAKE_1_YUM_REPO,
+            product=prod,
+        ).create()
+        yum_repo.sync()
+        # Create new Puppet repository
+        puppet_repo = entities.Repository(
+            url=FAKE_0_PUPPET_REPO,
+            content_type='puppet',
+            product=prod,
+        ).create()
+        puppet_repo.sync()
+        # Create new docker repository
+        docker_repo = entities.Repository(
+            content_type=u'docker',
+            docker_upstream_name=u'busybox',
+            product=prod,
+            url=DOCKER_REGISTRY_HUB,
+        ).create()
+        docker_repo.sync()
+        cv = entities.ContentView(organization=self.organization).create()
+        cv.repository = [ostree_repo, yum_repo, docker_repo]
+        cv = cv.update(['repository'])
+        puppet_module = random.choice(
+            cv.available_puppet_modules()['results']
+        )
+        self.assertEqual(len(cv.read().puppet_module), 0)
+        entities.ContentViewPuppetModule(
+            author=puppet_module['author'],
+            name=puppet_module['name'],
+            content_view=cv,
+        ).create()
+        self.assertEqual(len(cv.read().puppet_module), 1)
+
+        cv.publish()
+        cv = cv.read()
+        cv_info = cv.version[0].read()
+        version = 'Version {0}'.format(cv_info.version)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.organization.name)
+            self.content_views.delete_version(cv.name, version)
+            self.content_views.check_progress_bar_status(version)
+            self.content_views.validate_version_deleted(cv.name, version)
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_publish_with_rh_ostree(self):
         """Create a CV with RH ostree contents and publish it.
@@ -1892,13 +2059,35 @@ class ContentViewTestCase(UITestCase):
 
         @Assert: CV should be published with RH OStree contents
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        rh_ah_repo = {
+            'name': REPOS['rhaht']['name'],
+            'product': PRDS['rhah'],
+            'reposet': REPOSET['rhaht'],
+            'basearch': None,
+            'releasever': None,
+        }
+        # Create new org to import manifest
+        org = entities.Organization().create()
+        self.setup_to_create_cv(rh_repo=rh_ah_repo, org_id=org.id)
+        cv = entities.ContentView(organization=org).create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            # Add repository to selected CV
+            self.content_views.add_remove_repos(
+                cv.name,
+                [rh_ah_repo['name']],
+                repo_type='ostree'
+            )
+            self.content_views.publish(cv.name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_remove_published_rh_ostree_version(self):
         """Remove published rh ostree contents version from selected CV.
@@ -1908,13 +2097,33 @@ class ContentViewTestCase(UITestCase):
         @Assert: Published version with RH OStree contents should be removed
         successfully.
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        rh_ah_repo = {
+            'name': REPOS['rhaht']['name'],
+            'product': PRDS['rhah'],
+            'reposet': REPOSET['rhaht'],
+            'basearch': None,
+            'releasever': None,
+        }
+        # Create new org to import manifest
+        org = entities.Organization().create()
+        repo_id = self.setup_to_create_cv(rh_repo=rh_ah_repo, org_id=org.id)
+        cv = entities.ContentView(organization=org).create()
+        cv.repository = [entities.Repository(id=repo_id)]
+        cv = cv.update(['repository'])
+        cv.publish()
+        cv = cv.read()
+        cv_info = cv.version[0].read()
+        version = 'Version {0}'.format(cv_info.version)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            self.content_views.delete_version(cv.name, version)
+            self.content_views.check_progress_bar_status(version)
+            self.content_views.validate_version_deleted(cv.name, version)
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_promote_with_rh_ostree(self):
         """Create a CV with RH ostree contents and publish, promote it
@@ -1928,9 +2137,34 @@ class ContentViewTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
+        rh_ah_repo = {
+            'name': REPOS['rhaht']['name'],
+            'product': PRDS['rhah'],
+            'reposet': REPOSET['rhaht'],
+            'basearch': None,
+            'releasever': None,
+        }
+        # Create new org to import manifest
+        org = entities.Organization().create()
+        lc_env = entities.LifecycleEnvironment(organization=org).create()
+        repo_id = self.setup_to_create_cv(rh_repo=rh_ah_repo, org_id=org.id)
+        cv = entities.ContentView(organization=org).create()
+        cv.repository = [entities.Repository(id=repo_id)]
+        cv = cv.update(['repository'])
+        cv.publish()
+        cv = cv.read()
+        cv_info = cv.version[0].read()
+        version = 'Version {0}'.format(cv_info.version)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            self.content_views.promote(cv.name, version, lc_env.name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_remove_promoted_rh_ostree_contents(self):
         """Remove promoted rh ostree contents from selected environment of CV.
@@ -1939,16 +2173,38 @@ class ContentViewTestCase(UITestCase):
 
         @Assert: Promoted rh OStree contents should be removed successfully
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        rh_ah_repo = {
+            'name': REPOS['rhaht']['name'],
+            'product': PRDS['rhah'],
+            'reposet': REPOSET['rhaht'],
+            'basearch': None,
+            'releasever': None,
+        }
+        # Create new org to import manifest
+        org = entities.Organization().create()
+        lc_env = entities.LifecycleEnvironment(organization=org).create()
+        repo_id = self.setup_to_create_cv(rh_repo=rh_ah_repo, org_id=org.id)
+        cv = entities.ContentView(organization=org).create()
+        cv.repository = [entities.Repository(id=repo_id)]
+        cv = cv.update(['repository'])
+        cv.publish()
+        cv = cv.read()
+        cv_info = cv.version[0].read()
+        version = 'Version {0}'.format(cv_info.version)
+        promote(cv.version[0], lc_env.id)
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            self.content_views.delete_version(cv.name, version)
+            self.content_views.check_progress_bar_status(version)
+            self.content_views.validate_version_deleted(cv.name, version)
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_os('RHEL6')
     @tier2
     def test_positive_publish_promote_with_rh_ostree_and_other(self):
-        """Create a CV with rh ostree as well as rh yum and puppet type contents and
+        """Create a CV with rh ostree as well as rh yum contents and
         publish, promote them to next environment.
 
         @id: f1849f6a-6ad6-432f-a70c-7d61079f482a
@@ -1956,7 +2212,63 @@ class ContentViewTestCase(UITestCase):
         @Assert: CV should be published and promoted with rh ostree and all
         other contents
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        rh_ah_repo = {
+            'name': REPOS['rhaht']['name'],
+            'product': PRDS['rhah'],
+            'reposet': REPOSET['rhaht'],
+            'basearch': None,
+            'releasever': None,
+        }
+        rh_st_repo = {
+            'name': REPOS['rhst7']['name'],
+            'product': PRDS['rhel'],
+            'reposet': REPOSET['rhst7'],
+            'basearch': 'x86_64',
+            'releasever': None,
+        }
+        # Create new org to import manifest
+        org = entities.Organization().create()
+        lc_env = entities.LifecycleEnvironment(organization=org).create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        for rh_repo in [rh_ah_repo, rh_st_repo]:
+            # Enables the RedHat repo and fetches it's Id.
+            repo_id = enable_rhrepo_and_fetchid(
+                basearch=rh_repo['basearch'],
+                # OrgId is passed as data in API hence str
+                org_id=str(org.id),
+                product=rh_repo['product'],
+                repo=rh_repo['name'],
+                reposet=rh_repo['reposet'],
+                releasever=rh_repo['releasever'],
+            )
+            # Sync repository
+            entities.Repository(id=repo_id).sync()
+
+        cv = entities.ContentView(organization=org).create()
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(org.name)
+            # Add ostree repository to selected CV
+            self.content_views.add_remove_repos(
+                cv.name,
+                [rh_ah_repo['name']],
+                repo_type='ostree'
+            )
+            # Add RH yum repository to selected CV
+            self.content_views.add_remove_repos(
+                cv.name,
+                [rh_st_repo['name']],
+                repo_type='yum'
+            )
+            self.content_views.publish(cv.name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
+            self.content_views.promote(cv.name, 'Version 1', lc_env.name)
+            self.assertIsNotNone(
+                self.content_views.wait_until_element(
+                    common_locators['alert.success_sub_form'])
+            )
