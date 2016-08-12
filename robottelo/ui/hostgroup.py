@@ -14,17 +14,19 @@ class Hostgroup(Base):
         self.click(locators['hostgroups.new'])
         if not self.wait_until_element(locators['hostgroups.name']):
             raise UIError('Could not create new hostgroup.')
-        self.find_element(locators['hostgroups.name']).send_keys(name)
+        self.text_field_update(locators['hostgroups.name'], name)
         if parent:
-            self.select(locators['hostgroups.parent'], parent)
+            self.assign_value(locators['hostgroups.parent'], parent)
         if environment:
-            self.select(locators['hostgroups.environment'], environment)
+            self.assign_value(locators['hostgroups.environment'], environment)
         if content_source:
-            self.select(locators['hostgroups.content_source'], content_source)
+            self.assign_value(
+                locators['hostgroups.content_source'], content_source)
         if puppet_ca:
-            self.select(locators['hostgroups.puppet_ca'], puppet_ca)
+            self.assign_value(locators['hostgroups.puppet_ca'], puppet_ca)
         if puppet_master:
-            self.select(locators['hostgroups.puppet_master'], puppet_master)
+            self.assign_value(
+                locators['hostgroups.puppet_master'], puppet_master)
         self.click(common_locators['submit'])
 
     def navigate_to_entity(self):

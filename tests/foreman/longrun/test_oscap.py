@@ -16,15 +16,17 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities
-from robottelo import manifests, ssh
+from robottelo import manifests
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
     promote,
     upload_manifest,
 )
+from robottelo.cli.proxy import Proxy
 from robottelo.config import settings
 from robottelo.constants import (
     ANY_CONTEXT,
+    DEFAULT_LOC,
     DEFAULT_SUBSCRIPTION_NAME,
     OSCAP_DEFAULT_CONTENT,
     OSCAP_PERIOD,
@@ -67,6 +69,7 @@ class OpenScapTestCase(UITestCase):
 
         """
         super(OpenScapTestCase, cls).setUpClass()
+        cls.sat6_hostname = settings.server.hostname
         repo_values = [
             {'repo': REPOS['rhst6']['name'], 'reposet': REPOSET['rhst6']},
             {'repo': REPOS['rhst7']['name'], 'reposet': REPOSET['rhst7']},
@@ -74,7 +77,17 @@ class OpenScapTestCase(UITestCase):
 
         # step 1: Create new organization and environment.
         org = entities.Organization(name=gen_string('alpha')).create()
+        loc = entities.Location(name=DEFAULT_LOC).search()[0].read()
         cls.org_name = org.name
+        cls.puppet_env = entities.Environment(
+            name='production').search()[0].read()
+        cls.puppet_env.location.append(loc)
+        cls.puppet_env.organization.append(org)
+        cls.puppet_env = cls.puppet_env.update(['location', 'organization'])
+        Proxy.importclasses({
+            u'environment': cls.puppet_env.name,
+            u'name': cls.sat6_hostname,
+        })
         env = entities.LifecycleEnvironment(
             organization=org,
             name=gen_string('alpha')
@@ -85,7 +98,7 @@ class OpenScapTestCase(UITestCase):
         with manifests.clone() as manifest:
             upload_manifest(org.id, manifest.content)
 
-        # step 3: Sync RedHat Sattools RHEL6 ad RHEL7 repository
+        # step 3: Sync RedHat Sattools RHEL6 and RHEL7 repository
         repos = [
             entities.Repository(id=enable_rhrepo_and_fetchid(
                 basearch='x86_64',
@@ -162,7 +175,6 @@ class OpenScapTestCase(UITestCase):
         rhel7_repo = settings.rhel7_repo
         rhel6_content = OSCAP_DEFAULT_CONTENT['rhel6_content']
         rhel7_content = OSCAP_DEFAULT_CONTENT['rhel7_content']
-        sat6_hostname = settings.server.hostname
         hgrp6_name = gen_string('alpha')
         hgrp7_name = gen_string('alpha')
         policy_values = [
@@ -200,10 +212,10 @@ class OpenScapTestCase(UITestCase):
             for host_group in [hgrp6_name, hgrp7_name]:
                 make_hostgroup(
                     session,
-                    content_source=sat6_hostname,
+                    content_source=self.sat6_hostname,
                     name=host_group,
-                    puppet_ca=sat6_hostname,
-                    puppet_master=sat6_hostname,
+                    puppet_ca=self.sat6_hostname,
+                    puppet_master=self.sat6_hostname,
                 )
             # Creates oscap_policy for both rhel6 and rhel7.
             for value in policy_values:
@@ -213,7 +225,7 @@ class OpenScapTestCase(UITestCase):
                     host_group=value['hgrp'],
                     name=value['policy'],
                     period=OSCAP_PERIOD['weekly'],
-                    profile=OSCAP_PROFILE['rhccp'],
+                    profile=OSCAP_PROFILE['common'],
                     period_value=OSCAP_WEEKDAY['friday'],
                 )
             # Creates two vm's each for rhel6 and rhel7, runs
@@ -224,15 +236,9 @@ class OpenScapTestCase(UITestCase):
                     vm.install_katello_ca()
                     vm.register_contenthost(self.org_name, self.ak_name)
                     vm.configure_puppet(value['rhel_repo'])
-                    session.nav.go_to_hosts()
-                    set_context(session, org=ANY_CONTEXT['org'])
-                    self.hosts.update_host_bulkactions(
-                        [host],
-                        action='Assign Organization',
-                        parameters_list=[{'organization': self.org_name}],
-                    )
                     self.hosts.update(
-                        name=host,
+                        name=vm._target_image,
+                        domain_name=vm._domain,
                         parameters_list=[
                             ['Host', 'Lifecycle Environment', self.env_name],
                             ['Host', 'Content View', self.cv_name],
@@ -250,19 +256,11 @@ class OpenScapTestCase(UITestCase):
                         '| grep profile'
                     )
                     self.assertEqual(result.return_code, 0)
-                    # BZ 1259188 , required till CH and Hosts unification.
-                    # We need to re-register because of above bug and FE
-                    vm.register_contenthost(self.org_name, self.ak_name)
                     # Runs the actual oscap scan on the vm/clients and
                     # uploads report to Internal Capsule.
                     vm.execute_foreman_scap_client()
-                    # Runs the below command on Internal capsule to upload
-                    # content to Satellite6 and thus make reports visible
-                    # on UI.
-                    ssh.command(u'smart-proxy-openscap-send')
                     # Assert whether oscap reports are uploaded to
                     # Satellite6.
-                    session.nav.go_to_reports()
                     self.assertTrue(self.oscapreports.search(host))
 
     @run_only_on('sat')
