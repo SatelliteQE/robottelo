@@ -27,7 +27,7 @@ from robottelo.decorators import (
     tier1,
 )
 from robottelo.test import UITestCase
-from robottelo.ui.base import UIError
+from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.factory import edit_param
 from robottelo.ui.locators import common_locators, tab_locators
 from robottelo.ui.session import Session
@@ -698,16 +698,16 @@ class SettingTestCase(UITestCase):
         with Session(self.browser) as session:
             for param_name in invalid_oauth_active_values():
                 with self.subTest(param_name):
-                    with self.assertRaises(UIError) as context:
+                    with self.assertRaises(UINoSuchElementError) as context:
                         edit_param(
                             session,
                             tab_locator=self.tab_locator,
                             param_name=param_name,
                         )
-                        self.assertEqual(
-                            context.exception.message,
-                            'Could not find edit button to update param'
-                        )
+                    self.assertEqual(
+                        context.exception.message,
+                        'Could not find edit button to update selected param'
+                    )
 
     @tier1
     def test_positive_update_require_ssl_smart_proxies_param(self):

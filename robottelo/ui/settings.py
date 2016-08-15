@@ -41,17 +41,21 @@ class Settings(Base):
         self.click(tab_locator)
 
         strategy, value = locators['settings.edit_param']
-        self.click((strategy, value % param_name))
-
-        if value_type == 'dropdown':
-            self.select(locators['settings.select_value'], param_value)
-        elif value_type == 'input':
-            self.wait_until_element(locators['settings.input_value'])
-            self.field_update('settings.input_value', param_value)
+        if self.wait_until_element((strategy, value % param_name)) is None:
+            raise UINoSuchElementError(
+                'Could not find edit button to update selected param'
+            )
         else:
-            raise OptionError('Please input appropriate value type')
-        self.wait_for_ajax()
-        self.click(locators['settings.save'])
+            self.click((strategy, value % param_name))
+            if value_type == 'dropdown':
+                self.select(locators['settings.select_value'], param_value)
+            elif value_type == 'input':
+                self.wait_until_element(locators['settings.input_value'])
+                self.field_update('settings.input_value', param_value)
+            else:
+                raise OptionError('Please input appropriate value type')
+            self.wait_for_ajax()
+            self.click(locators['settings.save'])
 
     def get_saved_value(self, tab_locator, param_name):
         """Fetch the updated value to assert"""

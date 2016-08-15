@@ -53,7 +53,7 @@ from robottelo.decorators import (
 )
 from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import read_data_file
-from robottelo.ui.base import UIError
+from robottelo.ui.base import UIError, UINoSuchElementError
 from robottelo.ui.factory import make_contentview, make_lifecycle_environment
 from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
@@ -684,13 +684,13 @@ class ContentViewTestCase(UITestCase):
             make_contentview(
                 session, org=self.organization.name, name=cv2_name)
             self.assertIsNotNone(self.content_views.search(cv2_name))
-            with self.assertRaises(UIError) as context:
+            with self.assertRaises(UINoSuchElementError) as context:
                 self.content_views.add_remove_cv(cv1_name, [cv2_name])
-                self.assertEqual(
-                    context.exception.message,
-                    'Could not find ContentView tab, please make sure '
-                    'selected view is composite'
-                )
+            self.assertEqual(
+                context.exception.message,
+                'Could not find ContentView tab, please make sure '
+                'selected view is composite'
+            )
 
     @run_only_on('sat')
     @tier2
@@ -716,11 +716,11 @@ class ContentViewTestCase(UITestCase):
                 common_locators['alert.success_sub_form']))
             with self.assertRaises(UIError) as context:
                 self.content_views.add_remove_repos(cv_name, [repo_name])
-                self.assertEqual(
-                    context.exception.message,
-                    'Could not find repo "{0}" to add into CV'
-                    .format(repo_name)
-                )
+            self.assertEqual(
+                context.exception.message,
+                u'Could not find repo "{0}" to add into CV'
+                .format(repo_name)
+            )
 
     @stubbed()
     @run_only_on('sat')
