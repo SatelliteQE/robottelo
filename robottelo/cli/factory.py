@@ -28,6 +28,7 @@ from robottelo.cli.contentview import ContentView
 from robottelo.cli.docker import DockerContainer, DockerRegistry
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
+from robottelo.cli.filter import Filter
 from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
@@ -737,6 +738,53 @@ def make_role(options=None):
     args = {u'name': gen_alphanumeric(6)}
 
     return create_object(Role, args, options)
+
+
+@cacheable
+def make_filter(options=None):
+    """
+    Usage::
+
+        hammer filter create [OPTIONS]
+
+    Options::
+
+        --location-ids LOCATION_IDS         Comma separated list of values.
+        --locations LOCATION_NAMES          Comma separated list of values.
+        --organization-ids ORGANIZATION_IDS Comma separated list of values.
+        --organizations ORGANIZATION_NAMES  Comma separated list of values.
+        --permission-ids PERMISSION_IDS     Comma separated list of values.
+        --permissions PERMISSION_NAMES      Comma separated list of values.
+        --role ROLE_NAME                    User role name
+        --role-id ROLE_ID
+        --search SEARCH
+        -h, --help                          print help
+    """
+    args = {
+        u'location-ids': None,
+        u'locations': None,
+        u'organization-ids': None,
+        u'organizations': None,
+        u'permission-ids': None,
+        u'permissions': None,
+        u'role': None,
+        u'role-id': None,
+        u'search': None,
+    }
+
+    # Role and permissions are required fields.
+    if not options:
+        raise CLIFactoryError('Please provide required parameters')
+
+    # Do we have at least one role field?
+    if not any(options.get(key) for key in ['role', 'role-id']):
+        raise CLIFactoryError('Please provide a valid role field.')
+
+    # Do we have at least one permissions field?
+    if not any(options.get(key) for key in ['permissions', 'permission-ids']):
+        raise CLIFactoryError('Please provide a valid permissions field.')
+
+    return create_object(Filter, args, options)
 
 
 @cacheable
