@@ -260,7 +260,7 @@ DEFAULT_LOC = "Default Location"
 DEFAULT_CV = "Default Organization View"
 DEFAULT_PTABLE = "Kickstart default"
 DEFAULT_SUBSCRIPTION_NAME = (
-    'Red Hat Enterprise Linux Server Entry Level, Self-support')
+    'Red Hat Enterprise Linux Server, Premium (Physical or Virtual Nodes)')
 DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_RELEASE_VERSION = '6Server'
 
@@ -298,6 +298,7 @@ FAKE_2_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo2/'
 FAKE_3_YUM_REPO = u'http://omaciel.fedorapeople.org/fakerepo01'
 FAKE_4_YUM_REPO = u'http://omaciel.fedorapeople.org/fakerepo02'
 FAKE_5_YUM_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
+FAKE_6_YUM_REPO = u'https://jlsherrill.fedorapeople.org/fake-repos/needed-errata/'  # noqa
 FAKE_0_PUPPET_REPO = u'http://davidd.fedorapeople.org/repos/random_puppet/'
 FAKE_1_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet01'
 FAKE_2_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet02'
@@ -319,6 +320,8 @@ REAL_0_RH_PACKAGE = 'rhevm-sdk-python-3.3.0.21-1.el6ev.noarch'
 FAKE_0_CUSTOM_PACKAGE_GROUP_NAME = 'birds'
 FAKE_0_ERRATA_ID = 'RHEA-2012:0001'
 FAKE_1_ERRATA_ID = 'RHEA-2012:0002'
+FAKE_2_ERRATA_ID = 'RHEA-2012:0055'  # for FAKE_6_YUM_REPO
+REAL_0_ERRATA_ID = 'RHBA-2016:0173'  # for rhst7
 
 PUPPET_MODULE_NTP_PUPPETLABS = "puppetlabs-ntp-3.2.1.tar.gz"
 

@@ -55,6 +55,7 @@ from robottelo.ui.discoveryrules import DiscoveryRules
 from robottelo.ui.dockertag import DockerTag
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
+from robottelo.ui.errata import Errata
 from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hardwaremodel import HardwareModel
 from robottelo.ui.hostcollection import HostCollection
@@ -275,6 +276,7 @@ class UITestCase(TestCase):
         self.content_views = ContentViews(self.browser)
         self.dockertag = DockerTag(self.browser)
         self.domain = Domain(self.browser)
+        self.errata = Errata(self.browser)
         self.discoveredhosts = DiscoveredHosts(self.browser)
         self.discoveryrules = DiscoveryRules(self.browser)
         self.environment = Environment(self.browser)
