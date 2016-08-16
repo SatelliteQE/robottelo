@@ -858,6 +858,7 @@ OSCAP_PROFILE = {
     'rhccp': ('Red Hat Corporate Profile for '
               'Certified Cloud Providers (RH CCP)'),
     'usgcb': 'United States Government Configuration Baseline (USGCB)',
+    'common': 'Common Profile for General-Purpose Systems',
 }
 
 ROLES = [
