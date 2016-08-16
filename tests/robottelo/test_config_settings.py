@@ -1,6 +1,6 @@
 """Tests for module ``robottelo.config.settings``."""
 import six
-from robottelo.config.settings import Settings, INIReader, ImproperlyConfigured
+from robottelo.config.base import Settings, INIReader, ImproperlyConfigured
 from unittest2 import TestCase
 
 if six.PY2:
