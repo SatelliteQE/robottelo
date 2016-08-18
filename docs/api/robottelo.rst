@@ -6,6 +6,7 @@ Submodules:
 .. toctree::
     robottelo.api
     robottelo.cli
+    robottelo.commands
     robottelo.performance
     robottelo.ui
     robottelo.decorators

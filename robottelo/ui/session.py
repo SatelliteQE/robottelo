@@ -36,9 +36,13 @@ class Session(object):
             self.logout()
 
     def login(self):
-        """Utility funtion to call Login instance login method"""
+        """Utility function to call Login instance login method"""
         self._login.login(self.user, self.password)
 
     def logout(self):
         """Utility function to call Login instance logout method"""
         self._login.logout()
+
+    def close(self):
+        """Exits session and also closes the browser (used in shell)"""
+        self.browser.close()

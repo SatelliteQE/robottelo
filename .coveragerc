@@ -1,4 +1,6 @@
 [run]
+omit =
+    robottelo/commands/*.py
 include =
     robottelo/*.py
     robottelo/api
