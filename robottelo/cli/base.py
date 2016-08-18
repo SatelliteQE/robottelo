@@ -20,13 +20,16 @@ class CLIReturnCodeError(Exception):
     :param msg: explanation of the error
 
     """
+
     def __init__(self, return_code, stderr, msg):
         self.return_code = return_code
         self.stderr = stderr
         self.msg = msg
+        super(CLIReturnCodeError, self).__init__(msg)
+        self.message = msg
 
     def __str__(self):
-        return self.msg
+        return self.message
 
 
 class Base(object):
@@ -116,8 +119,7 @@ class Base(object):
                 response.return_code,
                 response.stderr,
                 u'Command "{0} {1}" finished with return_code {2}\n'
-                'stderr contains following message:\n{3}'
-                .format(
+                'stderr contains following message:\n{3}'.format(
                     cls.command_base,
                     cls.command_sub,
                     response.return_code,
@@ -126,8 +128,9 @@ class Base(object):
             )
         if len(response.stderr) != 0 and not ignore_stderr:
             cls.logger.warning(
-                u'stderr contains following message:\n{0}'
-                .format(response.stderr)
+                u'stderr contains following message:\n{0}'.format(
+                    response.stderr
+                )
             )
         return response.stdout
 
@@ -166,10 +169,8 @@ class Base(object):
             info_options = {u'id': obj_id}
             if cls.command_requires_org:
                 if 'organization-id' not in options:
-                    raise CLIError(
-                        'organization-id option is required for {0}.create'
-                        .format(cls.__name__)
-                    )
+                    tmpl = 'organization-id option is required for {0}.create'
+                    raise CLIError(tmpl.format(cls.__name__))
                 info_options[u'organization-id'] = options[u'organization-id']
 
             new_obj = cls.info(info_options)
@@ -285,11 +286,11 @@ class Base(object):
             options = {}
 
         if search is not None and u'search' not in options:
-            options.update({u'search': u'{0}=\\"{1}\\"'.format(
-                search[0], search[1])})
+            options.update({
+                u'search': u'{0}=\\"{1}\\"'.format(search[0], search[1])
+            })
 
         result = cls.list(options)
-
         if result:
             result = result[0]
 
@@ -305,8 +306,9 @@ class Base(object):
 
         if cls.command_requires_org and 'organization-id' not in options:
             raise CLIError(
-                'organization-id option is required for {0}.info'
-                .format(cls.__name__)
+                'organization-id option is required for {0}.info'.format(
+                    cls.__name__
+                )
             )
 
         result = cls.execute(
@@ -334,8 +336,9 @@ class Base(object):
 
         if cls.command_requires_org and 'organization-id' not in options:
             raise CLIError(
-                'organization-id option is required for {0}.list'
-                .format(cls.__name__)
+                'organization-id option is required for {0}.list'.format(
+                    cls.__name__
+                )
             )
 
         result = cls.execute(
@@ -402,7 +405,9 @@ class Base(object):
         cls.command_sub = 'update'
 
         result = cls.execute(
-            cls._construct_command(options), output_format='csv')
+            cls._construct_command(options),
+            output_format='csv'
+        )
 
         return result
 

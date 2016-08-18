@@ -171,6 +171,18 @@ class CLITestCase(TestCase):
     """Test case for CLI tests."""
     _multiprocess_can_split_ = True
 
+    def assert_error_msg(self, raise_ctx, *contents):
+        """Checking error msg present on Raise Context Exception
+        Raise assertion error if any of contents are not present on error msg
+
+        :param raise_ctx: Raise Context
+        :param contents: contents which must be present on message
+        """
+        exception = raise_ctx.exception
+        error_msg = getattr(exception, 'stderr', exception.message)
+        for content in contents:
+            self.assertIn(content, error_msg)
+
 
 class UITestCase(TestCase):
     """Test case for UI tests."""
