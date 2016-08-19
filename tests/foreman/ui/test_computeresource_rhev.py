@@ -32,6 +32,7 @@ class RhevComputeResourceTestCase(UITestCase):
         @setup: rhev hostname and credentials.
 
         @steps:
+
         1. Create a compute resource of type rhev.
         2. Provide it with the valid hostname, username and password.
         3. Provide a valid name to rhev Compute Resource.
@@ -39,7 +40,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         @Assert: A rhev CR is created successfully with proper connection.
 
-        @caseautomation: notautomated
+        @Caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -53,6 +54,7 @@ class RhevComputeResourceTestCase(UITestCase):
         @setup: rhev hostname and credentials.
 
         @steps:
+
         1. Create a compute resource of type rhev.
         2. Provide it with the valid hostname, username and password.
         3. Provide it with some valid description to rhev Compute Resource.
@@ -60,7 +62,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         @Assert: A rhev Compute Resource is created successfully
 
-        @caseautomation: notautomated
+        @Caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -75,6 +77,7 @@ class RhevComputeResourceTestCase(UITestCase):
         @setup: rhev hostname and credentials.
 
         @steps:
+
         1. Create a compute resource of type rhev.
         2. Provide it with the valid hostname, username and password.
         3. Provide a invalid name to rhev Compute Resource.
@@ -82,7 +85,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         @Assert: A rhev Compute Resource is not created
 
-        @caseautomation: notautomated
+        @Caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -96,6 +99,7 @@ class RhevComputeResourceTestCase(UITestCase):
         @setup: rhev hostname and credentials.
 
         @steps:
+
         1. Create a compute resource of type rhev.
         2. Provide it with the valid hostname, username and password.
         3. Provide a valid name to rhev Compute Resource.
@@ -104,7 +108,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         @Assert: The rhev Compute Resource is updated
 
-        @caseautomation: notautomated
+        @Caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -118,6 +122,7 @@ class RhevComputeResourceTestCase(UITestCase):
         @setup: rhev hostname and credentials.
 
         @steps:
+
         1. Create a compute resource of type rhev.
         2. Provide it with the valid hostname, username and password.
         3. Provide a valid name to rhev Compute Resource.
@@ -127,7 +132,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         @Assert: The rhev Compute Resource is updated
 
-        @caseautomation: notautomated
+        @Caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -141,6 +146,7 @@ class RhevComputeResourceTestCase(UITestCase):
         @setup: rhev hostname and credentials.
 
         @steps:
+
         1. Create a compute resource of type rhev.
         2. Provide it with the valid hostname, username and password.
         3. Provide a valid name to rhev Compute Resource.
@@ -149,7 +155,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         @Assert: The Compute Resource is deleted
 
-        @caseautomation: notautomated
+        @Caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -163,6 +169,7 @@ class RhevComputeResourceTestCase(UITestCase):
         @setup: rhev hostname, credentials and images as templates in rhev.
 
         @steps:
+
         1. Create a compute resource of type rhev.
         2. Provide it with the valid hostname, username and password.
         3. Select the created rhev CR and click images tab.
@@ -185,6 +192,7 @@ class RhevComputeResourceTestCase(UITestCase):
         @setup: rhev hostname, credentials and images as templates in rhev.
 
         @steps:
+
         1. Create a compute resource of type rhev.
         2. Provide it with the valid hostname, username and password.
         3. Select the created rhev CR and click images tab.
@@ -207,6 +215,7 @@ class RhevComputeResourceTestCase(UITestCase):
         @setup: rhev hostname and credentials.
 
         @steps:
+
         1. Create a compute resource of type rhev.
         2. Provide it with the valid hostname, username and password.
         3. Select the created rhev CR.
@@ -215,7 +224,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         @Assert: The Compute Resource created and opened successfully
 
-        @caseautomation: notautomated
+        @Caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -229,6 +238,7 @@ class RhevComputeResourceTestCase(UITestCase):
         @setup: rhev hostname and credentials.
 
         @steps:
+
         1. Create a compute resource of type rhev.
         2. Provide it with the valid hostname, username and password.
         3. Select the created rhev CR.
@@ -237,7 +247,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         @Assert: The Compute Resource created and opened successfully
 
-        @caseautomation: notautomated
+        @Caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -251,12 +261,13 @@ class RhevComputeResourceTestCase(UITestCase):
         @setup: rhev hostname and credentials.
 
         @steps:
+
         1. Select the created compute resource.
         2. Go to "Virtual Machines" tab.
 
         @Assert: The Virtual machines should be displayed
 
-        @caseautomation: notautomated
+        @Caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -268,12 +279,14 @@ class RhevComputeResourceTestCase(UITestCase):
         @id: 80abd6b1-31cd-4f3e-949c-f1ca608d0bbb
 
         @setup: rhev hostname and credentials.
+
         1. Configured subnet for provisioning of the host.
         2. Configured domains for the host.
         3. Population of images into satellite from rhev templates.
         4. Activation key and CV for the host.
 
         @steps:
+
         1. Go to "Hosts --> New host".
         2. Fill in the required details.(eg name,loc, org).
         3. Select rhev compute resource from "Deploy on" drop down.
@@ -285,7 +298,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         @Assert: The host should be provisioned successfully
 
-        @caseautomation: notautomated
+        @Caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -300,7 +313,8 @@ class RhevComputeResourceTestCase(UITestCase):
         @setup: rhev hostname ,credentials and provisioning setup.
 
         @steps:
-        1. Go to "Hosts --> New host"
+
+        1. Go to "Hosts --> New host".
         2. Fill in the required details.(eg name,loc, org).
         3. Select rhev compute resource from "Deploy on" drop down.
         4. Select the "Compute profile" from the drop down.
@@ -308,7 +322,7 @@ class RhevComputeResourceTestCase(UITestCase):
 
         @Assert: The host should be provisioned successfully
 
-        @caseautomation: notautomated
+        @Caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -316,23 +330,24 @@ class RhevComputeResourceTestCase(UITestCase):
     @tier3
     def test_positive_provision_rhev_with_custom_compute_settings(self):
         """ Provision a host on rhev compute resource with
-         custom disk, cpu count and memory.
+         custom disk, cpu count and memory
 
         @id: a972c095-7567-4bb0-86cb-9bd835fed7b7
 
         @setup: rhev hostname ,credentials and provisioning setup.
 
         @steps:
-        1. Go to "Hosts --> New host"
+
+        1. Go to "Hosts --> New host".
         2. Fill in the required details.(eg name,loc, org).
         3. Select rhev custom compute resource from "Deploy on" drop down.
         4. Select the custom compute profile" with custom disk size, cpu count
-        and memory.
+           and memory.
         5. Provision the host using the compute profile.
 
         @Assert: The host should be provisioned with custom settings
 
-        @caseautomation: notautomated
+        @Caseautomation: notautomated
         """
 
     @run_only_on('sat')
@@ -347,12 +362,13 @@ class RhevComputeResourceTestCase(UITestCase):
         @setup: rhev hostname ,credentials provisioning setup and hostgroup
 
         @steps:
-        1. Go to "Hosts --> New host"
-        2. Assign the host group to the host
-        3. Select the Deploy on as rhev Compute Resource
-        4. Provision the host
+
+        1. Go to "Hosts --> New host".
+        2. Assign the host group to the host.
+        3. Select the Deploy on as rhev Compute Resource.
+        4. Provision the host.
 
         @Assert: The host should be provisioned with host group
 
-        @caseautomation: notautomated
+        @Caseautomation: notautomated
         """

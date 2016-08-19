@@ -43,6 +43,11 @@
 
 .. automodule:: tests.foreman.ui.test_computeresource_openstack
 
+:mod:`tests.foreman.ui.test_computeresource_rhev`
+-------------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_computeresource_rhev
+
 :mod:`tests.foreman.ui.test_config_group`
 -----------------------------------------
 
