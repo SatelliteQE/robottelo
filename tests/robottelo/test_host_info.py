@@ -156,7 +156,7 @@ class GetHostSatVersionTestCase(TestCase):
     def test_sat_6_dot_2(self):
         """Check if can parse major 6.2.x versions"""
         self.assert_sat_version(
-            u'  SATELLITE_SHORT_VERSION = "6.2.7"',
+            u'satellite-6.2.0-21.1.el7sat.noarch',
             u'6.2'
         )
 
