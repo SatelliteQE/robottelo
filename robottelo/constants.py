@@ -151,6 +151,10 @@ REPO_TYPE = {
     'ostree': "ostree",
 }
 
+DOWNLOAD_POLICIES = [
+    'on_demand', 'background', 'immediate'
+]
+
 CHECKSUM_TYPE = {
     'default': "Default",
     'sha256': "sha256",

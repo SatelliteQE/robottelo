@@ -13,8 +13,10 @@ Subcommands::
 
     create                        Create a repository
     delete                        Destroy a repository
+    export                        Export a repository
     info                          Show a repository
     list                          List of repositories
+    remove-content                Remove content from the repository
     synchronize                   Sync a repository
     update                        Update a repository
     upload-content                Upload content into the repository

@@ -684,6 +684,9 @@ def make_repository(options=None):
                                                 to 'yum')
         --docker-upstream-name DOCKER_UPSTREAM_NAME name of the upstream docker
                                                 repository
+        --download-policy DOWNLOAD_POLICY       download policy for yum repos
+                                                (either 'immediate','on_demand'
+                                                or 'background')
         --gpg-key GPG_KEY_NAME                  Name to search by
         --gpg-key-id GPG_KEY_ID                 gpg key numeric identifier
         --label LABEL
