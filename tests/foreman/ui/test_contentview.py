@@ -21,7 +21,7 @@ Feature details: https://fedorahosted.org/katello/wiki/ContentViews
 import random
 
 from fauxfactory import gen_string
-from nailgun import entities
+from nailgun import entities, entity_mixins
 from robottelo.api.utils import (
     enable_rhrepo_and_fetchid,
     promote,
@@ -104,8 +104,12 @@ class ContentViewTestCase(UITestCase):
                 reposet=rh_repo['reposet'],
                 releasever=rh_repo['releasever'],
             )
+        old_task_timeout = entity_mixins.TASK_TIMEOUT
+        # Update timeout to 10 minutes to finish sync
+        entity_mixins.TASK_TIMEOUT = 600
         # Sync repository
         entities.Repository(id=repo_id).sync()
+        entity_mixins.TASK_TIMEOUT = old_task_timeout
         return repo_id
 
     @run_only_on('sat')
@@ -1484,6 +1488,7 @@ class ContentViewTestCase(UITestCase):
                     common_locators['alert.success_sub_form'])
             )
 
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier2
@@ -1569,6 +1574,7 @@ class ContentViewTestCase(UITestCase):
                     common_locators['alert.success_sub_form'])
             )
 
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier2
@@ -1642,7 +1648,11 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
+        old_task_timeout = entity_mixins.TASK_TIMEOUT
+        # Update timeout to 10 minutes to finish sync
+        entity_mixins.TASK_TIMEOUT = 600
         ostree_repo.sync()
+        entity_mixins.TASK_TIMEOUT = old_task_timeout
         yum_repo = entities.Repository(
             url=FAKE_1_YUM_REPO,
             product=prod,
@@ -1691,6 +1701,7 @@ class ContentViewTestCase(UITestCase):
                 cv_name, puppet_module)
             self.assertIsNotNone(module)
 
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier2
@@ -1733,9 +1744,12 @@ class ContentViewTestCase(UITestCase):
                 reposet=rh_repo['reposet'],
                 releasever=rh_repo['releasever'],
             )
+            old_task_timeout = entity_mixins.TASK_TIMEOUT
+            # Update timeout to 10 minutes to finish sync
+            entity_mixins.TASK_TIMEOUT = 600
             # Sync repository
             entities.Repository(id=repo_id).sync()
-
+            entity_mixins.TASK_TIMEOUT = old_task_timeout
         with Session(self.browser) as session:
             # Create content-view
             make_contentview(session, org=org.name, name=cv_name)
@@ -1780,7 +1794,11 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
+        old_task_timeout = entity_mixins.TASK_TIMEOUT
+        # Update timeout to 10 minutes to finish sync
+        entity_mixins.TASK_TIMEOUT = 600
         ostree_repo.sync()
+        entity_mixins.TASK_TIMEOUT = old_task_timeout
         cv = entities.ContentView(organization=self.organization).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
@@ -1818,7 +1836,11 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
+        old_task_timeout = entity_mixins.TASK_TIMEOUT
+        # Update timeout to 10 minutes to finish sync
+        entity_mixins.TASK_TIMEOUT = 600
         ostree_repo.sync()
+        entity_mixins.TASK_TIMEOUT = old_task_timeout
         cv = entities.ContentView(organization=org).create()
         cv.repository = [ostree_repo]
         cv = cv.update(['repository'])
@@ -1856,7 +1878,11 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
+        old_task_timeout = entity_mixins.TASK_TIMEOUT
+        # Update timeout to 10 minutes to finish sync
+        entity_mixins.TASK_TIMEOUT = 600
         ostree_repo.sync()
+        entity_mixins.TASK_TIMEOUT = old_task_timeout
         cv = entities.ContentView(organization=self.organization).create()
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
@@ -1897,7 +1923,11 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
+        old_task_timeout = entity_mixins.TASK_TIMEOUT
+        # Update timeout to 10 minutes to finish sync
+        entity_mixins.TASK_TIMEOUT = 600
         ostree_repo.sync()
+        entity_mixins.TASK_TIMEOUT = old_task_timeout
         cv = entities.ContentView(organization=org).create()
         cv.repository = [ostree_repo]
         cv = cv.update(['repository'])
@@ -1940,7 +1970,11 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
+        old_task_timeout = entity_mixins.TASK_TIMEOUT
+        # Update timeout to 10 minutes to finish sync
+        entity_mixins.TASK_TIMEOUT = 600
         ostree_repo.sync()
+        entity_mixins.TASK_TIMEOUT = old_task_timeout
         yum_repo = entities.Repository(
             url=FAKE_1_YUM_REPO,
             product=prod,
@@ -2003,7 +2037,11 @@ class ContentViewTestCase(UITestCase):
             product=prod,
             unprotected=False,
         ).create()
+        old_task_timeout = entity_mixins.TASK_TIMEOUT
+        # Update timeout to 10 minutes to finish sync
+        entity_mixins.TASK_TIMEOUT = 600
         ostree_repo.sync()
+        entity_mixins.TASK_TIMEOUT = old_task_timeout
         # Create new yum repository
         yum_repo = entities.Repository(
             url=FAKE_1_YUM_REPO,
@@ -2049,6 +2087,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.check_progress_bar_status(version)
             self.content_views.validate_version_deleted(cv.name, version)
 
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier2
@@ -2086,6 +2125,7 @@ class ContentViewTestCase(UITestCase):
                     common_locators['alert.success_sub_form'])
             )
 
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier2
@@ -2122,6 +2162,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.check_progress_bar_status(version)
             self.content_views.validate_version_deleted(cv.name, version)
 
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier2
@@ -2163,6 +2204,7 @@ class ContentViewTestCase(UITestCase):
                     common_locators['alert.success_sub_form'])
             )
 
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier2
@@ -2200,6 +2242,7 @@ class ContentViewTestCase(UITestCase):
             self.content_views.check_progress_bar_status(version)
             self.content_views.validate_version_deleted(cv.name, version)
 
+    @run_in_one_thread
     @run_only_on('sat')
     @skip_if_os('RHEL6')
     @tier2
@@ -2244,8 +2287,12 @@ class ContentViewTestCase(UITestCase):
                 reposet=rh_repo['reposet'],
                 releasever=rh_repo['releasever'],
             )
+            old_task_timeout = entity_mixins.TASK_TIMEOUT
+            # Update timeout to 10 minutes to finish sync
+            entity_mixins.TASK_TIMEOUT = 600
             # Sync repository
             entities.Repository(id=repo_id).sync()
+            entity_mixins.TASK_TIMEOUT = old_task_timeout
 
         cv = entities.ContentView(organization=org).create()
         with Session(self.browser) as session:
