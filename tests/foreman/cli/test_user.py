@@ -22,10 +22,13 @@ When testing email validation [1] and [2] should be taken into consideration.
 @Upstream: No
 """
 import random
+
 from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_location, make_org, make_role, make_user
+from robottelo.cli.role import Role
 from robottelo.cli.user import User
+from robottelo.config import settings
 from robottelo.datafactory import (
     invalid_emails_list,
     invalid_names_list,
@@ -156,90 +159,6 @@ class UserTestCase(CLITestCase):
         self.assertIn(org['name'], user['organizations'])
         self.assertEqual(org['name'], user['default-organization'])
 
-    @skip_if_bug_open('bugzilla', 1138553)
-    @tier2
-    def test_positive_add_role(self):
-        """Add role to User for all variations of role names
-
-        @id: 4df495b8-ed02-480e-a935-ffc0b6746e08
-
-        @Assert: Role is added to user
-
-        @BZ: 1138553
-
-        @CaseLevel: Integration
-        """
-        user = make_user()
-        include_list = [gen_string("alphanumeric", 100)]
-        for role_name in valid_usernames_list() + include_list:
-            with self.subTest(role_name):
-                make_role({'name': role_name})
-                User.add_role({
-                    'login': user['login'],
-                    'role': role_name,
-                })
-                user = User.info({'id': user['id']})
-                self.assertIn(role_name, user['roles'])
-
-    @skip_if_bug_open('bugzilla', 1138553)
-    @tier2
-    def test_positive_remove_role(self):
-        """Remove role from User for all variations of role names
-
-        @id: 51b15516-da42-4149-8032-87baa93f9e56
-
-        @Assert: Role is removed
-
-        @BZ: 1138553
-
-        @CaseLevel: Integration
-        """
-        user = make_user()
-        include_list = [gen_string("alphanumeric", 100)]
-        for role_name in valid_usernames_list() + include_list:
-            with self.subTest(role_name):
-                make_role({'name': role_name})
-                User.add_role({
-                    'login': user['login'],
-                    'role': role_name,
-                })
-                user = User.info({'id': user['id']})
-                self.assertIn(role_name, user['roles'])
-                User.remove_role({
-                    'login': user['login'],
-                    'role': role_name,
-                })
-                user = User.info({'id': user['id']})
-                self.assertNotIn(role_name, user['roles'])
-
-    @stubbed()
-    @tier2
-    def test_positive_add_roles(self):
-        """Add multiple roles to User
-
-        @id: d769ac61-f158-4e4e-a176-1c87de8b00f6
-
-        @Assert: Roles are added to user
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_add_all_default_roles(self):
-        """Create User and assign all available default roles to it
-
-        @id: 7faa3254-36ad-4496-9c0e-7b0454e4bc26
-
-        @Assert: All default roles are added to user
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
     @tier1
     def test_positive_create_with_org(self):
         """Create User associated to one Organization
@@ -295,11 +214,14 @@ class UserTestCase(CLITestCase):
 
         @Assert: User is not created. Appropriate error shown.
         """
-        for invalid_name in ('',
-                             'space {0}'.format(gen_string('alpha')),
-                             gen_string('alpha', 101),
-                             gen_string('html')):
-            with self.subTest(invalid_name):
+        invalid_names = (
+            '', 'space {0}'.format(gen_string('alpha')),
+            gen_string('alpha', 101),
+            gen_string('html')
+        )
+        for invalid_name in invalid_names:
+            with self.subTest(invalid_name), self.assertRaises(
+                    CLIReturnCodeError):
                 options = {
                     'auth-source-id': 1,
                     'login': invalid_name,
@@ -307,8 +229,7 @@ class UserTestCase(CLITestCase):
                     'password': gen_string('alpha'),
                 }
                 self.logger.debug(str(options))
-                with self.assertRaises(CLIReturnCodeError):
-                    User.create(options)
+                User.create(options)
 
     @tier1
     def test_negative_create_with_invalid_firstname(self):
@@ -318,17 +239,17 @@ class UserTestCase(CLITestCase):
 
         @Assert: User is not created. Appropriate error shown.
         """
-        for invalid_firstname in (gen_string("alpha", 51),
-                                  gen_string("html")):
-            with self.subTest(invalid_firstname):
-                with self.assertRaises(CLIReturnCodeError):
-                    User.create({
-                        'auth-source-id': 1,
-                        'login': gen_string('alpha'),
-                        'firstname': invalid_firstname,
-                        'mail': 'root@localhost',
-                        'password': gen_string('alpha'),
-                    })
+        invalid_first_names = (gen_string("alpha", 51), gen_string("html"))
+        for invalid_first_name in invalid_first_names:
+            with self.subTest(invalid_first_name), self.assertRaises(
+                    CLIReturnCodeError):
+                User.create({
+                    'auth-source-id': 1,
+                    'login': gen_string('alpha'),
+                    'firstname': invalid_first_name,
+                    'mail': 'root@localhost',
+                    'password': gen_string('alpha'),
+                })
 
     @tier1
     def test_negative_create_with_invalid_lastname(self):
@@ -338,17 +259,17 @@ class UserTestCase(CLITestCase):
 
         @Assert: User is not created. Appropriate error shown.
         """
-        for invalid_lastname in (gen_string("alpha", 51),
-                                 gen_string("html")):
-            with self.subTest(invalid_lastname):
-                with self.assertRaises(CLIReturnCodeError):
-                    User.create({
-                        'auth-source-id': 1,
-                        'login': gen_string('alpha'),
-                        'lastname': invalid_lastname,
-                        'mail': 'root@localhost',
-                        'password': gen_string('alpha'),
-                    })
+        invalid_lastnames = (gen_string("alpha", 51), gen_string("html"))
+        for invalid_lastname in invalid_lastnames:
+            with self.subTest(invalid_lastname), self.assertRaises(
+                    CLIReturnCodeError):
+                User.create({
+                    'auth-source-id': 1,
+                    'login': gen_string('alpha'),
+                    'lastname': invalid_lastname,
+                    'mail': 'root@localhost',
+                    'password': gen_string('alpha'),
+                })
 
     @tier1
     def test_negative_create_with_invalid_email(self):
@@ -359,16 +280,15 @@ class UserTestCase(CLITestCase):
         @Assert: User is not created. Appropriate error shown.
         """
         for email in invalid_emails_list():
-            with self.subTest(email):
-                with self.assertRaises(CLIReturnCodeError):
-                    User.create({
-                        'auth-source-id': 1,
-                        'firstname': gen_string('alpha'),
-                        'lastname': gen_string('alpha'),
-                        'login': gen_string('alpha'),
-                        'mail': email,
-                        'password': gen_string('alpha'),
-                    })
+            with self.subTest(email), self.assertRaises(CLIReturnCodeError):
+                User.create({
+                    'auth-source-id': 1,
+                    'firstname': gen_string('alpha'),
+                    'lastname': gen_string('alpha'),
+                    'login': gen_string('alpha'),
+                    'mail': email,
+                    'password': gen_string('alpha'),
+                })
 
     @skip_if_bug_open('bugzilla', 1204686)
     @tier1
@@ -425,100 +345,6 @@ class UserTestCase(CLITestCase):
             })
 
     @tier1
-    def test_positive_update_firstname(self):
-        """Update firstname value for existing User
-
-        @id: c51baf5e-206d-4e95-a713-795574080bd9
-
-        @Assert: User is updated
-        """
-        user = make_user()
-        for new_firstname in valid_usernames_list():
-            with self.subTest(new_firstname):
-                User.update({
-                    'firstname': new_firstname,
-                    'id': user['id'],
-                })
-                result = User.info({'id': user['id']})
-                user_name = result['name'].split(' ')
-                self.assertEqual(user_name[0], new_firstname)
-
-    @tier1
-    def test_positive_update_username(self):
-        """Update username value for existing User
-
-        @id: 72734d5a-bfba-4db8-9c8f-cc6190c74b69
-
-        @Assert: User is updated
-        """
-        user = make_user()
-        include_list = [gen_string("alphanumeric", 100)]
-        for new_login in valid_usernames_list() + include_list:
-            with self.subTest(new_login):
-                User.update({
-                    'id': user['id'],
-                    'login': new_login,
-                })
-                user = User.info({'id': user['id']})
-                self.assertEqual(user['login'], new_login)
-
-    @tier1
-    def test_positive_update_lastname(self):
-        """Update Last Name value for existing User
-
-        @id: 03479f69-7606-46b3-9dc1-664d30f40ae1
-
-        @Assert: User is updated
-        """
-        user = make_user()
-        for new_lastname in valid_usernames_list():
-            with self.subTest(new_lastname):
-                User.update({
-                    'id': user['id'],
-                    'lastname': new_lastname,
-                })
-                user = User.info({'id': user['id']})
-                last_name_after = user['name'].split(' ')
-                self.assertEqual(last_name_after[1], new_lastname)
-
-    @tier1
-    def test_positive_update_email(self):
-        """Update Email Address value for existing User
-
-        @id: 75067bf3-e43e-4c6a-b3fd-63e564eda7db
-
-        @Assert: User is updated
-        """
-        user = make_user()
-        for email in valid_emails_list():
-            with self.subTest(email):
-                User.update({
-                    'id': user['id'],
-                    # escape to avoid bash syntax error
-                    'mail': email.replace('"', r'\"').replace('`', r'\`'),
-                })
-                result = User.info({'id': user['id']})
-                self.assertEqual(result['email'], email)
-
-    @tier1
-    def test_positive_update_password(self):
-        """Update Password/Verify fields for existing User
-
-        @id: 065197ab-1352-4da8-9df6-b6ff332e6847
-
-        @Assert: User is updated
-        """
-        user = make_user()
-        for password in valid_usernames_list():
-            with self.subTest(password):
-                User.update({
-                    'id': user['id'],
-                    'password': password,
-                })
-                user = User.info({'id': user['id']})
-                self.assertTrue(user)
-
-    @tier1
     def test_positive_update_to_non_admin(self):
         """Convert an user from an admin user to non-admin user
 
@@ -536,173 +362,6 @@ class UserTestCase(CLITestCase):
         self.assertEqual(user['admin'], 'no')
 
     @tier1
-    def test_positive_update_to_admin(self):
-        """Convert usual user to an admin user
-
-        @id: 3c5cdeb0-c529-472e-a291-269b703bf9d1
-
-        @Assert: User is updated
-        """
-        user = make_user()
-        self.assertEqual(user['admin'], 'no')
-        User.update({
-            'id': user['id'],
-            'admin': '1',
-        })
-        user = User.info({'id': user['id']})
-        self.assertEqual(user['admin'], 'yes')
-
-    @stubbed()
-    @tier1
-    def test_positive_update_role(self):
-        """Update User with one role
-
-        @id: 9b23f242-6a55-4267-bd70-b4a5619f7990
-
-        @Assert: User is updated
-
-        @caseautomation: notautomated
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_update_roles(self):
-        """Update User with multiple roles
-
-        @id: a41663a7-eb77-4083-9ca3-a1c1df1c87eb
-
-        @Assert: User is updated
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    @stubbed()
-    @tier2
-    def test_positive_update_all_roles(self):
-        """Update User with all roles
-
-        @id: fc520d70-36ff-4676-93c1-ca8ba6cd8efc
-
-        @Assert: User is updated
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
-        """
-
-    @tier1
-    def test_positive_update_org(self):
-        """Assign a User to an Org
-
-        @id: 7d16ea11-b1e9-4f3b-b3c5-a4b8569947da
-
-        @Assert: User is updated
-        """
-        user = make_user()
-        org = make_org()
-        User.update({
-            'id': user['id'],
-            'organization-ids': org['id'],
-        })
-        user = User.info({'id': user['id']})
-        self.assertEqual(org['name'], user['organizations'][0])
-
-    @tier2
-    def test_positive_update_orgs(self):
-        """Assign a User to multiple Orgs
-
-        @id: 2303ea38-eb08-4f68-ac73-48968e06aec0
-
-        @Assert: User is updated
-
-        @CaseLevel: Integration
-        """
-        user = make_user()
-        orgs_amount = random.randint(3, 5)
-        orgs = [make_org() for _ in range(orgs_amount)]
-        User.update({
-            'id': user['id'],
-            'organization-ids': [org['id'] for org in orgs],
-        })
-        user = User.info({'id': user['id']})
-        self.assertEqual(len(user['organizations']), orgs_amount)
-        for org in orgs:
-            self.assertIn(org['name'], user['organizations'])
-
-    @tier1
-    def test_negative_update_username(self):
-        """Try to update User using invalid Username
-
-        @id: 208bb597-1b33-44c8-9b15-b7bfcbb739fd
-
-        @Assert: User is not updated. Appropriate error shown.
-        """
-        user = make_user()
-        for new_user_name in invalid_names_list():
-            with self.subTest(new_user_name):
-                with self.assertRaises(CLIReturnCodeError):
-                    User.update({
-                        'id': user['id'],
-                        'login': new_user_name,
-                    })
-
-    @tier1
-    def test_negative_update_firstname(self):
-        """Try to update User using invalid First Name
-
-        @id: fb425e86-6e09-4535-b1dc-aef1e02ea712
-
-        @Assert: User is not updated. Appropriate error shown.
-        """
-        user = make_user()
-        for invalid_firstname in invalid_names_list():
-            with self.subTest(invalid_firstname):
-                with self.assertRaises(CLIReturnCodeError):
-                    User.update({
-                        'firstname': invalid_firstname,
-                        'login': user['login'],
-                    })
-                    updated_user = User.info({'id': user['id']})
-                    self.assertEqual(updated_user['name'], user['name'])
-
-    @tier1
-    def test_negative_update_surname(self):
-        """Try to update User using invalid Last Name
-
-        @id: 92ca237a-daa8-43bd-927b-a0bdc8250658
-
-        @Assert: User is not updated. Appropriate error shown.
-        """
-        user = make_user()
-        for invalid_lastname in (gen_string('alpha', 51),
-                                 gen_string('html')):
-            with self.subTest(invalid_lastname):
-                with self.assertRaises(CLIReturnCodeError):
-                    User.update({
-                        'lastname': invalid_lastname,
-                        'login': user['login'],
-                    })
-
-    @tier1
-    def test_negative_update_email(self):
-        """Try to update User using invalid Email Address
-
-        @id: 4a2876cc-2580-4ae9-8ce7-d7390bfebd4b
-
-        @Assert: User is not updated.  Appropriate error shown.
-        """
-        user = make_user()
-        for email in invalid_emails_list():
-            with self.subTest(email):
-                with self.assertRaises(CLIReturnCodeError):
-                    User.update({
-                        'login': user['login'],
-                        'mail': email,
-                    })
-
-    @tier1
     def test_positive_delete_by_name(self):
         """Create an user and then delete it using its name
 
@@ -711,12 +370,12 @@ class UserTestCase(CLITestCase):
         @Assert: User is deleted
         """
         for login in valid_usernames_list():
-            with self.subTest(login):
+            with self.subTest(login), self.assertRaises(CLIReturnCodeError):
                 user = make_user({'login': login})
                 self.assertEqual(user['login'], login)
                 User.delete({'login': user['login']})
-                with self.assertRaises(CLIReturnCodeError):
-                    User.info({'login': user['login']})
+
+                User.info({'login': user['login']})
 
     @tier1
     def test_positive_delete_by_id(self):
@@ -741,12 +400,11 @@ class UserTestCase(CLITestCase):
         @Assert: User is deleted
         """
         for login in valid_usernames_list():
-            with self.subTest(login):
+            with self.subTest(login), self.assertRaises(CLIReturnCodeError):
                 user = make_user({"login": login, "admin": 'true'})
                 self.assertEqual(user['admin'], 'yes')
                 User.delete({'login': user['login']})
-                with self.assertRaises(CLIReturnCodeError):
-                    User.info({'login': user['login']})
+                User.info({'login': user['login']})
 
     @tier1
     def test_negative_delete_internal_admin(self):
@@ -835,10 +493,13 @@ class UserTestCase(CLITestCase):
 
         @Assert: User is listed
         """
-        for mail in (gen_string("alpha") + "@somemail.com",
-                     gen_string("alphanumeric", 10) + "@somemail.com",
-                     gen_string("numeric") + "@somemail.com",
-                     gen_string("alphanumeric", 50) + "@somem.com"):
+        valid_emails = (
+            gen_string("alpha") + "@somemail.com",
+            gen_string("alphanumeric", 10) + "@somemail.com",
+            gen_string("numeric") + "@somemail.com",
+            gen_string("alphanumeric", 50) + "@somem.com"
+        )
+        for mail in valid_emails:
             with self.subTest(mail):
                 user = make_user({'mail': mail})
                 result = User.list({
@@ -863,8 +524,11 @@ class UserTestCase(CLITestCase):
 
         @BZ: 1204667
         """
-        for mail in (gen_string("latin1") + "@somemail.com",
-                     gen_string("utf8") + "@somemail.com"):
+        valid_mails = (
+            gen_string("latin1") + "@somemail.com",
+            gen_string("utf8") + "@somemail.com"
+        )
+        for mail in valid_mails:
             with self.subTest(mail):
                 user = make_user({'mail': mail})
                 result = User.list({
@@ -921,4 +585,387 @@ class UserTestCase(CLITestCase):
         @caseautomation: notautomated
 
         @CaseLevel: System
+        """
+
+
+class UserWithCleanUpTestCase(CLITestCase):
+    """Implements Users tests in CLI which user can be cleaned up after tests,
+    thus reducing number of users on system
+    """
+
+    @classmethod
+    def setUpClass(cls):
+        """
+        Initializes class attribute ``dct_roles`` with several random roles
+        saved on sat. roles is a dict so keys are role's id respective value is
+        the role itself
+        """
+
+        settings.configure()
+        include_list = [gen_string("alphanumeric", 100)]
+
+        def roles_helper():
+            """Generator funcion which creates several Roles to be used on
+            tests
+            """
+            for role_name in valid_usernames_list() + include_list:
+                yield make_role({'name': role_name})
+
+        cls.stubbed_roles = {role['id']: role for role in roles_helper()}
+
+    @classmethod
+    def tearDownClass(cls):
+        for role_id in cls.stubbed_roles:
+            Role.delete({'id': role_id})
+
+    def setUp(self):
+        """Setting up user to be used on tests"""
+        self.user = make_user()
+
+    def tearDown(self):
+        """Cleaning up user used on tests"""
+        User.delete({'id': self.user['id']})
+
+    @tier1
+    def test_positive_update_firstname(self):
+        """Update firstname value for existing User
+
+        @id: c51baf5e-206d-4e95-a713-795574080bd9
+
+        @Assert: User is updated
+        """
+        user = self.user
+        for new_firstname in valid_usernames_list():
+            with self.subTest(new_firstname):
+                User.update({
+                    'firstname': new_firstname,
+                    'id': user['id'],
+                })
+                result = User.info({'id': user['id']})
+                user_name = result['name'].split(' ')
+                self.assertEqual(user_name[0], new_firstname)
+
+    @tier1
+    def test_positive_update_username(self):
+        """Update username value for existing User
+
+        @id: 72734d5a-bfba-4db8-9c8f-cc6190c74b69
+
+        @Assert: User is updated
+        """
+        user = self.user
+        include_list = [gen_string("alphanumeric", 100)]
+        for new_login in valid_usernames_list() + include_list:
+            with self.subTest(new_login):
+                User.update({
+                    'id': user['id'],
+                    'login': new_login,
+                })
+                user = User.info({'id': user['id']})
+                self.assertEqual(user['login'], new_login)
+
+    @tier1
+    def test_positive_update_lastname(self):
+        """Update Last Name value for existing User
+
+        @id: 03479f69-7606-46b3-9dc1-664d30f40ae1
+
+        @Assert: User is updated
+        """
+        user = self.user
+        for new_lastname in valid_usernames_list():
+            with self.subTest(new_lastname):
+                User.update({
+                    'id': user['id'],
+                    'lastname': new_lastname,
+                })
+                user = User.info({'id': user['id']})
+                last_name_after = user['name'].split(' ')
+                self.assertEqual(last_name_after[1], new_lastname)
+
+    @tier1
+    def test_positive_update_email(self):
+        """Update Email Address value for existing User
+
+        @id: 75067bf3-e43e-4c6a-b3fd-63e564eda7db
+
+        @Assert: User is updated
+        """
+        user = self.user
+        for email in valid_emails_list():
+            with self.subTest(email):
+                User.update({
+                    'id': user['id'],
+                    # escape to avoid bash syntax error
+                    'mail': email.replace('"', r'\"').replace('`', r'\`'),
+                })
+                result = User.info({'id': user['id']})
+                self.assertEqual(result['email'], email)
+
+    @tier1
+    def test_positive_update_password(self):
+        """Update Password/Verify fields for existing User
+
+        @id: 065197ab-1352-4da8-9df6-b6ff332e6847
+
+        @Assert: User is updated
+        """
+        user = self.user
+        for password in valid_usernames_list():
+            with self.subTest(password):
+                User.update({
+                    'id': user['id'],
+                    'password': password,
+                })
+                user = User.info({'id': user['id']})
+                self.assertTrue(user)
+
+    @tier1
+    def test_positive_update_to_admin(self):
+        """Convert usual user to an admin user
+
+        @id: 3c5cdeb0-c529-472e-a291-269b703bf9d1
+
+        @Assert: User is updated
+        """
+        user = self.user
+        self.assertEqual(user['admin'], 'no')
+        User.update({
+            'id': user['id'],
+            'admin': '1',
+        })
+        user = User.info({'id': user['id']})
+        self.assertEqual(user['admin'], 'yes')
+
+    @tier1
+    def test_positive_update_org(self):
+        """Assign a User to an Org
+
+        @id: 7d16ea11-b1e9-4f3b-b3c5-a4b8569947da
+
+        @Assert: User is updated
+        """
+        user = self.user
+        org = make_org()
+        User.update({
+            'id': user['id'],
+            'organization-ids': org['id'],
+        })
+        user = User.info({'id': user['id']})
+        self.assertEqual(org['name'], user['organizations'][0])
+
+    @tier2
+    def test_positive_update_orgs(self):
+        """Assign a User to multiple Orgs
+
+        @id: 2303ea38-eb08-4f68-ac73-48968e06aec0
+
+        @Assert: User is updated
+
+        @CaseLevel: Integration
+        """
+        user = self.user
+        orgs_amount = random.randint(3, 5)
+        orgs = [make_org() for _ in range(orgs_amount)]
+        User.update({
+            'id': user['id'],
+            'organization-ids': [org['id'] for org in orgs],
+        })
+        user = User.info({'id': user['id']})
+        self.assertItemsEqual(
+            user['organizations'],
+            [org['name'] for org in orgs]
+        )
+
+    @tier1
+    def test_negative_update_username(self):
+        """Try to update User using invalid Username
+
+        @id: 208bb597-1b33-44c8-9b15-b7bfcbb739fd
+
+        @Assert: User is not updated. Appropriate error shown.
+        """
+        user = self.user
+        for new_user_name in invalid_names_list():
+            with self.subTest(new_user_name), self.assertRaises(
+                    CLIReturnCodeError):
+                User.update({'id': user['id'], 'login': new_user_name})
+
+    @tier1
+    def test_negative_update_firstname(self):
+        """Try to update User using invalid First Name
+
+        @id: fb425e86-6e09-4535-b1dc-aef1e02ea712
+
+        @Assert: User is not updated. Appropriate error shown.
+        """
+        user = self.user
+        for invalid_firstname in invalid_names_list():
+            with self.subTest(invalid_firstname), self.assertRaises(
+                    CLIReturnCodeError):
+                User.update({
+                    'firstname': invalid_firstname,
+                    'login': user['login'],
+                })
+                updated_user = User.info({'id': user['id']})
+                self.assertEqual(updated_user['name'], user['name'])
+
+    @tier1
+    def test_negative_update_surname(self):
+        """Try to update User using invalid Last Name
+
+        @id: 92ca237a-daa8-43bd-927b-a0bdc8250658
+
+        @Assert: User is not updated. Appropriate error shown.
+        """
+        user = self.user
+        for invalid_lastname in (gen_string('alpha', 51), gen_string('html')):
+            with self.subTest(invalid_lastname), self.assertRaises(
+                    CLIReturnCodeError):
+                User.update({
+                    'lastname': invalid_lastname,
+                    'login': user['login'],
+                })
+
+    @tier1
+    def test_negative_update_email(self):
+        """Try to update User using invalid Email Address
+
+        @id: 4a2876cc-2580-4ae9-8ce7-d7390bfebd4b
+
+        @Assert: User is not updated.  Appropriate error shown.
+        """
+        user = self.user
+        for email in invalid_emails_list():
+            with self.subTest(email), self.assertRaises(CLIReturnCodeError):
+                User.update({'login': user['login'], 'mail': email})
+
+    @skip_if_bug_open('bugzilla', 1138553)
+    @tier2
+    def test_positive_add_role(self):
+        """Add role to User for all variations of role names
+
+        @id: 4df495b8-ed02-480e-a935-ffc0b6746e08
+
+        @Assert: Role is added to user
+
+        @BZ: 1138553
+
+        @CaseLevel: Integration
+        """
+        user = self.user
+        for role_id, role in self.stubbed_roles.items():
+            with self.subTest(role['name']):
+                User.add_role({
+                    'login': user['login'],
+                    'role-id': role_id,
+                })
+                user = User.info({'id': user['id']})
+                self.assertIn(role['name'], user['roles'])
+
+    @tier2
+    def test_positive_add_roles(self):
+        """Add multiple roles to User
+
+        For now add-role user sub command does not allow multiple role ids
+        (https://github.com/SatelliteQE/robottelo/issues/3729)
+        So if if it gets fixed this test can be updated:
+        (http://projects.theforeman.org/issues/16206)
+
+        @id: d769ac61-f158-4e4e-a176-1c87de8b00f6
+
+        @Assert: Roles are added to user
+
+        @CaseLevel: Integration
+        """
+        user = self.user
+        original_role_names = set(user['roles'])
+        expected_role_names = set(original_role_names)
+
+        for role_id, role in self.stubbed_roles.items():
+            User.add_role({'login': user['login'], 'role-id': role_id})
+            expected_role_names.add(role['name'])
+
+        self.assertItemsEqual(
+            expected_role_names,
+            User.info({'id': user['id']})['roles']
+        )
+
+    @skip_if_bug_open('bugzilla', 1138553)
+    @tier2
+    def test_positive_remove_role(self):
+        """Remove role from User for all variations of role names
+
+        @id: 51b15516-da42-4149-8032-87baa93f9e56
+
+        @Assert: Role is removed
+
+        @BZ: 1138553
+
+        @CaseLevel: Integration
+        """
+        user = self.user
+        for role_id, role in self.stubbed_roles.items():
+            role_name = role['name']
+            with self.subTest(role_name):
+                user_credentials = {'login': user['login'], 'role': role_name}
+                User.add_role(user_credentials)
+                user = User.info({'id': user['id']})
+                self.assertIn(role_name, user['roles'])
+                User.remove_role(user_credentials)
+                user = User.info({'id': user['id']})
+                self.assertNotIn(role_name, user['roles'])
+
+    @stubbed()
+    @tier2
+    def test_positive_add_all_default_roles(self):
+        """Create User and assign all available default roles to it
+
+        @id: 7faa3254-36ad-4496-9c0e-7b0454e4bc26
+
+        @Assert: All default roles are added to user
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @tier1
+    def test_positive_update_role(self):
+        """Update User with one role
+
+        @id: 9b23f242-6a55-4267-bd70-b4a5619f7990
+
+        @Assert: User is updated
+
+        @caseautomation: notautomated
+        """
+
+    @stubbed()
+    @tier2
+    def test_positive_update_roles(self):
+        """Update User with multiple roles
+
+        @id: a41663a7-eb77-4083-9ca3-a1c1df1c87eb
+
+        @Assert: User is updated
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed()
+    @tier2
+    def test_positive_update_all_roles(self):
+        """Update User with all roles
+
+        @id: fc520d70-36ff-4676-93c1-ca8ba6cd8efc
+
+        @Assert: User is updated
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
