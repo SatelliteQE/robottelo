@@ -18,6 +18,7 @@
 """
 
 from fauxfactory import gen_string
+
 from robottelo import manifests
 from robottelo.cli.activationkey import ActivationKey
 from robottelo.cli.base import CLIReturnCodeError
@@ -75,9 +76,12 @@ class ActivationKeyTestCase(CLITestCase):
             options = {}
 
         # Use default organization if None are provided
-        if (not options.get('organization', None) and
-                not options.get('organization-label', None) and
-                not options.get('organization-id', None)):
+        no_org_flag = (
+            not options.get('organization', None) and
+            not options.get('organization-label', None) and
+            not options.get('organization-id', None)
+        )
+        if no_org_flag:
             options['organization-id'] = self.org['id']
 
         # Create activation key
@@ -206,6 +210,22 @@ class ActivationKeyTestCase(CLITestCase):
         })
         self.assertEqual(new_ak['host-limit'], u'10')
 
+    def assert_negative_create_with_usage_limit(
+            self, invalid_values, *in_error_msg):
+        """Asserts Activation key is not created and respective error msg
+        :param invalid_values: invalid max-host values
+        :param in_error_msg: strings which error msg must contain
+        """
+        for limit in invalid_values:
+            with self.subTest(limit), self.assertRaises(
+                    CLIFactoryError) as raise_ctx:
+                self._make_activation_key({u'max-hosts': limit})
+            self.assert_error_msg(
+                raise_ctx,
+                u'Failed to create ActivationKey with data:',
+                *in_error_msg
+            )
+
     @run_only_on('sat')
     @tier1
     def test_negative_create_with_invalid_name(self):
@@ -216,25 +236,40 @@ class ActivationKeyTestCase(CLITestCase):
         @Assert: Activation key is not created. Appropriate error shown.
         """
         for name in invalid_values_list():
-            with self.subTest(name):
-                with self.assertRaises(CLIFactoryError):
-                    self._make_activation_key({u'name': name})
+            with self.subTest(name), self.assertRaises(
+                    CLIFactoryError) as raise_ctx:
+                self._make_activation_key({u'name': name})
+            self.assert_error_msg(
+                raise_ctx,
+                u'Validation failed:',
+                name
+            )
 
     @tier1
-    def test_negative_create_with_usage_limit(self):
-        """Create Activation key with invalid Usage Limit
+    def test_negative_create_with_usage_limit_with_not_integers(self):
+        """Create Activation key with non integers Usage Limit
 
         @id: 247ebc2e-c80f-488b-aeaf-6bf5eba55375
 
         @Assert: Activation key is not created. Appropriate error shown.
         """
-        include_list = ['-1', '-500', 0, 0.5]
-        for limit in invalid_values_list() + include_list:
-            with self.subTest(limit):
-                with self.assertRaises(CLIFactoryError):
-                    self._make_activation_key({
-                        u'max-hosts': limit,
-                    })
+        self.assert_negative_create_with_usage_limit(
+            invalid_values_list() + [0.5],
+            u"Error: option '--max-hosts': numeric value is required"
+        )
+
+    @tier1
+    def test_negative_create_with_usage_limit_with_invalid_integers(self):
+        """Create Activation key with invalid integers Usage Limit
+
+        @id: 9089f756-fda8-4e28-855c-cf8273f7c6cd
+
+        @Assert: Activation key is not created. Appropriate error shown.
+        """
+        self.assert_negative_create_with_usage_limit(
+            ('-1', '-500', 0),
+            u'Validation failed: Max hosts cannot be less than one'
+        )
 
     @tier1
     def test_positive_delete_by_name(self):
@@ -492,13 +527,17 @@ class ActivationKeyTestCase(CLITestCase):
         """
         new_ak = self._make_activation_key()
         for name in invalid_values_list():
-            with self.subTest(name):
-                with self.assertRaises(CLIReturnCodeError):
-                    ActivationKey.update({
-                        u'id': new_ak['id'],
-                        u'new-name': name,
-                        u'organization-id': self.org['id'],
-                    })
+            with self.subTest(name), self.assertRaises(
+                    CLIReturnCodeError) as raise_ctx:
+                ActivationKey.update({
+                    u'id': new_ak['id'],
+                    u'new-name': name,
+                    u'organization-id': self.org['id'],
+                })
+            self.assert_error_msg(
+                raise_ctx,
+                u'Could not update the activation key:'
+            )
 
     @tier1
     def test_negative_update_usage_limit(self):
@@ -510,12 +549,16 @@ class ActivationKeyTestCase(CLITestCase):
         @Assert: Activation key is not updated. Appropriate error shown.
         """
         new_ak = self._make_activation_key()
-        with self.assertRaises(CLIReturnCodeError):
+        with self.assertRaises(CLIReturnCodeError) as raise_ctx:
             ActivationKey.update({
                 u'max-hosts': int('9' * 20),
                 u'id': new_ak['id'],
                 u'organization-id': self.org['id'],
             })
+        self.assert_error_msg(
+            raise_ctx,
+            u'Validation failed: Max hosts must be less than 2147483648'
+        )
 
     @skip_if_not_set('clients')
     @tier3
@@ -1042,13 +1085,17 @@ class ActivationKeyTestCase(CLITestCase):
         @Assert: Activation key is not successfully copied
         """
         parent_ak = self._make_activation_key()
-        with self.assertRaises(CLIReturnCodeError) as exception:
+        with self.assertRaises(CLIReturnCodeError) as raise_ctx:
             ActivationKey.copy({
                 u'name': parent_ak['name'],
                 u'new-name': parent_ak['name'],
                 u'organization-id': self.org['id'],
             })
-        self.assertEqual(exception.exception.return_code, 65)
+        self.assertEqual(raise_ctx.exception.return_code, 65)
+        self.assert_error_msg(
+            raise_ctx,
+            u'Validation failed: Name has already been taken'
+        )
 
     @run_in_one_thread
     @skip_if_not_set('fake_manifest')
