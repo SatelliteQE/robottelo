@@ -211,15 +211,16 @@ class RepositoryTestCase(CLITestCase):
         @Assert: YUM repository with a download policy is created
         """
         for policy in DOWNLOAD_POLICIES:
-            new_repo = self._make_repository({
-                u'content-type': u'yum',
-                u'download-policy': policy
-            })
-            self.assertEqual(new_repo['download-policy'], policy)
+            with self.subTest(policy):
+                new_repo = self._make_repository({
+                    u'content-type': u'yum',
+                    u'download-policy': policy
+                })
+                self.assertEqual(new_repo['download-policy'], policy)
 
     @tier1
     def test_positive_create_with_default_download_policy(self):
-        """Verify if the defaualt download policy is assigned
+        """Verify if the default download policy is assigned
         when creating a YUM repo without `--download-policy`
 
         @id: 9a3c4d95-d6ca-4377-9873-2c552b7d6ce7
@@ -228,7 +229,6 @@ class RepositoryTestCase(CLITestCase):
         """
         new_repo = self._make_repository({u'content-type': u'yum'})
         self.assertEqual(new_repo['download-policy'], 'immediate')
-        # get the setting instead?
 
     @tier1
     def test_positive_create_immediate_update_to_on_demand(self):
@@ -584,8 +584,11 @@ class RepositoryTestCase(CLITestCase):
 
         @Assert: Non-YUM repository is not created with a download policy
         """
-        for content_type in REPO_TYPE.keys():
-            if content_type != 'yum':
+        non_yum_repo_types = [
+            item for item in REPO_TYPE.keys() if item != 'yum'
+        ]
+        for content_type in non_yum_repo_types:
+            with self.subTest(content_type):
                 with self.assertRaises(CLIFactoryError):
                     self._make_repository({
                         u'content-type': content_type,
