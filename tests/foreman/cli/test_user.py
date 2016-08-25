@@ -601,6 +601,7 @@ class UserWithCleanUpTestCase(CLITestCase):
         the role itself
         """
 
+        super(UserWithCleanUpTestCase, cls).setUpClass()
         settings.configure()
         include_list = [gen_string("alphanumeric", 100)]
 
@@ -617,15 +618,18 @@ class UserWithCleanUpTestCase(CLITestCase):
     @classmethod
     def tearDownClass(cls):
         """Remove all roles created during tests"""
+        super(UserWithCleanUpTestCase, cls).tearDownClass()
         for role_id in cls.stubbed_roles:
             Role.delete({'id': role_id})
 
     def setUp(self):
         """Setting up user to be used on tests"""
+        super(UserWithCleanUpTestCase, self).setUp()
         self.user = make_user()
 
     def tearDown(self):
         """Cleaning up user used on tests"""
+        super(UserWithCleanUpTestCase, self).tearDown()
         User.delete({'id': self.user['id']})
 
     def assert_user_roles(self, roles_dct):
