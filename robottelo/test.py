@@ -55,6 +55,7 @@ from robottelo.ui.discoveryrules import DiscoveryRules
 from robottelo.ui.dockertag import DockerTag
 from robottelo.ui.domain import Domain
 from robottelo.ui.environment import Environment
+from robottelo.ui.errata import Errata
 from robottelo.ui.gpgkey import GPGKey
 from robottelo.ui.hardwaremodel import HardwareModel
 from robottelo.ui.hostcollection import HostCollection
@@ -170,6 +171,18 @@ class CLITestCase(TestCase):
     """Test case for CLI tests."""
     _multiprocess_can_split_ = True
 
+    def assert_error_msg(self, raise_ctx, *contents):
+        """Checking error msg present on Raise Context Exception
+        Raise assertion error if any of contents are not present on error msg
+
+        :param raise_ctx: Raise Context
+        :param contents: contents which must be present on message
+        """
+        exception = raise_ctx.exception
+        error_msg = getattr(exception, 'stderr', exception.message)
+        for content in contents:
+            self.assertIn(content, error_msg)
+
 
 class UITestCase(TestCase):
     """Test case for UI tests."""
@@ -275,6 +288,7 @@ class UITestCase(TestCase):
         self.content_views = ContentViews(self.browser)
         self.dockertag = DockerTag(self.browser)
         self.domain = Domain(self.browser)
+        self.errata = Errata(self.browser)
         self.discoveredhosts = DiscoveredHosts(self.browser)
         self.discoveryrules = DiscoveryRules(self.browser)
         self.environment = Environment(self.browser)

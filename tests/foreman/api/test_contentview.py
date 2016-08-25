@@ -23,7 +23,10 @@ from requests.exceptions import HTTPError
 from robottelo.api.utils import enable_rhrepo_and_fetchid, promote
 from robottelo import manifests
 from robottelo.constants import (
+    DOCKER_REGISTRY_HUB,
+    FAKE_1_YUM_REPO,
     FAKE_0_PUPPET_REPO,
+    FEDORA23_OSTREE_REPO,
     PRDS,
     PUPPET_MODULE_NTP_PUPPETLABS,
     REPOS,
@@ -41,6 +44,7 @@ from robottelo.decorators import (
     tier2,
     tier3,
 )
+from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file
 from robottelo.test import APITestCase
 
@@ -1383,3 +1387,251 @@ class ContentViewTestCaseStub(APITestCase):
         # As such, all variations in here subject to change.
         # Variations:
         #  * Read, Modify,  Promote?, Publish?, Subscribe??
+
+
+class OstreeContentViewTestCase(APITestCase):
+    """Tests for ostree contents in content views."""
+
+    @classmethod
+    @skip_if_os('RHEL6')
+    def setUpClass(cls):  # noqa
+        """Set up organization, product and repositories for tests."""
+        super(OstreeContentViewTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.product = entities.Product(organization=cls.org).create()
+        cls.ostree_repo = entities.Repository(
+            product=cls.product,
+            content_type='ostree',
+            url=FEDORA23_OSTREE_REPO,
+            unprotected=False
+        ).create()
+        cls.ostree_repo.sync
+        # Create new yum repository
+        cls.yum_repo = entities.Repository(
+            url=FAKE_1_YUM_REPO,
+            product=cls.product,
+        ).create()
+        cls.yum_repo.sync()
+        # Create new Puppet repository
+        cls.puppet_repo = entities.Repository(
+            url=FAKE_0_PUPPET_REPO,
+            content_type='puppet',
+            product=cls.product,
+        ).create()
+        cls.puppet_repo.sync()
+        # Create new docker repository
+        cls.docker_repo = entities.Repository(
+            content_type=u'docker',
+            docker_upstream_name=u'busybox',
+            product=cls.product,
+            url=DOCKER_REGISTRY_HUB,
+        ).create()
+        cls.docker_repo.sync()
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_add_custom_ostree_content(self):
+        """Associate custom ostree content in a view
+
+        @id: 209e59b0-c73d-4a5f-a1dc-0d74dff9a084
+
+        @Assert: Custom ostree content assigned and present in content view
+
+        @CaseLevel: Integration
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        self.assertEqual(len(content_view.repository), 0)
+        content_view.repository = [self.ostree_repo]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(len(content_view.repository), 1)
+        self.assertEqual(
+            content_view.repository[0].read().name,
+            self.ostree_repo.name
+        )
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_publish_custom_ostree(self):
+        """Publish a content view with custom ostree contents
+
+        @id: e5f5c940-20e5-406f-9d27-a703195a3b88
+
+        @Assert: Content-view with Custom ostree published successfully
+
+        @CaseLevel: Integration
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.repository = [self.ostree_repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        self.assertEqual(len(content_view.read().version), 1)
+
+    @tier2
+    def test_positive_promote_custom_ostree(self):
+        """Promote a content view with custom ostree contents
+
+        @id: 3d9f3641-0776-45f7-bf1e-7d5779346b93
+
+        @Assert: Content-view with custom ostree contents promoted successfully
+
+        @CaseLevel: Integration
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.repository = [self.ostree_repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        promote(content_view.read().version[0], lce.id)
+        self.assertEqual(
+            len(content_view.read().version[0].read().environment), 2)
+
+    @tier2
+    def test_positive_publish_promote_with_custom_ostree_and_other(self):
+        """Publish & Promote a content view with custom ostree and other contents
+
+        @id: 690ec30a-56ac-4478-afb2-be34a85a614a
+
+        @Assert: Content-view with custom ostree and other contents promoted
+        successfully
+
+        @CaseLevel: Integration
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.repository = [
+            self.ostree_repo,
+            self.yum_repo,
+            self.docker_repo
+        ]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(len(content_view.repository), 3)
+        puppet_module = random.choice(
+            content_view.available_puppet_modules()['results']
+        )
+        entities.ContentViewPuppetModule(
+            author=puppet_module['author'],
+            name=puppet_module['name'],
+            content_view=content_view,
+        ).create()
+        self.assertEqual(len(content_view.read().puppet_module), 1)
+        content_view.publish()
+        self.assertEqual(len(content_view.read().version), 1)
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        promote(content_view.read().version[0], lce.id)
+        self.assertEqual(
+            len(content_view.read().version[0].read().environment), 2)
+
+
+class ContentViewRedHatOstreeContent(APITestCase):
+    """Tests for publishing and promoting cv with RH ostree contents."""
+
+    @classmethod
+    @run_in_one_thread
+    @skip_if_os('RHEL6')
+    @skip_if_not_set('fake_manifest')
+    def setUpClass(cls):  # noqa
+        """Set up organization, product and repositories for tests."""
+        super(ContentViewRedHatOstreeContent, cls).setUpClass()
+
+        cls.org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            entities.Subscription().upload(
+                data={'organization_id': cls.org.id},
+                files={'content': manifest.content},
+            )
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch=None,
+            org_id=cls.org.id,
+            product=PRDS['rhah'],
+            repo=REPOS['rhaht']['name'],
+            reposet=REPOSET['rhaht'],
+            releasever=None,
+        )
+        cls.repo = entities.Repository(id=repo_id)
+        cls.repo.sync()
+
+    @tier2
+    def test_positive_add_rh_ostree_content(self):
+        """Associate RH atomic ostree content in a view
+
+        @id: 81883f05-e47f-45fa-bea4-c733da9cf30c
+
+        @Assert: RH atomic ostree content assigned and present in content view
+
+        @CaseLevel: Integration
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        self.assertEqual(len(content_view.repository), 0)
+        content_view.repository = [self.repo]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(len(content_view.repository), 1)
+        self.assertEqual(
+            content_view.repository[0].read().name,
+            REPOS['rhaht']['name'],
+        )
+
+    @tier2
+    def test_positive_publish_RH_ostree(self):
+        """Publish a content view with RH ostree contents
+
+        @id: 067ebb6e-2dad-4932-ae84-64c4373c9cb8
+
+        @Assert: Content-view with RH ostree contents published successfully
+
+        @CaseLevel: Integration
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.repository = [self.repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        self.assertEqual(len(content_view.read().version), 1)
+
+    @tier2
+    def test_positive_promote_RH_ostree(self):
+        """Promote a content view with RH ostree contents
+
+        @id: 447a96e0-331b-447c-9a8d-423d1b22ef6a
+
+        @Assert: Content-view with RH ostree contents promoted successfully
+
+        @CaseLevel: Integration
+        """
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.repository = [self.repo]
+        content_view = content_view.update(['repository'])
+        content_view.publish()
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        promote(content_view.read().version[0], lce.id)
+        self.assertEqual(
+            len(content_view.read().version[0].read().environment), 2)
+
+    @tier2
+    def test_positive_publish_promote_with_RH_ostree_and_other(self):
+        """Publish & Promote a content view with RH ostree and other contents
+
+        @id: def6caa3-ac31-42fa-9579-39a18b8244bd
+
+        @Assert: Content-view with RH ostree and other contents promoted
+        successfully
+
+        @CaseLevel: Integration
+        """
+        repo_id = enable_rhrepo_and_fetchid(
+            basearch='x86_64',
+            org_id=self.org.id,
+            product=PRDS['rhel'],
+            repo=REPOS['rhst7']['name'],
+            reposet=REPOSET['rhst7'],
+            releasever=None,
+        )
+        # Sync repository
+        rpm_repo = entities.Repository(id=repo_id)
+        rpm_repo.sync()
+        content_view = entities.ContentView(organization=self.org).create()
+        content_view.repository = [self.repo, rpm_repo]
+        content_view = content_view.update(['repository'])
+        self.assertEqual(len(content_view.repository), 2)
+        content_view.publish()
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        promote(content_view.read().version[0], lce.id)
+        self.assertEqual(
+            len(content_view.read().version[0].read().environment), 2)

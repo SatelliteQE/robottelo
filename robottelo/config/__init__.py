@@ -1,4 +1,4 @@
-from robottelo.config.settings import Settings
+from robottelo.config.base import Settings
 
 #: A :class:`Settings` object.
 settings = Settings()

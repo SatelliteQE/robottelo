@@ -172,5 +172,48 @@ class ContentHost(Base):
         self.assign_value(
             locators['contenthost.package_search_box'], package_name)
         self.click(locators['contenthost.package_search_button'])
-        strategy, value = locators['contenthost.package_search_name']
-        return self.wait_until_element((strategy, value % package_name))
+        return self.wait_until_element(
+            locators['contenthost.package_search_name'] % package_name)
+
+    def errata_search(self, name, errata_id, environment_name=None):
+        """Search for errata applicable for specific content host"""
+        self.click(self.search(name))
+        self.click(tab_locators['contenthost.tab_errata'])
+        if environment_name is not None:
+            self.click(
+                locators['contenthost.errata_environment_select'] %
+                environment_name
+            )
+        self.assign_value(
+            common_locators['kt_table_search'],
+            'id = "{0}"'.format(errata_id),
+        )
+        self.click(common_locators['kt_table_search_button'])
+        return self.wait_until_element(
+            locators['contenthost.errata_select'] % errata_id)
+
+    def fetch_errata_counts(self, name, details_page=False):
+        """Fetch errata of all types available for content host and return a
+        dict containing errata name (type), color and value (errata counts).
+        Works both from content host list and details pages.
+        """
+        contenthost = self.search(name)
+        if details_page:
+            self.click(contenthost)
+            strategy, value = locators[
+                'contenthost.details_page_errata_counts']
+        else:
+            strategy, value = locators['contenthost.select_errata_counts']
+            value = value % name
+        erratas = self.browser.find_elements(strategy, value)
+        result = {}
+        for errata in erratas:
+            value = errata.text
+            icon = errata.find_element(
+                *locators['contenthost.errata_counts_icon'])
+            name = icon.get_attribute('title').lower().replace(' ', '_')
+            color = icon.get_attribute('class').split()[-1]
+            result[name] = {}
+            result[name]['color'] = color
+            result[name]['value'] = int(value)
+        return result

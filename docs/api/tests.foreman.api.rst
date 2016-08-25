@@ -187,3 +187,7 @@
 ---------------------------------------
 
 .. automodule:: tests.foreman.api.test_usergroup
+
+:mod:`tests.foreman.api.test_variables`
+---------------------------------------
+.. automodule:: tests.foreman.api.test_variables

@@ -75,7 +75,9 @@ common_locators = LocatorDict({
 
     "search": (By.ID, "search"),
     "auto_search": (
-        By.XPATH, "//ul[contains(@id, 'ui-id')]/li/a[contains(., '%s')]"),
+        By.XPATH,
+        ("//ul[contains(@class, 'ui-autocomplete') or "
+         "contains(@template-url, 'autocomplete')]/li/a[contains(., '%s')]")),
     "search_button": (By.XPATH, "//button[contains(@type,'submit')]"),
     "search_dropdown": (
         By.XPATH,
@@ -111,6 +113,11 @@ common_locators = LocatorDict({
     "kt_search_button": (
         By.XPATH,
         "//button[@ng-click='table.search(table.searchTerm)']"),
+    "kt_table_search": (
+        By.XPATH, "//input[@ng-model='detailsTable.searchTerm']"),
+    "kt_table_search_button": (
+        By.XPATH,
+        "//button[@ng-click='detailsTable.search(detailsTable.searchTerm)']"),
     # Katello common Product and Repo locators
     "gpg_key": (By.ID, "gpg_key_id"),
     "all_values": (By.XPATH,

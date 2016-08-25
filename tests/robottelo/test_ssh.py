@@ -189,6 +189,16 @@ class SSHTestCase(TestCase):
         with self.assertRaises(AttributeError):
             ssh.add_authorized_key('ssh-rsa /gfdgdf/fsdfsdfsdf/@ user@host')
 
+    def test_fails_with_invalid_key_format(self):
+        with self.assertRaises(ValueError):
+            ssh.add_authorized_key([])
+        with self.assertRaises(ValueError):
+            ssh.add_authorized_key(123456)
+        with self.assertRaises(ValueError):
+            ssh.add_authorized_key(9999.456789)
+        with self.assertRaises(ValueError):
+            ssh.add_authorized_key({"invalid": "format"})
+
     @mock.patch('robottelo.ssh.settings')
     def test_add_authorized_key(self, settings):
         ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
@@ -211,6 +221,19 @@ class SSHTestCase(TestCase):
             self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     @mock.patch('robottelo.ssh.settings')
+    def test_execute_command_plain_output(self, settings):
+        ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
+        settings.server.hostname = 'example.com'
+        settings.server.ssh_username = 'nobody'
+        settings.server.ssh_key = None
+        settings.server.ssh_password = 'test_password'
+        with ssh.get_connection() as connection:  # pylint:disable=W0212
+            ret = ssh.execute_command(
+                'ls -la', connection, output_format='plain')
+            self.assertEquals(ret.stdout, u'ls -la')
+            self.assertIsInstance(ret, ssh.SSHCommandResult)
+
+    @mock.patch('robottelo.ssh.settings')
     def test_command(self, settings):
         ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
         settings.server.hostname = 'example.com'
@@ -220,6 +243,18 @@ class SSHTestCase(TestCase):
 
         ret = ssh.command('ls -la')
         self.assertEquals(ret.stdout, [u'ls -la'])
+        self.assertIsInstance(ret, ssh.SSHCommandResult)
+
+    @mock.patch('robottelo.ssh.settings')
+    def test_command_plain_output(self, settings):
+        ssh._call_paramiko_sshclient = MockSSHClient  # pylint:disable=W0212
+        settings.server.hostname = 'example.com'
+        settings.server.ssh_username = 'nobody'
+        settings.server.ssh_key = None
+        settings.server.ssh_password = 'test_password'
+
+        ret = ssh.command('ls -la', output_format='plain')
+        self.assertEquals(ret.stdout, u'ls -la')
         self.assertIsInstance(ret, ssh.SSHCommandResult)
 
     @mock.patch('robottelo.ssh.settings')

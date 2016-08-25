@@ -57,7 +57,7 @@ class ServerFileDownloader(object):
             file will be downloaded.
         :returns: Returns complete file path with name of downloaded file.
         """
-        if not self.file_downloaded:
+        if not self.file_downloaded:  # pragma: no cover
             self.fd, self.file_path = mkstemp(suffix='.{}'.format(extention))
             fileobj = os.fdopen(self.fd, 'w')
             fileobj.write(requests.get(fileurl).content)
@@ -269,7 +269,7 @@ def add_remote_execution_ssh_key(hostname, key_path=None, **kwargs):
     # get satellite box ssh-key or defaults to foreman-proxy
     key_path = key_path or '~foreman-proxy/.ssh/id_rsa_foreman_proxy.pub'
     # This connection defaults to settings.server
-    server_key = ssh.command('cat %s' % key_path).stdout
+    server_key = ssh.command('cat %s' % key_path, output_format='plain').stdout
 
     # add that key to the client using hostname and kwargs for connection
     ssh.add_authorized_key(server_key, hostname=hostname, **kwargs)

@@ -6,114 +6,11 @@ import unittest2
 from unittest2 import TestCase
 
 from robottelo.decorators import host
-from robottelo.ssh import SSHCommandResult
 
 if six.PY2:
     import mock
 else:
     from unittest import mock
-
-
-class GetHostOsVersionTestCase(TestCase):
-    """Tests for _get_host_os_version version"""
-
-    def setUp(self):
-        """Mocking ssh"""
-        self._patcher = mock.patch(
-            'robottelo.decorators.host.ssh.command')
-        self._command = self._patcher.start()
-
-    def tearDown(self):
-        """Stop mock created on setUp method"""
-        self._patcher.stop()
-
-    def assert_rhel_version(self, ssh_version, parsed_version):
-        """Encapsulate assertion logic regarding host os parsing
-
-        :param ssh_version: version returned from ssh
-        :param parsed_version: parsed version
-        """
-        self._command.return_value.stdout = [ssh_version]
-        self.assertEqual(
-            parsed_version,
-            host._get_host_os_version.__wrapped__()
-        )
-        self._command.assert_called_once_with('cat /etc/redhat-release')
-
-    def test_rhel_major_version_parsing(self):
-        """Check if can parse major versions.
-
-        Semantic version  example: 1.2.3
-        1 is major
-        2 is minor
-        3 is patch
-        """
-        self.assert_rhel_version(
-            u'Red Hat Enterprise Linux Server release 6 (Maipo)',
-            u'RHEL6'
-        )
-
-    def test_rhel_minor_version_parsing(self):
-        """Check if can parse minor versions"""
-        self.assert_rhel_version(
-            u'Red Hat Enterprise Linux Server release 7.2 (Maipo)',
-            u'RHEL7.2'
-        )
-
-    def test_rhel_patch_version_parsing(self):
-        """Check if can parse patch versions"""
-        self.assert_rhel_version(
-            u'Red Hat Enterprise Linux Server release 7.2.1 (Maipo)',
-            u'RHEL7.2.1'
-        )
-
-    def test_cache(self):
-        """Check _get_host_os_version() calls are cached"""
-        self._command.return_value.stdout = [
-            u'Red Hat Enterprise Linux Server release 7.2.1 (Maipo)'
-        ]
-        self.assertEqual(u'RHEL7.2.1', host._get_host_os_version())
-        self._command.assert_called_once_with('cat /etc/redhat-release')
-        self._command.return_value.stdout = [
-            u'Doesnt matter because because its cached'
-        ]
-        self.assertEqual(u'RHEL7.2.1', host._get_host_os_version())
-        # if called more than once cache didn't worked
-        self._command.assert_called_once_with('cat /etc/redhat-release')
-
-    @mock.patch('robottelo.decorators.host.LOGGER')
-    def test_command_error(self, logger):
-        """Check returns 'Not Available' on error
-        """
-        cmd = SSHCommandResult(
-            stdout=[],
-            stderr=u'bash: generate: command not found\n',
-            return_code=127, output_format=None
-        )
-        self._command.return_value = cmd
-
-        os_version = host._get_host_os_version.__wrapped__()
-        self.assertEqual('Not Available', os_version)
-        self._command.assert_called_once_with('cat /etc/redhat-release')
-        logger.warning.assert_called_once_with(
-            u'Host version not available: %r' % cmd)
-
-    @mock.patch('robottelo.decorators.host.LOGGER')
-    def test_command_parsing_error(self, logger):
-        """Test return not available on Fedora machines
-        It can be changed to handle other OS if needed
-        """
-        cmd = SSHCommandResult(
-            stdout=[u'Fedora release 23 (Twenty Three)'],
-            return_code=0
-        )
-        self._command.return_value = cmd
-        os_version = host._get_host_os_version.__wrapped__()
-        self.assertEqual('Not Available', os_version)
-        self._command.assert_called_once_with('cat /etc/redhat-release')
-        logger.warning.assert_called_once_with(
-            u'Host version not available: %r' % cmd
-        )
 
 
 class SkipIfOSIsUnavailableTestCase(TestCase):
@@ -126,7 +23,7 @@ class SkipIfOSIsUnavailableTestCase(TestCase):
         """Setup versions above and bellow version 7.1
 
         Mocking setting so robottello.properties is not need to run this test
-        Mocking _get_host_os_version to define host version to 'Not Available'
+        Mocking get_host_os_version to define host version to 'Not Available'
         so it emulates an error when trying to fetch it through ssh
         """
         down_versions = u'6 6.1 6.1.1'.split()
@@ -135,7 +32,7 @@ class SkipIfOSIsUnavailableTestCase(TestCase):
             u'RHEL' + v for v in chain(down_versions, up_versions)
         )
         cls._get_host_os_patcher = mock.patch(
-            'robottelo.decorators.host._get_host_os_version'
+            'robottelo.decorators.host.get_host_os_version'
         )
         cls._get_host_mock = cls._get_host_os_patcher.start()
         cls._get_host_mock.return_value = 'Not Available'

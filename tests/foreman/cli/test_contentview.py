@@ -647,6 +647,53 @@ class ContentViewTestCase(CLITestCase):
 
     @tier2
     @run_only_on('sat')
+    def test_positive_remove_version_by_id_from_composite(self):
+        """Create a composite content view and remove its content version by id
+
+        @id: 0ff675d0-45d6-4f15-9e84-3b5ce98ce7de
+
+        @assert: Composite content view info output does not contain any values
+
+        @CaseLevel: Integration
+        """
+        # Create new repository
+        new_repo = make_repository({u'product-id': self.product['id']})
+        # Sync REPO
+        Repository.synchronize({'id': new_repo['id']})
+        # Create new content-view and add repository to view
+        new_cv = make_content_view({u'organization-id': self.org['id']})
+        ContentView.add_repository({
+            u'id': new_cv['id'],
+            u'organization-id': self.org['id'],
+            u'repository-id': new_repo['id'],
+        })
+        # Publish a new version of CV
+        ContentView.publish({u'id': new_cv['id']})
+        # Get the CV info
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        # Create a composite CV
+        comp_cv = make_content_view({
+            'composite': True,
+            'organization-id': self.org['id'],
+            'component-ids': new_cv['versions'][0]['id']
+        })
+        ContentView.publish({u'id': comp_cv['id']})
+        new_cv = ContentView.info({u'id': comp_cv['id']})
+        env = new_cv['lifecycle-environments'][0]
+        cvv = new_cv['versions'][0]
+        ContentView.remove_from_environment({
+            u'id': new_cv['id'],
+            u'lifecycle-environment-id': env['id'],
+        })
+        ContentView.remove({
+            u'content-view-version-ids': cvv['id'],
+            u'id': new_cv['id'],
+        })
+        new_cv = ContentView.info({u'id': new_cv['id']})
+        self.assertEqual(len(new_cv['versions']), 0)
+
+    @tier2
+    @run_only_on('sat')
     def test_positive_create_composite_with_component_ids(self):
         """create a composite content view with a component_ids option
 
@@ -677,6 +724,45 @@ class ContentViewTestCase(CLITestCase):
         comp_cv = ContentView.info({u'id': comp_cv['id']})
         self.assertEqual(
             [comp['id'] for comp in comp_cv['components']],
+            component_ids,
+            'IDs of the composite content view components differ from '
+            'the input values',
+        )
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_update_composite_with_component_ids(self):
+        """Update a composite content view with a component_ids option
+
+        @id: e6106ff6-c526-40f2-bdc0-ae291f7b267e
+
+        @assert: Composite content view component ids are similar to the
+        nested content view versions ids
+
+        @CaseLevel: Integration
+        """
+        # Create a CV to add to the composite one
+        cv = make_content_view({u'organization-id': self.org['id']})
+        # Publish a new version of the CV
+        ContentView.publish({u'id': cv['id']})
+        new_cv = ContentView.info({u'id': cv['id']})
+        # Let us now store the version ids
+        component_ids = new_cv['versions'][0]['id']
+        # Create a composite CV
+        comp_cv = make_content_view({
+            'composite': True,
+            'organization-id': self.org['id']
+        })
+        # Update a composite content view with a component id version
+        ContentView.update({
+            'id': comp_cv['id'],
+            'component-ids': component_ids,
+        })
+        # Assert whether the composite content view components IDs are equal
+        # to the component_ids input values
+        comp_cv = ContentView.info({u'id': comp_cv['id']})
+        self.assertEqual(
+            comp_cv['components'][0]['id'],
             component_ids,
             'IDs of the composite content view components differ from '
             'the input values',

@@ -29,11 +29,11 @@ from robottelo.constants import (
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
     FAKE_0_CUSTOM_PACKAGE_NAME,
-    FAKE_0_YUM_REPO,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_1_CUSTOM_PACKAGE_NAME,
-    FAKE_1_ERRATA_ID,
     FAKE_2_CUSTOM_PACKAGE,
+    FAKE_2_ERRATA_ID,
+    FAKE_6_YUM_REPO,
     PRDS,
     REPOS,
     REPOSET,
@@ -443,7 +443,7 @@ class HostCollectionPackageManagementTest(UITestCase):
             'activationkey-id': cls.activation_key.id,
         })
         setup_org_for_a_custom_repo({
-            'url': FAKE_0_YUM_REPO,
+            'url': FAKE_6_YUM_REPO,
             'organization-id': cls.session_org.id,
             'content-view-id': cls.content_view.id,
             'lifecycle-environment-id': cls.env.id,
@@ -539,7 +539,7 @@ class HostCollectionPackageManagementTest(UITestCase):
         """
         for client in self.hosts:
             client.download_install_rpm(
-                FAKE_0_YUM_REPO,
+                FAKE_6_YUM_REPO,
                 FAKE_0_CUSTOM_PACKAGE
             )
         with Session(self.browser):
@@ -644,7 +644,7 @@ class HostCollectionPackageManagementTest(UITestCase):
         with Session(self.browser):
             result = self.hostcollection.execute_bulk_errata_installation(
                 self.host_collection.name,
-                FAKE_1_ERRATA_ID,
+                FAKE_2_ERRATA_ID,
             )
             self.assertEqual(result, 'success')
             self._validate_package_installed(self.hosts, FAKE_2_CUSTOM_PACKAGE)

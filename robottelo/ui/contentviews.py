@@ -295,7 +295,14 @@ class ContentViews(Base):
         otherwise remove_contentView
         """
         self.click(self.search(composite_cv))
-        self.click(tab_locators['contentviews.tab_content_views'])
+        if self.wait_until_element(
+                tab_locators['contentviews.tab_content_views']):
+            self.click(tab_locators['contentviews.tab_content_views'])
+        else:
+            raise UINoSuchElementError(
+                'Could not find ContentView tab, please make sure '
+                'selected view is composite'
+            )
         for cv_name in cv_names:
             if is_add:
                 self.click(tab_locators['contentviews.tab_cv_add'])

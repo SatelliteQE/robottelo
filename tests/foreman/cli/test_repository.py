@@ -43,6 +43,8 @@ from robottelo.constants import (
     FAKE_5_YUM_REPO,
     FAKE_7_PUPPET_REPO,
     RPM_TO_UPLOAD,
+    DOWNLOAD_POLICIES,
+    REPO_TYPE
 )
 from robottelo.decorators import (
     run_only_on,
@@ -199,6 +201,154 @@ class RepositoryTestCase(CLITestCase):
                 })
                 self.assertEqual(new_repo['url'], url_encoded)
                 self.assertEqual(new_repo['content-type'], u'yum')
+
+    @tier1
+    def test_positive_create_with_download_policy(self):
+        """Create YUM repositories with available download policies
+
+        @id: ffb386e6-c360-4d4b-a324-ccc21768b4f8
+
+        @Assert: YUM repository with a download policy is created
+        """
+        for policy in DOWNLOAD_POLICIES:
+            with self.subTest(policy):
+                new_repo = self._make_repository({
+                    u'content-type': u'yum',
+                    u'download-policy': policy
+                })
+                self.assertEqual(new_repo['download-policy'], policy)
+
+    @tier1
+    def test_positive_create_with_default_download_policy(self):
+        """Verify if the default download policy is assigned
+        when creating a YUM repo without `--download-policy`
+
+        @id: 9a3c4d95-d6ca-4377-9873-2c552b7d6ce7
+
+        @Assert: YUM repository with a default download policy
+        """
+        new_repo = self._make_repository({u'content-type': u'yum'})
+        self.assertEqual(new_repo['download-policy'], 'immediate')
+
+    @tier1
+    def test_positive_create_immediate_update_to_on_demand(self):
+        """Update `immediate` download policy to `on_demand`
+        for a newly created YUM repository
+
+        @id: 1a80d686-3f7b-475e-9d1a-3e1f51d55101
+
+        @Assert: immediate download policy is updated to on_demand
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'yum',
+            u'download-policy': 'immediate'
+        })
+        Repository.update({
+            u'id': new_repo['id'],
+            u'download-policy': 'on_demand'
+        })
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(result['download-policy'], 'on_demand')
+
+    @tier1
+    def test_positive_create_immediate_update_to_background(self):
+        """Update `immediate` download policy to `background`
+        for a newly created YUM repository
+
+        @id: 7a9243eb-012c-40ad-9105-b078ed0a9eda
+
+        @Assert: immediate download policy is updated to background
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'yum',
+            u'download-policy': 'immediate'
+        })
+        Repository.update({
+            u'id': new_repo['id'],
+            u'download-policy': 'background'
+        })
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(result['download-policy'], 'background')
+
+    @tier1
+    def test_positive_create_on_demand_update_to_immediate(self):
+        """Update `on_demand` download policy to `immediate`
+        for a newly created YUM repository
+
+        @id: 1e8338af-32e5-4f92-9215-bfdc1973c8f7
+
+        @Assert: on_demand download policy is updated to immediate
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'yum',
+            u'download-policy': 'on_demand'
+        })
+        Repository.update({
+            u'id': new_repo['id'],
+            u'download-policy': 'immediate'
+        })
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(result['download-policy'], 'immediate')
+
+    @tier1
+    def test_positive_create_on_demand_update_to_background(self):
+        """Update `on_demand` download policy to `background`
+        for a newly created YUM repository
+
+        @id: da600200-5bd4-4cb8-a891-37cd2233803e
+
+        @Assert: on_demand download policy is updated to background
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'yum',
+            u'download-policy': 'on_demand'
+        })
+        Repository.update({
+            u'id': new_repo['id'],
+            u'download-policy': 'background'
+        })
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(result['download-policy'], 'background')
+
+    @tier1
+    def test_positive_create_background_update_to_immediate(self):
+        """Update `background` download policy to `immediate`
+        for a newly created YUM repository
+
+        @id: cf4dca0c-36bd-4a3c-aa29-f435ac60b3f8
+
+        @Assert: background download policy is updated to immediate
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'yum',
+            u'download-policy': 'background'
+        })
+        Repository.update({
+            u'id': new_repo['id'],
+            u'download-policy': 'immediate'
+        })
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(result['download-policy'], 'immediate')
+
+    @tier1
+    def test_positive_create_background_update_to_on_demand(self):
+        """Update `background` download policy to `on_demand`
+        for a newly created YUM repository
+
+        @id: 0f943e3d-44b7-4b6e-9a7d-d33f7f4864d1
+
+        @Assert: background download policy is updated to on_demand
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'yum',
+            u'download-policy': 'background'
+        })
+        Repository.update({
+            u'id': new_repo['id'],
+            u'download-policy': 'on_demand'
+        })
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(result['download-policy'], 'on_demand')
 
     @tier1
     def test_positive_create_with_auth_puppet_repo(self):
@@ -396,6 +546,54 @@ class RepositoryTestCase(CLITestCase):
                 url = FAKE_5_YUM_REPO.format(cred['login'], cred['pass'])
                 with self.assertRaises(CLIFactoryError):
                     self._make_repository({u'url': url})
+
+    @tier1
+    def test_negative_create_with_invalid_download_policy(self):
+        """Verify that YUM repository cannot be created with invalid download policy
+
+        @id: 3b143bf8-7056-4c94-910d-69a451071f26
+
+        @Assert: YUM repository is not created with invalid download policy
+        """
+        with self.assertRaises(CLIFactoryError):
+            self._make_repository({
+                u'content-type': u'yum',
+                u'download-policy': gen_string('alpha', 5)
+            })
+
+    @tier1
+    def test_negative_update_to_invalid_download_policy(self):
+        """Verify that YUM repository cannot be updated to invalid download policy
+
+        @id: 5bd6a2e4-7ff0-42ac-825a-6b2a2f687c89
+
+        @Assert: YUM repository is not updated to invalid download policy
+        """
+        with self.assertRaises(CLIReturnCodeError):
+            new_repo = self._make_repository({u'content-type': u'yum'})
+            Repository.update({
+                u'id': new_repo['id'],
+                u'download-policy': gen_string('alpha', 5)
+            })
+
+    @tier1
+    def test_negative_create_non_yum_with_download_policy(self):
+        """Verify that non-YUM repositories cannot be created with download policy
+
+        @id: 71388973-50ea-4a20-9406-0aca142014ca
+
+        @Assert: Non-YUM repository is not created with a download policy
+        """
+        non_yum_repo_types = [
+            item for item in REPO_TYPE.keys() if item != 'yum'
+        ]
+        for content_type in non_yum_repo_types:
+            with self.subTest(content_type):
+                with self.assertRaises(CLIFactoryError):
+                    self._make_repository({
+                        u'content-type': content_type,
+                        u'download-policy': u'on_demand'
+                    })
 
     @run_only_on('sat')
     @tier2

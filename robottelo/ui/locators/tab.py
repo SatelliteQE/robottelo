@@ -197,6 +197,12 @@ tab_locators = LocatorDict({
         ("//a[contains(@ui-sref,'subscriptions.add')]"
          "/span[@class='ng-scope']")),
 
+    # Errata
+    "errata.tab_content_hosts": (
+        By.XPATH, "//a[@ui-sref='errata.details.content-hosts']"),
+    "errata.tab_repositories": (
+        By.XPATH, "//a[@ui-sref='errata.details.repositories']"),
+
     # Sync Plans
     # Third level UI
     "sp.tab_details": (
