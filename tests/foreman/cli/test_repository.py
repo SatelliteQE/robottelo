@@ -23,12 +23,14 @@ from robottelo.cli.task import Task
 from robottelo.cli.factory import (
     make_gpg_key,
     make_org,
+    make_product,
     make_product_wait,
     make_repository,
     CLIFactoryError
 )
 from robottelo.cli.repository import Repository
 from robottelo.constants import (
+    FEDORA23_OSTREE_REPO,
     DOCKER_REGISTRY_HUB,
     FAKE_0_YUM_REPO,
     FAKE_1_PUPPET_REPO,
@@ -59,6 +61,7 @@ from robottelo.datafactory import (
     valid_data_list,
     valid_http_credentials,
 )
+from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file
 from robottelo.test import CLITestCase
 
@@ -589,7 +592,11 @@ class RepositoryTestCase(CLITestCase):
         ]
         for content_type in non_yum_repo_types:
             with self.subTest(content_type):
-                with self.assertRaises(CLIFactoryError):
+                with self.assertRaisesRegex(
+                    CLIFactoryError,
+                    u'Validation failed: Download policy cannot be set for '
+                    'non-yum repositories'
+                ):
                     self._make_repository({
                         u'content-type': content_type,
                         u'download-policy': u'on_demand'
@@ -911,3 +918,147 @@ class RepositoryTestCase(CLITestCase):
             "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD),
             result[0]['message'],
         )
+
+
+class OstreeRepositoryTestCase(CLITestCase):
+    """Ostree Repository CLI tests."""
+
+    @classmethod
+    @skip_if_os('RHEL6')
+    def setUpClass(cls):
+        """Create an organization and product which can be re-used in tests."""
+        super(OstreeRepositoryTestCase, cls).setUpClass()
+        cls.org = make_org()
+        cls.product = make_product({u'organization-id': cls.org['id']})
+
+    def _make_repository(self, options=None):
+        """Makes a new repository and asserts its success"""
+        if options is None:
+            options = {}
+
+        if options.get('product-id') is None:
+            options[u'product-id'] = self.product['id']
+
+        return make_repository(options)
+
+    @tier1
+    def test_positive_create_ostree_repo(self):
+        """Create a ostree repository
+
+        @id: a93c52e1-b32e-4590-981b-636ae8b8314d
+
+        @Assert: ostree repository is created
+        """
+        for name in valid_data_list():
+            with self.subTest(name):
+                new_repo = self._make_repository({
+                    u'name': name,
+                    u'content-type': u'ostree',
+                    u'publish-via-http': u'false',
+                    u'url': FEDORA23_OSTREE_REPO,
+                })
+        self.assertEqual(new_repo['name'], name)
+        self.assertEqual(new_repo['content-type'], u'ostree')
+
+    @tier1
+    @skip_if_bug_open('bugzilla', 1370108)
+    def test_negative_create_ostree_repo_with_checksum(self):
+        """Create a ostree repository with checksum type
+
+        @id: a334e0f7-e1be-4add-bbf2-2fd9f0b982c4
+
+        @Assert: Validation error is raised
+        """
+        for checksum_type in u'sha1', u'sha256':
+            with self.subTest(checksum_type):
+                with self.assertRaisesRegex(
+                    CLIFactoryError,
+                    u'Validation failed: Checksum type cannot be set for '
+                    'non-yum repositories'
+                ):
+                    self._make_repository({
+                        u'content-type': u'ostree',
+                        u'checksum-type': checksum_type,
+                        u'publish-via-http': u'false',
+                        u'url': FEDORA23_OSTREE_REPO,
+                    })
+
+    @tier1
+    def test_negative_create_unprotected_ostree_repo(self):
+        """Create a ostree repository and published via http
+
+        @id: 2b139560-65bb-4a40-9724-5cca57bd8d30
+
+        @Assert: ostree repository is not created
+        """
+        for use_http in u'true', u'yes', u'1':
+            with self.subTest(use_http):
+                with self.assertRaisesRegex(
+                    CLIFactoryError,
+                    u'Validation failed: OSTree Repositories cannot be '
+                    'unprotected'
+                ):
+                    self._make_repository({
+                        u'content-type': u'ostree',
+                        u'publish-via-http': u'true',
+                        u'url': FEDORA23_OSTREE_REPO,
+                    })
+
+    @tier2
+    def test_positive_synchronize_ostree_repo(self):
+        """Synchronize ostree repo
+
+        @id: 64fcae0a-44ae-46ae-9938-032bba1331e9
+
+        @Assert: Ostree repository is created and synced
+
+        @CaseLevel: Integration
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'ostree',
+            u'publish-via-http': u'false',
+            u'url': FEDORA23_OSTREE_REPO,
+        })
+        # Synchronize it
+        Repository.synchronize({'id': new_repo['id']})
+        # Verify it has finished
+        new_repo = Repository.info({'id': new_repo['id']})
+        self.assertEqual(new_repo['sync']['status'], 'Success')
+
+    @tier1
+    def test_positive_delete_ostree_by_name(self):
+        """Delete Ostree repository by name
+
+        @id: 0b545c22-acff-47b6-92ff-669b348f9fa6
+
+        @Assert: Repository is deleted by name
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'ostree',
+            u'publish-via-http': u'false',
+            u'url': FEDORA23_OSTREE_REPO,
+        })
+        Repository.delete({
+            u'name': new_repo['name'],
+            u'product': new_repo['product']['name'],
+            u'organization': new_repo['organization']
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            Repository.info({u'name': new_repo['name']})
+
+    @tier1
+    def test_positive_delete_ostree_by_id(self):
+        """Delete Ostree repository by id
+
+        @id: 171917f5-1a1b-440f-90c7-b8418f1da132
+
+        @Assert: Repository is deleted by id
+        """
+        new_repo = self._make_repository({
+            u'content-type': u'ostree',
+            u'publish-via-http': u'false',
+            u'url': FEDORA23_OSTREE_REPO,
+        })
+        Repository.delete({u'id': new_repo['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            Repository.info({u'id': new_repo['id']})
