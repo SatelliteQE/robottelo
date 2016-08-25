@@ -26,6 +26,8 @@ from robottelo.constants import (
     FAKE_7_PUPPET_REPO,
     FAKE_2_YUM_REPO,
     FAKE_5_YUM_REPO,
+    FEDORA22_OSTREE_REPO,
+    FEDORA23_OSTREE_REPO,
     PRDS,
     REPOS,
     REPOSET,
@@ -51,6 +53,7 @@ from robottelo.decorators import (
     tier1,
     tier2,
 )
+from robottelo.decorators.host import skip_if_os
 from robottelo.helpers import get_data_file, read_data_file
 from robottelo.test import APITestCase
 
@@ -945,3 +948,112 @@ class DockerRepositoryTestCase(APITestCase):
         repository.name = new_name
         repository = repository.update(['name'])
         self.assertEqual(new_name, repository.name)
+
+
+class OstreeRepositoryTestCase(APITestCase):
+    """Tests specific to using ``OSTree`` repositories."""
+
+    @classmethod
+    @skip_if_os('RHEL6')
+    def setUpClass(cls):  # noqa
+        """Create a product and an org which can be re-used in tests."""
+        super(OstreeRepositoryTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.product = entities.Product(organization=cls.org).create()
+
+    @tier1
+    def test_positive_create_ostree(self):
+        """Create ostree repository.
+
+        @id: f3332dd3-1e6d-44e2-8f24-fae6fba2de8d
+
+        @Assert: A repository is created and has ostree type.
+        """
+        repo = entities.Repository(
+            product=self.product,
+            content_type='ostree',
+            url=FEDORA23_OSTREE_REPO,
+            unprotected=False
+        ).create()
+        self.assertEqual(repo.content_type, 'ostree')
+
+    @tier1
+    def test_positive_update_name(self):
+        """Update ostree repository name.
+
+        @id: 6dff0c90-170f-40b9-9347-8ec97d89f2fd
+
+        @Assert: The repository name is updated.
+        """
+        repo = entities.Repository(
+            product=self.product,
+            content_type='ostree',
+            url=FEDORA23_OSTREE_REPO,
+            unprotected=False
+        ).create()
+        new_name = gen_string('alpha')
+        repo.name = new_name
+        repo = repo.update(['name'])
+        self.assertEqual(new_name, repo.name)
+
+    @tier1
+    def test_positive_update_url(self):
+        """Update ostree repository url.
+
+        @id: 6ba45475-a060-42a7-bc9e-ea2824a5476b
+
+        @Assert: The repository url is updated.
+        """
+        repo = entities.Repository(
+            product=self.product,
+            content_type='ostree',
+            url=FEDORA23_OSTREE_REPO,
+            unprotected=False
+        ).create()
+        new_url = FEDORA22_OSTREE_REPO
+        repo.url = new_url
+        repo = repo.update(['url'])
+        self.assertEqual(new_url, repo.url)
+
+    @tier1
+    def test_positive_delete_ostree(self):
+        """Delete an ostree repository.
+
+        @id: 05db79ed-28c7-47fc-85f5-194a805d71ca
+
+        @Assert: The ostree repository deleted successfully.
+        """
+        repo = entities.Repository(
+            product=self.product,
+            content_type='ostree',
+            url=FEDORA23_OSTREE_REPO,
+            unprotected=False
+        ).create()
+        repo.delete()
+        with self.assertRaises(HTTPError):
+            repo.read()
+
+    @tier2
+    @run_in_one_thread
+    @skip_if_not_set('fake_manifest')
+    def test_positive_sync_rh_atomic(self):
+        """Sync RH Atomic Ostree Repository.
+
+        @id: 38c8aeaa-5ad2-40cb-b1d2-f0ac604f9fdd
+
+        @Assert: Synced repo should fetch the data successfully.
+
+        @CaseLevel: Integration
+        """
+        org = entities.Organization().create()
+        with manifests.clone() as manifest:
+            upload_manifest(org.id, manifest.content)
+        repo_id = enable_rhrepo_and_fetchid(
+            org_id=org.id,
+            product=PRDS['rhah'],
+            repo=REPOS['rhaht']['name'],
+            reposet=REPOSET['rhaht'],
+            releasever=None,
+            basearch=None,
+        )
+        entities.Repository(id=repo_id).sync()
