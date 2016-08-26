@@ -180,8 +180,12 @@ class SubnetTestCase(CLITestCase):
         """
         for options in invalid_missing_attributes():
             with self.subTest(options):
-                with self.assertRaises(CLIFactoryError):
+                with self.assertRaises(CLIFactoryError) as raise_ctx:
                     make_subnet(options)
+                self.assert_error_msg(
+                    raise_ctx,
+                    u'Could not create the subnet:'
+                )
 
     @run_only_on('sat')
     @tier1
@@ -200,8 +204,12 @@ class SubnetTestCase(CLITestCase):
                 # generate pool range from network address
                 for key, val in pool.iteritems():
                     opts[key] = re.sub(r'\d+$', str(val), network)
-                with self.assertRaises(CLIFactoryError):
+                with self.assertRaises(CLIFactoryError) as raise_ctx:
                     make_subnet(opts)
+                self.assert_error_msg(
+                    raise_ctx,
+                    u'Could not create the subnet:'
+                )
 
     @run_only_on('sat')
     @tier1
@@ -301,12 +309,16 @@ class SubnetTestCase(CLITestCase):
         for options in invalid_missing_attributes():
             with self.subTest(options):
                 options['id'] = subnet['id']
-                with self.assertRaises(CLIReturnCodeError):
+                with self.assertRaises(CLIReturnCodeError) as raise_ctx:
                     Subnet.update(options)
                     # check - subnet is not updated
                     result = Subnet.info({u'id': subnet['id']})
                     for key in options.keys():
                         self.assertEqual(subnet[key], result[key])
+                self.assert_error_msg(
+                    raise_ctx,
+                    u'Could not update the subnet:'
+                )
 
     @run_only_on('sat')
     @tier1
@@ -324,8 +336,12 @@ class SubnetTestCase(CLITestCase):
                 # generate pool range from network address
                 for key, val in options.iteritems():
                     opts[key] = re.sub(r'\d+$', str(val), subnet['network'])
-                with self.assertRaises(CLIReturnCodeError):
+                with self.assertRaises(CLIReturnCodeError) as raise_ctx:
                     Subnet.update(opts)
+                self.assert_error_msg(
+                    raise_ctx,
+                    u'Could not update the subnet:'
+                )
                 # check - subnet is not updated
                 result = Subnet.info({u'id': subnet['id']})
                 for key in options.keys():
