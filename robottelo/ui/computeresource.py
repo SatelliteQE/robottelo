@@ -1,6 +1,6 @@
 # -*- encoding: utf-8 -*-
 from robottelo.constants import FILTER
-from robottelo.ui.base import Base, UINoSuchElementError
+from robottelo.ui.base import Base, UINoSuchElementError, UIError
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.navigator import Navigator
 
@@ -71,9 +71,7 @@ class ComputeResource(Base):
                     'button'
                 ))
                 self.click(locators[button_locator])
-                self.find_element(
-                    locators[param_locator]
-                ).select_by_visible_text(parameter_value)
+                self.assign_value(locators[param_locator], parameter_value)
 
     def _configure_orgs(self, orgs, org_select):
         """Provides configuration capabilities for compute resource
@@ -119,7 +117,7 @@ class ComputeResource(Base):
 
     def update(self, name, newname=None, parameter_list=None,
                orgs=None, org_select=None, locations=None, loc_select=None):
-        """Updates compute resource entity"""
+        """Updates compute resource entity."""
         element = self.search(name)
         if element is None:
             raise UINoSuchElementError(
@@ -137,7 +135,7 @@ class ComputeResource(Base):
         self.click(common_locators['submit'])
 
     def delete(self, name, really=True):
-        """Removes the compute resource entity"""
+        """Removes the compute resource entity."""
         self.delete_entity(
             name,
             really,
@@ -155,3 +153,83 @@ class ComputeResource(Base):
             locators['resource.filter_containers'], container_name)
         strategy, value = locators['resource.select_container']
         return self.wait_until_element((strategy, value % container_name))
+
+    def list_vms(self, res_name):
+        """Lists vms of a particular compute resource.
+
+        Note: Currently lists only vms that show up on the first page.
+        """
+        self.click(self.search(res_name))
+        self.click(tab_locators['resource.tab_virtual_machines'])
+        vm_elements = self.find_elements(locators['resource.vm_list'])
+        return [vm.text for vm in vm_elements]
+
+    def add_image(self, res_name, parameter_list):
+        """Adds an image to a compute resource."""
+        self.click(self.search(res_name))
+        self.click(locators['resource.image_add'])
+        self.wait_until_element(locators['resource.image_name'])
+        for parameter_name, parameter_value, parameter_type in parameter_list:
+            param_locator = '.'.join((
+                'resource.image',
+                (parameter_name.lower()).replace(' ', '_')
+            ))
+        self.assign_value(locators[param_locator], parameter_value)
+        self.click(locators['resource.image_submit'])
+
+    def list_images(self, res_name):
+        """Lists images on Compute Resource.
+
+        Note: Currently lists only images that show up on the first page.
+        """
+        self.click(self.search(res_name))
+        self.click(tab_locators['tab_images'])
+        image_elements = self.find_elements(locators['resource.image_list'])
+        return [image.text for image in image_elements]
+
+    def vm_action_stop(self, res_name, vm_name, really):
+        """Stops a vm on the compute resource."""
+        self.click(self.search(res_name))
+        self.click(tab_locators['resource.tab_virtual_machines'])
+        button = self.find_element(
+            locators['resource.vm_power_button'] % vm_name
+        )
+        if 'Off' not in button.text:
+            raise UIError(
+                'Could not stop VM {0}. VM is not running'.format(vm_name)
+            )
+        self.click(button)
+        self.handle_alert(really)
+
+    def vm_action_start(self, res_name, vm_name):
+        """Starts a vm on the compute resource."""
+        self.click(self.search(res_name))
+        self.click(tab_locators['resource.tab_virtual_machines'])
+        button = self.find_element(
+            locators['resource.vm_power_button'] % vm_name
+        )
+        if 'On' not in button.text:
+            raise UIError(
+                'Could not start VM {0}. VM is already running'.format(vm_name)
+            )
+        self.click(button)
+
+    def vm_action_toggle(self, res_name, vm_name, really):
+        """Toggle power status of a vm on the compute resource."""
+        self.click(self.search(res_name))
+        self.click(tab_locators['resource.tab_virtual_machines'])
+        button = self.find_element(
+            locators['resource.vm_power_button'] % vm_name
+        )
+        self.click(button)
+        if "Off" in button.text:
+            self.handle_alert(really)
+
+    def vm_delete(self, res_name, vm_name, really):
+        """Removes a vm from the compute resource."""
+        self.click(self.search(res_name))
+        self.click(tab_locators['resource.tab_virtual_machines'])
+        for locator in [locators['resource.vm_delete_button_dropdown'],
+                        locators['resource.vm_delete_button']]:
+            self.click(locator % vm_name)
+        self.handle_alert(really)

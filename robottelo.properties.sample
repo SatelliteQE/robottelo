@@ -248,6 +248,7 @@ ssh_key=
 # 'resync' denotes resync; 'sync' denotes initial sync
 # sync_type='sync'
 
+# Compute Resources
 # [compute_resources]
 # External Libvirt Hostname
 # libvirt_hostname=
@@ -269,3 +270,53 @@ ssh_key=
 # for RHEL7 - the ports needs to have a correct selinux context set:
 # 'semanage port -a -t websm_port_t -p tcp <port-range>'
 port_range=9091, 14999
+
+# [rhev]
+# RHEV to be added as a compute resource.
+# hostname: RHEV API URL, for example: https://ovirt.example.com/api
+# hostname=
+# username: Login for RHEVM
+# username=
+# password: Password for RHEVM
+# password=
+# datacenter: RHEVM datacenter, for example: Default
+# datacenter=
+# vm_name: Name of VM to power On/Off & delete
+# vm_name=
+
+# RHEV Compute resource image data
+# image_os: Operating system of the image
+# image_os=
+# image_arch: Architecture of the image
+# image_arch=
+# image_username: Login to the image
+# image_username=
+# image_password: Password to the image
+# image_password=
+# image_name: Image name on the external provider
+# image_name=
+
+# [vmware]
+# Vmware to be added as a compute resource
+# vcenter: vmware vcenter URL
+# vcenter=
+# username: Login for vmware
+# username=
+# password: Password for vmware
+# password=
+# datacenter: vmware datacenter
+# datacenter=
+# vm_name: Name of VM to power On/Off & delete
+# vm_name=
+
+# Vmware Compute resource image data
+# image_os: Operating system of the image
+# image_os=
+# image_arch: Architecture of the image
+# image_arch=
+# image_username: Login to the image
+# image_username=
+# image_password: Password to the image
+# image_password=
+# image_name: Image name on the external provider
+# image_name=

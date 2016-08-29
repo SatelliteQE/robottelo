@@ -70,6 +70,33 @@ class Base(object):
             )
         return None
 
+    def find_elements(self, locator):
+        """Wrapper around Selenium's WebDriver that allows you to fetch list of
+        elements in the web page.
+
+        """
+        try:
+            _webelements = self.browser.find_elements(*locator)
+            self.wait_for_ajax()
+            webelements = []
+            for _webelement in _webelements:
+                if _webelement.is_displayed():
+                    webelements.append(_webelement)
+            return webelements
+        except NoSuchElementException as err:
+            self.logger.debug(
+                '%s: Could not locate the elements of %s.',
+                type(err).__name__,
+                locator[1]
+            )
+        except TimeoutException as err:
+            self.logger.debug(
+                'Timeout while waiting for locator "%s": "%s"',
+                locator[0],
+                locator[1]
+            )
+        return None
+
     def _search_locator(self):
         """Specify element name locator which should be used in search
         procedure
