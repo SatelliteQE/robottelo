@@ -391,6 +391,7 @@ class FakeCapsuleSettings(FeatureSettings):
             validation_errors.append(
                 '[fake_capsules] port_range option must be provided.'
             )
+        return validation_errors
 
 
 class RHEVSettings(FeatureSettings):
