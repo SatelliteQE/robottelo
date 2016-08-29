@@ -231,10 +231,6 @@ locators = LocatorDict({
     "profile.resource_form": (By.XPATH, "//form[@id='new_compute_attribute']"),
 
     # Compute Resource
-    # Some locator values can be duplicated. That was performed more because of
-    # bad application design rather than wrong test automation implementation.
-    # Also, that will prevent unnecessary confusion in all these provider type
-    # fields and much easier maintenance in case of any changes to DOM
     "resource.new": (
         By.XPATH, "//a[contains(@href, '/compute_resources/new')]"),
     "resource.name": (By.ID, "compute_resource_name"),
@@ -250,7 +246,12 @@ locators = LocatorDict({
     "resource.username": (By.ID, "compute_resource_user"),
     "resource.password": (By.ID, "compute_resource_password"),
     "resource.datacenter": (By.XPATH, "//select[@id='compute_resource_uuid']"),
+    "resource.datacenter_vsphere": (
+        By.XPATH, "//select[@id='compute_resource_datacenter']"),
     "resource.datacenter.button": (
+        By.XPATH,
+        "//a[contains(@data-url, '/compute_resources/test_connection')]"),
+    "resource.datacenter_vsphere.button": (
         By.XPATH,
         "//a[contains(@data-url, '/compute_resources/test_connection')]"),
     "resource.quota_id": (
@@ -297,6 +298,41 @@ locators = LocatorDict({
         By.XPATH,
         ("//a[contains(@href, 'compute_resources/') and "
          "contains(@href, 'vms/') and contains(., '%s')]")),
+    "resource.get_by_name": (
+        By.XPATH,
+        "//a[not(contains(@href, 'search')) and contains(@href, '%s')]"),
+
+    # Locators under compute-resources vm tab.
+    "resource.vm_power_button": (
+        By.XPATH,
+        "//a[contains(@href,'power') and contains(@data-confirm, '%s')]"),
+    "resource.vm_delete_button_dropdown": (
+        By.XPATH,
+        ("//a[contains(@href,'power') and contains(@data-confirm, '%s')]"
+         "/../a[@data-toggle='dropdown']")),
+    "resource.vm_delete_button": (
+        By.XPATH,
+        ("//a[contains(@href,'power') and contains(@data-confirm, '%s')]"
+         "/../ul/li/a[contains(.,'Delete')]")),
+    "resource.vm_list": (
+        By.XPATH,
+        "//div[@id='vms']//tbody/tr/td/a"),
+
+    # Locators under compute-resources image tab.
+    "resource.image_add": (By.XPATH, "//a[.='New Image']"),
+    "resource.image_name": (By.ID, "image_name"),
+    "resource.image_operatingsystem": (
+        By.XPATH, "//select[@id='image_operatingsystem_id']"),
+    "resource.image_architecture": (
+        By.XPATH, "//select[@id='image_architecture_id']"),
+    "resource.image_username": (By.ID, "image_username"),
+    "resource.image_password": (By.ID, "image_password"),
+    "resource.image_uuid": (By.XPATH, "//input[@id='image_uuid']"),
+    "resource.image_submit": (
+        By.XPATH, "//input[@data-id='aid_create_image']"),
+    "resource.image_list": (
+        By.XPATH,
+        "//div[@id='images_list']//tbody/tr/td[1]"),
 
     # Content Hosts
     "contenthost.select_name": (

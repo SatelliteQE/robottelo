@@ -326,4 +326,6 @@ tab_locators = LocatorDict({
     # Compute resources
     "resource.tab_containers": (
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'vms')]"),
+    "resource.tab_virtual_machines": (By.XPATH, "//a[contains(@href, 'vms')]"),
+    "resource.tab_images": (By.XPATH, "//a[.='Images']"),
 })
