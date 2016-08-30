@@ -48,6 +48,11 @@
 
 .. automodule:: tests.foreman.ui.test_computeresource_rhev
 
+:mod:`tests.foreman.ui.test_computeresource_vmware`
+---------------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_computeresource_vmware
+
 :mod:`tests.foreman.ui.test_config_group`
 -----------------------------------------
 
