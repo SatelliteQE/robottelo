@@ -1,7 +1,6 @@
 # -*- encoding: utf-8 -*-
 """Defines various constants"""
 from nailgun import entities
-from robottelo.host_info import SatVersionDependentValues
 
 # Bugzilla
 BZ_OPEN_STATUSES = [
@@ -178,17 +177,7 @@ PRDS = {
     'rhah': 'Red Hat Enterprise Linux Atomic Host',
 }
 
-_REPOSET_6_1 = {
-    'rhct6': 'Red Hat CloudForms Tools for RHEL 6 (RPMs)',
-    'rhel6': 'Red Hat Enterprise Linux 6 Server (RPMs)',
-    'rhva6': (
-        'Red Hat Enterprise Virtualization Agents for RHEL 6 Server (RPMs)'
-    ),
-    'rhst7': 'Red Hat Satellite Tools 6.1 (for RHEL 7 Server) (RPMs)',
-    'rhst6': 'Red Hat Satellite Tools 6.1 (for RHEL 6 Server) (RPMs)',
-}
-
-_REPOSET_6_2 = {
+REPOSET = {
     'rhct6': 'Red Hat CloudForms Tools for RHEL 6 (RPMs)',
     'rhel6': 'Red Hat Enterprise Linux 6 Server (RPMs)',
     'rhva6': (
@@ -196,32 +185,10 @@ _REPOSET_6_2 = {
     ),
     'rhst7': 'Red Hat Satellite Tools 6.2 (for RHEL 7 Server) (RPMs)',
     'rhst6': 'Red Hat Satellite Tools 6.2 (for RHEL 6 Server) (RPMs)',
+    'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)'
 }
 
-_REPOSET_COMMON = {'rhaht': 'Red Hat Enterprise Linux Atomic Host (Trees)'}
-
-REPOSET = SatVersionDependentValues(
-    {u'6.1': _REPOSET_6_1},
-    {u'6.2': _REPOSET_6_2},
-    common=_REPOSET_COMMON
-)
-
-_REPOS_6_1 = {
-    'rhst7': {
-        'id': 'rhel-7-server-satellite-tools-6.1-rpms',
-        'name': (
-            'Red Hat Satellite Tools 6.1 for RHEL 7 Server RPMs x86_64'
-        ),
-    },
-    'rhst6': {
-        'id': 'rhel-6-server-satellite-tools-6.1-rpms',
-        'name': (
-            'Red Hat Satellite Tools 6.1 for RHEL 6 Server RPMs x86_64'
-        ),
-    }
-}
-
-_REPOS_6_2 = {
+REPOS = {
     'rhst7': {
         'id': 'rhel-7-server-satellite-tools-6.2-rpms',
         'name': (
@@ -234,9 +201,6 @@ _REPOS_6_2 = {
             'Red Hat Satellite Tools 6.2 for RHEL 6 Server RPMs x86_64'
         ),
     },
-}
-
-_REPOS_COMMON = {
     'rhva6': {
         'id': 'rhel-6-server-rhev-agent-rpms',
         'name': (
@@ -252,12 +216,8 @@ _REPOS_COMMON = {
     },
     'rhaht': {
         'name': ('Red Hat Enterprise Linux Atomic Host Trees'),
-    },
+    }
 }
-
-REPOS = SatVersionDependentValues(
-    {u'6.1': _REPOS_6_1}, {u'6.2': _REPOS_6_2}, common=_REPOS_COMMON
-)
 
 RHEL_6_MAJOR_VERSION = 6
 RHEL_7_MAJOR_VERSION = 7
@@ -290,10 +250,10 @@ RHVA_REPO_TREE = [
 SAT6_TOOLS_TREE = [
     (
         'rhel', 'rhst6', 'rhst6', 'repo_name',
-        'Red Hat Satellite Tools 6.1 for RHEL 6 Server RPMs x86_64'
+        'Red Hat Satellite Tools 6.2 for RHEL 6 Server RPMs x86_64'
     ),
     ('rhel', 'rhst6', 'rhst6', 'repo_arch', 'x86_64'),
-    ('rhel', 'rhst6', 'rhst6', 'repo_ver', '6.1'),
+    ('rhel', 'rhst6', 'rhst6', 'repo_ver', '6.2'),
 ]
 
 ATOMIC_HOST_TREE = [
@@ -354,7 +314,9 @@ FAKE_2_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo2/'
 FAKE_3_YUM_REPO = u'http://omaciel.fedorapeople.org/fakerepo01'
 FAKE_4_YUM_REPO = u'http://omaciel.fedorapeople.org/fakerepo02'
 FAKE_5_YUM_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
-FAKE_6_YUM_REPO = u'https://jlsherrill.fedorapeople.org/fake-repos/needed-errata/'  # noqa
+FAKE_6_YUM_REPO = (
+    u'https://jlsherrill.fedorapeople.org/fake-repos/needed-errata/'
+)
 FAKE_0_PUPPET_REPO = u'http://davidd.fedorapeople.org/repos/random_puppet/'
 FAKE_1_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet01'
 FAKE_2_PUPPET_REPO = u'http://omaciel.fedorapeople.org/fakepuppet02'
