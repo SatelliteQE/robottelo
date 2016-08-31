@@ -1130,6 +1130,11 @@ locators = LocatorDict({
     "repo.gpg_key": (
         By.XPATH, ("//form[@selector='repository.gpg_key_id']"
                    "//div/span")),
+    "repo.download_policy_edit": (
+        By.XPATH, "//form[@selector='repository.download_policy']//i"),
+    "repo.download_policy_update": (
+        By.XPATH, "//form[@selector='repository.download_policy']/div/select"),
+    "repo.download_policy": (By.ID, "download_policy"),
     "repo.checksum_edit": (
         By.XPATH, ("//form[@selector='repository.checksum_type']"
                    "/div/div/span/i[contains(@class,'fa-edit')]")),
@@ -1147,6 +1152,9 @@ locators = LocatorDict({
                    "/div/span[contains(@class,'editable-value')]")),
     "repo.fetch_gpgkey": (
         By.XPATH, ("//form[@selector='repository.gpg_key_id']"
+                   "/div[@class='bst-edit']/div/span[2]")),
+    "repo.fetch_download_policy": (
+        By.XPATH, ("//form[@selector='repository.download_policy']"
                    "/div[@class='bst-edit']/div/span[2]")),
     "repo.fetch_checksum": (
         By.XPATH, ("//form[@selector='repository.checksum_type']"

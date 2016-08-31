@@ -224,6 +224,7 @@ def make_repository(session, org=None, loc=None,
         u'repo_type': REPO_TYPE['yum'],
         u'repo_checksum': CHECKSUM_TYPE['default'],
         u'upstream_repo_name': None,
+        u'download_policy': None,
     }
     page = Repos(session.browser).navigate_to_entity
     core_factory(create_args, kwargs, session, page,

@@ -150,9 +150,11 @@ REPO_TYPE = {
     'ostree': "ostree",
 }
 
-DOWNLOAD_POLICIES = [
-    'on_demand', 'background', 'immediate'
-]
+DOWNLOAD_POLICIES = {
+    'on_demand': "On Demand",
+    'background': "Background",
+    'immediate': "Immediate"
+}
 
 CHECKSUM_TYPE = {
     'default': "Default",
