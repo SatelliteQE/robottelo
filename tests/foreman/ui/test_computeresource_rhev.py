@@ -13,15 +13,36 @@
 @Upstream: No
 """
 
+from fauxfactory import gen_string
+from nailgun import entities
+from robottelo.config import settings
+from robottelo.constants import FOREMAN_PROVIDERS
+from robottelo.datafactory import invalid_names_list, valid_data_list
 from robottelo.decorators import run_only_on, tier1, tier2, tier3, stubbed
 from robottelo.test import UITestCase
+from robottelo.ui.factory import make_resource
+from robottelo.ui.locators import common_locators
+from robottelo.ui.session import Session
 
 
 class RhevComputeResourceTestCase(UITestCase):
     """Implements Compute Resource tests in UI"""
 
+    @classmethod
+    def setUpClass(cls):
+        super(RhevComputeResourceTestCase, cls).setUpClass()
+        cls.rhev_url = settings.rhev.hostname
+        cls.rhev_password = settings.rhev.password
+        cls.rhev_username = settings.rhev.username
+        cls.rhev_datacenter = settings.rhev.datacenter
+        cls.rhev_img_name = settings.rhev.image_name
+        cls.rhev_img_arch = settings.rhev.image_arch
+        cls.rhev_img_os = settings.rhev.image_os
+        cls.rhev_img_user = settings.rhev.image_username
+        cls.rhev_img_pass = settings.rhev.image_password
+        cls.rhev_vm_name = settings.rhev.vm_name
+
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_rhev_with_name(self):
         """Create a new rhev Compute Resource using different value
@@ -38,13 +59,28 @@ class RhevComputeResourceTestCase(UITestCase):
         3. Provide a valid name to rhev Compute Resource.
         4. Test the connection using Load Datacenter and submit.
 
-        @Assert: A rhev CR is created successfully with proper connection.
+        @CaseAutomation: Automated
 
-        @Caseautomation: notautomated
+        @Assert: A rhev CR is created successfully with proper connection.
         """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        with Session(self.browser) as session:
+            for name in valid_data_list():
+                with self.subTest(name):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['rhev'],
+                        parameter_list=parameter_list
+                    )
+                    self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_rhev_with_description(self):
         """Create rhev Compute Resource with description.
@@ -60,13 +96,29 @@ class RhevComputeResourceTestCase(UITestCase):
         3. Provide it with some valid description to rhev Compute Resource.
         4. Test the connection using Load Datacenter and submit.
 
-        @Assert: A rhev Compute Resource is created successfully
+        @CaseAutomation: Automated
 
-        @Caseautomation: notautomated
+        @Assert: A rhev Compute Resource is created successfully
         """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            for description in valid_data_list():
+                with self.subTest(description):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['rhev'],
+                        parameter_list=parameter_list
+                    )
+                    self.assertIsNotNone(self.compute_resource.search(name))
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_rhev_with_invalid_name(self):
         """Create a new rhev Compute Resource with incorrect values
@@ -83,13 +135,32 @@ class RhevComputeResourceTestCase(UITestCase):
         3. Provide a invalid name to rhev Compute Resource.
         4. Test the connection using Load Datacenter and submit.
 
-        @Assert: A rhev Compute Resource is not created
+        @CaseAutomation: Automated
 
-        @Caseautomation: notautomated
+        @Assert: A rhev Compute Resource is not created
         """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        with Session(self.browser) as session:
+            for name in invalid_names_list():
+                with self.subTest(name):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['rhev'],
+                        parameter_list=parameter_list
+                    )
+                    self.assertIsNotNone(
+                        self.compute_resource.wait_until_element(
+                            common_locators["name_haserror"]
+                        )
+                    )
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_rhev_name(self):
         """Update a rhev Compute Resource name
@@ -106,13 +177,31 @@ class RhevComputeResourceTestCase(UITestCase):
         4. Test the connection using Load Datacenter and submit.
         5. Update the name of the created CR with valid string.
 
-        @Assert: The rhev Compute Resource is updated
+        @CaseAutomation: Automated
 
-        @Caseautomation: notautomated
+        @Assert: The rhev Compute Resource is updated
         """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        newname = gen_string('alpha')
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            with self.subTest(newname):
+                make_resource(
+                    session,
+                    name=name,
+                    provider_type=FOREMAN_PROVIDERS['rhev'],
+                    parameter_list=parameter_list
+                )
+                self.assertIsNotNone(self.compute_resource.search(name))
+                self.compute_resource.update(name=name, newname=newname)
+                self.assertIsNotNone(self.compute_resource.search(newname))
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_update_rhev_organization(self):
         """Update a rhev Compute Resource organization
@@ -130,13 +219,34 @@ class RhevComputeResourceTestCase(UITestCase):
         5. Create a new organization.
         6. Add the new CR to organization that is created.
 
-        @Assert: The rhev Compute Resource is updated
+        @CaseAutomation: Automated
 
-        @Caseautomation: notautomated
+        @Assert: The rhev Compute Resource is updated
         """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['rhev'],
+                parameter_list=parameter_list,
+                orgs=[entities.Organization().create().name],
+                org_select=True
+            )
+            self.assertIsNotNone(self.compute_resource.search(name))
+            self.compute_resource.update(
+                name=name,
+                orgs=[entities.Organization().create().name],
+                org_select=True
+            )
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_delete_rhev(self):
         """Delete a rhev Compute Resource
@@ -153,13 +263,29 @@ class RhevComputeResourceTestCase(UITestCase):
         4. Test the connection using Load Datacenter and submit.
         5. Delete the created compute resource.
 
-        @Assert: The Compute Resource is deleted
+        @CaseAutomation: Automated
 
-        @Caseautomation: notautomated
+        @Assert: The Compute Resource is deleted
         """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            with self.subTest(name):
+                make_resource(
+                    session,
+                    name=name,
+                    provider_type=FOREMAN_PROVIDERS['rhev'],
+                    parameter_list=parameter_list
+                )
+                self.assertIsNotNone(self.compute_resource.search(name))
+                self.compute_resource.delete(name)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_add_image_rhev_with_name(self):
         """Add images to the rhev compute resource
@@ -176,13 +302,40 @@ class RhevComputeResourceTestCase(UITestCase):
         4. Select "New image" , provide it valid name and information.
         5. Select the desired template to create image and submit.
 
-        @Assert: The image is added to the CR successfully
+        @CaseAutomation: Automated
 
-        @Caseautomation: notautomated
+        @Assert: The image is added to the CR successfully
          """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            for img_name in valid_data_list():
+                with self.subTest(name):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['rhev'],
+                        parameter_list=parameter_list
+                    )
+                parameter_list_img = [
+                    ['Name', img_name],
+                    ['Operatingsystem', self.rhev_img_os],
+                    ['Architecture', self.rhev_img_arch],
+                    ['Username', self.rhev_img_user],
+                    ['Password', self.rhev_img_pass],
+                    ['uuid', self.rhev_img_name],
+                ]
+                self.compute_resource.add_image(name, parameter_list_img)
+                self.assertIsNotNone(self.compute_resource.search(name))
+                imgs = self.compute_resource.list_images(name)
+                self.assertTrue(img_name in imgs)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_negative_add_image_rhev_with_invalid_name(self):
         """Add images to the rhev compute resource
@@ -199,13 +352,41 @@ class RhevComputeResourceTestCase(UITestCase):
         4. Select "New image" , provide it invalid name and valid information.
         5. Select the desired template to create the image from and submit.
 
-        @Assert: The image should not be added to the CR
+        @CaseAutomation: Automated
 
-        @Caseautomation: notautomated
+        @Assert: The image should not be added to the CR
         """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            for img_name in invalid_names_list():
+                with self.subTest(name):
+                    make_resource(
+                        session,
+                        name=name,
+                        provider_type=FOREMAN_PROVIDERS['rhev'],
+                        parameter_list=parameter_list
+                    )
+                parameter_list_img = [
+                    ['Name', img_name],
+                    ['Operatingsystem', self.rhev_img_os],
+                    ['Architecture', self.rhev_img_arch],
+                    ['Username', self.rhev_img_user],
+                    ['Password', self.rhev_img_pass],
+                    ['uuid', self.rhev_img_name],
+                ]
+                self.compute_resource.add_image(name, parameter_list_img)
+                self.assertIsNotNone(
+                    self.compute_resource.wait_until_element(
+                        common_locators["name_haserror"]
+                    ))
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_access_rhev_with_default_profile(self):
         """Associate default (3-Large) compute profile to rhev compute resource
@@ -222,10 +403,26 @@ class RhevComputeResourceTestCase(UITestCase):
         4. Click Compute Profile tab.
         5. Select (3-Large) and submit.
 
-        @Assert: The Compute Resource created and opened successfully
+        @CaseAutomation: Automated
 
-        @Caseautomation: notautomated
+        @Assert: The Compute Resource created and opened successfully
         """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['rhev'],
+                parameter_list=parameter_list
+            )
+            self.assertIsNotNone(self.compute_profile.select_resource(
+                '3-Large', name, 'RHEV'))
 
     @run_only_on('sat')
     @stubbed()
@@ -251,7 +448,6 @@ class RhevComputeResourceTestCase(UITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_retrieve_rhev_vm_list(self):
         """Retrieve the Virtual machine list from rhev compute resource
@@ -265,10 +461,27 @@ class RhevComputeResourceTestCase(UITestCase):
         1. Select the created compute resource.
         2. Go to "Virtual Machines" tab.
 
-        @Assert: The Virtual machines should be displayed
+        @CaseAutomation: Automated
 
-        @Caseautomation: notautomated
+        @Assert: The Virtual machines should be displayed
         """
+        parameter_list = [
+            ['URL', self.rhev_url, 'field'],
+            ['Username', self.rhev_username, 'field'],
+            ['Password', self.rhev_password, 'field'],
+            ['Datacenter', self.rhev_datacenter, 'special select'],
+        ]
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_resource(
+                session,
+                name=name,
+                provider_type=FOREMAN_PROVIDERS['rhev'],
+                parameter_list=parameter_list
+            )
+            self.assertIsNotNone(self.compute_resource.search(name))
+            vms = self.compute_resource.list_vms(name)
+            self.assertTrue(self.rhev_vm_name in vms)
 
     @run_only_on('sat')
     @stubbed()

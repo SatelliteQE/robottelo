@@ -169,12 +169,12 @@ class ComputeResource(Base):
         self.click(self.search(res_name))
         self.click(locators['resource.image_add'])
         self.wait_until_element(locators['resource.image_name'])
-        for parameter_name, parameter_value, parameter_type in parameter_list:
-            param_locator = '.'.join((
+        for parameter_name, parameter_value in parameter_list:
+            param_locator = '_'.join((
                 'resource.image',
-                (parameter_name.lower()).replace(' ', '_')
+                (parameter_name.lower())
             ))
-        self.assign_value(locators[param_locator], parameter_value)
+            self.assign_value(locators[param_locator], parameter_value)
         self.click(locators['resource.image_submit'])
 
     def list_images(self, res_name):
@@ -183,7 +183,7 @@ class ComputeResource(Base):
         Note: Currently lists only images that show up on the first page.
         """
         self.click(self.search(res_name))
-        self.click(tab_locators['tab_images'])
+        self.click(tab_locators['resource.tab_images'])
         image_elements = self.find_elements(locators['resource.image_list'])
         return [image.text for image in image_elements]
 
