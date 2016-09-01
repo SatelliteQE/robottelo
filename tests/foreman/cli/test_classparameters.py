@@ -912,7 +912,7 @@ class SmartClassParametersTestCase(CLITestCase):
         with self.assertRaises(CLIReturnCodeError):
             SmartClassParameter.add_override_value({
                 'smart-class-parameter-id': sc_param_id,
-                'match': 'non_existing_attribute',
+                'match': 'hostgroup=nonexistingHG',
                 'value': gen_string('alpha')
             })
 
@@ -1499,3 +1499,16 @@ class SmartClassParametersTestCase(CLITestCase):
         })
         self.assertFalse(sc_param['default-value'])
         self.assertEqual(sc_param['hidden-value?'], True)
+
+    @classmethod
+    def tearDownClass(cls):
+        """Removes entire module from the system and re-imports classes into
+        proxy. This is required as other types of tests (API/UI) use the same
+        module.
+        """
+        super(SmartClassParametersTestCase, cls).tearDownClass()
+        ssh.command('puppet module uninstall --force puppetlabs/ntp')
+        Proxy.importclasses({
+            u'environment': cls.env['name'],
+            u'name': cls.host_name,
+        })

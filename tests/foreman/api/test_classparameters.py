@@ -15,17 +15,131 @@
 
 @Upstream: No
 """
+import json
+from random import choice
 
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
+from fauxfactory import gen_boolean, gen_integer, gen_string
+from nailgun import entities
+from requests import HTTPError
+
+from robottelo import ssh
+from robottelo.config import settings
+from robottelo.datafactory import filtered_datapoint
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+    tier1,
+    tier2,
+)
 from robottelo.test import APITestCase
+
+
+@filtered_datapoint
+def valid_sc_parameters_data():
+    """Returns a list of valid smart class parameter types and values"""
+    return [
+        {
+            u'sc_type': 'string',
+            u'value': gen_string('utf8'),
+        },
+        {
+            u'sc_type': 'boolean',
+            u'value': choice(['0', '1']),
+        },
+        {
+            u'sc_type': 'integer',
+            u'value': gen_integer(min_value=1000),
+        },
+        {
+            u'sc_type': 'real',
+            u'value': -123.0,
+        },
+        {
+            u'sc_type': 'array',
+            u'value': "['{0}', '{1}', '{2}']".format(
+                gen_string('alpha'), gen_integer(), gen_boolean()),
+        },
+        {
+            u'sc_type': 'hash',
+            u'value': '{{"{0}": "{1}"}}'.format(
+                gen_string('alpha'), gen_string('alpha')),
+        },
+        {
+            u'sc_type': 'yaml',
+            u'value': 'name=>XYZ',
+        },
+        {
+            u'sc_type': 'json',
+            u'value': '{"name": "XYZ"}',
+        },
+    ]
+
+
+@filtered_datapoint
+def invalid_sc_parameters_data():
+    """Returns a list of invalid smart class parameter types and values"""
+    return [
+        {
+            u'sc_type': 'boolean',
+            u'value': gen_string('alphanumeric'),
+        },
+        {
+            u'sc_type': 'integer',
+            u'value': gen_string('utf8'),
+        },
+        {
+            u'sc_type': 'real',
+            u'value': gen_string('alpha'),
+        },
+        {
+            u'sc_type': 'array',
+            u'value': '0',
+        },
+        {
+            u'sc_type': 'hash',
+            u'value': 'a:test',
+        },
+        {
+            u'sc_type': 'yaml',
+            u'value': '{a:test}',
+        },
+        {
+            u'sc_type': 'json',
+            u'value': gen_string('alpha'),
+        },
+    ]
 
 
 class SmartClassParametersTestCase(APITestCase):
     """Implements Smart Class Parameter tests in API"""
 
+    @classmethod
+    def setUpClass(cls):
+        super(SmartClassParametersTestCase, cls).setUpClass()
+        cls.host_name = settings.server.hostname
+        ssh.command('puppet module install --force puppetlabs/ntp')
+        cls.env = entities.Environment().search(
+            query={'search': 'name="production"'}
+        )
+        if len(cls.env) == 0:
+            raise Exception("Environment not found")
+        else:
+            cls.env = cls.env[0]
+        cls.proxy = entities.SmartProxy(name=cls.host_name).search()[0]
+        cls.proxy.import_puppetclasses(environment=cls.env)
+        cls.puppet = entities.PuppetClass().search(
+            query={'search': 'name="ntp"'}
+        )[0]
+        cls.sc_params_list = entities.SmartClassParameters().search(
+            query={'search': 'puppetclass="ntp"', 'per_page': 100}
+        )
+        if len(cls.sc_params_list) < 45:
+            raise RuntimeError('There are not enough smart class parameters to'
+                               ' work with in provided puppet class')
+
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_positive_list_parameters_by_host_id(self):
         """List all the parameters included in specific Host by its id.
 
@@ -33,14 +147,22 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Parameters listed for specific Host.
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.update(['override'])
+        self.assertEqual(sc_param.read().override, True)
+        host = entities.Host().search(
+            query={'search': 'name=' + self.host_name}
+        )[0]
+        host.puppet_class = [self.puppet]
+        host.update(['puppet_class'])
+        self.assertGreater(len(host.list_scparams()), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @skip_if_bug_open('bugzilla', 1374253)
+    @tier2
     def test_positive_list_parameters_by_hostgroup_id(self):
         """List all the parameters included in specific HostGroup by id.
 
@@ -48,29 +170,28 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Parameters listed for specific HostGroup.
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.update(['override'])
+        hostgroup = entities.HostGroup().create()
+        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        self.assertGreater(len(hostgroup.list_scparams()), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_list_parameters_by_puppetclass_id(self):
         """List all the parameters for specific puppet class by id.
 
         @id: c0378f1e-c215-4f85-892c-d21a8b5a7060
 
         @assert: Parameters listed for specific Puppet class.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        self.assertGreater(len(self.puppet.list_scparams()), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_positive_list_parameters_by_environment_id(self):
         """List all the parameters for specific environment by id.
 
@@ -78,15 +199,17 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: Parameters listed for specific environment.
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.update(['override'])
+        self.assertEqual(sc_param.read().override, True)
+        self.assertGreater(len(self.env.list_scparams()), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_override_checkbox(self):
+    @tier1
+    def test_positive_override(self):
         """Override the Default Parameter value.
 
         @id: eaa11546-79df-452e-9552-5b2507a27b48
@@ -97,16 +220,19 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set the new valid Default Value.
 
         @assert: Parameter Value overridden with new value.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        value = gen_string('alpha')
+        sc_param.override = True
+        sc_param.default_value = value
+        sc_param.update(['override', 'default_value'])
+        sc_param = sc_param.read()
+        self.assertEqual(sc_param.override, True)
+        self.assertEqual(sc_param.default_value, value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_negative_override_checkbox(self):
+    @tier1
+    def test_negative_override(self):
         """Override the Default Parameter value - override Unchecked.
 
         @id: f4d56d31-ac48-495f-9e56-545f274a060f
@@ -117,15 +243,19 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set the new valid Default Value.
 
         @assert: Parameter value not allowed/disabled to override.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        self.assertEqual(sc_param.read().override, False)
+        sc_param.default_value = gen_string('alpha')
+        with self.assertRaises(HTTPError) as context:
+            sc_param.update(['default_value'])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Override must be true to edit the parameter"
+        )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_puppet_default(self):
         """On Override, Set Puppet Default Value.
 
@@ -137,14 +267,14 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set 'Use Puppet Default' to True.
 
         @assert: Puppet Default Value applied on parameter.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.use_puppet_default = True
+        sc_param.update(['override', 'use_puppet_default'])
+        self.assertEqual(sc_param.read().use_puppet_default, True)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_parameter_type(self):
         """Positive Parameter Update for parameter types - Valid Value.
@@ -160,12 +290,36 @@ class SmartClassParametersTestCase(APITestCase):
         3. Set a 'valid' default Value.
 
         @assert: Parameter Updated with a new type successfully.
-
-        @caseautomation: notautomated
         """
+        sc_param = self.sc_params_list.pop()
+        for data in valid_sc_parameters_data():
+            with self.subTest(data):
+                sc_param.override = True
+                sc_param.parameter_type = data['sc_type']
+                sc_param.default_value = data['value']
+                sc_param.update(
+                    ['override', 'parameter_type', 'default_value']
+                )
+                sc_param = sc_param.read()
+                if data['sc_type'] == 'boolean':
+                    self.assertEqual(
+                        sc_param.default_value,
+                        True if data['value'] == '1' else False
+                    )
+                elif data['sc_type'] == 'array':
+                    string_list = [
+                        str(element) for element in sc_param.default_value]
+                    self.assertEqual(str(string_list), data['value'])
+                elif data['sc_type'] in ('json', 'hash'):
+                    self.assertEqual(
+                        sc_param.default_value,
+                        # convert string to dict
+                        json.loads(data['value'])
+                    )
+                else:
+                    self.assertEqual(sc_param.default_value, data['value'])
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_update_parameter_type(self):
         """Negative Parameter Update for parameter types - Invalid Value.
@@ -184,13 +338,26 @@ class SmartClassParametersTestCase(APITestCase):
 
         1. Parameter not updated with string type for invalid value.
         2. Error raised for invalid default value.
-
-        @caseautomation: notautomated
         """
+        sc_param = self.sc_params_list.pop()
+        for test_data in invalid_sc_parameters_data():
+            with self.subTest(test_data):
+                with self.assertRaises(HTTPError) as context:
+                    sc_param.override = True
+                    sc_param.parameter_type = test_data['sc_type']
+                    sc_param.default_value = test_data['value']
+                    sc_param.update(
+                        ['override', 'parameter_type', 'default_value'])
+                self.assertNotEqual(
+                    sc_param.read().default_value, test_data['value'])
+                self.assertRegexpMatches(
+                    context.exception.response.text,
+                    "Validation failed: Default value is invalid"
+                )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @stubbed
+    @tier1
     def test_negative_validate_puppet_default_value(self):
         """Validation doesn't work on puppet default value.
 
@@ -203,37 +370,11 @@ class SmartClassParametersTestCase(APITestCase):
         3. Set Validator Type and Rule to validate this value.
 
         @assert: Validation shouldn't work with puppet default value.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_negative_validate_default_value_required_checkbox(self):
-        """Error raised for blank default Value - Required check.
-
-        @id: cb602713-1c01-400e-83db-9a22e1d144f3
-
-        @steps:
-
-        1. Set override to True.
-        2. Set empty default value.
-        3. Set 'required' to True.
-
-        @assert: Error raised for blank default value.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_validate_default_value_required_checkbox(self):
+    @tier1
+    def test_positive_validate_default_value_required_check(self):
         """No error raised for non-empty default Value - Required check.
 
         @id: 92977eb0-92c2-4734-84d9-6fda8ff9d2d8
@@ -245,16 +386,22 @@ class SmartClassParametersTestCase(APITestCase):
         3. Set 'required' to true.
 
         @assert: No error raised for non-empty default value
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.parameter_type = 'boolean'
+        sc_param.default_value = True
+        sc_param.override = True
+        sc_param.required = True
+        sc_param.update(
+            ['parameter_type', 'default_value', 'override', 'required']
+        )
+        sc_param = sc_param.read()
+        self.assertEqual(sc_param.required, True)
+        self.assertEqual(sc_param.default_value, True)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_negative_validate_matcher_value_required_checkbox(self):
+    @tier1
+    def test_negative_validate_matcher_value_required_check(self):
         """Error is raised for blank matcher Value - Required check.
 
         @id: 49de2c9b-40f1-4837-8ebb-dfa40d8fcb89
@@ -267,16 +414,25 @@ class SmartClassParametersTestCase(APITestCase):
         4. Set 'required' to true.
 
         @assert: Error raised for blank matcher value.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.required = True
+        sc_param.update(['override', 'required'])
+        with self.assertRaises(HTTPError) as context:
+            entities.OverrideValue(
+                smart_class_parameter=sc_param,
+                match='domain=example.com',
+                value='',
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Value can't be blank"
+        )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_validate_matcher_value_required_checkbox(self):
+    @tier1
+    def test_positive_validate_matcher_value_required_check(self):
         """Error is not raised for matcher Value - Required checkbox.
 
         @id: bf620cef-c7ab-4a32-9050-bd06040dc8d1
@@ -289,15 +445,23 @@ class SmartClassParametersTestCase(APITestCase):
         4. Set 'required' to true.
 
         @assert: Error not raised for matcher value.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        value = gen_string('alpha')
+        entities.OverrideValue(
+            smart_class_parameter=sc_param,
+            match='domain=example.com',
+            value=value,
+        ).create()
+        sc_param.override = True
+        sc_param.required = True
+        sc_param.update(['override', 'required'])
+        sc_param = sc_param.read()
+        self.assertEqual(sc_param.required, True)
+        self.assertEqual(sc_param.override_values[0]['value'], value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_default_value_with_regex(self):
         """Error is raised for default value not matching with regex.
 
@@ -310,15 +474,26 @@ class SmartClassParametersTestCase(APITestCase):
         3. Validate this value with regex validator type and rule.
 
         @assert: Error raised for default value not matching with regex.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        value = gen_string('alpha')
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.default_value = value
+        sc_param.validator_type = 'regexp'
+        sc_param.validator_rule = '[0-9]'
+        with self.assertRaises(HTTPError) as context:
+            sc_param.update([
+                'override', 'default_value',
+                'validator_type', 'validator_rule'
+            ])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Default value is invalid"
+        )
+        self.assertNotEqual(sc_param.read().default_value, value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_default_value_with_regex(self):
         """Error is not raised for default value matching with regex.
 
@@ -331,15 +506,23 @@ class SmartClassParametersTestCase(APITestCase):
         3. Validate this value with regex validator type and rule.
 
         @assert: Error not raised for default value matching with regex.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        value = gen_string('numeric')
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.default_value = value
+        sc_param.validator_type = 'regexp'
+        sc_param.validator_rule = '[0-9]'
+        sc_param.update(
+            ['override', 'default_value', 'validator_type', 'validator_rule']
+        )
+        sc_param = sc_param.read()
+        self.assertEqual(sc_param.default_value, value)
+        self.assertEqual(sc_param.validator_type, 'regexp')
+        self.assertEqual(sc_param.validator_rule, '[0-9]')
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_value_with_regex(self):
         """Error is raised for matcher value not matching with regex.
 
@@ -353,15 +536,33 @@ class SmartClassParametersTestCase(APITestCase):
         3. Validate this value with regex validator type and rule.
 
         @assert: Error raised for matcher value not matching with regex.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        value = gen_string('numeric')
+        entities.OverrideValue(
+            smart_class_parameter=sc_param,
+            match='domain=test.com',
+            value=gen_string('alpha'),
+        ).create()
+        sc_param.override = True
+        sc_param.default_value = value
+        sc_param.validator_type = 'regexp'
+        sc_param.validator_rule = '[0-9]'
+        with self.assertRaises(HTTPError) as context:
+            sc_param.update([
+                'override',
+                'default_value',
+                'validator_type',
+                'validator_rule'
+            ])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Lookup values is invalid"
+        )
+        self.assertNotEqual(sc_param.read().default_value, value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_matcher_value_with_regex(self):
         """Error is not raised for matcher value matching with regex.
 
@@ -374,15 +575,25 @@ class SmartClassParametersTestCase(APITestCase):
         3. Validate this value with regex validator type and rule.
 
         @assert: Error not raised for matcher value matching with regex.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        value = gen_string('numeric')
+        entities.OverrideValue(
+            smart_class_parameter=sc_param,
+            match='domain=test.com',
+            value=gen_string('numeric'),
+        ).create()
+        sc_param.override = True
+        sc_param.default_value = value
+        sc_param.validator_type = 'regexp'
+        sc_param.validator_rule = '[0-9]'
+        sc_param.update(
+            ['override', 'default_value', 'validator_type', 'validator_rule']
+        )
+        self.assertEqual(sc_param.read().default_value, value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_default_value_with_list(self):
         """Error is raised for default value not in list.
 
@@ -395,15 +606,28 @@ class SmartClassParametersTestCase(APITestCase):
         3. Validate this value with list validator type and rule.
 
         @assert: Error is raised for default value that is not in list.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        value = gen_string('alphanumeric')
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.default_value = value
+        sc_param.validator_type = 'list'
+        sc_param.validator_rule = '5, test'
+        with self.assertRaises(HTTPError) as context:
+            sc_param.update([
+                'override',
+                'default_value',
+                'validator_type',
+                'validator_rule',
+            ])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Default value \w+ is not one of"
+        )
+        self.assertNotEqual(sc_param.read().default_value, value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_default_value_with_list(self):
         """Error is not raised for default value in list.
 
@@ -416,15 +640,35 @@ class SmartClassParametersTestCase(APITestCase):
         3. Validate this value with list validator type and rule.
 
         @assert: Error not raised for default value in list.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        # Generate list of values
+        values_list = [
+            gen_string('alpha'),
+            gen_string('alphanumeric'),
+            gen_integer(min_value=100),
+            choice(['true', 'false']),
+        ]
+        # Generate string from list for validator_rule
+        values_list_str = ", ".join(str(x) for x in values_list)
+        value = choice(values_list)
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.default_value = value
+        sc_param.validator_type = 'list'
+        sc_param.validator_rule = values_list_str
+        sc_param.update([
+            'override',
+            'default_value',
+            'validator_type',
+            'validator_rule',
+        ])
+        sc_param = sc_param.read()
+        self.assertEqual(sc_param.default_value, str(value))
+        self.assertEqual(sc_param.validator_type, 'list')
+        self.assertEqual(sc_param.validator_rule, values_list_str)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_value_with_list(self):
         """Error is raised for matcher value not in list.
 
@@ -438,15 +682,32 @@ class SmartClassParametersTestCase(APITestCase):
         3. Validate this value with list validator type and rule.
 
         @assert: Error raised for matcher value not in list.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        entities.OverrideValue(
+            smart_class_parameter=sc_param,
+            match='domain=example.com',
+            value='myexample',
+        ).create()
+        sc_param.override = True
+        sc_param.default_value = 50
+        sc_param.validator_type = 'list'
+        sc_param.validator_rule = '25, example, 50'
+        with self.assertRaises(HTTPError) as context:
+            sc_param.update([
+                'override',
+                'default_value',
+                'validator_type',
+                'validator_rule',
+            ])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Lookup values is invalid"
+        )
+        self.assertNotEqual(sc_param.read().default_value, 50)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_matcher_value_with_list(self):
         """Error is not raised for matcher value in list.
 
@@ -459,15 +720,24 @@ class SmartClassParametersTestCase(APITestCase):
         3. Validate this value with list validator type and rule.
 
         @assert: Error not raised for matcher value in list.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        entities.OverrideValue(
+            smart_class_parameter=sc_param,
+            match='domain=example.com',
+            value=30,
+        ).create()
+        sc_param.override = True
+        sc_param.default_value = 'example'
+        sc_param.validator_type = 'list'
+        sc_param.validator_rule = 'test, example, 30'
+        sc_param.update(
+            ['override', 'default_value', 'validator_type', 'validator_rule']
+        )
+        self.assertEqual(sc_param.read().default_value, 'example')
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_value_with_default_type(self):
         """Error is raised for matcher value not of default type.
 
@@ -480,15 +750,25 @@ class SmartClassParametersTestCase(APITestCase):
         3. Create a matcher with value that doesn't matches the default type.
 
         @assert: Error raised for matcher value not of default type.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.parameter_type = 'boolean'
+        sc_param.default_value = True
+        sc_param.update(['override', 'parameter_type', 'default_value'])
+        with self.assertRaises(HTTPError) as context:
+            entities.OverrideValue(
+                smart_class_parameter=sc_param,
+                match='domain=example.com',
+                value=gen_string('alpha'),
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Value is invalid"
+        )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_matcher_value_with_default_type(self):
         """No error for matcher value of default type.
 
@@ -501,15 +781,24 @@ class SmartClassParametersTestCase(APITestCase):
         3. Create a matcher with value that matches the default type.
 
         @assert: Error not raised for matcher value of default type.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.parameter_type = 'boolean'
+        sc_param.default_value = True
+        sc_param.update(['override', 'parameter_type', 'default_value'])
+        entities.OverrideValue(
+            smart_class_parameter=sc_param,
+            match='domain=example.com',
+            value=False,
+        ).create()
+        sc_param = sc_param.read()
+        self.assertEqual(sc_param.override_values[0]['value'], False)
+        self.assertEqual(
+            sc_param.override_values[0]['match'], 'domain=example.com')
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_and_default_value(self):
         """Error for invalid default and matcher value is raised both at a time.
 
@@ -522,15 +811,25 @@ class SmartClassParametersTestCase(APITestCase):
         3. Create a matcher with value that doesn't matches the default type.
 
         @assert: Error raised for invalid default and matcher value both.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        entities.OverrideValue(
+            smart_class_parameter=sc_param,
+            match='domain=example.com',
+            value=gen_string('alpha'),
+        ).create()
+        with self.assertRaises(HTTPError) as context:
+            sc_param.parameter_type = 'boolean'
+            sc_param.default_value = gen_string('alpha')
+            sc_param.update(['parameter_type', 'default_value'])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Default value is invalid, "
+            "Lookup values is invalid"
+        )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_non_existing_attribute(self):
         """Error while creating matcher for Non Existing Attribute.
 
@@ -542,14 +841,21 @@ class SmartClassParametersTestCase(APITestCase):
         2. Create a matcher with non existing attribute in org.
 
         @assert: Error raised for non existing attribute.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        with self.assertRaises(HTTPError) as context:
+            entities.OverrideValue(
+                smart_class_parameter=sc_param,
+                match='hostgroup=nonexistingHG',
+                value=gen_string('alpha')
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Match hostgroup=nonexistingHG does not match "
+            "an existing host group"
+        )
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_matcher(self):
         """Create matcher for attribute in parameter.
@@ -563,12 +869,20 @@ class SmartClassParametersTestCase(APITestCase):
         3. Create a matcher with all valid values.
 
         @assert: The matcher has been created successfully.
-
-        @caseautomation: notautomated
         """
+        sc_param = self.sc_params_list.pop()
+        value = gen_string('alpha')
+        entities.OverrideValue(
+            smart_class_parameter=sc_param,
+            match='is_virtual=true',
+            value=value,
+        ).create()
+        sc_param = sc_param.read()
+        self.assertEqual(
+            sc_param.override_values[0]['match'], 'is_virtual=true')
+        self.assertEqual(sc_param.override_values[0]['value'], value)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_matcher_puppet_default_value(self):
         """Create matcher for attribute in parameter where
@@ -584,9 +898,23 @@ class SmartClassParametersTestCase(APITestCase):
         puppet default value.
 
         @assert: The matcher has been created successfully.
-
-        @caseautomation: notautomated
         """
+        sc_param = self.sc_params_list.pop()
+        value = gen_string('alpha')
+        sc_param.override = True
+        sc_param.default_value = gen_string('alpha')
+        entities.OverrideValue(
+            smart_class_parameter=sc_param,
+            match='domain=example.com',
+            value=value,
+            use_puppet_default=True,
+        ).create()
+        sc_param = sc_param.read()
+        self.assertEqual(
+            sc_param.override_values[0]['use_puppet_default'], True)
+        self.assertEqual(
+            sc_param.override_values[0]['match'], 'domain=example.com')
+        self.assertEqual(sc_param.override_values[0]['value'], value)
 
     @run_only_on('sat')
     @stubbed()
@@ -895,8 +1223,7 @@ class SmartClassParametersTestCase(APITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_enable_merge_overrides_default_checkboxes(self):
         """Enable Merge Overrides, Merge Default checkbox for supported types.
 
@@ -908,15 +1235,27 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: The Merge Overrides, Merge Default checks are enabled to
         check.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.parameter_type = 'array'
+        sc_param.default_value = "[{0}, {1}]".format(
+            gen_string('alpha'), gen_string('alpha'))
+        sc_param.merge_overrides = True
+        sc_param.merge_default = True
+        sc_param.update([
+            'override',
+            'parameter_type',
+            'default_value',
+            'merge_overrides',
+            'merge_default',
+        ])
+        sc_param = sc_param.read()
+        self.assertEqual(sc_param.merge_overrides, True)
+        self.assertEqual(sc_param.merge_default, True)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_enable_merge_overrides_default_checkboxes(self):
         """Disable Merge Overrides, Merge Default checkboxes for non supported types.
 
@@ -928,16 +1267,44 @@ class SmartClassParametersTestCase(APITestCase):
 
         @assert: The Merge Overrides, Merge Default checks are not enabled to
         check.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.parameter_type = 'string'
+        sc_param.default_value = gen_string('alpha')
+        sc_param.merge_overrides = True
+        sc_param.merge_default = True
+        with self.assertRaises(HTTPError) as context:
+            sc_param.update([
+                'override',
+                'parameter_type',
+                'default_value',
+                'merge_overrides',
+            ])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Merge overrides can only be set for "
+            "array or hash"
+        )
+        with self.assertRaises(HTTPError) as context:
+            sc_param.update([
+                'override',
+                'parameter_type',
+                'default_value',
+                'merge_default',
+            ])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Merge default can only be set when merge "
+            "overrides is set"
+        )
+        sc_param = sc_param.read()
+        self.assertEqual(sc_param.merge_overrides, False)
+        self.assertEqual(sc_param.merge_default, False)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_enable_avaoid_duplicates_checkbox(self):
+    @tier1
+    def test_positive_enable_avoid_duplicates_checkbox(self):
         """Enable Avoid duplicates checkbox for supported type- array.
 
         @id: 80bf52df-e678-4384-a4d5-7a88928620ce
@@ -948,15 +1315,25 @@ class SmartClassParametersTestCase(APITestCase):
         2. Set 'merge overrides' to True.
 
         @assert: The Avoid Duplicates is enabled to set to True.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.parameter_type = 'array'
+        sc_param.default_value = "[{0}, {1}]".format(
+            gen_string('alpha'), gen_string('alpha'))
+        sc_param.merge_overrides = True
+        sc_param.avoid_duplicates = True
+        sc_param.update([
+            'override',
+            'parameter_type',
+            'default_value',
+            'merge_overrides',
+            'avoid_duplicates',
+        ])
+        self.assertEqual(sc_param.read().avoid_duplicates, True)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_enable_avoid_duplicates_checkbox(self):
         """Disable Avoid duplicates checkbox for non supported types.
 
@@ -972,15 +1349,28 @@ class SmartClassParametersTestCase(APITestCase):
         for type hash other than array.
         2. The Avoid duplicates checkbox not enabled to check
         for any type than array.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.parameter_type = 'string'
+        sc_param.default_value = gen_string('alpha')
+        sc_param.avoid_duplicates = True
+        with self.assertRaises(HTTPError) as context:
+            sc_param.update([
+                'override',
+                'parameter_type',
+                'default_value',
+                'avoid_duplicates'
+            ])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Avoid duplicates can only be set for arrays "
+            "that have merge_overrides set to true"
+        )
+        self.assertEqual(sc_param.read().avoid_duplicates, False)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier2
+    @tier1
     def test_positive_remove_matcher(self):
         """Removal of matcher from parameter.
 
@@ -992,15 +1382,21 @@ class SmartClassParametersTestCase(APITestCase):
         2. Remove the matcher created in step 1.
 
         @assert: The matcher removed from parameter.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
         """
+        sc_param = self.sc_params_list.pop()
+        value = gen_string('alpha')
+        override = entities.OverrideValue(
+            smart_class_parameter=sc_param,
+            match='is_virtual=true',
+            value=value,
+        ).create()
+        self.assertEqual(len(sc_param.read().override_values), 1)
+        override.delete()
+        self.assertEqual(len(sc_param.read().override_values), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @skip_if_bug_open('bugzilla', 1374253)
+    @tier1
     def test_positive_impact_parameter_delete_attribute(self):
         """Impact on parameter after deleting associated attribute.
 
@@ -1018,15 +1414,35 @@ class SmartClassParametersTestCase(APITestCase):
         1. The matcher for deleted attribute removed from parameter.
         2. On recreating attribute, the matcher should not
         reappear in parameter.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        hostgroup_name = gen_string('alpha')
+        match = 'hostgroup={0}'.format(hostgroup_name)
+        match_value = gen_string('alpha')
+        hostgroup = entities.HostGroup(
+            name=hostgroup_name,
+            environment=self.env,
+        ).create()
+        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        entities.OverrideValue(
+            smart_class_parameter=sc_param,
+            match=match,
+            value=match_value,
+        ).create()
+        sc_param = sc_param.read()
+        self.assertEqual(sc_param.override_values[0]['match'], match)
+        self.assertEqual(sc_param.override_values[0]['value'], match_value)
+        hostgroup.delete()
+        self.assertEqual(len(sc_param.read().override_values), 0)
+        hostgroup = entities.HostGroup(
+            name=hostgroup_name,
+            environment=self.env,
+        ).create()
+        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        self.assertEqual(len(sc_param.read().override_values), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_hide_parameter_default_value(self):
         """Hide the default value of parameter.
 
@@ -1039,15 +1455,18 @@ class SmartClassParametersTestCase(APITestCase):
         3. Set 'Hidden Value' to true.
 
         @assert: The 'hidden value' set to True for that parameter.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.default_value = gen_string('alpha')
+        sc_param.hidden_value = True
+        sc_param.update(['override', 'default_value', 'hidden_value'])
+        sc_param = sc_param.read()
+        self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
+        self.assertEqual(sc_param.hidden_value, u'*****')
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_unhide_parameter_default_value(self):
         """Unhide the default value of parameter.
 
@@ -1061,14 +1480,20 @@ class SmartClassParametersTestCase(APITestCase):
         4. After hiding, set the 'Hidden Value' to False.
 
         @assert: The 'hidden value' set to false for that parameter.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.default_value = gen_string('alpha')
+        sc_param.hidden_value = True
+        sc_param.update(['override', 'default_value', 'hidden_value'])
+        sc_param = sc_param.read()
+        self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
+        sc_param.hidden_value = False
+        sc_param.update(['hidden_value'])
+        sc_param = sc_param.read()
+        self.assertEqual(getattr(sc_param, 'hidden_value?'), False)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_hidden_value_in_parameter(self):
         """Update the hidden default value of parameter.
@@ -1086,13 +1511,25 @@ class SmartClassParametersTestCase(APITestCase):
 
         1. The parameter default value is updated.
         2. The 'hidden value' set/displayed as True for that parameter.
-
-        @caseautomation: notautomated
         """
+        old_value = gen_string('alpha')
+        new_value = gen_string('alpha')
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.default_value = old_value
+        sc_param.hidden_value = True
+        sc_param.update(['override', 'default_value', 'hidden_value'])
+        sc_param = sc_param.read()
+        self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
+        self.assertEqual(sc_param.default_value, old_value)
+        sc_param.default_value = new_value
+        sc_param.update(['default_value'])
+        sc_param = sc_param.read()
+        self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
+        self.assertEqual(sc_param.default_value, new_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_hide_empty_default_value(self):
         """Hiding the empty default value.
 
@@ -1108,8 +1545,18 @@ class SmartClassParametersTestCase(APITestCase):
 
         1. The 'hidden value' set to True for that parameter.
         2. The default value is empty even after hide.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        sc_param = self.sc_params_list.pop()
+        sc_param.override = True
+        sc_param.default_value = ''
+        sc_param.hidden_value = True
+        sc_param.update(['override', 'default_value', 'hidden_value'])
+        sc_param = sc_param.read()
+        self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
+        self.assertFalse(sc_param.default_value)
+
+    @classmethod
+    def tearDownClass(cls):
+        super(SmartClassParametersTestCase, cls).tearDownClass()
+        ssh.command('puppet module uninstall --force puppetlabs/ntp')
+        cls.proxy.import_puppetclasses(environment=cls.env)
