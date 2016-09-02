@@ -31,18 +31,16 @@ class Syncplan(Base):
                sync_interval=None, start_hour=None, start_minute=None,):
         """Creates new Sync Plans from UI."""
         self.click(locators['sp.new'])
-        self.text_field_update(common_locators['name'], name)
+        self.assign_value(common_locators['name'], name)
         if sync_interval:
-            self.select(locators['sp.interval'], sync_interval)
+            self.assign_value(locators['sp.interval'], sync_interval)
         if description:
-            self.text_field_update(common_locators['description'], description)
-            self.wait_for_ajax()
+            self.assign_value(common_locators['description'], description)
         if start_hour and start_minute:
-            self.text_field_update(locators['sp.start_hour'], start_hour)
-            self.text_field_update(locators['sp.start_minutes'], start_minute)
+            self.assign_value(locators['sp.start_hour'], start_hour)
+            self.assign_value(locators['sp.start_minutes'], start_minute)
         if startdate:
-            self.text_field_update(locators['sp.start_date'], startdate)
-            self.wait_for_ajax()
+            self.assign_value(locators['sp.start_date'], startdate)
         self.click(common_locators['name'])
         self.click(common_locators['create'])
 
@@ -50,7 +48,7 @@ class Syncplan(Base):
                new_sync_interval=None, add_products=None,
                rm_products=None):
         """Updates Sync Plans from UI."""
-        self.search(name).click()
+        self.click(self.search(name))
         self.click(tab_locators['sp.tab_details'])
         if new_name:
             self.click(locators['sp.name_edit'])
@@ -58,11 +56,12 @@ class Syncplan(Base):
             self.click(common_locators['save'])
         if new_desc:
             self.click(locators['sp.desc_edit'])
-            self.text_field_update(locators['sp.desc_update'], new_name)
+            self.assign_value(locators['sp.desc_update'], new_name)
             self.click(common_locators['save'])
         if new_sync_interval:
             self.click(locators['sp.sync_interval_edit'])
-            self.select(locators['sp.sync_interval_update'], new_sync_interval)
+            self.assign_value(
+                locators['sp.sync_interval_update'], new_sync_interval)
             self.click(common_locators['save'])
         if add_products:
             tab_loc = tab_locators['sp.add_prd']
