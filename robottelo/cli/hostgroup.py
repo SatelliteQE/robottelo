@@ -52,3 +52,25 @@ class HostGroup(Base):
         cls.command_sub = 'sc-params'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def smart_variables(cls, options=None):
+        """List all smart variables
+
+        Usage::
+
+            hammer hostgroup smart-variables [OPTIONS]
+
+        Options::
+
+            --hostgroup HOSTGROUP_NAME        Hostgroup name
+            --hostgroup-id HOSTGROUP_ID
+            --hostgroup-title HOSTGROUP_TITLE Hostgroup title
+            --order ORDER                     sort results
+            --page PAGE                       paginate results
+            --per-page PER_PAGE               number of entries per request
+            --search SEARCH                   filter results
+        """
+        cls.command_sub = 'smart-variables'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')

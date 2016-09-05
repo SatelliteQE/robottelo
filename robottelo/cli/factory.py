@@ -53,6 +53,7 @@ from robottelo.cli.syncplan import SyncPlan
 from robottelo.cli.template import Template
 from robottelo.cli.user import User
 from robottelo.cli.usergroup import UserGroup, UserGroupExternal
+from robottelo.cli.smart_variable import SmartVariable
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_SUBSCRIPTION_NAME,
@@ -1914,6 +1915,79 @@ def make_template(options=None):
     # End - Special handling for template factory
 
     return create_object(Template, args, options)
+
+
+@cacheable
+def make_smart_variable(options=None):
+    """
+    Usage::
+
+        hammer smart-variable create [OPTIONS]
+
+    Options::
+
+        --avoid-duplicates AVOID_DUPLICATES         Remove duplicate values (
+                                                    only array type)
+                                                    One of true/false, yes/no,
+                                                    1/0.
+        --default-value DEFAULT_VALUE               Default value of variable
+        --description DESCRIPTION                   Description of variable
+        --hidden-value HIDDEN_VALUE                 When enabled the parameter
+                                                    is hidden in the UI
+                                                    One of true/false, yes/no,
+                                                    1/0.
+        --merge-default MERGE_DEFAULT               Include default value when
+                                                    merging all matching values
+                                                    One of true/false, yes/no,
+                                                    1/0.
+        --merge-overrides MERGE_OVERRIDES           Merge all matching values(
+                                                    only array/hash type)
+                                                    One of true/false, yes/no,
+                                                    1/0.
+        --override-value-order OVERRIDE_VALUE_ORDER The order in which values
+                                                    are resolved
+        --puppet-class PUPPET_CLASS_NAME            Puppet class name
+        --puppet-class-id PUPPET_CLASS_ID           ID of Puppet class
+        --validator-rule VALIDATOR_RULE             Used to enforce certain
+                                                    values for the parameter
+                                                    values
+        --validator-type VALIDATOR_TYPE             Type of the validator.
+                                                    Possible value(s):
+                                                    'regexp', 'list', ''
+        --variable VARIABLE                         Name of variable
+        --variable-type VARIABLE_TYPE               Type of the variable.
+                                                    Possible value(s):
+                                                    'string', 'boolean',
+                                                    'integer', 'real', 'array',
+                                                    'hash', 'yaml', 'json'
+         -h, --help                                 print help
+
+    """
+    # Puppet class name or ID is a required field.
+    if (
+            not options or
+            'puppet-class' not in options and
+            'puppet-class-id' not in options):
+        raise CLIFactoryError('Please provide a valid Puppet class')
+
+    # Assigning default values for attributes
+    args = {
+        u'avoid-duplicates': None,
+        u'default-value': None,
+        u'description': None,
+        u'hidden-value': None,
+        u'merge-default': None,
+        u'merge-overrides': None,
+        u'override-value-order': None,
+        u'puppet-class': None,
+        u'puppet-class-id': None,
+        u'validator-rule': None,
+        u'validator-type': None,
+        u'variable': gen_alphanumeric(),
+        u'variable-type': None,
+    }
+
+    return create_object(SmartVariable, args, options)
 
 
 def activationkey_add_subscription_to_repo(options=None):
