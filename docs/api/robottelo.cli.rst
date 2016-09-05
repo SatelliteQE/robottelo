@@ -185,6 +185,11 @@ Submodules:
 
 .. automodule:: robottelo.cli.scparams
 
+:mod:`robottelo.cli.smart_variable`
+-----------------------------------
+
+.. automodule:: robottelo.cli.smart_variable
+
 :mod:`robottelo.cli.subnet`
 ---------------------------
 
