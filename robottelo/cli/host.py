@@ -375,3 +375,24 @@ class Host(Base):
         cls.command_sub = 'sc-params'
         return cls.execute(
             cls._construct_command(options), output_format='csv')
+
+    @classmethod
+    def smart_variables(cls, options=None):
+        """List all smart variables
+
+        Usage::
+
+            hammer host smart-variables [OPTIONS]
+
+        Options::
+
+            --host HOST_NAME              Host name
+            --host-id HOST_ID
+            --order ORDER                 sort results
+            --page PAGE                   paginate results
+            --per-page PER_PAGE           number of entries per request
+            --search SEARCH               filter results
+        """
+        cls.command_sub = 'smart-variables'
+        return cls.execute(
+            cls._construct_command(options), output_format='csv')

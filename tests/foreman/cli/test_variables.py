@@ -16,12 +16,27 @@
 @Upstream: No
 """
 
+from robottelo import ssh
+from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.environment import Environment
+from robottelo.cli.factory import make_hostgroup, make_smart_variable
+from robottelo.cli.host import Host
+from robottelo.cli.hostgroup import HostGroup
+from robottelo.cli.proxy import Proxy
+from robottelo.cli.puppet import Puppet
+from robottelo.cli.smart_variable import SmartVariable
+from robottelo.config import settings
+from robottelo.datafactory import (
+    gen_string,
+    invalid_values_list,
+    valid_data_list,
+)
 from robottelo.decorators import (
     run_only_on,
+    skip_if_bug_open,
     stubbed,
     tier1,
     tier2,
-    tier3
 )
 from robottelo.test import CLITestCase
 
@@ -29,73 +44,105 @@ from robottelo.test import CLITestCase
 class SmartVariablesTestCase(CLITestCase):
     """Implements Smart Variables tests in CLI"""
 
+    @classmethod
+    def setUpClass(cls):
+        """Import some parametrized puppet classes. This is required to make
+        sure that we have data to be able to perform interactions with smart
+        class variables.
+        """
+        super(SmartVariablesTestCase, cls).setUpClass()
+        cls.host_name = settings.server.hostname
+        ssh.command('puppet module install --force puppetlabs/ntp')
+        cls.env = Environment.info({u'name': 'production'})
+        Proxy.importclasses({
+            u'environment': cls.env['name'],
+            u'name': cls.host_name,
+        })
+        cls.puppet = Puppet.info({u'name': 'ntp'})
+
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_list_variables_by_host_name(self):
         """List all smart variables associated to host by hostname.
 
         @id: ee0da54c-ab60-4dde-8e1f-d548b52bac73
 
-        @steps: List all the smart variables associated to specific host by
-        hostname.
-
         @assert: Smart Variables listed for specific Host by hostname.
 
         @CaseLevel: Integration
         """
+        make_smart_variable({'puppet-class': self.puppet['name']})
+        Host.update({
+            u'name': self.host_name,
+            u'puppet-classes': self.puppet['name']
+        })
+        host_smart_variables_list = Host.smart_variables({
+            u'host': self.host_name})
+        self.assertGreater(len(host_smart_variables_list), 0)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_list_variables_by_host_id(self):
         """List all smart variables associated to host by host id.
 
         @id: ee2e994b-2a6d-4069-a2f7-e244a3134772
 
-        @steps: List all the smart variables associated to specific host by
-        host id.
-
         @assert: Smart Variables listed for specific Host by host id.
 
         @CaseLevel: Integration
         """
+        make_smart_variable({'puppet-class': self.puppet['name']})
+        Host.update({
+            u'name': self.host_name,
+            u'puppet-classes': self.puppet['name']
+        })
+        host_id = Host.info({u'name': self.host_name})['id']
+        host_smart_variables_list = Host.smart_variables({
+            u'host-id': host_id})
+        self.assertGreater(len(host_smart_variables_list), 0)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_list_variables_by_hostgroup_name(self):
         """List all smart variables associated to hostgroup by hostgroup name
 
         @id: cb69abe0-2349-4114-91e9-ef93f261dc50
 
-        @steps: List all smart variables associated to hostgroup by hostgroup
-        name.
-
         @assert: Smart Variables listed for specific HostGroup by hostgroup
         name.
 
         @CaseLevel: Integration
         """
+        make_smart_variable({'puppet-class': self.puppet['name']})
+        hostgroup = make_hostgroup({
+            'environment-id': self.env['id'],
+            'puppet-class-ids': self.puppet['id']
+        })
+        hostgroup_smart_variables = HostGroup.smart_variables({
+            u'hostgroup': hostgroup['name']})
+        self.assertGreater(len(hostgroup_smart_variables), 0)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_list_variables_by_hostgroup_id(self):
         """List all smart variables associated to hostgroup by hostgroup id
 
         @id: 0f167c4c-e4de-4b66-841f-d5a9e410391e
 
-        @steps: List all smart variables associated to hostgroup by hostgroup
-        id.
-
         @assert: Smart Variables listed for specific HostGroup by hostgroup id.
 
         @CaseLevel: Integration
         """
+        make_smart_variable({'puppet-class': self.puppet['name']})
+        hostgroup = make_hostgroup({
+            'environment-id': self.env['id'],
+            'puppet-class-ids': self.puppet['id']
+        })
+        hostgroup_smart_variables = HostGroup.smart_variables({
+            u'hostgroup-id': hostgroup['id']})
+        self.assertGreater(len(hostgroup_smart_variables), 0)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_list_variables_by_puppetclass_name(self):
         """List all smart variables associated to puppet class by puppet class
@@ -103,17 +150,16 @@ class SmartVariablesTestCase(CLITestCase):
 
         @id: 43b795c2-a64d-4a84-bb35-1e8fd0e1a0c9
 
-        @steps: List all smart variables associated to puppet class by puppet
-        class name.
-
         @assert: Smart Variables listed for specific puppet class by puppet
         class name.
-
-        @CaseLevel: Integration
         """
+        make_smart_variable({'puppet-class': self.puppet['name']})
+        sc_params_list = SmartVariable.list({
+            'puppet-class': self.puppet['name']
+        })
+        self.assertGreater(len(sc_params_list), 0)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_list_variables_by_puppetclass_id(self):
         """List all smart variables associated to puppet class by puppet class
@@ -121,17 +167,16 @@ class SmartVariablesTestCase(CLITestCase):
 
         @id: 57d290e8-2ae2-4c09-ab1e-7c7914bc4ba8
 
-        @steps: List all smart variables associated to puppet class by puppet
-        class id.
-
         @assert: Smart Variables listed for specific puppet class by puppet
         class id.
-
-        @CaseLevel: Integration
         """
+        make_smart_variable({'puppet-class-id': self.puppet['id']})
+        sc_params_list = SmartVariable.list({
+            'puppet-class-id': self.puppet['id']
+        })
+        self.assertGreater(len(sc_params_list), 0)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create(self):
         """Create a Smart Variable.
@@ -140,15 +185,17 @@ class SmartVariablesTestCase(CLITestCase):
 
         @steps:
 
-        1. Create a smart Variable with Valid name and default value.
+        1. Create a smart Variable with Valid name.
 
         @assert: The smart Variable is created successfully.
-
-        @caseautomation: notautomated
         """
+        for name in valid_data_list():
+            with self.subTest(name):
+                smart_variable = make_smart_variable({
+                    'variable': name, 'puppet-class': self.puppet['name']})
+                self.assertEqual(smart_variable['name'], name)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create(self):
         """Create Smart Variable with invalid name.
@@ -157,15 +204,17 @@ class SmartVariablesTestCase(CLITestCase):
 
         @steps:
 
-        1. Create a smart Variable with Invalid name and valid default value.
+        1. Create a smart Variable with Invalid name.
 
         @assert: The smart Variable is not created.
-
-        @caseautomation: notautomated
         """
+        for name in invalid_values_list():
+            with self.subTest(name):
+                with self.assertRaises(CLIReturnCodeError):
+                    SmartVariable.create({
+                        'variable': name, 'puppet-class': self.puppet['name']})
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_delete_smart_variable_by_id(self):
         """Delete a Smart Variable by id.
@@ -177,12 +226,14 @@ class SmartVariablesTestCase(CLITestCase):
         1. Delete a smart Variable by id.
 
         @assert: The smart Variable is deleted successfully.
-
-        @caseautomation: notautomated
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name']})
+        SmartVariable.delete({'id': smart_variable['id']})
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.info({'id': smart_variable['id']})
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_delete_smart_variable_by_name(self):
         """Delete a Smart Variable by name.
@@ -194,12 +245,14 @@ class SmartVariablesTestCase(CLITestCase):
         1. Delete a smart Variable by name.
 
         @assert: The smart Variable is deleted successfully.
-
-        @caseautomation: notautomated
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name']})
+        SmartVariable.delete({'name': smart_variable['name']})
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.info({'name': smart_variable['name']})
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_variable_puppet_class(self):
         """Update Smart Variable's puppet class.
@@ -208,19 +261,52 @@ class SmartVariablesTestCase(CLITestCase):
 
         @steps:
 
-        1. Create a smart variable with valid name and default value.
-        2. Add this variable to some host/hostgroup.
-        3. Update the puppet class associated to the smart variable created in
+        1. Create a smart variable with valid name.
+        2. Update the puppet class associated to the smart variable created in
         step1.
 
         @assert: The variable is updated with new puppet class.
-
-        @caseautomation: notautomated
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name']})
+        self.assertEqual(smart_variable['puppet-class'], self.puppet['name'])
+        new_puppet = Puppet.info({u'name': 'ntp::config'})
+        SmartVariable.update({
+            'name': smart_variable['name'],
+            'puppet-class': new_puppet['name']
+        })
+        updated_sv = SmartVariable.info({'name': smart_variable['name']})
+        self.assertEqual(updated_sv['puppet-class'], new_puppet['name'])
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @skip_if_bug_open('bugzilla', 1367032)
+    @tier1
+    def test_positive_update_name(self):
+        """Update Smart Variable's name
+
+        @id: e73c1366-6745-4576-ae22-d87cbf03faf9
+
+        @steps:
+
+        1. Create a smart variable with valid name.
+        2. Update smart variable name created in step1.
+
+        @assert: The variable is updated with new name.
+        """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name']})
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                SmartVariable.update({
+                    'id': smart_variable['id'],
+                    'new-name': new_name,
+                    'puppet-class': self.puppet['name']
+                })
+                updated_sv = SmartVariable.info({'id': smart_variable['id']})
+                self.assertEqual(updated_sv['name'], new_name)
+
+    @run_only_on('sat')
+    @tier1
     def test_negative_duplicate_name_variable(self):
         """Create Smart Variable with an existing name.
 
@@ -233,11 +319,34 @@ class SmartVariablesTestCase(CLITestCase):
 
         @assert: The variable with same name are not allowed to create from
         any class.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        name = gen_string('alpha')
+        make_smart_variable(
+            {'variable': name, 'puppet-class': self.puppet['name']})
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.create({
+                'variable': name, 'puppet-class': self.puppet['name']})
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_create_with_default_value(self):
+        """Create a Smart Variable with default value.
+
+        @id: 31c9e92d-94d2-4cbf-b496-c5f038182c20
+
+        @steps:
+
+        1. Create a smart Variable with Valid name and valid default value.
+
+        @assert: The smart Variable is created successfully.
+        """
+        for value in valid_data_list():
+            with self.subTest(value):
+                smart_variable = make_smart_variable({
+                    'puppet-class': self.puppet['name'],
+                    'default-value': value,
+                })
+                self.assertEqual(smart_variable['default-value'], value)
 
     @run_only_on('sat')
     @stubbed()
@@ -278,7 +387,6 @@ class SmartVariablesTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_empty_matcher_value(self):
         """Create matcher with empty value for string type.
@@ -288,12 +396,25 @@ class SmartVariablesTestCase(CLITestCase):
         @steps: Create a matcher for variable with type string and empty value
 
         @assert: Matcher is created with empty value
-
-        @caseautomation: notautomated
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': gen_string('alpha'),
+        })
+        SmartVariable.add_override_value({
+            'smart-variable-id': smart_variable['id'],
+            'match': 'is_virtual=true',
+            'value': '',
+        })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['match'],
+            'is_virtual=true'
+        )
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['value'], '')
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_empty_matcher_value(self):
         """Create matcher with empty value for non string type.
@@ -304,12 +425,41 @@ class SmartVariablesTestCase(CLITestCase):
         empty value
 
         @assert: Matcher is not created with empty value
-
-        @caseautomation: notautomated
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': '20',
+            'variable-type': 'integer'
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.add_override_value({
+                'smart-variable-id': smart_variable['id'],
+                'match': 'is_virtual=true',
+                'value': '',
+            })
 
     @run_only_on('sat')
-    @stubbed()
+    @tier1
+    def test_negative_create_with_invalid_match_value(self):
+        """Attempt to create matcher with invalid match value.
+
+        @id: 1026bc74-1bd0-40ab-81f1-d1371cc49d8f
+
+        @steps: Create a matcher for variable with invalid match value
+
+        @assert: Matcher is not created
+        """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.add_override_value({
+                'smart-variable-id': smart_variable['id'],
+                'match': 'invalid_value',
+                'value': gen_string('alpha'),
+            })
+
+    @run_only_on('sat')
     @tier1
     def test_negative_validate_default_value_with_regex(self):
         """Test variable is not created for unmatched validator type regex.
@@ -322,12 +472,23 @@ class SmartVariablesTestCase(CLITestCase):
         2.  Validate this value with regex validator type and valid rule.
 
         @assert: Variable is not created for unmatched validator rule.
-
-        @caseautomation: notautomated
         """
+        value = gen_string('alpha')
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': value
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.update({
+                'id': smart_variable['id'],
+                'default-value': gen_string('alpha'),
+                'validator-type': 'regexp',
+                'validator-rule': '[0-9]',
+            })
+        sc_param = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(sc_param['default-value'], value)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_validate_default_value_with_regex(self):
         """Test variable is created for matched validator type regex.
@@ -341,12 +502,24 @@ class SmartVariablesTestCase(CLITestCase):
         2.  Validate this value with regex validator type and rule.
 
         @assert: Variable is created for matched validator rule.
-
-        @caseautomation: notautomated
         """
+        value = gen_string('numeric')
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': gen_string('alpha')
+        })
+        SmartVariable.update({
+            'id': smart_variable['id'],
+            'default-value': value,
+            'validator-type': 'regexp',
+            'validator-rule': '[0-9]',
+        })
+        updated_sv = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(updated_sv['default-value'], value)
+        self.assertEqual(updated_sv['validator']['type'], 'regexp')
+        self.assertEqual(updated_sv['validator']['rule'], '[0-9]')
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_validate_matcher_value_with_regex(self):
         """Test matcher is not created for unmatched validator type regex.
@@ -359,12 +532,21 @@ class SmartVariablesTestCase(CLITestCase):
         2.  Validate this value with regex validator type and rule.
 
         @assert: Matcher is not created for unmatched validator rule.
-
-        @caseautomation: notautomated
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': gen_string('numeric'),
+            'validator-type': 'regexp',
+            'validator-rule': '[0-9]',
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.add_override_value({
+                'smart-variable-id': smart_variable['id'],
+                'match': 'domain=test.com',
+                'value': gen_string('alpha')
+            })
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_validate_matcher_value_with_regex(self):
         """Test matcher is created for matched validator type regex.
@@ -377,12 +559,30 @@ class SmartVariablesTestCase(CLITestCase):
         2.  Validate this value with regex validator type and rule.
 
         @assert: Matcher is created for matched validator rule.
-
-        @caseautomation: notautomated
         """
+        value = gen_string('numeric')
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': gen_string('numeric'),
+            'validator-type': 'regexp',
+            'validator-rule': '[0-9]',
+        })
+        SmartVariable.add_override_value({
+            'smart-variable-id': smart_variable['id'],
+            'match': 'domain=test.com',
+            'value': value
+        })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(smart_variable['validator']['type'], 'regexp')
+        self.assertEqual(smart_variable['validator']['rule'], '[0-9]')
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['match'],
+            'domain=test.com'
+        )
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['value'], value)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_validate_default_value_with_list(self):
         """Test variable is not created for unmatched validator type list.
@@ -391,17 +591,20 @@ class SmartVariablesTestCase(CLITestCase):
 
         @steps:
 
-        1.  Create variable with some default value that doesn't match the list
-        of step 2.
-        2.  Validate this value with list validator type and rule.
+        1.  Attempt to create variable with default value that doesn't match
+        values from validator list
 
         @assert: Variable is not created for unmatched validator rule.
-
-        @caseautomation: notautomated
         """
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.create({
+                'puppet-class': self.puppet['name'],
+                'default-value': gen_string('alphanumeric'),
+                'validator-type': 'list',
+                'validator-rule': '5, test',
+            })
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_validate_default_value_with_list(self):
         """Test variable is created for matched validator type list.
@@ -410,17 +613,22 @@ class SmartVariablesTestCase(CLITestCase):
 
         @steps:
 
-        1.  Create a variable with some default value that matches the list of
-        step 2.
-        2.  Validate this value with list validator type and rule.
+        1.  Create a variable with default value that matches the values from
+        validator list
 
         @assert: Variable is created for matched validator rule.
-
-        @caseautomation: notautomated
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': 'test',
+            'validator-type': 'list',
+            'validator-rule': '5, test',
+        })
+        self.assertEqual(smart_variable['default-value'], 'test')
+        self.assertEqual(smart_variable['validator']['type'], 'list')
+        self.assertEqual(smart_variable['validator']['rule'], '5, test')
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_validate_matcher_value_with_list(self):
         """Test matcher is not created for unmatched validator type list.
@@ -429,16 +637,26 @@ class SmartVariablesTestCase(CLITestCase):
 
         @steps:
 
-        1.  Create a matcher with value that doesn't match the list of step 2.
-        2.  Validate this value with list validator type and rule.
+        1.  Create smart variable with proper validator
+        2.  Attempt to associate a matcher with value that doesn't match values
+        from validator list
 
         @assert: Matcher is not created for unmatched validator rule.
-
-        @caseautomation: notautomated
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': '50',
+            'validator-type': 'list',
+            'validator-rule': '25, example, 50',
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.add_override_value({
+                'smart-variable-id': smart_variable['id'],
+                'match': 'domain=test.com',
+                'value': 'myexample'
+            })
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_validate_matcher_value_with_list(self):
         """Test matcher is created for matched validator type list.
@@ -447,16 +665,35 @@ class SmartVariablesTestCase(CLITestCase):
 
         @steps:
 
-        1.  Create a matcher with value that matches the list of step 2.
-        2.  Validate this value with list validator type and rule.
+        1.  Create smart variable with proper validator
+        2.  Create a matcher with value that matches the values from validator
+        list
 
         @assert: Matcher is created for matched validator rule.
-
-        @caseautomation: notautomated
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': 'example',
+            'validator-type': 'list',
+            'validator-rule': 'test, example, 30',
+        })
+        SmartVariable.add_override_value({
+            'smart-variable-id': smart_variable['id'],
+            'match': 'domain=test.com',
+            'value': '30'
+        })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(smart_variable['validator']['type'], 'list')
+        self.assertEqual(
+            smart_variable['validator']['rule'], 'test, example, 30')
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['match'],
+            'domain=test.com'
+        )
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['value'], '30')
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_validate_matcher_value_with_default_type(self):
         """Matcher is not created for value not of default type.
@@ -469,12 +706,20 @@ class SmartVariablesTestCase(CLITestCase):
         2.  Create matcher with value that doesn't match the default type.
 
         @assert: Matcher is not created for unmatched type.
-
-        @caseautomation: notautomated
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': 'true',
+            'variable-type': 'boolean'
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.add_override_value({
+                'smart-variable-id': smart_variable['id'],
+                'match': 'is_virtual=true',
+                'value': 50,
+            })
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_validate_matcher_value_with_default_type(self):
         """Matcher is created for default type value.
@@ -487,9 +732,24 @@ class SmartVariablesTestCase(CLITestCase):
         2.  Create a matcher with value that matches the default type.
 
         @assert: Matcher is created for matched type.
-
-        @caseautomation: notautomated
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': 'true',
+            'variable-type': 'boolean'
+        })
+        SmartVariable.add_override_value({
+            'smart-variable-id': smart_variable['id'],
+            'match': 'is_virtual=true',
+            'value': 'false',
+        })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['match'],
+            'is_virtual=true'
+        )
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['value'], False)
 
     @run_only_on('sat')
     @stubbed()
@@ -509,7 +769,6 @@ class SmartVariablesTestCase(CLITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_matcher(self):
         """Create a Smart Variable with matcher.
@@ -525,13 +784,68 @@ class SmartVariablesTestCase(CLITestCase):
 
         1. The smart Variable with matcher is created successfully.
         2. The variable is associated with host with match.
-
-        @caseautomation: notautomated
         """
+        value = gen_string('alpha')
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name']})
+        SmartVariable.add_override_value({
+            'smart-variable-id': smart_variable['id'],
+            'match': 'is_virtual=true',
+            'value': value,
+        })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['match'],
+            'is_virtual=true'
+        )
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['value'], value)
+
+    @run_only_on('sat')
+    @tier1
+    def test_positive_remove_matcher(self):
+        """Create a Smart Variable with matcher and remove that matcher
+        afterwards.
+
+        @id: 883e0f3b-6367-4fbb-a0b2-434fbeb10fcf
+
+        @steps:
+
+        1. Create a smart variable with valid name and default value.
+        2. Create a matcher for that variable.
+        3. Remove just assigned matcher.
+
+        @assert:
+
+        1. The smart Variable is created successfully.
+        2. The matcher is associated with variable.
+        3. Matcher removed successfully
+        """
+        value = gen_string('alpha')
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name']})
+        SmartVariable.add_override_value({
+            'smart-variable-id': smart_variable['id'],
+            'match': 'is_virtual=true',
+            'value': value,
+        })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['match'],
+            'is_virtual=true'
+        )
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['value'], value)
+        SmartVariable.remove_override_value({
+            'id': smart_variable['override-values']['values']['1']['id'],
+            'smart-variable-id': smart_variable['id'],
+        })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(len(smart_variable['override-values']['values']), 0)
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host.
 
@@ -549,11 +863,13 @@ class SmartVariablesTestCase(CLITestCase):
         @assert: The YAML output has the value only for fqdn matcher.
 
         @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host - alternate priority.
 
@@ -574,11 +890,13 @@ class SmartVariablesTestCase(CLITestCase):
         2.  The YAML output doesn't have value for fqdn/host matcher.
 
         @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher_merge_override(self):
         """Merge the values of all the associated matchers.
 
@@ -603,11 +921,34 @@ class SmartVariablesTestCase(CLITestCase):
         3.  Duplicate values in YAML output if any are displayed.
 
         @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': '[56]',
+            'variable-type': 'array'
+        })
+        SmartVariable.add_override_value({
+            'smart-variable-id': smart_variable['id'],
+            'match': 'os=rhel6',
+            'value': '[67, 66]',
+        })
+        SmartVariable.add_override_value({
+            'smart-variable-id': smart_variable['id'],
+            'match': 'os=rhel7',
+            'value': '[23, 44, 66]',
+        })
+        SmartVariable.update({
+            'name': smart_variable['name'],
+            'merge-overrides': 1,
+            'merge-default': 1,
+        })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_matcher_merge_override(self):
         """Test merge the values from non associated matchers.
 
@@ -633,11 +974,13 @@ class SmartVariablesTestCase(CLITestCase):
         4.  Duplicate values in YAML output if any are displayed.
 
         @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher_merge_default(self):
         """Merge the values of all the associated matchers + default value.
 
@@ -663,11 +1006,13 @@ class SmartVariablesTestCase(CLITestCase):
         3. Duplicate values in YAML output if any are displayed.
 
         @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_matcher_merge_default(self):
         """Test empty default value in merged values.
 
@@ -693,11 +1038,13 @@ class SmartVariablesTestCase(CLITestCase):
         3.  Duplicate values in YAML output if any are displayed.
 
         @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher_avoid_duplicate(self):
         """Merge the values of all the associated matchers, remove duplicates.
 
@@ -723,11 +1070,13 @@ class SmartVariablesTestCase(CLITestCase):
         3.  Duplicate values in YAML output are removed / not displayed.
 
         @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
     @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_matcher_avoid_duplicate(self):
         """Duplicates not removed as they were not really present.
 
@@ -752,11 +1101,12 @@ class SmartVariablesTestCase(CLITestCase):
         3.  No value removed as duplicate value.
 
         @caseautomation: notautomated
+
+        @CaseLevel: Integration
         """
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_enable_merge_overrides_default_flags(self):
         """Enable Merge Overrides, Merge Default flags for supported types.
 
@@ -764,67 +1114,100 @@ class SmartVariablesTestCase(CLITestCase):
 
         @steps:
 
-        1.  Set variable type to array/hash.
+        1.  Create smart variable with array/hash type.
+        2.  Update smart variable and set corresponding flags to True state.
 
         @assert: The Merge Overrides, Merge Default flags are allowed to set
-        true.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        True.
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': '[56]',
+            'variable-type': 'array'
+        })
+        SmartVariable.update({
+            'name': smart_variable['name'],
+            'merge-overrides': 1,
+            'merge-default': 1,
+        })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(
+            smart_variable['override-values']['merge-overrides'], True)
+        self.assertEqual(
+            smart_variable['override-values']['merge-default-value'], True)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_enable_merge_overrides_default_flags(self):
-        """Disable Merge Overrides, Merge Default flags for non supported types.
+        """Attempt to enable Merge Overrides, Merge Default flags for non
+        supported types.
 
         @id: 306400df-e823-48d6-b541-ef3b20181c78
 
         @steps:
 
-        1.  Set variable type other than array/hash.
+        1.  Create smart variable with type that is not array/hash.
+        2.  Attempt to update smart variable and set corresponding flags to
+        True state.
 
         @assert: The Merge Overrides, Merge Default flags are not allowed
-        to set to true.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        to set to True.
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': gen_string('numeric'),
+            'variable-type': 'integer'
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.update({
+                'name': smart_variable['name'],
+                'merge-overrides': 1,
+                'merge-default': 1,
+            })
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_enable_avoid_duplicates_flag(self):
-        """Enable Avoid duplicates flag for supported type- array.
+        """Enable Avoid duplicates flag for supported array type.
 
         @id: 0c7063e0-8e85-44b7-abae-4def7f68833a
 
         @steps:
 
-        1. Set variable type to array.
+        1. Create smart variable with array/hash type.
         2. Set '--merge-overrides' to true.
 
         @assert: The '--avoid-duplicates' flag is allowed to set true.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': '[test]',
+            'variable-type': 'array'
+        })
+        SmartVariable.update({
+            'name': smart_variable['name'],
+            'merge-overrides': 1,
+        })
+        SmartVariable.update({
+            'name': smart_variable['name'],
+            'avoid-duplicates': 1,
+        })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(
+            smart_variable['override-values']['avoid-duplicates'], True)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_enable_avoid_duplicates_flag(self):
-        """Disable Avoid duplicates flag for non supported types.
+        """Attempt to enable Avoid duplicates flag for non supported types.
 
         @id: ea1e8e31-4374-4172-82fd-538d29d70c03
 
         @steps:
 
-        1.  Set variable type other than array.
+        1.  Create smart variable with type that is not array/hash.
+        2.  Attempt to update smart variable and set corresponding flags to
+        True state.
 
         @assert:
 
@@ -832,15 +1215,20 @@ class SmartVariablesTestCase(CLITestCase):
         hash.
         2.  The '--avoid-duplicates' is not allowed to set to true for type
         other than array.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': gen_string('numeric'),
+            'variable-type': 'integer'
+        })
+        with self.assertRaises(CLIReturnCodeError):
+            SmartVariable.update({
+                'name': smart_variable['name'],
+                'merge-overrides': 1,
+                'avoid-duplicates': 1,
+            })
 
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_positive_impact_delete_attribute(self):
         """Impact on variable after deleting associated attribute.
 
@@ -858,129 +1246,45 @@ class SmartVariablesTestCase(CLITestCase):
         2.  On recreating attribute, the matcher should not reappear in
         variable.
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        hostgroup_name = gen_string('alpha')
+        matcher_value = gen_string('alpha')
+        smart_variable = make_smart_variable(
+            {'puppet-class': self.puppet['name']})
+        hostgroup = make_hostgroup({
+            'name': hostgroup_name,
+            'environment-id': self.env['id'],
+            'puppet-class-ids': self.puppet['id']
+        })
+        SmartVariable.add_override_value({
+            'smart-variable-id': smart_variable['id'],
+            'match': 'hostgroup={0}'.format(hostgroup_name),
+            'value': matcher_value,
+        })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['match'],
+            'hostgroup={0}'.format(hostgroup_name)
+        )
+        self.assertEqual(
+            smart_variable['override-values']['values']['1']['value'],
+            matcher_value,
+        )
+        HostGroup.delete({'id': hostgroup['id']})
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(len(smart_variable['override-values']['values']), 0)
+        make_hostgroup({
+            'name': hostgroup_name,
+            'environment-id': self.env['id'],
+            'puppet-class-ids': self.puppet['id']
+        })
+        smart_variable = SmartVariable.info({'id': smart_variable['id']})
+        self.assertEqual(len(smart_variable['override-values']['values']), 0)
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_bug_open('bugzilla', 1371794)
     @tier1
-    def test_positive_create_override_from_attribute(self):
-        """Impact on variable on overriding the variable value from attribute.
-
-        @id: 07622cab-26f9-4826-a61b-64748e4866a1
-
-        @steps:
-
-        1.  Create a variable.
-        2.  Associate variable with fqdn/hostgroup.
-        3.  From host/hostgroup, override the variable value.
-
-        @assert:
-
-        1.  The host/hostgroup is saved with changes.
-        2.  New matcher for fqdn/hostgroup created inside variable.
-
-        @caseautomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_negative_create_override_from_attribute(self):
-        """No impact on variable on overriding the variable
-        with invalid value from attribute.
-
-        @id: 471fd4b3-c88a-4d3d-a142-343c75803c36
-
-        @steps:
-
-        1.  Create a variable.
-        2.  Associate variable with fqdn/hostgroup.
-        3.  From host/hostgroup, Attempt to override the variable with invalid
-        key type of value.
-
-        @assert:
-
-        1.  No matcher for fqdn/hostgroup is created inside variable.
-
-        @caseautomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_negative_create_empty_value_matcher_from_attribute(self):
-        """Override variable value with empty value from attribute.
-
-        @id: 49dab842-b310-4149-b187-bd7ccf5464a6
-
-        @steps:
-
-        1.  Create a variable.
-        2.  Associate variable with fqdn/hostgroup.
-        3.  From host/hostgroup, Attempt to override the variable with empty
-        value.
-
-        @assert:
-
-        1.  Matcher for fqdn/hostgroup created for blank value.
-
-        @caseautomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_positive_update_matcher_from_attribute(self):
-        """Impact on variable on editing the variable value from attribute.
-
-        @id: aa28f59f-0327-486b-8b16-64a2fe025e38
-
-        @steps:
-
-        1.  Create a variable.
-        2.  Associate variable with fqdn/hostgroup.
-        3.  Create a matcher for fqdn/hostgroup with valid details.
-        4.  From host/hostgroup, edit the variable value.
-
-        @assert:
-
-        1.  The host/hostgroup is saved with changes.
-        2.  Matcher value in variable is updated from fqdn/hostgroup.
-
-        @caseautomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_negative_update_matcher_from_attribute(self):
-        """No Impact on variable on editing the variable with
-        invalid value from attribute.
-
-        @id: 083dc374-9cc1-447c-98f0-54fa800d4ea7
-
-        @steps:
-
-        1.  Create a variable.
-        2.  Associate variable with fqdn/hostgroup.
-        3.  Create a matcher for fqdn/hostgroup with valid details.
-        4.  From host/hostgroup, attempt to edit the variable
-        with invalid value.
-
-        @assert:
-
-        1.  Matcher value in variable is not updated from fqdn/hostgroup for
-        invalid value.
-
-        @caseautomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
     def test_positive_hide_default_value(self):
         """Test hiding of the default value of variable.
 
@@ -992,16 +1296,19 @@ class SmartVariablesTestCase(CLITestCase):
         2. Enter some valid default value.
         3. Set '--hidden-value' to true.
 
-        @assert: The default value is set to true.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: The 'hidden value' set to true for that variable. Default
+        value is hidden
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': gen_string('alpha'),
+            'hidden-value': 1,
+        })
+        self.assertEqual(smart_variable['hidden-value?'], True)
+        self.assertEqual(smart_variable['default-value'], '**********')
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_unhide_default_value(self):
         """Test unhiding of the default value of variable.
 
@@ -1013,15 +1320,22 @@ class SmartVariablesTestCase(CLITestCase):
         2. Set '--hidden-value' to true.
         3. After hiding, set '--hidden-value' to false.
 
-        @assert: The default value is set to false.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: The hidden value is set to false.
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': gen_string('alpha'),
+            'hidden-value': 1,
+        })
+        self.assertEqual(smart_variable['hidden-value?'], True)
+        SmartVariable.update({
+            'name': smart_variable['name'],
+            'hidden-value': 0
+        })
+        updated_sv = SmartVariable.info({'name': smart_variable['name']})
+        self.assertEqual(updated_sv['hidden-value?'], False)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_hidden_value(self):
         """Update the hidden default value of variable.
@@ -1038,13 +1352,23 @@ class SmartVariablesTestCase(CLITestCase):
 
         1. The variable default value is updated.
         2. The variable '--hidden-value' is set true.
-
-        @caseautomation: notautomated
         """
+        value = gen_string('alpha')
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': gen_string('alpha'),
+            'hidden-value': 1,
+        })
+        self.assertEqual(smart_variable['hidden-value?'], True)
+        SmartVariable.update({
+            'name': smart_variable['name'],
+            'default-value': value,
+        })
+        updated_sv = SmartVariable.info({'name': smart_variable['name']})
+        self.assertEqual(updated_sv['default-value'], value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_hide_empty_default_value(self):
         """Hiding the empty default value.
 
@@ -1059,8 +1383,11 @@ class SmartVariablesTestCase(CLITestCase):
 
         1.  The '--hidden-value' is set to true.
         2.  The default value is empty.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        smart_variable = make_smart_variable({
+            'puppet-class': self.puppet['name'],
+            'default-value': '',
+            'hidden-value': 1,
+        })
+        self.assertEqual(smart_variable['hidden-value?'], True)
+        self.assertEqual(smart_variable['default-value'], '')
