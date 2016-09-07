@@ -681,8 +681,8 @@ def make_repository(options=None):
                                                 currently 'sha1' &amp; 'sha256'
                                                 are supported.'
         --content-type CONTENT_TYPE             type of repo (either 'yum',
-                                                'puppet' or 'docker', defaults
-                                                to 'yum')
+                                                'puppet', 'docker' or 'ostree',
+                                                defaults to 'yum')
         --docker-upstream-name DOCKER_UPSTREAM_NAME name of the upstream docker
                                                 repository
         --download-policy DOWNLOAD_POLICY       download policy for yum repos
