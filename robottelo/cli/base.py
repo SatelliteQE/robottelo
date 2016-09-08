@@ -29,7 +29,16 @@ class CLIReturnCodeError(Exception):
         self.message = msg
 
     def __str__(self):
-        return self.message
+        """Include return_code, stderr and msg to string repr so
+        assertRaisesRegexp can be used to assert error present on any
+        attribute
+        """
+        return repr(self)
+
+    def __repr__(self):
+        """Include return_code, stderr and msg to improve logging"""
+        tmpl = u'CLIReturnCodeError(return_code={!r}, stderr={!r}, msg={!r}'
+        return tmpl.format(self.return_code, self.stderr, self.msg)
 
 
 class Base(object):

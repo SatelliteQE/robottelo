@@ -237,6 +237,16 @@ class BaseCliTestCase(unittest2.TestCase):
         self.assert_cmd_execution(construct, execute, Base.dump, 'dump')
 
 
+class CLIErrorTests(unittest2.TestCase):
+    """Tests for the CLIError cli class"""
+
+    def test_error_msg_is_exposed(self):
+        """Check if message error is exposed to assertRaisesRegexp"""
+        msg = u'organization-id option is required for Foo.create'
+        with self.assertRaisesRegexp(CLIError, msg):
+            raise CLIError(msg)
+
+
 class CLIReturnCodeErrorTestCase(unittest2.TestCase):
     """Tests for the CLIReturnCodeError cli class"""
 
@@ -248,7 +258,17 @@ class CLIReturnCodeErrorTestCase(unittest2.TestCase):
         self.assertEqual(error.msg, u'msg')
         self.assertEqual(error.message, error.msg)
 
-    def test_str(self):
-        """Check __str__ returns message attribute"""
-        error = CLIReturnCodeError(1, u'stderr', u'msg')
-        self.assertEqual(error.message, str(error))
+    def test_return_code_is_exposed(self):
+        """Check if return_code is exposed to assertRaisesRegexp"""
+        with self.assertRaisesRegexp(CLIReturnCodeError, u'1'):
+            raise CLIReturnCodeError(1, u'stderr', u'msg')
+
+    def test_stderr_is_exposed(self):
+        """Check if stderr is exposed to assertRaisesRegexp"""
+        with self.assertRaisesRegexp(CLIReturnCodeError, u'stderr'):
+            raise CLIReturnCodeError(1, u'stderr', u'msg')
+
+    def test_message_is_exposed(self):
+        """Check if message is exposed to assertRaisesRegexp"""
+        with self.assertRaisesRegexp(CLIReturnCodeError, u'msg'):
+            raise CLIReturnCodeError(1, u'stderr', u'msg')
