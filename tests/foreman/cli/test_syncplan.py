@@ -231,8 +231,12 @@ class SyncPlanTestCase(CLITestCase):
         """
         for name in invalid_values_list():
             with self.subTest(name):
-                with self.assertRaises(CLIFactoryError):
+                with self.assertRaises(CLIFactoryError) as raise_ctx:
                     self._make_sync_plan({u'name': name})
+                self.assert_error_msg(
+                    raise_ctx,
+                    u'Could not create the sync plan:'
+                )
 
     @tier1
     def test_positive_update_description(self):
@@ -377,6 +381,7 @@ class SyncPlanTestCase(CLITestCase):
                 ['errata', 'package-groups', 'packages'],
                 max_attempts=5,
             )
+            # validate the error message once unstubbed (#3611)
 
     # This Bugzilla bug is private. It is impossible to fetch info about it.
     @stubbed('Unstub when BZ1279539 is fixed')
