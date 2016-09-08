@@ -416,6 +416,9 @@ API_PATHS = {
         u'/katello/api/hosts/bulk/remove_content',
         u'/katello/api/hosts/bulk/remove_host_collections',
         u'/katello/api/hosts/bulk/update_content',
+        u'/katello/api/hosts/bulk/subscriptions/add_subscriptions',
+        u'/katello/api/hosts/bulk/subscriptions/auto_attach',
+        u'/katello/api/hosts/bulk/subscriptions/remove_subscriptions',
     ),
     u'host_errata': (
         u'/api/hosts/:host_id/errata',
