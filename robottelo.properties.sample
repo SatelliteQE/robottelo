@@ -182,6 +182,10 @@ ssh_key=
 # [oscap]
 # content_path=~/ssg-rhel6-ds.xml
 
+# Atomic Ostree Kickstart Installer
+# [ostree]
+# ostree_installer=OSTREE_INSTALLER
+
 # Section for declaring Sat5->Sat6 transition parameters
 # [transition]
 # URL of the  exported data archive (typically a .tgz containing a bunch of CSV

@@ -17,12 +17,20 @@
 """
 from fauxfactory import gen_string
 from nailgun import entities, entity_mixins
-from robottelo.api.utils import promote
+from robottelo.api.utils import (
+    enable_rhrepo_and_fetchid,
+    promote,
+    upload_manifest,
+)
+from robottelo import manifests
 from robottelo.config import settings
 from robottelo.constants import (
     DEFAULT_CV,
     DEFAULT_PTABLE,
     ENVIRONMENT,
+    PRDS,
+    REPOS,
+    REPOSET,
     RHEL_6_MAJOR_VERSION,
     RHEL_7_MAJOR_VERSION,
 )
@@ -32,6 +40,7 @@ from robottelo.decorators import (
     stubbed,
     tier3,
 )
+from robottelo.decorators.host import skip_if_os
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_host
 from robottelo.ui.session import Session
@@ -536,7 +545,280 @@ class HostTestCase(UITestCase):
         @CaseLevel: System
         """
 
-    @stubbed()
+
+class AtomicHostTestCase(UITestCase):
+    """Implements Atomic Host tests in UI"""
+
+    hostname = gen_string('numeric')
+
+    @classmethod
+    @skip_if_os('RHEL6')
+    @skip_if_not_set('vlan_networking', 'compute_resources')
+    def setUpClass(cls):
+        """Steps required to create a Atomic host on libvirt
+
+        1. Creates new Organization and Location.
+        2. Creates new life-cycle environment.
+        3. Creates new product and sync RH Atomic OSTree repository.
+        4. Creates new content-view by associating RH Atomic repository.
+        5. Publish and promote the content-view to next environment.
+        6. Search for smart-proxy and associate location.
+        7. Search for existing domain or create new otherwise. Associate org,
+           location and dns proxy.
+        8. Search for '192.168.100.0' network and associate org, location,
+           dns/dhcp/tftp proxy, and if its not there then creates new.
+        9. Search for existing compute-resource with 'libvirt' provider and
+            associate org.location, and if its not there then creates
+            new.
+        10. Search 'Kickstart default' partition table and RH Atomic OS along
+            with PXE templates.
+        11. Associates org, location and OS with provisioning and PXE templates
+        12. Search for x86_64 architecture
+        13. Associate arch, partition table, provisioning/PXE templates with OS
+        14. Search for existing Atomic media or create new otherwise and
+            associate org/location
+        15. Create new host group with all required entities
+        """
+        super(AtomicHostTestCase, cls).setUpClass()
+        # Create a new Organization and Location
+        cls.org = entities.Organization().create()
+        cls.org_name = cls.org.name
+        cls.loc = entities.Location(organization=[cls.org]).create()
+        cls.loc_name = cls.loc.name
+        # Create a new Life-Cycle environment
+        cls.lc_env = entities.LifecycleEnvironment(
+            organization=cls.org
+        ).create()
+        cls.rh_ah_repo = {
+            'name': REPOS['rhaht']['name'],
+            'product': PRDS['rhah'],
+            'reposet': REPOSET['rhaht'],
+            'basearch': None,
+            'releasever': None,
+        }
+        with manifests.clone() as manifest:
+            upload_manifest(cls.org.id, manifest.content)
+        # Enables the RedHat repo and fetches it's Id.
+        cls.repo_id = enable_rhrepo_and_fetchid(
+            basearch=cls.rh_ah_repo['basearch'],
+            # OrgId is passed as data in API hence str
+            org_id=str(cls.org.id),
+            product=cls.rh_ah_repo['product'],
+            repo=cls.rh_ah_repo['name'],
+            reposet=cls.rh_ah_repo['reposet'],
+            releasever=cls.rh_ah_repo['releasever'],
+        )
+        # Increased timeout value for repo sync
+        cls.old_task_timeout = entity_mixins.TASK_TIMEOUT
+        entity_mixins.TASK_TIMEOUT = 600
+        # Sync repository
+        entities.Repository(id=cls.repo_id).sync()
+        entity_mixins.TASK_TIMEOUT = cls.old_task_timeout
+        cls.cv = entities.ContentView(organization=cls.org).create()
+        cls.cv.repository = [entities.Repository(id=cls.repo_id)]
+        cls.cv = cls.cv.update(['repository'])
+        cls.cv.publish()
+        cls.cv = cls.cv.read()
+        promote(cls.cv.version[0], cls.lc_env.id)
+        # Search for SmartProxy, and associate location
+        cls.proxy = entities.SmartProxy().search(
+            query={
+                u'search': u'name={0}'.format(
+                    settings.server.hostname
+                )
+            }
+        )[0]
+        cls.proxy.location = [cls.loc]
+        cls.proxy.organization = [cls.org]
+        cls.proxy = cls.proxy.update(['organization', 'location'])
+
+        # Search for existing domain or create new otherwise. Associate org,
+        # location and dns to it
+        _, _, domain = settings.server.hostname.partition('.')
+        cls.domain = entities.Domain().search(
+            query={
+                u'search': u'name="{0}"'.format(domain)
+            }
+        )
+        if len(cls.domain) == 1:
+            cls.domain = cls.domain[0].read()
+            cls.domain.location.append(cls.loc)
+            cls.domain.organization.append(cls.org)
+            cls.domain.dns = cls.proxy
+            cls.domain = cls.domain.update(['dns', 'location', 'organization'])
+        else:
+            cls.domain = entities.Domain(
+                dns=cls.proxy,
+                location=[cls.loc],
+                organization=[cls.org],
+            ).create()
+        cls.domain_name = cls.domain.name
+
+        # Search if subnet is defined with given network.
+        # If so, just update its relevant fields otherwise,
+        # Create new subnet
+        network = settings.vlan_networking.subnet
+        cls.subnet = entities.Subnet().search(
+            query={u'search': u'network={0}'.format(network)}
+        )
+        if len(cls.subnet) == 1:
+            cls.subnet = cls.subnet[0]
+            cls.subnet.domain = [cls.domain]
+            cls.subnet.location = [cls.loc]
+            cls.subnet.organization = [cls.org]
+            cls.subnet.dns = cls.proxy
+            cls.subnet.dhcp = cls.proxy
+            cls.subnet.tftp = cls.proxy
+            cls.subnet.discovery = cls.proxy
+            cls.subnet = cls.subnet.update([
+                'domain',
+                'discovery',
+                'dhcp',
+                'dns',
+                'location',
+                'organization',
+                'tftp',
+            ])
+        else:
+            # Create new subnet
+            cls.subnet = entities.Subnet(
+                name=gen_string('alpha'),
+                network=network,
+                mask=settings.vlan_networking.netmask,
+                domain=[cls.domain],
+                location=[cls.loc],
+                organization=[cls.org],
+                dns=cls.proxy,
+                dhcp=cls.proxy,
+                tftp=cls.proxy,
+                discovery=cls.proxy
+            ).create()
+
+        # Search if Libvirt compute-resource already exists
+        # If so, just update its relevant fields otherwise,
+        # Create new compute-resource with 'libvirt' provider.
+        resource_url = u'qemu+ssh://root@{0}/system'.format(
+            settings.compute_resources.libvirt_hostname
+        )
+        comp_res = [
+            res for res in entities.LibvirtComputeResource().search()
+            if res.provider == 'Libvirt' and res.url == resource_url
+        ]
+        if len(comp_res) >= 1:
+            cls.computeresource = entities.LibvirtComputeResource(
+                id=comp_res[0].id).read()
+            cls.computeresource.location.append(cls.loc)
+            cls.computeresource.organization.append(cls.org)
+            cls.computeresource = cls.computeresource.update([
+                'location', 'organization'])
+        else:
+            # Create Libvirt compute-resource
+            cls.computeresource = entities.LibvirtComputeResource(
+                name=gen_string('alpha'),
+                provider=u'libvirt',
+                url=resource_url,
+                set_console_password=False,
+                display_type=u'VNC',
+                location=[cls.loc.id],
+                organization=[cls.org.id],
+            ).create()
+
+        # Get the Partition table ID
+        cls.ptable = entities.PartitionTable().search(
+            query={
+                u'search': u'name="{0}"'.format(DEFAULT_PTABLE)
+            }
+        )[0]
+
+        # Get the OS ID
+        cls.os = entities.OperatingSystem().search(query={
+            u'search': u'name="RedHat_Enterprise_Linux_Atomic_Host"'
+        })[0]
+
+        # Get the Provisioning template_ID and update with OS, Org, Location
+        cls.provisioning_template = entities.ConfigTemplate().search(
+            query={
+                u'search': u'name="Satellite Atomic Kickstart Default"'
+            }
+        )[0]
+        cls.provisioning_template.operatingsystem = [cls.os]
+        cls.provisioning_template.organization = [cls.org]
+        cls.provisioning_template.location = [cls.loc]
+        cls.provisioning_template = cls.provisioning_template.update(
+            ['location', 'operatingsystem', 'organization']
+        )
+
+        # Get the PXE template ID and update with OS, Org, location
+        cls.pxe_template = entities.ConfigTemplate().search(
+            query={
+                u'search': u'name="Kickstart default PXELinux"'
+            }
+        )[0]
+        cls.pxe_template.operatingsystem = [cls.os]
+        cls.pxe_template.organization = [cls.org]
+        cls.pxe_template.location = [cls.loc]
+        cls.pxe_template = cls.pxe_template.update(
+            ['location', 'operatingsystem', 'organization']
+        )
+        # Get the arch ID
+        cls.arch = entities.Architecture().search(
+            query={u'search': u'name="x86_64"'}
+        )[0]
+        # Get the ostree installer URL
+        ostree_path = settings.ostree.ostree_installer
+        # Get the Media
+        cls.media = entities.Media().search(query={
+            u'search': u'path={0}'.format(ostree_path)
+        })
+        if len(cls.media) == 1:
+            cls.media = cls.media[0]
+            cls.media.location = [cls.loc]
+            cls.media.organization = [cls.org]
+            cls.media = cls.media.update(['location', 'organization'])
+        else:
+            cls.media = entities.Media(
+                organization=[cls.org],
+                location=[cls.loc],
+                os_family='Redhat',
+                path_=ostree_path
+            ).create()
+        # Update the OS to associate arch, ptable, templates
+        cls.os.architecture = [cls.arch]
+        cls.os.ptable = [cls.ptable]
+        cls.os.config_template = [cls.pxe_template, cls.provisioning_template]
+        cls.os.medium = [cls.media]
+        cls.os = cls.os.update([
+            'architecture',
+            'config_template',
+            'ptable',
+            'medium',
+        ])
+
+        # Create Hostgroup
+        cls.host_group = entities.HostGroup(
+            architecture=cls.arch,
+            domain=cls.domain.id,
+            subnet=cls.subnet.id,
+            lifecycle_environment=cls.lc_env.id,
+            content_view=cls.cv.id,
+            location=[cls.loc.id],
+            name=gen_string('alpha'),
+            medium=cls.media,
+            operatingsystem=cls.os.id,
+            organization=[cls.org.id],
+            ptable=cls.ptable.id,
+        ).create()
+
+    def tearDown(self):
+        """Delete the host to free the resources"""
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.org_name)
+            session.nav.go_to_hosts()
+            host_name = u'{0}.{1}'.format(self.hostname, self.domain_name)
+            if self.hosts.search(host_name):
+                self.hosts.delete(host_name, True)
+        super(AtomicHostTestCase, self).tearDown()
+
     @tier3
     def test_positive_provision_atomic_host(self):
         """Provision an atomic host on libvirt and register it with satellite
@@ -546,10 +828,34 @@ class HostTestCase(UITestCase):
         @Assert: Atomic host should be provisioned and listed under
         content-hosts/Hosts
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        resource = u'{0} (Libvirt)'.format(self.computeresource.name)
+        root_pwd = gen_string('alpha', 15)
+        with Session(self.browser) as session:
+            make_host(
+                session,
+                name=self.hostname,
+                org=self.org_name,
+                parameters_list=[
+                    ['Host', 'Organization', self.org_name],
+                    ['Host', 'Location', self.loc_name],
+                    ['Host', 'Host group', self.host_group.name],
+                    ['Host', 'Deploy on', resource],
+                    ['Virtual Machine', 'Memory', '1 GB'],
+                    ['Operating System', 'Media', self.media.name],
+                    ['Operating System', 'Partition table', DEFAULT_PTABLE],
+                    ['Operating System', 'Root password', root_pwd],
+                ],
+                interface_parameters=[
+                    ['Network type', 'Physical (Bridge)'],
+                    ['Network', settings.vlan_networking.bridge],
+                ],
+            )
+            search = self.hosts.search(
+                u'{0}.{1}'.format(self.hostname, self.domain_name)
+            )
+            self.assertIsNotNone(search)
 
     @stubbed()
     @tier3
@@ -583,7 +889,6 @@ class HostTestCase(UITestCase):
         @CaseLevel: System
         """
 
-    @stubbed()
     @tier3
     def test_positive_delete_atomic_host(self):
         """Delete a provisioned atomic host
@@ -593,10 +898,33 @@ class HostTestCase(UITestCase):
         @Assert: Atomic host should be deleted successfully and shouldn't be
         listed under hosts/content-hosts
 
-        @caseautomation: notautomated
-
         @CaseLevel: System
         """
+        resource = u'{0} (Libvirt)'.format(self.computeresource.name)
+        root_pwd = gen_string('alpha', 15)
+        with Session(self.browser) as session:
+            make_host(
+                session,
+                name=self.hostname,
+                org=self.org_name,
+                parameters_list=[
+                    ['Host', 'Organization', self.org_name],
+                    ['Host', 'Location', self.loc_name],
+                    ['Host', 'Host group', self.host_group.name],
+                    ['Host', 'Deploy on', resource],
+                    ['Virtual Machine', 'Memory', '1 GB'],
+                    ['Operating System', 'Media', self.media.name],
+                    ['Operating System', 'Partition table', DEFAULT_PTABLE],
+                    ['Operating System', 'Root password', root_pwd],
+                ],
+                interface_parameters=[
+                    ['Network type', 'Physical (Bridge)'],
+                    ['Network', settings.vlan_networking.bridge],
+                ],
+            )
+            # Delete host
+            self.hosts.delete(
+                u'{0}.{1}'.format(self.hostname, self.domain_name))
 
     @stubbed()
     @tier3

@@ -522,6 +522,26 @@ class OscapSettings(FeatureSettings):
         return validation_errors
 
 
+class OstreeSettings(FeatureSettings):
+    """Ostree settings definitions."""
+    def __init__(self, *args, **kwargs):
+        super(OstreeSettings, self).__init__(*args, **kwargs)
+        self.ostree_installer = None
+
+    def read(self, reader):
+        """Read Ostree settings."""
+        self.ostree_installer = reader.get('ostree', 'ostree_installer')
+
+    def validate(self):
+        """Validate Ostree settings."""
+        validation_errors = []
+        if self.ostree_installer is None:
+            validation_errors.append(
+                '[ostree] ostree_installer option must be provided.'
+            )
+        return validation_errors
+
+
 class PerformanceSettings(FeatureSettings):
     """Performance settings definitions."""
     def __init__(self, *args, **kwargs):
@@ -689,6 +709,7 @@ class Settings(object):
         self.fake_manifest = FakeManifestSettings()
         self.ldap = LDAPSettings()
         self.oscap = OscapSettings()
+        self.ostree = OstreeSettings()
         self.performance = PerformanceSettings()
         self.rhai = RHAISettings()
         self.rhev = RHEVSettings()
@@ -743,6 +764,9 @@ class Settings(object):
         if self.reader.has_section('oscap'):
             self.oscap.read(self.reader)
             self._validation_errors.extend(self.oscap.validate())
+        if self.reader.has_section('ostree'):
+            self.ostree.read(self.reader)
+            self._validation_errors.extend(self.ostree.validate())
         if self.reader.has_section('performance'):
             self.performance.read(self.reader)
             self._validation_errors.extend(self.performance.validate())
