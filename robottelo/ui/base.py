@@ -58,15 +58,17 @@ class Base(object):
                 return None
         except NoSuchElementException as err:
             self.logger.debug(
-                '%s: Could not locate element %s.',
+                u'%s: Could not locate element %s: %s',
                 type(err).__name__,
-                locator[1]
+                locator[1],
+                err
             )
         except TimeoutException as err:
             self.logger.debug(
-                'Timeout while waiting for locator "%s": "%s"',
-                locator[0],
-                locator[1]
+                u'%s: Waiting for locator %s: %s',
+                type(err).__name__,
+                locator[1],
+                err
             )
         return None
 
@@ -85,15 +87,17 @@ class Base(object):
             return webelements
         except NoSuchElementException as err:
             self.logger.debug(
-                '%s: Could not locate the elements of %s.',
+                u'%s: Could not locate the elements of %s: %s',
                 type(err).__name__,
-                locator[1]
+                locator[1],
+                err
             )
         except TimeoutException as err:
             self.logger.debug(
-                'Timeout while waiting for locator "%s": "%s"',
-                locator[0],
-                locator[1]
+                u'%s: Waiting for locator "%s": "%s"',
+                type(err).__name__,
+                locator[1],
+                err
             )
         return None
 
@@ -108,6 +112,10 @@ class Base(object):
     def navigate_to_entity(self):
         """Perform navigation to main page for specific entity"""
         raise NotImplementedError('Subclasses must implement navigator method')
+
+    def search_and_click(self, element):
+        """Helper method to perform the commonly used search then click"""
+        return self.click(self.search(element))
 
     def search(self, element):
         """Uses the search box to locate an element from a list of elements.
@@ -297,14 +305,18 @@ class Base(object):
         try:
             element = WebDriverWait(
                 self.browser, timeout, poll_frequency
-            ).until(expected_conditions.presence_of_element_located(locator))
+            ).until(
+                expected_conditions.presence_of_element_located(locator),
+                message=u'element %s is not present' % locator[1]
+            )
             self.wait_for_ajax(poll_frequency=poll_frequency)
             return element
         except TimeoutException as err:
             self.logger.debug(
-                "%s: Timed out waiting for element '%s' to exists.",
+                u"%s: Waiting for element '%s' to exists. %s",
                 type(err).__name__,
-                locator[1]
+                locator[1],
+                err
             )
             return None
 
@@ -316,14 +328,18 @@ class Base(object):
         try:
             element = WebDriverWait(
                 self.browser, timeout, poll_frequency
-            ).until(expected_conditions.visibility_of_element_located(locator))
+            ).until(
+                expected_conditions.visibility_of_element_located(locator),
+                message=u'element %s is not visible' % locator[1]
+            )
             self.wait_for_ajax(poll_frequency=poll_frequency)
             return element
         except TimeoutException as err:
             self.logger.debug(
-                "%s: Timed out waiting for element '%s' to display.",
+                u"%s: Waiting for element '%s' to display. %s",
                 type(err).__name__,
-                locator[1]
+                locator[1],
+                err
             )
             return None
 
@@ -336,17 +352,21 @@ class Base(object):
         try:
             element = WebDriverWait(
                 self.browser, timeout, poll_frequency
-            ).until(expected_conditions.element_to_be_clickable(locator))
+            ).until(
+                expected_conditions.element_to_be_clickable(locator),
+                message=u'element %s is not clickable' % locator[1]
+            )
             self.wait_for_ajax(poll_frequency=poll_frequency)
             if element.get_attribute('disabled') == u'true':
                 return None
             return element
         except TimeoutException as err:
             self.logger.debug(
-                '%s: Timed out waiting for element "%s" to display or to be '
-                'clickable.',
+                u'%s: Waiting for element "%s" to display or to be '
+                u'clickable. %s',
                 type(err).__name__,
-                locator[1]
+                locator[1],
+                err
             )
             return None
 
@@ -372,9 +392,10 @@ class Base(object):
             return True
         except TimeoutException as err:
             self.logger.debug(
-                "%s: Timed out waiting for element '%s' to disappear.",
+                u"%s: Waiting for element '%s' to disappear. %s",
                 type(err).__name__,
-                locator[1]
+                locator[1],
+                err
             )
             return None
 
@@ -393,8 +414,8 @@ class Base(object):
 
         try:
             angular_active = driver.execute_script(
-                'return angular.element(document).injector().get("$http")'
-                '.pendingRequests.length') > 0
+                u'return angular.element(document).injector().get("$http")'
+                u'.pendingRequests.length') > 0
         except WebDriverException:
             pass
 
@@ -610,8 +631,8 @@ class Base(object):
             element = target
         if element is None:
             raise UINoSuchElementError(
-                u'{0}: element was not found while trying to click'
-                .format(type(self).__name__)
+                u'{0}: element {1} was not found while trying to click'
+                .format(type(self).__name__, str(target))
             )
         # Required since from selenium 2.48.0. which makes Selenium more
         # closely resemble a user when interacting with elements.
@@ -626,7 +647,7 @@ class Base(object):
             self.wait_for_ajax(ajax_timeout)
 
     def select(self, locator, list_value, wait_for_ajax=True, timeout=30,
-               scroll=True):
+               scroll=True, select_by='visible_text'):
         """Select the element described by the ``locator``. Current method
         supports both classical <select> tags and newer jquery-select elements
 
@@ -638,6 +659,8 @@ class Base(object):
             will have effect if ``wait_fox_ajax`` parameter is ``True``.
         :param scroll: Decide whether scroll to element in case it is located
             out of the page
+        :param select_by: method for select element in the list of options
+             visible_text, index, value
 
         """
         # Check whether our select list element has <select> tag
@@ -645,7 +668,8 @@ class Base(object):
             element = self.wait_until_element(locator)
             if scroll:
                 self.scroll_into_view(element)
-            Select(element).select_by_visible_text(list_value)
+            select_element = Select(element)
+            getattr(select_element, 'select_by_%s' % select_by)(list_value)
             if wait_for_ajax:
                 self.wait_for_ajax(timeout)
         # If no - treat it like jquery select list

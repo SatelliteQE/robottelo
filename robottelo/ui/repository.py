@@ -18,7 +18,7 @@ class Repos(Base):
 
     def create(self, name, gpg_key=None, http=False, url=None,
                upstream_repo_name=None, repo_type=REPO_TYPE['yum'],
-               repo_checksum=CHECKSUM_TYPE['default']):
+               repo_checksum=CHECKSUM_TYPE['default'], download_policy=None):
         """Creates new repository from UI."""
         self.click(locators['repo.new'])
         self.text_field_update(common_locators['name'], name)
@@ -33,6 +33,11 @@ class Repos(Base):
             self.select(common_locators['gpg_key'], gpg_key)
         if url:
             self.text_field_update(locators['repo.url'], url)
+        if download_policy:
+            self.select(
+                locators['repo.download_policy'],
+                download_policy
+            )
         if upstream_repo_name:
             self.text_field_update(
                 locators['repo.upstream_name'], upstream_repo_name)
@@ -40,8 +45,9 @@ class Repos(Base):
             self.click(locators['repo.via_http'])
         self.click(common_locators['create'])
 
-    def update(self, name, new_name=None, new_url=None, new_repo_checksum=None,
-               new_gpg_key=None, http=False, new_upstream_name=None):
+    def update(self, name, new_name=None, new_url=None,
+               new_repo_checksum=None, new_gpg_key=None, http=False,
+               new_upstream_name=None, download_policy=None):
         """Updates repositories from UI."""
         repo_element = self.search(name)
         if repo_element is None:
@@ -74,6 +80,13 @@ class Repos(Base):
             self.click(locators['repo.upstream_edit'])
             self.text_field_update(
                 locators['repo.upstream_update'], new_upstream_name)
+            self.click(common_locators['save'])
+        if download_policy:
+            self.click(locators['repo.download_policy_edit'])
+            self.select(
+                locators['repo.download_policy_update'],
+                download_policy
+            )
             self.click(common_locators['save'])
 
     def delete(self, name, really=True):
@@ -139,7 +152,7 @@ class Repos(Base):
         self.wait_for_ajax()
         if field_name in [
             'checksum', 'errata', 'gpgkey', 'package_groups', 'packages',
-            'upstream', 'url',
+            'upstream', 'url', 'download_policy'
         ]:
             return (self.wait_until_element(locators[
                 'repo.fetch_' + field_name]).text == expected_field_value)

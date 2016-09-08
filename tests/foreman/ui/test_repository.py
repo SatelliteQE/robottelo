@@ -32,6 +32,7 @@ from robottelo.constants import (
     REPO_TYPE,
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
+    DOWNLOAD_POLICIES
 )
 from robottelo.datafactory import (
     filtered_datapoint,
@@ -45,6 +46,7 @@ from robottelo.test import UITestCase
 from robottelo.ui.factory import make_repository, set_context
 from robottelo.ui.locators import common_locators, locators, tab_locators
 from robottelo.ui.session import Session
+from selenium.common.exceptions import NoSuchElementException
 
 
 @filtered_datapoint
@@ -65,14 +67,23 @@ class RepositoryTestCase(UITestCase):
     @classmethod
     def setUpClass(cls):  # noqa
         super(RepositoryTestCase, cls).setUpClass()
-        cls.organization = entities.Organization().create()
-        cls.loc = entities.Location().create()
+        # create instances to be shared across the sessions
+        cls.session_loc = entities.Location().create()
+        cls.session_prod = entities.Product(
+            organization=cls.session_org).create()
+
+    @classmethod
+    def set_session_org(cls):
+        """Creates new organization to be used for current session the
+        session_user will login automatically with this org in context
+        """
+        cls.session_org = entities.Organization().create()
 
     def setup_navigate_syncnow(self, session, prd_name, repo_name):
         """Helps with Navigation for syncing via the repos page."""
         strategy1, value1 = locators['repo.select']
         strategy2, value2 = locators['repo.select_checkbox']
-        session.nav.go_to_select_org(self.organization.name)
+        session.nav.go_to_select_org(self.session_org.name, force=False)
         session.nav.go_to_products()
         session.nav.click((strategy1, value1 % prd_name))
         session.nav.click((strategy2, value2 % repo_name))
@@ -107,11 +118,11 @@ class RepositoryTestCase(UITestCase):
 
         @Assert: Repository is created successfully
         """
-        prod = entities.Product(organization=self.organization).create()
+        prod = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
-                    set_context(session, org=self.organization.name)
+                    set_context(session, org=self.session_org.name)
                     self.products.search(prod.name).click()
                     make_repository(
                         session,
@@ -132,12 +143,12 @@ class RepositoryTestCase(UITestCase):
         @CaseLevel: Integration
         """
         org_2 = entities.Organization(name=gen_string('alpha')).create()
-        product_1 = entities.Product(organization=self.organization).create()
+        product_1 = entities.Product(organization=self.session_org).create()
         product_2 = entities.Product(organization=org_2).create()
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
-                    set_context(session, org=self.organization.name)
+                    set_context(session, org=self.session_org.name)
                     self.products.search(product_1.name).click()
                     make_repository(
                         session,
@@ -166,11 +177,11 @@ class RepositoryTestCase(UITestCase):
         """
         checksum = CHECKSUM_TYPE[u'sha256']
         # Creates new product
-        product = entities.Product(organization=self.organization).create()
+        product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
-                    set_context(session, org=self.organization.name)
+                    set_context(session, org=self.session_org.name)
                     self.products.search(product.name).click()
                     make_repository(
                         session,
@@ -191,11 +202,11 @@ class RepositoryTestCase(UITestCase):
         @Assert: Repository is not created
         """
         # Creates new product
-        product = entities.Product(organization=self.organization).create()
+        product = entities.Product(organization=self.session_org).create()
         for repo_name in invalid_values_list(interface='ui'):
             with self.subTest(repo_name):
                 with Session(self.browser) as session:
-                    set_context(session, org=self.organization.name)
+                    set_context(session, org=self.session_org.name)
                     self.products.search(product.name).click()
                     make_repository(
                         session,
@@ -216,9 +227,9 @@ class RepositoryTestCase(UITestCase):
         @Assert: Repository is not created
         """
         repo_name = gen_string('alphanumeric')
-        product = entities.Product(organization=self.organization).create()
+        product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
-            set_context(session, org=self.organization.name)
+            set_context(session, org=self.session_org.name)
             self.products.search(product.name).click()
             make_repository(
                 session,
@@ -244,11 +255,11 @@ class RepositoryTestCase(UITestCase):
 
         @Assert: Repository is updated with expected url value
         """
-        product = entities.Product(organization=self.organization).create()
+        product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
-                    set_context(session, org=self.organization.name)
+                    set_context(session, org=self.session_org.name)
                     self.products.search(product.name).click()
                     make_repository(
                         session,
@@ -279,15 +290,15 @@ class RepositoryTestCase(UITestCase):
         # Create two new GPGKey's
         gpgkey_1 = entities.GPGKey(
             content=key_1_content,
-            organization=self.organization,
+            organization=self.session_org,
         ).create()
         gpgkey_2 = entities.GPGKey(
             content=key_2_content,
-            organization=self.organization,
+            organization=self.session_org,
         ).create()
-        product = entities.Product(organization=self.organization).create()
+        product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
-            set_context(session, org=self.organization.name)
+            set_context(session, org=self.session_org.name)
             self.products.search(product.name).click()
             make_repository(
                 session,
@@ -316,9 +327,9 @@ class RepositoryTestCase(UITestCase):
         repo_name = gen_string('alphanumeric')
         checksum_default = CHECKSUM_TYPE['default']
         checksum_update = CHECKSUM_TYPE['sha1']
-        product = entities.Product(organization=self.organization).create()
+        product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
-            set_context(session, org=self.organization.name)
+            set_context(session, org=self.session_org.name)
             self.products.search(product.name).click()
             make_repository(
                 session,
@@ -344,11 +355,11 @@ class RepositoryTestCase(UITestCase):
 
         @Assert: Repository is deleted successfully
         """
-        product = entities.Product(organization=self.organization).create()
+        product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
-                    set_context(session, org=self.organization.name)
+                    set_context(session, org=self.session_org.name)
                     self.products.search(product.name).click()
                     make_repository(
                         session,
@@ -398,9 +409,9 @@ class RepositoryTestCase(UITestCase):
         @CaseLevel: Integration
         """
         discovered_urls = 'fakerepo01/'
-        product = entities.Product(organization=self.organization).create()
+        product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
+            session.nav.go_to_select_org(self.session_org.name, force=False)
             session.nav.go_to_products()
             self.repository.discover_repo(
                 url_to_discover=REPO_DISCOVERY_URL,
@@ -422,8 +433,8 @@ class RepositoryTestCase(UITestCase):
         product_name = gen_string('alpha')
         discovered_urls = 'fakerepo01/'
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
-            session.nav.go_to_select_loc(self.loc.name)
+            session.nav.go_to_select_org(self.session_org.name)
+            session.nav.go_to_select_loc(self.session_loc.name)
             session.nav.go_to_products()
             self.repository.discover_repo(
                 url_to_discover=REPO_DISCOVERY_URL,
@@ -444,7 +455,7 @@ class RepositoryTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        product = entities.Product(organization=self.organization).create()
+        product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
@@ -474,7 +485,7 @@ class RepositoryTestCase(UITestCase):
         @CaseLevel: Integration
         """
         # Creates new product
-        product = entities.Product(organization=self.organization).create()
+        product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
@@ -505,7 +516,7 @@ class RepositoryTestCase(UITestCase):
         @CaseLevel: Integration
         """
         # Creates new product
-        product = entities.Product(organization=self.organization).create()
+        product = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             for repo_name in valid_repo_names_docker_sync():
                 with self.subTest(repo_name):
@@ -532,11 +543,12 @@ class RepositoryTestCase(UITestCase):
 
         @Assert: Create custom ostree repository should be successful
         """
-        prod = entities.Product(organization=self.organization).create()
+        prod = entities.Product(organization=self.session_org).create()
         with Session(self.browser) as session:
             for repo_name in generate_strings_list():
                 with self.subTest(repo_name):
-                    session.nav.go_to_select_org(self.organization.name)
+                    session.nav.go_to_select_org(
+                        self.session_org.name, force=False)
                     self.products.click(self.products.search(prod.name))
                     make_repository(
                         session,
@@ -556,7 +568,7 @@ class RepositoryTestCase(UITestCase):
 
         @Assert: Delete custom ostree repository should be successful
         """
-        prod = entities.Product(organization=self.organization).create()
+        prod = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
         # Creates new ostree repository using api
         entities.Repository(
@@ -567,7 +579,7 @@ class RepositoryTestCase(UITestCase):
             unprotected=False,
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
+            session.nav.go_to_select_org(self.session_org.name, force=False)
             self.products.click(self.products.search(prod.name))
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.delete(repo_name)
@@ -584,7 +596,7 @@ class RepositoryTestCase(UITestCase):
 
         @Assert: ostree repo name should be updated successfully
         """
-        prod = entities.Product(organization=self.organization).create()
+        prod = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
         new_repo_name = gen_string('numeric')
         # Creates new ostree repository using api
@@ -596,7 +608,7 @@ class RepositoryTestCase(UITestCase):
             unprotected=False,
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
+            session.nav.go_to_select_org(self.session_org.name, force=False)
             self.products.click(self.products.search(prod.name))
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.update(
@@ -616,7 +628,7 @@ class RepositoryTestCase(UITestCase):
 
         @Assert: ostree repo URL should be updated successfully
         """
-        prod = entities.Product(organization=self.organization).create()
+        prod = entities.Product(organization=self.session_org).create()
         repo_name = gen_string('alphanumeric')
         # Creates new ostree repository using api
         entities.Repository(
@@ -627,7 +639,7 @@ class RepositoryTestCase(UITestCase):
             unprotected=False,
         ).create()
         with Session(self.browser) as session:
-            session.nav.go_to_select_org(self.organization.name)
+            session.nav.go_to_select_org(self.session_org.name, force=False)
             self.products.click(self.products.search(prod.name))
             self.assertIsNotNone(self.repository.search(repo_name))
             self.repository.update(
@@ -641,3 +653,268 @@ class RepositoryTestCase(UITestCase):
                     repo_name, 'url', FEDORA23_OSTREE_REPO
                 )
             )
+
+    @tier1
+    def test_positive_download_policy_displayed_for_yum_repos(self):
+        """Verify that YUM repositories can be created with download policy
+
+        @id: 8037a68b-66b8-4b42-a80b-fb08495f948d
+
+        @Assert: Dropdown for download policy is displayed for yum repo
+        """
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.session_org.name, force=False)
+            self.products.search_and_click(self.session_prod.name)
+            self.repository.navigate_to_entity()
+            self.repository.click(locators['repo.new'])
+            self.repository.assign_value(
+                common_locators['name'], gen_string('alphanumeric'))
+            self.repository.assign_value(locators['repo.type'], 'yum')
+            self.assertIsNotNone(
+                self.repository.find_element(locators['repo.download_policy'])
+            )
+
+    @tier1
+    def test_positive_create_with_download_policy(self):
+        """Create YUM repositories with available download policies
+
+        @id: 8037a68b-66b8-4b42-a80b-fb08495f948d
+
+        @Assert: YUM repository with a download policy is created
+        """
+        repo_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            for policy in DOWNLOAD_POLICIES.values():
+                with self.subTest(policy):
+                    self.products.search_and_click(self.session_prod.name)
+                    make_repository(
+                        session,
+                        name=repo_name,
+                        repo_type=REPO_TYPE['yum'],
+                        download_policy=policy
+                    )
+                    self.assertIsNotNone(self.repository.search(repo_name))
+
+    @tier1
+    def test_positive_create_with_default_download_policy(self):
+        """Verify if the default download policy is assigned when creating
+        a YUM repo without `download_policy` field
+
+        @id: ee7637fe-3864-4b2f-a153-14312658d75a
+
+        @Assert: YUM repository with a default download policy
+        """
+        repo_name = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            session.nav.go_to_select_org(self.session_org.name, force=False)
+            self.products.search_and_click(self.session_prod.name)
+            make_repository(session, name=repo_name, repo_type='yum')
+            self.assertTrue(
+                self.repository.validate_field(
+                    repo_name, 'download_policy', 'Immediate'
+                )
+            )
+
+    def _create_yum_repo_with_download_policy(self, name, download_policy):
+        """Helper method to create a new yum repository using API"""
+        return entities.Repository(
+            name=name,
+            content_type='yum',
+            product=self.session_prod,
+            download_policy=download_policy.lower().replace(' ', '_')
+        ).create()
+
+    # All *_update_to_* tests below could be grouped in to a single test_case
+    # using a loop But for clarity we decided to keep as separated tests
+
+    @tier1
+    def test_positive_create_immediate_update_to_on_demand(self):
+        """Update `immediate` download policy to `on_demand` for a newly
+        created YUM repository
+
+        @id: 4aa4d914-74f3-4c2e-9e8a-6e1b7fdb34ea
+
+        @Assert: immediate download policy is updated to on_demand
+        """
+        repo_name = gen_string('alphanumeric')
+        self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
+        with Session(self.browser):
+            self.products.search_and_click(self.session_prod.name)
+            self.repository.update(repo_name, download_policy='On Demand')
+            self.assertTrue(
+                self.repository.validate_field(
+                    repo_name, 'download_policy', 'On Demand'
+                )
+            )
+
+    @tier1
+    def test_positive_create_immediate_update_to_background(self):
+        """Update `immediate` download policy to `background` for a newly
+        created YUM repository
+
+        @id: d61bf6b6-6485-4d3a-816a-b533e96deb69
+
+        @Assert: immediate download policy is updated to background
+        """
+        repo_name = gen_string('alphanumeric')
+        self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
+        with Session(self.browser):
+            self.products.search_and_click(self.session_prod.name)
+            self.repository.update(repo_name, download_policy='Background')
+            self.assertTrue(
+                self.repository.validate_field(
+                    repo_name, 'download_policy', 'Background'
+                )
+            )
+
+    @tier1
+    def test_positive_create_on_demand_update_to_immediate(self):
+        """Update `on_demand` download policy to `immediate` for a newly
+        created YUM repository
+
+        @id: 51cac66d-05a4-47da-adb5-d2909725457e
+
+        @Assert: on_demand download policy is updated to immediate
+        """
+        repo_name = gen_string('alphanumeric')
+        self._create_yum_repo_with_download_policy(repo_name, 'On Demand')
+        with Session(self.browser):
+            self.products.search_and_click(self.session_prod.name)
+            self.repository.update(repo_name, download_policy='Immediate')
+            self.assertTrue(
+                self.repository.validate_field(
+                    repo_name, 'download_policy', 'Immediate'
+                )
+            )
+
+    @tier1
+    def test_positive_create_on_demand_update_to_background(self):
+        """Update `on_demand` download policy to `background` for a newly
+        created YUM repository
+
+        @id: 25b5ba4e-a1cf-41c2-8ca8-4fa3153570f8
+
+        @Assert: on_demand download policy is updated to background
+        """
+        repo_name = gen_string('alphanumeric')
+        self._create_yum_repo_with_download_policy(repo_name, 'On Demand')
+        with Session(self.browser):
+            self.products.search_and_click(self.session_prod.name)
+            self.repository.update(repo_name, download_policy='Background')
+            self.assertTrue(
+                self.repository.validate_field(
+                    repo_name, 'download_policy', 'Background'
+                )
+            )
+
+    @tier1
+    def test_positive_create_background_update_to_immediate(self):
+        """Update `background` download policy to `immediate` for a newly
+        created YUM repository
+
+        @id: 7a6efe70-8edb-4fa8-b2a4-93762d6e4bc5
+
+        @Assert: background download policy is updated to immediate
+        """
+        repo_name = gen_string('alphanumeric')
+        self._create_yum_repo_with_download_policy(repo_name, 'Background')
+        with Session(self.browser):
+            self.products.search_and_click(self.session_prod.name)
+            self.repository.update(repo_name, download_policy='Immediate')
+            self.assertTrue(
+                self.repository.validate_field(
+                    repo_name, 'download_policy', 'Immediate'
+                )
+            )
+
+    @tier1
+    def test_positive_create_background_update_to_on_demand(self):
+        """Update `background` download policy to `on_demand` for a newly
+        created YUM repository
+
+        @id: d36b96b1-6e09-455e-82e7-36a23f8c6c06
+
+        @Assert: background download policy is updated to on_demand
+        """
+        repo_name = gen_string('alphanumeric')
+        self._create_yum_repo_with_download_policy(repo_name, 'Background')
+        with Session(self.browser):
+            self.products.search_and_click(self.session_prod.name)
+            self.repository.update(repo_name, download_policy='On Demand')
+            self.assertTrue(
+                self.repository.validate_field(
+                    repo_name, 'download_policy', 'On Demand'
+                )
+            )
+
+    @tier1
+    def test_negative_create_with_invalid_download_policy(self):
+        """Verify that YUM repository cannot be created with invalid download
+        policy
+
+        @id: dded6dda-3576-4485-8f3c-bb7c091e7ff2
+
+        @Assert: YUM repository is not created with invalid download policy
+        """
+        repo_name = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            self.products.search_and_click(self.session_prod.name)
+            invalid = gen_string('alpha', 5)
+            msg = "Could not locate element with visible text: %s" % invalid
+            with self.assertRaisesRegexp(NoSuchElementException, msg):
+                make_repository(
+                    session,
+                    name=repo_name,
+                    repo_type='yum',
+                    download_policy=invalid
+                )
+
+    @tier1
+    def test_negative_update_to_invalid_download_policy(self):
+        """Verify that YUM repository cannot be updated to invalid download
+        policy
+
+        @id: e6c725f2-172e-49f6-ae92-c56af8a1200b
+
+        @Assert: YUM repository is not updated to invalid download policy
+        """
+        repo_name = gen_string('alphanumeric')
+        self._create_yum_repo_with_download_policy(repo_name, 'Immediate')
+        with Session(self.browser):
+            self.products.search_and_click(self.session_prod.name)
+            invalid = gen_string('alpha', 5)
+            msg = "Could not locate element with visible text: %s" % invalid
+            with self.assertRaisesRegexp(NoSuchElementException, msg):
+                self.repository.update(
+                    repo_name,
+                    download_policy=invalid
+                )
+
+    @tier1
+    def test_negative_download_policy_displayed_for_non_yum_repo(self):
+        """Verify that non-YUM repositories cannot be created with download
+        policy
+
+        @id: 47d55251-5f89-443d-b980-a441da34e205
+
+        @Assert: Dropdown for download policy is not displayed for non-yum repo
+        """
+        non_yum_repo_types = [
+            repo_type for repo_type in REPO_TYPE.values()
+            if repo_type != 'yum'
+        ]
+        with Session(self.browser):
+            for content_type in non_yum_repo_types:
+                self.products.search_and_click(self.session_prod.name)
+                with self.subTest(content_type):
+                    self.repository.navigate_to_entity()
+                    self.repository.click(locators['repo.new'])
+                    self.repository.assign_value(
+                        common_locators['name'], gen_string('alphanumeric'))
+                    self.repository.assign_value(
+                        locators['repo.type'], content_type)
+                    self.assertIsNone(
+                        self.repository.find_element(
+                            locators['repo.download_policy']
+                        )
+                    )
