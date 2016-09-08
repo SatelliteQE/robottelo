@@ -229,6 +229,8 @@ Ready to start reviewing pull requests? We have :doc:`a guide </reviewing_PRs>`
 for that too! Finally, the :doc:`API reference </api/index>` covers individual
 functions, classes, methods and modules.
 
+**Robottelo** is compatible with Python 2.7.
+
 Bugs are listed `on GitHub <https://github.com/SatelliteQE/robottelo/issues>`_.
 If you think you've found a new issue, please do one of the following:
 
