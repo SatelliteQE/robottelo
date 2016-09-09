@@ -228,12 +228,11 @@ class UserTestCase(CLITestCase):
                     'password': gen_string('alpha'),
                 }
                 self.logger.debug(str(options))
-                with self.assertRaises(CLIReturnCodeError) as raise_ctx:
-                    User.create(options)
-                self.assert_error_msg(
-                    raise_ctx,
+                with self.assertRaisesRegex(
+                    CLIReturnCodeError,
                     u'Could not create the user:'
-                )
+                ):
+                    User.create(options)
 
     @tier1
     def test_negative_create_with_invalid_firstname(self):
@@ -253,12 +252,11 @@ class UserTestCase(CLITestCase):
                     'mail': 'root@localhost',
                     'password': gen_string('alpha'),
                 }
-                with self.assertRaises(CLIReturnCodeError) as raise_ctx:
-                    User.create(options)
-                self.assert_error_msg(
-                    raise_ctx,
+                with self.assertRaisesRegex(
+                    CLIReturnCodeError,
                     u'Could not create the user'
-                )
+                ):
+                    User.create(options)
 
     @tier1
     def test_negative_create_with_invalid_lastname(self):
@@ -278,12 +276,11 @@ class UserTestCase(CLITestCase):
                     'mail': 'root@localhost',
                     'password': gen_string('alpha'),
                 }
-                with self.assertRaises(CLIReturnCodeError) as raise_ctx:
-                    User.create(options)
-                self.assert_error_msg(
-                    raise_ctx,
+                with self.assertRaisesRegex(
+                    CLIReturnCodeError,
                     u'Could not create the user'
-                )
+                ):
+                    User.create(options)
 
     @tier1
     def test_negative_create_with_invalid_email(self):
@@ -303,12 +300,11 @@ class UserTestCase(CLITestCase):
                     'mail': email,
                     'password': gen_string('alpha'),
                 }
-                with self.assertRaises(CLIReturnCodeError) as raise_ctx:
-                    User.create(options)
-                self.assert_error_msg(
-                    raise_ctx,
+                with self.assertRaisesRegex(
+                    CLIReturnCodeError,
                     u'Could not create the user'
-                )
+                ):
+                    User.create(options)
 
     @skip_if_bug_open('bugzilla', 1204686)
     @tier1
@@ -321,7 +317,10 @@ class UserTestCase(CLITestCase):
 
         @BZ: 1204686
         """
-        with self.assertRaises(CLIReturnCodeError) as raise_ctx:
+        with self.assertRaisesRegex(
+            CLIReturnCodeError,
+            u'Could not create the user:'
+        ):
             User.create({
                 'auth-source-id': 1,
                 'firstname': gen_string('alpha'),
@@ -330,10 +329,6 @@ class UserTestCase(CLITestCase):
                 'mail': '',
                 'password': gen_string('alpha'),
             })
-        self.assert_error_msg(
-            raise_ctx,
-            u'Could not create the user:'
-        )
 
     @tier1
     def test_negative_create_with_blank_authorized_by(self):
@@ -343,16 +338,15 @@ class UserTestCase(CLITestCase):
 
         @Assert: User is not created. Appropriate error shown.
         """
-        with self.assertRaises(CLIReturnCodeError) as raise_ctx:
+        with self.assertRaisesRegex(
+            CLIReturnCodeError,
+            u'Could not create the user:'
+        ):
             User.create({
                 'auth-source-id': '',
                 'login': gen_string('alpha'),
                 'mail': 'root@localhost',
             })
-        self.assert_error_msg(
-            raise_ctx,
-            u'Could not create the user:'
-        )
 
     @tier1
     def test_negative_create_with_blank_authorized_by_full(self):
@@ -364,17 +358,16 @@ class UserTestCase(CLITestCase):
 
         @Assert: User is not created. Appropriate error shown.
         """
-        with self.assertRaises(CLIReturnCodeError) as raise_ctx:
+        with self.assertRaisesRegex(
+            CLIReturnCodeError,
+            u'Could not create the user:'
+        ):
             User.create({
                 'auth-source-id': '',
                 'login': gen_string('alpha'),
                 'mail': 'root@localhost',
                 'password': gen_string('alpha'),
             })
-        self.assert_error_msg(
-            raise_ctx,
-            u'Could not create the user:'
-        )
 
     @tier1
     def test_positive_update_to_non_admin(self):
@@ -446,12 +439,11 @@ class UserTestCase(CLITestCase):
 
         @Assert: User is not deleted
         """
-        with self.assertRaises(CLIReturnCodeError) as raise_ctx:
-            User.delete({'login': self.foreman_user})
-        self.assert_error_msg(
-            raise_ctx,
+        with self.assertRaisesRegex(
+            CLIReturnCodeError,
             u'Could not delete the user:'
-        )
+        ):
+            User.delete({'login': self.foreman_user})
         self.assertTrue(User.info({'login': self.foreman_user}))
 
     @tier1
@@ -846,12 +838,11 @@ class UserWithCleanUpTestCase(CLITestCase):
         for new_user_name in invalid_names_list():
             with self.subTest(new_user_name):
                 options = {'id': user['id'], 'login': new_user_name}
-                with self.assertRaises(CLIReturnCodeError) as raise_ctx:
-                    User.update(options)
-                self.assert_error_msg(
-                    raise_ctx,
+                with self.assertRaisesRegex(
+                    CLIReturnCodeError,
                     u'Could not update the user:'
-                )
+                ):
+                    User.update(options)
 
     @tier1
     def test_negative_update_firstname(self):
@@ -867,12 +858,11 @@ class UserWithCleanUpTestCase(CLITestCase):
                 options = {
                     'firstname': invalid_firstname, 'login': user['login'],
                 }
-                with self.assertRaises(CLIReturnCodeError) as raise_ctx:
-                    User.update(options)
-                self.assert_error_msg(
-                    raise_ctx,
+                with self.assertRaisesRegex(
+                    CLIReturnCodeError,
                     u'Could not update the user:'
-                )
+                ):
+                    User.update(options)
                 updated_user = User.info({'id': user['id']})
                 self.assertEqual(updated_user['name'], user['name'])
 
@@ -887,15 +877,14 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         for invalid_lastname in (gen_string('alpha', 51), gen_string('html')):
             with self.subTest(invalid_lastname):
-                with self.assertRaises(CLIReturnCodeError) as raise_ctx:
+                with self.assertRaisesRegex(
+                    CLIReturnCodeError,
+                    u'Could not update the user:'
+                ):
                     User.update({
                         'lastname': invalid_lastname,
                         'login': user['login']
                     })
-                self.assert_error_msg(
-                    raise_ctx,
-                    u'Could not update the user:'
-                )
 
     @tier1
     def test_negative_update_email(self):
@@ -908,15 +897,14 @@ class UserWithCleanUpTestCase(CLITestCase):
         user = self.user
         for email in invalid_emails_list():
             with self.subTest(email):
-                with self.assertRaises(CLIReturnCodeError) as raise_ctx:
+                with self.assertRaisesRegex(
+                    CLIReturnCodeError,
+                    u'Could not update the user:'
+                ):
                     User.update({
                         'login': user['login'],
                         'mail': email
                     })
-                self.assert_error_msg(
-                    raise_ctx,
-                    u'Could not update the user:'
-                )
 
     @skip_if_bug_open('bugzilla', 1138553)
     @tier2

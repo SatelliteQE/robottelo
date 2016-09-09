@@ -231,12 +231,11 @@ class SyncPlanTestCase(CLITestCase):
         """
         for name in invalid_values_list():
             with self.subTest(name):
-                with self.assertRaises(CLIFactoryError) as raise_ctx:
+                with self.assertRaisesRegex(
+                   CLIFactoryError,
+                   u'Could not create the sync plan:'
+                ):
                     self._make_sync_plan({u'name': name})
-                self.assert_error_msg(
-                    raise_ctx,
-                    u'Could not create the sync plan:'
-                )
 
     @tier1
     def test_positive_update_description(self):
