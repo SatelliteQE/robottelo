@@ -1,7 +1,13 @@
 import six
 import unittest2
 
-from robottelo.cli.base import Base, CLIReturnCodeError, CLIError
+from robottelo.cli.base import (
+    Base,
+    CLIReturnCodeError,
+    CLIError,
+    CLIBaseError,
+    CLIDataBaseError
+)
 
 if six.PY2:
     import mock
@@ -103,10 +109,48 @@ class BaseCliTestCase(unittest2.TestCase):
         """Check handle_response raise ``CLIReturnCodeError`` when
         return_code is not 0
         """
+        self.assert_response_error(CLIReturnCodeError)
+
+    def test_handle_data_base_response_error(self):
+        """Check handle_response raise ``CLIDataBaseError`` when
+        return_code is not 0 and error is related to DB error.
+        See https://github.com/SatelliteQE/robottelo/issues/3790.
+        """
+        msgs = (
+            '''SELECT  "filters"."id" AS t0_r0, "filters"."search" AS t0_r1,
+            "filters"."role_id" AS t0_r2, "filters"."created_at" AS t0_r3,
+            "filters"."updated_at" AS t0_r4, "filters"."taxonomy_search" AS
+            t0_r5, "roles"."id" AS t1_r0, "roles"."name" AS t1_r1,
+            "roles"."builtin" AS t1_r2, "roles"."permissions" AS t1_r3 FROM
+            "filters" LEFT OUTER JOIN "roles" ON "roles"."id" =
+            "filters"."role_id" WHERE (("roles"."id" = '')) ORDER BY role_id,
+            filters.id LIMIT 20 OFFSET 0
+            ''',
+            '''INSERT INTO "katello_subscriptions" ("cp_id", "created_at",
+            "updated_at") VALUES ($1, $2, $3) RETURNING "id"
+            ''',
+            '''Could not create the hostgroup:
+              ERROR:  insert or update on table "hostgroups"
+              violates foreign key
+              constraint "hostgroups_architecture_id_fk"
+              DETAIL:  Key (architecture_id)=(1122222) is not present in table
+              "architectures"
+            '''
+        )
+        for msg in msgs:
+            self.assert_response_error(CLIDataBaseError, msg)
+
+    def assert_response_error(self, expected_error, stderr=u'some error'):
+        """Check error is raised when handling cli response
+        :param expected_error: expected error (class)
+        :param stderr: error present on stderr (str)
+        :return:
+        """
         base = Base()
         response = mock.Mock()
         response.return_code = 1
-        self.assertRaises(CLIReturnCodeError, base._handle_response, response)
+        response.stderr = [stderr]
+        self.assertRaises(expected_error, base._handle_response, response)
 
     @mock.patch('robottelo.cli.base.Base.execute')
     @mock.patch('robottelo.cli.base.Base._construct_command')
@@ -247,12 +291,12 @@ class CLIErrorTests(unittest2.TestCase):
             raise CLIError(msg)
 
 
-class CLIReturnCodeErrorTestCase(unittest2.TestCase):
+class CLIBaseErrorTestCase(unittest2.TestCase):
     """Tests for the CLIReturnCodeError cli class"""
 
     def test_init(self):
         """Check properties initialization"""
-        error = CLIReturnCodeError(1, u'stderr', u'msg')
+        error = CLIBaseError(1, u'stderr', u'msg')
         self.assertEqual(error.return_code, 1)
         self.assertEqual(error.stderr, u'stderr')
         self.assertEqual(error.msg, u'msg')
@@ -260,15 +304,15 @@ class CLIReturnCodeErrorTestCase(unittest2.TestCase):
 
     def test_return_code_is_exposed(self):
         """Check if return_code is exposed to assertRaisesRegexp"""
-        with self.assertRaisesRegexp(CLIReturnCodeError, u'1'):
-            raise CLIReturnCodeError(1, u'stderr', u'msg')
+        with self.assertRaisesRegexp(CLIBaseError, u'1'):
+            raise CLIBaseError(1, u'stderr', u'msg')
 
     def test_stderr_is_exposed(self):
         """Check if stderr is exposed to assertRaisesRegexp"""
-        with self.assertRaisesRegexp(CLIReturnCodeError, u'stderr'):
-            raise CLIReturnCodeError(1, u'stderr', u'msg')
+        with self.assertRaisesRegexp(CLIBaseError, u'stderr'):
+            raise CLIBaseError(1, u'stderr', u'msg')
 
     def test_message_is_exposed(self):
         """Check if message is exposed to assertRaisesRegexp"""
-        with self.assertRaisesRegexp(CLIReturnCodeError, u'msg'):
-            raise CLIReturnCodeError(1, u'stderr', u'msg')
+        with self.assertRaisesRegexp(CLIBaseError, u'msg'):
+            raise CLIBaseError(1, u'stderr', u'msg')

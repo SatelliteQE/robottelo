@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 """Generic base class for cli hammer commands."""
 import logging
+import re
 
 from robottelo import ssh
 from robottelo.cli import hammer
@@ -11,8 +12,8 @@ class CLIError(Exception):
     """Indicates that a CLI command could not be run."""
 
 
-class CLIReturnCodeError(Exception):
-    """Indicates that a CLI command has finished with return code, different
+class CLIBaseError(Exception):
+    """Indicates that a CLI command has finished with return code different
     from zero.
 
     :param return_code: CLI command return code
@@ -25,20 +26,39 @@ class CLIReturnCodeError(Exception):
         self.return_code = return_code
         self.stderr = stderr
         self.msg = msg
-        super(CLIReturnCodeError, self).__init__(msg)
+        super(CLIBaseError, self).__init__(msg)
         self.message = msg
 
     def __str__(self):
-        """Include return_code, stderr and msg to string repr so
+        """Include class name, return_code, stderr and msg to string repr so
         assertRaisesRegexp can be used to assert error present on any
         attribute
         """
         return repr(self)
 
     def __repr__(self):
-        """Include return_code, stderr and msg to improve logging"""
-        tmpl = u'CLIReturnCodeError(return_code={!r}, stderr={!r}, msg={!r}'
-        return tmpl.format(self.return_code, self.stderr, self.msg)
+        """Include class name return_code, stderr and msg to improve logging
+        """
+        return u'{}(return_code={!r}, stderr={!r}, msg={!r}'.format(
+            type(self).__name__,
+            self.return_code,
+            self.stderr,
+            self.msg
+        )
+
+
+class CLIReturnCodeError(CLIBaseError):
+    """Error to be raised when an error occurs due to some validation error
+    when execution hammer cli.
+    See: https://github.com/SatelliteQE/robottelo/issues/3790 for more details
+    """
+
+
+class CLIDataBaseError(CLIBaseError):
+    """Error to be raised when an error occurs due to some missing parameter
+    which cause a data base error on hammer
+    See: https://github.com/SatelliteQE/robottelo/issues/3790 for more details
+    """
 
 
 class Base(object):
@@ -108,6 +128,9 @@ class Base(object):
     command_requires_org = False  # True when command requires organization-id
 
     logger = logging.getLogger('robottelo')
+    _db_error_regex = re.compile(
+        r'.*INSERT INTO|.*SELECT .*FROM|.*violates foreign key'
+    )
 
     @classmethod
     def _handle_response(cls, response, ignore_stderr=None):
@@ -124,17 +147,19 @@ class Base(object):
             different from zero.
         """
         if response.return_code != 0:
-            raise CLIReturnCodeError(
-                response.return_code,
-                response.stderr,
+            full_msg = (
                 u'Command "{0} {1}" finished with return_code {2}\n'
                 'stderr contains following message:\n{3}'.format(
                     cls.command_base,
                     cls.command_sub,
                     response.return_code,
-                    response.stderr,
+                    response.stderr
                 )
             )
+            error_data = (response.return_code, response.stderr, full_msg)
+            if cls._db_error_regex.search(full_msg):
+                raise CLIDataBaseError(*error_data)
+            raise CLIReturnCodeError(*error_data)
         if len(response.stderr) != 0 and not ignore_stderr:
             cls.logger.warning(
                 u'stderr contains following message:\n{0}'.format(
