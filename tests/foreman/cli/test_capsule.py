@@ -47,8 +47,9 @@ class CapsuleTestCase(CLITestCase):
         @Assert: Proxy is not created
         """
         # Create a random proxy
-        with self.assertRaisesRegex(CLIFactoryError,
-                                    u'Could not create the proxy:'
+        with self.assertRaisesRegex(
+            CLIFactoryError,
+            u'Could not create the proxy:'
         ):
             make_proxy({
                 u'url': u'http://{0}:{1}'.format(
