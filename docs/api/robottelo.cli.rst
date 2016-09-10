@@ -130,6 +130,11 @@ Submodules:
 
 .. automodule:: robottelo.cli.org
 
+:mod:`robottelo.cli.ostreebranch`
+---------------------------------
+
+.. automodule:: robottelo.cli.ostreebranch
+
 :mod:`robottelo.cli.partitiontable`
 -----------------------------------
 

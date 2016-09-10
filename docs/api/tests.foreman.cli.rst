@@ -158,6 +158,11 @@
 
 .. automodule:: tests.foreman.cli.test_operatingsystem
 
+:mod:`tests.foreman.cli.test_ostreebranch`
+------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_ostreebranch
+
 :mod:`tests.foreman.cli.test_partitiontable`
 --------------------------------------------
 
