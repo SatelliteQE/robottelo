@@ -222,14 +222,7 @@ class ContentViews(Base):
         """Publishes to create new version of CV and promotes the contents to
         'Library' environment
         """
-        element = self.search(cv_name)
-        if not element:
-            raise UIError(
-                'Could not find the selected CV "{0}"'.format(cv_name)
-            )
-
-        element.click()
-        self.wait_for_ajax()
+        self.click(self.search(cv_name))
         self.click(locators['contentviews.publish'])
         version_label = self.wait_until_element(
             locators['contentviews.ver_label'])
@@ -247,16 +240,8 @@ class ContentViews(Base):
 
     def promote(self, cv_name, version, env):
         """Promotes the selected version of content-view to given environment.
-
         """
-        element = self.search(cv_name)
-        if not element:
-            raise UIError(
-                'Could not find the selected CV "{0}"'.format(cv_name)
-            )
-
-        element.click()
-        self.wait_for_ajax()
+        self.click(self.search(cv_name))
         self.click(tab_locators['contentviews.tab_versions'])
         strategy, value = locators['contentviews.promote_button']
         self.click((strategy, value % version))
