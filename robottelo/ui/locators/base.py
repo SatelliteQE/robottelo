@@ -1493,7 +1493,7 @@ locators = LocatorDict({
         ("//div[contains(@class, 'alert-success')]"
          "/div/span[contains(., 'Successfully removed')]")),
     "contentviews.publish": (
-        By.XPATH, "//a[contains(@href, 'publish')]/span"),
+        By.XPATH, "//button[contains(@ng-click, 'details.publish')]"),
     "contentviews.publish_comment": (By.ID, "comment"),
     "contentviews.publish_progress": (
         By.XPATH,
