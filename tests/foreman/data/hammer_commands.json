@@ -6278,6 +6278,139 @@
       ],
       "subcommands": [
         {
+          "description": "import or export activation keys",
+          "name": "activation-keys",
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "value": null
+            },
+            {
+              "help": "Export one subscription per row, only process update subscriptions on import",
+              "name": "itemized-subscriptions",
+              "value": null
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "import or export content hosts",
+          "name": "content-hosts",
+          "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "value": null
+            },
+            {
+              "help": "Export one subscription per row, only process update subscriptions on import",
+              "name": "itemized-subscriptions",
+              "value": null
+            },
+            {
+              "help": "Only process organization matching this name",
+              "name": "organization",
+              "shortname": null,
+              "value": "ORGANIZATION"
+            },
+            {
+              "help": "Export current data instead of importing",
+              "name": "export",
+              "value": null
+            },
+            {
+              "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+              "name": "file",
+              "value": "FILE_NAME"
+            },
+            {
+              "help": "print help",
+              "name": "help",
+              "shortname": "h",
+              "value": null
+            },
+            {
+              "help": "be verbose",
+              "name": "verbose",
+              "shortname": "v",
+              "value": null
+            }
+          ],
+          "subcommands": []
+        },
+        {
+          "description": "import or export subscriptions",
+          "name": "subscriptions",
+          "options": [
+              {
+                "help": "Continue processing even if individual resource error",
+                "name": "continue-on-error",
+                "shortname": null,
+                "value": null
+              },
+              {
+                "help": "Export current data instead of importing",
+                "name": "export",
+                "shortname": null,
+                "value": null
+              },
+              {
+                "help": "CSV file (default to /dev/stdout with --export, otherwise required)",
+                "name": "file",
+                "shortname": null,
+                "value": "FILE_NAME"
+              },
+              {
+                "help": "Only process organization matching this name",
+                "name": "organization",
+                "shortname": null,
+                "value": "ORGANIZATION"
+              },
+              {
+                "help": "print help",
+                "name": "help",
+                "shortname": "h",
+                "value": null
+              },
+              {
+                "help": "be verbose",
+                "name": "verbose",
+                "shortname": "v",
+                "value": null
+              }
+            ],
+            "subcommands": []
+        },
+        {
           "description": "export into directory",
           "name": "export",
           "options": [
@@ -6355,6 +6488,11 @@
           "description": "import or export settings",
           "name": "settings",
           "options": [
+            {
+              "help": "Continue processing even if individual resource error",
+              "name": "continue-on-error",
+              "value": null
+            },
             {
               "help": "Export current data instead of importing",
               "name": "export",
@@ -11997,6 +12135,95 @@
             }
           ],
           "subcommands": [
+            {
+              "description": "Add a subscription to a host",
+              "name": "attach",
+              "options": [
+                {
+                  "help": "Name to search by",
+                  "name": "host",
+                  "value": "HOST_NAME"
+                },
+                {
+                  "help": null,
+                  "name": "host-id",
+                  "value": "HOST_ID"
+                },
+                {
+                  "help": "Quantity of this subscriptions to add. Defaults to 1",
+                  "name": "quantity",
+                  "value": "Quantity"
+                },
+                {
+                  "help": "ID of subscription",
+                  "name": "subscription-id",
+                  "value": "SUBSCRIPTION_ID"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": "Trigger an auto-attach of subscriptions",
+              "name": "auto-attach",
+              "options": [
+                {
+                  "help": "Name to search by",
+                  "name": "host",
+                  "value": "HOST_NAME"
+                },
+                {
+                  "help": null,
+                  "name": "host-id",
+                  "value": "HOST_ID"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
+            {
+              "description": null,
+              "name": "remove",
+              "options": [
+                {
+                  "help": "Name to search by",
+                  "name": "host",
+                  "value": "HOST_NAME"
+                },
+                {
+                  "help": null,
+                  "name": "host-id",
+                  "value": "HOST_ID"
+                },
+                {
+                  "help": "Quantity of this subscriptions to add. Defaults to 1",
+                  "name": "quantity",
+                  "value": "Quantity"
+                },
+                {
+                  "help": "ID of subscription",
+                  "name": "subscription-id",
+                  "value": "SUBSCRIPTION_ID"
+                },
+                {
+                  "help": "print help",
+                  "name": "help",
+                  "shortname": "h",
+                  "value": null
+                }
+              ],
+              "subcommands": []
+            },
             {
               "description": "Register a host with subscription and information.",
               "name": "register",
@@ -27554,6 +27781,12 @@
           "name": "create",
           "options": [
             {
+              "help": "is an admin user group\nOne of true/false, yes/no, 1/0.",
+              "name": "admin",
+              "shortname": null,
+              "value": "ADMIN"
+            },
+            {
               "help": "",
               "name": "name",
               "shortname": null,
@@ -28042,6 +28275,12 @@
           "description": "Update a user group",
           "name": "update",
           "options": [
+            {
+              "help": "is an admin user group\nOne of true/false, yes/no, 1/0.",
+              "name": "admin",
+              "shortname": null,
+              "value": "ADMIN"
+            },
             {
               "help": "",
               "name": "id",
