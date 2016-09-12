@@ -33,7 +33,6 @@ linecache2==1.0.0
 MarkupSafe==0.23
 mccabe==0.5.2
 mock==2.0.0
-nailgun==0.27.0
 numpy==1.11.1
 packaging==16.7
 paramiko==2.0.2
@@ -69,3 +68,9 @@ unittest2==1.1.0
 virtualenv==15.0.3
 websocket-client==0.37.0
 wrapt==1.10.8
+
+# Install nailgun specific branch
+git+https://github.com/SatelliteQE/nailgun.git@6.2.z#egg=nailgun
+
+# Install robottelo itself to the path
+--editable .
