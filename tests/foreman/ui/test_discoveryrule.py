@@ -22,7 +22,13 @@ from robottelo.datafactory import (
     invalid_values_list,
     valid_data_list,
 )
-from robottelo.decorators import run_only_on, skip_if_bug_open, tier1
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    tier1,
+    tier2,
+    stubbed,
+)
 from robottelo.test import UITestCase
 from robottelo.ui.factory import make_discoveryrule
 from robottelo.ui.locators import common_locators
@@ -634,3 +640,109 @@ class DiscoveryRuleTestCase(UITestCase):
                 self.discoveryrules.get_attribute_value(name, 'priority'),
                 priority
             )
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier1
+    def test_positive_order_rules_by_priority_and_create_time(self):
+        """Create rule with same priority and see their ordering should be based
+        on create time.
+
+        @id: 585c4bc2-6e34-4fdd-88fb-d788f9e0625b
+
+        @Assert: The ordering of rules should be based on priority as well as
+        create time.
+
+        @caseautomation: notautomated
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_create_rule_with_non_admin_user(self):
+        """Create rule with non-admin user by associating discovery_manager role
+
+        @id: 6a03983b-363d-4646-b277-34af5f5abc55
+
+        @Assert: Rule should be created successfully.
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_delete_rule_with_non_admin_user(self):
+        """Delete rule with non-admin user by associating discovery_manager role
+
+        @id: 7fa56bab-82d7-46c9-a4fa-c44ef173c703
+
+        @Assert: Rule should be deleted successfully.
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_view_existing_rule_with_non_admin_user(self):
+        """Existing rule should be viewed to non-admin user by associating
+        discovery_reader role.
+
+        @id: 0f5b0221-43be-47bc-8619-749824c4e54f
+
+        @Steps:
+
+        1. create a rule with admin user
+        2. create a non-admin user and assign 'Discovery Reader' role
+        3. Login with non-admin user
+
+        @Assert: Rule should be visible to non-admin user.
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_negative_delete_rule_with_non_admin_user(self):
+        """Delete rule with non-admin user by associating discovery_reader role
+
+        @id: 23a7627c-6a9b-493b-871f-698543adf1d2
+
+        @Assert: User should validation error and rule should not be deleted
+        successfully.
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier2
+    def test_positive_list_host_based_on_rule_search_query(self):
+        """List all the discovered hosts resolved by given rule's search query
+        e.g. all hosts with cpu_count = 1
+
+        @id: f7473fa2-7349-42d3-9cdb-f74b55d2f440
+
+        @Steps:
+
+        1. discovered a host with cpu_count = 2
+        2. Define a rule 'rule1' with search query cpu_count = 2
+        3. Click on 'Discovered Hosts' from rule1
+
+        @Assert: All hosts based on rule's search query( w/ cpu_count = 2)
+        should be listed
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """

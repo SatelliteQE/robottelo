@@ -53,6 +53,11 @@
 
 .. automodule:: tests.foreman.cli.test_discoveredhost
 
+:mod:`tests.foreman.cli.test_discoveryrule`
+--------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_discoveryrule
+
 :mod:`tests.foreman.cli.test_docker`
 ------------------------------------
 
