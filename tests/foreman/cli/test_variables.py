@@ -1137,6 +1137,7 @@ class SmartVariablesTestCase(CLITestCase):
             smart_variable['override-values']['merge-default-value'], True)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1375652)
     @tier1
     def test_negative_enable_merge_overrides_default_flags(self):
         """Attempt to enable Merge Overrides, Merge Default flags for non
@@ -1197,6 +1198,7 @@ class SmartVariablesTestCase(CLITestCase):
             smart_variable['override-values']['avoid-duplicates'], True)
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1375652)
     @tier1
     def test_negative_enable_avoid_duplicates_flag(self):
         """Attempt to enable Avoid duplicates flag for non supported types.
