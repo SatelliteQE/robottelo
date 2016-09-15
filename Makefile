@@ -60,6 +60,7 @@ test-docstrings:
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhci
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/ui
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhai
+	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/sys
 
 test-robottelo:
 	$$(which py.test) -s  $(ROBOTTELO_TESTS_PATH)
