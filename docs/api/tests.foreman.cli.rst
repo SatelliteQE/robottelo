@@ -178,6 +178,11 @@
 
 .. automodule:: tests.foreman.cli.test_product
 
+:mod:`tests.foreman.cli.test_puppetclass`
+------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_puppetclass
+
 :mod:`tests.foreman.cli.test_puppetmodule`
 ------------------------------------------
 
