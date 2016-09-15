@@ -33,6 +33,7 @@ from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.hostgroup import HostGroup
+from robottelo.cli.job_template import JobTemplate
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.location import Location
 from robottelo.cli.medium import Medium
@@ -1144,6 +1145,61 @@ def make_host_collection(options=None):
     }
 
     return create_object(HostCollection, args, options)
+
+
+@cacheable
+def make_job_template(options=None):
+    """
+    Usage::
+
+        hammer job-template create
+
+    Options::
+
+       --audit-comment AUDIT_COMMENT
+       --current-user CURRENT_USER              Whether the current user login
+                                                should be used as the effective
+                                                user.
+       --description-format DESCRIPTION_FORMAT  This template is used to
+                                                generate the description.
+       --file TEMPLATE                          Path to a file that contains
+                                                the template.
+       --job-category JOB_CATEGORY              Job category.
+       --location-ids LOCATION_IDS              Comma separated list of values.
+       --locations LOCATION_NAMES               Comma separated list of values.
+       --locked LOCKED                          Whether or not the template is
+                                                locked for editing.
+       --name NAME                              Template name
+       --organization-ids ORGANIZATION_IDS      Comma separated list of values.
+       --organizations ORGANIZATION_NAMES       Comma separated list of values.
+       --overridable OVERRIDABLE                Whether it should be allowed to
+                                                override the effective user
+                                                from the invocation form.
+       --provider-type PROVIDER_TYPE            Possible value(s): 'SSH'
+       --snippet SNIPPET                        One of true/false, yes/no, 1/0.
+       --value VALUE                            What user should be used to run
+                                                the script (using sudo-like
+                                                mechanisms).
+
+    """
+    args = {
+        u'audit-comment': None,
+        u'current-user': None,
+        u'description-format': None,
+        u'file': None,
+        u'job-category': u'Miscellaneous',
+        u'location-ids': None,
+        u'locations': None,
+        u'name': None,
+        u'organization-ids': None,
+        u'organizations': None,
+        u'overridable': None,
+        u'provider-type': u'SSH',
+        u'snippet': None,
+        u'value': None,
+    }
+
+    return create_object(JobTemplate, args, options)
 
 
 @cacheable
