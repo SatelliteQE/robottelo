@@ -37,8 +37,11 @@ from robottelo.cli.puppetmodule import PuppetModule
 from robottelo.cli.subscription import Subscription
 from robottelo.constants import (
     DEFAULT_CV,
+    DOCKER_REGISTRY_HUB,
     ENVIRONMENT,
     FAKE_0_PUPPET_REPO,
+    FAKE_1_YUM_REPO,
+    FEDORA23_OSTREE_REPO,
     PRDS,
     REPOS,
     REPOSET,
@@ -48,11 +51,13 @@ from robottelo.decorators import (
     run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
+    skip_if_not_set,
     stubbed,
     tier1,
     tier2,
     tier3,
 )
+from robottelo.decorators.host import skip_if_os
 from robottelo.ssh import upload_file
 from robottelo.test import CLITestCase
 
@@ -2131,3 +2136,372 @@ class ContentViewTestCase(CLITestCase):
         @caseautomation: notautomated
 
         """
+
+
+class OstreeContentViewTestCase(CLITestCase):
+    """Tests for custom ostree contents in content views."""
+
+    @classmethod
+    @skip_if_os('RHEL6')
+    def setUpClass(cls):
+        """Create an organization, product, and repo with all content-types."""
+        super(OstreeContentViewTestCase, cls).setUpClass()
+        cls.org = make_org()
+        cls.product = make_product({u'organization-id': cls.org['id']})
+        # Create new custom ostree repo
+        cls.ostree_repo = make_repository({
+            u'product-id': cls.product['id'],
+            u'content-type': u'ostree',
+            u'publish-via-http': u'false',
+            u'url': FEDORA23_OSTREE_REPO,
+        })
+        Repository.synchronize({'id': cls.ostree_repo['id']})
+        # Create new yum repository
+        cls.yum_repo = make_repository({
+            u'url': FAKE_1_YUM_REPO,
+            u'product-id': cls.product['id'],
+        })
+        Repository.synchronize({'id': cls.yum_repo['id']})
+        # Create new Puppet repository
+        cls.puppet_repo = make_repository({
+            u'url': FAKE_0_PUPPET_REPO,
+            u'content-type': 'puppet',
+            u'product-id': cls.product['id'],
+        })
+        Repository.synchronize({'id': cls.puppet_repo['id']})
+        # Create new docker repository
+        cls.docker_repo = make_repository({
+            u'content-type': u'docker',
+            u'docker-upstream-name': u'busybox',
+            u'product-id': cls.product['id'],
+            u'url': DOCKER_REGISTRY_HUB,
+        })
+        Repository.synchronize({'id': cls.docker_repo['id']})
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_add_custom_ostree_content(self):
+        """Associate custom ostree content in a view
+
+        @id: 6e89094d-ffd3-4dc6-b925-f76531c56c20
+
+        @Assert: Custom ostree content assigned and present in content view
+
+        @CaseLevel: Integration
+        """
+        # Create CV
+        cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate repo to CV with names.
+        ContentView.add_repository({
+            u'name': cv['name'],
+            u'organization': self.org['name'],
+            u'product': self.product['name'],
+            u'repository': self.ostree_repo['name'],
+        })
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(
+            cv['ostree-repositories'][0]['name'],
+            self.ostree_repo['name'],
+            'Ostree Repo was not associated to CV',
+        )
+
+    @tier2
+    @run_only_on('sat')
+    def test_positive_publish_custom_ostree(self):
+        """Publish a content view with custom ostree contents
+
+        @id: ec66f1d3-9750-4dfc-a189-f3b0fd6af3e8
+
+        @Assert: Content-view with Custom ostree published successfully
+
+        @CaseLevel: Integration
+        """
+        cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate repo to CV with names.
+        ContentView.add_repository({
+            u'name': cv['name'],
+            u'organization': self.org['name'],
+            u'product': self.product['name'],
+            u'repository': self.ostree_repo['name'],
+        })
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(len(cv['versions']), 1)
+
+    @tier2
+    def test_positive_promote_custom_ostree(self):
+        """Promote a content view with custom ostree contents
+
+        @id: 5eb7b9e6-8757-4152-9114-42a5eb021bbc
+
+        @Assert: Content-view with custom ostree contents promoted successfully
+
+        @CaseLevel: Integration
+        """
+        cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate repo to CV with names.
+        ContentView.add_repository({
+            u'name': cv['name'],
+            u'organization': self.org['name'],
+            u'product': self.product['name'],
+            u'repository': self.ostree_repo['name'],
+        })
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        lc_env = make_lifecycle_environment({
+            u'organization-id': self.org['id'],
+        })
+        # Promote the Published version of CV to the next env
+        ContentView.version_promote({
+            u'id': cv['versions'][0]['id'],
+            u'to-lifecycle-environment-id': lc_env['id'],
+        })
+        cv = ContentView.info({u'id': cv['id']})
+        environment = {'id': lc_env['id'], 'name': lc_env['name']}
+        self.assertIn(environment, cv['lifecycle-environments'])
+
+    @tier2
+    def test_positive_publish_promote_with_custom_ostree_and_other(self):
+        """Publish & Promote a content view with custom ostree and other contents
+
+        @id: 35668fa6-0a24-43ae-b562-26c5ac77e94d
+
+        @Assert: Content-view with custom ostree and other contents promoted
+        successfully
+
+        @CaseLevel: Integration
+        """
+        cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate repo to CV with names.
+        repos = [
+            self.ostree_repo,
+            self.yum_repo,
+            self.docker_repo,
+        ]
+        for repo in repos:
+            ContentView.add_repository({
+                u'name': cv['name'],
+                u'organization': self.org['name'],
+                u'product': self.product['name'],
+                u'repository': repo['name'],
+            })
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(
+            cv['ostree-repositories'][0]['name'],
+            self.ostree_repo['name'],
+            'Ostree Repo was not associated to CV',
+        )
+        self.assertEqual(
+            cv['yum-repositories'][0]['name'],
+            self.yum_repo['name'],
+            'Yum Repo was not associated to CV',
+        )
+        self.assertEqual(
+            cv['docker-repositories'][0]['name'],
+            self.docker_repo['name'],
+            'Docker Repo was not associated to CV',
+        )
+        # Fetch puppet module
+        puppet_result = PuppetModule.list({
+            u'repository-id': self.puppet_repo['id'],
+            u'per-page': False,
+        })
+        for puppet_module in puppet_result:
+            # Associate puppet module to CV
+            ContentView.puppet_module_add({
+                u'content-view-id': cv['id'],
+                u'uuid': puppet_module['uuid'],
+            })
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        lc_env = make_lifecycle_environment({
+            u'organization-id': self.org['id'],
+        })
+        # Promote the Published version of CV to the next env
+        ContentView.version_promote({
+            u'id': cv['versions'][0]['id'],
+            u'to-lifecycle-environment-id': lc_env['id'],
+        })
+        cv = ContentView.info({u'id': cv['id']})
+        environment = {
+            'id': lc_env['id'],
+            'name': lc_env['name'],
+        }
+        self.assertIn(environment, cv['lifecycle-environments'])
+
+
+@run_in_one_thread
+class ContentViewRedHatOstreeContent(CLITestCase):
+    """Tests for publishing and promoting cv with RH ostree contents."""
+
+    @classmethod
+    @skip_if_os('RHEL6')
+    @skip_if_not_set('fake_manifest')
+    def setUpClass(cls):
+        """Set up organization, product and RH atomic repository for tests."""
+        super(ContentViewRedHatOstreeContent, cls).setUpClass()
+        cls.org = make_org()
+        with manifests.clone() as manifest:
+            upload_file(manifest.content, manifest.filename)
+        Subscription.upload({
+            u'file': manifest.filename,
+            u'organization-id': cls.org['id'],
+        })
+        RepositorySet.enable({
+            u'basearch': None,
+            u'name': REPOSET['rhaht'],
+            u'organization-id': cls.org['id'],
+            u'product': PRDS['rhah'],
+            u'releasever': None,
+        })
+        cls.repo_name = REPOS['rhaht']['name']
+        Repository.synchronize({
+            u'name': cls.repo_name,
+            u'organization-id': cls.org['id'],
+            u'product': PRDS['rhah'],
+        })
+
+    @tier2
+    def test_positive_add_rh_ostree_content(self):
+        """Associate RH atomic ostree content in a view
+
+        @id: 5e9dfb32-9cc7-4257-ab6b-f439fb9db2bd
+
+        @Assert: RH atomic ostree content assigned and present in content view
+
+        @CaseLevel: Integration
+        """
+        cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate repo to CV with names.
+        ContentView.add_repository({
+            u'name': cv['name'],
+            u'organization': self.org['name'],
+            u'product': PRDS['rhah'],
+            u'repository': self.repo_name,
+        })
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(
+            cv['ostree-repositories'][0]['name'],
+            self.repo_name,
+            'Ostree Repo was not associated to CV',
+        )
+
+    @tier2
+    def test_positive_publish_RH_ostree(self):
+        """Publish a content view with RH ostree contents
+
+        @id: 4ac5c7d1-9ab2-4a65-b4b8-1582b001125f
+
+        @Assert: Content-view with RH ostree contents published successfully
+
+        @CaseLevel: Integration
+        """
+        cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate repo to CV with names.
+        ContentView.add_repository({
+            u'name': cv['name'],
+            u'organization': self.org['name'],
+            u'product': PRDS['rhah'],
+            u'repository': self.repo_name,
+        })
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(len(cv['versions']), 1)
+
+    @tier2
+    def test_positive_promote_RH_ostree(self):
+        """Promote a content view with RH ostree contents
+
+        @id: 71986705-fe45-4e0f-af0b-288c9c7ce61b
+
+        @Assert: Content-view with RH ostree contents promoted successfully
+
+        @CaseLevel: Integration
+        """
+        cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate repo to CV with names.
+        ContentView.add_repository({
+            u'name': cv['name'],
+            u'organization': self.org['name'],
+            u'product': PRDS['rhah'],
+            u'repository': self.repo_name,
+        })
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        lc_env = make_lifecycle_environment({
+            u'organization-id': self.org['id'],
+        })
+        # Promote the Published version of CV to the next env
+        ContentView.version_promote({
+            u'id': cv['versions'][0]['id'],
+            u'to-lifecycle-environment-id': lc_env['id'],
+        })
+        cv = ContentView.info({u'id': cv['id']})
+        environment = {'id': lc_env['id'], 'name': lc_env['name']}
+        self.assertIn(environment, cv['lifecycle-environments'])
+
+    @tier2
+    def test_positive_publish_promote_with_RH_ostree_and_other(self):
+        """Publish & Promote a content view with RH ostree and other contents
+
+        @id: 87c8ddb1-da32-4103-810d-8e5e28fa888f
+
+        @Assert: Content-view with RH ostree and other contents promoted
+        successfully
+
+        @CaseLevel: Integration
+        """
+        RepositorySet.enable({
+            'name': REPOSET['rhst7'],
+            'organization-id': self.org['id'],
+            'product': PRDS['rhel'],
+            'releasever': None,
+            'basearch': 'x86_64',
+        })
+        rpm_repo_name = REPOS['rhst7']['name']
+        Repository.synchronize({
+            u'name': rpm_repo_name,
+            u'organization-id': self.org['id'],
+            u'product': PRDS['rhel'],
+        })
+        cv = make_content_view({u'organization-id': self.org['id']})
+        # Associate repo to CV with names.
+        ContentView.add_repository({
+            u'name': cv['name'],
+            u'organization': self.org['name'],
+            u'product': PRDS['rhah'],
+            u'repository': self.repo_name,
+        })
+        ContentView.add_repository({
+            u'name': cv['name'],
+            u'organization': self.org['name'],
+            u'product': PRDS['rhel'],
+            u'repository': rpm_repo_name,
+        })
+        cv = ContentView.info({u'id': cv['id']})
+        self.assertEqual(
+            cv['ostree-repositories'][0]['name'],
+            self.repo_name,
+            'RH Ostree Repo was not associated to CV',
+        )
+        self.assertEqual(
+            cv['yum-repositories'][0]['name'],
+            rpm_repo_name,
+            'RH rpm Repo was not associated to CV',
+        )
+        ContentView.publish({u'id': cv['id']})
+        cv = ContentView.info({u'id': cv['id']})
+        lc_env = make_lifecycle_environment({
+            u'organization-id': self.org['id'],
+        })
+        # Promote the Published version of CV to the next env
+        ContentView.version_promote({
+            u'id': cv['versions'][0]['id'],
+            u'to-lifecycle-environment-id': lc_env['id'],
+        })
+        cv = ContentView.info({u'id': cv['id']})
+        environment = {
+            'id': lc_env['id'],
+            'name': lc_env['name'],
+        }
+        self.assertIn(environment, cv['lifecycle-environments'])
