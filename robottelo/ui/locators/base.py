@@ -245,7 +245,10 @@ locators = LocatorDict({
         "//a[contains(@data-url, '/compute_resources/test_connection')]"),
     "resource.username": (By.ID, "compute_resource_user"),
     "resource.password": (By.ID, "compute_resource_password"),
-    "resource.datacenter": (By.XPATH, "//select[@id='compute_resource_uuid']"),
+    "resource.datacenter": (
+        By.XPATH,
+        ("//div[contains(@id, 's2id_compute_resource_uuid')]"
+         "/a/span[contains(@class, 'arrow')]")),
     "resource.datacenter_vsphere": (
         By.XPATH, "//select[@id='compute_resource_datacenter']"),
     "resource.datacenter.button": (
@@ -320,14 +323,18 @@ locators = LocatorDict({
 
     # Locators under compute-resources image tab.
     "resource.image_add": (By.XPATH, "//a[.='New Image']"),
-    "resource.image_name": (By.ID, "image_name"),
+    "resource.image_name": (By.XPATH, "//input[@id='image_name']"),
     "resource.image_operatingsystem": (
-        By.XPATH, "//select[@id='image_operatingsystem_id']"),
+        By.XPATH, "//div[@id='s2id_image_operatingsystem_id']"
+        "/a/span[contains(@class, 'arrow')]"),
     "resource.image_architecture": (
-        By.XPATH, "//select[@id='image_architecture_id']"),
+        By.XPATH, "//div[@id='s2id_image_architecture_id']"
+        "/a/span[contains(@class, 'arrow')]"),
     "resource.image_username": (By.ID, "image_username"),
     "resource.image_password": (By.ID, "image_password"),
-    "resource.image_uuid": (By.XPATH, "//input[@id='image_uuid']"),
+    "resource.image_uuid": (
+        By.XPATH,
+        "//div[@id='s2id_image_uuid']/a/span[contains(@class, 'arrow')]"),
     "resource.image_submit": (
         By.XPATH, "//input[@data-id='aid_create_image']"),
     "resource.image_list": (
