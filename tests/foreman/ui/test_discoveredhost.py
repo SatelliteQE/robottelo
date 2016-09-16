@@ -950,3 +950,224 @@ class DiscoveryTestCase(UITestCase):
 
         @CaseLevel: System
         """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_provision_with_org_loc_from_new_model_window(self):
+        """Provision a discovered host manually by associating org & loc from
+        host properties model window and select create host button.
+
+        @id: 8c6a7d3f-e34e-4888-9b1c-58e71ee584a3
+
+        @Assert: Provisioned host is associated with selected org & location
+
+        @caseautomation: notautomated
+
+        @CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_provision_with_hostgroup_from_new_model_window(self):
+        """Provision a discovered host manually by associating hostgroup from
+        host properties model window and select create host button.
+
+        @id: f17fb8c9-f9cb-4547-80bc-3b40c6691bb1
+
+        @Assert: Provisioned host is created with selected host-group
+
+        @caseautomation: notautomated
+
+        @CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_provision_using_quick_host_button(self):
+        """Associate hostgroup while provisioning a discovered host from
+        host properties model window and select quick host.
+
+        @id: 34c1e9ea-f210-4a1e-aead-421eb962643b
+
+        @Setup:
+
+        1. Host should already be discovered
+        2. Hostgroup should already be created with all required entities.
+
+        @Assert: Host should be quickly provisionioned.
+
+        @caseautomation: notautomated
+
+        @CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_provision_with_facts_set_by_user(self):
+        """Provision a discovered host with clear_all_facts setting's default
+        value 'No'
+
+        @id: 5dbb9a9f-117d-41aa-8f15-d4da6163b244
+
+        @Setup:
+
+        1. Host should already be discovered
+        2. Go to setting -> clear_all_facts -> No
+
+        @Assert: After successful provisioning, all facts set by user should be
+        visible, including the one started with discovery keyword.
+
+        @caseautomation: notautomated
+
+        @CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_provision_with_clear_facts_set_by_user(self):
+        """Provision a discovered host by setting clear_all_facts
+        value to 'Yes'
+
+        @id: 9f153b3a-4c21-41a2-b2a0-a0b1bee262d3
+
+        @Setup:
+        1. Host should already be discovered
+        2. Go to setting -> clear_all_facts -> Yes
+
+        @Assert: After successful provisioning, all facts set by user should be
+        deleted execpt the one started with discovery keyword.
+
+        @caseautomation: notautomated
+
+        @CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_lock_discovered_host_into_discovery(self):
+        """Lock host into discovery via PXE configuration
+
+        @id: 4ba9f923-0b8f-40ee-8bcb-90ff496587c4
+
+        @Steps:
+
+        1. Go to setting -> discovery_lock -> true
+        2. Go to setting -> discovery_lock_template -> template to be locked
+            with
+
+        @Assert: Host should boot into discovery mode and should be discovered.
+
+        @caseautomation: notautomated
+
+        @CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_populate_puppet_params_using_hostgroup(self):
+        """On provisioning a host associate hostgroup and see if PuppetCA
+        and Puppetmaster are being populated.
+
+        @id: 21e55ffa-02bc-4f96-b463-887da30fb1c4
+
+        @Steps:
+
+        1. Discover a host
+        2. Create a hostgroup with puppetCA and puppetmaster
+
+        @Assert: Parameters like PuppetCA/Puppetmaster should be populated on
+        associating hostgroup to discovered host
+
+        @caseautomation: notautomated
+
+        @CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_update_default_org_from_settings(self):
+        """Update the default 'Discovery Organization' settings to place the
+        discovered hosts in.
+
+        @id: 596a98ad-90f6-42ff-b8ef-47f02dc5d595
+
+        @Steps:
+
+        1. Go to setting -> Discovered -> Discovery organization
+        2. Update default org from dropdown
+
+        @Assert: Discovered host should automatically be placed in selected
+        default org
+
+        @caseautomation: notautomated
+
+        @CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_update_default_location_from_settings(self):
+        """Update the default 'Discovery Location' settings to place the
+        discovered hosts in.
+
+        @id: 4bba9899-a53e-4521-b212-aee893f7a726
+
+        @Steps:
+
+        1. Go to setting -> Discovered -> Discovery Location
+        2. Update default location from dropdown
+
+        @Assert: Discovered host should automatically be placed in selected
+        default location
+
+        @caseautomation: notautomated
+
+        @CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_check_network_facts(self):
+        """Check if network facts ending with _eth0 are correctly displayed
+        under discovered host page
+
+        @id: 5a06236c-05dc-4a98-b1b5-9586c95203f9
+
+        @Assert: Network facts like below should be displayed on discovered
+        host page:
+
+        1. facts ending with _eth0
+        2. auto_negotiation_XXX
+        3. LLDAP facts like lldp_neighbor_portid_XXX
+
+        @caseautomation: notautomated
+
+        @CaseLevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
+    def test_positive_rebuild_dns_on_provisioning(self):
+        """Force DNS rebuild when provisioning discovered host
+
+        @id: 87aa3279-7c29-40e8-a4d2-0aab43f0972f
+
+        @Setup: Make sure 'discovery_always_rebuild_dns' setting set to true
+
+        @Assert: DNS record should be recreated on provisioning discovered host
+
+        @caseautomation: notautomated
+
+        @CaseLevel: System
+        """

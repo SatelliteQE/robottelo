@@ -485,3 +485,19 @@ class DiscoveryTestCase(APITestCase):
 
         @CaseLevel: System
         """
+
+    @stubbed()
+    @tier3
+    def test_positive_list_facts(self):
+        """List facts of a discovered host
+
+        @id: 7c40da85-f06a-4e86-80a8-d18d1b2abd32
+
+        @Setup: Host should already be discovered
+
+        @Assert: facts of selected discovered host should be listed
+
+        @caseautomation: notautomated
+
+        @CaseLevel: System
+        """
