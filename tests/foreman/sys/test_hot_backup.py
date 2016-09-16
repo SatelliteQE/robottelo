@@ -69,7 +69,7 @@ class HotBackupTestCase(TestCase):
         1. Ensure the directory /tmp/backup2 does not exist.
         2. Run ``katello /tmp/backup2``
 
-        @Assert: ``/tmp/backup2' is created and the backup is saved to it.
+        @Assert: ``/tmp/backup2`` is created and the backup is saved to it.
 
         @CaseAutomation: notautomated
 
