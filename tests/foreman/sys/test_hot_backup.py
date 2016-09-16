@@ -170,7 +170,8 @@ class HotBackupTestCase(TestCase):
         2. Run a backup while the Satellite is under load
         3. Restore the backup
 
-        @Assert: The backup is successful and the restored configuration is correct.
+        @Assert: The backup is successful and the restored configuration is
+        correct.
 
         @CaseAutomation: notautomated
 
