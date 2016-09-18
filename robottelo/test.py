@@ -23,11 +23,11 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.org import Org as OrgCli
 from robottelo.cli.subscription import Subscription
 from robottelo.config import settings
-from robottelo.performance.constants import(
+from robottelo.performance.constants import (
     DEFAULT_ORG,
     NUM_THREADS,
 )
-from robottelo.performance.graph import(
+from robottelo.performance.graph import (
     generate_bar_chart_stat,
     generate_line_chart_raw_candlepin,
     generate_line_chart_stat_bucketized_candlepin,
