@@ -41,6 +41,8 @@ help:
 	@echo "  test-foreman-smoke         to perform a generic smoke test"
 	@echo "  graph-entities             to graph entity relationships"
 	@echo "  lint                       to run pylint on the entire codebase"
+	@echo "  logs-join                  to join xdist log files into one"
+	@echo "  logs-clean                 to delete all xdist log files in the root"
 
 docs:
 	@cd docs; $(MAKE) html
@@ -106,6 +108,12 @@ graph-entities:
 lint:
 	scripts/lint.py
 
+logs-join:
+	-cat robottelo_gw*.log > robottelo_master.log
+
+logs-clean:
+	-rm -f robottelo_gw*.log
+
 # Special Targets -------------------------------------------------------------
 
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
@@ -113,4 +121,4 @@ lint:
         test-foreman-rhai test-foreman-rhci test-foreman-tier1 \
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
         test-foreman-ui test-foreman-ui-xvfb test-foreman-smoke \
-        graph-entities lint
+        graph-entities lint logs-join logs-clean
