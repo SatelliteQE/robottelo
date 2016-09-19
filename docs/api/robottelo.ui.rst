@@ -198,6 +198,11 @@
 
 .. automodule:: robottelo.ui.settings
 
+:mod:`robottelo.ui.smart_variable`
+----------------------------------
+
+.. automodule:: robottelo.ui.smart_variable
+
 :mod:`robottelo.ui.subnet`
 --------------------------
 
