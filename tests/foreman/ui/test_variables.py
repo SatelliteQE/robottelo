@@ -16,30 +16,188 @@
 @Upstream: No
 """
 
-from robottelo.decorators import (
-    run_only_on,
-    skip_if_bug_open,
-    stubbed,
-    tier1,
-    tier3
+import yaml
+from fauxfactory import gen_string
+from random import choice, uniform
+from robottelo import ssh
+from robottelo.cli.environment import Environment
+from robottelo.cli.factory import make_hostgroup
+from robottelo.cli.host import Host
+from robottelo.cli.hostgroup import HostGroup
+from robottelo.cli.proxy import Proxy
+from robottelo.cli.puppet import Puppet
+from robottelo.config import settings
+from robottelo.constants import ANY_CONTEXT
+from robottelo.datafactory import (
+    filtered_datapoint,
+    generate_strings_list,
+    invalid_names_list,
+    valid_data_list,
 )
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import UITestCase
+from robottelo.ui.factory import make_smart_variable, set_context
+from robottelo.ui.locators import common_locators, locators, tab_locators
+from robottelo.ui.session import Session
+
+
+@filtered_datapoint
+def valid_sc_variable_data():
+    """Returns a list of valid smart class variable types and values"""
+    return [
+        {
+            u'sc_type': 'string',
+            u'value': choice(generate_strings_list()),
+        },
+        {
+            u'sc_type': 'boolean',
+            u'value': choice(['true', 'false']),
+        },
+        {
+            u'sc_type': 'integer',
+            u'value': gen_string('numeric', 5),
+        },
+        {
+            u'sc_type': 'real',
+            u'value': str(uniform(-1000, 1000)),
+        },
+        {
+            u'sc_type': 'array',
+            u'value': u'["{0}","{1}","{2}"]'.format(
+                gen_string('alpha'),
+                gen_string('numeric'),
+                gen_string('html'),
+            ),
+        },
+        {
+            u'sc_type': 'hash',
+            u'value': '{0}: {1}'.format(
+                gen_string('alpha'), gen_string('alpha')),
+        },
+        {
+            u'sc_type': 'yaml',
+            u'value': '--- {0}=>{1}'.format(
+                gen_string('alpha'), gen_string('alpha')),
+        },
+        {
+            u'sc_type': 'json',
+            u'value': u'{{"{0}":"{1}","{2}":"{3}"}}'.format(
+                gen_string('alpha'),
+                gen_string('numeric'),
+                gen_string('alpha'),
+                gen_string('alphanumeric')
+            ),
+        },
+    ]
+
+
+@filtered_datapoint
+def invalid_sc_variable_data():
+    """Returns a list of invalid smart class variable type and values"""
+    return [
+        {
+            u'sc_type': 'boolean',
+            u'value': gen_string('alphanumeric'),
+        },
+        {
+            u'sc_type': 'integer',
+            u'value': gen_string('utf8'),
+        },
+        {
+            u'sc_type': 'real',
+            u'value': gen_string('alphanumeric'),
+        },
+        {
+            u'sc_type': 'array',
+            u'value': gen_string('alpha'),
+        },
+        {
+            u'sc_type': 'hash',
+            u'value': gen_string('alpha'),
+        },
+        {
+            u'sc_type': 'yaml',
+            u'value': '{{{0}:{1}}}'.format(
+                gen_string('alpha'), gen_string('alpha')),
+        },
+        {
+            u'sc_type': 'json',
+            u'value': u'{{{0}:{1},{2}:{3}}}'.format(
+                gen_string('alpha'),
+                gen_string('numeric'),
+                gen_string('alpha'),
+                gen_string('alphanumeric')
+            ),
+        }
+    ]
 
 
 class SmartVariablesTestCase(UITestCase):
     """Implements Smart Variables tests in UI"""
 
-    @run_only_on('sat')
-    @stubbed()
+    @classmethod
+    def setUpClass(cls):
+        """Import some parametrized puppet classes. This is required to make
+        sure that we have data to be able to perform interactions with smart
+        class variables.
+        """
+        super(SmartVariablesTestCase, cls).setUpClass()
+        cls.host_name = settings.server.hostname
+        _, _, cls.domain_name = cls.host_name.partition('.')
+        ssh.command('puppet module install --force puppetlabs/ntp')
+        cls.env = Environment.info({u'name': 'production'})
+        Proxy.importclasses({
+            u'environment': cls.env['name'],
+            u'name': cls.host_name,
+        })
+        cls.puppet = Puppet.info({u'name': 'ntp'})
+        # Add found puppet classes to default Host
+        Host.update({
+            u'name': cls.host_name,
+            u'puppet-classes': cls.puppet['name']
+        })
+
+    @classmethod
+    def tearDownClass(cls):
+        super(SmartVariablesTestCase, cls).tearDownClass()
+        ssh.command('puppet module uninstall --force puppetlabs/ntp')
+        Proxy.importclasses({
+            u'environment': cls.env['name'],
+            u'name': cls.host_name,
+        })
+
     @tier1
     def test_positive_create(self):
-        """Create a Smart Variable.
+        """Creates a Smart Variable using different names.
+
+        @id: a729c1b4-7a85-45d3-858d-614234d82f92
+
+        @steps:
+
+        1. Creates a smart variable with valid name
+
+        @assert: The smart variable is created successfully.
+        """
+        with Session(self.browser) as session:
+            for name in valid_data_list():
+                with self.subTest(name):
+                    make_smart_variable(
+                        session,
+                        name=name,
+                        puppet_class=self.puppet['name'],
+                    )
+                    self.assertIsNotNone(self.smart_variable.search(name))
+
+    @run_only_on('sat')
+    @tier2
+    def test_positive_create_with_host(self):
+        """Creates a Smart Variable and associate it with host.
 
         @id: 4a8589bf-7b11-48e8-a25d-984bea2ba676
 
         @steps:
 
-        1. Create a smart Variable with Valid name and default value.
+        1. Creates a smart variable with valid name and default value.
 
         @assert:
 
@@ -49,11 +207,32 @@ class SmartVariablesTestCase(UITestCase):
         3. In Host-> variables tab, the smart variable should be displayed with
         its respective puppet class.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        value = gen_string('alpha')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value=value,
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            # Verify that corresponding entry is present in YAML output
+            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            self.assertEqual(output['parameters'][name], value)
+            # Verify smart variable value on Host page
+            sv_value = self.hosts.get_smart_variable_value(
+                self.host_name, name).text
+            self.assertEqual(sv_value, value)
+            # Verify puppet class value for corresponding smart variable
+            sv_puppet_class = self.hosts.wait_until_element(
+                locators['host.smart_variable_puppet_class'] % name).text
+            self.assertEqual(sv_puppet_class, self.puppet['name'])
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create(self):
         """Smart Variable is not created with invalid data.
@@ -62,27 +241,38 @@ class SmartVariablesTestCase(UITestCase):
 
         @steps:
 
-        1. Create a smart Variable with Invalid name and valid default value.
+        1. Creates a smart variable with invalid name and valid default value.
 
         @assert:
 
         1. Error is displayed for invalid variable name.
         2. The smart Variable is not created.
-
-        @caseautomation: notautomated
         """
+        with Session(self.browser) as session:
+            for name in invalid_names_list():
+                with self.subTest(name):
+                    make_smart_variable(
+                        session,
+                        name=name,
+                        puppet_class=self.puppet['name'],
+                        default_value=gen_string('alpha')
+                    )
+                    self.assertIsNotNone(
+                        self.smart_variable.wait_until_element(
+                            common_locators['haserror'])
+                    )
+                    self.assertIsNone(self.smart_variable.search(name))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_positive_delete_smart_variables_menu(self):
-        """Delete a Smart Variable from Smart Variables Menu.
+    @tier2
+    def test_positive_delete(self):
+        """Deletes a Smart Variable from Smart Variables Menu.
 
         @id: 19fedbdf-48a1-46a7-b184-615a0efd7b4e
 
         @steps:
 
-        1. Delete a smart Variable from Configure - Smart Variables menu.
+        1. Deletes a smart Variable from Configure - Smart Variables menu.
 
         @assert:
 
@@ -90,64 +280,124 @@ class SmartVariablesTestCase(UITestCase):
         2. In YAML output of associated Host, the variable should be removed.
         3. In Host-> variables tab, the smart variable should be removed.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        value = gen_string('alpha')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value=value,
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            self.smart_variable.delete(name)
+            # Verify that corresponding entry is not present in YAML output
+            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            self.assertNotIn(name, output['parameters'])
+            # Verify that smart variable is not present on Host page
+            sv_value = self.hosts.get_smart_variable_value(
+                self.host_name, name)
+            self.assertIsNone(sv_value)
 
     @run_only_on('sat')
-    @stubbed()
+    @tier1
+    def test_positive_update_name(self):
+        """Update Smart Variable name.
+
+        @id: 2083cfb7-eed6-4086-8f6a-86d6cd08bd06
+
+        @steps:
+
+        1. In Puppet Class, create a smart variable with valid name
+        2. After successful creation, update the name of variable.
+
+        @assert:
+
+        1. The variable is updated with new name.
+        """
+        old_name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=old_name,
+                puppet_class=self.puppet['name'],
+            )
+            self.assertIsNotNone(self.smart_variable.search(old_name))
+            for new_name in generate_strings_list():
+                with self.subTest(new_name):
+                    self.smart_variable.update(old_name, new_name=new_name)
+                    self.assertIsNotNone(self.smart_variable.search(new_name))
+                    old_name = new_name  # for next iteration
+
+    @run_only_on('sat')
     @tier1
     def test_positive_update_variable_puppet_class(self):
-        """Update Smart Variable's puppet class.
+        """Update Smart Variable puppet class.
 
         @id: 6c3e2da9-420c-4e39-8b71-e5be6b605bd7
 
         @steps:
 
-        1. In Puppet class, Create a smart Variable with Valid name and
+        1. In Puppet Class, creates a smart variable with valid name and
         default value.
-        2. After successful creation, Update the puppet class of variable.
+        2. After successful creation, update the puppet class of variable.
 
-        @assert:
-
-        1. The variable is updated with new puppet class.
-        2. In Host/HostGroup -> variables tab, the smart variable is updated
-        with its newly updated puppet class.
-
-        @caseautomation: notautomated
+        @assert: The variable is updated with new puppet class.
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            self.smart_variable.update(name, puppet_class='ntp::config')
+            self.assertTrue(self.smart_variable.validate_smart_variable(
+                name, 'puppet_class', 'ntp::config'))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_negative_globality(self):
-        """Smart Variable with same names are not allowed.
+    @tier1
+    def test_negative_create_with_same_name(self):
+        """Attempt to create Smart Variable with same name as already existent
+        entity
 
         @id: 7f37194d-4a12-437b-a284-3350cf048eea
 
         @steps:
 
-        1. In Puppet class, Create a smart Variable with Valid name and
-        default value.
-        2. After successful creation, Attempt to create a variable with
-        same name from same/other class.
+        1. In Puppet Class, create a smart Variable with valid name and default
+        value.
+        2. After successful creation, attempt to create a variable with same
+        name from same/other class.
 
         @assert:
 
-        1. An Error is displayed in front of Variable Key field as
-        'has already been taken'.
-        2. The variable with same name are not allowed to create from
-        any class.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        1. An error is displayed in front of Variable Key field as 'has already
+        been taken'.
+        2. The variable with same name are not allowed to create from any class
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            for _ in range(2):
+                make_smart_variable(
+                    session,
+                    name=name,
+                    puppet_class=self.puppet['name'],
+                )
+            self.assertIsNotNone(
+                self.smart_variable.wait_until_element(
+                    common_locators['haserror'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_type(self):
-        """Variable is Updated for variable types - Valid Value.
+        """Update Smart Variable with valid default value for all variable
+        types
 
         Types - string, boolean, integer, real, array, hash, yaml, json
 
@@ -159,16 +409,37 @@ class SmartVariablesTestCase(UITestCase):
         2.  Enter a 'valid' default Value.
         3.  Submit the changes.
 
-        @assert: Variable is Updated with a new type successfully.
-
-        @caseautomation: notautomated
+        @assert: Variable is updated with a new type and value successfully.
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                default_value=gen_string('alpha'),
+                puppet_class=self.puppet['name'],
+            )
+            for data in valid_sc_variable_data():
+                with self.subTest(data):
+                    self.smart_variable.update(
+                        name,
+                        key_type=data['sc_type'],
+                        default_value=data['value'],
+                    )
+                    self.smart_variable.click(self.smart_variable.search(name))
+                    value = self.smart_variable.wait_until_element(
+                        locators['smart_variable.default_value']).text
+                    # Application is adding some data for yaml type once
+                    # variable is created
+                    if data['sc_type'] == 'yaml':
+                        data['value'] += '\n...'
+                    self.assertEqual(value, data['value'])
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_update_type(self):
-        """Variable not updated for variable types - Invalid Value.
+        """Attempt to update Smart Variable with invalid default value for all
+        variable types
 
         Types - string, boolean, integer, real, array, hash, yaml, json
 
@@ -180,336 +451,398 @@ class SmartVariablesTestCase(UITestCase):
         2.  Enter an 'Invalid' default Value.
         3.  Submit the changes.
 
-        @assert: Variable is not updated with new type for invalid value.
-
-        @caseautomation: notautomated
+        @assert: Variable is not updated with new type and invalid default
+        value.
         """
+        name = gen_string('alpha')
+        initial_value = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                default_value=initial_value,
+                puppet_class=self.puppet['name'],
+            )
+            for data in invalid_sc_variable_data():
+                with self.subTest(data):
+                    self.smart_variable.update(
+                        name,
+                        key_type=data['sc_type'],
+                        default_value=data['value'],
+                    )
+                    self.assertIsNotNone(
+                        self.smart_variable.wait_until_element(
+                            common_locators['haserror'])
+                    )
+                    self.smart_variable.click(self.smart_variable.search(name))
+                    value = self.smart_variable.wait_until_element(
+                        locators['smart_variable.default_value']).text
+                    self.assertEqual(value, initial_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_negative_validate_default_value_required_checkbox(self):
-        """Error is raised for blank default Value - Required checkbox.
-
-        @id: cdbe5feb-daf1-49c4-98c0-5bbbd436c3e8
-
-        @steps:
-
-        1.  Create a variable with empty value.
-        2.  Check Required checkbox in 'Optional Input Validator'.
-        3.  Submit the change.
-
-        @assert: Error is raised for blank default value by 'Required'
-        checkbox.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_validate_default_value_required_checkbox(self):
-        """Error is not raised for default Value - Required checkbox.
-
-        @id: 09e42df9-2fe1-444f-a603-6f7b6b3f127e
-
-        @steps:
-
-        1.  Provide some default value.
-        2.  Check Required checkbox in 'Optional Input Validator'.
-        3.  Submit the change.
-
-        @assert: Error is not raised default value by 'Required' checkbox.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_negative_validate_matcher_value_required_checkbox(self):
-        """Error is raised for blank matcher Value - Required checkbox.
-
-        @id: 7e02efb6-e1a2-4872-877a-78075b2de182
-
-        @steps:
-
-        1.  Create a matcher for variable for some attribute.
-        2.  Dont provide Value for matcher. Keep blank.
-        3.  Check Required checkbox in 'Optional Input Validator'.
-        4.  Submit the change.
-
-        @assert: Error is raised for blank matcher value by 'Required'
-        checkbox.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_validate_matcher_value_required_checkbox(self):
-        """Error is not raised for matcher Value - Required checkbox.
-
-        @id: 6c742180-ddb1-4cd0-a04c-911b2a8f4ea4
-
-        @steps:
-
-        1.  Create a matcher for variable for some attribute.
-        2.  Provide some Value for matcher.
-        3.  Check Required checkbox in 'Optional Input Validator'.
-        4.  Submit the change.
-
-        @assert: Error is not raised for matcher value by 'Required' checkbox.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_default_value_with_regex(self):
-        """Error is raised for default value not matching with regex.
+        """Attempt to create Smart Variable that has default value that doesn't
+        match regexp from validator rule
 
         @id: 5285b784-e02c-4f3b-a053-93b36bf9fbfc
 
         @steps:
 
-        1.  Provide default value that doesn't match the regex of step 2.
-        2.  Validate this value with regex validator type and rule.
+        1.  Provide regexp to validator rule
+        2.  Provide default value that doesn't match the regex from validator
+        rule
         3.  Submit the change.
 
         @assert: Error is raised for default value not matching with regex.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                puppet_class=self.puppet['name'],
+                default_value=gen_string('alpha'),
+                validator_type='regexp',
+                validator_rule='[0-9]',
+            )
+            self.assertIsNotNone(
+                self.smart_variable.wait_until_element(
+                    common_locators['haserror'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_default_value_with_regex(self):
-        """Error is not raised for default value matching with regex.
+        """Create Smart Variable that has default value that match regexp from
+        validator rule
 
         @id: 7a329b05-7efd-42d2-b472-1a36d0ee6464
 
         @steps:
 
-        1.  Provide default value that matches the regex of step 2.
-        2.  Validate this value with regex validator type and rule.
+        1.  Provide regexp to validator rule
+        2.  Provide default value that matches the regexp from validator rule
         3.  Submit the change.
 
-        @assert: Error is not raised for default value matching with regex.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: Smart Variable is created successfully
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value=gen_string('numeric'),
+                validator_type='regexp',
+                validator_rule='[0-9]',
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_value_with_regex(self):
-        """Error is raised for matcher value not matching with regex.
+        """Attempt to create Smart Variable that has matcher value that doesn't
+        match regexp from validator rule
 
         @id: b8e039b3-2491-4dba-a91b-a4aa3fc7f544
 
         @steps:
 
-        1.  Create a matcher with value that doesn't match the regex of step 2.
-        2.  Validate this value with regex validator type and rule.
+        1.  Provide regexp to validator rule
+        2.  Create a matcher with value that doesn't match the regexp from
+        validator rule
         3.  Submit the change.
 
         @assert: Error is raised for matcher value not matching with regex.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=gen_string('alpha'),
+                puppet_class=self.puppet['name'],
+                default_value=gen_string('numeric'),
+                validator_type='regexp',
+                validator_rule='[0-9]',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': gen_string('alpha')
+                }]
+            )
+            self.assertIsNotNone(
+                self.smart_variable.wait_until_element(
+                    locators['smart_variable.matcher_error'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_matcher_value_with_regex(self):
-        """Error is not raised for matcher value matching with regex.
+        """Create Smart Variable that has matcher value that match regexp from
+        validator rule
 
         @id: 04a8f849-6323-4e54-9f07-fb750b911a4c
 
         @steps:
 
-        1.  Create a matcher with value that matches the regex of step 2.
-        2.  Validate this value with regex validator type and rule.
+        1.  Provide regexp to validator rule
+        2.  Create a matcher with value that matches the regex from validator
+        rule
         3.  Submit the change.
 
-        @assert: Error is not raised for matcher value matching with regex.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: Smart Variable is created successfully and error is not raised
+        for matcher value matching with regex.
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value=gen_string('numeric'),
+                validator_type='regexp',
+                validator_rule='[0-9]',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': gen_string('numeric')
+                }]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            self.assertIsNone(
+                self.smart_variable.wait_until_element(
+                    locators['smart_variable.matcher_error'], timeout=8)
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_default_value_with_list(self):
-        """Error is raised for default value not in list.
+        """Attempt to create Smart Variable that has default value that is not
+        in list from validator rule
 
         @id: d1aa9149-9025-4492-95d0-e72aec8eadc3
 
         @steps:
 
-        1.  Provide default value that doesn't match the list of step 2.
-        2.  Validate this value with list validator type and rule.
+        1.  Provide list of values to validator rule
+        2.  Provide default value that doesn't match list from validator rule
         3.  Submit the change.
 
-        @assert: Error is raised for default value not in list.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: Error is raised for default value which is not in the list
+        from validator rule.
         """
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                puppet_class=self.puppet['name'],
+                default_value=gen_string('alphanumeric'),
+                validator_type='list',
+                validator_rule='45, test',
+            )
+            self.assertIsNotNone(
+                self.smart_variable.wait_until_element(
+                    common_locators['haserror'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_default_value_with_list(self):
-        """Error is not raised for default value in list.
+        """Creates Smart Variable that has default value that is in the list
+        from validator rule
 
         @id: 5ea443f2-ec91-4986-b97c-1c28fb862e1c
 
         @steps:
 
-        1.  Provide default value that matches the list of step 2.
-        2.  Validate this value with list validator type and rule.
+        1.  Provide list of values to validator rule
+        2.  Provide default value that matches list from validator rule
         3.  Submit the change.
 
-        @assert: Error is not raised for default value in list.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: Smart Variable is created successfully
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value='test1',
+                validator_type='list',
+                validator_rule='true, 50, test1',
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_value_with_list(self):
-        """Error is raised for matcher value not in list.
+        """Attempt to create Smart Variable that has matcher value that is not
+        in list from validator rule
 
         @id: 87d128b9-c7f7-4396-b162-60021b0ef682
 
         @steps:
 
-        1.  Create a matcher with value that doesn't match
-        the list of step 2.
-        2.  Validate this value with list validator type and rule.
+        1.  Provide list of values to validator rule
+        2.  Create a matcher with value that is not in the list from validator
+        rule
         3.  Submit the change.
 
-        @assert: Error is raised for matcher value not in list.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: Error is raised for matcher value that is not in list from
+        validator rule.
         """
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=gen_string('alpha'),
+                puppet_class=self.puppet['name'],
+                default_value='50',
+                validator_type='list',
+                validator_rule='25, example, 50',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': 'myexample'
+                }]
+            )
+            self.assertIsNotNone(
+                self.smart_variable.wait_until_element(
+                    locators['smart_variable.matcher_error'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_matcher_value_with_list(self):
-        """Error is not raised for matcher value in list.
+        """Create Smart Variable that has matcher value that is in the list
+        from validator rule
 
         @id: ac91eaf5-2a15-4d54-b078-a37b60074287
 
         @steps:
 
-        1.  Create a matcher with value that matches the list of step 2.
-        2.  Validate this value with list validator type and rule.
+        1.  Provide list of values to validator rule
+        2.  Create a matcher with value that present in the list from validator
+        rule
         3.  Submit the change.
 
-        @assert: Error is not raised for matcher value in list.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: Smart Variable is created successfully
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value='example',
+                validator_type='list',
+                validator_rule='test, example, 30',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': '30'
+                }]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_value_with_default_type(self):
-        """Error is raised for matcher value not of default type.
+        """Attempt to create Smart Variable that has matcher value of another
+        type than key type
 
         @id: 466197ea-44f0-46d0-b111-686b72183fe5
 
         @steps:
 
-        1.  Update variable default type with valid value.
+        1.  Update smart variable with default type and value.
         2.  Create a matcher with value that doesn't match the default type.
         3.  Submit the change.
 
-        @assert: Error is raised for matcher value not of default type.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: Error is raised for matcher value which is not of default type
         """
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=gen_string('alpha'),
+                puppet_class=self.puppet['name'],
+                default_value='true',
+                key_type='boolean',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': gen_string('alpha')
+                }]
+            )
+            self.assertIsNotNone(
+                self.smart_variable.wait_until_element(
+                    locators['smart_variable.matcher_error'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_validate_matcher_value_with_default_type(self):
-        """No error for matcher value of default type.
+        """Create Smart Variable that has matcher value of the same type than
+        key type
 
         @id: 033bf7d8-a488-49c1-b900-9e7169e945e0
 
         @steps:
 
-        1.  Update variable default type with valid value.
+        1.  Update smart variable with default type and value.
         2.  Create a matcher with value that matches the default type.
         3.  Submit the change.
 
-        @assert: Error is not raised for matcher value of default type.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: Smart Variable is created successfully
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value='true',
+                key_type='boolean',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': 'false'
+                }]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_and_default_value(self):
-        """Error for invalid default and matcher value both at a time.
+        """Attempt to create Smart Variable that has default value and matcher
+        value of another type than key type
 
         @id: 9f5987d1-ac40-4031-bcfe-979dc95866d3
 
         @steps:
 
-        1.  Update variable default type with Invalid value.
+        1.  Update smart variable with default type and invalid default value.
         2.  Create a matcher with value that doesn't match the default type.
         3.  Submit the change.
 
         @assert: Error is raised for invalid default and matcher value both.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=gen_string('alpha'),
+                puppet_class=self.puppet['name'],
+                default_value=gen_string('alpha'),
+                key_type='integer',
+                matcher=[{
+                    'matcher_attribute': 'os=rhel6',
+                    'matcher_value': gen_string('alpha')
+                }]
+            )
+            self.assertIsNotNone(
+                self.smart_variable.wait_until_element(
+                    locators['smart_variable.matcher_error'])
+            )
+            self.assertIsNotNone(
+                self.smart_variable.wait_until_element(
+                    common_locators['haserror'])
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_validate_matcher_non_existing_attribute(self):
-        """Error while creating matcher for Non Existing Attribute.
+        """Attempt to create Smart Variable with a matcher that has value for
+        non existing attribute.
 
         @id: 27ef1ef0-1c89-47eb-89e0-3da161154513
 
@@ -519,16 +852,26 @@ class SmartVariablesTestCase(UITestCase):
         2.  Attempt to submit the change.
 
         @assert: Error is raised for non existing attribute.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=gen_string('alpha'),
+                puppet_class=self.puppet['name'],
+                default_value=gen_string('alpha'),
+                matcher=[{
+                    'matcher_attribute': 'hostgroup={0}'.format(
+                        gen_string('alpha')),
+                    'matcher_value': gen_string('alpha')
+                }]
+            )
+            self.assertIsNotNone(
+                self.smart_variable.wait_until_element(
+                    locators['smart_variable.matcher_error'])
+            )
 
     @run_only_on('sat')
-    @skip_if_bug_open('bugzilla', 1259174)
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher(self):
         """Create a Smart Variable with matcher.
 
@@ -536,8 +879,8 @@ class SmartVariablesTestCase(UITestCase):
 
         @steps:
 
-        1. Create a smart Variable with Valid name and default value.
-        2. Create a matcher for Host with valid value.
+        1. Create a smart Variable with valid name and default value.
+        2. Create a matcher for Host attribute with valid value.
 
         @assert:
 
@@ -547,12 +890,37 @@ class SmartVariablesTestCase(UITestCase):
         3. In Host-> variables tab, the variable name with overrided value
         for host is displayed.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        default_value = gen_string('alpha')
+        override_value = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value=default_value,
+                matcher=[{
+                    'matcher_attribute': 'fqdn={0}'.format(
+                        self.host_name),
+                    'matcher_value': override_value
+                }]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            # Verify that overridden value is present for just created smart
+            # variable in YAML output
+            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            self.assertNotEqual(output['parameters'][name], default_value)
+            self.assertEqual(output['parameters'][name], override_value)
+            # Verify that smart variable has overridden value on Host page
+            sv_value = self.hosts.get_smart_variable_value(
+                self.host_name, name).text
+            self.assertEqual(sv_value, override_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher_attribute_priority(self):
         """Matcher Value set on Attribute Priority for Host.
 
@@ -570,14 +938,42 @@ class SmartVariablesTestCase(UITestCase):
 
         @assert: The YAML output has the value only for fqdn matcher.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        override_value = gen_string('alphanumeric')
+        override_value2 = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value=gen_string('alpha'),
+                matcher_priority='fqdn\nhostgroup\nos\ndomain',
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(
+                            self.host_name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            self.assertEqual(output['parameters'][name], override_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_matcher_attribute_priority(self):
-        """Matcher Value set on Attribute Priority for Host - alternate priority.
+        """Matcher Value set on Attribute Priority for Host - alternate
+        priority.
 
         @id: 7e52b054-4fcb-4c58-ae49-0d3348d14570
 
@@ -587,21 +983,49 @@ class SmartVariablesTestCase(UITestCase):
         2.  Set some attribute(other than fqdn) as top priority attribute.
         Note - The fqdn/host should have this attribute.
         3.  Create first matcher for fqdn with valid details.
-        4.  Create second matcher for attribute of step 3 with valid details.
+        4.  Create second matcher for attribute of step 2 with valid details.
         5.  Submit the change.
         6.  Go to YAML output of associated host.
 
         @assert:
 
-        1.  The YAML output has the value only for step 5 matcher.
+        1.  The YAML output has the value only for step 4 matcher.
         2.  The YAML output doesn't have value for fqdn/host matcher.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        override_value = gen_string('alphanumeric')
+        override_value2 = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value=gen_string('alpha'),
+                matcher_priority='domain\nhostgroup\nos\nfqdn',
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(
+                            self.host_name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            self.assertEqual(output['parameters'][name], override_value2)
+            self.assertNotEqual(output['parameters'][name], override_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher_merge_override(self):
         """Merge the values of all the associated matchers.
 
@@ -626,12 +1050,40 @@ class SmartVariablesTestCase(UITestCase):
         2.  The YAML output doesn't have the default value of variable.
         3.  Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        override_value = '[80, 90]'
+        override_value2 = '[90, 100]'
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value='[20]',
+                key_type='array',
+                matcher_merge_overrides=True,
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(
+                            self.host_name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            self.assertEqual(output['parameters'][name], [80, 90, 90, 100])
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_matcher_merge_override(self):
         """Attempt to merge the values from non associated matchers.
 
@@ -657,12 +1109,39 @@ class SmartVariablesTestCase(UITestCase):
         3.  The YAML output doesn't have the default value of variable.
         4.  Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        override_value = '[80, 90]'
+        override_value2 = '[90, 100]'
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value='[20]',
+                key_type='array',
+                matcher_merge_overrides=True,
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(
+                            self.host_name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'os=rhel2',
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            self.assertEqual(output['parameters'][name], [80, 90])
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher_merge_default(self):
         """Merge the values of all the associated matchers + default value.
 
@@ -688,12 +1167,42 @@ class SmartVariablesTestCase(UITestCase):
         2.  The YAML output has the default value of variable.
         3.  Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        override_value = '[80, 90]'
+        override_value2 = '[90, 100]'
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value='[test]',
+                key_type='array',
+                matcher_merge_overrides=True,
+                matcher_merge_default=True,
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(
+                            self.host_name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            self.assertEqual(
+                output['parameters'][name], ['test', 80, 90, 90, 100])
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_matcher_merge_default(self):
         """Empty default value is not shown in merged values.
 
@@ -701,7 +1210,7 @@ class SmartVariablesTestCase(UITestCase):
 
         @steps:
 
-        1.  Create variable with some default value.
+        1.  Create variable with empty default value.
         2.  Create first matcher for attribute fqdn with valid details.
         3.  Create second matcher for other attribute with valid details.
         Note - The fqdn/host should have this attribute.
@@ -719,12 +1228,41 @@ class SmartVariablesTestCase(UITestCase):
         2.  The YAML output doesn't have the empty default value of variable.
         3.  Duplicate values in YAML output if any are displayed.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        override_value = '[80, 90]'
+        override_value2 = '[90, 100]'
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value='[]',
+                key_type='array',
+                matcher_merge_overrides=True,
+                matcher_merge_default=True,
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(
+                            self.host_name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            self.assertEqual(output['parameters'][name], [80, 90, 90, 100])
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_matcher_avoid_duplicate(self):
         """Merge the values of all the associated matchers, remove duplicates.
 
@@ -750,12 +1288,41 @@ class SmartVariablesTestCase(UITestCase):
         2.  The YAML output has the default value of variable.
         3.  Duplicate values in YAML output are removed / not displayed.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        override_value = '[80, 90]'
+        override_value2 = '[90, 100]'
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value='[20]',
+                key_type='array',
+                matcher_merge_overrides=True,
+                matcher_merge_avoid=True,
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(
+                            self.host_name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            self.assertEqual(output['parameters'][name], [80, 90, 100])
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_matcher_avoid_duplicate(self):
         """Duplicates not removed as they were not really present.
 
@@ -780,34 +1347,44 @@ class SmartVariablesTestCase(UITestCase):
         2.  The YAML output has the default value of variable.
         3.  No value removed as duplicate value.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        override_value = '[70, 80]'
+        override_value2 = '[90, 100]'
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value='[20]',
+                key_type='array',
+                matcher_merge_overrides=True,
+                matcher_merge_avoid=True,
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(
+                            self.host_name),
+                        'matcher_value': override_value
+                    },
+                    {
+                        'matcher_attribute': 'domain={0}'.format(
+                            self.domain_name),
+                        'matcher_value': override_value2
+                    }
+
+                ]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            output = yaml.load(self.hosts.get_yaml_output(self.host_name))
+            self.assertEqual(output['parameters'][name], [70, 80, 90, 100])
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_enable_merge_overrides_default_checkboxes(self):
-        """Enable Merge Overrides, Merge Default checkbox for supported types.
-
-        @id: a86b3f97-f491-444b-ab7f-85218689e97f
-
-        @steps:
-
-        1.  Set variable type to array/hash.
-
-        @assert: The Merge Overrides, Merge Default checkbox
-        are enabled to check.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_negative_enable_merge_overrides_default_checkboxes(self):
-        """Disable Merge Overrides, Merge Default checkboxes for non supported types.
+        """Verify that Merge Overrides and Merge Default checkboxes are
+        disabled for non supported types
 
         @id: 834af938-e056-4a40-8831-91f6400aedd3
 
@@ -815,39 +1392,28 @@ class SmartVariablesTestCase(UITestCase):
 
         1.  Set variable type other than array/hash.
 
-        @assert: The Merge Overrides, Merge Default checkboxes
-        are not enabled to check.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: The Merge Overrides, Merge Default checkboxes are disabled for
+        editing
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                default_value=gen_string('numeric'),
+                key_type='integer',
+                puppet_class=self.puppet['name'],
+            )
+            self.assertFalse(
+                self.smart_variable.validate_checkbox(name, 'Merge Overrides'))
+            self.assertFalse(
+                self.smart_variable.validate_checkbox(name, 'Merge Default'))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_enable_avoid_duplicates_checkbox(self):
-        """Enable Avoid duplicates checkbox for supported type- array.
-
-        @id: 8856afbf-67cd-4470-9527-34bb0b2962e3
-
-        @steps:
-
-        1.  Set variable type to array.
-        2.  Check Merge Overrides checkbox.
-
-        @assert: The Avoid Duplicates checkbox is enabled to check.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_negative_enable_avaoid_duplicates_checkbox(self):
-        """Disable Avoid duplicates checkbox for non supported types.
+    @tier1
+    def test_negative_enable_avoid_duplicates_checkbox(self):
+        """Verify that Merge Overrides and Avoid Duplicates checkboxes are
+        disabled for non supported types
 
         @id: 8dc28e77-584a-46f9-aed7-dcc3345a2d9b
 
@@ -855,21 +1421,26 @@ class SmartVariablesTestCase(UITestCase):
 
         1.  Set variable type other than array.
 
-        @assert:
-
-        1.  The Merge Overrides checkbox is only enabled to check
-        for type hash.
-        2.  The Avoid duplicates checkbox not enabled to check
-        for any type than array.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: The Merge Overrides, Avoid Duplicates checkboxes are disabled
+        for editing
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                default_value='true',
+                key_type='boolean',
+                puppet_class=self.puppet['name'],
+            )
+            self.assertFalse(
+                self.smart_variable.validate_checkbox(name, 'Merge Overrides'))
+            self.assertFalse(
+                self.smart_variable.validate_checkbox(name, 'Avoid Duplicates')
+            )
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_positive_impact_delete_attribute(self):
         """Impact on variable after deleting associated attribute.
 
@@ -877,25 +1448,52 @@ class SmartVariablesTestCase(UITestCase):
 
         @steps:
 
-        1.  Create a variable with matcher
-        for some attribute.
+        1.  Create a variable with matcher for some attribute.
         2.  Delete the attribute.
         3.  Recreate the attribute with same name as earlier.
 
         @assert:
 
         1.  The matcher for deleted attribute removed from variable.
-        2.  On recreating attribute, the matcher should not
-        reappear in variable.
+        2.  On recreating attribute, the matcher should not reappear in
+        variable.
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        hostgroup = make_hostgroup({
+            'name': gen_string('alpha'),
+            'environment-id': self.env['id'],
+            'puppet-class-ids': self.puppet['id']
+        })
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                matcher=[
+                    {
+                        'matcher_attribute': 'hostgroup={0}'.format(
+                            hostgroup['name']),
+                        'matcher_value': gen_string('alpha')
+                    },
+                ]
+            )
+            self.assertTrue(self.smart_variable.validate_smart_variable(
+                name, 'overrides_number', '1'))
+            HostGroup.delete({'id': hostgroup['id']})
+            self.assertTrue(self.smart_variable.validate_smart_variable(
+                name, 'overrides_number', '0'))
+            make_hostgroup({
+                'name': gen_string('alpha'),
+                'environment-id': self.env['id'],
+                'puppet-class-ids': self.puppet['id']
+            })
+            self.assertTrue(self.smart_variable.validate_smart_variable(
+                name, 'overrides_number', '0'))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_create_override_from_attribute(self):
         """Impact on variable on overriding the variable value from attribute.
 
@@ -913,15 +1511,28 @@ class SmartVariablesTestCase(UITestCase):
         1.  The host/hostgroup is saved with changes.
         2.  New matcher for fqdn/hostgroup created inside variable.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+            )
+            self.assertTrue(self.smart_variable.validate_smart_variable(
+                name, 'overrides_number', '0'))
+            self.hosts.set_smart_variable_value(
+                self.host_name, name, gen_string('alpha'))
+            self.assertTrue(self.smart_variable.validate_smart_variable(
+                name, 'overrides_number', '1'))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_negative_create_override_from_attribute(self):
-        """No impact on variable on overriding the variable
-        with invalid value from attribute.
+        """No impact on variable on overriding the variable with invalid value
+        from attribute.
 
         @id: 18071443-a511-49c4-9ca9-04c7594b831d
 
@@ -929,46 +1540,37 @@ class SmartVariablesTestCase(UITestCase):
 
         1.  Create a variable.
         2.  Associate variable with fqdn/hostgroup.
-        3.  From host/hostgroup, Attempt to override the variable with
-        some other key type of value.
+        3.  From host/hostgroup, attempt to override the variable with some
+        other key type of value.
 
         @assert:
 
         1.  Error thrown for invalid type value.
         2.  No matcher for fqdn/hostgroup is created inside variable.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                key_type='integer',
+                default_value=gen_string('numeric'),
+                puppet_class=self.puppet['name'],
+            )
+            self.assertTrue(self.smart_variable.validate_smart_variable(
+                name, 'overrides_number', '0'))
+            self.hosts.set_smart_variable_value(
+                self.host_name, name, gen_string('alpha'))
+            self.assertIsNotNone(
+                self.hosts.wait_until_element(locators['host.override_error']))
+            self.assertTrue(self.smart_variable.validate_smart_variable(
+                name, 'overrides_number', '0'))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
-    def test_negative_create_override_from_attribute_required_checked(self):
-        """Error for empty value on overriding the variable value
-        from attribute - Required checked.
-
-        @id: b0756aa8-3e9b-446d-b5dd-8205b2a9218d
-
-        @steps:
-
-        1.  Create a variable.
-        2.  Check 'Required' checkbox in variable.
-        3.  Associate variable with fqdn/hostgroup.
-        4.  From host/hostgroup, Attempt to override the variable
-        with empty value.
-
-        @assert:
-
-        1.  Error thrown for empty value as the value is required to pass.
-        2.  The info icon changed to warning icon for that variable.
-        3.  No matcher for fqdn/hostgroup created inside variable.
-
-        @caseautomation: notautomated
-        """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_update_matcher_from_attribute(self):
         """Impact on variable on editing the variable value from attribute.
 
@@ -987,15 +1589,42 @@ class SmartVariablesTestCase(UITestCase):
         1.  The host/hostgroup is saved with changes.
         2.  Matcher value in variable is updated from fqdn/hostgroup.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        host_override_value = gen_string('numeric')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value=gen_string('numeric'),
+                key_type='integer',
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(
+                            self.host_name),
+                        'matcher_value': gen_string('numeric')
+                    },
+                ]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            # Change matcher value for smart variable from Host page
+            self.hosts.set_smart_variable_value(
+                self.host_name, name, host_override_value, override=False)
+            # Check that matcher value was changed from smart variable
+            # interface
+            self.smart_variable.click(self.smart_variable.search(name))
+            sv_matcher_value = self.smart_variable.wait_until_element(
+                locators['smart_variable.matcher_value'] % 1)
+            self.assertEqual(sv_matcher_value.text, host_override_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_negative_update_matcher_from_attribute(self):
-        """No Impact on variable on editing the variable with
-        invalid value from attribute.
+        """No impact on variable on editing the variable with invalid value
+        from attribute.
 
         @id: bd4a2535-57dd-49a8-b8b5-c5e8de652aa7
 
@@ -1012,12 +1641,43 @@ class SmartVariablesTestCase(UITestCase):
         1.  Error thrown for invalid value.
         2.  Matcher value in variable is not updated from fqdn/hostgroup.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        override_value = gen_string('numeric')
+        host_override_value = gen_string('alpha')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value=gen_string('numeric'),
+                key_type='integer',
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(
+                            self.host_name),
+                        'matcher_value': override_value
+                    },
+                ]
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            # Attempt to change matcher value from Host page using invalid
+            # value
+            self.hosts.set_smart_variable_value(
+                self.host_name, name, host_override_value, override=False)
+            self.assertIsNotNone(
+                self.hosts.wait_until_element(locators['host.override_error']))
+            # Verify that matcher value was not changed
+            self.smart_variable.click(self.smart_variable.search(name))
+            sv_matcher_value = self.smart_variable.wait_until_element(
+                locators['smart_variable.matcher_value'] % 1)
+            self.assertEqual(sv_matcher_value.text, override_value)
+            self.assertNotEqual(sv_matcher_value.text, host_override_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_hide_default_value(self):
         """Hide the default value of variable.
 
@@ -1029,20 +1689,27 @@ class SmartVariablesTestCase(UITestCase):
         2.  Enter some valid default value.
         3.  Check 'Hidden Value' checkbox.
 
-        @assert:
-
-        1.  The default value shown in hidden state.
-        2.  Changes submitted successfully.
-        3.  Matcher values shown hidden if any.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @assert: Created Smart Variable has hidden default value
         """
+        name = gen_string('alpha')
+        value = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                default_value=value,
+                puppet_class=self.puppet['name'],
+                hidden_value=True,
+            )
+            self.smart_variable.click(self.smart_variable.search(name))
+            default_value = self.smart_variable.wait_until_element(
+                locators['smart_variable.default_value_hidden'])
+            self.assertEqual(default_value.get_attribute('value'), value)
+            self.assertEqual(default_value.get_attribute('type'), 'password')
+            self.assertIn('***', default_value.get_attribute('placeholder'))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_unhide_default_value(self):
         """Unhide the default value of variable.
 
@@ -1058,17 +1725,30 @@ class SmartVariablesTestCase(UITestCase):
         @assert:
 
         1.  The default value shown in unhidden state.
-        2.  Changes submitted successfully.
-        3.  Matcher values shown unhidden if any.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        name = gen_string('alpha')
+        value = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                default_value=value,
+                puppet_class=self.puppet['name'],
+                hidden_value=True,
+            )
+            self.smart_variable.click(self.smart_variable.search(name))
+            default_value = self.smart_variable.wait_until_element(
+                locators['smart_variable.default_value_hidden'])
+            self.assertEqual(default_value.get_attribute('type'), 'password')
+            self.smart_variable.update(name, hidden_value=False)
+            self.smart_variable.click(self.smart_variable.search(name))
+            default_value = self.smart_variable.wait_until_element(
+                locators['smart_variable.default_value'])
+            self.assertEqual(default_value.get_attribute('type'), 'textarea')
+            self.assertEqual(default_value.get_attribute('value'), value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_positive_hide_default_value_in_attribute(self):
         """Hide the default value of variable in attribute.
 
@@ -1088,14 +1768,36 @@ class SmartVariablesTestCase(UITestCase):
         2.  The button for unhiding the value is displayed and accessible.
         3.  The button for overriding the value is displayed and accessible.
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        default_value = gen_string('numeric')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value=default_value,
+                hidden_value=True,
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            self.hosts.click(self.hosts.search(self.host_name))
+            self.hosts.click(locators['host.edit'])
+            self.hosts.click(tab_locators['host.tab_params'])
+            sv_value = self.hosts.get_smart_variable_value(
+                self.host_name, name, hidden=True)
+            self.assertEqual(sv_value.get_attribute('value'), default_value)
+            self.assertEqual(sv_value.get_attribute('type'), 'password')
+            self.assertIn(
+                '***', sv_value.get_attribute('data-hidden-value'))
+            self.assertTrue(self.smart_variable.is_element_enabled(
+                locators['host.smart_variable_override'] % name))
+            self.assertTrue(self.smart_variable.is_element_enabled(
+                locators['host.smart_variable_unhide'] % name))
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_positive_unhide_default_value_in_attribute(self):
         """Unhide the default value of variable in attribute.
 
@@ -1117,13 +1819,35 @@ class SmartVariablesTestCase(UITestCase):
         3.  The button for overriding the value is displayed and accessible.
         4.  In variable, the default value is still hidden.
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        default_value = gen_string('numeric')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value=default_value,
+                hidden_value=True,
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            sv_value = self.hosts.get_smart_variable_value(
+                self.host_name, name, hidden=True)
+            self.assertEqual(sv_value.get_attribute('type'), 'password')
+            self.hosts.click(locators['host.smart_variable_unhide'] % name)
+            self.assertTrue(self.smart_variable.is_element_enabled(
+                locators['host.smart_variable_override'] % name))
+            self.assertTrue(self.smart_variable.is_element_enabled(
+                locators['host.smart_variable_hide'] % name))
+            self.hosts.click(common_locators['submit'])
+            self.smart_variable.click(self.smart_variable.search(name))
+            default_value = self.smart_variable.wait_until_element(
+                locators['smart_variable.default_value_hidden'])
+            self.assertEqual(default_value.get_attribute('type'), 'password')
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_hidden_value(self):
         """Update the hidden default value of variable.
@@ -1142,13 +1866,34 @@ class SmartVariablesTestCase(UITestCase):
 
         1.  The variable default value is updated.
         2.  The variable default value displayed as hidden.
-
-        @caseautomation: notautomated
         """
+        name = gen_string('alpha')
+        value = gen_string('alphanumeric')
+        new_value = gen_string('alphanumeric')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                default_value=value,
+                puppet_class=self.puppet['name'],
+                hidden_value=True,
+            )
+            self.smart_variable.click(self.smart_variable.search(name))
+            default_value = self.smart_variable.wait_until_element(
+                locators['smart_variable.default_value_hidden'])
+            self.assertEqual(default_value.get_attribute('type'), 'password')
+            self.assertEqual(default_value.get_attribute('value'), value)
+            self.smart_variable.assign_value(
+                locators['smart_variable.default_value_hidden'], new_value)
+            self.smart_variable.click(common_locators['submit'])
+            self.smart_variable.click(self.smart_variable.search(name))
+            default_value = self.smart_variable.wait_until_element(
+                locators['smart_variable.default_value_hidden'])
+            self.assertEqual(default_value.get_attribute('type'), 'password')
+            self.assertEqual(default_value.get_attribute('value'), new_value)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier1
+    @tier2
     def test_positive_update_hidden_value_in_attribute(self):
         """Update the hidden default value of variable in attribute.
 
@@ -1170,12 +1915,47 @@ class SmartVariablesTestCase(UITestCase):
         3.  In variable, new matcher created for fqdn/hostgroup.
         4.  And the value shown hidden.
 
-        @caseautomation: notautomated
+        @CaseLevel: Integration
         """
+        name = gen_string('alpha')
+        default_value = gen_string('numeric')
+        host_override_value = gen_string('alpha')
+        with Session(self.browser) as session:
+            set_context(session, org=ANY_CONTEXT['org'])
+            make_smart_variable(
+                session,
+                name=name,
+                puppet_class=self.puppet['name'],
+                default_value=default_value,
+                hidden_value=True,
+            )
+            self.assertIsNotNone(self.smart_variable.search(name))
+            sv_value = self.hosts.get_smart_variable_value(
+                self.host_name, name, hidden=True)
+            self.assertEqual(sv_value.get_attribute('type'), 'password')
+            self.assertEqual(sv_value.get_attribute('value'), default_value)
+            self.hosts.set_smart_variable_value(
+                self.host_name, name, host_override_value, hidden=True)
+            sv_value = self.hosts.get_smart_variable_value(
+                self.host_name, name, hidden=True)
+            self.assertEqual(sv_value.get_attribute('type'), 'password')
+            self.assertEqual(
+                sv_value.get_attribute('value'), host_override_value)
+            self.smart_variable.click(self.smart_variable.search(name))
+            default_value_element = self.smart_variable.wait_until_element(
+                locators['smart_variable.default_value_hidden'])
+            self.assertEqual(
+                default_value_element.get_attribute('value'), default_value)
+            self.assertEqual(
+                default_value_element.get_attribute('type'), 'password')
+            matcher_element = self.smart_variable.wait_until_element(
+                locators['smart_variable.matcher_value_hidden'] % 1)
+            self.assertEqual(
+                matcher_element.get_attribute('value'), host_override_value)
+            self.assertEqual(matcher_element.get_attribute('type'), 'password')
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_hide_empty_default_value(self):
         """Hiding the empty default value.
 
@@ -1192,9 +1972,34 @@ class SmartVariablesTestCase(UITestCase):
 
         1.  The 'Hidden Value' checkbox is enabled to check.
         2.  The default value shows empty on hide.
-        2.  Matcher Value shown as hidden.
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        3.  Matcher Value shown as hidden.
         """
+        name = gen_string('alpha')
+        override_value = gen_string('alpha')
+        with Session(self.browser) as session:
+            make_smart_variable(
+                session,
+                name=name,
+                default_value='',
+                puppet_class=self.puppet['name'],
+                hidden_value=True,
+                matcher=[
+                    {
+                        'matcher_attribute': 'fqdn={0}'.format(
+                            self.host_name),
+                        'matcher_value': override_value
+                    },
+                ]
+            )
+            self.smart_variable.click(self.smart_variable.search(name))
+            default_value = self.smart_variable.wait_until_element(
+                locators['smart_variable.default_value_hidden'])
+            self.assertEqual(default_value.get_attribute('type'), 'password')
+            self.assertEqual(default_value.get_attribute('value'), '')
+            self.assertEqual(default_value.get_attribute('placeholder'), '')
+            # Check matcher state and value
+            matcher_element = self.smart_variable.wait_until_element(
+                locators['smart_variable.matcher_value_hidden'] % 1)
+            self.assertEqual(
+                matcher_element.get_attribute('value'), override_value)
+            self.assertEqual(matcher_element.get_attribute('type'), 'password')
