@@ -20,4 +20,4 @@ docker-py
 sauceclient
 
 # For 'manage' interactive shell
-manage>=0.1.12
+manage>=0.1.13

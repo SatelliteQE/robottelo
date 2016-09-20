@@ -367,3 +367,22 @@ def default_url_on_new_port(oldport, newport):
                 # Something failed, so raise an exception.
                 raise CapsuleTunnelError(stderr)
         yield 'https://{0}:{1}'.format(domain, newport)
+
+
+class Storage(object):
+    """Turns a dict into an attribute based object.
+
+    Example::
+
+        d = {'foo': 'bar'}
+        d['foo'] == 'bar'
+        storage = Storage(d)
+        storage.foo == 'bar'
+    """
+    def __init__(self, *args, **kwargs):
+        """takes a dict or attrs and sets as attrs"""
+        super(Storage, self).__init__()
+        for item in args:
+            kwargs.update(item)
+        for key, value in kwargs.items():
+            setattr(self, key, value)

@@ -7,7 +7,6 @@ about its capabilities.
 .. toctree::
     :maxdepth: 1
 
+    commands
     decorators
     ssh
-
-

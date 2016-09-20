@@ -7,6 +7,7 @@ from robottelo.helpers import (
     escape_search,
     get_host_info,
     get_server_version,
+    Storage
 )
 
 if six.PY2:
@@ -117,3 +118,18 @@ class EscapeSearchTestCase(unittest2.TestCase):
         term = escape_search('term')
         self.assertEqual(term[0], '"')
         self.assertEqual(term[-1], '"')
+
+
+class StorageTestCase(unittest2.TestCase):
+    def test_dict_converted_to_storage(self):
+        d = {'key': 'value'}
+        storage = Storage(d)
+        self.assertEqual(storage.key, 'value')
+
+    def test_multiple_dicts_converted_to_storage(self):
+        d = {'key': 'value'}
+        e = {'another_key': 'another value'}
+        storage = Storage(d, e, spare_argument='one more value')
+        self.assertEqual(storage.key, 'value')
+        self.assertEqual(storage.another_key, 'another value')
+        self.assertEqual(storage.spare_argument, 'one more value')

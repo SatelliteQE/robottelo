@@ -3,6 +3,7 @@ help_text: This is the {project_name} interactive shell
 
 # interactive shell
 shell:
+  ipython_auto_reload: true
   auto_import:
     display: true
     objects:
@@ -28,6 +29,15 @@ shell:
   readline_enabled: false
 
 # commands
-click_commands: []
-function_commands: []
+
+groups:
+  - ui:
+      short_help: Commands to interactively browse UI
+      help_text: |
+        Commands to interactively browse UI.
+
+click_commands:
+  - module: robottelo.commands.ui
+    group: ui
+
 inline_commands: []
