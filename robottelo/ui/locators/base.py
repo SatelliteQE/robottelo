@@ -480,6 +480,9 @@ locators = LocatorDict({
         By.XPATH,
         ("//input[contains(@id,'host_ids')]"
          "/../../td[@class='ellipsis']/a[contains(@href,'%s')]")),
+    "host.yaml_button": (By.XPATH, "//a[text()='YAML' and "
+                                   "contains(@class, 'btn')]"),
+    "host.yaml_output": (By.XPATH, "//pre"),
     "host.name": (By.ID, "host_name"),
     "host.organization": (
         By.XPATH,
@@ -627,6 +630,27 @@ locators = LocatorDict({
         By.XPATH,
         "(//textarea[contains(@id, '_value') "
         "and contains(@name, 'parameters')])[%i]"),
+    "host.smart_variable_value": (
+        By.XPATH, "//textarea[ancestor::tr//td[contains(., '%s')]]"),
+    "host.smart_variable_value_hidden": (
+        By.XPATH, "//input[ancestor::tr//td[contains(., '%s')]]"),
+    "host.smart_variable_override": (
+        By.XPATH,
+        "//a[ancestor::tr//td[contains(., '%s')] and @data-tag='override']"
+    ),
+    "host.smart_variable_unhide": (
+        By.XPATH,
+        "//a[ancestor::tr//td[contains(., '%s')] and "
+        "@data-original-title='Unhide this value']"
+    ),
+    "host.smart_variable_hide": (
+        By.XPATH,
+        "//a[ancestor::tr//td[contains(., '%s')] and "
+        "@data-original-title='Hide this value']"
+    ),
+    "host.smart_variable_puppet_class": (
+        By.XPATH, "//td[contains(., '%s')]//ancestor::tbody/tr[1]/td[1]"),
+    "host.override_error": (By.XPATH, "//td[@class='has-error']"),
 
     # host.vm (NOTE:- visible only when selecting a compute resource)
     "host.cpus": (
@@ -2223,4 +2247,101 @@ locators = LocatorDict({
         ("//a[contains(@href, 'repositories') and contains(., '%s')]"
          "[../following-sibling::td/a[contains(@ui-sref, 'products.details') "
          "and contains(., '%s')]]")),
+
+    # Smart Variable
+    "smart_variable.new": (By.XPATH, "//a[contains(., '+ Add Variable')]"),
+    "smart_variable.select_name": (By.XPATH, "//a[contains(., '%s')]"),
+    "smart_variable.key": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@name, '[key]')]"),
+    "smart_variable.description": (
+        By.XPATH,
+        "//textarea[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@name, '[description]')]"),
+    "smart_variable.puppet_class": (
+        By.XPATH,
+        "//div[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@id, 'puppetclass')]/a"
+        "/span[contains(@class, 'arrow')]"),
+    "smart_variable.key_type": (
+        By.XPATH,
+        "//select[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@name, '[key_type]')]"),
+    "smart_variable.default_value": (
+        By.XPATH,
+        "//textarea[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@name, '[default_value]')]"),
+    "smart_variable.default_value_hidden": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@name, '[default_value]')]"),
+    "smart_variable.hidden_value": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@id, 'hidden_value')]"),
+    "smart_variable.optional_expander": (
+        By.XPATH,
+        "//h2[(ancestor::div[@class='tab-pane fields active'] or "
+        "ancestor::form[contains(@id, 'edit_variable')]) and "
+        "contains(@data-target, 'input_validators')]"),
+    "smart_variable.validator_type": (
+        By.XPATH,
+        "//select[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@name, '[validator_type]')]"
+    ),
+    "smart_variable.validator_rule": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@name, '[validator_rule]')]"
+    ),
+    "smart_variable.matcher_priority": (
+        By.XPATH,
+        "//textarea[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@name, 'variable_')) and contains(@name, '[path]')]"
+    ),
+    "smart_variable.merge_overrides": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@id, 'merge_override')]"),
+    "smart_variable.merge_default": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@id, 'merge_default')]"),
+    "smart_variable.avoid_duplicates": (
+        By.XPATH,
+        "//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@id, 'avoid_duplicates')]"),
+    "smart_variable.add_matcher": (
+        By.XPATH,
+        "//a[(ancestor::div[@class='tab-pane fields active'] or "
+        "ancestor::form[contains(@id, 'edit_variable')]) and "
+        "contains(@data-original-title, 'new matcher')]"
+    ),
+    "smart_variable.matcher_attribute_type": (
+        By.XPATH,
+        "(//select[(ancestor::div[@class='tab-pane fields active'] or "
+        "ancestor::form[contains(@id, 'edit_variable')]) and "
+        "contains(@class, 'matcher_key')])[%i]"
+    ),
+    "smart_variable.matcher_attribute_value": (
+        By.XPATH,
+        "(//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "ancestor::form[contains(@id, 'edit_variable')]) and "
+        "contains(@class, 'matcher_value')])[%i]"
+    ),
+    "smart_variable.matcher_value": (
+        By.XPATH,
+        "(//textarea[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@name, '[value]')])[%i]"
+    ),
+    "smart_variable.matcher_value_hidden": (
+        By.XPATH,
+        "(//input[(ancestor::div[@class='tab-pane fields active'] or "
+        "contains(@id, 'variable_')) and contains(@name, '[value]')])[%i]"
+    ),
+    "smart_variable.matcher_error": (By.XPATH, "//tr[@class='has-error']"),
+    "smart_variable.delete": (
+        By.XPATH, "//a[@class='delete' and contains(@data-confirm, '%s')]"),
+    "smart_variable.table_value": (By.XPATH, "//td[contains(., '%s')]"),
 })

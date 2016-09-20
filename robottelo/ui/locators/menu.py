@@ -5,10 +5,8 @@ from selenium.webdriver.common.by import By
 from .model import LocatorDict
 
 NAVBAR_PATH = (
-    '//div[contains(@class,"navbar") '
-    'and contains(@class,"persist-header") and '
-    'not(contains(@style, "display: none")) and '
-    'not(contains(@style, "display:none"))]'
+    '//div[contains(@class,"navbar-inner") and '
+    'not(contains(@style, "display"))]'
 )
 
 MENU_CONTAINER_PATH = NAVBAR_PATH + '//ul[@id="menu"]'
@@ -177,7 +175,7 @@ menu_locators = LocatorDict({
         (MENU_CONTAINER_PATH + "//a[@id='menu_item_puppetclasses']")),
     "menu.smart_variables": (
         By.XPATH,
-        (MENU_CONTAINER_PATH + "//a[@id='menu_item_lookup_keys']")),
+        (MENU_CONTAINER_PATH + "//a[@id='menu_item_variable_lookup_keys']")),
     "menu.configure_groups": (
         By.XPATH,
         (MENU_CONTAINER_PATH + "//a[@id='menu_item_config_groups']")),

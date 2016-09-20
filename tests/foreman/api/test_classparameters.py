@@ -138,6 +138,12 @@ class SmartClassParametersTestCase(APITestCase):
             raise RuntimeError('There are not enough smart class parameters to'
                                ' work with in provided puppet class')
 
+    @classmethod
+    def tearDownClass(cls):
+        super(SmartClassParametersTestCase, cls).tearDownClass()
+        ssh.command('puppet module uninstall --force puppetlabs/ntp')
+        cls.proxy.import_puppetclasses(environment=cls.env)
+
     @run_only_on('sat')
     @tier2
     def test_positive_list_parameters_by_host_id(self):
@@ -1554,9 +1560,3 @@ class SmartClassParametersTestCase(APITestCase):
         sc_param = sc_param.read()
         self.assertEqual(getattr(sc_param, 'hidden_value?'), True)
         self.assertFalse(sc_param.default_value)
-
-    @classmethod
-    def tearDownClass(cls):
-        super(SmartClassParametersTestCase, cls).tearDownClass()
-        ssh.command('puppet module uninstall --force puppetlabs/ntp')
-        cls.proxy.import_puppetclasses(environment=cls.env)

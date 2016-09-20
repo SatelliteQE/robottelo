@@ -34,6 +34,7 @@ from robottelo.ui.registry import Registry
 from robottelo.ui.repository import Repos
 from robottelo.ui.role import Role
 from robottelo.ui.settings import Settings
+from robottelo.ui.smart_variable import SmartVariable
 from robottelo.ui.subnet import Subnet
 from robottelo.ui.syncplan import Syncplan
 from robottelo.ui.template import Template
@@ -740,3 +741,29 @@ def make_host_collection(
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
     HostCollection(session.browser).create(**create_args)
+
+
+def make_smart_variable(
+        session, org=None, loc=None, force_context=True, **kwargs):
+    """Creates Smart Variable"""
+    create_args = {
+        u'name': gen_string('alpha'),
+        u'puppet_class': None,
+        u'description': None,
+        u'key_type': None,
+        u'default_value': None,
+        u'hidden_value': False,
+        u'validator_type': None,
+        u'validator_rule': None,
+        u'matcher': None,
+        u'matcher_priority': None,
+        u'matcher_merge_overrides': None,
+        u'matcher_merge_default': None,
+        u'matcher_merge_avoid': None,
+    }
+    page = session.nav.go_to_puppet_classes
+    core_factory(create_args, kwargs, session, page,
+                 org=org, loc=loc, force_context=force_context)
+    PuppetClasses(session.browser).click(
+        PuppetClasses(session.browser).search(kwargs['puppet_class']))
+    SmartVariable(session.browser).create(**create_args)

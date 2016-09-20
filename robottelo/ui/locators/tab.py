@@ -328,4 +328,12 @@ tab_locators = LocatorDict({
         By.XPATH, "//a[@data-toggle='tab' and contains(@href, 'vms')]"),
     "resource.tab_virtual_machines": (By.XPATH, "//a[contains(@href, 'vms')]"),
     "resource.tab_images": (By.XPATH, "//a[.='Images']"),
+
+    # Puppet Class
+    "puppet_class.tab_smart_parameter": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href, 'smart_class_param')]"),
+    "puppet_class.tab_smart_variable": (
+        By.XPATH,
+        "//a[@data-toggle='tab' and contains(@href, 'smart_vars')]"),
 })
