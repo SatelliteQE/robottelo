@@ -15,16 +15,50 @@
 
 @Upstream: No
 """
+from random import choice
 
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2, tier3
+from fauxfactory import gen_integer, gen_string
+from nailgun import entities
+from requests import HTTPError
+
+from robottelo import ssh
+from robottelo.config import settings
+from robottelo.datafactory import invalid_values_list, valid_data_list
+from robottelo.decorators import (
+    run_only_on,
+    skip_if_bug_open,
+    stubbed,
+    tier1,
+    tier2,
+)
 from robottelo.test import APITestCase
 
 
 class SmartVariablesTestCase(APITestCase):
     """Implements Smart Variables tests in API"""
 
+    @classmethod
+    def setUpClass(cls):
+        """Import some parametrized puppet classes. This is required to make
+        sure that we have data to be able to perform interactions with smart
+        class variables.
+        """
+        super(SmartVariablesTestCase, cls).setUpClass()
+        cls.host_name = settings.server.hostname
+        ssh.command('puppet module install --force puppetlabs/ntp')
+        cls.env = entities.Environment().search(
+            query={'search': 'name="production"'}
+        )
+        if len(cls.env) == 0:
+            raise Exception("Environment not found")
+        cls.env = cls.env[0]
+        cls.proxy = entities.SmartProxy(name=cls.host_name).search()[0]
+        cls.proxy.import_puppetclasses(environment=cls.env)
+        cls.puppet = entities.PuppetClass().search(
+            query={'search': 'name="ntp"'}
+        )[0]
+
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create(self):
         """Create a Smart Variable with valid name
@@ -34,12 +68,16 @@ class SmartVariablesTestCase(APITestCase):
         @steps: Create a smart Variable with Valid name and valid default value
 
         @assert: The smart Variable is created successfully
-
-        @caseautomation: notautomated
         """
+        for name in valid_data_list():
+            with self.subTest(name):
+                smart_variable = entities.SmartVariable(
+                    puppetclass=self.puppet,
+                    variable=name,
+                ).create()
+                self.assertEqual(smart_variable.variable, name)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create(self):
         """Create a Smart Variable with invalid name
@@ -50,12 +88,15 @@ class SmartVariablesTestCase(APITestCase):
         value
 
         @assert: The smart Variable is not created
-
-        @caseautomation: notautomated
         """
+        for name in invalid_values_list():
+            with self.subTest(name), self.assertRaises(HTTPError):
+                entities.SmartVariable(
+                    puppetclass=self.puppet,
+                    variable=name,
+                ).create()
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_delete_smart_variable_by_id(self):
         """Delete a Smart Variable by id
@@ -65,28 +106,100 @@ class SmartVariablesTestCase(APITestCase):
         @steps: Delete a smart Variable by id
 
         @assert: The smart Variable is deleted successfully
-
-        @caseautomation: notautomated
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet
+        ).create()
+        smart_variable.delete()
+        with self.assertRaises(HTTPError) as context:
+            smart_variable.read()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Smart variable not found by id"
+        )
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_bug_open('bugzilla', 1375857)
     @tier1
-    def test_positive_delete_smart_variable_by_name(self):
-        """Delete a Smart Variable by name
+    def test_positive_update_variable_puppet_class(self):
+        """Update Smart Variable's puppet class.
 
-        @id: 5ee2e72f-4224-4505-bf2e-2a29a16d55c1
+        @id: 2312cb28-c3b0-4fbc-84cf-b66f0c0c64f0
 
-        @steps: Delete a smart Variable by name
+        @steps:
 
-        @assert: The smart Variable is deleted successfully
+        1. Create a smart variable with valid name.
+        2. Update the puppet class associated to the smart variable created in
+           step1.
 
-        @caseautomation: notautomated
+        @assert: The variable is updated with new puppet class.
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+        ).create()
+        self.assertEqual(smart_variable.puppetclass.id, self.puppet.id)
+        new_puppet = entities.PuppetClass().search(
+            query={'search': 'name="ntp::config"'}
+        )[0]
+        smart_variable.puppetclass = new_puppet
+        updated_sv = smart_variable.update(['puppetclass'])
+        self.assertEqual(updated_sv.puppetclass.id, new_puppet.id)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
+    def test_positive_update_name(self):
+        """Update Smart Variable's name
+
+        @id: b8214eaa-e276-4fc4-8381-fb0386cda6a5
+
+        @steps:
+
+        1. Create a smart variable with valid name.
+        2. Update smart variable name created in step1.
+
+        @assert: The variable is updated with new name.
+        """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+        ).create()
+        for new_name in valid_data_list():
+            with self.subTest(new_name):
+                smart_variable.variable = new_name
+                smart_variable = smart_variable.update(['variable'])
+                self.assertEqual(smart_variable.variable, new_name)
+
+    @run_only_on('sat')
+    @tier1
+    def test_negative_duplicate_name_variable(self):
+        """Create Smart Variable with an existing name.
+
+        @id: c49ad14d-913f-4adc-8ebf-88493556c027
+
+        @steps:
+
+        1. Create a smart Variable with Valid name and default value.
+        2. Attempt to create a variable with same name from same/other class.
+
+        @assert: The variable with same name are not allowed to create from
+        any class.
+        """
+        name = gen_string('alpha')
+        entities.SmartVariable(
+            variable=name,
+            puppetclass=self.puppet,
+        ).create()
+        with self.assertRaises(HTTPError) as context:
+            entities.SmartVariable(
+                variable=name,
+                puppetclass=self.puppet,
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Key has already been taken"
+        )
+
+    @run_only_on('sat')
+    @tier2
     def test_positive_list_variables_by_host_id(self):
         """List all the variables associated to Host by host id
 
@@ -94,14 +207,18 @@ class SmartVariablesTestCase(APITestCase):
 
         @assert: All variables listed for Host
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        entities.SmartVariable(puppetclass=self.puppet).create()
+        host = entities.Host().search(
+            query={'search': 'name={0}'.format(self.host_name)}
+        )[0]
+        host.puppet_class = [self.puppet]
+        host.update(['puppet_class'])
+        self.assertGreater(list(host.list_smart_variables()), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_positive_list_variables_by_hostgroup_id(self):
         """List all the variables associated to HostGroup by hostgroup id
 
@@ -109,25 +226,23 @@ class SmartVariablesTestCase(APITestCase):
 
         @assert: All variables listed for HostGroup
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        entities.SmartVariable(puppetclass=self.puppet).create()
+        hostgroup = entities.HostGroup().create()
+        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        self.assertGreater(list(hostgroup.list_smart_variables()), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_list_variables_by_puppetclass_id(self):
         """List all the variables associated to puppet class by puppet class id
 
         @id: cd743329-b354-4ddc-ada0-3ddd774e2701
 
         @assert: All variables listed for puppet class
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        self.assertGreater(len(self.puppet.list_smart_variables()), 0)
 
     @run_only_on('sat')
     @stubbed()
@@ -165,7 +280,6 @@ class SmartVariablesTestCase(APITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_matcher_empty_value(self):
         """Create matcher with empty value with string type
@@ -177,12 +291,23 @@ class SmartVariablesTestCase(APITestCase):
         1. Create a matcher for variable with empty value and type string
 
         @assert: Matcher is created with empty value
-
-        @caseautomation: notautomated
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            variable_type='string',
+        ).create()
+        entities.OverrideValue(
+            smart_variable=smart_variable,
+            match='is_virtual=true',
+            value='',
+        ).create()
+        smart_variable = smart_variable.read()
+        self.assertEqual(
+            smart_variable.override_values[0]['match'], 'is_virtual=true')
+        self.assertEqual(
+            smart_variable.override_values[0]['value'], '')
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_matcher_empty_value(self):
         """Create matcher with empty value with type other than string
@@ -195,12 +320,50 @@ class SmartVariablesTestCase(APITestCase):
            than string
 
         @assert: Matcher is not created for empty value
-
-        @caseautomation: notautomated
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value=gen_integer(),
+            variable_type='integer',
+        ).create()
+        with self.assertRaises(HTTPError) as context:
+            entities.OverrideValue(
+                smart_variable=smart_variable,
+                match='is_virtual=true',
+                value='',
+            ).create()
+        self.assertEqual(len(smart_variable.read().override_values), 0)
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Value is invalid integer"
+        )
 
     @run_only_on('sat')
-    @stubbed()
+    @tier1
+    def test_negative_create_with_invalid_match_value(self):
+        """Attempt to create matcher with invalid match value.
+
+        @id: 625e3221-237d-4440-ab71-6d98cff67713
+
+        @steps: Create a matcher for variable with invalid match value
+
+        @assert: Matcher is not created
+        """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+        ).create()
+        with self.assertRaises(HTTPError) as context:
+            entities.OverrideValue(
+                smart_variable=smart_variable,
+                match='invalid_value',
+                value=gen_string('alpha'),
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Match is invalid"
+        )
+
+    @run_only_on('sat')
     @tier1
     def test_negative_create_default_value_with_regex(self):
         """Create variable with non matching regex validator
@@ -214,12 +377,26 @@ class SmartVariablesTestCase(APITestCase):
         2. Validate this value with regexp validator type and rule
 
         @assert: Variable is not created for non matching value with regex
-
-        @caseautomation: notautomated
         """
+        value = gen_string('alpha')
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value=value,
+        ).create()
+        smart_variable.default_value = gen_string('alpha')
+        smart_variable.validator_type = 'regexp'
+        smart_variable.validator_rule = '[0-9]'
+        with self.assertRaises(HTTPError) as context:
+            smart_variable.update([
+                'default_value', 'validator_type', 'validator_rule'
+            ])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Default value is invalid"
+        )
+        self.assertEqual(smart_variable.read().default_value, value)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_default_value_with_regex(self):
         """Create variable with matching regex validator
@@ -233,12 +410,24 @@ class SmartVariablesTestCase(APITestCase):
         2. Validate this value with regex validator type and rule
 
         @assert: Variable is created for matching value with regex
-
-        @caseautomation: notautomated
         """
+        value = gen_string('numeric')
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value=gen_string('alpha'),
+        ).create()
+        smart_variable.default_value = value
+        smart_variable.validator_type = 'regexp'
+        smart_variable.validator_rule = '[0-9]'
+        smart_variable.update([
+            'default_value', 'validator_type', 'validator_rule'
+        ])
+        smart_variable = smart_variable.read()
+        self.assertEqual(smart_variable.default_value, value)
+        self.assertEqual(smart_variable.validator_type, 'regexp')
+        self.assertEqual(smart_variable.validator_rule, '[0-9]')
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_matcher_value_with_regex(self):
         """Create matcher with non matching regexp validator
@@ -251,12 +440,26 @@ class SmartVariablesTestCase(APITestCase):
         2. Validate this value with regex validator type and rule
 
         @assert: Matcher is not created for non matching value with regexp
-
-        @caseautomation: notautomated
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value=gen_string('numeric'),
+            validator_type='regexp',
+            validator_rule='[0-9]',
+        ).create()
+        with self.assertRaises(HTTPError) as context:
+            entities.OverrideValue(
+                smart_variable=smart_variable,
+                match='domain=example.com',
+                value=gen_string('alpha'),
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Value is invalid"
+        )
+        self.assertEqual(len(smart_variable.read().override_values), 0)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_matcher_value_with_regex(self):
         """Create matcher with matching regex validator
@@ -269,12 +472,28 @@ class SmartVariablesTestCase(APITestCase):
         2. Validate this value with regex validator type and rule
 
         @assert: Matcher is created for matching value with regex
-
-        @caseautomation: notautomated
         """
+        value = gen_string('numeric')
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value=gen_string('numeric'),
+            validator_type='regexp',
+            validator_rule='[0-9]',
+        ).create()
+        entities.OverrideValue(
+            smart_variable=smart_variable,
+            match='domain=example.com',
+            value=value,
+        ).create()
+        smart_variable = smart_variable.read()
+        self.assertEqual(smart_variable.validator_type, 'regexp')
+        self.assertEqual(smart_variable.validator_rule, '[0-9]')
+        self.assertEqual(
+            smart_variable.override_values[0]['match'], 'domain=example.com')
+        self.assertEqual(
+            smart_variable.override_values[0]['value'], value)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_default_value_with_list(self):
         """Create variable with non matching list validator
@@ -289,12 +508,20 @@ class SmartVariablesTestCase(APITestCase):
 
         @assert: Variable is not created for non matching value with list
         validator
-
-        @caseautomation: notautomated
         """
+        with self.assertRaises(HTTPError) as context:
+            entities.SmartVariable(
+                puppetclass=self.puppet,
+                default_value=gen_string('alphanumeric'),
+                validator_type='list',
+                validator_rule='5, test',
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Default value \w+ is not one of"
+        )
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_default_value_with_list(self):
         """Create variable with matching list validator
@@ -308,12 +535,28 @@ class SmartVariablesTestCase(APITestCase):
         2. Validate this value with list validator type and rule
 
         @assert: Variable is created for matching value with list
-
-        @caseautomation: notautomated
         """
+        # Generate list of values
+        values_list = [
+            gen_string('alpha'),
+            gen_string('alphanumeric'),
+            gen_integer(min_value=100),
+            choice(['true', 'false']),
+        ]
+        # Generate string from list for validator_rule
+        values_list_str = ", ".join(str(x) for x in values_list)
+        value = choice(values_list)
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value=value,
+            validator_type='list',
+            validator_rule=values_list_str,
+        ).create()
+        self.assertEqual(smart_variable.default_value, value)
+        self.assertEqual(smart_variable.validator_type, 'list')
+        self.assertEqual(smart_variable.validator_rule, values_list_str)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_matcher_value_with_list(self):
         """Create matcher with non matching list validator
@@ -328,12 +571,26 @@ class SmartVariablesTestCase(APITestCase):
 
         @assert: Matcher is not created for non matching value with list
         validator
-
-        @caseautomation: notautomated
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value='example',
+            validator_type='list',
+            validator_rule='test, example, 30',
+        ).create()
+        with self.assertRaises(HTTPError) as context:
+            entities.OverrideValue(
+                smart_variable=smart_variable,
+                match='domain=example.com',
+                value='not_in_list',
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Value \w+ is not one of"
+        )
+        self.assertEqual(len(smart_variable.read().override_values), 0)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_matcher_value_with_list(self):
         """Create matcher with matching list validator
@@ -347,12 +604,28 @@ class SmartVariablesTestCase(APITestCase):
         2. Validate this value with list validator type and rule
 
         @assert: Matcher is created for matching value with list validator
-
-        @caseautomation: notautomated
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value='example',
+            validator_type='list',
+            validator_rule='test, example, 30',
+        ).create()
+        entities.OverrideValue(
+            smart_variable=smart_variable,
+            match='domain=example.com',
+            value=30,
+        ).create()
+        smart_variable = smart_variable.read()
+        self.assertEqual(smart_variable.validator_type, 'list')
+        self.assertEqual(smart_variable.validator_rule, 'test, example, 30')
+        self.assertEqual(
+            smart_variable.override_values[0]['match'], 'domain=example.com')
+        self.assertEqual(
+            smart_variable.override_values[0]['value'], 30)
 
     @run_only_on('sat')
-    @stubbed()
+    @skip_if_bug_open('bugzilla', 1375643)
     @tier1
     def test_negative_create_matcher_value_with_default_type(self):
         """Create matcher with non matching type of default value
@@ -366,12 +639,25 @@ class SmartVariablesTestCase(APITestCase):
 
         @assert: Matcher is not created for non matching the type of default
         value
-
-        @caseautomation: notautomated
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value=True,
+            variable_type='boolean',
+        ).create()
+        with self.assertRaises(HTTPError) as context:
+            entities.OverrideValue(
+                smart_variable=smart_variable,
+                match='domain=example.com',
+                value=50,
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Value is invalid"
+        )
+        self.assertEqual(smart_variable.read().default_value, True)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_matcher_value_with_default_type(self):
         """Create matcher with matching type of default value
@@ -380,17 +666,28 @@ class SmartVariablesTestCase(APITestCase):
 
         @steps:
 
-
         1. Create variable with valid type and value
-        2. Create a matcher with value that matches the default type
+        2. Create a matcher with value that matches the default value type
 
         @assert: Matcher is created for matching the type of default value
-
-        @caseautomation: notautomated
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value=True,
+            variable_type='boolean',
+        ).create()
+        entities.OverrideValue(
+            smart_variable=smart_variable,
+            match='is_virtual=true',
+            value=False,
+        ).create()
+        smart_variable = smart_variable.read()
+        self.assertEqual(
+            smart_variable.override_values[0]['match'], 'is_virtual=true')
+        self.assertEqual(
+            smart_variable.override_values[0]['value'], False)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_negative_create_matcher_non_existing_attribute(self):
         """Create matcher for non existing attribute
@@ -400,12 +697,24 @@ class SmartVariablesTestCase(APITestCase):
         @steps: Create matcher for non existing attribute
 
         @assert: Matcher is not created for non existing attribute
-
-        @caseautomation: notautomated
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+        ).create()
+        with self.assertRaises(HTTPError) as context:
+            entities.OverrideValue(
+                smart_variable=smart_variable,
+                match='hostgroup=nonexistingHG',
+                value=gen_string('alpha')
+            ).create()
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Match hostgroup=nonexistingHG does not match "
+            "an existing host group"
+        )
+        self.assertEqual(len(smart_variable.read().override_values), 0)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_matcher(self):
         """Create matcher for attribute in variable
@@ -415,9 +724,21 @@ class SmartVariablesTestCase(APITestCase):
         @steps: Create a matcher with all valid values
 
         @assert: The matcher has been created successfully
-
-        @caseautomation: notautomated
         """
+        value = gen_string('alpha')
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+        ).create()
+        entities.OverrideValue(
+            smart_variable=smart_variable,
+            match='domain=example.com',
+            value=value,
+        ).create()
+        smart_variable = smart_variable.read()
+        self.assertEqual(
+            smart_variable.override_values[0]['match'], 'domain=example.com')
+        self.assertEqual(
+            smart_variable.override_values[0]['value'], value)
 
     @run_only_on('sat')
     @stubbed()
@@ -670,8 +991,7 @@ class SmartVariablesTestCase(APITestCase):
         """
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_enable_merge_overrides_and_default_flags(self):
         """Enable Merge Overrides, Merge Default flags for supported types
 
@@ -680,15 +1000,22 @@ class SmartVariablesTestCase(APITestCase):
         @steps: Set variable type to array/hash
 
         @assert: The Merge Overrides, Merge Default flags are enabled to set
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value=[gen_integer()],
+            variable_type='array',
+        ).create()
+        smart_variable.merge_overrides = True
+        smart_variable.merge_default = True
+        smart_variable.update(['merge_overrides', 'merge_default'])
+        smart_variable.read()
+        self.assertEqual(smart_variable.merge_overrides, True)
+        self.assertEqual(smart_variable.merge_default, True)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @skip_if_bug_open('bugzilla', 1375652)
+    @tier1
     def test_negative_enable_merge_overrides_default_flags(self):
         """Disable Merge Overrides, Merge Default flags for non supported types
 
@@ -698,16 +1025,36 @@ class SmartVariablesTestCase(APITestCase):
 
         @assert: The Merge Overrides, Merge Default flags are not enabled to
         set
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value='50',
+            variable_type='string',
+        ).create()
+        with self.assertRaises(HTTPError) as context:
+            smart_variable.merge_overrides = True
+            smart_variable.update(['merge_overrides'])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Merge overrides can only be set for "
+            "array or hash"
+        )
+        with self.assertRaises(HTTPError) as context:
+            smart_variable.merge_overrides = True
+            smart_variable.merge_default = True
+            smart_variable.update(['merge_overrides', 'merge_default'])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Merge default can only be set when merge "
+            "overrides is set"
+        )
+        smart_variable = smart_variable.read()
+        self.assertEqual(smart_variable.merge_overrides, False)
+        self.assertEqual(smart_variable.merge_default, False)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_enable_avaoid_duplicates_flag(self):
+    @tier1
+    def test_positive_enable_avoid_duplicates_flag(self):
         """Enable Avoid duplicates flag for supported type
 
         @id: 98fb1884-ad2b-45a0-b376-66bbc5ef6f72
@@ -718,15 +1065,21 @@ class SmartVariablesTestCase(APITestCase):
         2. Set 'merge overrides' to True
 
         @assert: The Avoid Duplicates is enabled to set to True
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value=[gen_integer()],
+            variable_type='array',
+        ).create()
+        smart_variable.merge_overrides = True
+        smart_variable.avoid_duplicates = True
+        smart_variable.update(['merge_overrides', 'avoid_duplicates'])
+        self.assertEqual(smart_variable.merge_overrides, True)
+        self.assertEqual(smart_variable.avoid_duplicates, True)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @skip_if_bug_open('bugzilla', 1375652)
+    @tier1
     def test_negative_enable_avoid_duplicates_flag(self):
         """Disable Avoid duplicates flag for non supported types
 
@@ -740,14 +1093,33 @@ class SmartVariablesTestCase(APITestCase):
            other than array
         2. The Avoid duplicates flag not enabled to set for any type than
            array
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value=True,
+            variable_type='boolean',
+        ).create()
+        with self.assertRaises(HTTPError) as context:
+            smart_variable.merge_overrides = True
+            smart_variable.update(['merge_overrides'])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Merge overrides can only be set for "
+            "array or hash"
+        )
+        with self.assertRaises(HTTPError) as context:
+            smart_variable.merge_overrides = True
+            smart_variable.avoid_duplicates = True
+            smart_variable.update(['merge_overrides', 'avoid_duplicates'])
+        self.assertRegexpMatches(
+            context.exception.response.text,
+            "Validation failed: Merge default can only be set when merge "
+            "overrides is set"
+        )
+        self.assertEqual(smart_variable.merge_overrides, False)
+        self.assertEqual(smart_variable.avoid_duplicates, False)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_remove_matcher(self):
         """Removal of matcher from variable
@@ -756,19 +1128,30 @@ class SmartVariablesTestCase(APITestCase):
 
         @steps:
 
-        1. Override the variable and create a matcher for some attribute
+        1. Create the variable and create a matcher for some attribute
         2. Remove the matcher created in step 1
 
         @assert: The matcher removed from variable
-
-        @caseautomation: notautomated
-
-        @CaseLevel: Integration
         """
+        value = gen_string('alpha')
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+        ).create()
+        matcher = entities.OverrideValue(
+            smart_variable=smart_variable,
+            match='is_virtual=true',
+            value=value,
+        ).create()
+        smart_variable = smart_variable.read()
+        self.assertEqual(
+            smart_variable.override_values[0]['match'], 'is_virtual=true')
+        self.assertEqual(
+            smart_variable.override_values[0]['value'], value)
+        matcher.delete()
+        self.assertEqual(len(smart_variable.read().override_values), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier2
     def test_positive_impact_variable_delete_attribute(self):
         """Impact on variable after deleting associated attribute
 
@@ -785,14 +1168,46 @@ class SmartVariablesTestCase(APITestCase):
         1. The matcher for deleted attribute removed from variable
         2. On recreating attribute, the matcher should not reappear in variable
 
-        @caseautomation: notautomated
-
-        @CaseLevel: System
+        @CaseLevel: Integration
         """
+        hostgroup_name = gen_string('alpha')
+        matcher_value = gen_string('alpha')
+        # Create variable
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+        ).create()
+        # Create hostgroup and add puppet class to it
+        hostgroup = entities.HostGroup(
+            name=hostgroup_name,
+            environment=self.env,
+        ).create()
+        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        # Create matcher
+        entities.OverrideValue(
+            smart_variable=smart_variable,
+            match='hostgroup={0}'.format(hostgroup_name),
+            value=matcher_value,
+        ).create()
+        smart_variable = smart_variable.read()
+        self.assertEqual(
+            smart_variable.override_values[0]['match'],
+            'hostgroup={0}'.format(hostgroup_name)
+        )
+        self.assertEqual(
+            smart_variable.override_values[0]['value'], matcher_value)
+        # Delete hostgroup
+        hostgroup.delete()
+        self.assertEqual(len(smart_variable.read().override_values), 0)
+        # Recreate hostgroup
+        hostgroup = entities.HostGroup(
+            name=hostgroup_name,
+            environment=self.env,
+        ).create()
+        hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        self.assertEqual(len(smart_variable.read().override_values), 0)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier2
+    @tier1
     def test_positive_hide_variable_default_value(self):
         """Hide the default value of variable
 
@@ -804,15 +1219,16 @@ class SmartVariablesTestCase(APITestCase):
         2. Set 'Hidden Value' flag to true
 
         @assert: The 'hidden value' flag is set
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            hidden_value=True,
+        ).create()
+        self.assertEqual(getattr(smart_variable, 'hidden_value?'), True)
+        self.assertEqual(smart_variable.hidden_value, u'*****')
 
     @run_only_on('sat')
-    @stubbed()
-    @tier2
+    @tier1
     def test_positive_unhide_variable_default_value(self):
         """Unhide the default value of variable
 
@@ -825,15 +1241,19 @@ class SmartVariablesTestCase(APITestCase):
         3. After hiding, set the 'Hidden Value' flag to False
 
         @assert: The 'hidden value' flag set to false
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            hidden_value=True,
+        ).create()
+        self.assertEqual(getattr(smart_variable, 'hidden_value?'), True)
+        smart_variable.hidden_value = False
+        smart_variable.update(['hidden_value'])
+        smart_variable = smart_variable.read()
+        self.assertEqual(getattr(smart_variable, 'hidden_value?'), False)
 
     @run_only_on('sat')
-    @stubbed()
-    @tier3
+    @tier1
     def test_positive_update_hidden_value_in_variable(self):
         """Update the hidden default value of variable
 
@@ -849,31 +1269,16 @@ class SmartVariablesTestCase(APITestCase):
 
         1. The variable default value is updated
         2. The 'hidden value' flag set to True
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
         """
-
-    @run_only_on('sat')
-    @stubbed()
-    @tier3
-    def test_positive_hide_empty_default_value(self):
-        """Hiding the empty default value
-
-        @id: 010253f4-5f33-42b8-a40b-796a373670a6
-
-        @steps:
-
-        1. Create variable with valid type and empty value
-        2. Set 'Hidden Value' to true
-
-        @assert:
-
-        1. The 'hidden value' flag set to True
-        2. The default value is empty after hide
-
-        @caseautomation: notautomated
-
-        @CaseLevel: System
-        """
+        value = gen_string('alpha')
+        smart_variable = entities.SmartVariable(
+            puppetclass=self.puppet,
+            default_value=gen_string('alpha'),
+            hidden_value=True,
+        ).create()
+        self.assertEqual(getattr(smart_variable, 'hidden_value?'), True)
+        smart_variable.default_value = value
+        smart_variable.update(['default_value'])
+        smart_variable = smart_variable.read()
+        self.assertEqual(smart_variable.default_value, value)
+        self.assertEqual(getattr(smart_variable, 'hidden_value?'), True)
