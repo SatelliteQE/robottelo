@@ -148,11 +148,6 @@
 
 .. automodule:: tests.foreman.cli.test_model
 
-:mod:`tests.foreman.cli.test_myaccount`
----------------------------------------
-
-.. automodule:: tests.foreman.cli.test_myaccount
-
 :mod:`tests.foreman.cli.test_organization`
 ------------------------------------------
 
