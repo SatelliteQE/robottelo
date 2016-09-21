@@ -888,7 +888,7 @@ BOOKMARK_ENTITIES = [
     },
     {'name': 'Hosts', 'controller': 'hosts', 'setup': entities.Host},
     {
-        'name': 'ContentHost', 'controller': 'katello_systems',
+        'name': 'ContentHost', 'controller': 'hosts',
         'skip_for_ui': True
     },
     {'name': 'HostCollection', 'controller': 'katello_host_collections'},
@@ -918,7 +918,7 @@ BOOKMARK_ENTITIES = [
     },
     {
         'name': 'ConfigGroups', 'controller': 'config_groups',
-        'setup': entities.ConfigGroup
+        'setup': entities.ConfigGroup, 'skip_for_ui': 1378084
     },
     {
         'name': 'PuppetEnv', 'controller': 'environments',
