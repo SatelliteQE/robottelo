@@ -26,6 +26,7 @@ from robottelo import ssh
 from robottelo.config import settings
 from robottelo.datafactory import filtered_datapoint
 from robottelo.decorators import (
+    run_in_one_thread,
     run_only_on,
     skip_if_bug_open,
     stubbed,
@@ -111,6 +112,7 @@ def invalid_sc_parameters_data():
     ]
 
 
+@run_in_one_thread
 class SmartClassParametersTestCase(APITestCase):
     """Implements Smart Class Parameter tests in API"""
 
@@ -124,8 +126,7 @@ class SmartClassParametersTestCase(APITestCase):
         )
         if len(cls.env) == 0:
             raise Exception("Environment not found")
-        else:
-            cls.env = cls.env[0]
+        cls.env = cls.env[0]
         cls.proxy = entities.SmartProxy(name=cls.host_name).search()[0]
         cls.proxy.import_puppetclasses(environment=cls.env)
         cls.puppet = entities.PuppetClass().search(
