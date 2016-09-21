@@ -217,7 +217,8 @@ class CapsuleTestCase(UITestCase):
     @stubbed
     @tier4
     def test_positive_isolated_capsule_sync(self):
-        """Check for Sync button and Syncing for Isolated Capsule in Overview tab.
+        """Check for Sync button and Syncing for Isolated Capsule in Overview
+        tab.
 
         @id: 6c68984a-1246-4868-bc52-6291e9df9b89
 
@@ -423,7 +424,8 @@ class CapsuleTestCase(UITestCase):
     @stubbed
     @tier3
     def test_positive_capsule_puppetca_autosign(self):
-        """Check for Hosts puppet certifcate can be auto-signed in Puppet-ca tab.
+        """Check for Hosts puppet certifcate can be auto-signed in Puppet-ca
+        tab.
 
         @id: d88d6b8f-d6f1-4785-a949-84a65953e525
 
@@ -439,6 +441,24 @@ class CapsuleTestCase(UITestCase):
 
         @Assert: The puppet run on host is possible
         without having to sign the certs manually for the host.
+
+        @caseautomation: notautomated
+
+        @CaseLevel: System
+        """
+
+    @stubbed()
+    @tier3
+    def test_dns_and_dhcp_enabled_on_capsule(self):
+        """Check DNS ana DHCP is enabled on capsule
+
+        @id: 56778d8e-79be-11e6-886c-68f72889dc7f
+
+        @Steps:
+
+        1. Enable DHCP and DNS infoblox plugins on capsule
+
+        @Assert: DNS and DHCP must be included on capsule features
 
         @caseautomation: notautomated
 
