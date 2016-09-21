@@ -826,6 +826,21 @@ class UserWithCleanUpTestCase(CLITestCase):
             [org['name'] for org in orgs]
         )
 
+    @stubbed()
+    @tier1
+    def test_positive_update_language(self):
+        """Update Language in My Account
+
+        @id: f0993495-5117-461d-a116-44867b820139
+
+        @Steps:
+        1. Update current User with all different Language options
+
+        @Assert: Current User is updated
+
+        @caseautomation: notautomated
+        """
+
     @tier1
     def test_negative_update_username(self):
         """Try to update User using invalid Username
@@ -905,6 +920,22 @@ class UserWithCleanUpTestCase(CLITestCase):
                         'login': user['login'],
                         'mail': email
                     })
+
+    @stubbed()
+    @tier1
+    def test_negative_update_password_invalid(self):
+        """Update My Account with invalid Password/Verify fields
+
+        @id: f9230699-fb8e-45d6-a0c2-abb8b751304d
+
+        @Steps:
+        1. Update Current user with all variations of Password/Verify fields
+        in [2]
+
+        @Assert: User is not updated. Appropriate error shown.
+
+        @caseautomation: notautomated
+        """
 
     @skip_if_bug_open('bugzilla', 1138553)
     @tier2
