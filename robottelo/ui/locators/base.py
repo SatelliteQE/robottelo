@@ -1785,16 +1785,13 @@ locators = LocatorDict({
         ("//td[span[contains(@data-original-title, '%s')]]/"
          "following-sibling::td[@class='setting_value']/"
          "span[contains(@class, 'editable')]")),
-    "settings.select_value": (
+    "settings.edit_value": (
         By.XPATH,
-        ("//select[@name='setting[value]']")),
-    "settings.input_value": (
-        By.XPATH,
-        ("//input[@name='setting[value]']")),
+        "//td[@class='setting_value']//form//"
+        "*[contains(@class, 'input-sm') or contains(@class, 'input-large')]"),
     "settings.save": (
         By.XPATH,
-        ("//td[@class='setting_value']"
-         "/span/form/button[@type='submit']")),
+        "//td[@class='setting_value']//form//button[@type='submit']"),
 
     # Config Groups
     "config_groups.new": (

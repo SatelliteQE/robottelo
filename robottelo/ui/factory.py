@@ -571,7 +571,6 @@ def edit_param(session, org=None, loc=None,  force_context=True, **kwargs):
     update_args = {
         u'tab_locator': None,
         u'param_name': None,
-        u'value_type': None,
         u'param_value': None
     }
     page = session.nav.go_to_settings
