@@ -193,6 +193,11 @@
 
 .. automodule:: tests.foreman.cli.test_puppetmodule
 
+:mod:`tests.foreman.cli.test_remoteexecution`
+---------------------------------------------
+
+.. automodule:: tests.foreman.cli.test_remoteexecution
+
 :mod:`tests.foreman.cli.test_report`
 ------------------------------------
 
