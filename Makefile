@@ -50,6 +50,8 @@ help:
 	@echo "  uuid-check                 to check for duplicated @id: in testimony docstring tags"
 	@echo "  uuid-replace-empty         to replace empty @id: with new generated uuid"
 	@echo "  uuid-replace-duplicate     to replace duplicated @id: with new generated uuid"
+	@echo "  can-i-push?                to check if local changes are suitable to push"
+	@echo "  install-commit-hook        to install pre-commit hook to check if changes are suitable to push"
 
 docs:
 	@cd docs; $(MAKE) html
@@ -58,6 +60,7 @@ docs-clean:
 	@cd docs; $(MAKE) clean
 
 test-docstrings: uuid-check
+	$(info "Checking for errors in docstrings and testimony tags...")
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/api
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/cli
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhci
@@ -65,6 +68,7 @@ test-docstrings: uuid-check
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhai
 
 test-robottelo:
+	$(info "Running robottelo framework unit tests...")
 	$$(which py.test) -s  $(ROBOTTELO_TESTS_PATH)
 
 test-robottelo-coverage:
@@ -116,6 +120,7 @@ lint:
 	scripts/lint.py
 
 pyc-clean: ## remove Python file artifacts
+	$(info "Removing unused Python compiled files, caches and ~ backups...")
 	find . -name '*.pyc' -exec rm -f {} +
 	find . -name '*.pyo' -exec rm -f {} +
 	find . -name '*~' -exec rm -f {} +
@@ -128,6 +133,7 @@ logs-clean:
 	-rm -f robottelo_gw*.log
 
 uuid-check:  ## list duplicated uuids
+	$(info "Checking for empty or duplicated @id: in docstrings...")
 	scripts/check_duplicate_uuids.sh
 
 uuid-replace-duplicate:  ## list duplicated uuids
@@ -135,6 +141,17 @@ uuid-replace-duplicate:  ## list duplicated uuids
 
 uuid-replace-empty:  ## list duplicated uuids
 	scripts/replace_empty_uuids.sh
+
+flake8:
+	$(info "Checking style and syntax errors with flake8 linter...")
+	@flake8 . --show-source
+
+can-i-push?: flake8 uuid-check test-docstrings test-robottelo
+	$(info "!!! Congratulations your changes are good to fly, make a great PR! ${USER}++ !!!")
+
+install-commit-hook:
+	$(info "Installing git pre-commit hook...")
+	echo "make can-i-push?" >> .git/hooks/pre-commit
 
 # Special Targets -------------------------------------------------------------
 
@@ -144,4 +161,5 @@ uuid-replace-empty:  ## list duplicated uuids
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
         test-foreman-ui test-foreman-ui-xvfb test-foreman-endtoend \
         graph-entities lint logs-join logs-clean pyc-clean \
-        uuid-check uuid-replace-duplicate uuid-replace-empty
+        uuid-check uuid-replace-duplicate uuid-replace-empty \
+        can-i-push? install-commit-hook
