@@ -632,7 +632,7 @@ class HostCollectionPackageManagementTest(UITestCase):
     def test_positive_install_errata(self):
         """Install an errata to the hosts inside host collection remotely
 
-        @id: 5a6fff0a-686f-419b-a773-4d03713e47e9
+        @id: 69c83000-0b46-4735-8c03-e9e0b48af0fb
 
         @Assert: Errata was successfully installed in all the hosts in host
         collection

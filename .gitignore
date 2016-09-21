@@ -44,3 +44,6 @@
 
 # For Pycharm
 /.idea
+
+# For backup files.
+*~

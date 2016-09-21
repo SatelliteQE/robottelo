@@ -47,6 +47,9 @@ help:
 	@echo "  logs-join                  to join xdist log files into one"
 	@echo "  logs-clean                 to delete all xdist log files in the root"
 	@echo "  pyc-clean                  to delete all temporary artifacts"
+	@echo "  uuid-check                 to check for duplicated @id: in testimony docstring tags"
+	@echo "  uuid-replace-empty         to replace empty @id: with new generated uuid"
+	@echo "  uuid-replace-duplicate     to replace duplicated @id: with new generated uuid"
 
 docs:
 	@cd docs; $(MAKE) html
@@ -54,7 +57,7 @@ docs:
 docs-clean:
 	@cd docs; $(MAKE) clean
 
-test-docstrings:
+test-docstrings: uuid-check
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/api
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/cli
 	testimony $(TESTIMONY_OPTIONS) validate tests/foreman/rhci
@@ -124,6 +127,15 @@ logs-join:
 logs-clean:
 	-rm -f robottelo_gw*.log
 
+uuid-check:  ## list duplicated uuids
+	scripts/check_duplicate_uuids.sh
+
+uuid-replace-duplicate:  ## list duplicated uuids
+	scripts/replace_dup_uuids.sh
+
+uuid-replace-empty:  ## list duplicated uuids
+	scripts/replace_empty_uuids.sh
+
 # Special Targets -------------------------------------------------------------
 
 .PHONY: help docs docs-clean test-docstrings test-robottelo \
@@ -131,4 +143,5 @@ logs-clean:
         test-foreman-rhai test-foreman-rhci test-foreman-tier1 \
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
         test-foreman-ui test-foreman-ui-xvfb test-foreman-endtoend \
-        graph-entities lint logs-join logs-clean pyc-clean
+        graph-entities lint logs-join logs-clean pyc-clean \
+        uuid-check uuid-replace-duplicate uuid-replace-empty

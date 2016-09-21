@@ -312,7 +312,7 @@ class SmartVariablesTestCase(APITestCase):
     def test_negative_create_matcher_empty_value(self):
         """Create matcher with empty value with type other than string
 
-        @id: a90b5bcd-f76c-4663-bf41-2f96e7e15c0f
+        @id: ad24999f-1bed-4abb-a01f-3cb485d67968
 
         @steps:
 

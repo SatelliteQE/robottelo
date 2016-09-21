@@ -981,7 +981,7 @@ class OstreeRepositoryTestCase(APITestCase):
     def test_positive_update_name(self):
         """Update ostree repository name.
 
-        @id: 6dff0c90-170f-40b9-9347-8ec97d89f2fd
+        @id: 4d9f1418-cc08-4c3c-a5dd-1d20fb9052a2
 
         @Assert: The repository name is updated.
         """
