@@ -1851,6 +1851,10 @@ locators = LocatorDict({
                    " and contains(., '%s')]")),
     "discoveryrules.rule_delete": (
         By.XPATH, "//a[contains(@data-confirm, '%s') and @class='delete']"),
+    "discoveryrules.dropdown": (
+        By.XPATH,
+        ("//td/a[normalize-space(.)='%s']"
+         "/following::td/div/a[@data-toggle='dropdown']")),
 
     # Discovered Hosts
     "discoveredhosts.hostname": (

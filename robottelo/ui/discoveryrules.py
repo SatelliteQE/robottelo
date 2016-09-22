@@ -69,6 +69,7 @@ class DiscoveryRules(Base):
             name,
             really,
             locators['discoveryrules.rule_delete'],
+            drop_locator=locators['discoveryrules.dropdown'],
         )
 
     def update(self, name, new_name=None, search_rule=None, hostgroup=None,
