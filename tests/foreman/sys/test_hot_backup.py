@@ -27,7 +27,7 @@ class HotBackupTestCase(TestCase):
     def setUpClass(cls):
         super(HotBackupTestCase, cls).setUpClass()
 
-    @tier3()
+    @tier3
     @stubbed()
     def test_positive_directory_exists(self):
         """katello-backup with existing directory
@@ -50,9 +50,8 @@ class HotBackupTestCase(TestCase):
 
         @CaseLevel: System
         """
-        pass
 
-    @tier3()
+    @tier3
     @stubbed()
     def test_positive_directory_created(self):
         """katello-backup with non-existing directory
@@ -75,9 +74,8 @@ class HotBackupTestCase(TestCase):
 
         @CaseLevel: System
         """
-        pass
 
-    @tier3()
+    @tier3
     @stubbed()
     def test_positive_incremental(self):
         """Make an incremental backup
@@ -104,9 +102,8 @@ class HotBackupTestCase(TestCase):
 
         @CaseLevel: System
         """
-        pass
 
-    @tier3()
+    @tier3
     @stubbed()
     def test_positive_restore_fresh_install(self):
         """Restore to a clean Satellite with no config
@@ -130,9 +127,8 @@ class HotBackupTestCase(TestCase):
 
         @CaseLevel: System
         """
-        pass
 
-    @tier3()
+    @tier3
     @stubbed()
     def test_positive_restore(self):
         """Restore to a Satellite with config that has been updated since the backup
@@ -152,9 +148,8 @@ class HotBackupTestCase(TestCase):
 
         @CaseLevel: System
         """
-        pass
 
-    @tier3()
+    @tier3
     @stubbed()
     def test_positive_load_backup(self):
         """Load testing, backup
@@ -177,9 +172,8 @@ class HotBackupTestCase(TestCase):
 
         @CaseLevel: System
         """
-        pass
 
-    @tier3()
+    @tier3
     @stubbed()
     def test_positive_load_restore(self):
         """Load testing, restore
@@ -201,10 +195,9 @@ class HotBackupTestCase(TestCase):
 
         @CaseLevel: System
         """
-        pass
 
+    @tier3
     @stubbed()
-    @tier3()
     def test_positive_pull_content(self):
         """Pull content while a backup is running.
 
@@ -225,4 +218,3 @@ class HotBackupTestCase(TestCase):
 
         @CaseLevel: System
         """
-        pass
