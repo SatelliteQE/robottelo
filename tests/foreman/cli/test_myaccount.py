@@ -20,38 +20,80 @@ from fauxfactory import gen_string
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import make_user
 from robottelo.cli.user import User
+from robottelo.constants import LOCALES
 from robottelo.datafactory import invalid_emails_list
-from robottelo.decorators import stubbed, tier1
+from robottelo.decorators import tier1
 from robottelo.test import CLITestCase
 
 
+def _create_test_user(class_or_instance):
+    """Helper function which creates test user and stores it on a class or
+    instance.
+    """
+    class_or_instance.login = gen_string('alphanumeric', 30)
+    class_or_instance.password = gen_string('alphanumeric', 30)
+    class_or_instance.user = make_user({
+        'login': class_or_instance.login,
+        'password': class_or_instance.password,
+        'admin': '1',
+    })
+
+
+def _delete_test_user(cls_or_instance):
+    """Helper function which deletes test user stored on a class or
+    instance.
+    """
+    User.delete({'id': cls_or_instance.user['id']})
+
+
+def _update_test_user(cls_or_instance, options=None):
+    """Helper function which updates test user stored on a class or
+    instance.
+    """
+    options = options or {}
+    options['id'] = cls_or_instance.user['id']
+    user_cmd = User.with_user(cls_or_instance.login, cls_or_instance.password)
+    return user_cmd.update(options)
+
+
+def _test_user_info(cls_or_instance):
+    """Helper function which fetch test user data stored on a class or
+    instance.
+    """
+    user_cmd = User.with_user(cls_or_instance.login, cls_or_instance.password)
+    return user_cmd.info({'id': cls_or_instance.user['id']})
+
+
 class MyAccountTestCase(CLITestCase):
-    """Implements My Account functionality tests in CLI"""
+    """Implements My Account functionality tests in CLI.
+    User is shared between all tests.
+    So they must not change user's login nor password once these credentials
+    are used on hammer authentication
+    """
 
     @classmethod
     def setUpClass(cls):
         """Create a new user for all myaccount tests to not impact the default
-        user
+        user.
         """
         super(MyAccountTestCase, cls).setUpClass()
-
-        login = gen_string('alphanumeric', 30)
-        password = gen_string('alphanumeric', 30)
-        cls.user = make_user({
-            'login': login,
-            'password': password,
-            'admin': '1',
-        })
-        User.foreman_admin_username = login
-        User.foreman_admin_password = password
+        _create_test_user(cls)
 
     @classmethod
     def tearDownClass(cls):
-        """Restore User object to previous state"""
-        del User.foreman_admin_username
-        del User.foreman_admin_password
-
+        """Delete user created for tests"""
         super(MyAccountTestCase, cls).tearDownClass()
+        _delete_test_user(cls)
+
+    @classmethod
+    def update_user(cls, options=None):
+        """Update test user using cls.user credentials"""
+        return _update_test_user(cls, options)
+
+    @classmethod
+    def user_info(cls):
+        """Returns test user info"""
+        return _test_user_info(cls)
 
     @tier1
     def test_positive_update_first_name(self):
@@ -62,8 +104,8 @@ class MyAccountTestCase(CLITestCase):
         @Assert: Current User is updated
         """
         new_firstname = gen_string('alphanumeric')
-        User.update({'id': self.user['id'], 'firstname': new_firstname})
-        result = User.info({'id': self.user['id']})
+        self.update_user({'firstname': new_firstname})
+        result = self.user_info()
         updated_first_name = result['name'].split(' ')
         self.assertEqual(updated_first_name[0], new_firstname)
 
@@ -76,8 +118,8 @@ class MyAccountTestCase(CLITestCase):
         @Assert: Current User is updated
         """
         new_lastname = gen_string('alphanumeric')
-        User.update({'id': self.user['id'], 'lastname': new_lastname})
-        result = User.info({'id': self.user['id']})
+        self.update_user({'lastname': new_lastname})
+        result = self.user_info()
         updated_last_name = result['name'].split(' ')
         self.assertEqual(updated_last_name[1], new_lastname)
 
@@ -90,13 +132,12 @@ class MyAccountTestCase(CLITestCase):
         @Assert: Current User is updated
         """
         email = u'{0}@example.com'.format(gen_string('alphanumeric'))
-        User.update({'id': self.user['id'], 'mail': email})
-        result = User.info({'id': self.user['id']})
+        self.update_user({'mail': email})
+        result = self.user_info()
         self.assertEqual(result['email'], email)
 
-    @stubbed()
     @tier1
-    def test_positive_update_language(self):
+    def test_positive_update_all_locales(self):
         """Update Language in My Account
 
         @id: f0993495-5117-461d-a116-44867b820139
@@ -109,22 +150,11 @@ class MyAccountTestCase(CLITestCase):
         @caseautomation: notautomated
         """
 
-    @tier1
-    def test_positive_update_password(self):
-        """Update Password in My Account
-
-        @id: e7e9b212-f0aa-4f7e-8433-b4639da89495
-
-        @Assert: User is updated
-        """
-        password = gen_string('alphanumeric')
-        User.update({
-            'id': self.user['id'],
-            'password': password,
-        })
-        User.foreman_admin_password = password
-        result = User.info({'id': self.user['id']})
-        self.assertTrue(result)
+        for locale in LOCALES:
+            with self.subTest(locale):
+                self.update_user({'locale': locale})
+                user = self.user_info()
+                self.assertEqual(locale, user['locale'])
 
     @tier1
     def test_negative_update_first_name(self):
@@ -135,10 +165,7 @@ class MyAccountTestCase(CLITestCase):
         @Assert: User is not updated. Appropriate error shown.
         """
         with self.assertRaises(CLIReturnCodeError):
-            User.update({
-                'id': self.user['id'],
-                'firstname': gen_string('alphanumeric', 300),
-            })
+            self.update_user({'firstname': gen_string('alphanumeric', 300)})
 
     @tier1
     def test_negative_update_surname(self):
@@ -149,10 +176,7 @@ class MyAccountTestCase(CLITestCase):
         @Assert: User is not updated. Appropriate error shown.
         """
         with self.assertRaises(CLIReturnCodeError):
-            User.update({
-                'id': self.user['id'],
-                'lastname': gen_string('alphanumeric', 300),
-            })
+            self.update_user({'lastname': gen_string('alphanumeric', 300)})
 
     @tier1
     def test_negative_update_email(self):
@@ -165,23 +189,57 @@ class MyAccountTestCase(CLITestCase):
         for email in invalid_emails_list():
             with self.subTest(email):
                 with self.assertRaises(CLIReturnCodeError):
-                    User.update({
-                        'login': self.user['login'],
-                        'mail': email,
-                    })
+                    self.update_user(
+                        {'login': self.user['login'], 'mail': email}
+                    )
 
-    @stubbed()
     @tier1
-    def test_negative_update_password_invalid(self):
-        """Update My Account with invalid Password/Verify fields
+    def test_negative_update_locale(self):
+        """Update My Account with invalid Locale
 
-        @id: f9230699-fb8e-45d6-a0c2-abb8b751304d
-
-        @Steps:
-        1. Update Current user with all variations of Password/Verify fields
-        in [2]
+        @id: 6f63c9b4-80e6-11e6-8ea1-68f72889dc7f
 
         @Assert: User is not updated. Appropriate error shown.
-
-        @caseautomation: notautomated
         """
+        with self.assertRaises(CLIReturnCodeError):
+            self.update_user({'locale': 'invalid'})
+
+
+class MyAccountEphemeralUserTestCase(CLITestCase):
+    """Implements My Account functionality tests in CLI for test that need
+    to use ephemeral user. E.g. one user is created for each test so it can
+    have whatever field updated"""
+
+    def setUp(self):
+        """Create a new user for each test to not impact the default
+        user.
+        """
+        super(MyAccountEphemeralUserTestCase, self).setUp()
+        _create_test_user(self)
+
+    def tearDown(self):
+        """Delete user created on each test"""
+        super(MyAccountEphemeralUserTestCase, self).tearDown()
+        _delete_test_user(self)
+
+    def update_user(self, options=None):
+        """Update user using self.user credentials"""
+        return _update_test_user(self, options)
+
+    def user_info(self):
+        """Returns test user info"""
+        return _test_user_info(self)
+
+    @tier1
+    def test_positive_update_password(self):
+        """Update Password in My Account
+
+        @id: e7e9b212-f0aa-4f7e-8433-b4639da89495
+
+        @Assert: User is updated
+        """
+        new_password = gen_string('alphanumeric')
+        self.update_user({'password': new_password})
+        # If password is updated, hammer authentication must fail because old
+        # password stored on self is used
+        self.assertRaises(CLIReturnCodeError, self.user_info)

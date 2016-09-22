@@ -2,6 +2,11 @@
 """Defines various constants"""
 from nailgun import entities
 
+LOCALES = (
+    'ca', 'de', 'en', 'en_GB', 'es', 'fr', 'gl', 'it', 'ja', 'ko',
+    'pt_BR', 'ru', 'sv_SE', 'zh_CN', 'zh_TW'
+)
+
 # Bugzilla
 BZ_OPEN_STATUSES = [
     'NEW',
@@ -965,7 +970,6 @@ STRING_TYPES = [
     u'alpha', u'numeric', u'alphanumeric',
     u'latin1', u'utf8', u'cjk', u'html'
 ]
-
 
 # All UI crud classes listed here to allow dynamical import
 # import import_string; import_string('robottelo.ui.{0}'.format(item))
