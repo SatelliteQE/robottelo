@@ -17,13 +17,10 @@
 """
 
 from fauxfactory import gen_email, gen_string, gen_url
-from functools import wraps
 from random import choice, randint
 from robottelo.datafactory import filtered_datapoint
 from robottelo.decorators import (
-    bz_bug_is_open,
     run_only_on,
-    skip_if_bug_open,
     tier1,
 )
 from robottelo.test import UITestCase
@@ -33,26 +30,12 @@ from robottelo.ui.locators import common_locators, tab_locators
 from robottelo.ui.session import Session
 
 
-def pick_one_if_bz_open(func):
-    """Returns random value from provided data set in case specific defect is
-    open or full data set otherwise
-    """
-    @wraps(func)
-    def func_wrapper(*args, **kwargs):
-        """Check whether defect is open and make corresponding decision"""
-        data_set = func(*args, **kwargs)
-        if bz_bug_is_open(1335799):
-            data_set = [choice(data_set)]
-        return data_set
-    return func_wrapper
-
-
 @filtered_datapoint
 def valid_boolean_values():
     """Returns a list of valid boolean values"""
     return [
-        'true',
-        'false',
+        'Yes',
+        'No',
     ]
 
 
@@ -62,16 +45,11 @@ def valid_settings_values():
     return [
         gen_email(gen_string('alpha')),
         gen_email(gen_string('alphanumeric')),
-        gen_email(gen_string('latin1')),
         gen_email(gen_string('numeric')),
-        gen_email(gen_string('utf8')),
-        gen_email(gen_string('html')),
-        gen_email(gen_string('alphanumeric', 40)),
     ]
 
 
 @filtered_datapoint
-@pick_one_if_bz_open
 def invalid_foreman_urls():
     """Returns a list of invalid foreman urls"""
     return[
@@ -84,7 +62,6 @@ def invalid_foreman_urls():
 
 
 @filtered_datapoint
-@pick_one_if_bz_open
 def invalid_settings_values():
     """Returns a list of invalid settings values"""
     return [' ', '-1', 'text', '0']
@@ -131,7 +108,6 @@ def valid_login_delegation_values():
 
 
 @filtered_datapoint
-@pick_one_if_bz_open
 def invalid_oauth_active_values():
     """Returns a list of invalid oauth_active values"""
     return [
@@ -146,7 +122,7 @@ def invalid_oauth_active_values():
 def valid_trusted_puppetmaster_hosts():
     """Returns a list of valid trusted puppetmaster hosts"""
     return [
-        '[ ' + gen_string('utf8') + ' ]',
+        '[ ' + gen_string('alpha') + ' ]',
         '[ ' + gen_string('alphanumeric') + ' ]',
         '[ ' + gen_string('numeric') + ' ]'
     ]
@@ -159,7 +135,6 @@ def valid_token_duration():
 
 
 @filtered_datapoint
-@pick_one_if_bz_open
 def invalid_token_duration():
     """Returns a list of invalid token durations"""
     return [' ', '-1', 'text']
@@ -201,7 +176,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'authorize_login_delegation'
-        self.value_type = 'dropdown'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -211,14 +185,12 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @skip_if_bug_open('bugzilla', 1125181)
     @tier1
     def test_positive_update_administrator_param(self):
         """Updates parameter "administrator" under General tab
@@ -226,12 +198,9 @@ class SettingTestCase(UITestCase):
         @id: ecab6d51-ad29-4904-bc04-e62673ab1028
 
         @Assert: Parameter is updated successfully
-
-        @BZ: 1125181
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'administrator'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -258,7 +227,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'authorize_login_delegation_api'
-        self.value_type = 'dropdown'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -268,7 +236,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -286,7 +253,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'entries_per_page'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -296,14 +262,10 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    self.assertIsNotNone(
-                        session.nav.wait_until_element(
-                            common_locators['notif.error'])
-                    )
-                    session.nav.click(common_locators['notif.close'])
+                    self.assertIsNotNone(session.nav.wait_until_element(
+                        common_locators['haserror']))
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
@@ -319,7 +281,6 @@ class SettingTestCase(UITestCase):
         param_value = str(randint(30, 1000))
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'entries_per_page'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -327,14 +288,12 @@ class SettingTestCase(UITestCase):
                 session,
                 tab_locator=self.tab_locator,
                 param_name=self.param_name,
-                value_type=self.value_type,
                 param_value=param_value,
             )
             self.saved_element = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
             self.assertEqual(param_value, self.saved_element)
 
-    @skip_if_bug_open('bugzilla', 1125181)
     @tier1
     def test_positive_update_email_reply_address_param(self):
         """Updates parameter "email_reply_address" under General tab
@@ -342,12 +301,9 @@ class SettingTestCase(UITestCase):
         @id: 274eaa6d-a6ba-4dbe-a843-c3717fbd70ae
 
         @Assert: Parameter is updated successfully
-
-        @BZ: 1125181
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'email_reply_address'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -357,14 +313,12 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertEqual(param_value, self.saved_element)
 
-    @skip_if_bug_open('bugzilla', 1156195)
     @tier1
     def test_positive_update_fix_db_cache_param(self):
         """Updates parameter "fix_db_cache" under General tab
@@ -372,12 +326,9 @@ class SettingTestCase(UITestCase):
         @id: b7f8df0e-9ac8-4075-8955-c895267e424c
 
         @Assert: Parameter is updated successfully
-
-        @BZ: 1156195
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'fix_db_cache'
-        self.value_type = 'dropdown'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -387,7 +338,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -404,7 +354,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'use_gravatar'
-        self.value_type = 'dropdown'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -414,7 +363,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -432,7 +380,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'max_trend'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -442,14 +389,10 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    self.assertIsNotNone(
-                        session.nav.wait_until_element(
-                            common_locators['notif.error'])
-                    )
-                    session.nav.click(common_locators['notif.close'])
+                    self.assertIsNotNone(session.nav.wait_until_element(
+                        common_locators['haserror']))
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
@@ -464,7 +407,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'max_trend'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -474,7 +416,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -492,7 +433,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'idle_timeout'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -502,14 +442,10 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    self.assertIsNotNone(
-                        session.nav.wait_until_element(
-                            common_locators['notif.error'])
-                    )
-                    session.nav.click(common_locators['notif.close'])
+                    self.assertIsNotNone(session.nav.wait_until_element(
+                        common_locators['haserror']))
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
@@ -524,7 +460,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'idle_timeout'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -534,7 +469,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -551,7 +485,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'foreman_url'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -561,7 +494,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -578,7 +510,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_general']
         self.param_name = 'foreman_url'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -588,14 +519,10 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    self.assertIsNotNone(
-                        session.nav.wait_until_element(
-                            common_locators['notif.error'])
-                    )
-                    session.nav.click(common_locators['notif.close'])
+                    self.assertIsNotNone(session.nav.wait_until_element(
+                        common_locators['haserror']))
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
@@ -611,7 +538,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_foremantasks']
         self.param_name = 'dynflow_enable_console'
-        self.value_type = 'dropdown'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -621,7 +547,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -640,7 +565,6 @@ class SettingTestCase(UITestCase):
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = ('authorize_login_delegation_auth_source_user'
                            '_autocreate')
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -650,7 +574,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -668,7 +591,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'login_delegation_logout_url'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -678,7 +600,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -719,7 +640,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'require_ssl_smart_proxies'
-        self.value_type = 'dropdown'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -729,7 +649,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -747,7 +666,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'restrict_registered_smart_proxies'
-        self.value_type = 'dropdown'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -759,7 +677,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -776,7 +693,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'trusted_puppetmaster_hosts'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -786,7 +702,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -803,7 +718,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_auth']
         self.param_name = 'trusted_puppetmaster_hosts'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -813,14 +727,10 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    self.assertIsNotNone(
-                        session.nav.wait_until_element(
-                            common_locators['notif.error'])
-                    )
-                    session.nav.click(common_locators['notif.close'])
+                    self.assertIsNotNone(session.nav.wait_until_element(
+                        common_locators['haserror']))
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
@@ -836,7 +746,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'ignore_puppet_facts_for_provisioning'
-        self.value_type = 'dropdown'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -846,7 +755,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -864,7 +772,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'manage_puppetca'
-        self.value_type = 'dropdown'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -874,7 +781,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -893,7 +799,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'query_local_nameservers'
-        self.value_type = 'dropdown'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -903,7 +808,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -921,7 +825,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'safemode_render'
-        self.value_type = 'dropdown'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -931,7 +834,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
@@ -950,7 +852,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'token_duration'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -960,14 +861,10 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
-                    self.assertIsNotNone(
-                        session.nav.wait_until_element(
-                            common_locators['notif.error'])
-                    )
-                    session.nav.click(common_locators['notif.close'])
+                    self.assertIsNotNone(session.nav.wait_until_element(
+                        common_locators['haserror']))
                     self.saved_element = self.settings.get_saved_value(
                         self.tab_locator, self.param_name)
                     self.assertNotEqual(param_value, self.saved_element)
@@ -983,7 +880,6 @@ class SettingTestCase(UITestCase):
         """
         self.tab_locator = tab_locators['settings.tab_provisioning']
         self.param_name = 'token_duration'
-        self.value_type = 'input'
         with Session(self.browser) as session:
             self.original_value = self.settings.get_saved_value(
                 self.tab_locator, self.param_name)
@@ -995,7 +891,6 @@ class SettingTestCase(UITestCase):
                         session,
                         tab_locator=self.tab_locator,
                         param_name=self.param_name,
-                        value_type=self.value_type,
                         param_value=param_value,
                     )
                     self.saved_element = self.settings.get_saved_value(
