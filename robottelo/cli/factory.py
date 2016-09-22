@@ -25,6 +25,7 @@ from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
+from robottelo.cli.discoveryrule import DiscoveryRule
 from robottelo.cli.docker import DockerContainer, DockerRegistry
 from robottelo.cli.domain import Domain
 from robottelo.cli.environment import Environment
@@ -316,6 +317,82 @@ def make_content_view(options=None):
     }
 
     return create_object(ContentView, args, options)
+
+
+@cacheable
+def make_discoveryrule(options=None):
+    """
+    Usage::
+
+        hammer discovery_rule create [OPTIONS]
+
+    Options::
+
+        --enabled ENABLED                   flag is used for temporary shutdown
+                                            of rules
+                                            One of true/false, yes/no, 1/0.
+        --hostgroup HOSTGROUP_NAME          Hostgroup name
+        --hostgroup-id HOSTGROUP_ID
+        --hostgroup-title HOSTGROUP_TITLE   Hostgroup title
+        --hostname HOSTNAME                 defines a pattern to assign
+                                            human-readable hostnames to the
+                                            matching hosts
+        --hosts-limit HOSTS_LIMIT
+        --location-ids LOCATION_IDS         REPLACE locations with given ids
+                                            Comma separated list of values.
+        --locations LOCATION_NAMES          Comma separated list of values.
+        --max-count MAX_COUNT               enables to limit maximum amount of
+                                            provisioned hosts per rule
+        --name NAME                         represents rule name shown to the
+                                            users
+        --organization-ids ORGANIZATION_IDS REPLACE organizations with given
+                                            ids.
+                                            Comma separated list of values.
+        --organizations ORGANIZATION_NAMES  Comma separated list of values.
+        --priority PRIORITY                 puts the rules in order, low
+                                            numbers go first. Must be greater
+                                            then zero
+        --search SEARCH                     query to match discovered hosts for
+                                            the particular rule
+        -h, --help                          print help
+    """
+
+    # Organizations, Locations, search query, hostgroup are required fields.
+    if not options:
+        raise CLIFactoryError('Please provide required parameters')
+    # Organizations fields is required
+    if not any(options.get(key) for key in [
+        'organizations', 'organization-ids'
+    ]):
+        raise CLIFactoryError('Please provide a valid organization field.')
+    # Locations field is required
+    if not any(options.get(key) for key in ['locations', 'location-ids']):
+        raise CLIFactoryError('Please provide a valid location field.')
+    # search query is required
+    if not options.get('search'):
+        raise CLIFactoryError('Please provider a valid search query')
+    # hostgroup is required
+    if not any(options.get(key) for key in ['hostgroup', 'hostgroup-id']):
+        raise CLIFactoryError('Please provider a valid hostgroup')
+
+    args = {
+        u'enabled': None,
+        u'hostgroup': None,
+        u'hostgroup-id': None,
+        u'hostgroup-title': None,
+        u'hostname': None,
+        u'hosts-limit': None,
+        u'location-ids': None,
+        u'locations': None,
+        u'max-count': None,
+        u'name': gen_alphanumeric(),
+        u'organizations': None,
+        u'organization-ids': None,
+        u'priority': None,
+        u'search': None,
+    }
+
+    return create_object(DiscoveryRule, args, options)
 
 
 @cacheable
