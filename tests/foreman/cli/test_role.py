@@ -21,7 +21,7 @@ from robottelo.cli.factory import make_filter, make_role
 from robottelo.cli.filter import Filter
 from robottelo.cli.role import Role
 from robottelo.datafactory import generate_strings_list
-from robottelo.decorators import tier1
+from robottelo.decorators import stubbed, tier1, tier2
 from robottelo.test import CLITestCase
 
 
@@ -123,3 +123,212 @@ class RoleTestCase(CLITestCase):
                 })
                 role = Role.info({'id': role['id']})
                 self.assertEqual(role['name'], new_name)
+
+
+class CannedRoleTestCases(CLITestCase):
+    """Implements Canned Roles tests from UI"""
+
+    @stubbed
+    @tier1
+    def test_positive_create_role_with_taxonomies(self):
+        """create role with taxonomies
+
+        @id: 4ce9fd35-4d3d-47f7-8bc6-7cf0b3b2d2f5
+
+        @steps: Create new role with taxonomies
+
+        @assert: New role is created with taxonomies
+
+        @caseautomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_create_role_without_taxonomies(self):
+        """Create role without taxonomies
+
+        @id: 4dc80114-9629-487f-805c-c14241bdcde1
+
+        @steps: Create new role without any taxonomies
+
+        @assert: New role is created without taxonomies
+
+        @caseautomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_create_filter_without_override(self):
+        """Create filter in role w/o overriding it
+
+        @id: 247ab670-29e6-4c14-9140-51966f4632f4
+
+        @steps:
+
+        1. Create a role with taxonomies assigned
+        2. Create filter in role without overriding it
+
+        @assert:
+
+        1. Filter w/o override is created in role
+        2. The taxonomies of role are inherited to filter
+        3. Override check is not marked by default in filters table
+
+        @caseautomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_create_non_overridable_filter(self):
+        """Create non overridable filter in role
+
+        @id: c53713a3-d4b6-47a1-b19e-8d2020f98efd
+
+        @steps:
+
+        1. Create a filter to which taxonomies cannot be associated.
+        e.g Architecture filter
+
+        @assert:
+
+        1. Filter is created without taxonomies
+        2. Filter doesnt inherit taxonomies from role
+
+        @caseautomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_override_non_overridable_filter(self):
+        """Override non overridable filter
+
+        @id: 163313eb-4401-4bb0-bf9a-58030251643b
+
+        @steps:
+
+        1. Attempt to override a filter to which taxonomies cannot be
+        associated.
+        e.g Architecture filter
+
+        @assert: Filter is not overrided as taxonomies cannot be applied to
+        that filter
+
+        @caseautomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_create_overridable_filter(self):
+        """Create overridable filter in role
+
+        @id: 47816636-d215-45a8-9d21-495b1e193913
+
+        @steps:
+
+        1. Create a filter to which taxonomies can be associated.
+        e.g Domain filter
+        2. Override a filter with some taxonomies
+
+        @assert:
+
+        1. Filter is created with taxonomies
+        2. Override check is set to true
+        3. Filter doesnt inherits taxonomies from role
+
+        @caseautomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_update_role_taxonomies(self):
+        """Update role taxonomies which applies to its non-overrided filters
+
+        @id: 988cf8c6-8f6e-49de-be54-d17085f260b6
+
+        @steps:
+
+        1. Update existing role with different taxonomies
+
+        @assert: The taxonomies are applied only to non-overrided role filters
+
+        @caseautomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_negative_update_role_taxonomies(self):
+        """Update role taxonomies which doesnt applies to its overrided filters
+
+        @id: 9d0d94fa-34ee-41a0-868d-4dc7d774fb02
+
+        @steps:
+
+        1. Update existing role with different taxonomies
+
+        @assert: The overridden role filters are not updated
+
+        @caseautomation: notautomated
+        """
+
+    @stubbed
+    @tier1
+    def test_positive_disable_filter_override(self):
+        """Unset override resets filter taxonomies
+
+        @id: f00f4f1f-caee-47ac-b02e-7802300d08a8
+
+        @steps:
+
+        1. Create role with overridden filter having different taxonomies than
+        its role.
+        2. Unset the override flag in above role filter
+
+        @assert: The taxonomies of filters resets/synced to role taxonomies
+
+        @caseautomation: notautomated
+        """
+
+    @stubbed
+    @tier2
+    def test_positive_access_resources_from_role_taxonomies(self):
+        """Test user access resources from taxonomies of assigned role
+
+        @id: 754cf23e-43ed-4d2b-b4ec-dacc77bc009d
+
+        @steps:
+
+        1. Create role with taxonomies
+        2. Create resource(s) filter(s) without overriding them
+        3. Create user with taxonomies same as role taxonomies
+        4. Assign step 1 role to user
+
+        @assert: User should be able to access the resource(s) of the assigned
+        role
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
+
+    @stubbed
+    @tier2
+    def test_negative_access_resources_outside_role_taxonomies(self):
+        """Test user cannot access resources from non associated taxonomies to
+        role
+
+        @id: 8a82e935-c5f1-460f-b1ff-1203b9c88df9
+
+        @steps:
+
+        1. Create role with taxonomies
+        2. Create resource(s) filter(s) without overriding them
+        3. Create user with taxonomies not matching role taxonomies
+        4. Assign step 1 role to user
+
+        @assert: User should not be able to access the resource(s) that are not
+        associated to assigned role
+
+        @caseautomation: notautomated
+
+        @CaseLevel: Integration
+        """
