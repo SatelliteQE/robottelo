@@ -18,6 +18,7 @@
 from fauxfactory import gen_integer, gen_ipaddr, gen_string
 from nailgun import entities
 from robottelo.datafactory import (
+    generate_strings_list,
     filtered_datapoint,
     invalid_values_list,
     valid_data_list,
@@ -53,6 +54,10 @@ class DiscoveryRuleTestCase(UITestCase):
     """Implements Foreman discovery Rules in UI."""
 
     @classmethod
+    def set_session_org(cls):
+        cls.session_org = entities.Organization().create()
+
+    @classmethod
     def setUpClass(cls):
         """Display all the discovery rules on the same page"""
         super(DiscoveryRuleTestCase, cls).setUpClass()
@@ -61,8 +66,8 @@ class DiscoveryRuleTestCase(UITestCase):
         cls.saved_per_page = str(cls.per_page.value)
         cls.per_page.value = '100000'
         cls.per_page.update({'value'})
-
-        cls.host_group = entities.HostGroup().create()
+        cls.host_group = entities.HostGroup(
+            organization=[cls.session_org]).create()
 
     @classmethod
     def tearDownClass(cls):
@@ -217,6 +222,7 @@ class DiscoveryRuleTestCase(UITestCase):
             )
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1378486)
     @tier1
     def test_negative_create_with_invalid_name(self):
         """Create Discovery Rule with invalid names
@@ -359,7 +365,7 @@ class DiscoveryRuleTestCase(UITestCase):
         @Assert: Rule should be successfully deleted
         """
         with Session(self.browser) as session:
-            for name in valid_data_list():
+            for name in generate_strings_list():
                 with self.subTest(name):
                     make_discoveryrule(
                         session, name=name, hostgroup=self.host_group.name)
@@ -420,7 +426,8 @@ class DiscoveryRuleTestCase(UITestCase):
         @Assert: Rule host group is updated
         """
         name = gen_string('alpha')
-        new_hostgroup_name = entities.HostGroup().create().name
+        new_hostgroup_name = entities.HostGroup(
+            organization=[self.session_org]).create().name
         with Session(self.browser) as session:
             make_discoveryrule(
                 session, name=name, hostgroup=self.host_group.name)
@@ -526,6 +533,7 @@ class DiscoveryRuleTestCase(UITestCase):
             )
 
     @run_only_on('sat')
+    @skip_if_bug_open('bugzilla', 1378486)
     @tier1
     def test_negative_update_name(self):
         """Update discovery rule name using invalid names only
