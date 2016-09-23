@@ -541,6 +541,7 @@ class HostGroupTestCase(APITestCase):
         )
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_name(self):
         """Update a hostgroup with a new name
 
@@ -559,6 +560,7 @@ class HostGroupTestCase(APITestCase):
                 self.assertEqual(name, hostgroup.name)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_parent(self):
         """Update a hostgroup with a new parent hostgroup
 
@@ -586,6 +588,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.parent.read().name, new_parent.name)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_env(self):
         """Update a hostgroup with a new environment
 
@@ -613,6 +616,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.environment.read().name, new_env.name)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_os(self):
         """Update a hostgroup with a new operating system
 
@@ -644,6 +648,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.operatingsystem.read().name, new_os.name)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_arch(self):
         """Update a hostgroup with a new architecture
 
@@ -664,6 +669,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.architecture.read().name, new_arch.name)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_media(self):
         """Update a hostgroup with a new media
 
@@ -702,6 +708,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.medium.read().name, new_media.name)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_ptable(self):
         """Update a hostgroup with a new partition table
 
@@ -732,6 +739,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.ptable.read().name, new_ptable.name)
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_puppet_ca_proxy(self):
         """Update a hostgroup with a new puppet CA proxy
 
@@ -749,6 +757,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.puppet_ca_proxy.read().name, new_proxy.name)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_subnet(self):
         """Update a hostgroup with a new subnet
 
@@ -776,6 +785,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.subnet.read().name, new_subnet.name)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_domain(self):
         """Update a hostgroup with a new domain
 
@@ -833,6 +843,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.realm.read().name, new_realm.name)
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_puppet_proxy(self):
         """Update a hostgroup with a new puppet proxy
 
@@ -850,6 +861,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.puppet_proxy.read().name, new_proxy.name)
 
     @tier1
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_content_source(self):
         """Update a hostgroup with a new puppet proxy
 
@@ -868,6 +880,7 @@ class HostGroupTestCase(APITestCase):
             hostgroup.content_source.read().name, new_content_source.name)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_cv(self):
         """Update a hostgroup with a new content view
 
@@ -897,6 +910,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.content_view.read().name, new_cv.name)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_lce(self):
         """Update a hostgroup with a new lifecycle environment
 
@@ -919,6 +933,7 @@ class HostGroupTestCase(APITestCase):
             hostgroup.lifecycle_environment.read().name, new_lce.name)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_loc(self):
         """Update a hostgroup with a new location
 
@@ -938,6 +953,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.location[0].read().name, new_loc.name)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_org(self):
         """Update a hostgroup with a new organization
 
@@ -957,6 +973,7 @@ class HostGroupTestCase(APITestCase):
         self.assertEqual(hostgroup.organization[0].read().name, new_org.name)
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_locs(self):
         """Update a hostgroup with new multiple locations
 
@@ -982,6 +999,7 @@ class HostGroupTestCase(APITestCase):
         )
 
     @tier2
+    @skip_if_bug_open('bugzilla', 1378009)
     def test_positive_update_orgs(self):
         """Update a hostgroup with new multiple organizations
 

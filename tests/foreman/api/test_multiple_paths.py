@@ -39,8 +39,6 @@ BZ_1118015_ENTITIES = (
     entities.LifecycleEnvironment, entities.OperatingSystem, entities.Product,
     entities.Repository, entities.Role, entities.Subnet, entities.User,
 )
-BZ_1154156_ENTITIES = (entities.ConfigTemplate, entities.Host, entities.User)
-BZ_1187366_ENTITIES = (entities.LifecycleEnvironment, entities.Organization)
 
 
 def valid_entities():
@@ -304,13 +302,12 @@ class EntityIdTestCase(APITestCase):
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
         )
+        if bz_bug_is_open(1378009):
+            exclude_list += (entities.HostGroup,)
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 logger.debug('test_put_status_code arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
-                if (entity_cls in BZ_1154156_ENTITIES and
-                        bz_bug_is_open(1154156)):
-                    self.skipTest("Bugzilla bug 1154156 is open.")
 
                 # Create an entity
                 entity_id = entity_cls().create_json()['id']
@@ -348,17 +345,11 @@ class EntityIdTestCase(APITestCase):
             with self.subTest(entity_cls):
                 logger.debug('test_delete_status_code arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
-                if (entity_cls == entities.ConfigTemplate and
-                        bz_bug_is_open(1096333)):
-                    self.skipTest('Cannot delete config templates.')
                 try:
                     entity = entity_cls(id=entity_cls().create_json()['id'])
                 except HTTPError as err:
                     self.fail(err)
                 response = entity.delete_raw()
-                if (entity_cls in BZ_1187366_ENTITIES and
-                        bz_bug_is_open(1187366)):
-                    self.skipTest('BZ 1187366 is open.')
                 self.assertIn(
                     response.status_code,
                     (
@@ -398,13 +389,12 @@ class DoubleCheckTestCase(APITestCase):
         exclude_list = (
             entities.TemplateKind,  # see comments in class definition
         )
+        if bz_bug_is_open(1378009):
+            exclude_list += (entities.HostGroup, )
         for entity_cls in set(valid_entities()) - set(exclude_list):
             with self.subTest(entity_cls):
                 logger.debug('test_put_and_get arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
-                if (entity_cls in BZ_1154156_ENTITIES and
-                        bz_bug_is_open(1154156)):
-                    self.skipTest("Bugzilla bug 1154156 is open.")
 
                 # Create an entity.
                 entity_id = entity_cls().create_json()['id']
@@ -444,9 +434,6 @@ class DoubleCheckTestCase(APITestCase):
             with self.subTest(entity_cls):
                 logger.debug('test_post_and_get arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
-                if (entity_cls in BZ_1154156_ENTITIES and
-                        bz_bug_is_open(1154156)):
-                    self.skipTest('Bugzilla bug 1154156 is open.')
 
                 entity = entity_cls()
                 entity_id = entity.create_json()['id']
@@ -474,12 +461,6 @@ class DoubleCheckTestCase(APITestCase):
             with self.subTest(entity_cls):
                 logger.debug('test_delete_and_get arg: %s', entity_cls)
                 skip_if_sam(self, entity_cls)
-                if (entity_cls is entities.ConfigTemplate and
-                        bz_bug_is_open(1096333)):
-                    self.skipTest('BZ 1096333: Cannot delete config templates')
-                if (entity_cls in BZ_1187366_ENTITIES and
-                        bz_bug_is_open(1187366)):
-                    self.skipTest('BZ 1187366: Cannot delete orgs or envs.')
 
                 # Create an entity, delete it and get it.
                 try:
