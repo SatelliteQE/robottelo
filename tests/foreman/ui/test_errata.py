@@ -31,9 +31,9 @@ from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     DEFAULT_RELEASE_VERSION,
     FAKE_1_CUSTOM_PACKAGE,
-    FAKE_1_ERRATA_ID,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_ERRATA_ID,
+    FAKE_3_ERRATA_ID,
     FAKE_3_YUM_REPO,
     FAKE_6_YUM_REPO,
     PRDS,
@@ -156,13 +156,13 @@ class ErrataTestCase(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_errata()
             self.errata.show_only_applicable(False)
-            self.assertIsNone(self.errata.search(CUSTOM_REPO_ERRATA_ID))
-            self.assertIsNotNone(self.errata.search(FAKE_1_ERRATA_ID))
+            self.assertIsNone(self.errata.search(FAKE_3_ERRATA_ID))
+            self.assertIsNotNone(self.errata.search(CUSTOM_REPO_ERRATA_ID))
             session.nav.go_to_select_org(org.name)
             session.nav.go_to_errata()
             self.errata.show_only_applicable(False)
-            self.assertIsNone(self.errata.search(FAKE_1_ERRATA_ID))
-            self.assertIsNotNone(self.errata.search(CUSTOM_REPO_ERRATA_ID))
+            self.assertIsNone(self.errata.search(CUSTOM_REPO_ERRATA_ID))
+            self.assertIsNotNone(self.errata.search(FAKE_3_ERRATA_ID))
 
     @tier2
     def test_positive_list_permission(self):

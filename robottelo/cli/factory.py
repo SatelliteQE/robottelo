@@ -2028,7 +2028,9 @@ def activationkey_add_subscription_to_repo(options=None):
         )
     for subscription in subscriptions:
         if subscription['name'] == options['subscription']:
-            if int(subscription['quantity']) == 0:
+            if (
+                    subscription['quantity'] != 'Unlimited' and
+                    int(subscription['quantity']) == 0):
                 raise CLIFactoryError(
                     'All the subscriptions are already consumed')
             try:
