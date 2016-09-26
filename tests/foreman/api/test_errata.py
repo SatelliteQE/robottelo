@@ -25,6 +25,8 @@ from robottelo.cli.factory import (
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     DEFAULT_RELEASE_VERSION,
+    DISTRO_RHEL6,
+    DISTRO_RHEL7,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_ERRATA_ID,
@@ -184,8 +186,8 @@ class ErrataTestCase(APITestCase):
 
         @CaseLevel: System
         """
-        with VirtualMachine(distro='rhel71') as client1, VirtualMachine(
-                distro='rhel71') as client2:
+        with VirtualMachine(distro=DISTRO_RHEL7) as client1, VirtualMachine(
+                distro=DISTRO_RHEL7) as client2:
             clients = [client1, client2]
             for client in clients:
                 client.install_katello_ca()
@@ -224,7 +226,7 @@ class ErrataTestCase(APITestCase):
 
         @CaseLevel: System
         """
-        with VirtualMachine(distro='rhel71') as client:
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             result = client.register_contenthost(
                 self.org.label, self.activation_key.name)
@@ -514,7 +516,7 @@ class ErrataTestCase(APITestCase):
         content_view.publish()
         cvv = content_view.read().version[-1].read()
         promote(cvv, env.id)
-        with VirtualMachine(distro='rhel67') as client:
+        with VirtualMachine(distro=DISTRO_RHEL6) as client:
             client.install_katello_ca()
             result = client.register_contenthost(
                 org.label,
@@ -595,7 +597,7 @@ class ErrataTestCase(APITestCase):
         content_view.publish()
         cvv = content_view.read().version[-1].read()
         promote(cvv, env.id)
-        with VirtualMachine(distro='rhel67') as client:
+        with VirtualMachine(distro=DISTRO_RHEL6) as client:
             client.install_katello_ca()
             result = client.register_contenthost(
                 org.label,

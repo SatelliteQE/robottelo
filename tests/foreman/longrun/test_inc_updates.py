@@ -41,6 +41,7 @@ from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     DEFAULT_RELEASE_VERSION,
     DEFAULT_SUBSCRIPTION_NAME,
+    DISTRO_RHEL6,
     PRDS,
     REAL_0_RH_PACKAGE,
     REPOS,
@@ -192,7 +193,7 @@ class IncrementalUpdateTestCase(TestCase):
 
         # Create client machine and register it to satellite with
         # rhel_6_partial_ak
-        self.vm = VirtualMachine(distro='rhel67', tag='incupdate')
+        self.vm = VirtualMachine(distro=DISTRO_RHEL6, tag='incupdate')
         self.setup_vm(self.vm, rhel_6_partial_ak.name, self.org.label)
         self.vm.enable_repo(REPOS['rhva6']['id'])
         self.vm.run('yum install -y {0}'.format(REAL_0_RH_PACKAGE))

@@ -22,6 +22,7 @@ from robottelo.cli.factory import setup_org_for_a_rh_repo
 from robottelo.constants import (
     DEFAULT_CV,
     DEFAULT_SUBSCRIPTION_NAME,
+    DISTRO_RHEL7,
     ENVIRONMENT,
     PRDS,
     REPOS,
@@ -75,7 +76,7 @@ class HostContentHostUnificationTestCase(UITestCase):
 
         @CaseLevel: System
         """
-        with VirtualMachine(distro='rhel71') as vm:
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
             result = vm.register_contenthost(self.org_.label, lce='Library')
             self.assertEqual(result.return_code, 0)
@@ -118,7 +119,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
         })
-        with VirtualMachine(distro='rhel71') as vm:
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
             result = vm.register_contenthost(org.label, activation_key.name)
             self.assertEqual(result.return_code, 0)
@@ -197,7 +198,7 @@ class HostContentHostUnificationTestCase(UITestCase):
 
         @CaseLevel: System
         """
-        with VirtualMachine(distro='rhel71') as vm:
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
             result = vm.register_contenthost(self.org_.label, lce='Library')
             self.assertEqual(result.return_code, 0)
@@ -237,7 +238,7 @@ class HostContentHostUnificationTestCase(UITestCase):
 
         @CaseLevel: System
         """
-        with VirtualMachine(distro='rhel71') as vm:
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
             result = vm.register_contenthost(self.org_.label, lce='Library')
             self.assertEqual(result.return_code, 0)
@@ -270,7 +271,7 @@ class HostContentHostUnificationTestCase(UITestCase):
 
         @CaseLevel: System
         """
-        with VirtualMachine(distro='rhel71') as vm:
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
             result = vm.register_contenthost(self.org_.label, lce='Library')
             self.assertEqual(result.return_code, 0)
@@ -313,7 +314,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
         })
-        with VirtualMachine(distro='rhel71') as vm:
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
             result = vm.register_contenthost(org.label, activation_key.name)
             self.assertEqual(result.return_code, 0)
@@ -359,7 +360,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
         })
-        with VirtualMachine(distro='rhel71') as vm:
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
             result = vm.register_contenthost(org.label, activation_key.name)
             self.assertEqual(result.return_code, 0)
@@ -402,7 +403,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             'lifecycle-environment-id': env.id,
             'activationkey-id': activation_key.id,
         })
-        with VirtualMachine(distro='rhel71') as vm:
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             vm.install_katello_ca()
             result = vm.register_contenthost(org.label, activation_key.name)
             self.assertEqual(result.return_code, 0)

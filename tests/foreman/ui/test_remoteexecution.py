@@ -16,7 +16,7 @@
 """
 from datetime import datetime, timedelta
 from nailgun import entities
-from robottelo.constants import OS_TEMPLATE_DATA_FILE
+from robottelo.constants import OS_TEMPLATE_DATA_FILE, DISTRO_RHEL7
 from robottelo.datafactory import (
     gen_string,
     generate_strings_list,
@@ -392,7 +392,7 @@ class RemoteExecutionTestCase(UITestCase):
 
         @CaseLevel: Integration
         """
-        with VirtualMachine(distro='rhel71') as client:
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
             add_remote_execution_ssh_key(client.ip_addr)
@@ -425,7 +425,7 @@ class RemoteExecutionTestCase(UITestCase):
         @CaseLevel: System
         """
         jobs_template_name = gen_string('alpha')
-        with VirtualMachine(distro='rhel71') as client:
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
             add_remote_execution_ssh_key(client.ip_addr)
@@ -469,8 +469,8 @@ class RemoteExecutionTestCase(UITestCase):
 
         @CaseLevel: System
         """
-        with VirtualMachine(distro='rhel71') as client:
-            with VirtualMachine(distro='rhel71') as client2:
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
+            with VirtualMachine(distro=DISTRO_RHEL7) as client2:
                 for vm in client, client2:
                     vm.install_katello_ca()
                     vm.register_contenthost(
@@ -511,7 +511,7 @@ class RemoteExecutionTestCase(UITestCase):
 
         @CaseLevel: System
         """
-        with VirtualMachine(distro='rhel71') as client:
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             client.register_contenthost(self.organization.label, lce='Library')
             add_remote_execution_ssh_key(client.ip_addr)
