@@ -19,7 +19,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
-from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME, DISTRO_RHEL6
 from robottelo.decorators import run_in_one_thread, skip_if_not_set
 from robottelo.test import TestCase
 from robottelo.vm import VirtualMachine
@@ -78,8 +78,9 @@ class RHAIClientTestCase(TestCase):
         @Assert: 'redhat-access-insights --test-connection' should return
         zero on a successfully registered machine to RHAI service
         """
-        with VirtualMachine(distro='rhel67') as vm:
-            vm.configure_rhai_client(self.ak_name, self.org_label, 'rhel67')
+        with VirtualMachine(distro=DISTRO_RHEL6) as vm:
+            vm.configure_rhai_client(self.ak_name, self.org_label,
+                                     DISTRO_RHEL6)
             test_connection = vm.run(
                 'redhat-access-insights --test-connection')
             self.logger.info('Return code for --test-connection {0}'.format(

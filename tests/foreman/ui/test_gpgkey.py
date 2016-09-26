@@ -21,6 +21,7 @@ from fauxfactory import gen_string
 from nailgun import entities
 from robottelo.config import settings
 from robottelo.constants import (
+    DISTRO_RHEL6,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
     REPO_DISCOVERY_URL,
@@ -473,7 +474,7 @@ class GPGKey(UITestCase):
                 break
         # Create VM
         package_name = 'cow'
-        with VirtualMachine(distro='rhel66') as vm:
+        with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             # Download and Install rpm
             result = vm.run(
                 "wget -nd -r -l1 --no-parent -A '*.noarch.rpm' http://{0}/pub/"
