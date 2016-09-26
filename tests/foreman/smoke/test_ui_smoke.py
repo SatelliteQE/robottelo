@@ -8,6 +8,7 @@ from robottelo.constants import (
     DEFAULT_LOC,
     DEFAULT_ORG,
     DEFAULT_SUBSCRIPTION_NAME,
+    DISTRO_RHEL6,
     DOMAIN,
     FAKE_0_PUPPET_REPO,
     FOREMAN_PROVIDERS,
@@ -467,7 +468,7 @@ class SmokeTestCase(UITestCase):
                     common_locators['alert.success']
                 ))
             # Create VM
-            with VirtualMachine(distro='rhel67') as vm:
+            with VirtualMachine(distro=DISTRO_RHEL6) as vm:
                 vm.install_katello_ca()
                 vm.register_contenthost(activation_key_name, org_name)
                 vm.configure_puppet(rhel6_repo)

@@ -13,6 +13,7 @@ from robottelo.api.utils import (
 from robottelo.constants import (
     DEFAULT_CV,
     DEFAULT_SUBSCRIPTION_NAME,
+    DISTRO_RHEL6,
     ENVIRONMENT,
     FAKE_1_YUM_REPO,
     FAKE_2_YUM_REPO,
@@ -45,7 +46,7 @@ class ActivationKeyTestCase(UITestCase):
         cls.base_key_name = entities.ActivationKey(
             organization=cls.organization
         ).create().name
-        cls.vm_distro = 'rhel65'
+        cls.vm_distro = DISTRO_RHEL6
 
     # pylint: disable=too-many-arguments
     def create_sync_custom_repo(self, product_name=None, repo_name=None,
