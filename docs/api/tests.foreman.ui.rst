@@ -38,6 +38,11 @@
 
 .. automodule:: tests.foreman.ui.test_computeresource
 
+:mod:`tests.foreman.ui.test_computeresource_azure`
+--------------------------------------------------
+
+.. automodule:: tests.foreman.ui.test_computeresource_azure
+
 :mod:`tests.foreman.ui.test_computeresource_openstack`
 ------------------------------------------------------
 
