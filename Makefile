@@ -47,11 +47,11 @@ help:
 	@echo "  logs-join                  to join xdist log files into one"
 	@echo "  logs-clean                 to delete all xdist log files in the root"
 	@echo "  pyc-clean                  to delete all temporary artifacts"
-	@echo "  uuid-check                 to check for duplicated @id: in testimony docstring tags"
-	@echo "  uuid-replace-empty         to replace empty @id: with new generated uuid"
-	@echo "  uuid-replace-duplicate     to replace duplicated @id: with new generated uuid"
+	@echo "  uuid-check                 to check for duplicated or empty @id: in testimony docstring tags"
+	@echo "  uuid-fix                   to fix all duplicated or empty @id: in testimony docstring tags"
 	@echo "  can-i-push?                to check if local changes are suitable to push"
 	@echo "  install-commit-hook        to install pre-commit hook to check if changes are suitable to push"
+	@echo "  gitflake8                  to check flake8 styling only for modified files"
 
 docs:
 	@cd docs; $(MAKE) html
@@ -132,26 +132,24 @@ logs-join:
 logs-clean:
 	-rm -f robottelo_gw*.log
 
-uuid-check:  ## list duplicated uuids
+uuid-check:  ## list duplicated or empty uuids
 	$(info "Checking for empty or duplicated @id: in docstrings...")
-	scripts/check_duplicate_uuids.sh
+	@scripts/fix_uuids.sh --check
 
-uuid-replace-duplicate:  ## list duplicated uuids
-	scripts/replace_dup_uuids.sh
+uuid-fix:
+	@scripts/fix_uuids.sh
 
-uuid-replace-empty:  ## list duplicated uuids
-	scripts/replace_empty_uuids.sh
-
-flake8:
+gitflake8:
 	$(info "Checking style and syntax errors with flake8 linter...")
-	@flake8 . --show-source
+	@flake8 $(shell git diff --name-only) --show-source
 
-can-i-push?: flake8 uuid-check test-docstrings test-robottelo
+can-i-push?: gitflake8 uuid-check test-docstrings test-robottelo
 	$(info "!!! Congratulations your changes are good to fly, make a great PR! ${USER}++ !!!")
 
 install-commit-hook:
 	$(info "Installing git pre-commit hook...")
-	echo "make can-i-push?" >> .git/hooks/pre-commit
+	@grep -q '^make uuid-fix' .git/hooks/pre-commit || echo "make uuid-fix" >> .git/hooks/pre-commit
+	@grep -q '^make can-i-push?' .git/hooks/pre-commit || echo "make can-i-push?" >> .git/hooks/pre-commit
 
 # Special Targets -------------------------------------------------------------
 
@@ -161,5 +159,4 @@ install-commit-hook:
         test-foreman-tier2 test-foreman-tier3 test-foreman-tier4 \
         test-foreman-ui test-foreman-ui-xvfb test-foreman-endtoend \
         graph-entities lint logs-join logs-clean pyc-clean \
-        uuid-check uuid-replace-duplicate uuid-replace-empty \
-        can-i-push? install-commit-hook
+        uuid-check uuid-fix can-i-push? install-commit-hook gitflake8
