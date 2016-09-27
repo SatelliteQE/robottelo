@@ -56,9 +56,6 @@ class ContentViews(Base):
 
     def delete(self, name, really=True):
         """Deletes an existing content view."""
-        if not really:
-            raise UIError(
-                'Could not delete the "{0}" content view.'.format(name))
         self.delete_entity(
             name,
             really,
@@ -76,14 +73,7 @@ class ContentViews(Base):
 
     def delete_version(self, name, version):
         """Deletes published content view's version"""
-        element = self.search(name)
-
-        if element is None:
-            raise UIError(
-                u'Could not find the "{0}" content view.'.format(name)
-            )
-        element.click()
-        self.wait_for_ajax()
+        self.click(self.search(name))
         strategy, value = locators['contentviews.remove_ver']
         self.click((strategy, value % version))
         self.click(locators['contentviews.completely_remove_checkbox'])
@@ -521,14 +511,7 @@ class ContentViews(Base):
         """Check that version cannot be deleted from selected CV, because it
         has activation key or content host assigned to it
         """
-        element = self.search(name)
-
-        if element is None:
-            raise UIError(
-                'Could not find the "{0}" content view.'.format(name)
-            )
-        element.click()
-        self.wait_for_ajax()
+        self.click(self.search(name))
         strategy, value = locators['contentviews.remove_ver']
         self.click((strategy, value % version))
         self.click(locators['contentviews.next_button'])
