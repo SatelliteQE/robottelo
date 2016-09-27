@@ -262,7 +262,7 @@ class DiscoveryRuleTestCase(CLITestCase):
         created
         """
         with self.assertRaises(CLIFactoryError):
-            self._make_discoveryrule({u'host-limit': '9999999999'})
+            self._make_discoveryrule({u'hosts-limit': '9999999999'})
 
     @run_only_on('sat')
     @tier1

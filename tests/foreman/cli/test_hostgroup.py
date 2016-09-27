@@ -249,7 +249,6 @@ class HostGroupTestCase(CLITestCase):
         hostgroup = make_hostgroup({
             'organization-ids': [org['id'] for org in orgs],
             'lifecycle-environment-id': lce['id'],
-            'organization-id': orgs[0]['id']
         })
         self.assertEqual(
             set(org['name'] for org in orgs),
