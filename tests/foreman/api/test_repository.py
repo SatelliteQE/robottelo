@@ -30,6 +30,7 @@ from robottelo.constants import (
     REPOS,
     REPOSET,
     RPM_TO_UPLOAD,
+    SRPM_TO_UPLOAD,
     VALID_GPG_KEY_BETA_FILE,
     VALID_GPG_KEY_FILE,
 )
@@ -440,6 +441,23 @@ class RepositoryTestCase(APITestCase):
         # Create a repository and upload RPM content.
         repo = entities.Repository(product=self.product).create()
         with open(get_data_file(RPM_TO_UPLOAD), 'rb') as handle:
+            repo.upload_content(files={'content': handle})
+        # Verify the repository's contents.
+        self.assertEqual(repo.read().content_counts['rpm'], 1)
+
+    @skip_if_bug_open('bugzilla', 1378442)
+    @run_only_on('sat')
+    @tier1
+    def test_positive_upload_contents_srpm(self):
+        """Create a repository and upload SRPM contents.
+
+        @id: e091a725-048f-44ca-90cc-c016c450ced9
+
+        @Assert: The repository's contents include one SRPM.
+        """
+        # Create a repository and upload source RPM content.
+        repo = entities.Repository(product=self.product).create()
+        with open(get_data_file(SRPM_TO_UPLOAD), 'rb') as handle:
             repo.upload_content(files={'content': handle})
         # Verify the repository's contents.
         self.assertEqual(repo.read().content_counts['rpm'], 1)
