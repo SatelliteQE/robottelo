@@ -15,19 +15,25 @@
 
 @Upstream: No
 """
-
+from datetime import datetime, timedelta
 from fauxfactory import gen_string
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.factory import (
     CLIFactoryError,
+    make_job_invocation,
     make_job_template,
     make_org
 )
+from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.job_template import JobTemplate
+from robottelo.constants import DISTRO_RHEL7, REPOS
 from robottelo.datafactory import invalid_values_list
-from robottelo.decorators import tier1, tier2, tier3, stubbed
+from robottelo.decorators import tier1, tier2, tier3
+from robottelo.helpers import add_remote_execution_ssh_key
 from robottelo.test import CLITestCase
+from robottelo.vm import VirtualMachine
+from time import sleep
 
 TEMPLATE_FILE = u'template_file.txt'
 TEMPLATE_FILE_EMPTY = u'template_file_empty.txt'
@@ -38,7 +44,7 @@ class JobTemplateTestCase(CLITestCase):
 
     @classmethod
     def setUpClass(cls):
-        """Create an organization and host which can be re-used in tests."""
+        """Create an organization to be reused in tests."""
         super(JobTemplateTestCase, cls).setUpClass()
         cls.organization = make_org()
         ssh.command(
@@ -168,7 +174,31 @@ class JobTemplateTestCase(CLITestCase):
 class RemoteExecutionTestCase(CLITestCase):
     """Implements job execution tests in CLI."""
 
-    @stubbed
+    @classmethod
+    def setUpClass(cls):
+        """Create an organization which can be re-used in tests."""
+        super(RemoteExecutionTestCase, cls).setUpClass()
+        cls.organization = make_org()
+        ssh.command(
+            '''echo 'getenforce' > {0}'''.format(TEMPLATE_FILE)
+        )
+        cls.client = VirtualMachine(distro=DISTRO_RHEL7)
+        cls.client.create()
+        cls.client.install_katello_ca()
+        cls.client.register_contenthost(
+            cls.organization['label'],
+            lce='Library'
+        )
+        cls.client.enable_repo(REPOS['rhst7']['id'])
+        cls.client.install_katello_agent()
+        add_remote_execution_ssh_key(cls.client.hostname)
+
+    @classmethod
+    def tearDownClass(cls):
+        """Remove the VM used for testing remote execution"""
+        cls.client.destroy()
+        super(RemoteExecutionTestCase, cls).tearDownClass()
+
     @tier2
     def test_positive_run_default_job_template(self):
         """Run default job template against a single host
@@ -177,8 +207,13 @@ class RemoteExecutionTestCase(CLITestCase):
 
         @Assert: Verify the job was successfully ran against the host
         """
+        invocation_command = make_job_invocation({
+            'job-template': 'Run Command - SSH Default',
+            'inputs': 'command="ls"',
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        self.assertEqual(invocation_command['success'], u'1')
 
-    @stubbed
     @tier2
     def test_positive_run_custom_job_template(self):
         """Run custom job template against a single host
@@ -187,8 +222,18 @@ class RemoteExecutionTestCase(CLITestCase):
 
         @Assert: Verify the job was successfully ran against the host
         """
+        template_name = gen_string('alpha', 7)
+        make_job_template({
+            u'organizations': self.organization[u'name'],
+            u'name': template_name,
+            u'file': TEMPLATE_FILE
+        })
+        invocation_command = make_job_invocation({
+            'job-template': template_name,
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        self.assertEqual(invocation_command[u'success'], u'1')
 
-    @stubbed
     @tier3
     def test_positive_run_scheduled_job_template(self):
         """Schedule a job to be ran against a host
@@ -197,3 +242,21 @@ class RemoteExecutionTestCase(CLITestCase):
 
         @Assert: Verify the job was successfully ran after the designated time
         """
+        system_current_time = ssh.command('date +"%b %d %Y %I:%M%p"').stdout[0]
+        current_time_object = datetime.strptime(
+            system_current_time, '%b %d %Y %I:%M%p')
+        plan_time = (current_time_object + timedelta(seconds=30)).strftime(
+            "%Y-%m-%d %H:%M")
+        invocation_command = make_job_invocation({
+            'job-template': 'Run Command - SSH Default',
+            'inputs': 'command="ls"',
+            'start-at': plan_time,
+            'search-query': "name ~ {0}".format(self.client.hostname),
+        })
+        for _ in range(5):
+            try:
+                invocation_info = JobInvocation.info({
+                    'id': invocation_command[u'id']})
+                self.assertEqual(invocation_info[u'success'], u'1')
+            except AssertionError:
+                sleep(30)
