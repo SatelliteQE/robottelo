@@ -43,6 +43,7 @@ from robottelo.constants import (
     FAKE_5_YUM_REPO,
     FAKE_7_PUPPET_REPO,
     RPM_TO_UPLOAD,
+    SRPM_TO_UPLOAD,
 )
 from robottelo.decorators import (
     run_only_on,
@@ -711,5 +712,28 @@ class RepositoryTestCase(CLITestCase):
         })
         self.assertIn(
             "Successfully uploaded file '{0}'".format(RPM_TO_UPLOAD),
+            result[0]['message'],
+        )
+
+    @skip_if_bug_open('bugzilla', 1378442)
+    @tier1
+    def test_positive_upload_content_srpm(self):
+        """Create repository and upload a SRPM content
+
+        @id: 706dc3e2-dacb-4fdd-8eef-5715ce498888
+
+        @Assert: File successfully uploaded
+        """
+        new_repo = self._make_repository({'name': gen_string('alpha', 15)})
+        ssh.upload_file(local_file=get_data_file(SRPM_TO_UPLOAD),
+                        remote_file="/tmp/{0}".format(SRPM_TO_UPLOAD))
+        result = Repository.upload_content({
+            'name': new_repo['name'],
+            'organization': new_repo['organization'],
+            'path': "/tmp/{0}".format(SRPM_TO_UPLOAD),
+            'product-id': new_repo['product']['id'],
+        })
+        self.assertIn(
+            "Successfully uploaded file '{0}'".format(SRPM_TO_UPLOAD),
             result[0]['message'],
         )
