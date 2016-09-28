@@ -11,5 +11,6 @@ Submodules:
     tests.foreman.endtoend
     tests.foreman.rhci
     tests.foreman.ui
+    tests.foreman.sys
 
 .. automodule:: tests.foreman
