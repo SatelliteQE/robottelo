@@ -19,9 +19,12 @@
 from fauxfactory import gen_string
 from robottelo import ssh
 from robottelo.cli.base import CLIReturnCodeError
+from robottelo.cli.contentview import ContentView
 from robottelo.cli.task import Task
 from robottelo.cli.factory import (
+    make_content_view,
     make_gpg_key,
+    make_lifecycle_environment,
     make_org,
     make_product,
     make_product_wait,
@@ -44,6 +47,7 @@ from robottelo.constants import (
     FAKE_5_PUPPET_REPO,
     FAKE_5_YUM_REPO,
     FAKE_7_PUPPET_REPO,
+    FAKE_YUM_SRPM_REPO,
     RPM_TO_UPLOAD,
     SRPM_TO_UPLOAD,
     DOWNLOAD_POLICIES,
@@ -1086,3 +1090,114 @@ class OstreeRepositoryTestCase(CLITestCase):
         Repository.delete({u'id': new_repo['id']})
         with self.assertRaises(CLIReturnCodeError):
             Repository.info({u'id': new_repo['id']})
+
+
+class SRPMRepositoryTestCase(CLITestCase):
+    """Tests specific to using repositories containing source RPMs."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create a product and an org which can be re-used in tests."""
+        super(SRPMRepositoryTestCase, cls).setUpClass()
+        cls.org = make_org()
+        cls.product = make_product({'organization-id': cls.org['id']})
+
+    @tier2
+    def test_positive_sync(self):
+        """Synchronize repository with SRPMs
+
+        @id: eb69f840-122d-4180-b869-1bd37518480c
+
+        @Assert: srpms can be listed in repository
+        """
+        repo = make_repository({
+            'product-id': self.product['id'],
+            'url': FAKE_YUM_SRPM_REPO,
+        })
+        Repository.synchronize({'id': repo['id']})
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
+            '/custom/{}/{}/ | grep .src.rpm'
+            .format(
+                self.org['label'],
+                self.product['label'],
+                repo['label'],
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier2
+    def test_positive_sync_publish_cv(self):
+        """Synchronize repository with SRPMs, add repository to content view
+        and publish content view
+
+        @id: 78cd6345-9c6c-490a-a44d-2ad64b7e959b
+
+        @Assert: srpms can be listed in content view
+        """
+        repo = make_repository({
+            'product-id': self.product['id'],
+            'url': FAKE_YUM_SRPM_REPO,
+        })
+        Repository.synchronize({'id': repo['id']})
+        cv = make_content_view({'organization-id': self.org['id']})
+        ContentView.add_repository({
+            'id': cv['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': cv['id']})
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
+            '/1.0/custom/{}/{}/ | grep .src.rpm'
+            .format(
+                self.org['label'],
+                cv['label'],
+                self.product['label'],
+                repo['label'],
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier2
+    def test_positive_sync_publish_promote_cv(self):
+        """Synchronize repository with SRPMs, add repository to content view,
+        publish and promote content view to lifecycle environment
+
+        @id: 3d197118-b1fa-456f-980e-ad1a517bc769
+
+        @Assert: srpms can be listed in content view in proper lifecycle
+        environment
+        """
+        lce = make_lifecycle_environment({'organization-id': self.org['id']})
+        repo = make_repository({
+            'product-id': self.product['id'],
+            'url': FAKE_YUM_SRPM_REPO,
+        })
+        Repository.synchronize({'id': repo['id']})
+        cv = make_content_view({'organization-id': self.org['id']})
+        ContentView.add_repository({
+            'id': cv['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': cv['id']})
+        content_view = ContentView.info({'id': cv['id']})
+        cvv = content_view['versions'][0]
+        ContentView.version_promote({
+            'id': cvv['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
+            ' | grep .src.rpm'
+            .format(
+                self.org['label'],
+                lce['label'],
+                cv['label'],
+                self.product['label'],
+                repo['label'],
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)

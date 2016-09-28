@@ -18,14 +18,19 @@ from fauxfactory import gen_string
 from nailgun import entities
 from nailgun.entity_mixins import TaskFailedError
 from requests.exceptions import HTTPError
-from robottelo import manifests
-from robottelo.api.utils import enable_rhrepo_and_fetchid, upload_manifest
+from robottelo import manifests, ssh
+from robottelo.api.utils import (
+    enable_rhrepo_and_fetchid,
+    promote,
+    upload_manifest,
+)
 from robottelo.constants import (
     DOCKER_REGISTRY_HUB,
     FAKE_0_PUPPET_REPO,
     FAKE_7_PUPPET_REPO,
     FAKE_2_YUM_REPO,
     FAKE_5_YUM_REPO,
+    FAKE_YUM_SRPM_REPO,
     FEDORA22_OSTREE_REPO,
     FEDORA23_OSTREE_REPO,
     PRDS,
@@ -63,7 +68,7 @@ class RepositoryTestCase(APITestCase):
     """Tests for ``katello/api/v2/repositories``."""
 
     @classmethod
-    def setUpClass(cls):  # noqa
+    def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(RepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
@@ -895,7 +900,7 @@ class DockerRepositoryTestCase(APITestCase):
     """Tests specific to using ``Docker`` repositories."""
 
     @classmethod
-    def setUpClass(cls):  # noqa
+    def setUpClass(cls):
         """Create an organization and product which can be re-used in tests."""
         super(DockerRepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
@@ -973,7 +978,7 @@ class OstreeRepositoryTestCase(APITestCase):
 
     @classmethod
     @skip_if_os('RHEL6')
-    def setUpClass(cls):  # noqa
+    def setUpClass(cls):
         """Create a product and an org which can be re-used in tests."""
         super(OstreeRepositoryTestCase, cls).setUpClass()
         cls.org = entities.Organization().create()
@@ -1075,3 +1080,106 @@ class OstreeRepositoryTestCase(APITestCase):
             basearch=None,
         )
         entities.Repository(id=repo_id).sync()
+
+
+class SRPMRepositoryTestCase(APITestCase):
+    """Tests specific to using repositories containing source RPMs."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create a product and an org which can be re-used in tests."""
+        super(SRPMRepositoryTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.product = entities.Product(organization=cls.org).create()
+
+    @tier2
+    def test_positive_sync(self):
+        """Synchronize repository with SRPMs
+
+        @id: f87391c6-c18a-4c4f-81db-decbba7f1856
+
+        @Assert: srpms can be listed in repository
+        """
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_SRPM_REPO,
+        ).create()
+        repo.sync()
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
+            '/custom/{}/{}/ | grep .src.rpm'
+            .format(
+                self.org.label,
+                self.product.label,
+                repo.label,
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier2
+    def test_positive_sync_publish_cv(self):
+        """Synchronize repository with SRPMs, add repository to content view
+        and publish content view
+
+        @id: a0868429-584c-4e36-b93f-c85e8e94a60b
+
+        @Assert: srpms can be listed in content view
+        """
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_SRPM_REPO,
+        ).create()
+        repo.sync()
+        cv = entities.ContentView(organization=self.org).create()
+        cv.repository = [repo]
+        cv.update(['repository'])
+        cv.publish()
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
+            '/1.0/custom/{}/{}/ | grep .src.rpm'
+            .format(
+                self.org.label,
+                cv.label,
+                self.product.label,
+                repo.label,
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier2
+    def test_positive_sync_publish_promote_cv(self):
+        """Synchronize repository with SRPMs, add repository to content view,
+        publish and promote content view to lifecycle environment
+
+        @id: 811b524f-2b19-4408-ad7f-d7251625e35c
+
+        @Assert: srpms can be listed in content view in proper lifecycle
+        environment
+        """
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_SRPM_REPO,
+        ).create()
+        repo.sync()
+        cv = entities.ContentView(organization=self.org).create()
+        cv.repository = [repo]
+        cv.update(['repository'])
+        cv.publish()
+        cv = cv.read()
+        promote(cv.version[0], lce.id)
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
+            ' | grep .src.rpm'
+            .format(
+                self.org.label,
+                lce.name,
+                cv.label,
+                self.product.label,
+                repo.label,
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
