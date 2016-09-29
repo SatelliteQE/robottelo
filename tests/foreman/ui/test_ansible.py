@@ -191,6 +191,36 @@ class AnsibleTestCase(UITestCase):
     @run_only_on('sat')
     @stubbed()
     @tier3
+    def test_positive_execute_custom_ansible_role(self):
+        """Execute custom Ansible roles on hosts
+
+        @id: 39bc81fd-2b6c-4dac-8db7-38312ba9bffb
+
+        @steps:
+
+        1. On Satellite server create a new custom Ansible role.
+           A role with a single task writing a new file on client host, can be
+           created using a template like.
+           "echo 'task: shell: touch /tmp/file.test' >
+           /etc/ansible/roles/custom/"
+        2. From Web UI -> Hosts -> Select a Host -> Edit -> Ansible Roles ->
+        Select the new custom Ansible role -> Click Submit.
+        3. Run the associated Ansible role in the host.
+
+        @assert:
+
+        1. The custom role are available in Satellite.
+        1. The Ansible roles are associated to the appropriate hosts.
+        2. The Ansible run reports generated.
+        3. The role task has been performed successfully in the client host
+           (ssh in to the client host and check that /tmp/file.test exists)
+
+        @caseautomation: notautomated
+        """
+
+    @run_only_on('sat')
+    @stubbed()
+    @tier3
     def test_positive_associate_ansible_roles_to_hostgroups(self):
         """Associate Ansible roles to hostgroups
 
