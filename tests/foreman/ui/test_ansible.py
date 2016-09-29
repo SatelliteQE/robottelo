@@ -2,7 +2,7 @@
 
 @Requirement: Ansible Integration
 
-@CaseLevel: Acceptance
+@CaseLevel: System
 
 @CaseComponent: UI
 
@@ -31,48 +31,65 @@ class AnsibleTestCase(UITestCase):
 
         @steps:
 
-        1. Install Ansible plugin in Satellite using
-           --enable-foreman-plugin-ansible option
+        1. Install Ansible plugin in Satellite by running
+           `satellite-installer` using `--enable-foreman-plugin-ansible`
+           option
 
-        @assert: Ansible plugin is installed succesfully. This can be verified
+        @assert: Ansible plugin is installed successfully. This can be verified
         by editing any host and checking the presence of `Ansible Roles` tab.
 
         @caseautomation: notautomated
+
         """
 
     @run_only_on('sat')
     @stubbed()
     @tier3
-    def test_positive_setup_ansible_callback_1(self):
+    def test_positive_setup_ansible_callback_satellite_host(self):
         """Setup Ansible callback when Ansible is installed in the Satellite
         host
 
         @id: d9296383-66f8-4999-9102-ef28aff77877
 
-        @assert: Ansible callback is setup succesfully. This can be verified by
-        running Ansible setup module in any of the hosts.
+        @steps:
+
+        1. Follow the Ansible callback setup steps mentioned in
+           https://theforeman.org/plugins/foreman_ansible/1.x/index.html
+           #2.1Ansiblecallback
+
+        @assert: Ansible callback is setup successfully. This can be verified
+        by running Ansible setup module in any of the hosts.
 
         @caseautomation: notautomated
+
         """
 
     @run_only_on('sat')
     @stubbed()
     @tier3
-    def test_positive_setup_ansible_callback_2(self):
+    def test_positive_setup_ansible_callback_capsule(self):
         """Setup Ansible callback when Ansible is installed in the Capsule
 
         @id: 72dec524-268e-480a-b7c1-6df2ebbe0d43
 
-        @assert: Ansible callback is setup succesfully. This can be verified by
-        running Ansible setup module in any of the hosts.
+        @steps:
+
+        1. Follow the Ansible callback setup steps mentioned in
+           https://theforeman.org/plugins/foreman_ansible/1.x/index.html
+           #2.1Ansiblecallback
+
+
+        @assert: Ansible callback is setup successfully. This can be verified
+        by running Ansible setup module in any of the hosts.
 
         @caseautomation: notautomated
+
         """
 
     @run_only_on('sat')
     @stubbed()
     @tier3
-    def test_positive_ansible_tower_1(self):
+    def test_positive_tower_installed_in_satellite_host(self):
         """Generate Ansible run reports when Ansible Tower is installed in the
         Satellite host
 
@@ -88,12 +105,13 @@ class AnsibleTestCase(UITestCase):
         reports are shown in Satellite.
 
         @caseautomation: notautomated
+
         """
 
     @run_only_on('sat')
     @stubbed()
     @tier3
-    def test_positive_ansible_tower_2(self):
+    def test_positive_tower_installed_in_capsule(self):
         """Check Ansible runs when Ansible Tower is installed in the Capsule
 
         @id: 5af34b23-b6d7-49f5-9e92-ac0ba2182c86
@@ -237,6 +255,8 @@ class AnsibleTestCase(UITestCase):
         Ansible roles.
 
         @caseautomation: notautomated
+
+        @caselevel: Acceptance
         """
 
     @run_only_on('sat')
@@ -252,6 +272,9 @@ class AnsibleTestCase(UITestCase):
         Ansible roles.
 
         @caseautomation: notautomated
+
+        @caselevel: Acceptance
+
         """
 
     @run_only_on('sat')
@@ -267,6 +290,9 @@ class AnsibleTestCase(UITestCase):
         delete Ansible roles
 
         @caseautomation: notautomated
+
+        @caselevel: Acceptance
+
         """
 
     @run_only_on('sat')
@@ -340,6 +366,9 @@ class AnsibleTestCase(UITestCase):
         @assert: Ansible parameter added to the host successfully
 
         @caseautomation: notautomated
+
+        @caselevel: Acceptance
+
         """
 
     @run_only_on('sat')
@@ -353,4 +382,7 @@ class AnsibleTestCase(UITestCase):
         @assert: Ansible parameter added to the hostgroup successfully
 
         @caseautomation: notautomated
+
+        @caselevel: Acceptance
+
         """
