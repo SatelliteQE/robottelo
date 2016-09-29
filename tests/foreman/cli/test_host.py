@@ -36,6 +36,7 @@ from robottelo.cli.operatingsys import OperatingSys
 from robottelo.cli.proxy import Proxy
 from robottelo.config import settings
 from robottelo.constants import (
+    DISTRO_RHEL7,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
@@ -940,7 +941,7 @@ class KatelloAgentTestCase(CLITestCase):
         """
         super(KatelloAgentTestCase, self).setUp()
         # Create VM and register content host
-        self.client = VirtualMachine(distro='rhel71')
+        self.client = VirtualMachine(distro=DISTRO_RHEL7)
         self.client.create()
         self.client.install_katello_ca()
         # Register content host, install katello-agent

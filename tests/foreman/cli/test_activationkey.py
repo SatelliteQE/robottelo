@@ -37,6 +37,7 @@ from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.repository import Repository
 from robottelo.cli.subscription import Subscription
 from robottelo.constants import FAKE_0_YUM_REPO, PRDS, REPOS, REPOSET
+from robottelo.constants import DISTRO_RHEL6
 from robottelo.datafactory import valid_data_list, invalid_values_list
 from robottelo.decorators import (
     run_in_one_thread,
@@ -593,8 +594,8 @@ class ActivationKeyTestCase(CLITestCase):
             u'organization-id': self.org['id'],
             u'max-hosts': '1',
         })
-        with VirtualMachine(distro='rhel65') as vm1:
-            with VirtualMachine(distro='rhel65') as vm2:
+        with VirtualMachine(distro=DISTRO_RHEL6) as vm1:
+            with VirtualMachine(distro=DISTRO_RHEL6) as vm2:
                 vm1.install_katello_ca()
                 result = vm1.register_contenthost(
                     self.org['label'], new_ak['name'])
@@ -820,7 +821,7 @@ class ActivationKeyTestCase(CLITestCase):
             })
             for _ in range(2)
         ]
-        with VirtualMachine(distro='rhel65') as vm:
+        with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             vm.install_katello_ca()
             for i in range(2):
                 result = vm.register_contenthost(

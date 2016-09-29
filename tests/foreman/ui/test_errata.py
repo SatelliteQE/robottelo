@@ -30,6 +30,8 @@ from robottelo.cli.repository_set import RepositorySet
 from robottelo.constants import (
     DEFAULT_ARCHITECTURE,
     DEFAULT_RELEASE_VERSION,
+    DISTRO_RHEL6,
+    DISTRO_RHEL7,
     FAKE_1_CUSTOM_PACKAGE,
     FAKE_2_CUSTOM_PACKAGE,
     FAKE_2_ERRATA_ID,
@@ -224,7 +226,7 @@ class ErrataTestCase(UITestCase):
 
         @CaseLevel: System
         """
-        with VirtualMachine(distro='rhel71') as client:
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             result = client.register_contenthost(
                 self.session_org.label,
@@ -259,8 +261,8 @@ class ErrataTestCase(UITestCase):
         @CaseLevel: System
         """
         with nested(
-                VirtualMachine(distro='rhel71'),
-                VirtualMachine(distro='rhel71')
+                VirtualMachine(distro=DISTRO_RHEL7),
+                VirtualMachine(distro=DISTRO_RHEL7)
         ) as (client1, client2):
             clients = [client1, client2]
             for client in clients:
@@ -500,7 +502,7 @@ class ErrataTestCase(UITestCase):
 
         @CaseLevel: System
         """
-        with VirtualMachine(distro='rhel71') as client:
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
                 client.install_katello_ca()
                 result = client.register_contenthost(
                     self.session_org.label,
@@ -563,7 +565,7 @@ class ErrataTestCase(UITestCase):
 
         @CaseLevel: System
         """
-        with VirtualMachine(distro='rhel71') as client:
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             result = client.register_contenthost(
                 self.session_org.label,
@@ -663,7 +665,7 @@ class ErrataTestCase(UITestCase):
             'organization-id': org.id,
             'to-lifecycle-environment-id': env.id,
         })
-        with VirtualMachine(distro='rhel67') as client:
+        with VirtualMachine(distro=DISTRO_RHEL6) as client:
             client.install_katello_ca()
             result = client.register_contenthost(
                 org.label,
@@ -768,7 +770,7 @@ class ErrataTestCase(UITestCase):
             'organization-id': org.id,
             'to-lifecycle-environment-id': env.id,
         })
-        with VirtualMachine(distro='rhel67') as client:
+        with VirtualMachine(distro=DISTRO_RHEL6) as client:
             client.install_katello_ca()
             result = client.register_contenthost(
                 org.label,

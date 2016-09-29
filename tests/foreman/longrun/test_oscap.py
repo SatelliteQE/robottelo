@@ -28,6 +28,8 @@ from robottelo.constants import (
     ANY_CONTEXT,
     DEFAULT_LOC,
     DEFAULT_SUBSCRIPTION_NAME,
+    DISTRO_RHEL6,
+    DISTRO_RHEL7,
     OSCAP_DEFAULT_CONTENT,
     OSCAP_PERIOD,
     OSCAP_PROFILE,
@@ -191,12 +193,12 @@ class OpenScapTestCase(UITestCase):
         ]
         vm_values = [
             {
-                'distro': 'rhel67',
+                'distro': DISTRO_RHEL6,
                 'hgrp': hgrp6_name,
                 'rhel_repo': rhel6_repo,
             },
             {
-                'distro': 'rhel71',
+                'distro': DISTRO_RHEL7,
                 'hgrp': hgrp7_name,
                 'rhel_repo': rhel7_repo,
             },

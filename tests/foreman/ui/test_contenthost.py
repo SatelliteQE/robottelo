@@ -21,6 +21,7 @@ from robottelo.cli.factory import (
     setup_org_for_a_rh_repo,
 )
 from robottelo.constants import (
+    DISTRO_RHEL7,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
@@ -85,7 +86,7 @@ class ContentHostTestCase(UITestCase):
         """Create a VM, subscribe it to satellite-tools repo, install
         katello-ca and katello-agent packages"""
         super(ContentHostTestCase, self).setUp()
-        self.client = VirtualMachine(distro='rhel71')
+        self.client = VirtualMachine(distro=DISTRO_RHEL7)
         self.client.create()
         self.client.install_katello_ca()
         result = self.client.register_contenthost(
