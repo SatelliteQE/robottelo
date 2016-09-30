@@ -18,7 +18,9 @@
 
 import json
 from random import choice
+
 from robottelo import ssh
+from robottelo.api.utils import delete_puppet_class
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_hostgroup
@@ -127,8 +129,10 @@ class SmartClassParametersTestCase(CLITestCase):
         exception and skip all tests in case not enough parameters returned.
         """
         super(SmartClassParametersTestCase, cls).setUpClass()
+        cls.puppet_module = "puppetlabs/ntp"
         cls.host_name = settings.server.hostname
-        ssh.command('puppet module install --force puppetlabs/ntp')
+        ssh.command(
+            'puppet module install --force {0}'.format(cls.puppet_module))
         cls.env = Environment.info({u'name': 'production'})
         Proxy.importclasses({
             u'environment': cls.env['name'],
@@ -144,6 +148,16 @@ class SmartClassParametersTestCase(CLITestCase):
                                ' work with in provided puppet class')
         cls.sc_params_ids_list = [
             sc_param['id'] for sc_param in sc_params_list]
+
+    @classmethod
+    def tearDownClass(cls):
+        """Removes entire module from the system and re-imports classes into
+        proxy. This is required as other types of tests (API/UI) use the same
+        module.
+        """
+        super(SmartClassParametersTestCase, cls).tearDownClass()
+        delete_puppet_class(cls.puppet['name'], cls.puppet_module,
+                            cls.host_name, cls.env['name'])
 
     @run_only_on('sat')
     @tier2
@@ -992,7 +1006,6 @@ class SmartClassParametersTestCase(CLITestCase):
         @assert: The matcher has been created successfully.
         """
         sc_param_id = self.sc_params_ids_list.pop()
-        value = gen_string('alpha')
         SmartClassParameter.update({
             'id': sc_param_id,
             'override': 1,
@@ -1001,7 +1014,6 @@ class SmartClassParametersTestCase(CLITestCase):
         SmartClassParameter.add_override_value({
             'smart-class-parameter-id': sc_param_id,
             'match': 'domain=test.com',
-            'value': value,
             'use-puppet-default': 1
         })
         sc_param = SmartClassParameter.info({
@@ -1012,8 +1024,6 @@ class SmartClassParametersTestCase(CLITestCase):
             sc_param['override-values']['values']['1']['match'],
             'domain=test.com'
         )
-        self.assertEqual(
-            sc_param['override-values']['values']['1']['value'], value)
 
     @run_only_on('sat')
     @stubbed()
@@ -1499,16 +1509,3 @@ class SmartClassParametersTestCase(CLITestCase):
         })
         self.assertFalse(sc_param['default-value'])
         self.assertEqual(sc_param['hidden-value?'], True)
-
-    @classmethod
-    def tearDownClass(cls):
-        """Removes entire module from the system and re-imports classes into
-        proxy. This is required as other types of tests (API/UI) use the same
-        module.
-        """
-        super(SmartClassParametersTestCase, cls).tearDownClass()
-        ssh.command('puppet module uninstall --force puppetlabs/ntp')
-        Proxy.importclasses({
-            u'environment': cls.env['name'],
-            u'name': cls.host_name,
-        })

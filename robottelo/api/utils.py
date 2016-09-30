@@ -4,6 +4,7 @@ import time
 
 from inflector import Inflector
 from nailgun import entities
+from robottelo import ssh
 from robottelo.decorators import bz_bug_is_open
 
 
@@ -72,6 +73,44 @@ def upload_manifest(organization_id, manifest):
         data={'organization_id': organization_id},
         files={'content': manifest},
     )
+
+
+def delete_puppet_class(puppetclass_name, puppet_module=None,
+                        proxy_hostname=None, environment_name=None):
+    """Removes puppet class entity and uninstall puppet module from Capsule if
+    puppet module name and Capsule details provided.
+
+    :param str puppetclass_name: Name of the puppet class entity that should be
+        removed.
+    :param str puppet_module: Name of the module that should be
+        uninstalled via puppet.
+    :param str proxy_hostname: Hostname of the Capsule from which puppet module
+        should be removed.
+    :param str environment_name: Name of environment where puppet module was
+        imported.
+    """
+    # Find puppet class
+    puppet_class = entities.PuppetClass().search(
+        query={'search': 'name="{0}"'.format(puppetclass_name)}
+    )[0]
+    # Search and remove puppet class from affected hostgroups
+    for hostgroup in puppet_class.read().hostgroup:
+        hostgroup.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
+    # Search and remove puppet class from affected hosts
+    for host in entities.Host().search(
+            query={'search': 'class={0}'.format(puppet_class.name)}):
+        host.delete_puppetclass(data={'puppetclass_id': puppet_class.id})
+    # Remove puppet class entity
+    puppet_class.delete()
+    # And remove puppet module from the system if puppet_module name provided
+    if puppet_module and proxy_hostname and environment_name:
+        ssh.command(
+            'puppet module uninstall --force {0}'.format(puppet_module))
+        env = entities.Environment().search(
+            query={'search': 'name="{0}"'.format(environment_name)}
+        )[0]
+        proxy = entities.SmartProxy(name=proxy_hostname).search()[0]
+        proxy.import_puppetclasses(environment=env)
 
 
 def one_to_one_names(name):
