@@ -22,6 +22,7 @@ from nailgun import entities
 from requests import HTTPError
 
 from robottelo import ssh
+from robottelo.api.utils import delete_puppet_class
 from robottelo.config import settings
 from robottelo.datafactory import invalid_values_list, valid_data_list
 from robottelo.decorators import (
@@ -44,8 +45,10 @@ class SmartVariablesTestCase(APITestCase):
         class variables.
         """
         super(SmartVariablesTestCase, cls).setUpClass()
+        cls.puppet_module = "puppetlabs/ntp"
         cls.host_name = settings.server.hostname
-        ssh.command('puppet module install --force puppetlabs/ntp')
+        ssh.command(
+            'puppet module install --force {0}'.format(cls.puppet_module))
         cls.env = entities.Environment().search(
             query={'search': 'name="production"'}
         )
@@ -57,6 +60,16 @@ class SmartVariablesTestCase(APITestCase):
         cls.puppet = entities.PuppetClass().search(
             query={'search': 'name="ntp"'}
         )[0]
+
+    @classmethod
+    def tearDownClass(cls):
+        """Removes entire module from the system and re-imports classes into
+        proxy. This is required as other types of tests (CLI/UI) use the same
+        module.
+        """
+        super(SmartVariablesTestCase, cls).tearDownClass()
+        delete_puppet_class(cls.puppet.name, cls.puppet_module,
+                            cls.host_name, cls.env.name)
 
     @run_only_on('sat')
     @tier1
@@ -213,9 +226,8 @@ class SmartVariablesTestCase(APITestCase):
         host = entities.Host().search(
             query={'search': 'name={0}'.format(self.host_name)}
         )[0]
-        host.puppet_class = [self.puppet]
-        host.update(['puppet_class'])
-        self.assertGreater(list(host.list_smart_variables()), 0)
+        host.add_puppetclass(data={'puppetclass_id': self.puppet.id})
+        self.assertGreater(len(host.list_smart_variables()['results']), 0)
 
     @run_only_on('sat')
     @tier2
@@ -231,7 +243,7 @@ class SmartVariablesTestCase(APITestCase):
         entities.SmartVariable(puppetclass=self.puppet).create()
         hostgroup = entities.HostGroup().create()
         hostgroup.add_puppetclass(data={'puppetclass_id': self.puppet.id})
-        self.assertGreater(list(hostgroup.list_smart_variables()), 0)
+        self.assertGreater(len(hostgroup.list_smart_variables()['results']), 0)
 
     @run_only_on('sat')
     @tier1
