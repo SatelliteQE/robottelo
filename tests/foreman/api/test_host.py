@@ -28,7 +28,14 @@ from robottelo.datafactory import (
     valid_hosts_list,
     valid_data_list,
 )
-from robottelo.decorators import bz_bug_is_open, run_only_on, tier1, tier2
+from robottelo.decorators import (
+    bz_bug_is_open,
+    run_only_on,
+    stubbed,
+    tier1,
+    tier2,
+    tier3,
+)
 from robottelo.test import APITestCase
 from six.moves import http_client
 
@@ -903,3 +910,173 @@ class HostTestCase(APITestCase):
             host = host.update(['operatingsystem'])
         self.assertNotEqual(
             host.read().operatingsystem.read().name, new_os.name)
+
+    @run_only_on('sat')
+    @stubbed
+    @tier3
+    def test_positive_create_baremetal_with_bios(self):
+        """Create a new Host from provided MAC address
+
+        @id: 9d74ed70-3197-4825-bf96-21eeb4a765f9
+
+        @setup:
+
+        1. Create a PXE-based VM with BIOS boot mode (outside of Satellite).
+
+        @steps:
+
+        1. Create a new host using 'BareMetal' option and MAC address of the
+        pre-created VM
+
+        @assert: Host is created
+
+        @caseautomation: notautomated
+
+        @caselevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier3
+    def test_positive_create_baremetal_with_uefi(self):
+        """Create a new Host from provided MAC address
+
+        @id: 9b852c4d-a94f-4ba9-b666-ea4718320a42
+
+        @setup:
+
+        1. Create a PXE-based VM with UEFI boot mode (outside of Satellite).
+
+        @steps:
+
+        1. Create a new host using 'BareMetal' option and MAC address of the
+        pre-created VM
+
+        @assert: Host is created
+
+        @caseautomation: notautomated
+
+        @caselevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier3
+    def test_positive_verify_files_with_pxegrub_uefi(self):
+        """Provision a new Host and verify the tftp and dhcpd file
+        structure is correct
+
+        @id: 0c51c8ad-858c-44e1-8b14-8e0c52c29da1
+
+        @steps:
+
+        1. Associate a pxegrub-type provisioning template with the os
+        2. Create new host (can be fictive bare metal) with the above OS and
+        PXE loader set to Grub UEFI
+        3. Build the host
+
+        @assert:
+        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
+            grub/bootia32.efi
+            grub/bootx64.efi
+            grub/01-AA-BB-CC-DD-EE-FF
+            grub/efidefault
+            grub/shim.efi
+        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+
+        @caseautomation: notautomated
+
+        @caselevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier3
+    def test_positive_verify_files_with_pxegrub_uefi_secureboot(self):
+        """Provision a new Host and verify the tftp and dhcpd file structure is
+        correct
+
+        @id: ac4d535f-09bb-49db-b38b-90f9bad5fa19
+
+        @steps:
+
+        1. Associate a pxegrub-type provisioning template with the os
+        2. Create new host (can be fictive bare metal) with the above OS and
+        PXE loader set to Grub UEFI SecureBoot
+        3. Build the host
+
+        @assert:
+        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
+            grub/bootia32.efi
+            grub/bootx64.efi
+            grub/01-AA-BB-CC-DD-EE-FF
+            grub/efidefault
+            grub/shim.efi
+        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+
+        @caseautomation: notautomated
+
+        @caselevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier3
+    def test_positive_verify_files_with_pxegrub2_uefi(self):
+        """Provision a new UEFI Host and verify the tftp and dhcpd file
+        structure is correct
+
+        @id: fb951256-e173-4c2a-a812-92db80443cec
+
+        @steps:
+
+        1. Associate a pxegrub-type provisioning template with the os
+        2. Create new host (can be fictive bare metal) with the above OS and
+        PXE loader set to Grub2 UEFI
+        3. Build the host
+
+        @assert:
+        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
+            pxegrub2
+            grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
+            grub2/grub.cfg
+            grub2/grubx32.efi
+            grub2/grubx64.efi
+            grub/shim.efi
+        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+
+        @caseautomation: notautomated
+
+        @caselevel: System
+        """
+
+    @run_only_on('sat')
+    @stubbed
+    @tier3
+    def test_positive_verify_files_with_pxegrub2_uefi_secureboot(self):
+        """Provision a new UEFI Host and verify the tftp and dhcpd file
+        structure is correct
+
+        @id: c0ea18df-d8c0-403a-b053-f5e500f8e3a3
+
+        @steps:
+
+        1. Associate a pxegrub-type provisioning template with the os
+        2. Create new host (can be fictive bare metal) with the above OS and
+        PXE loader set to Grub2 UEFI SecureBoot
+        3. Build the host
+
+        @assert:
+        Verify [/var/lib/tftpboot/] contains the following dir/file structure:
+            pxegrub2
+            grub2/grub.cfg-01-aa-bb-cc-dd-ee-ff
+            grub2/grub.cfg
+            grub2/grubx32.efi
+            grub2/grubx64.efi
+            grub/shim.efi
+        and record in /var/lib/dhcpd/dhcpd.leases points to the bootloader
+
+        @caseautomation: notautomated
+
+        @caselevel: System
+        """
