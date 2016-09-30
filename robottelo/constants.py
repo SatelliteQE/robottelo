@@ -323,6 +323,9 @@ FAKE_5_YUM_REPO = u'http://{0}:{1}@rplevka.fedorapeople.org/fakerepo01/'
 FAKE_6_YUM_REPO = (
     u'https://jlsherrill.fedorapeople.org/fake-repos/needed-errata/'
 )
+FAKE_YUM_DRPM_REPO = (
+    u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/drpm/'
+)
 FAKE_YUM_SRPM_REPO = (
     u'https://repos.fedorapeople.org/repos/pulp/pulp/fixtures/srpm/'
 )

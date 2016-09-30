@@ -47,6 +47,7 @@ from robottelo.constants import (
     FAKE_5_PUPPET_REPO,
     FAKE_5_YUM_REPO,
     FAKE_7_PUPPET_REPO,
+    FAKE_YUM_DRPM_REPO,
     FAKE_YUM_SRPM_REPO,
     RPM_TO_UPLOAD,
     SRPM_TO_UPLOAD,
@@ -1191,6 +1192,117 @@ class SRPMRepositoryTestCase(CLITestCase):
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
             ' | grep .src.rpm'
+            .format(
+                self.org['label'],
+                lce['label'],
+                cv['label'],
+                self.product['label'],
+                repo['label'],
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+
+class DRPMRepositoryTestCase(CLITestCase):
+    """Tests specific to using repositories containing delta RPMs."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create a product and an org which can be re-used in tests."""
+        super(DRPMRepositoryTestCase, cls).setUpClass()
+        cls.org = make_org()
+        cls.product = make_product({'organization-id': cls.org['id']})
+
+    @tier2
+    def test_positive_sync(self):
+        """Synchronize repository with DRPMs
+
+        @id: a645966c-750b-40ef-a264-dc3bb632b9fd
+
+        @Assert: drpms can be listed in repository
+        """
+        repo = make_repository({
+            'product-id': self.product['id'],
+            'url': FAKE_YUM_DRPM_REPO,
+        })
+        Repository.synchronize({'id': repo['id']})
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
+            '/custom/{}/{}/drpms/ | grep .drpm'
+            .format(
+                self.org['label'],
+                self.product['label'],
+                repo['label'],
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier2
+    def test_positive_sync_publish_cv(self):
+        """Synchronize repository with DRPMs, add repository to content view
+        and publish content view
+
+        @id: 014bfc80-4622-422e-a0ec-755b1d9f845e
+
+        @Assert: drpms can be listed in content view
+        """
+        repo = make_repository({
+            'product-id': self.product['id'],
+            'url': FAKE_YUM_DRPM_REPO,
+        })
+        Repository.synchronize({'id': repo['id']})
+        cv = make_content_view({'organization-id': self.org['id']})
+        ContentView.add_repository({
+            'id': cv['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': cv['id']})
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
+            '/1.0/custom/{}/{}/drpms/ | grep .drpm'
+            .format(
+                self.org['label'],
+                cv['label'],
+                self.product['label'],
+                repo['label'],
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier2
+    def test_positive_sync_publish_promote_cv(self):
+        """Synchronize repository with DRPMs, add repository to content view,
+        publish and promote content view to lifecycle environment
+
+        @id: a01cb12b-d388-4902-8532-714f4e28ec56
+
+        @Assert: drpms can be listed in content view in proper lifecycle
+        environment
+        """
+        lce = make_lifecycle_environment({'organization-id': self.org['id']})
+        repo = make_repository({
+            'product-id': self.product['id'],
+            'url': FAKE_YUM_DRPM_REPO,
+        })
+        Repository.synchronize({'id': repo['id']})
+        cv = make_content_view({'organization-id': self.org['id']})
+        ContentView.add_repository({
+            'id': cv['id'],
+            'repository-id': repo['id'],
+        })
+        ContentView.publish({'id': cv['id']})
+        content_view = ContentView.info({'id': cv['id']})
+        cvv = content_view['versions'][0]
+        ContentView.version_promote({
+            'id': cvv['id'],
+            'to-lifecycle-environment-id': lce['id'],
+        })
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}'
+            '/drpms/ | grep .drpm'
             .format(
                 self.org['label'],
                 lce['label'],
