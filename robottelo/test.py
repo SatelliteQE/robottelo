@@ -180,7 +180,9 @@ class CLITestCase(TestCase):
         :param contents: contents which must be present on message
         """
         exception = raise_ctx.exception
-        error_msg = getattr(exception, 'stderr', exception.message)
+        error_msg = getattr(exception, 'stderr', exception.message).decode(
+            'unicode-escape'
+        )
         for content in contents:
             self.assertIn(content, error_msg)
 
