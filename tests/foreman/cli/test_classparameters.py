@@ -21,7 +21,6 @@ from random import choice
 
 from nailgun import entities
 
-from robottelo import ssh
 from robottelo.api.utils import delete_puppet_class
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.contentview import ContentView
@@ -180,6 +179,16 @@ class SmartClassParametersTestCase(CLITestCase):
         if len(self.sc_params_list) == 0:
             raise Exception("Not enough smart class parameters. Please "
                             "update puppet module.")
+
+    @classmethod
+    def tearDownClass(cls):
+        """Removes entire module from the system and re-imports classes into
+        proxy. This is required as other types of tests (API/UI) use the same
+        module.
+        """
+        super(SmartClassParametersTestCase, cls).tearDownClass()
+        delete_puppet_class(cls.puppet['name'], cls.puppet_module,
+                            cls.host_name, cls.env['name'])
 
     @classmethod
     def tearDownClass(cls):
