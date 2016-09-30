@@ -210,9 +210,9 @@ class AnsibleTestCase(UITestCase):
         @assert:
 
         1. The custom role are available in Satellite.
-        1. The Ansible roles are associated to the appropriate hosts.
-        2. The Ansible run reports generated.
-        3. The role task has been performed successfully in the client host
+        2. The Ansible roles are associated to the appropriate hosts.
+        3. The Ansible run reports generated.
+        4. The role task has been performed successfully in the client host
            (ssh in to the client host and check that /tmp/file.test exists)
 
         @caseautomation: notautomated
