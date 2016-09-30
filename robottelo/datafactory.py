@@ -77,7 +77,8 @@ def invalid_emails_list():
         u'Abc.example.com',
         u'A@b@c@example.com',
         u'email@example..c',
-        u'{0}@example.com'.format(gen_string('alpha', 49)),  # total length 61
+        # total length 255:
+        u'{0}@example.com'.format(gen_string('alpha', 243)),
         u'{0}@example.com'.format(gen_string('html')),
         u's p a c e s@example.com',
         u'dot..dot@example.com'
