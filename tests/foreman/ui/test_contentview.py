@@ -29,6 +29,7 @@ from robottelo.api.utils import (
 )
 from robottelo import manifests
 from robottelo.constants import (
+    CUST_PERMS_LIST,
     DEFAULT_CV,
     DOCKER_REGISTRY_HUB,
     ENVIRONMENT,
@@ -2297,3 +2298,50 @@ class ContentViewTestCase(UITestCase):
                 self.content_views.wait_until_element(
                     common_locators['alert.success_sub_form'])
             )
+
+    @run_in_one_thread
+    @run_only_on('sat')
+    @tier2
+    def test_positive_promote_CV_with_custom_user_role_and_filters(self):
+        """Publish and promote cv with user with custom role and filter
+
+        @id: a07fe3df-8645-4a0c-8c56-3f8314ae4878
+
+        @Assert: CV should be published and promoted successfully
+
+        @CaseLevel: Integration
+        """
+        role = entities.Role().create()
+        for perm in CUST_PERMS_LIST:
+            permissions = entities.Permission(name=perm).search()
+            entities.Filter(permission=permissions, role=role).create()
+        username = gen_string('alpha')
+        user_password = gen_string('alphanumeric')
+        entities.User(
+            login=username,
+            role=[role],
+            password=user_password,
+            organization=[self.organization],
+        ).create()
+        repo_name = gen_string('alpha')
+        env_name = gen_string('alpha')
+        cv_name = gen_string('alpha')
+        with Session(self.browser, username, user_password) as session:
+            # Create Life-cycle environment
+            make_lifecycle_environment(session, name=env_name)
+            # Creates a CV along with product and sync'ed repository
+            self.setup_to_create_cv(repo_name=repo_name)
+            # Create content-view
+            make_contentview(session, name=cv_name)
+            self.assertIsNotNone(self.content_views.search(cv_name))
+            # Add repository to selected CV
+            self.content_views.add_remove_repos(cv_name, [repo_name])
+            self.assertIsNotNone(self.content_views.wait_until_element(
+                common_locators['alert.success_sub_form']))
+            # Publish and promote CV to next environment
+            self.content_views.publish(cv_name)
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators['alert.success_sub_form']))
+            self.content_views.promote(cv_name, 'Version 1', env_name)
+            self.assertIsNotNone(self.content_views.wait_until_element
+                                 (common_locators['alert.success_sub_form']))
