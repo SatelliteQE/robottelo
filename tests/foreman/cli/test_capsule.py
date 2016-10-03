@@ -166,6 +166,24 @@ class CapsuleTestCase(CLITestCase):
         # Add capsule id to cleanup list
         self.addCleanup(capsule_cleanup, proxy['id'])
 
+    @skip_if_not_set('fake_capsules')
+    @run_only_on('sat')
+    @tier1
+    def test_positive_import_puppet_classes(self):
+        """Import puppet classes from proxy
+
+        @id: 42e3a9c0-62e1-4049-9667-f3c0cdfe0b04
+
+        @Assert: Puppet classes are imported from proxy
+        """
+        port = get_available_capsule_port()
+        with default_url_on_new_port(9090, port):
+            url = u'https://{0}:{1}'.format(settings.server.hostname, port)
+            proxy = make_proxy({u'url': url})
+            Proxy.importclasses({u'id': proxy['id']})
+        # Add capsule id to cleanup list
+        self.addCleanup(capsule_cleanup, proxy['id'])
+
 
 class CapsuleIntegrationTestCase(CLITestCase):
     """Tests for capsule functionality."""
