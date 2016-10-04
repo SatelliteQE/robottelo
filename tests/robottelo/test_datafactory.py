@@ -22,8 +22,8 @@ from robottelo.datafactory import (
     valid_labels_list,
     valid_names_list,
     valid_org_names_list,
-    valid_usernames_list
-)
+    valid_usernames_list,
+    gen_html_with_total_len)
 
 if six.PY2:
     import mock
@@ -77,6 +77,12 @@ class FilteredDataPointTestCase(unittest2.TestCase):
         self.assertEqual(len(valid_usernames_list()), 1)
 
     @mock.patch('robottelo.datafactory.gen_string')
+    def test_gen_html_with_total_len(self, gen_string):
+        gen_string.side_effect = lambda _, length: 'a' * length
+        html_str = gen_html_with_total_len(50)
+        self.assertEqual(50, len(html_str))
+
+    @mock.patch('robottelo.datafactory.gen_string')
     def test_generate_strings_list_remove_str(self, gen_string):
         gen_string.side_effect = lambda str_type, _: str_type
         str_types = STRING_TYPES[:]
@@ -96,6 +102,7 @@ class FilteredDataPointTestCase(unittest2.TestCase):
 class TestReturnTypes(unittest2.TestCase):
     """Tests for validating return types for different data factory
     functions."""
+
     def test_return_type(self):
         """This test validates return types for functions:
 
@@ -126,7 +133,7 @@ class TestReturnTypes(unittest2.TestCase):
                 valid_labels_list(),
                 valid_names_list(),
                 valid_org_names_list(),
-                valid_usernames_list(),):
+                valid_usernames_list()):
             self.assertIsInstance(item, six.text_type)
         for item in invalid_id_list():
             if not (isinstance(item, (six.text_type, int)) or item is None):
@@ -135,6 +142,7 @@ class TestReturnTypes(unittest2.TestCase):
 
 class InvalidValuesListTestCase(unittest2.TestCase):
     """Tests for :meth:`robottelo.datafactory.invalid_values_list`"""
+
     def test_return_values(self):
         """Tests if invalid values list returns right values based on input"""
         # Test valid values

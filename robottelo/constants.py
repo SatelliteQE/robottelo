@@ -292,13 +292,19 @@ DEFAULT_ARCHITECTURE = 'x86_64'
 DEFAULT_RELEASE_VERSION = '6Server'
 
 LANGUAGES = [
-    u'zh_TW',
-    u'Galego',
-    u'Deutsch',
-    u'it',
-    u'日本語',
-    u'sv_SE',
+    u'Català', u'Deutsch', u'English (United States)',
+    u'English (United Kingdom)', u'Español', u'Français', u'Galego', u'it',
+    u'日本語', u'한국어', u'pl', u'Português (Brasil)', u'Русский', u'sv_SE',
+    u'简体中文', u'zh_TW'
 ]
+
+
+LOCALES = [
+    u'ca', u'de', u'en', u'en_GB', u'es', u'fr', u'gl', u'it',
+    u'ja', u'ko', u'pl', u'pt_BR', u'ru', u'sv_SE', u'zh_CN', u'zh_TW'
+]
+
+LANG_TO_LOCALE_DCT = dict(zip(LANGUAGES, LOCALES))
 
 TIMEZONES = [
     u'(GMT+00:00) UTC',
