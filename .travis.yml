@@ -4,7 +4,7 @@ env:
     - TOXENV=py27
     - TOXENV=py34
 install:
-    - pip install -r requirements.txt coveralls flake8 sphinx testimony==1.0.3 tox
+    - pip install -r requirements-freeze.txt
 script:
     - flake8 .
     - make test-docstrings
