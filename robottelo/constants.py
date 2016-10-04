@@ -306,7 +306,9 @@ FILTER_TYPE = {
 }
 
 DOCKER_REGISTRY_HUB = u'https://registry-1.docker.io'
-GOOGLE_CHROME_REPO = u'http://dl.google.com/linux/chrome/rpm/stable/x86_64'
+CUSTOM_RPM_REPO = (
+    u'http://repos.fedorapeople.org/repos/pulp/pulp/fixtures/rpm/'
+)
 FAKE_0_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo/'
 FAKE_1_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo3/'
 FAKE_2_YUM_REPO = u'http://inecas.fedorapeople.org/fakerepos/zoo2/'
