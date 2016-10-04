@@ -30,6 +30,7 @@ from robottelo.constants import (
     FAKE_7_PUPPET_REPO,
     FAKE_2_YUM_REPO,
     FAKE_5_YUM_REPO,
+    FAKE_YUM_DRPM_REPO,
     FAKE_YUM_SRPM_REPO,
     FEDORA22_OSTREE_REPO,
     FEDORA23_OSTREE_REPO,
@@ -1173,6 +1174,109 @@ class SRPMRepositoryTestCase(APITestCase):
         result = ssh.command(
             'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}/'
             ' | grep .src.rpm'
+            .format(
+                self.org.label,
+                lce.name,
+                cv.label,
+                self.product.label,
+                repo.label,
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+
+class DRPMRepositoryTestCase(APITestCase):
+    """Tests specific to using repositories containing delta RPMs."""
+
+    @classmethod
+    def setUpClass(cls):
+        """Create a product and an org which can be re-used in tests."""
+        super(DRPMRepositoryTestCase, cls).setUpClass()
+        cls.org = entities.Organization().create()
+        cls.product = entities.Product(organization=cls.org).create()
+
+    @tier2
+    def test_positive_sync(self):
+        """Synchronize repository with DRPMs
+
+        @id: 7816031c-b7df-49e0-bf42-7f6e2d9b0233
+
+        @Assert: drpms can be listed in repository
+        """
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_DRPM_REPO,
+        ).create()
+        repo.sync()
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/Library'
+            '/custom/{}/{}/drpms/ | grep .drpm'
+            .format(
+                self.org.label,
+                self.product.label,
+                repo.label,
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier2
+    def test_positive_sync_publish_cv(self):
+        """Synchronize repository with DRPMs, add repository to content view
+        and publish content view
+
+        @id: dac4bd82-1433-4e5d-b82f-856056ca3924
+
+        @Assert: drpms can be listed in content view
+        """
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_DRPM_REPO,
+        ).create()
+        repo.sync()
+        cv = entities.ContentView(organization=self.org).create()
+        cv.repository = [repo]
+        cv.update(['repository'])
+        cv.publish()
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/content_views/{}'
+            '/1.0/custom/{}/{}/drpms/ | grep .drpm'
+            .format(
+                self.org.label,
+                cv.label,
+                self.product.label,
+                repo.label,
+            )
+        )
+        self.assertEqual(result.return_code, 0)
+        self.assertGreaterEqual(len(result.stdout), 1)
+
+    @tier2
+    def test_positive_sync_publish_promote_cv(self):
+        """Synchronize repository with DRPMs, add repository to content view,
+        publish and promote content view to lifecycle environment
+
+        @id: 44296354-8ca2-4ce0-aa16-398effc80d9c
+
+        @Assert: drpms can be listed in content view in proper lifecycle
+        environment
+        """
+        lce = entities.LifecycleEnvironment(organization=self.org).create()
+        repo = entities.Repository(
+            product=self.product,
+            url=FAKE_YUM_DRPM_REPO,
+        ).create()
+        repo.sync()
+        cv = entities.ContentView(organization=self.org).create()
+        cv.repository = [repo]
+        cv.update(['repository'])
+        cv.publish()
+        cv = cv.read()
+        promote(cv.version[0], lce.id)
+        result = ssh.command(
+            'ls /var/lib/pulp/published/yum/https/repos/{}/{}/{}/custom/{}/{}'
+            '/drpms/ | grep .drpm'
             .format(
                 self.org.label,
                 lce.name,
