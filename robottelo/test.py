@@ -108,7 +108,8 @@ class TestCase(unittest2.TestCase):
         self.worker_id = worker_id
         if worker_id != 'master':
             formatter = logging.Formatter(
-                fmt='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+                fmt='%(asctime)s - {0} - %(name)s - %(levelname)s -'
+                ' %(message)s'.format(worker_id),
                 datefmt='%Y-%m-%d %H:%M:%S'
             )
             handler = logging.FileHandler(
