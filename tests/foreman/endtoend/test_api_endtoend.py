@@ -31,7 +31,7 @@ from robottelo.constants import (
     DEFAULT_ORG,
     DEFAULT_SUBSCRIPTION_NAME,
     FAKE_0_PUPPET_REPO,
-    GOOGLE_CHROME_REPO,
+    CUSTOM_RPM_REPO,
     PRDS,
     REPOS,
     REPOSET,
@@ -992,7 +992,7 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
             server_config,
             product=prod,
             content_type=u'yum',
-            url=GOOGLE_CHROME_REPO
+            url=CUSTOM_RPM_REPO
         ).create()
         repositories.append(repo1)
 

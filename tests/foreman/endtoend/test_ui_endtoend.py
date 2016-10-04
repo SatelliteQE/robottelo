@@ -28,7 +28,7 @@ from robottelo.constants import (
     DOMAIN,
     FAKE_0_PUPPET_REPO,
     FOREMAN_PROVIDERS,
-    GOOGLE_CHROME_REPO,
+    CUSTOM_RPM_REPO,
     LIBVIRT_RESOURCE_URL,
     PRDS,
     REPOS,
@@ -196,7 +196,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             make_repository(
                 session,
                 name=yum_repository_name,
-                url=GOOGLE_CHROME_REPO
+                url=CUSTOM_RPM_REPO
             )
             self.assertIsNotNone(self.repository.search(yum_repository_name))
 
