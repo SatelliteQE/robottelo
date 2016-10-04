@@ -2,7 +2,7 @@
 import logging
 
 import re
-from cachetools import lru_cache
+from robottelo.helpers import lru_cache
 
 from robottelo import ssh
 LOGGER = logging.getLogger(__name__)
