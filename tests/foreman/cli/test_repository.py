@@ -57,7 +57,6 @@ from robottelo.constants import (
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
-    stubbed,
     tier1,
     tier2,
 )
@@ -837,28 +836,44 @@ class RepositoryTestCase(CLITestCase):
                 self.assertEqual(result['url'], new_repo['url'])
 
     @run_only_on('sat')
-    @stubbed()
+    @tier1
     def test_positive_update_gpg_key(self):
         """Update the original gpg key
 
         @id: 367ff375-4f52-4a8c-b974-8c1c54e3fdd3
 
         @Assert: Repository gpg key is updated
-
-        @caseautomation: notautomated
         """
+        gpg_key = make_gpg_key({'organization-id': self.org['id']})
+        gpg_key_new = make_gpg_key({'organization-id': self.org['id']})
+        new_repo = self._make_repository({
+            u'gpg-key-id': gpg_key['id'],
+        })
+        Repository.update({
+            u'id': new_repo['id'],
+            u'gpg-key-id': gpg_key_new['id'],
+        })
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(result['gpg-key']['id'], gpg_key_new['id'])
 
     @run_only_on('sat')
-    @stubbed()
-    def test_positive_update_published_method(self):
+    @tier1
+    def test_positive_update_publish_method(self):
         """Update the original publishing method
 
         @id: e7bd2667-4851-4a64-9c70-1b5eafbc3f71
 
         @Assert: Repository publishing method is updated
-
-        @caseautomation: notautomated
         """
+        new_repo = self._make_repository({
+            u'publish-via-http': 'no',
+        })
+        Repository.update({
+            u'id': new_repo['id'],
+            u'publish-via-http': 'yes',
+        })
+        result = Repository.info({'id': new_repo['id']})
+        self.assertEqual(result['publish-via-http'], 'yes')
 
     @run_only_on('sat')
     @tier1
