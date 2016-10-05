@@ -923,8 +923,8 @@ class EndToEndTestCase(TestCase, ClientProvisioningMixin):
         #    …
         # }, u'status': u'ok'}
         services = response['services']
-        if bz_bug_is_open('1325995'):
-            services.pop('foreman_auth')
+        # remove foreman_auth service - BZ1325995
+        services.pop('foreman_auth')
         self.assertTrue(
             all([service['status'] == u'ok' for service in services.values()]),
             u'Not all services seem to be up and running!'
