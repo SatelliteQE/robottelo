@@ -355,13 +355,15 @@ def bz_bug_is_open(bug_id):
     except BugFetchError as err:
         LOGGER.warning(err)
         return False
+    # NOT_FOUND, ON_QA, VERIFIED, RELEASE_PENDING, CLOSED
     if bug is None or bug.status not in BZ_OPEN_STATUSES:
-        # if not upstream mode, verify whiteboard field for the presence of
-        # 'verified in upstream' text
-        if (not settings.upstream and bug.whiteboard and
-                'verified in upstream' in bug.whiteboard.lower()):
+        # do not test bugs with whiteboard 'verified in upstream' in downstream
+        # until they are in 'CLOSED' state
+        if (not settings.upstream and bug.status != 'CLOSED' and bug.whiteboard
+                and 'verified in upstream' in bug.whiteboard.lower()):
             return True
         return False
+    # NEW, ASSIGNED, MODIFIED, POST
     return True
 
 
