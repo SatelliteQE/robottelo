@@ -17,6 +17,7 @@
 """
 
 from robottelo import ssh
+from robottelo.api.utils import delete_puppet_class
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_hostgroup, make_smart_variable
@@ -51,14 +52,26 @@ class SmartVariablesTestCase(CLITestCase):
         class variables.
         """
         super(SmartVariablesTestCase, cls).setUpClass()
+        cls.puppet_module = "puppetlabs/ntp"
         cls.host_name = settings.server.hostname
-        ssh.command('puppet module install --force puppetlabs/ntp')
+        ssh.command(
+            'puppet module install --force {0}'.format(cls.puppet_module))
         cls.env = Environment.info({u'name': 'production'})
         Proxy.importclasses({
             u'environment': cls.env['name'],
             u'name': cls.host_name,
         })
         cls.puppet = Puppet.info({u'name': 'ntp'})
+
+    @classmethod
+    def tearDownClass(cls):
+        """Removes entire module from the system and re-imports classes into
+        proxy. This is required as other types of tests (API/UI) use the same
+        module.
+        """
+        super(SmartVariablesTestCase, cls).tearDownClass()
+        delete_puppet_class(cls.puppet['name'], cls.puppet_module,
+                            cls.host_name, cls.env['name'])
 
     @run_only_on('sat')
     @tier2
@@ -193,7 +206,7 @@ class SmartVariablesTestCase(CLITestCase):
             with self.subTest(name):
                 smart_variable = make_smart_variable({
                     'variable': name, 'puppet-class': self.puppet['name']})
-                self.assertEqual(smart_variable['name'], name)
+                self.assertEqual(smart_variable['variable'], name)
 
     @run_only_on('sat')
     @tier1
@@ -248,9 +261,9 @@ class SmartVariablesTestCase(CLITestCase):
         """
         smart_variable = make_smart_variable({
             'puppet-class': self.puppet['name']})
-        SmartVariable.delete({'name': smart_variable['name']})
+        SmartVariable.delete({'variable': smart_variable['variable']})
         with self.assertRaises(CLIReturnCodeError):
-            SmartVariable.info({'name': smart_variable['name']})
+            SmartVariable.info({'variable': smart_variable['variable']})
 
     @run_only_on('sat')
     @tier1
@@ -272,10 +285,11 @@ class SmartVariablesTestCase(CLITestCase):
         self.assertEqual(smart_variable['puppet-class'], self.puppet['name'])
         new_puppet = Puppet.info({u'name': 'ntp::config'})
         SmartVariable.update({
-            'name': smart_variable['name'],
+            'variable': smart_variable['variable'],
             'puppet-class': new_puppet['name']
         })
-        updated_sv = SmartVariable.info({'name': smart_variable['name']})
+        updated_sv = SmartVariable.info(
+            {'variable': smart_variable['variable']})
         self.assertEqual(updated_sv['puppet-class'], new_puppet['name'])
 
     @run_only_on('sat')
@@ -940,7 +954,7 @@ class SmartVariablesTestCase(CLITestCase):
             'value': '[23, 44, 66]',
         })
         SmartVariable.update({
-            'name': smart_variable['name'],
+            'variable': smart_variable['variable'],
             'merge-overrides': 1,
             'merge-default': 1,
         })
@@ -1126,7 +1140,7 @@ class SmartVariablesTestCase(CLITestCase):
             'variable-type': 'array'
         })
         SmartVariable.update({
-            'name': smart_variable['name'],
+            'variable': smart_variable['variable'],
             'merge-overrides': 1,
             'merge-default': 1,
         })
@@ -1161,7 +1175,7 @@ class SmartVariablesTestCase(CLITestCase):
         })
         with self.assertRaises(CLIReturnCodeError):
             SmartVariable.update({
-                'name': smart_variable['name'],
+                'variable': smart_variable['variable'],
                 'merge-overrides': 1,
                 'merge-default': 1,
             })
@@ -1186,11 +1200,11 @@ class SmartVariablesTestCase(CLITestCase):
             'variable-type': 'array'
         })
         SmartVariable.update({
-            'name': smart_variable['name'],
+            'variable': smart_variable['variable'],
             'merge-overrides': 1,
         })
         SmartVariable.update({
-            'name': smart_variable['name'],
+            'variable': smart_variable['variable'],
             'avoid-duplicates': 1,
         })
         smart_variable = SmartVariable.info({'id': smart_variable['id']})
@@ -1225,7 +1239,7 @@ class SmartVariablesTestCase(CLITestCase):
         })
         with self.assertRaises(CLIReturnCodeError):
             SmartVariable.update({
-                'name': smart_variable['name'],
+                'variable': smart_variable['variable'],
                 'merge-overrides': 1,
                 'avoid-duplicates': 1,
             })
@@ -1331,10 +1345,11 @@ class SmartVariablesTestCase(CLITestCase):
         })
         self.assertEqual(smart_variable['hidden-value?'], True)
         SmartVariable.update({
-            'name': smart_variable['name'],
+            'variable': smart_variable['variable'],
             'hidden-value': 0
         })
-        updated_sv = SmartVariable.info({'name': smart_variable['name']})
+        updated_sv = SmartVariable.info(
+            {'variable': smart_variable['variable']})
         self.assertEqual(updated_sv['hidden-value?'], False)
 
     @run_only_on('sat')
@@ -1363,10 +1378,11 @@ class SmartVariablesTestCase(CLITestCase):
         })
         self.assertEqual(smart_variable['hidden-value?'], True)
         SmartVariable.update({
-            'name': smart_variable['name'],
+            'variable': smart_variable['variable'],
             'default-value': value,
         })
-        updated_sv = SmartVariable.info({'name': smart_variable['name']})
+        updated_sv = SmartVariable.info(
+            {'variable': smart_variable['variable']})
         self.assertEqual(updated_sv['default-value'], value)
 
     @run_only_on('sat')

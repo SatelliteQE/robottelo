@@ -23,6 +23,7 @@ from nailgun import entities
 from requests import HTTPError
 
 from robottelo import ssh
+from robottelo.api.utils import delete_puppet_class
 from robottelo.config import settings
 from robottelo.datafactory import filtered_datapoint
 from robottelo.decorators import (
@@ -119,8 +120,10 @@ class SmartClassParametersTestCase(APITestCase):
     @classmethod
     def setUpClass(cls):
         super(SmartClassParametersTestCase, cls).setUpClass()
+        cls.puppet_module = "puppetlabs/ntp"
         cls.host_name = settings.server.hostname
-        ssh.command('puppet module install --force puppetlabs/ntp')
+        ssh.command(
+            'puppet module install --force {0}'.format(cls.puppet_module))
         cls.env = entities.Environment().search(
             query={'search': 'name="production"'}
         )
@@ -141,9 +144,13 @@ class SmartClassParametersTestCase(APITestCase):
 
     @classmethod
     def tearDownClass(cls):
+        """Removes entire module from the system and re-imports classes into
+        proxy. This is required as other types of tests (CLI/UI) use the same
+        module.
+        """
         super(SmartClassParametersTestCase, cls).tearDownClass()
-        ssh.command('puppet module uninstall --force puppetlabs/ntp')
-        cls.proxy.import_puppetclasses(environment=cls.env)
+        delete_puppet_class(cls.puppet.name, cls.puppet_module,
+                            cls.host_name, cls.env.name)
 
     @run_only_on('sat')
     @tier2

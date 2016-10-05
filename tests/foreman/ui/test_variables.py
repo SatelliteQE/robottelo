@@ -19,7 +19,9 @@
 import yaml
 from fauxfactory import gen_string
 from random import choice, uniform
+
 from robottelo import ssh
+from robottelo.api.utils import delete_puppet_class
 from robottelo.cli.environment import Environment
 from robottelo.cli.factory import make_hostgroup
 from robottelo.cli.host import Host
@@ -142,9 +144,11 @@ class SmartVariablesTestCase(UITestCase):
         class variables.
         """
         super(SmartVariablesTestCase, cls).setUpClass()
+        cls.puppet_module = "puppetlabs/ntp"
         cls.host_name = settings.server.hostname
         _, _, cls.domain_name = cls.host_name.partition('.')
-        ssh.command('puppet module install --force puppetlabs/ntp')
+        ssh.command(
+            'puppet module install --force {0}'.format(cls.puppet_module))
         cls.env = Environment.info({u'name': 'production'})
         Proxy.importclasses({
             u'environment': cls.env['name'],
@@ -159,12 +163,14 @@ class SmartVariablesTestCase(UITestCase):
 
     @classmethod
     def tearDownClass(cls):
+        """Removes entire module from the system and re-imports classes into
+        proxy. This is required as other types of tests (API/UI) use the same
+        module.
+        """
         super(SmartVariablesTestCase, cls).tearDownClass()
-        ssh.command('puppet module uninstall --force puppetlabs/ntp')
-        Proxy.importclasses({
-            u'environment': cls.env['name'],
-            u'name': cls.host_name,
-        })
+
+        delete_puppet_class(cls.puppet['name'], cls.puppet_module,
+                            cls.host_name, cls.env['name'])
 
     @tier1
     def test_positive_create(self):
