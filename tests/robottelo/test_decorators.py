@@ -108,7 +108,11 @@ class BzBugIsOpenTestCase(TestCase):
         decorators._get_bugzilla_bug = lambda bug_id: MockBug()
         for MockBug.status in BZ_OPEN_STATUSES + BZ_CLOSED_STATUSES:
             for MockBug.whiteboard in self.valid_whiteboard_data:
-                self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
+                # 'CLOSED' state overides whiteboard 'verified in upstream'
+                if MockBug.status == 'CLOSED':
+                    self.assertFalse(decorators.bz_bug_is_open(self.bug_id))
+                else:
+                    self.assertTrue(decorators.bz_bug_is_open(self.bug_id))
 
     @mock.patch('robottelo.decorators.settings')
     def test_downstream_closedbug_invalid_whiteboard(self, dec_settings):
