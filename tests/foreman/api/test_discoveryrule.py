@@ -19,7 +19,7 @@ from fauxfactory import gen_choice, gen_integer, gen_string
 from nailgun import entities
 from requests.exceptions import HTTPError
 from robottelo.datafactory import valid_data_list
-from robottelo.decorators import run_only_on, stubbed, tier1, tier2
+from robottelo.decorators import run_only_on, tier1, tier2
 from robottelo.test import APITestCase
 
 
@@ -78,7 +78,6 @@ class DiscoveryRuleTestCase(APITestCase):
                 )
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_create_with_org_loc(self):
         """Create discovery rule by associating org and location
@@ -86,9 +85,18 @@ class DiscoveryRuleTestCase(APITestCase):
         @id: 121e0a30-8a24-47d7-974d-998886ed1ea7
 
         @Assert: Rule was created and with given org & location.
-
-        @caseautomation: notautomated
         """
+        org = entities.Organization().create()
+        loc = entities.Location().create()
+        hostgroup = entities.HostGroup(organization=[org]).create()
+        discovery_rule = entities.DiscoveryRule(
+            hostgroup=hostgroup,
+            search_='cpu_count = 1',
+            organization=[org],
+            location=[loc],
+        ).create()
+        self.assertEqual(org.name, discovery_rule.organization[0].read().name)
+        self.assertEqual(loc.name, discovery_rule.location[0].read().name)
 
     @tier1
     @run_only_on('sat')
@@ -164,7 +172,6 @@ class DiscoveryRuleTestCase(APITestCase):
                 self.assertEqual(discovery_rule.name, name)
 
     @run_only_on('sat')
-    @stubbed()
     @tier1
     def test_positive_update_org_loc(self):
         """Update org and location of selected discovery rule
@@ -172,9 +179,21 @@ class DiscoveryRuleTestCase(APITestCase):
         @id: 0f8ec302-f9de-4713-87b7-0f1aca515149
 
         @Assert: Rule was updated and with given org & location.
-
-        @caseautomation: notautomated
         """
+        org = entities.Organization().create()
+        loc = entities.Location().create()
+        hostgroup = entities.HostGroup(organization=[org]).create()
+        discovery_rule = self.discovery_rule.create()
+        discovery_rule.organization = [org]
+        discovery_rule.location = [loc]
+        discovery_rule.hostgroup = hostgroup
+        discovery_rule = discovery_rule.update([
+            'organization',
+            'location',
+            'hostgroup',
+        ])
+        self.assertEqual(org.name, discovery_rule.organization[0].read().name)
+        self.assertEqual(loc.name, discovery_rule.location[0].read().name)
 
     @tier1
     def test_positive_update_search_rule(self):

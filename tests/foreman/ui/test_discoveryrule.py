@@ -31,8 +31,9 @@ from robottelo.decorators import (
     stubbed,
 )
 from robottelo.test import UITestCase
+from robottelo.ui.base import UINoSuchElementError
 from robottelo.ui.factory import make_discoveryrule
-from robottelo.ui.locators import common_locators
+from robottelo.ui.locators import common_locators, locators
 from robottelo.ui.session import Session
 
 
@@ -664,8 +665,75 @@ class DiscoveryRuleTestCase(UITestCase):
         @caseautomation: notautomated
         """
 
+
+class DiscoveryRuleRoleTestCase(UITestCase):
+    """Tests around Discovery Manager/Reader Roles"""
+
+    @classmethod
+    def setUpClass(cls):
+        """Creates two non-admin users with discovery Manager/Reader roles"""
+        super(DiscoveryRuleRoleTestCase, cls).setUpClass()
+        cls.per_page = entities.Setting().search(
+            query={'search': 'name="entries_per_page"'})[0]
+        cls.saved_per_page = str(cls.per_page.value)
+        cls.per_page.value = '100000'
+        cls.per_page.update({'value'})
+        cls.org = entities.Organization().create()
+        cls.loc = entities.Location().create()
+        cls.host_group = entities.HostGroup(
+            organization=[cls.org]).create()
+
+        # Create a discovery rule
+        cls.rule_name = gen_string('alpha')
+        entities.DiscoveryRule(
+            name=cls.rule_name,
+            hostgroup=cls.host_group,
+            search_='cpu_count = 1',
+            organization=[cls.org],
+            location=[cls.loc],
+        ).create()
+
+        # create non-admin reader user with Discovery_Reader role
+        reader_role = entities.Role().search(
+            query={'search': 'name="Discovery Reader"'}
+        )[0]
+        cls.reader_user = gen_string('alpha')
+        cls.reader_user_password = gen_string('alphanumeric')
+        cls.read_user = entities.User(
+            login=cls.reader_user,
+            role=[reader_role],
+            password=cls.reader_user_password,
+            organization=[cls.org],
+            location=[cls.loc],
+            default_organization=cls.org,
+            default_location=cls.loc,
+        ).create()
+
+        # create non-admin manager user with Discovery_Manager role
+        manager_role = entities.Role().search(
+            query={'search': 'name="Discovery Manager"'}
+        )[0]
+        cls.manager_user = gen_string('alpha')
+        cls.manager_user_password = gen_string('alphanumeric')
+        cls.manage_user = entities.User(
+            login=cls.manager_user,
+            role=[manager_role],
+            password=cls.manager_user_password,
+            organization=[cls.org],
+            location=[cls.loc],
+            default_organization=cls.org,
+            default_location=cls.loc,
+        ).create()
+
+    @classmethod
+    def tearDownClass(cls):
+        """Restore previous 'entries_per_page' value"""
+        cls.per_page.value = cls.saved_per_page
+        cls.per_page.update({'value'})
+
+        super(DiscoveryRuleRoleTestCase, cls).tearDownClass()
+
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_create_rule_with_non_admin_user(self):
         """Create rule with non-admin user by associating discovery_manager role
@@ -674,13 +742,20 @@ class DiscoveryRuleTestCase(UITestCase):
 
         @Assert: Rule should be created successfully.
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        with Session(
+            self.browser, self.manager_user, self.manager_user_password
+        ) as session:
+            name = gen_string('alpha')
+            make_discoveryrule(
+                session,
+                name=name,
+                hostgroup=self.host_group.name,
+            )
+            self.assertIsNotNone(self.discoveryrules.search(name))
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_delete_rule_with_non_admin_user(self):
         """Delete rule with non-admin user by associating discovery_manager role
@@ -689,13 +764,20 @@ class DiscoveryRuleTestCase(UITestCase):
 
         @Assert: Rule should be deleted successfully.
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        with Session(
+            self.browser, self.manager_user, self.manager_user_password
+        ) as session:
+            name = gen_string('alpha')
+            make_discoveryrule(
+                session,
+                name=name,
+                hostgroup=self.host_group.name,
+            )
+            self.discoveryrules.delete(name)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_positive_view_existing_rule_with_non_admin_user(self):
         """Existing rule should be viewed to non-admin user by associating
@@ -711,13 +793,17 @@ class DiscoveryRuleTestCase(UITestCase):
 
         @Assert: Rule should be visible to non-admin user.
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        with Session(
+            self.browser, self.reader_user, self.reader_user_password
+        ) as session:
+            session.nav.go_to_discovery_rules()
+            element = self.discoveryrules.find_element(
+                locators['discoveryrules.disabled_name'] % self.rule_name)
+            self.assertIsNotNone(element)
 
     @run_only_on('sat')
-    @stubbed()
     @tier2
     def test_negative_delete_rule_with_non_admin_user(self):
         """Delete rule with non-admin user by associating discovery_reader role
@@ -727,10 +813,23 @@ class DiscoveryRuleTestCase(UITestCase):
         @Assert: User should validation error and rule should not be deleted
         successfully.
 
-        @caseautomation: notautomated
-
         @CaseLevel: Integration
         """
+        with Session(
+            self.browser, self.reader_user, self.reader_user_password
+        ) as session:
+            session.nav.go_to_discovery_rules()
+            element = self.discoveryrules.find_element(
+                locators['discoveryrules.disabled_name'] % self.rule_name)
+            self.assertIsNotNone(element)
+            # With non-admin user, delete button won't be visible on webUI
+            with self.assertRaises(UINoSuchElementError):
+                drop_locator = locators['discoveryrules.dropdown']
+                self.discoveryrules.click((drop_locator % self.rule_name))
+                del_locator = locators['discoveryrules.rule_delete']
+                self.discoveryrules.click(
+                    (del_locator % self.rule_name), wait_for_ajax=False)
+                self.handle_alert(really=True)
 
     @run_only_on('sat')
     @stubbed()

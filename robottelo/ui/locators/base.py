@@ -1825,6 +1825,8 @@ locators = LocatorDict({
     # Discovery Rules
     "discoveryrules.new": (
         By.XPATH, "//a[@data-id='aid_discovery_rules_new']"),
+    "discoveryrules.disabled_name": (
+        By.XPATH, "//a[@disabled='disabled']/span[contains(., '%s')]"),
     "discoveryrules.name": (
         By.XPATH, "//input[@id='discovery_rule_name']"),
     "discoveryrules.search": (
