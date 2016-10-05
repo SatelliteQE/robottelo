@@ -210,11 +210,11 @@ class HostGroupTestCase(APITestCase):
             location=[self.loc],
             organization=[self.org],
         ).create()
-        hostgroup_cloned_name = gen_string('alpha', 6)
+        hostgroup_cloned_name = gen_string('alpha')
         hostgroup_cloned = entities.HostGroup(
-                id=hostgroup.id
-                ).clone(data={u'name': hostgroup_cloned_name})
-        self.assertEqual(hostgroup_cloned[u'name'], hostgroup_cloned_name)
+            id=hostgroup.id
+        ).clone(data={'name': hostgroup_cloned_name})
+        self.assertEqual(hostgroup_cloned['name'], hostgroup_cloned_name)
 
     @tier2
     def test_positive_create_with_parent(self):
