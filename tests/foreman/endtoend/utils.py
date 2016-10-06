@@ -1,5 +1,6 @@
 # coding=utf-8
 """Module that aggregates common bits of the end to end tests."""
+from robottelo.constants import DISTRO_RHEL6
 from robottelo.decorators import setting_is_set
 from robottelo.vm import VirtualMachine
 
@@ -25,7 +26,7 @@ class ClientProvisioningMixin(object):
         """
         if not setting_is_set('clients'):
             return
-        with VirtualMachine(distro='rhel66') as vm:
+        with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             # Pull rpm from Foreman server and install on client
             vm.install_katello_ca()
             # Register client with foreman server using act keys

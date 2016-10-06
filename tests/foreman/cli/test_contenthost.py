@@ -27,6 +27,7 @@ from robottelo.cli.factory import (
 )
 from robottelo.cli.contenthost import ContentHost
 from robottelo.cli.contentview import ContentView
+from robottelo.constants import DISTRO_RHEL7
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.datafactory import (
     invalid_values_list,
@@ -381,7 +382,7 @@ class ContentHostTestCase(CLITestCase):
 
         @CaseLevel: System
         """
-        with VirtualMachine(distro='rhel71') as client:
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             result = client.run(
                 u'subscription-manager register --org {0} '
@@ -411,7 +412,7 @@ class ContentHostTestCase(CLITestCase):
             'lifecycle-environment-id': self.NEW_LIFECYCLE['id'],
             'organization-id': self.NEW_ORG['id'],
         })
-        with VirtualMachine(distro='rhel71') as client:
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             client.register_contenthost(
                 self.NEW_ORG['label'],
@@ -443,7 +444,7 @@ class ContentHostTestCase(CLITestCase):
             'lifecycle-environment-id': self.NEW_LIFECYCLE['id'],
             'organization-id': self.NEW_ORG['id'],
         })
-        with VirtualMachine(distro='rhel71') as client:
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             client.register_contenthost(
                 self.NEW_ORG['label'],
@@ -472,7 +473,7 @@ class ContentHostTestCase(CLITestCase):
             'lifecycle-environment-id': self.NEW_LIFECYCLE['id'],
             'organization-id': self.NEW_ORG['id'],
         })
-        with VirtualMachine(distro='rhel71') as client:
+        with VirtualMachine(distro=DISTRO_RHEL7) as client:
             client.install_katello_ca()
             client.register_contenthost(
                 self.NEW_ORG['label'],

@@ -16,12 +16,12 @@
 """
 
 import time
-
 from fauxfactory import gen_string
 from nailgun import entities
 from robottelo import manifests
 from robottelo.api.utils import upload_manifest
 from robottelo.constants import DEFAULT_SUBSCRIPTION_NAME
+from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
 from robottelo.decorators import run_in_one_thread, skip_if_not_set
 from robottelo.test import UITestCase
 from robottelo.ui.locators import locators
@@ -83,10 +83,10 @@ class RHAITestCase(UITestCase):
 
         """
         # Register a VM to Access Insights Service
-        with VirtualMachine(distro='rhel67') as vm:
+        with VirtualMachine(distro=DISTRO_RHEL6) as vm:
             try:
                 vm.configure_rhai_client(self.ak_name, self.org_label,
-                                         'rhel67')
+                                         DISTRO_RHEL6)
 
                 with Session(self.browser) as session:
                     # view clients registered to Red Hat Access Insights
@@ -134,10 +134,10 @@ class RHAITestCase(UITestCase):
 
         """
         # Register a VM to Access Insights Service
-        with VirtualMachine(distro='rhel71') as vm:
+        with VirtualMachine(distro=DISTRO_RHEL7) as vm:
             try:
                 vm.configure_rhai_client(self.ak_name, self.org_label,
-                                         'rhel71')
+                                         DISTRO_RHEL7)
 
                 with Session(self.browser) as session:
                     session.nav.go_to_select_org(self.org_name)

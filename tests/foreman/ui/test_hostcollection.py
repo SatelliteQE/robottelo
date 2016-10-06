@@ -25,6 +25,7 @@ from robottelo.cli.factory import (
     setup_org_for_a_rh_repo,
 )
 from robottelo.constants import (
+    DISTRO_RHEL7,
     FAKE_0_CUSTOM_PACKAGE,
     FAKE_0_CUSTOM_PACKAGE_GROUP,
     FAKE_0_CUSTOM_PACKAGE_GROUP_NAME,
@@ -458,7 +459,7 @@ class HostCollectionPackageManagementTest(UITestCase):
         super(HostCollectionPackageManagementTest, self).setUp()
         self.hosts = []
         for _ in range(self.hosts_number):
-            client = VirtualMachine(distro='rhel71')
+            client = VirtualMachine(distro=DISTRO_RHEL7)
             self.hosts.append(client)
             client.create()
             client.install_katello_ca()
