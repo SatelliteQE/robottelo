@@ -49,7 +49,7 @@ class Domain(Base):
     def update(self, old_description, new_name=None, description=None,
                dns_proxy=None):
         """Update an existing domain's name, description and dns_proxy."""
-        element = self.search(old_description)
+        element = self.get_entity(old_description)
         self.click(element)
         if self.wait_until_element(locators['domain.name']):
             self.field_update('domain.name', new_name)
@@ -58,12 +58,12 @@ class Domain(Base):
     def set_domain_parameter(
             self, domain_description, param_name, param_value):
         """Add new parameter for domain."""
-        element = self.search(domain_description)
+        element = self.get_entity(domain_description)
         self.click(element)
         self.set_parameter(param_name, param_value)
 
     def remove_domain_parameter(self, domain_description, param_name):
         """Remove new parameter from domain."""
-        element = self.search(domain_description)
+        element = self.get_entity(domain_description)
         self.click(element)
         self.remove_parameter(param_name)

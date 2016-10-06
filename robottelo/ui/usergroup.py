@@ -58,7 +58,7 @@ class UserGroup(Base):
             roles = []
         if new_roles is None:
             new_roles = []
-        self.click(self.search(old_name))
+        self.click(self.get_entity(old_name))
         if new_name and self.wait_until_element(locators['usergroups.name']):
             self.field_update('usergroups.name', new_name)
         self.configure_entity(
@@ -78,7 +78,7 @@ class UserGroup(Base):
 
     def refresh_ext_group(self, name, ext_group_name):
         """Refresh external usergroup entity"""
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(tab_locators['usergroups.tab_external'])
         strategy, value = locators['usergroups.ext_refresh']
         self.click((strategy, value % ext_group_name))

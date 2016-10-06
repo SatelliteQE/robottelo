@@ -62,8 +62,8 @@ class PackagesTestCase(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.package.select_repo(self.yum_repo.name)
-            self.assertIsNotNone(self.package.search('bear'))
-            self.assertIsNotNone(self.package.search('cheetah'))
+            self.assertIsNotNone(self.package.get_entity('bear'))
+            self.assertIsNotNone(self.package.get_entity('cheetah'))
 
     @tier2
     def test_positive_search_in_multiple_repos(self):
@@ -80,14 +80,14 @@ class PackagesTestCase(UITestCase):
         """
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
-            self.assertIsNotNone(self.package.search('tiger'))
-            self.assertIsNotNone(self.package.search('Lizard'))
+            self.assertIsNotNone(self.package.get_entity('tiger'))
+            self.assertIsNotNone(self.package.get_entity('Lizard'))
             self.package.select_repo(self.yum_repo.name)
-            self.assertIsNotNone(self.package.search('tiger'))
-            self.assertIsNone(self.package.search('Lizard'))
+            self.assertIsNotNone(self.package.get_entity('tiger'))
+            self.assertIsNone(self.package.get_entity('Lizard'))
             self.package.select_repo(self.yum_repo2.name)
-            self.assertIsNotNone(self.package.search('Lizard'))
-            self.assertIsNone(self.package.search('tiger'))
+            self.assertIsNotNone(self.package.get_entity('Lizard'))
+            self.assertIsNone(self.package.get_entity('tiger'))
 
     @tier2
     def test_positive_check_package_details(self):

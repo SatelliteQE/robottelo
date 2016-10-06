@@ -75,7 +75,7 @@ class SyncPlanTestCase(UITestCase):
             presence. Delay between each attempt is 10 seconds. Default is 10
             attempts.
         """
-        self.products.search(product).click()
+        self.products.get_entity(product).click()
         for _ in range(max_attempts):
             try:
                 for content in content_types:
@@ -135,7 +135,7 @@ class SyncPlanTestCase(UITestCase):
                         description=gen_string('utf8'),
                         sync_interval=choice(valid_sync_intervals()),
                     )
-                    self.assertIsNotNone(self.syncplan.search(name))
+                    self.assertIsNotNone(self.syncplan.get_entity(name))
 
     @tier1
     def test_positive_create_with_description(self):
@@ -156,7 +156,7 @@ class SyncPlanTestCase(UITestCase):
                         description=desc,
                         sync_interval=choice(valid_sync_intervals()),
                     )
-                    self.assertIsNotNone(self.syncplan.search(name))
+                    self.assertIsNotNone(self.syncplan.get_entity(name))
 
     @tier1
     def test_positive_create_with_sync_interval(self):
@@ -177,7 +177,7 @@ class SyncPlanTestCase(UITestCase):
                         description=name,
                         sync_interval=interval,
                     )
-                    self.assertIsNotNone(self.syncplan.search(name))
+                    self.assertIsNotNone(self.syncplan.get_entity(name))
 
     @tier2
     def test_positive_create_with_start_time(self):
@@ -200,8 +200,8 @@ class SyncPlanTestCase(UITestCase):
                 start_hour=startdate.strftime('%H'),
                 start_minute=startdate.strftime('%M'),
             )
-            self.assertIsNotNone(self.syncplan.search(plan_name))
-            self.syncplan.click(self.syncplan.search(plan_name))
+            self.assertIsNotNone(self.syncplan.get_entity(plan_name))
+            self.syncplan.click(self.syncplan.get_entity(plan_name))
             starttime_text = self.syncplan.wait_until_element(
                 locators['sp.fetch_startdate']).text
             # Removed the seconds info as it would be too quick
@@ -231,8 +231,8 @@ class SyncPlanTestCase(UITestCase):
                 description='sync plan create with start date',
                 startdate=startdate.strftime("%Y-%m-%d"),
             )
-            self.assertIsNotNone(self.syncplan.search(plan_name))
-            self.syncplan.click(self.syncplan.search(plan_name))
+            self.assertIsNotNone(self.syncplan.get_entity(plan_name))
+            self.syncplan.click(self.syncplan.get_entity(plan_name))
             startdate_text = self.syncplan.wait_until_element(
                 locators['sp.fetch_startdate']).text
             self.assertEqual(
@@ -271,7 +271,7 @@ class SyncPlanTestCase(UITestCase):
         name = gen_string('alphanumeric')
         with Session(self.browser) as session:
             make_syncplan(session, org=self.organization.name, name=name)
-            self.assertIsNotNone(self.syncplan.search(name))
+            self.assertIsNotNone(self.syncplan.get_entity(name))
             make_syncplan(
                 session,
                 org=self.organization.name,
@@ -300,7 +300,8 @@ class SyncPlanTestCase(UITestCase):
             for new_plan_name in generate_strings_list():
                 with self.subTest(new_plan_name):
                     self.syncplan.update(plan_name, new_name=new_plan_name)
-                    self.assertIsNotNone(self.syncplan.search(new_plan_name))
+                    self.assertIsNotNone(
+                        self.syncplan.get_entity(new_plan_name))
                     plan_name = new_plan_name  # for next iteration
 
     @tier1
@@ -323,7 +324,7 @@ class SyncPlanTestCase(UITestCase):
             for new_interval in valid_sync_intervals():
                 with self.subTest(new_interval):
                     self.syncplan.update(name, new_sync_interval=new_interval)
-                    self.syncplan.click(self.syncplan.search(name))
+                    self.syncplan.click(self.syncplan.get_entity(name))
                     # Assert updated sync interval
                     interval_text = self.syncplan.wait_until_element(
                         locators['sp.fetch_interval']
@@ -352,7 +353,7 @@ class SyncPlanTestCase(UITestCase):
             session.nav.go_to_select_org(self.organization.name)
             self.syncplan.update(
                 plan_name, add_products=[product.name])
-            self.syncplan.click(self.syncplan.search(plan_name))
+            self.syncplan.click(self.syncplan.get_entity(plan_name))
             # Assert product is associated with sync plan
             self.syncplan.click(tab_locators['sp.tab_products'])
             element = self.syncplan.wait_until_element(
@@ -380,7 +381,7 @@ class SyncPlanTestCase(UITestCase):
         with Session(self.browser) as session:
             session.nav.go_to_select_org(self.organization.name)
             self.syncplan.update(plan_name, add_products=[product.name])
-            self.syncplan.click(self.syncplan.search(plan_name))
+            self.syncplan.click(self.syncplan.get_entity(plan_name))
             self.syncplan.click(tab_locators['sp.tab_products'])
             element = self.syncplan.wait_until_element(
                 (strategy, value % product.name))
@@ -388,7 +389,7 @@ class SyncPlanTestCase(UITestCase):
             # Disassociate the product from sync plan and the selected product
             # should automatically move from 'List/Remove` tab to 'Add' tab
             self.syncplan.update(plan_name, rm_products=[product.name])
-            self.syncplan.click(self.syncplan.search(plan_name))
+            self.syncplan.click(self.syncplan.get_entity(plan_name))
             self.syncplan.click(tab_locators['sp.tab_products'])
             self.syncplan.click(tab_locators['sp.add_prd'])
             element = self.syncplan.wait_until_element(
@@ -561,7 +562,7 @@ class SyncPlanTestCase(UITestCase):
                 after_sync=False,
             )
             # Wait the rest of expected time
-            sleep(delay/2)
+            sleep(delay / 2)
             # Verify product was synced successfully
             self.validate_repo_content(
                 product.name,

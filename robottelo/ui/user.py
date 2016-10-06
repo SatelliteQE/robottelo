@@ -113,7 +113,7 @@ class User(Base):
                default_loc=None, select=False, authorized_by=None,
                submit=True):
         """Update user related fields from UI"""
-        self.click(self.search(username))
+        self.click(self.get_entity(username))
         if new_username:
             self.field_update('users.username', new_username)
         if email:
@@ -153,7 +153,7 @@ class User(Base):
         """Checks if selected user has Administrator privileges according to
         expected state and assign/unassign them otherwise
         """
-        self.click(self.search(username))
+        self.click(self.get_entity(username))
         self.click(tab_locators['users.tab_roles'])
         admin_role_locator = locators['users.admin_role']
         is_admin_role_selected = self.find_element(
@@ -179,7 +179,7 @@ class User(Base):
             all fields values present in the table, so we have specify that
             parameter explicitly
         """
-        element = self.search(username)
+        element = self.get_entity(username)
         if element is None:
             raise UINoSuchElementError(
                 'Unable to find the username "{0}".'.format(username)

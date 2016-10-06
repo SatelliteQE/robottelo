@@ -55,7 +55,7 @@ class ProductTestCase(UITestCase):
                         name=prd_name,
                         description=gen_string('alphanumeric'),
                     )
-                    self.assertIsNotNone(self.products.search(prd_name))
+                    self.assertIsNotNone(self.products.get_entity(prd_name))
 
     @run_only_on('sat')
     @tier2
@@ -80,7 +80,8 @@ class ProductTestCase(UITestCase):
                             name=prd_name,
                             description=gen_string('alphanumeric'),
                         )
-                        self.assertIsNotNone(self.products.search(prd_name))
+                        self.assertIsNotNone(
+                            self.products.get_entity(prd_name))
 
     @run_only_on('sat')
     @tier1
@@ -123,7 +124,7 @@ class ProductTestCase(UITestCase):
                 name=prd_name,
                 description=description,
             )
-            self.assertIsNotNone(self.products.search(prd_name))
+            self.assertIsNotNone(self.products.get_entity(prd_name))
             self.products.create(prd_name, description)
             self.assertIsNotNone(self.products.wait_until_element(
                 common_locators['common_haserror']))
@@ -146,11 +147,12 @@ class ProductTestCase(UITestCase):
                 name=prd_name,
                 description=gen_string('alphanumeric'),
             )
-            self.assertIsNotNone(self.products.search(prd_name))
+            self.assertIsNotNone(self.products.get_entity(prd_name))
             for new_prd_name in generate_strings_list():
                 with self.subTest(new_prd_name):
                     self.products.update(prd_name, new_name=new_prd_name)
-                    self.assertIsNotNone(self.products.search(new_prd_name))
+                    self.assertIsNotNone(
+                        self.products.get_entity(new_prd_name))
                     prd_name = new_prd_name  # for next iteration
 
     @run_only_on('sat')
@@ -173,12 +175,12 @@ class ProductTestCase(UITestCase):
                 loc=self.loc.name,
                 name=prd_name,
             )
-            self.assertIsNotNone(self.products.search(prd_name))
+            self.assertIsNotNone(self.products.get_entity(prd_name))
             self.products.update(prd_name, new_name=new_prd_name)
-            self.assertIsNotNone(self.products.search(new_prd_name))
+            self.assertIsNotNone(self.products.get_entity(new_prd_name))
             # Rename Product to original and verify
             self.products.update(new_prd_name, new_name=prd_name)
-            self.assertIsNotNone(self.products.search(prd_name))
+            self.assertIsNotNone(self.products.get_entity(prd_name))
 
     @run_only_on('sat')
     @tier1
@@ -198,7 +200,7 @@ class ProductTestCase(UITestCase):
                 name=prd_name,
                 description=gen_string('alphanumeric'),
             )
-            self.assertIsNotNone(self.products.search(prd_name))
+            self.assertIsNotNone(self.products.get_entity(prd_name))
             self.products.update(prd_name, new_name=gen_string('alpha', 256))
             self.assertIsNotNone(self.products.wait_until_element(
                 common_locators['alert.error']))
@@ -222,5 +224,5 @@ class ProductTestCase(UITestCase):
                         name=prd_name,
                         description=gen_string('alphanumeric'),
                     )
-                    self.assertIsNotNone(self.products.search(prd_name))
+                    self.assertIsNotNone(self.products.get_entity(prd_name))
                     self.products.delete(prd_name)

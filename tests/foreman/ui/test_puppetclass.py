@@ -43,9 +43,10 @@ class PuppetClassTestCase(UITestCase):
                 with self.subTest(description):
                     # Importing puppet classes from puppet-foreman_scap_client
                     # module for update process
-                    if self.puppetclasses.search(class_name) is None:
+                    if self.puppetclasses.get_entity(class_name) is None:
                         self.puppetclasses.import_scap_client_puppet_classes()
-                    self.assertIsNotNone(self.puppetclasses.search(class_name))
+                    self.assertIsNotNone(
+                        self.puppetclasses.get_entity(class_name))
                     self.puppetclasses.update_class_parameter_description(
                         class_name, param_name, description)
                     self.assertEqual(

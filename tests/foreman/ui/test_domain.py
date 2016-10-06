@@ -83,7 +83,7 @@ class DomainTestCase(UITestCase):
                     domain_name = description = DOMAIN % name
                     make_domain(
                         session, name=domain_name, description=description)
-                    element = self.domain.search(description)
+                    element = self.domain.get_entity(description)
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
@@ -101,7 +101,7 @@ class DomainTestCase(UITestCase):
                     domain_name = description = DOMAIN % name
                     make_domain(
                         session, name=domain_name, description=description)
-                    element = self.domain.search(description)
+                    element = self.domain.get_entity(description)
                     self.assertIsNotNone(element)
 
     @run_only_on('sat')
@@ -130,7 +130,7 @@ class DomainTestCase(UITestCase):
         domain_name = description = DOMAIN % gen_string('alpha', 10)
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
-            self.assertIsNotNone(self.domain.search(domain_name))
+            self.assertIsNotNone(self.domain.get_entity(domain_name))
             for testdata in valid_domain_update_data():
                 with self.subTest(testdata):
                     bug_id = testdata.pop('bugzilla', None)
@@ -139,7 +139,7 @@ class DomainTestCase(UITestCase):
                             bug_id))
                     new_name = new_description = DOMAIN % testdata['name']
                     self.domain.update(domain_name, new_name, new_description)
-                    self.assertIsNotNone(self.domain.search(new_name))
+                    self.assertIsNotNone(self.domain.get_entity(new_name))
                     domain_name = new_name  # for next iteration
 
     @run_only_on('sat')
@@ -179,7 +179,7 @@ class DomainTestCase(UITestCase):
                     param_value = gen_string('alpha', 3)
                     make_domain(
                         session, name=domain_name, description=description)
-                    self.assertIsNotNone(self.domain.search(domain_name))
+                    self.assertIsNotNone(self.domain.get_entity(domain_name))
                     try:
                         self.domain.set_domain_parameter(
                             description, param_name, param_value)
@@ -203,7 +203,7 @@ class DomainTestCase(UITestCase):
         param_value = gen_string('alpha', 255)
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
-            element = self.domain.search(description)
+            element = self.domain.get_entity(description)
             self.assertIsNotNone(element)
             try:
                 self.domain.set_domain_parameter(
@@ -228,7 +228,7 @@ class DomainTestCase(UITestCase):
         param_value = ''
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
-            element = self.domain.search(description)
+            element = self.domain.get_entity(description)
             self.assertIsNotNone(element)
             try:
                 self.domain.set_domain_parameter(
@@ -253,7 +253,7 @@ class DomainTestCase(UITestCase):
         param_value = gen_string('alpha', 256)
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
-            element = self.domain.search(description)
+            element = self.domain.get_entity(description)
             self.assertIsNotNone(element)
             try:
                 self.domain.set_domain_parameter(
@@ -283,7 +283,7 @@ class DomainTestCase(UITestCase):
         param_value = gen_string('alpha', 8)
         with Session(self.browser) as session:
             make_domain(session, name=domain_name, description=description)
-            element = self.domain.search(description)
+            element = self.domain.get_entity(description)
             self.assertIsNotNone(element)
             try:
                 self.domain.set_domain_parameter(
@@ -314,7 +314,7 @@ class DomainTestCase(UITestCase):
                     param_value = gen_string('alpha', 3)
                     make_domain(
                         session, name=domain_name, description=description)
-                    element = self.domain.search(domain_name)
+                    element = self.domain.get_entity(domain_name)
                     self.assertIsNotNone(element)
                     try:
                         self.domain.set_domain_parameter(

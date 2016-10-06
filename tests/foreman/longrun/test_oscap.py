@@ -263,7 +263,7 @@ class OpenScapTestCase(UITestCase):
                     vm.execute_foreman_scap_client()
                     # Assert whether oscap reports are uploaded to
                     # Satellite6.
-                    self.assertTrue(self.oscapreports.search(host))
+                    self.assertTrue(self.oscapreports.get_entity(host))
 
     @run_only_on('sat')
     @stubbed

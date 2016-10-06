@@ -70,7 +70,7 @@ class Subnet(Base):
     def search_and_validate(self, subnet_name):
         """Search Subnet name, network and mask to validate results."""
         result = None
-        subnet_object = self.search(subnet_name)
+        subnet_object = self.get_entity(subnet_name)
         self.click(subnet_object)
         if self.wait_until_element(locators['subnet.name']):
             result = dict(
@@ -87,7 +87,7 @@ class Subnet(Base):
                new_subnet_name=None, new_subnet_network=None,
                new_subnet_mask=None):
         """Update subnet name, network and mask from UI."""
-        subnet_object = self.search(subnet_name)
+        subnet_object = self.get_entity(subnet_name)
         self.click(subnet_object)
         if new_subnet_name:
             if self.wait_until_element(locators['subnet.name']):

@@ -47,7 +47,7 @@ class Errata(Base):
         if only_applicable is not None:
             self.navigate_to_entity()
             self.show_only_applicable(only_applicable)
-        self.click(self.search(errata_id))
+        self.click(self.get_entity(errata_id))
         self.click(tab_locators['errata.tab_content_hosts'])
         if only_installable is not None:
             self.assign_value(
@@ -80,7 +80,7 @@ class Errata(Base):
         if only_applicable is not None:
             self.navigate_to_entity()
             self.show_only_applicable(only_applicable)
-        self.click(self.search(errata_id))
+        self.click(self.get_entity(errata_id))
         self.click(tab_locators['errata.tab_repositories'])
         self.assign_value(common_locators['kt_table_search'], repo_name)
         self.click(common_locators['kt_table_search_button'])
@@ -95,7 +95,7 @@ class Errata(Base):
         if only_applicable is not None:
             self.navigate_to_entity()
             self.show_only_applicable(only_applicable)
-        self.click(self.search(errata_id))
+        self.click(self.get_entity(errata_id))
         self.click(tab_locators['errata.tab_content_hosts'])
         if only_installable is not None:
             self.assign_value(
@@ -125,7 +125,7 @@ class Errata(Base):
         if only_applicable is not None:
             self.navigate_to_entity()
             self.show_only_applicable(only_applicable)
-        self.click(self.search(errata_id))
+        self.click(self.get_entity(errata_id))
         for parameter_name, parameter_value in parameter_list:
             param_locator = '.'.join((
                 'errata',

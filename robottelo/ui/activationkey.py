@@ -50,7 +50,7 @@ class ActivationKey(Base):
 
     def search_key_subscriptions(self, ak_name, subscription_name):
         """Fetch associated subscriptions from selected activation key"""
-        self.click(self.search(ak_name))
+        self.click(self.get_entity(ak_name))
         self.click(tab_locators['ak.subscriptions'])
         self.text_field_update(
             locators['ak.subscriptions.search'], subscription_name)
@@ -62,7 +62,7 @@ class ActivationKey(Base):
     def update(self, name, new_name=None, description=None,
                limit=None, content_view=None, env=None):
         """Updates an existing activation key."""
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         if new_name:
             self.edit_entity(locators['ak.edit_name'],
                              locators['ak.edit_name_text'],
@@ -106,7 +106,7 @@ class ActivationKey(Base):
 
     def associate_product(self, name, products):
         """Associate an existing product with activation key."""
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(tab_locators['ak.subscriptions'])
         self.click(tab_locators['ak.subscriptions_add'])
         strategy, value = locators['ak.select_subscription']
@@ -116,7 +116,7 @@ class ActivationKey(Base):
 
     def enable_repos(self, name, repos, enable=True):
         """Enables repository via product_content tab of the activation_key."""
-        element = self.search(name)
+        element = self.get_entity(name)
         strategy, value = locators['ak.prd_content.edit_repo']
         strategy1, value1 = locators['ak.prd_content.select_repo']
         if element is None:
@@ -136,7 +136,7 @@ class ActivationKey(Base):
 
     def get_attribute(self, name, locator):
         """Get the attribute of selected locator."""
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         if self.wait_until_element(locator):
             result = self.find_element(locator).text
             return result
@@ -148,7 +148,7 @@ class ActivationKey(Base):
     def add_host_collection(self, name, host_collection_name):
         """Associate an existing Host Collection with Activation Key."""
         # find activation key
-        activation_key = self.search(name)
+        activation_key = self.get_entity(name)
         if activation_key:
             activation_key.click()
             self.wait_for_ajax()
@@ -167,14 +167,14 @@ class ActivationKey(Base):
 
     def fetch_associated_content_host(self, name):
         """Fetch associated content host from selected activation key."""
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(tab_locators['ak.associations'])
         self.click(locators['ak.content_hosts'])
         return self.wait_until_element(locators['ak.content_host_name']).text
 
     def copy(self, name, new_name=None):
         """Copies an existing activation key"""
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.edit_entity(
             locators['ak.copy'],
             locators['ak.copy_name'],

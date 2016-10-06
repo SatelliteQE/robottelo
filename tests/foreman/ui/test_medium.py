@@ -44,7 +44,7 @@ class MediumTestCase(UITestCase):
                     path = INSTALL_MEDIUM_URL % gen_string('alpha', 6)
                     make_media(session, name=name, path=path,
                                os_family='Red Hat')
-                    self.assertIsNotNone(self.medium.search(name))
+                    self.assertIsNotNone(self.medium.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -61,7 +61,7 @@ class MediumTestCase(UITestCase):
             make_media(session, name=name, path=path, os_family='Red Hat')
             self.assertIsNotNone(self.medium.wait_until_element
                                  (common_locators['name_haserror']))
-            self.assertIsNone(self.medium.search(name))
+            self.assertIsNone(self.medium.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -97,7 +97,7 @@ class MediumTestCase(UITestCase):
         os_family = 'Red Hat'
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
-            self.assertIsNotNone(self.medium.search(name))
+            self.assertIsNotNone(self.medium.get_entity(name))
             make_media(session, name=name, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.wait_until_element
                                  (common_locators['name_haserror']))
@@ -116,7 +116,7 @@ class MediumTestCase(UITestCase):
             make_media(session, name=name, path='', os_family='Red Hat')
             self.assertIsNotNone(self.medium.wait_until_element
                                  (common_locators['haserror']))
-            self.assertIsNone(self.medium.search(name))
+            self.assertIsNone(self.medium.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -133,11 +133,11 @@ class MediumTestCase(UITestCase):
         os_family = 'Red Hat'
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family=os_family)
-            self.assertIsNotNone(self.medium.search(name))
+            self.assertIsNotNone(self.medium.get_entity(name))
             make_media(session, name=new_name, path=path, os_family=os_family)
             self.assertIsNotNone(self.medium.wait_until_element
                                  (common_locators['haserror']))
-            self.assertIsNone(self.medium.search(new_name))
+            self.assertIsNone(self.medium.get_entity(new_name))
 
     @run_only_on('sat')
     @tier1
@@ -169,6 +169,6 @@ class MediumTestCase(UITestCase):
         newpath = INSTALL_MEDIUM_URL % newname
         with Session(self.browser) as session:
             make_media(session, name=name, path=path, os_family='Red Hat')
-            self.assertIsNotNone(self.medium.search(name))
+            self.assertIsNotNone(self.medium.get_entity(name))
             self.medium.update(name, newname, newpath, 'Debian')
-            self.assertTrue(self, self.medium.search(newname))
+            self.assertTrue(self, self.medium.get_entity(newname))

@@ -82,8 +82,8 @@ class HostContentHostUnificationTestCase(UITestCase):
             self.assertEqual(result.return_code, 0)
             with Session(self.browser) as session:
                 session.nav.go_to_select_org(self.org_.name)
-                self.assertIsNotNone(self.hosts.search(vm.hostname))
-                self.assertIsNotNone(self.contenthost.search(vm.hostname))
+                self.assertIsNotNone(self.hosts.get_entity(vm.hostname))
+                self.assertIsNotNone(self.contenthost.get_entity(vm.hostname))
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -125,8 +125,8 @@ class HostContentHostUnificationTestCase(UITestCase):
             self.assertEqual(result.return_code, 0)
             with Session(self.browser) as session:
                 session.nav.go_to_select_org(org.name)
-                self.assertIsNotNone(self.hosts.search(vm.hostname))
-                self.assertIsNotNone(self.contenthost.search(vm.hostname))
+                self.assertIsNotNone(self.hosts.get_entity(vm.hostname))
+                self.assertIsNotNone(self.contenthost.get_entity(vm.hostname))
 
     @run_only_on('sat')
     @tier3
@@ -179,8 +179,8 @@ class HostContentHostUnificationTestCase(UITestCase):
                 ],
             )
             hostname = u'{0}.{1}'.format(host.name, host.domain.name)
-            self.assertIsNotNone(self.contenthost.search(hostname))
-            self.assertIsNotNone(self.hosts.search(hostname))
+            self.assertIsNotNone(self.contenthost.get_entity(hostname))
+            self.assertIsNotNone(self.hosts.get_entity(hostname))
 
     @run_only_on('sat')
     @tier3
@@ -213,14 +213,14 @@ class HostContentHostUnificationTestCase(UITestCase):
                 )
                 # Host rename operation is not atomic and may take some time
                 for _ in range(3):
-                    searched = self.hosts.search(vm.hostname)
+                    searched = self.hosts.get_entity(vm.hostname)
                     if not searched:
                         break
                 else:
                     self.fail('Host was not renamed')
-                self.assertIsNotNone(self.hosts.search(new_name))
-                self.assertIsNone(self.contenthost.search(vm.hostname))
-                self.assertIsNotNone(self.contenthost.search(new_name))
+                self.assertIsNotNone(self.hosts.get_entity(new_name))
+                self.assertIsNone(self.contenthost.get_entity(vm.hostname))
+                self.assertIsNotNone(self.contenthost.get_entity(new_name))
 
     @run_only_on('sat')
     @tier3
@@ -249,10 +249,10 @@ class HostContentHostUnificationTestCase(UITestCase):
                     vm.hostname,
                     new_name=new_name,
                 )
-                self.assertIsNone(self.contenthost.search(vm.hostname))
-                self.assertIsNotNone(self.contenthost.search(new_name))
-                self.assertIsNone(self.hosts.search(vm.hostname))
-                self.assertIsNotNone(self.hosts.search(new_name))
+                self.assertIsNone(self.contenthost.get_entity(vm.hostname))
+                self.assertIsNotNone(self.contenthost.get_entity(new_name))
+                self.assertIsNone(self.hosts.get_entity(vm.hostname))
+                self.assertIsNotNone(self.hosts.get_entity(new_name))
 
     @run_only_on('sat')
     @tier3
@@ -278,7 +278,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             with Session(self.browser) as session:
                 session.nav.go_to_select_org(self.org_.name)
                 self.hosts.delete(vm.hostname)
-                self.assertIsNone(self.contenthost.search(vm.hostname))
+                self.assertIsNone(self.contenthost.get_entity(vm.hostname))
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -323,8 +323,8 @@ class HostContentHostUnificationTestCase(UITestCase):
                 self.contenthost.unregister(vm.hostname)
                 self.contenthost.validate_subscription_status(
                     vm.hostname, False)
-                self.assertIsNotNone(self.contenthost.search(vm.hostname))
-                self.assertIsNotNone(self.hosts.search(vm.hostname))
+                self.assertIsNotNone(self.contenthost.get_entity(vm.hostname))
+                self.assertIsNotNone(self.hosts.get_entity(vm.hostname))
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -367,7 +367,7 @@ class HostContentHostUnificationTestCase(UITestCase):
             with Session(self.browser) as session:
                 session.nav.go_to_select_org(org.name)
                 self.contenthost.delete(vm.hostname)
-                self.assertIsNone(self.hosts.search(vm.hostname))
+                self.assertIsNone(self.hosts.get_entity(vm.hostname))
 
     @run_in_one_thread
     @run_only_on('sat')
@@ -417,8 +417,8 @@ class HostContentHostUnificationTestCase(UITestCase):
                 self.assertEqual(result.return_code, 0)
                 self.contenthost.validate_subscription_status(
                     vm.hostname, True)
-                self.assertIsNotNone(self.contenthost.search(vm.hostname))
-                self.assertIsNotNone(self.hosts.search(vm.hostname))
+                self.assertIsNotNone(self.contenthost.get_entity(vm.hostname))
+                self.assertIsNotNone(self.hosts.get_entity(vm.hostname))
 
     @run_only_on('sat')
     @tier3

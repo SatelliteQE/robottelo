@@ -98,7 +98,7 @@ class SmartVariable(Base):
                matcher_priority=None, matcher_merge_overrides=None,
                matcher_merge_default=None, matcher_merge_avoid=None):
         """Updates existing Smart Variable from UI"""
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         if new_name:
             self.assign_value(locators['smart_variable.key'], new_name)
         self._configure_variable(
@@ -129,7 +129,7 @@ class SmartVariable(Base):
             (e.g. 'puppet_class' or 'overrides_number')
         :param str field_value: Expected value for specified field
         """
-        self.search(name)
+        self.get_entity(name)
         searched = self.wait_until_element(
             locators['smart_variable.table_value'] % field_value)
         if searched is None:
@@ -177,7 +177,7 @@ class SmartVariable(Base):
         :return bool: Return True if checkbox can be clicked and False
             otherwise
         """
-        self.click(self.search(sv_name))
+        self.click(self.get_entity(sv_name))
         locator_name = '.'.join((
             'smart_variable', (checkbox_name.lower()).replace(' ', '_')))
         return self.is_element_enabled(locators[locator_name])

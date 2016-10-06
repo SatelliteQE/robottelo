@@ -78,7 +78,8 @@ class RhevComputeResourceTestCase(UITestCase):
                         provider_type=FOREMAN_PROVIDERS['rhev'],
                         parameter_list=parameter_list
                     )
-                    self.assertIsNotNone(self.compute_resource.search(name))
+                    self.assertIsNotNone(
+                        self.compute_resource.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -116,7 +117,8 @@ class RhevComputeResourceTestCase(UITestCase):
                         provider_type=FOREMAN_PROVIDERS['rhev'],
                         parameter_list=parameter_list
                     )
-                    self.assertIsNotNone(self.compute_resource.search(name))
+                    self.assertIsNotNone(
+                        self.compute_resource.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -197,9 +199,9 @@ class RhevComputeResourceTestCase(UITestCase):
                     provider_type=FOREMAN_PROVIDERS['rhev'],
                     parameter_list=parameter_list
                 )
-                self.assertIsNotNone(self.compute_resource.search(name))
+                self.assertIsNotNone(self.compute_resource.get_entity(name))
                 self.compute_resource.update(name=name, newname=newname)
-                self.assertIsNotNone(self.compute_resource.search(newname))
+                self.assertIsNotNone(self.compute_resource.get_entity(newname))
 
     @run_only_on('sat')
     @tier2
@@ -239,7 +241,7 @@ class RhevComputeResourceTestCase(UITestCase):
                 orgs=[entities.Organization().create().name],
                 org_select=True
             )
-            self.assertIsNotNone(self.compute_resource.search(name))
+            self.assertIsNotNone(self.compute_resource.get_entity(name))
             self.compute_resource.update(
                 name=name,
                 orgs=[entities.Organization().create().name],
@@ -282,7 +284,7 @@ class RhevComputeResourceTestCase(UITestCase):
                     provider_type=FOREMAN_PROVIDERS['rhev'],
                     parameter_list=parameter_list
                 )
-                self.assertIsNotNone(self.compute_resource.search(name))
+                self.assertIsNotNone(self.compute_resource.get_entity(name))
                 self.compute_resource.delete(name)
 
     @run_only_on('sat')
@@ -331,7 +333,7 @@ class RhevComputeResourceTestCase(UITestCase):
                     ['uuid', self.rhev_img_name],
                 ]
                 self.compute_resource.add_image(name, parameter_list_img)
-                self.assertIsNotNone(self.compute_resource.search(name))
+                self.assertIsNotNone(self.compute_resource.get_entity(name))
                 imgs = self.compute_resource.list_images(name)
                 self.assertTrue(img_name in imgs)
 
@@ -428,7 +430,8 @@ class RhevComputeResourceTestCase(UITestCase):
     @stubbed()
     @tier2
     def test_positive_access_rhev_with_custom_profile(self):
-        """Associate custom default (3-Large) compute profile to rhev compute resource
+        """Associate custom default (3-Large) compute profile to rhev
+        compute resource
 
         @id: e7698154-62ff-492b-8e56-c5dc70f0c9df
 
@@ -479,7 +482,7 @@ class RhevComputeResourceTestCase(UITestCase):
                 provider_type=FOREMAN_PROVIDERS['rhev'],
                 parameter_list=parameter_list
             )
-            self.assertIsNotNone(self.compute_resource.search(name))
+            self.assertIsNotNone(self.compute_resource.get_entity(name))
             vms = self.compute_resource.list_vms(name)
             self.assertTrue(self.rhev_vm_name in vms)
 

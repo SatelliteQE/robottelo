@@ -37,7 +37,7 @@ class HostCollection(Base):
 
     def update(self, name, new_name=None, description=None, limit=None):
         """Updates an existing Host Collection."""
-        element = self.search(name)
+        element = self.get_entity(name)
         if element is None:
             raise UIError(
                 u'Could not find host collection "{0}" to update'.format(name))
@@ -82,7 +82,7 @@ class HostCollection(Base):
             and False otherwise
 
         """
-        element = self.search(name)
+        element = self.get_entity(name)
         if element is None:
             raise UIError(
                 u'Could not find host collection "{0}" to verify'.format(name))
@@ -102,7 +102,7 @@ class HostCollection(Base):
 
     def copy(self, name, new_name):
         """Copies an existing Host Collection entity"""
-        element = self.search(name)
+        element = self.get_entity(name)
         if element is None:
             raise UIError(
                 u'Could not find host collection "{0}" to copy'.format(name))
@@ -119,7 +119,7 @@ class HostCollection(Base):
     def add_host(self, name, host_name):
         """Add content host to existing Host Collection entity."""
         host_name = host_name.lower()
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(tab_locators['hostcollection.hosts'])
         self.click(tab_locators['hostcollection.tab_host_add'])
         strategy, value = locators['hostcollection.select_host']
@@ -162,7 +162,7 @@ class HostCollection(Base):
         if org_name:
             Navigator(self.browser).go_to_select_org(org_name, force=False)
 
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(tab_locators['hostcollection.collection_actions'])
         self.click(locators['hostcollection.collection_actions.packages'])
 
@@ -213,7 +213,7 @@ class HostCollection(Base):
         if org_name:
             Navigator(self.browser).go_to_select_org(org_name, force=False)
 
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(tab_locators['hostcollection.collection_actions'])
         self.click(locators['hostcollection.collection_actions.errata'])
 

@@ -135,7 +135,7 @@ class Container(Base):
                 .format(name)
             )
 
-    def search(self, resource_name, container_name):
+    def get_entity(self, resource_name, container_name):
         """Searches for existing container from particular compute resource. It
         is necessary to use custom search here as we need to select compute
         resource tab before searching for particular container and also, there
@@ -152,7 +152,7 @@ class Container(Base):
 
     def delete(self, resource_name, container_name, really=True):
         """Removes the container entity"""
-        element = self.search(resource_name, container_name)
+        element = self.get_entity(resource_name, container_name)
         if element is None:
             raise UIError(
                 'Could not find container "{0}"'.format(container_name))
@@ -174,20 +174,20 @@ class Container(Base):
                        locators['container.power_off'][1] % cont_name)
         locator_status = (locators['container.power_status'][0],
                           locators['container.power_status'][1] % cont_name)
-        element = self.search(resource_name, cont_name)
+        element = self.get_entity(resource_name, cont_name)
         if element is None:
             raise UIError(
                 'Could not find container "{0}"'.format(cont_name))
         self.wait_for_ajax()
         if power_on is True:
             self.click(locator_on)
-            self.search(resource_name, cont_name)
+            self.get_entity(resource_name, cont_name)
             if self.wait_until_element(locator_off):
                 status = self.wait_until_element(locator_status).text
         elif power_on is False:
             self.click(locator_off, wait_for_ajax=False)
             self.handle_alert(True)
-            self.search(resource_name, cont_name)
+            self.get_entity(resource_name, cont_name)
             if self.wait_until_element(locator_on):
                 status = self.wait_until_element(locator_status).text
         return status

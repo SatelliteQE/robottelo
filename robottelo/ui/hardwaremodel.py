@@ -38,7 +38,7 @@ class HardwareModel(Base):
         :param str new_name: The Hardware-Model's new-name.
 
         """
-        element = self.search(old_name)
+        element = self.get_entity(old_name)
         if element:
             element.click()
             if (self.wait_until_element(locators['hwmodels.name']) and

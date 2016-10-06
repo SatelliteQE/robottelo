@@ -45,7 +45,7 @@ class TrendTest(UITestCase):
         """
         with Session(self.browser) as session:
             make_trend(session, trend_type=TREND_TYPES['model'])
-            search = self.trend.search(TREND_TYPES['model'])
+            search = self.trend.get_entity(TREND_TYPES['model'])
             self.assertIsNotNone(search)
 
     @tier1
@@ -65,11 +65,11 @@ class TrendTest(UITestCase):
                 trendable='clientcert',
                 name=name,
             )
-            search = self.trend.search(name)
+            search = self.trend.get_entity(name)
             self.assertIsNotNone(search)
 
             self.trend.update(name, 'clientcert', new_name)
-            search = self.trend.search(new_name)
+            search = self.trend.get_entity(new_name)
             self.assertIsNotNone(search)
 
     @tier1

@@ -57,7 +57,7 @@ class UserGroupTestCase(UITestCase):
                         users=[user_name],
                         org=self.organization.name,
                     )
-                    self.assertIsNotNone(self.usergroup.search(group_name))
+                    self.assertIsNotNone(self.usergroup.get_entity(group_name))
 
     @tier1
     def test_negative_create_with_invalid_name(self):
@@ -74,7 +74,7 @@ class UserGroupTestCase(UITestCase):
                         session, org=self.organization.name, name=group_name)
                     self.assertIsNotNone(self.usergroup.wait_until_element(
                         common_locators['name_haserror']))
-                    self.assertIsNone(self.usergroup.search(group_name))
+                    self.assertIsNone(self.usergroup.get_entity(group_name))
 
     @tier1
     def test_negative_create_with_same_name(self):
@@ -88,7 +88,7 @@ class UserGroupTestCase(UITestCase):
         with Session(self.browser) as session:
             make_usergroup(
                 session, org=self.organization.name, name=group_name)
-            self.assertIsNotNone(self.usergroup.search(group_name))
+            self.assertIsNotNone(self.usergroup.get_entity(group_name))
             make_usergroup(
                 session, org=self.organization.name, name=group_name)
             self.assertIsNotNone(self.usergroup.wait_until_element(
@@ -136,7 +136,7 @@ class UserGroupTestCase(UITestCase):
                 org=self.organization.name,
             )
             self.usergroup.delete(group_name)
-            self.assertIsNotNone(self.user.search(user_name))
+            self.assertIsNotNone(self.user.get_entity(user_name))
 
     @tier1
     def test_positive_update_name(self):
@@ -149,11 +149,11 @@ class UserGroupTestCase(UITestCase):
         name = gen_string('alpha')
         with Session(self.browser) as session:
             make_usergroup(session, name=name)
-            self.assertIsNotNone(self.usergroup.search(name))
+            self.assertIsNotNone(self.usergroup.get_entity(name))
             for new_name in generate_strings_list():
                 with self.subTest(new_name):
                     self.usergroup.update(name, new_name)
-                    self.assertIsNotNone(self.usergroup.search(new_name))
+                    self.assertIsNotNone(self.usergroup.get_entity(new_name))
                     name = new_name  # for next iteration
 
     @tier1
@@ -174,6 +174,6 @@ class UserGroupTestCase(UITestCase):
         ).create()
         with Session(self.browser) as session:
             make_usergroup(session, name=name, org=self.organization.name)
-            self.assertIsNotNone(self.usergroup.search(name))
+            self.assertIsNotNone(self.usergroup.get_entity(name))
             self.usergroup.update(name, users=[user_name])
-            self.assertIsNotNone(self.usergroup.search(name))
+            self.assertIsNotNone(self.usergroup.get_entity(name))

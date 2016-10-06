@@ -32,7 +32,7 @@ class Trend(Base):
 
     def update(self, trend_name, entity_name, entity_value):
         """Updates a trend."""
-        element = self.search(trend_name)
+        element = self.get_entity(trend_name)
         if element is None:
             raise UIError(
                 'Could not find necessary trend "{0}"'.format(trend_name)
@@ -50,7 +50,7 @@ class Trend(Base):
         txt_fld.send_keys(entity_value)
         self.click(common_locators['submit'])
 
-    def search(self, tr_type):
+    def get_entity(self, tr_type):
         """Searches existing trend from UI
 
         As we do not have search field for trend UI screen, so it is impossible

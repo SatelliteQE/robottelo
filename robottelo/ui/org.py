@@ -119,7 +119,7 @@ class Org(Base):
                new_domains=None, new_envs=None, new_hostgroups=None,
                select=False, new_desc=None):
         """Update Organization in UI."""
-        self.click(self.search(org_name))
+        self.click(self.get_entity(org_name))
         if new_name:
             if self.wait_until_element(locators['org.name']):
                 self.field_update('org.name', new_name)

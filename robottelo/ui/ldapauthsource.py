@@ -55,7 +55,7 @@ class LdapAuthSource(Base):
             self.field_update('ldapserver.photo', photo)
         self.click(common_locators['submit'])
 
-    def search(self, name):
+    def get_entity(self, name):
         """Searches existing ldap auth source from UI. It is necessary to use
         custom search as we don't have both search bar and search button there.
 

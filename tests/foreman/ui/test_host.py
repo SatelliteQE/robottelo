@@ -319,7 +319,7 @@ class HostTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_hosts()
             host_name = u'{0}.{1}'.format(self.hostname, self.domain_name)
-            if self.hosts.search(host_name):
+            if self.hosts.get_entity(host_name):
                 self.hosts.delete(host_name, True)
         super(HostTestCase, self).tearDown()
 
@@ -361,7 +361,7 @@ class HostTestCase(UITestCase):
                     ['Network', settings.vlan_networking.bridge],
                 ],
             )
-            search = self.hosts.search(
+            search = self.hosts.get_entity(
                 u'{0}.{1}'.format(self.hostname, self.domain_name)
             )
             self.assertIsNotNone(search)
@@ -581,7 +581,7 @@ class HostTestCase(UITestCase):
                 ],
             )
             # confirm the Host appears in the UI
-            search = self.hosts.search(
+            search = self.hosts.get_entity(
                 u'{0}.{1}'.format(host.name, host.domain.name)
             )
             self.assertIsNotNone(search)
@@ -630,7 +630,7 @@ class HostTestCase(UITestCase):
                 ],
             )
             # confirm the Host appears in the UI
-            search = self.hosts.search(
+            search = self.hosts.get_entity(
                 u'{0}.{1}'.format(host_name, host.domain.name)
             )
             self.assertIsNotNone(search)
@@ -638,7 +638,7 @@ class HostTestCase(UITestCase):
             self.hosts.update(host_name, host.domain.name, new_name)
             new_host_name = (
                 u'{0}.{1}'.format(new_name, host.domain.name)).lower()
-            self.assertIsNotNone(self.hosts.search(new_host_name))
+            self.assertIsNotNone(self.hosts.get_entity(new_host_name))
             self.hostname = new_name
 
     @run_only_on('sat')
@@ -986,7 +986,7 @@ class AtomicHostTestCase(UITestCase):
             session.nav.go_to_select_org(self.org_name)
             session.nav.go_to_hosts()
             host_name = u'{0}.{1}'.format(self.hostname, self.domain_name)
-            if self.hosts.search(host_name):
+            if self.hosts.get_entity(host_name):
                 self.hosts.delete(host_name, True)
         super(AtomicHostTestCase, self).tearDown()
 
@@ -1023,7 +1023,7 @@ class AtomicHostTestCase(UITestCase):
                     ['Network', settings.vlan_networking.bridge],
                 ],
             )
-            search = self.hosts.search(
+            search = self.hosts.get_entity(
                 u'{0}.{1}'.format(self.hostname, self.domain_name)
             )
             self.assertIsNotNone(search)

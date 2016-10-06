@@ -165,13 +165,13 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 password2=password,
                 username=username,
             )
-            self.assertIsNotNone(self.user.search(username))
+            self.assertIsNotNone(self.user.get_entity(username))
             self.assertTrue(self.user.user_admin_role_toggle(username))
 
         with Session(self.browser, username, password) as session:
             # step 2.1: Create a new organization
             make_org(session, org_name=org_name)
-            self.assertIsNotNone(self.org.search(org_name))
+            self.assertIsNotNone(self.org.get_entity(org_name))
 
             # step 2.2: Clone and upload manifest
             if self.fake_manifest_is_set:
@@ -185,23 +185,25 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
 
             # step 2.3: Create a new lifecycle environment
             make_lifecycle_environment(session, org=org_name, name=lce_name)
-            self.assertIsNotNone(self.lifecycleenvironment.search(lce_name))
+            self.assertIsNotNone(
+                self.lifecycleenvironment.get_entity(lce_name))
 
             # step 2.4: Create a custom product
             make_product(session, org=org_name, name=product_name)
-            self.assertIsNotNone(self.products.search(product_name))
+            self.assertIsNotNone(self.products.get_entity(product_name))
 
             # step 2.5: Create custom YUM repository
-            self.products.search(product_name).click()
+            self.products.get_entity(product_name).click()
             make_repository(
                 session,
                 name=yum_repository_name,
                 url=CUSTOM_RPM_REPO
             )
-            self.assertIsNotNone(self.repository.search(yum_repository_name))
+            self.assertIsNotNone(
+                self.repository.get_entity(yum_repository_name))
 
             # step 2.6: Create custom PUPPET repository
-            self.products.search(product_name).click()
+            self.products.get_entity(product_name).click()
             make_repository(
                 session,
                 name=puppet_repository_name,
@@ -209,7 +211,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 repo_type=REPO_TYPE['puppet']
             )
             self.assertIsNotNone(
-                self.repository.search(puppet_repository_name))
+                self.repository.get_entity(puppet_repository_name))
 
             # step 2.7: Enable a Red Hat repository
             if self.fake_manifest_is_set:
@@ -227,7 +229,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
 
             # step 2.9: Create content view
             make_contentview(session, org=org_name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
 
             self.content_views.add_remove_repos(cv_name, [yum_repository_name])
             self.assertIsNotNone(self.content_views.wait_until_element(
@@ -297,7 +299,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 ]],
             )
             self.assertIsNotNone(
-                self.compute_resource.search(compute_resource_name))
+                self.compute_resource.get_entity(compute_resource_name))
 
             # step 2.17: Create a new subnet
             make_subnet(
@@ -307,7 +309,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 subnet_network=gen_ipaddr(ip3=True),
                 subnet_mask='255.255.255.0'
             )
-            self.assertIsNotNone(self.subnet.search(subnet_name))
+            self.assertIsNotNone(self.subnet.get_entity(subnet_name))
 
             # step 2.18: Create a new domain
             make_domain(
@@ -316,12 +318,12 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 name=domain_name,
                 description=domain_name
             )
-            self.assertIsNotNone(self.domain.search(domain_name))
+            self.assertIsNotNone(self.domain.get_entity(domain_name))
 
             # step 2.19: Create a new hostgroup and associate previous entities
             # to it
             make_hostgroup(session, name=hostgroup_name)
-            self.assertIsNotNone(self.hostgroup.search(hostgroup_name))
+            self.assertIsNotNone(self.hostgroup.get_entity(hostgroup_name))
 
         # step 2.20: Provision a client
         self.client_provisioning(activation_key_name, org_name)
@@ -347,10 +349,11 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
         with Session(self.browser) as session:
             # Create New organization
             make_org(session, org_name=org_name)
-            self.assertIsNotNone(self.org.search(org_name))
+            self.assertIsNotNone(self.org.get_entity(org_name))
             # Create New Lifecycle environment
             make_lifecycle_environment(session, org=org_name, name=env_name)
-            self.assertIsNotNone(self.lifecycleenvironment.search(env_name))
+            self.assertIsNotNone(
+                self.lifecycleenvironment.get_entity(env_name))
             session.nav.go_to_red_hat_subscriptions()
             # Upload manifest from webui
             with manifests.clone() as manifest:
@@ -370,7 +373,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             ))
             # Create custom product
             make_product(session, org=org_name, name=product_name)
-            product = self.products.search(product_name)
+            product = self.products.get_entity(product_name)
             self.assertIsNotNone(product)
             # Create a puppet Repository
             product.click()
@@ -380,7 +383,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
                 url=FAKE_6_PUPPET_REPO,
                 repo_type=REPO_TYPE['puppet']
             )
-            self.assertIsNotNone(self.repository.search(
+            self.assertIsNotNone(self.repository.get_entity(
                 puppet_repository_name
             ))
             # Sync the repos
@@ -392,7 +395,7 @@ class EndToEndTestCase(UITestCase, ClientProvisioningMixin):
             ))
             # Create new content-view
             make_contentview(session, org=org_name, name=cv_name)
-            self.assertIsNotNone(self.content_views.search(cv_name))
+            self.assertIsNotNone(self.content_views.get_entity(cv_name))
             # Add YUM repository to content-view
             self.content_views.add_remove_repos(
                 cv_name,

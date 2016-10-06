@@ -33,7 +33,7 @@ class ContentHost(Base):
     def update(self, name, new_name=None, add_subscriptions=None,
                rm_subscriptions=None):
         """Updates an existing content host"""
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(tab_locators['contenthost.tab_details'])
 
         if new_name:
@@ -58,7 +58,7 @@ class ContentHost(Base):
 
     def unregister(self, name, really=True):
         """Unregisters a content host."""
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(locators['contenthost.unregister'])
         if really:
             self.click(common_locators['confirm_remove'])
@@ -70,7 +70,7 @@ class ContentHost(Base):
         needed as deletion works through unregistering menu, by selecting
         appropriate radio button."""
         self.logger.debug(u'Deleting entity %s', name)
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(locators['contenthost.unregister'])
         self.click(locators['contenthost.confirm_deletion'])
         if really:
@@ -82,7 +82,7 @@ class ContentHost(Base):
         self.result_timeout = 1
         try:
             for _ in range(3):
-                searched = self.search(name)
+                searched = self.get_entity(name)
                 if bool(searched) != really:
                     break
                 self.browser.refresh()
@@ -98,7 +98,7 @@ class ContentHost(Base):
                                      timeout=120):
         """Check whether a content host has active subscription or not"""
         for _ in range(timeout / 5):
-            self.search(name)
+            self.get_entity(name)
             strategy, value = (
                 locators['contenthost.subscription_active'] if expected_value
                 else locators['contenthost.subscription_not_active']
@@ -124,7 +124,7 @@ class ContentHost(Base):
 
         :return: Returns a string containing task status
         """
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(tab_locators['contenthost.tab_packages'])
         self.assign_value(
             locators['contenthost.remote_actions'], action_name)
@@ -150,7 +150,7 @@ class ContentHost(Base):
 
         :return: Returns a string containing task status
         """
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(tab_locators['contenthost.tab_errata'])
         strategy, value = locators['contenthost.errata_select']
         self.click((strategy, value % errata_id))
@@ -166,7 +166,7 @@ class ContentHost(Base):
 
     def package_search(self, name, package_name):
         """Search for installed package on specific content host"""
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(tab_locators['contenthost.tab_packages'])
         self.wait_until_element(locators['contenthost.package_search_box'])
         self.assign_value(
@@ -177,7 +177,7 @@ class ContentHost(Base):
 
     def errata_search(self, name, errata_id, environment_name=None):
         """Search for errata applicable for specific content host"""
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(tab_locators['contenthost.tab_errata'])
         if environment_name is not None:
             self.click(
@@ -197,7 +197,7 @@ class ContentHost(Base):
         dict containing errata name (type), color and value (errata counts).
         Works both from content host list and details pages.
         """
-        contenthost = self.search(name)
+        contenthost = self.get_entity(name)
         if details_page:
             self.click(contenthost)
             strategy, value = locators[

@@ -114,7 +114,7 @@ class OperatingSys(Base):
                new_ptables=None, new_mediums=None, select=False,
                template=None):
         """Update all entities(arch, Partition table, medium) of OS from UI."""
-        element = self.search(os_name)
+        element = self.get_entity(os_name)
         self.click(element)
         if new_name:
             if self.wait_until_element(locators['operatingsys.name']):
@@ -141,13 +141,13 @@ class OperatingSys(Base):
 
     def set_os_parameter(self, os_name, param_name, param_value):
         """Add new OS parameter."""
-        element = self.search(os_name)
+        element = self.get_entity(os_name)
         self.click(element)
         self.set_parameter(param_name, param_value)
 
     def remove_os_parameter(self, os_name, param_name):
         """Remove selected OS parameter."""
-        element = self.search(os_name)
+        element = self.get_entity(os_name)
         self.click(element)
         self.remove_parameter(param_name)
 
@@ -173,7 +173,7 @@ class OperatingSys(Base):
         minor_ver_loc = locators['operatingsys.minor_version']
         os_family_loc = locators['operatingsys.fetch_family']
 
-        element = self.search(os_name)
+        element = self.get_entity(os_name)
         self.click(element)
         if self.wait_until_element(locators['operatingsys.name']):
             result = dict([('name', None), ('major', None),

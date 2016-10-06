@@ -27,7 +27,7 @@ class Environment(Base):
     def update(self, old_name, orgs=None, new_orgs=None, new_name=None,
                org_select=False):
         """Updates an environment."""
-        element = self.search(old_name)
+        element = self.get_entity(old_name)
         if element:
             element.click()
             if self.wait_until_element(locators['env.name']) and new_name:

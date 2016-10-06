@@ -59,7 +59,7 @@ class TemplateTestCase(UITestCase):
                         custom_really=True,
                         template_type='Provisioning template',
                     )
-                    self.assertIsNotNone(self.template.search(name))
+                    self.assertIsNotNone(self.template.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -101,7 +101,7 @@ class TemplateTestCase(UITestCase):
                 custom_really=True,
                 template_type='Provisioning template',
             )
-            self.assertIsNotNone(self.template.search(name))
+            self.assertIsNotNone(self.template.get_entity(name))
             make_templates(
                 session,
                 name=name,
@@ -201,7 +201,7 @@ class TemplateTestCase(UITestCase):
                         custom_really=True,
                         snippet=True,
                     )
-                    self.assertIsNotNone(self.template.search(name))
+                    self.assertIsNotNone(self.template.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -241,10 +241,10 @@ class TemplateTestCase(UITestCase):
                 custom_really=True,
                 template_type='Provisioning template',
             )
-            self.assertIsNotNone(self.template.search(name))
+            self.assertIsNotNone(self.template.get_entity(name))
             self.template.update(
                 name, False, new_name, None, 'PXELinux template')
-            self.assertIsNotNone(self.template.search(new_name))
+            self.assertIsNotNone(self.template.get_entity(new_name))
 
     @run_only_on('sat')
     @tier1
@@ -270,9 +270,9 @@ class TemplateTestCase(UITestCase):
                 custom_really=True,
                 template_type='Provisioning template',
             )
-            self.assertIsNotNone(self.template.search(name))
+            self.assertIsNotNone(self.template.get_entity(name))
             self.template.update(name, False, new_name, new_os_list=os_list)
-            self.assertIsNotNone(self.template.search(new_name))
+            self.assertIsNotNone(self.template.get_entity(new_name))
 
     @run_only_on('sat')
     @tier2
@@ -302,11 +302,11 @@ class TemplateTestCase(UITestCase):
                 custom_really=True,
                 template_type='Provisioning template',
             )
-            self.assertIsNotNone(self.template.search(name))
+            self.assertIsNotNone(self.template.get_entity(name))
             self.template.clone(
                 name,
                 custom_really=False,
                 clone_name=clone_name,
                 os_list=os_list,
             )
-            self.assertIsNotNone(self.template.search(clone_name))
+            self.assertIsNotNone(self.template.get_entity(clone_name))

@@ -14,7 +14,6 @@ from selenium.webdriver.support import expected_conditions
 from selenium.webdriver.support.select import Select
 from selenium.webdriver.support.ui import WebDriverWait
 
-
 LOGGER = logging.getLogger(__name__)
 
 
@@ -30,12 +29,16 @@ class UIPageSubmitionFailed(Exception):
     """Indicates that UI Page submition Failed."""
 
 
+class MultipleElementsError(Exception):
+    """Indicates Multiple Elements Found when a max of 1 is expected."""
+
+
 class Base(object):
     """Base class for UI"""
 
     logger = LOGGER
 
-    search_key = None
+    search_key = 'name'
     is_katello = False
     button_timeout = 15
     result_timeout = 15
@@ -104,7 +107,6 @@ class Base(object):
     def _search_locator(self):
         """Specify element name locator which should be used in search
         procedure
-
         """
         raise NotImplementedError(
             'Subclasses must return locator of element to search')
@@ -113,24 +115,57 @@ class Base(object):
         """Perform navigation to main page for specific entity"""
         raise NotImplementedError('Subclasses must implement navigator method')
 
-    def search_and_click(self, element):
-        """Helper method to perform the commonly used search then click"""
-        return self.click(self.search(element))
+    def get_and_click(self, element):
+        """Helper method to perform the commonly used get then click"""
+        return self.click(self.get_entity(element))
 
-    def search(self, element):
+    def get_entity(self, element):
+        """Uses the search box to locate an element from a list of elements by
+        its most common property.
+        The most common property is defined as 'search_key' entity class
+        attribute. If not defined, property name 'name' is used.
+
+        :param element: either element name or a tuple, containing element name
+                        as a first element and all the rest variables
+                        required for element locator.
+        """
+        return self._get(self.search_key, element)
+
+    def _get(self, property_name, element):
+        """Similar to _search, but Extract first element when possible,
+        raise error when multiple results are found.
+        Must be used to build get_by* methods on subclasses
+        :return webelement
+        """
+        result = self._search(property_name, element)
+        if result is None:
+            return None
+        n = len(result)
+        if n == 1:
+            return result[0]
+        elif n > 1:
+            raise MultipleElementsError("Only one result expected, got %s" % n)
+
+    def _search(self, property_name, element):
         """Uses the search box to locate an element from a list of elements.
+        Must be used to build search_by* methods on subclasses
 
         :param element: either element name or a tuple, containing element name
             as a first element and all the rest variables required for element
             locator.
+        :return list of webelements
         """
         element_name = element[0] if isinstance(element, tuple) else element
         # Navigate to the page
-        self.logger.debug(u'Searching for: %s', element_name)
+        self.logger.debug(
+            u'Searching for: %s = %s',
+            property_name,
+            element_name
+        )
         self.navigate_to_entity()
 
         # Provide search criterions or use default ones
-        search_key = self.search_key or 'name'
+
         element_locator = self._search_locator()
 
         # Determine search box and search button locators depending on the type
@@ -155,7 +190,7 @@ class Base(object):
         # applicable
         searchbox.clear()
         searchbox.send_keys(u'{0} = {1}'.format(
-            search_key, escape_search(element_name)))
+            property_name, escape_search(element_name)))
         # ensure mouse points at search button and no tooltips are covering it
         # before clicking
         self.perform_action_chain_move(search_button_locator)
@@ -166,10 +201,10 @@ class Base(object):
         # element name length)
         for _ in range(self.result_timeout):
             for strategy, value in (
-                    element_locator,
-                    common_locators['select_filtered_entity']
+                element_locator,
+                common_locators['select_filtered_entity']
             ):
-                result = self.find_element((strategy, value % element))
+                result = self.find_elements((strategy, value % element))
                 if result is not None:
                     return result
             time.sleep(1)
@@ -259,7 +294,7 @@ class Base(object):
     def delete_entity(self, name, really, del_locator, drop_locator=None):
         """Delete an added entity, handles both with and without dropdown."""
         self.logger.debug(u'Deleting entity %s', name)
-        searched = self.search(name)
+        searched = self.get_entity(name)
         if not searched:
             raise UIError(u'Could not search the entity "{0}"'.format(name))
         if self.is_katello:
@@ -284,14 +319,15 @@ class Base(object):
         self.result_timeout = 1
         try:
             for _ in range(3):
-                searched = self.search(name)
+                searched = self.get_entity(name)
                 if bool(searched) != really:
                     break
                 self.browser.refresh()
             if bool(searched) == really:
                 raise UIError(
                     u'Delete functionality works improperly for "{0}" entity'
-                    .format(name))
+                    u''.format(name)
+                )
         finally:
             self.button_timeout = 15
             self.result_timeout = 15
@@ -343,8 +379,8 @@ class Base(object):
             )
             return None
 
-    def wait_until_element_is_clickable(
-            self, locator, timeout=12, poll_frequency=0.5):
+    def wait_until_element_is_clickable(self, locator, timeout=12,
+                                        poll_frequency=0.5):
         """Wrapper around Selenium's WebDriver that allows you to pause your
         test until an element in the web page is present and can be clicked.
 
@@ -370,8 +406,8 @@ class Base(object):
             )
             return None
 
-    def wait_until_element_is_not_visible(
-            self, locator, timeout=12, poll_frequency=0.5):
+    def wait_until_element_is_not_visible(self, locator, timeout=12,
+                                          poll_frequency=0.5):
         """Wrapper around Selenium's WebDriver that allows us to pause our test
         until specified element will disappear. That means that it will not be
         present and will not be visible anymore.
@@ -554,7 +590,7 @@ class Base(object):
 
         """
         go_to_page()
-        searched = self.search(entity_name)
+        searched = self.get_entity(entity_name)
         if searched is None:
             raise UINoSuchElementError('Entity not found via search.')
         searched.click()
@@ -631,8 +667,10 @@ class Base(object):
             element = target
         if element is None:
             raise UINoSuchElementError(
-                u'{0}: element {1} was not found while trying to click'
-                .format(type(self).__name__, str(target))
+                u'{0}: element {1} was not found while trying to click'.format(
+                    type(self).__name__,
+                    str(target)
+                )
             )
         # Required since from selenium 2.48.0. which makes Selenium more
         # closely resemble a user when interacting with elements.
@@ -702,8 +740,10 @@ class Base(object):
         element = self.wait_until_element(locator)
         if element is None:
             raise UINoSuchElementError(
-                u'Cannot move cursor to {0}: element with locator {1}'
-                .format(type(self).__name__, locator)
+                u'Cannot move cursor to {0}: element with locator {1}'.format(
+                    type(self).__name__,
+                    locator
+                )
             )
         self.scroll_into_view(element)
         ActionChains(self.browser).move_to_element(element).perform()
@@ -742,7 +782,8 @@ class Base(object):
                 "Editor.setValue('{0}');".format(value))
         else:
             raise ValueError(
-                u'Provided locator {0} is not supported by framework'
-                .format(locator)
+                u'Provided locator {0} is not supported by framework'.format(
+                    locator
+                )
             )
         self.logger.debug(u'Assigned value %s to %s', value, locator)

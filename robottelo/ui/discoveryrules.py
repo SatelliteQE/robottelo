@@ -49,7 +49,7 @@ class DiscoveryRules(Base):
         """Specify locator for Discovery Rule entity search procedure"""
         return locators['discoveryrules.rule_name']
 
-    def search(self, name):
+    def get_entity(self, name):
         """Searches existing discovery rule from UI. It is necessary to use
         custom search as we don't have both search bar and search button there.
         """
@@ -75,7 +75,7 @@ class DiscoveryRules(Base):
     def update(self, name, new_name=None, search_rule=None, hostgroup=None,
                hostname=None, host_limit=None, priority=None, enabled=True):
         """Update an existing discovery rule from UI."""
-        element = self.search(name)
+        element = self.get_entity(name)
         self.click(element)
         if new_name is not None:
             if self.wait_until_element(locators['discoveryrules.name']):
@@ -102,7 +102,7 @@ class DiscoveryRules(Base):
             the test level
 
         """
-        discovery_rule = self.search(name)
+        discovery_rule = self.get_entity(name)
         self.click(discovery_rule)
         element = self.wait_until_element(
             locators['discoveryrules.{0}'.format(attribute_name)])

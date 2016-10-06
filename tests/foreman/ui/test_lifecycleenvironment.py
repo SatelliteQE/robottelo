@@ -52,7 +52,7 @@ class LifeCycleEnvironmentTestCase(UITestCase):
                         description=gen_string('alpha'),
                     )
                     self.assertIsNotNone(
-                        self.lifecycleenvironment.search(name))
+                        self.lifecycleenvironment.get_entity(name))
 
     @run_only_on('sat')
     @tier2
@@ -75,7 +75,8 @@ class LifeCycleEnvironmentTestCase(UITestCase):
                 name=env1_name,
                 description=description
             )
-            self.assertIsNotNone(self.lifecycleenvironment.search(env1_name))
+            self.assertIsNotNone(
+                self.lifecycleenvironment.get_entity(env1_name))
             make_lifecycle_environment(
                 session,
                 org=self.org_name,
@@ -83,7 +84,8 @@ class LifeCycleEnvironmentTestCase(UITestCase):
                 description=description,
                 prior=env1_name,
             )
-            self.assertIsNotNone(self.lifecycleenvironment.search(env2_name))
+            self.assertIsNotNone(
+                self.lifecycleenvironment.get_entity(env2_name))
 
     @run_only_on('sat')
     @tier1
@@ -102,9 +104,9 @@ class LifeCycleEnvironmentTestCase(UITestCase):
                 name=name,
                 description=gen_string('alpha'),
             )
-            self.assertIsNotNone(self.lifecycleenvironment.search(name))
+            self.assertIsNotNone(self.lifecycleenvironment.get_entity(name))
             self.lifecycleenvironment.delete(name)
-            self.assertIsNone(self.lifecycleenvironment.search(name))
+            self.assertIsNone(self.lifecycleenvironment.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -120,13 +122,14 @@ class LifeCycleEnvironmentTestCase(UITestCase):
         with Session(self.browser) as session:
             make_lifecycle_environment(
                 session, org=self.org_name, name=name)
-            self.assertIsNotNone(self.lifecycleenvironment.search(name))
+            self.assertIsNotNone(self.lifecycleenvironment.get_entity(name))
             self.lifecycleenvironment.update(
                 name,
                 new_name,
                 gen_string('alpha')
             )
-            self.assertIsNotNone(self.lifecycleenvironment.search(new_name))
+            self.assertIsNotNone(
+                self.lifecycleenvironment.get_entity(new_name))
 
     @tier2
     @stubbed('Implement once BZ1348727 is fixed')

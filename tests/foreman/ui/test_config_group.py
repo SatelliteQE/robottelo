@@ -45,7 +45,7 @@ class ConfigGroupTestCase(UITestCase):
             for name in valid_data_list():
                 with self.subTest(name):
                     make_config_groups(session, name=name)
-                    self.assertIsNotNone(self.configgroups.search(name))
+                    self.assertIsNotNone(self.configgroups.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -63,7 +63,7 @@ class ConfigGroupTestCase(UITestCase):
                     make_config_groups(session, name=name)
                     self.assertIsNotNone(session.nav.wait_until_element(
                         common_locators['name_haserror']))
-                    self.assertIsNone(self.configgroups.search(name))
+                    self.assertIsNone(self.configgroups.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -80,9 +80,10 @@ class ConfigGroupTestCase(UITestCase):
             for new_name in generate_strings_list():
                 with self.subTest(new_name):
                     make_config_groups(session, name=name)
-                    self.assertIsNotNone(self.configgroups.search(name))
+                    self.assertIsNotNone(self.configgroups.get_entity(name))
                     self.configgroups.update(name, new_name)
-                    self.assertIsNotNone(self.configgroups.search(new_name))
+                    self.assertIsNotNone(
+                        self.configgroups.get_entity(new_name))
 
     @run_only_on('sat')
     @tier1

@@ -24,7 +24,7 @@ class ComputeProfile(Base):
 
     def update(self, old_name, new_name):
         """Updates existing compute profile entity"""
-        element = self.search(old_name)
+        element = self.get_entity(old_name)
         if element is None:
             raise UINoSuchElementError(
                 'Could not find compute profile {0}'.format(old_name))
@@ -54,7 +54,7 @@ class ComputeProfile(Base):
         :param res_type: Type of compute resource (e.g. 'Libvirt' or 'Docker')
 
         """
-        profile = self.search(profile_name)
+        profile = self.get_entity(profile_name)
         if profile is None:
             raise UINoSuchElementError(
                 u'Could not find the profile {0}'.format(profile_name))

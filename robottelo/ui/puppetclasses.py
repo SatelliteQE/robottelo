@@ -28,7 +28,7 @@ class PuppetClasses(Base):
 
     def update(self, old_name, new_name=None, new_env=None):
         """Updates the Puppet-classes."""
-        element = self.search(old_name)
+        element = self.get_entity(old_name)
         if element:
             element.click()
             if (self.wait_until_element(locators['puppetclass.name']) and
@@ -62,7 +62,7 @@ class PuppetClasses(Base):
     def update_class_parameter_description(
             self, class_name=None, parameter_name=None, description=None):
         """Updates the description field of a given puppet class parameter."""
-        puppet_class = self.search(class_name)
+        puppet_class = self.get_entity(class_name)
         if puppet_class is None:
             raise UINoSuchElementError(
                 "Couldn't find the puppet class '{0}'.".format(class_name)
@@ -84,7 +84,7 @@ class PuppetClasses(Base):
             self, class_name=None, parameter_name=None):
         """Fetches the description of a given puppet class parameter."""
         description = None
-        puppet_class = self.search(class_name)
+        puppet_class = self.get_entity(class_name)
         if puppet_class is None:
             raise UINoSuchElementError(
                 "Couldn't find the puppet class '{0}'.".format(class_name)

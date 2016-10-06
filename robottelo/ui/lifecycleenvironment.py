@@ -33,7 +33,7 @@ class LifecycleEnvironment(Base):
                 common_locators['description'], description)
         self.click(common_locators['create'])
 
-    def search(self, name):
+    def get_entity(self, name):
         """Search for an existing environment. It is necessary to use custom
         search here as we don't have search bar, search button and entities
         list.
@@ -47,7 +47,7 @@ class LifecycleEnvironment(Base):
         """Deletes an existing environment. We don't have confirmation dialog
         for current operation, so it is necessary to use custom method
         """
-        element = self.search(name)
+        element = self.get_entity(name)
         if not element:
             raise UINoSuchElementError(
                 'Could not find the %s lifecycle environment.' % name)
@@ -56,7 +56,7 @@ class LifecycleEnvironment(Base):
 
     def update(self, name, new_name=None, description=None):
         """Updates an existing environment."""
-        element = self.search(name)
+        element = self.get_entity(name)
         if not element:
             raise UINoSuchElementError(
                 'Could not find the %s lifecycle environment.' % name)

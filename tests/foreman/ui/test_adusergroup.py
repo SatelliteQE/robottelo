@@ -71,9 +71,9 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
     def tearDown(self):
         with Session(self.browser) as session:
             set_context(session, org=ANY_CONTEXT['org'])
-            if self.user.search(self.ldap_user_name):
+            if self.user.get_entity(self.ldap_user_name):
                 self.user.delete(self.ldap_user_name)
-            if self.usergroup.search(self.usergroup_name):
+            if self.usergroup.get_entity(self.usergroup_name):
                 self.usergroup.delete(self.usergroup_name, True)
         super(ActiveDirectoryUserGroupTestCase, self).tearDown()
 
@@ -83,8 +83,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
         procedures
         """
         strategy, value = locators['login.loggedin']
-        with Session(
-                self.browser, self.ldap_user_name, self.ldap_user_passwd):
+        credentials = (self.ldap_user_name, self.ldap_user_passwd)
+        with Session(self.browser, *credentials):
             self.assertIsNotNone(self.login.wait_until_element(
                 (strategy, value % self.ldap_user_name)
             ))
@@ -114,7 +114,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_usergrp='foobargroup',
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
-            self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            self.assertIsNotNone(
+                self.usergroup.get_entity(self.usergroup_name))
             set_context(session, org=ANY_CONTEXT['org'])
             self.user.update(
                 username=self.ldap_user_name,
@@ -168,7 +169,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_usergrp='foobargroup',
                 ext_authsourceid="LDAP-" + self.ldap_server_name,
             )
-            self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            self.assertIsNotNone(
+                self.usergroup.get_entity(self.usergroup_name))
             set_context(session, org=ANY_CONTEXT['org'])
             self.user.update(
                 username=self.ldap_user_name,
@@ -185,7 +187,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 (strategy, value % self.ldap_user_name)
             ))
             make_loc(session, name=location_name)
-            self.assertIsNotNone(self.location.search(location_name))
+            self.assertIsNotNone(self.location.get_entity(location_name))
 
     @tier2
     def test_positive_add_katello_role(self):
@@ -223,7 +225,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_usergrp='foobargroup',
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
-            self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            self.assertIsNotNone(
+                self.usergroup.get_entity(self.usergroup_name))
             set_context(session, org=ANY_CONTEXT['org'])
             self.user.update(
                 username=self.ldap_user_name,
@@ -232,12 +235,12 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 password_confirmation=self.ldap_user_passwd,
             )
         with Session(
-                self.browser,
-                self.ldap_user_name,
-                self.ldap_user_passwd
+            self.browser,
+            self.ldap_user_name,
+            self.ldap_user_passwd
         ) as session:
             make_org(session, org_name=org_name)
-            self.assertIsNotNone(self.org.search(org_name))
+            self.assertIsNotNone(self.org.get_entity(org_name))
 
     @tier1
     def test_positive_create_external(self):
@@ -261,7 +264,8 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_usergrp='foobargroup',
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
-            self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            self.assertIsNotNone(
+                self.usergroup.get_entity(self.usergroup_name))
 
     @tier1
     def test_negative_create_external_with_same_name(self):
@@ -288,7 +292,9 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_usergrp='foobargroup',
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
-            self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            self.assertIsNotNone(
+                self.usergroup.get_entity(self.usergroup_name)
+            )
             make_usergroup(
                 session,
                 name=new_usergroup_name,
@@ -296,7 +302,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_usergrp='foobargroup',
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
-            self.assertIsNone(self.usergroup.search(new_usergroup_name))
+            self.assertIsNone(self.usergroup.get_entity(new_usergroup_name))
 
     @tier1
     def test_negative_create_external_with_invalid_name(self):
@@ -324,7 +330,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.assertIsNotNone(self.usergroup.wait_until_element(
                 common_locators['haserror']
             ))
-            self.assertIsNone(self.usergroup.search(self.usergroup_name))
+            self.assertIsNone(self.usergroup.get_entity(self.usergroup_name))
 
     @stubbed()
     @tier2
@@ -394,7 +400,9 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_usergrp='foobargroup',
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
-            self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            self.assertIsNotNone(
+                self.usergroup.get_entity(self.usergroup_name)
+            )
             set_context(session, org=ANY_CONTEXT['org'])
             self.user.update(
                 username=self.ldap_user_name,
@@ -408,7 +416,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.ldap_user_passwd,
         ) as session:
             make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.search(loc_name))
+            self.assertIsNotNone(self.location.get_entity(loc_name))
         with Session(self.browser) as session:
             make_role(session, name=katello_role)
             self.role.update(
@@ -432,7 +440,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.ldap_user_passwd,
         ) as session:
             make_org(session, org_name=org_name)
-            self.assertIsNotNone(self.org.search(org_name))
+            self.assertIsNotNone(self.org.get_entity(org_name))
 
     @tier2
     def test_positive_delete_external_roles(self):
@@ -473,7 +481,9 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_usergrp='foobargroup',
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
-            self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            self.assertIsNotNone(
+                self.usergroup.get_entity(self.usergroup_name)
+            )
             set_context(session, org=ANY_CONTEXT['org'])
             self.user.update(
                 username=self.ldap_user_name,
@@ -548,7 +558,9 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
                 ext_usergrp='foobargroup',
                 ext_authsourceid='LDAP-' + self.ldap_server_name,
             )
-            self.assertIsNotNone(self.usergroup.search(self.usergroup_name))
+            self.assertIsNotNone(
+                self.usergroup.get_entity(self.usergroup_name)
+            )
             set_context(session, org=ANY_CONTEXT['org'])
             self.user.update(
                 username=self.ldap_user_name,
@@ -562,7 +574,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.ldap_user_passwd,
         ) as session:
             make_loc(session, name=loc_name)
-            self.assertIsNotNone(self.location.search(loc_name))
+            self.assertIsNotNone(self.location.get_entity(loc_name))
         with Session(self.browser) as session:
             make_role(session, name=katello_role)
             self.role.update(
@@ -583,7 +595,7 @@ class ActiveDirectoryUserGroupTestCase(UITestCase):
             self.ldap_user_passwd,
         ) as session:
             make_org(session, org_name=org_name)
-            self.assertIsNotNone(self.org.search(org_name))
+            self.assertIsNotNone(self.org.get_entity(org_name))
 
     @stubbed()
     @tier2

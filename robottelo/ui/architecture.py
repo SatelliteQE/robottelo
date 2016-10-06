@@ -42,7 +42,7 @@ class Architecture(Base):
     def update(self, old_name, new_name=None, os_names=None,
                new_os_names=None):
         """Update existing arch's name and OS"""
-        element = self.search(old_name)
+        element = self.get_entity(old_name)
 
         if element:
             element.click()

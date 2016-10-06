@@ -59,7 +59,7 @@ class Template(Base):
                template_path=None, template_type=None,
                os_list=None, new_os_list=None, clone=False):
         """Updates a given template."""
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         if new_name:
             self.field_update('provision.template_name', new_name)
         if template_path:
@@ -85,7 +85,7 @@ class Template(Base):
               template_path=None, template_type=None,
               os_list=None):
         """Clones a given template."""
-        self.search(name)
+        self.get_entity(name)
         self.click(locators['provision.template_clone'])
         if self.wait_until_element(
                 locators['provision.template_name']) is None:

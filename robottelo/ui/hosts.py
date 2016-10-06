@@ -124,7 +124,7 @@ class Hosts(Base):
                puppet_classes=None, interface_parameters=None,
                host_parameters=None):
         """Updates a Host."""
-        element = self.search(u'{0}.{1}'.format(name, domain_name))
+        element = self.get_entity(u'{0}.{1}'.format(name, domain_name))
         self.click(element)
         self.click(locators['host.edit'])
         if new_name:
@@ -201,7 +201,7 @@ class Hosts(Base):
 
         :param str name: Name of Host to read information from
         """
-        self.click(self.search(name))
+        self.click(self.get_entity(name))
         self.click(locators['host.yaml_button'])
         output = self.wait_until_element(locators['host.yaml_output']).text
         self.browser.back()
@@ -217,7 +217,7 @@ class Hosts(Base):
         :param bool hidden: Specify whether it is expected that read value is
             hidden on UI or not
         """
-        self.click(self.search(host_name))
+        self.click(self.get_entity(host_name))
         self.click(locators['host.edit'])
         self.click(tab_locators['host.tab_params'])
         if hidden:
@@ -238,7 +238,7 @@ class Hosts(Base):
         :param bool hidden: Specify whether it is expected that smart variable
             value is hidden on UI or not
         """
-        self.click(self.search(host_name))
+        self.click(self.get_entity(host_name))
         self.click(locators['host.edit'])
         self.click(tab_locators['host.tab_params'])
         if override:

@@ -20,7 +20,7 @@ class Bookmark(Base):
     def update(self, controller, name, new_name=None, new_query=None,
                new_public=None):
         """Updates a bookmark."""
-        element = self.search(controller, name)
+        element = self.get_entity(controller, name)
         self.click(element)
         self.wait_until_element(locators['bookmark.name'])
         if new_name is not None:
@@ -31,7 +31,7 @@ class Bookmark(Base):
             self.assign_value(locators['bookmark.public'], new_public)
         self.click(common_locators['submit'])
 
-    def search(self, controller, name):
+    def get_entity(self, controller, name):
         """Searches for existing bookmark via UI
 
         It is necessary to use a custom search as we don't have both search bar
@@ -52,7 +52,7 @@ class Bookmark(Base):
 
     def delete(self, controller, name, really=True):
         """Deletes a bookmark."""
-        searched = self.search(controller, name)
+        searched = self.get_entity(controller, name)
         if not searched:
             raise UIError(u'Could not find the bookmark "{0}"'.format(name))
         strategy, value = locators['bookmark.delete']
@@ -60,7 +60,7 @@ class Bookmark(Base):
         self.handle_alert(really)
         # Verify the bookmark was deleted
         for _ in range(3):
-            searched = self.search(controller, name)
+            searched = self.get_entity(controller, name)
             if bool(searched) != really:
                 break
             self.browser.refresh()
@@ -71,7 +71,7 @@ class Bookmark(Base):
 
     def validate_field(self, controller, name, field_name, expected_value):
         """Check that bookmark field has expected value"""
-        bm_element = self.search(controller, name)
+        bm_element = self.get_entity(controller, name)
         self.click(bm_element)
         self.wait_for_ajax()
         if field_name in ['name', 'query']:

@@ -60,7 +60,7 @@ class PartitionTableTestCase(UITestCase):
                         template_path=PARTITION_SCRIPT_DATA_FILE,
                         os_family='Red Hat'
                     )
-                    self.assertIsNotNone(self.partitiontable.search(name))
+                    self.assertIsNotNone(self.partitiontable.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -80,7 +80,7 @@ class PartitionTableTestCase(UITestCase):
                         template_path=PARTITION_SCRIPT_DATA_FILE,
                         os_family='Red Hat',
                     )
-                    self.assertIsNotNone(self.partitiontable.search(name))
+                    self.assertIsNotNone(self.partitiontable.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -99,7 +99,7 @@ class PartitionTableTestCase(UITestCase):
                 template_path=PARTITION_SCRIPT_DATA_FILE,
                 snippet=True,
             )
-            self.assertIsNotNone(self.partitiontable.search(name))
+            self.assertIsNotNone(self.partitiontable.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -121,7 +121,7 @@ class PartitionTableTestCase(UITestCase):
                         template_path=PARTITION_SCRIPT_DATA_FILE,
                         audit_comment=comment_text,
                     )
-                    self.assertIsNotNone(self.partitiontable.search(name))
+                    self.assertIsNotNone(self.partitiontable.get_entity(name))
 
     @run_only_on('sat')
     @tier2
@@ -146,9 +146,9 @@ class PartitionTableTestCase(UITestCase):
                 template_path=PARTITION_SCRIPT_DATA_FILE,
                 default=True,
             )
-            self.assertIsNotNone(self.partitiontable.search(name))
+            self.assertIsNotNone(self.partitiontable.get_entity(name))
             entities.Organization(name=org_name).create()
-            session.nav.click(self.org.search(org_name))
+            session.nav.click(self.org.get_entity(org_name))
             session.nav.click(tab_locators['context.tab_ptable'])
             # Item is listed in 'Selected Items' list and not 'All Items' list.
             self.assertIsNotNone(
@@ -178,9 +178,9 @@ class PartitionTableTestCase(UITestCase):
                 template_path=PARTITION_SCRIPT_DATA_FILE,
                 default=False,
             )
-            self.assertIsNotNone(self.partitiontable.search(name))
+            self.assertIsNotNone(self.partitiontable.get_entity(name))
             entities.Organization(name=org_name).create()
-            session.nav.click(self.org.search(org_name))
+            session.nav.click(self.org.get_entity(org_name))
             session.nav.click(tab_locators['context.tab_ptable'])
             # Item is listed in 'All Items' list and not Selected Items' list.
             self.assertIsNotNone(
@@ -210,9 +210,9 @@ class PartitionTableTestCase(UITestCase):
                 template_path=PARTITION_SCRIPT_DATA_FILE,
                 default=True,
             )
-            self.assertIsNotNone(self.partitiontable.search(name))
+            self.assertIsNotNone(self.partitiontable.get_entity(name))
             entities.Location(name=loc_name).create()
-            session.nav.click(self.location.search(loc_name))
+            session.nav.click(self.location.get_entity(loc_name))
             session.nav.click(tab_locators['context.tab_ptable'])
             # Item is listed in 'Selected Items' list and not 'All Items' list.
             self.assertIsNotNone(
@@ -242,9 +242,9 @@ class PartitionTableTestCase(UITestCase):
                 template_path=PARTITION_SCRIPT_DATA_FILE,
                 default=False,
             )
-            self.assertIsNotNone(self.partitiontable.search(name))
+            self.assertIsNotNone(self.partitiontable.get_entity(name))
             entities.Location(name=org_name).create()
-            session.nav.click(self.location.search(org_name))
+            session.nav.click(self.location.get_entity(org_name))
             session.nav.click(tab_locators['context.tab_ptable'])
             # Item is listed in 'All Items' list and not Selected Items' list.
             self.assertIsNotNone(
@@ -292,7 +292,7 @@ class PartitionTableTestCase(UITestCase):
                 template_path=PARTITION_SCRIPT_DATA_FILE,
                 os_family=os_family,
             )
-            self.assertIsNotNone(self.partitiontable.search(name))
+            self.assertIsNotNone(self.partitiontable.get_entity(name))
             make_partitiontable(
                 session,
                 name=name,
@@ -317,7 +317,7 @@ class PartitionTableTestCase(UITestCase):
                 session, name=name, template_path='', os_family='Red Hat')
             self.assertIsNotNone(self.partitiontable.wait_until_element
                                  (common_locators['haserror']))
-            self.assertIsNone(self.partitiontable.search(name))
+            self.assertIsNone(self.partitiontable.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -356,7 +356,7 @@ class PartitionTableTestCase(UITestCase):
                 template_path=PARTITION_SCRIPT_DATA_FILE,
                 os_family='Debian',
             )
-            self.assertIsNotNone(self.partitiontable.search(name))
+            self.assertIsNotNone(self.partitiontable.get_entity(name))
             for new_name in generate_strings_list():
                 with self.subTest(new_name):
                     self.partitiontable.update(
@@ -365,7 +365,8 @@ class PartitionTableTestCase(UITestCase):
                         new_template_path=PARTITION_SCRIPT_DATA_FILE,
                         new_os_family='Red Hat',
                     )
-                    self.assertIsNotNone(self.partitiontable.search(new_name))
+                    self.assertIsNotNone(
+                        self.partitiontable.get_entity(new_name))
                     name = new_name  # for next iteration
 
     @run_only_on('sat')
@@ -384,7 +385,7 @@ class PartitionTableTestCase(UITestCase):
                 name=name,
                 template_path=PARTITION_SCRIPT_DATA_FILE,
             )
-            self.assertIsNotNone(self.partitiontable.search(name))
+            self.assertIsNotNone(self.partitiontable.get_entity(name))
             for new_name in invalid_names_list():
                 with self.subTest(new_name):
                     self.partitiontable.update(name, new_name=new_name)
@@ -392,4 +393,4 @@ class PartitionTableTestCase(UITestCase):
                         self.partitiontable.wait_until_element(
                             common_locators['name_haserror'])
                     )
-                    self.assertIsNone(self.partitiontable.search(new_name))
+                    self.assertIsNone(self.partitiontable.get_entity(new_name))

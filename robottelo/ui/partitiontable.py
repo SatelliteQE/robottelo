@@ -59,7 +59,7 @@ class PartitionTable(Base):
                new_os_family=None, audit_comment=None, default=None,
                snippet=None):
         """Updates partition table parameters"""
-        self.click(self.search(old_name))
+        self.click(self.get_entity(old_name))
         if new_name:
             self.text_field_update(locators['ptable.name'], new_name)
         if new_template_path:

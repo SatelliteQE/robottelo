@@ -764,5 +764,5 @@ def make_smart_variable(
     core_factory(create_args, kwargs, session, page,
                  org=org, loc=loc, force_context=force_context)
     PuppetClasses(session.browser).click(
-        PuppetClasses(session.browser).search(kwargs['puppet_class']))
+        PuppetClasses(session.browser).get_entity(kwargs['puppet_class']))
     SmartVariable(session.browser).create(**create_args)

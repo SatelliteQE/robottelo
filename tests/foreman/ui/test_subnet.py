@@ -69,7 +69,7 @@ class SubnetTestCase(UITestCase):
                         subnet_network=gen_ipaddr(ip3=True),
                         subnet_mask=gen_netmask(),
                     )
-                    self.assertIsNotNone(self.subnet.search(name))
+                    self.assertIsNotNone(self.subnet.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -95,7 +95,7 @@ class SubnetTestCase(UITestCase):
                         subnet_mask=gen_netmask(),
                     )
                     self.assertIsNotNone(
-                        self.subnet.search(test_data['name']))
+                        self.subnet.get_entity(test_data['name']))
 
     @run_only_on('sat')
     @tier2
@@ -123,7 +123,7 @@ class SubnetTestCase(UITestCase):
                 subnet_mask=gen_netmask(),
                 domains=[domain.name],
             )
-            subnet = self.subnet.search(name)
+            subnet = self.subnet.get_entity(name)
             session.nav.click(subnet)
             session.nav.click(tab_locators['subnet.tab_domain'])
             element = session.nav.wait_until_element(

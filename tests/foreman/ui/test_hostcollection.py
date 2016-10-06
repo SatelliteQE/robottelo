@@ -81,7 +81,7 @@ class HostCollectionTestCase(UITestCase):
                 with self.subTest(name):
                     make_host_collection(
                         session, org=self.organization.name, name=name)
-                    self.assertIsNotNone(self.hostcollection.search(name))
+                    self.assertIsNotNone(self.hostcollection.get_entity(name))
 
     @tier1
     def test_positive_create_with_description(self):
@@ -99,7 +99,7 @@ class HostCollectionTestCase(UITestCase):
                 org=self.organization.name,
                 description=gen_string('alphanumeric'),
             )
-            self.assertIsNotNone(self.hostcollection.search(name))
+            self.assertIsNotNone(self.hostcollection.get_entity(name))
 
     @tier1
     def test_positive_create_with_limit(self):
@@ -113,7 +113,7 @@ class HostCollectionTestCase(UITestCase):
         with Session(self.browser) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name, limit='10')
-            self.assertIsNotNone(self.hostcollection.search(name))
+            self.assertIsNotNone(self.hostcollection.get_entity(name))
 
     @tier1
     def test_negative_create_with_name(self):
@@ -170,11 +170,13 @@ class HostCollectionTestCase(UITestCase):
         with Session(self.browser) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name)
-            self.assertIsNotNone(self.hostcollection.search(name))
+            self.assertIsNotNone(self.hostcollection.get_entity(name))
             for new_name in valid_data_list():
                 with self.subTest(new_name):
                     self.hostcollection.update(name, new_name=new_name)
-                    self.assertIsNotNone(self.hostcollection.search(new_name))
+                    self.assertIsNotNone(
+                        self.hostcollection.get_entity(new_name)
+                    )
                     name = new_name
 
     @tier1
@@ -193,7 +195,7 @@ class HostCollectionTestCase(UITestCase):
                 org=self.organization.name,
                 description=gen_string('alpha'),
             )
-            self.assertIsNotNone(self.hostcollection.search(name))
+            self.assertIsNotNone(self.hostcollection.get_entity(name))
             for new_desc in valid_data_list():
                 with self.subTest(new_desc):
                     self.hostcollection.update(name, description=new_desc)
@@ -216,7 +218,7 @@ class HostCollectionTestCase(UITestCase):
         with Session(self.browser) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name)
-            self.assertIsNotNone(self.hostcollection.search(name))
+            self.assertIsNotNone(self.hostcollection.get_entity(name))
             self.hostcollection.update(name, limit='25')
             self.assertIsNotNone(self.hostcollection.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -235,7 +237,7 @@ class HostCollectionTestCase(UITestCase):
         with Session(self.browser) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name, limit='15')
-            self.assertIsNotNone(self.hostcollection.search(name))
+            self.assertIsNotNone(self.hostcollection.get_entity(name))
             self.hostcollection.update(name, limit='Unlimited')
             self.assertIsNotNone(self.hostcollection.wait_until_element(
                 common_locators['alert.success_sub_form']))
@@ -254,7 +256,7 @@ class HostCollectionTestCase(UITestCase):
         with Session(self.browser) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name)
-            self.assertIsNotNone(self.hostcollection.search(name))
+            self.assertIsNotNone(self.hostcollection.get_entity(name))
             for new_name in invalid_names_list():
                 with self.subTest(new_name):
                     self.hostcollection.update(name, new_name=new_name)
@@ -275,7 +277,7 @@ class HostCollectionTestCase(UITestCase):
         with Session(self.browser) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name)
-            self.assertIsNotNone(self.hostcollection.search(name))
+            self.assertIsNotNone(self.hostcollection.get_entity(name))
             for limit in ' ', -1, 'text', '0':
                 with self.subTest(limit):
                     with self.assertRaises(ValueError):
@@ -294,7 +296,7 @@ class HostCollectionTestCase(UITestCase):
                 with self.subTest(name):
                     make_host_collection(
                         session, name=name, org=self.organization.name)
-                    self.assertIsNotNone(self.hostcollection.search(name))
+                    self.assertIsNotNone(self.hostcollection.get_entity(name))
                     self.hostcollection.delete(name)
 
     @tier1
@@ -309,12 +311,12 @@ class HostCollectionTestCase(UITestCase):
         with Session(self.browser) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name)
-            self.assertIsNotNone(self.hostcollection.search(name))
+            self.assertIsNotNone(self.hostcollection.get_entity(name))
             for new_name in valid_data_list():
                 with self.subTest(new_name):
                     self.hostcollection.copy(name, new_name)
                     self.assertIsNotNone(
-                        self.hostcollection.search(new_name))
+                        self.hostcollection.get_entity(new_name))
 
     @tier1
     def test_negative_copy(self):
@@ -328,7 +330,7 @@ class HostCollectionTestCase(UITestCase):
         with Session(self.browser) as session:
             make_host_collection(
                 session, name=name, org=self.organization.name)
-            self.assertIsNotNone(self.hostcollection.search(name))
+            self.assertIsNotNone(self.hostcollection.get_entity(name))
             for new_name in invalid_names_list():
                 with self.subTest(new_name):
                     self.hostcollection.copy(name, new_name)
@@ -470,7 +472,8 @@ class HostCollectionPackageManagementTest(UITestCase):
             client.install_katello_agent()
         host_ids = [
             entities.Host().search(query={
-                'search': 'name={0}'.format(host.hostname)})[0].id
+                'search': 'name={0}'.format(host.hostname)
+            })[0].id
             for host in self.hosts
         ]
         self.host_collection = entities.HostCollection(
@@ -492,8 +495,7 @@ class HostCollectionPackageManagementTest(UITestCase):
             for _ in range(timeout / 15):
                 result = self.contenthost.package_search(
                     host.hostname, package_name)
-                if (result is not None and expected_installed or
-                        result is None and not expected_installed):
+                if bool(result) ^ bool(expected_installed):
                     break
                 sleep(15)
             else:

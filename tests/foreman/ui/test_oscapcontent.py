@@ -60,7 +60,7 @@ class OpenScapContentTestCase(UITestCase):
                         content_path=self.content_path,
                     )
                     self.assertIsNotNone(
-                        self.oscapcontent.search(content_name))
+                        self.oscapcontent.get_entity(content_name))
 
     @skip_if_bug_open('bugzilla', 1289571)
     @tier1
@@ -106,9 +106,9 @@ class OpenScapContentTestCase(UITestCase):
         """
         # see BZ 1336374
         with Session(self.browser):
-            self.assertIsNotNone(self.oscapcontent.search(
+            self.assertIsNotNone(self.oscapcontent.get_entity(
                 OSCAP_DEFAULT_CONTENT['rhel7_content']))
-            self.assertIsNotNone(self.oscapcontent.search(
+            self.assertIsNotNone(self.oscapcontent.get_entity(
                 OSCAP_DEFAULT_CONTENT['rhel6_content']))
 
     @tier2
@@ -138,7 +138,7 @@ class OpenScapContentTestCase(UITestCase):
             self.oscapcontent.update(content_name, content_org=org.name)
             session.nav.go_to_select_org(org.name)
             self.assertIsNotNone(
-                self.oscapcontent.search(content_name))
+                self.oscapcontent.get_entity(content_name))
 
     @tier1
     def test_positive_delete(self):
@@ -163,5 +163,5 @@ class OpenScapContentTestCase(UITestCase):
                         content_path=self.content_path,
                     )
                     self.assertIsNotNone(
-                        self.oscapcontent.search(content_name))
+                        self.oscapcontent.get_entity(content_name))
                     self.oscapcontent.delete(content_name)

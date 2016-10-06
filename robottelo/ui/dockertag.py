@@ -19,8 +19,9 @@ class DockerTag(Base):
         """Specify locator for Docker Tag entity search procedure"""
         return locators['dockertag.select_name']
 
-    def search(self, name, product_name, repo_name):
+    def get_entity(self, name, product_name, repo_name):
         """Use custom search as entity locator value depends on docker tag
         name, product name and repository name.
         """
-        return super(DockerTag, self).search((name, product_name, repo_name))
+        return super(DockerTag, self).get_entity(
+            (name, product_name, repo_name))

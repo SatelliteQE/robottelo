@@ -89,7 +89,7 @@ class OperatingSystemTestCase(UITestCase):
                         os_family='Red Hat',
                         archs=['x86_64'],
                     )
-                    self.assertIsNotNone(self.operatingsys.search(name))
+                    self.assertIsNotNone(self.operatingsys.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -113,7 +113,7 @@ class OperatingSystemTestCase(UITestCase):
                         archs=['i386'],
                     )
                     self.operatingsys.search_key = 'description'
-                    self.assertIsNotNone(self.operatingsys.search(
+                    self.assertIsNotNone(self.operatingsys.get_entity(
                         test_data['desc']))
 
     @run_only_on('sat')
@@ -163,7 +163,7 @@ class OperatingSystemTestCase(UITestCase):
             )
             self.assertIsNotNone(self.operatingsys.wait_until_element
                                  (common_locators['haserror']))
-            self.assertIsNone(self.operatingsys.search(name))
+            self.assertIsNone(self.operatingsys.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -189,7 +189,7 @@ class OperatingSystemTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.operatingsys.wait_until_element(
                         common_locators['haserror']))
-                    self.assertIsNone(self.operatingsys.search(name))
+                    self.assertIsNone(self.operatingsys.get_entity(name))
 
     @run_only_on('sat')
     @tier1
@@ -215,7 +215,7 @@ class OperatingSystemTestCase(UITestCase):
                     )
                     self.assertIsNotNone(self.operatingsys.wait_until_element(
                         common_locators['haserror']))
-                    self.assertIsNone(self.operatingsys.search(name))
+                    self.assertIsNone(self.operatingsys.get_entity(name))
 
     @run_only_on('sat')
     @tier2
@@ -240,7 +240,7 @@ class OperatingSystemTestCase(UITestCase):
                 os_family='Red Hat',
                 archs=['x86_64']
             )
-            self.assertIsNotNone(self.operatingsys.search(name))
+            self.assertIsNotNone(self.operatingsys.get_entity(name))
             make_os(
                 session,
                 name=name,
@@ -287,7 +287,7 @@ class OperatingSystemTestCase(UITestCase):
                         os_family=test_data['os_family'],
                         new_archs=[entities.Architecture().create().name],
                     )
-                    self.assertIsNotNone(self.operatingsys.search(
+                    self.assertIsNotNone(self.operatingsys.get_entity(
                         test_data['name']))
                     os_name = test_data['name']
 
