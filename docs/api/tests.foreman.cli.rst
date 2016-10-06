@@ -163,6 +163,11 @@
 
 .. automodule:: tests.foreman.cli.test_operatingsystem
 
+:mod:`tests.foreman.cli.test_oscap`
+-----------------------------------
+
+.. automodule:: tests.foreman.cli.test_oscap
+
 :mod:`tests.foreman.cli.test_ostreebranch`
 ------------------------------------------
 
