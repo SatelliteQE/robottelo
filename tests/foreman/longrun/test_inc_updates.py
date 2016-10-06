@@ -13,7 +13,7 @@ from robottelo.api.utils import (
     enable_rhrepo_and_fetchid, promote, upload_manifest
 )
 from robottelo.cli.contentview import ContentView as ContentViewCLI
-from robottelo.constants import PRD_SETS
+from robottelo.constants import PRD_SETS, DISTRO_RHEL6
 from robottelo.decorators import (
     run_only_on,
     skip_if_bug_open,
@@ -179,7 +179,7 @@ class IncrementalUpdateTestCase(TestCase):
         # Register the first vm with rhel_6_ak and the other two vms with
         # rhel_6_partial_ak
         cls.vm = [
-            VirtualMachine(distro='rhel67', tag='incupdate')
+            VirtualMachine(distro=DISTRO_RHEL6, tag='incupdate')
             for _ in range(3)
         ]
         cls.setup_vm(cls.vm[0], rhel_6_ak.name, cls.org.label)

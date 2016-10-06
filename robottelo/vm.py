@@ -15,14 +15,12 @@ import time
 
 from robottelo import ssh
 from robottelo.config import settings
+from robottelo.constants import DISTRO_RHEL6, DISTRO_RHEL7
 from robottelo.helpers import install_katello_ca, remove_katello_ca
 
 BASE_IMAGES = (
-    'rhel65',
-    'rhel66',
-    'rhel67',
-    'rhel70',
-    'rhel71',
+    DISTRO_RHEL6,
+    DISTRO_RHEL7,
 )
 
 logger = logging.getLogger(__name__)
@@ -402,10 +400,10 @@ class VirtualMachine(object):
 
         # Red Hat Access Insights requires RHEL 6/7 repo and it is not
         # possible to sync the repo during the tests, Adding repo file.
-        if rhel_distro == 'rhel67':
+        if rhel_distro == DISTRO_RHEL6:
             rhel_repo = settings.rhel6_repo
             insights_repo = settings.rhai.insights_client_el6repo
-        if rhel_distro == 'rhel71':
+        if rhel_distro == DISTRO_RHEL7:
             rhel_repo = settings.rhel7_repo
             insights_repo = settings.rhai.insights_client_el7repo
 
