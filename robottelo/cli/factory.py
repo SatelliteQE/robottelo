@@ -24,7 +24,11 @@ from robottelo.cli.architecture import Architecture
 from robottelo.cli.base import CLIReturnCodeError
 from robottelo.cli.computeresource import ComputeResource
 from robottelo.cli.contenthost import ContentHost
-from robottelo.cli.contentview import ContentView
+from robottelo.cli.contentview import (
+    ContentView,
+    ContentViewFilter,
+    ContentViewFilterRule,
+)
 from robottelo.cli.discoveryrule import DiscoveryRule
 from robottelo.cli.docker import DockerContainer, DockerRegistry
 from robottelo.cli.domain import Domain
@@ -318,6 +322,115 @@ def make_content_view(options=None):
     }
 
     return create_object(ContentView, args, options)
+
+
+@cacheable
+def make_content_view_filter(options=None):
+    """
+    Usage::
+
+        content-view filter create [OPTIONS]
+
+    Options::
+
+        --content-view CONTENT_VIEW_NAME        Content view name to search by
+        --content-view-id CONTENT_VIEW_ID       content view numeric identifier
+        --description DESCRIPTION               description of the filter
+        --inclusion INCLUSION                   specifies if content should be
+                                                included or excluded, default:
+                                                 inclusion=false
+                                                One of true/false, yes/no, 1/0.
+        --name NAME                             name of the filter
+        --organization ORGANIZATION_NAME        Organization name to search by
+        --organization-id ORGANIZATION_ID       Organization ID to search by
+        --organization-label ORGANIZATION_LABEL Organization label to search by
+        --original-packages ORIGINAL_PACKAGES   add all packages without errata
+                                                to the included/ excluded list.
+                                                (package filter only)
+                                                One of true/false, yes/no, 1/0.
+        --repositories REPOSITORY_NAMES         Comma separated list of values.
+        --repository-ids REPOSITORY_IDS         list of repository ids
+                                                Comma separated list of values.
+        --type TYPE                             type of filter (e.g. rpm,
+                                                package_group, erratum)
+        -h, --help                              print help
+
+    """
+
+    args = {
+        u'content-view': None,
+        u'content-view-id': None,
+        u'description': None,
+        u'inclusion': None,
+        u'name': gen_string('alpha', 10),
+        u'organization': None,
+        u'organization-id': None,
+        u'organization-label': None,
+        u'original-packages': None,
+        u'repositories': None,
+        u'repository-ids': None,
+        u'type': None,
+    }
+
+    return create_object(ContentViewFilter, args, options)
+
+
+@cacheable
+def make_content_view_filter_rule(options=None):
+    """
+    Usage::
+
+        content-view filter rule create [OPTIONS]
+
+    Options::
+
+        --content-view CONTENT_VIEW_NAME        Content view name to search by
+        --content-view-filter CONTENT_VIEW_FILTER_NAME  Name to search by
+        --content-view-filter-id CONTENT_VIEW_FILTER_ID filter identifier
+        --content-view-id CONTENT_VIEW_ID       content view numeric identifier
+        --date-type DATE_TYPE                   erratum: search using the
+                                                'Issued On' or 'Updated On'
+                                                column of the errata.
+                                                Values are 'issued'/'updated'
+        --end-date END_DATE                     erratum: end date (YYYY-MM-DD)
+        --errata-id ERRATA_ID                   erratum: id
+        --errata-ids ERRATA_IDS                 erratum: IDs or a select all
+                                                object
+                                                Comma separated list of values.
+        --max-version MAX_VERSION               package: maximum version
+        --min-version MIN_VERSION               package: minimum version
+        --name NAME                             package and package group names
+                                                Comma separated list of values.
+        --names NAMES                           Package and package group names
+        --start-date START_DATE                 erratum: start date
+                                                (YYYY-MM-DD)
+        --types TYPES                           erratum: types (enhancement,
+                                                bugfix, security)
+                                                Comma separated list of values.
+        --version VERSION                       package: version
+        -h, --help                              print help
+
+    """
+
+    args = {
+        u'content-view': None,
+        u'content-view-filter': None,
+        u'content-view-filter-id': None,
+        u'content-view-id': None,
+        u'date-type': None,
+        u'end-date': None,
+        u'errata-id': None,
+        u'errata-ids': None,
+        u'max-version': None,
+        u'min-version': None,
+        u'name': None,
+        u'names': None,
+        u'start-date': None,
+        u'types': None,
+        u'version': None,
+    }
+
+    return create_object(ContentViewFilterRule, args, options)
 
 
 @cacheable
