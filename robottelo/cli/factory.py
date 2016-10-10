@@ -34,6 +34,7 @@ from robottelo.cli.gpgkey import GPGKey
 from robottelo.cli.host import Host
 from robottelo.cli.hostcollection import HostCollection
 from robottelo.cli.hostgroup import HostGroup
+from robottelo.cli.job_invocation import JobInvocation
 from robottelo.cli.job_template import JobTemplate
 from robottelo.cli.lifecycleenvironment import LifecycleEnvironment
 from robottelo.cli.location import Location
@@ -1222,6 +1223,78 @@ def make_host_collection(options=None):
     }
 
     return create_object(HostCollection, args, options)
+
+
+@cacheable
+def make_job_invocation(options=None):
+    """
+    Usage::
+
+        hammer job-invocation create
+
+    Options::
+
+         --async                                  Do not wait for the task
+         --bookmark BOOKMARK_NAME                 Name to search by
+         --bookmark-id BOOKMARK_ID
+         --concurrency-level CONCURRENCY_LEVEL    Run at most N tasks at a time
+         --cron-line CRONLINE                     Create a recurring execution
+         --description-format DESCRIPTION_FORMAT  Override the description
+                                                  format from the template for
+                                                  this invocation only
+         --dynamic                                Dynamic search queries are
+                                                  evaluated at run time
+         --effective-user EFFECTIVE_USER          What user should be used to
+                                                  run the script (using
+                                                  sudo-like mechanisms).
+         --end-time DATETIME                      Perform no more executions
+                                                  after this time, used with
+                                                  --cron-line (YYYY-MM-DD
+                                                  HH:MM:SS or ISO 8601 format)
+         --input-files INPUT FILES                Read input values from files
+                                                  Comma-separated list of
+                                                  key=file, where file is a
+                                                  path to a text file
+         --inputs INPUTS                          Inputs from command line
+                                                  Comma-separated list of
+                                                  key=value.
+         --job-template JOB_TEMPLATE_NAME         Name to search by
+         --job-template-id JOB_TEMPLATE_ID
+         --max-iteration MAX_ITERATION            Repeat a maximum of N times
+         --search-query SEARCH_QUERY
+         --start-at DATETIME                      Schedule the execution for
+                                                  a later time in
+                                                  YYYY-MM-DD HH:MM:SS
+                                                  or ISO 8601
+         --start-before DATETIME                  Execution should be cancelled
+                                                  if it cannot be started
+                                                  before specified datetime
+         --time-span TIME_SPAN                    Distribute tasks over
+                                                  N seconds
+    """
+
+    args = {
+        u'async': None,
+        u'bookmark': None,
+        u'bookmark-id': None,
+        u'concurrency-level': None,
+        u'cron-line': None,
+        u'description-format': None,
+        u'dynamic': None,
+        u'effective-user': None,
+        u'end-time': None,
+        u'input-files': None,
+        u'inputs': None,
+        u'job-template': None,
+        u'job-template-id': None,
+        u'max-iteration': None,
+        u'search-query': None,
+        u'start-at': None,
+        u'start-before': None,
+        u'time-span': None,
+    }
+
+    return create_object(JobInvocation, args, options)
 
 
 @cacheable
